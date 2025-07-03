@@ -31,14 +31,10 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
-<<<<<<< HEAD
 import {
   areAddressesEqual,
   safeToChecksumAddress,
 } from '../../../util/address';
-=======
-import { areAddressesEqual } from '../../../util/address';
->>>>>>> stable
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -76,16 +72,12 @@ import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-<<<<<<< HEAD
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-=======
-import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
->>>>>>> stable
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -425,55 +417,7 @@ class Asset extends PureComponent {
             mutableTx.insertImportTime = true;
           }
 
-<<<<<<< HEAD
           return mutableTx;
-=======
-      submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
-        if (!areAddressesEqual(from, this.selectedAddress)) {
-          return false;
-        }
-        const alreadySubmitted = submittedNonces.includes(nonce);
-        const alreadyConfirmed = confirmedTxs.find(
-          (confirmedTransaction) =>
-            areAddressesEqual(
-              confirmedTransaction.txParams.from,
-              this.selectedAddress,
-            ) && confirmedTransaction.txParams.nonce === nonce,
-        );
-        if (alreadyConfirmed) {
-          return false;
-        }
-        submittedNonces.push(nonce);
-        return !alreadySubmitted;
-      });
-
-      // If the account added "Insert Point" is not found add it to the last transaction
-      if (
-        !accountAddedTimeInsertPointFound &&
-        filteredTransactions &&
-        filteredTransactions.length
-      ) {
-        filteredTransactions[
-          filteredTransactions.length - 1
-        ].insertImportTime = true;
-      }
-      // To avoid extra re-renders we want to set the new txs only when
-      // there's a new tx in the history or the status of one of the existing txs changed
-      if (
-        (this.txs.length === 0 && !this.state.transactionsUpdated) ||
-        this.txs.length !== filteredTransactions.length ||
-        this.chainId !== chainId ||
-        this.didTxStatusesChange(newPendingTxs)
-      ) {
-        this.txs = filteredTransactions;
-        this.txsPending = newPendingTxs;
-        this.setState({
-          transactionsUpdated: true,
-          loading: false,
-          transactions: filteredTransactions,
-          submittedTxs,
-          confirmedTxs,
->>>>>>> stable
         });
 
         if (
@@ -711,7 +655,6 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-<<<<<<< HEAD
 let cachedFilteredTransactions = null;
 let cacheKey = null;
 
@@ -848,36 +791,6 @@ const mapStateToProps = (state, { route }) => {
     networkClientId: selectNetworkClientId(state),
   };
 };
-=======
-const mapStateToProps = (state, { route }) => ({
-  swapsIsLive: getSwapsIsLive(state, route.params.chainId),
-  swapsTokens: isPortfolioViewEnabled()
-    ? swapsTokensMultiChainObjectSelector(state)
-    : swapsTokensObjectSelector(state),
-  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(
-    state,
-    route.params.chainId,
-  ),
-  swapsTransactions: selectSwapsTransactions(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
-  chainId: selectChainId(state),
-  tokens: selectTokens(state),
-  transactions: selectTransactions(state),
-  rpcUrl: selectRpcUrl(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  isNetworkRampSupported: isNetworkRampSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  networkClientId: selectNetworkClientId(state),
-});
->>>>>>> stable
 
 const mapDispatchToProps = (dispatch) => ({
   setLiveness: (chainId, featureFlags) =>

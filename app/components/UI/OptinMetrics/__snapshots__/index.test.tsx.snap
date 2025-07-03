@@ -385,17 +385,11 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 }
                               }
                             >
-<<<<<<< HEAD
                               <SvgMock
                                 color="#1c7e33"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
-=======
-                              <Text
-                                allowFontScaling={false}
-                                selectable={false}
->>>>>>> stable
                                 style={
                                   {
                                     "height": 24,
@@ -460,17 +454,11 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 }
                               }
                             >
-<<<<<<< HEAD
                               <SvgMock
                                 color="#1c7e33"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
-=======
-                              <Text
-                                allowFontScaling={false}
-                                selectable={false}
->>>>>>> stable
                                 style={
                                   {
                                     "height": 24,
@@ -535,17 +523,11 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 }
                               }
                             >
-<<<<<<< HEAD
                               <SvgMock
                                 color="#1c7e33"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
-=======
-                              <Text
-                                allowFontScaling={false}
-                                selectable={false}
->>>>>>> stable
                                 style={
                                   {
                                     "height": 24,

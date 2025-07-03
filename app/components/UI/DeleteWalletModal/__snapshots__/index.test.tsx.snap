@@ -302,57 +302,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                     }
                   }
                 >
-<<<<<<< HEAD
                   <View
-=======
-                  <Text
-                    allowFontScaling={false}
-                    selectable={false}
-                    style={
-                      [
-                        {
-                          "color": "#ca3542",
-                          "fontSize": 46,
-                        },
-                        {
-                          "alignSelf": "center",
-                          "color": "#ca3542",
-                          "marginVertical": 10,
-                        },
-                        {
-                          "fontFamily": "FontAwesome",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Bold",
-                          "fontSize": 20,
-                          "fontWeight": "600",
-                          "lineHeight": 26,
-                          "marginHorizontal": 6,
-                          "textAlign": "center",
-                        },
-                        {
-                          "color": "#ca3542",
-                          "marginHorizontal": 24,
-                        },
-                      ]
-                    }
-                  >
-                    Are you sure you want to erase your wallet?
-                  </Text>
-                  <Text
->>>>>>> stable
                     style={
                       {
                         "flex": 1,

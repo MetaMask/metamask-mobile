@@ -40,7 +40,6 @@ import {
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
   getTransactionById,
-<<<<<<< HEAD
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
   isLegacyTransaction,
@@ -67,13 +66,6 @@ import {
   TransactionEnvelopeType,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-=======
-  isLegacyTransaction
-} from '.';
-import Engine from '../../core/Engine';
-import { strings } from '../../../locales/i18n';
-import { TransactionType, TransactionEnvelopeType, TransactionMeta } from '@metamask/transaction-controller';
->>>>>>> stable
 import { Provider } from '@metamask/network-controller';
 import BigNumber from 'bignumber.js';
 
@@ -1365,11 +1357,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1377,11 +1365,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx2', mockTransactionController);
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     expect(result).toEqual(mockTransactions[1]);
   });
 
@@ -1391,11 +1375,7 @@ describe('Transactions utils :: getTransactionById', () => {
       { id: 'tx2', value: '0x2' },
       { id: 'tx3', value: '0x3' },
     ];
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     const mockTransactionController = {
       state: {
         transactions: mockTransactions,
@@ -1403,11 +1383,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('nonexistent', mockTransactionController);
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     expect(result).toBeUndefined();
   });
 
@@ -1419,11 +1395,7 @@ describe('Transactions utils :: getTransactionById', () => {
     };
 
     const result = getTransactionById('tx1', mockTransactionController);
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     expect(result).toBeUndefined();
   });
 });
@@ -1475,7 +1447,6 @@ describe('Transactions utils :: isLegacyTransaction', () => {
 
   it('returns false for transactionMeta without txParams', () => {
     const transactionMeta = {};
-<<<<<<< HEAD
     expect(
       isLegacyTransaction(transactionMeta as Partial<TransactionMeta>),
     ).toBe(false);
@@ -2239,8 +2210,5 @@ describe('Transactions utils :: isSmartContractAddress', () => {
       customNetworkClientId,
     );
     expect(result).toBe(true);
-=======
-    expect(isLegacyTransaction(transactionMeta as Partial<TransactionMeta>)).toBe(false);
->>>>>>> stable
   });
 });

@@ -159,11 +159,7 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> stable
     // Get the current app version and migration version
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
@@ -175,17 +171,10 @@ describe('Engine', () => {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
         previousMigrationVersion: 0, // This will be managed by the controller
-<<<<<<< HEAD
         currentMigrationVersion,
       },
     };
 
-=======
-        currentMigrationVersion
-      }
-    };
-    
->>>>>>> stable
     expect(initialBackgroundState).toStrictEqual(expectedState);
   });
 

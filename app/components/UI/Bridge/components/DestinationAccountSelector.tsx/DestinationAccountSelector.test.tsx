@@ -16,7 +16,6 @@ jest.mock('../../../../../core/Engine', () => {
         state: {
           internalAccounts: {
             accounts: {
-<<<<<<< HEAD
               'mock-account-id-1': {
                 id: 'mock-account-id-1',
                 address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
@@ -42,15 +41,6 @@ jest.mock('../../../../../core/Engine', () => {
                 options: {
                   entropySource: '01JNG71B7GTWH0J1TSJY9891S0',
                 },
-=======
-              '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
-                address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                name: 'Account 1',
-              },
-              '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
-                address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                name: 'Account 2',
->>>>>>> stable
               },
             },
             selectAccount: 'mock-account-id-1',

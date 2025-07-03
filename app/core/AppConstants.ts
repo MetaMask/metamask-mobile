@@ -143,13 +143,9 @@ export default {
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     SMART_ACCOUNTS: 'https://metamask.io/smart-accounts/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
-<<<<<<< HEAD
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
-=======
-    ADD_SOLANA_ACCOUNT_PRIVACY_POLICY: 'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts'
->>>>>>> stable
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

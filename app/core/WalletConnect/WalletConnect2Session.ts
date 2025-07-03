@@ -4,11 +4,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-<<<<<<< HEAD
 import { CaipChainId, Hex } from '@metamask/utils';
-=======
-import { CaipChainId } from '@metamask/utils';
->>>>>>> stable
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
@@ -121,11 +117,7 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-<<<<<<< HEAD
           hostname: this.hostname,
-=======
-          hostname: getHostname(url),
->>>>>>> stable
           getProviderState,
           channelId,
           analytics: {},
@@ -153,7 +145,6 @@ class WalletConnect2Session {
     this.checkPendingRequests();
     this.lastChainId = this.getCurrentChainId()
     // Subscribe to store changes to detect chain switches
-<<<<<<< HEAD
     store.subscribe(this.onStoreChange.bind(this));
   }
 
@@ -204,21 +195,6 @@ class WalletConnect2Session {
     //Casting is required, because caipnetwork config has duplicate types and we assume the correct one is Hex
     const { rpcEndpoints: [{ networkClientId }] } = networkConfigurationsByChainId[chainId as Hex];
     return networkClientId;
-=======
-    store.subscribe(() => {
-      const newChainId = selectEvmChainId(store.getState());
-      if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-        this.lastChainId = newChainId;
-        const decimalChainId = parseInt(newChainId, 16);
-        this.handleChainChange(decimalChainId).catch((error) => {
-          console.warn(
-            'WC2::store.subscribe Error handling chain change:',
-            error,
-          );
-        });
-      }
-    });
->>>>>>> stable
   }
 
   /** Check for pending unresolved requests */
@@ -445,25 +421,12 @@ class WalletConnect2Session {
         return;
       }
 
-<<<<<<< HEAD
       DevLogger.log(
         `WC2::updateSession origin=${this.origin} hostname=${this.hostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
         const approvedAccounts = getPermittedAccounts(this.hostname);
-=======
-      // const origin = normalizeOrigin(this.session.peer.metadata.url);
-      const origin = this.session.peer.metadata.url;
-      const hostname = getHostname(origin);
-
-      DevLogger.log(
-        `WC2::updateSession origin=${origin} hostname=${hostname} - chainId=${chainId} - accounts=${accounts}`,
-      );
-
-      if (accounts.length === 0) {
-        const approvedAccounts = getPermittedAccounts(hostname);
->>>>>>> stable
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -488,11 +451,7 @@ class WalletConnect2Session {
         );
       }
 
-<<<<<<< HEAD
       const namespaces = await getScopedPermissions({ origin: this.origin });
-=======
-      const namespaces = await getScopedPermissions({ origin });
->>>>>>> stable
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
         namespaces,

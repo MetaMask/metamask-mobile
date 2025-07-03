@@ -1,14 +1,10 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-<<<<<<< HEAD
 import {
   KeyringMetadata,
   KeyringObject,
   KeyringTypes,
 } from '@metamask/keyring-controller';
-=======
-import { KeyringMetadata, KeyringObject } from '@metamask/keyring-controller';
->>>>>>> stable
 import { selectHDKeyrings } from '../../selectors/keyringController';
 import { selectInternalAccounts } from '../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -30,14 +26,10 @@ export const useHdKeyringsWithSnapAccounts = () => {
       const entropySource = account.options?.entropySource as
         | string
         | undefined;
-<<<<<<< HEAD
       if (
         entropySource &&
         account.metadata.keyring.type === KeyringTypes.snap
       ) {
-=======
-      if (entropySource) {
->>>>>>> stable
         if (!accountsByEntropySource.has(entropySource)) {
           accountsByEntropySource.set(entropySource, []);
         }

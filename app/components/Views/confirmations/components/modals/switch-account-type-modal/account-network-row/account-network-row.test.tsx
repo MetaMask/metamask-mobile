@@ -1,17 +1,12 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-<<<<<<< HEAD
 import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
 import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
-=======
-import { EIP7702NetworkConfiguration } from '../../../../hooks/useEIP7702Networks';
-import AccountNetworkRow from './account-network-row';
->>>>>>> stable
 
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
@@ -32,7 +27,6 @@ const MOCK_NETWORK = {
   ],
 } as unknown as EIP7702NetworkConfiguration;
 
-<<<<<<< HEAD
 const MOCK_ADDRESS = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
 
 const mockDowngradeAccount = jest.fn().mockResolvedValue(undefined);
@@ -89,13 +83,6 @@ describe('Account Network Row', () => {
     const { getByText } = renderWithProvider(
       <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
       { state: MOCK_STATE },
-=======
-describe('Account Network Row', () => {
-  it('renders correctly for smart account', () => {
-    const { getByText } = renderWithProvider(
-      <AccountNetworkRow network={MOCK_NETWORK} />,
-      {},
->>>>>>> stable
     );
 
     expect(getByText('Smart Account')).toBeTruthy();
@@ -104,22 +91,16 @@ describe('Account Network Row', () => {
 
   it('renders correctly for standard account', () => {
     const { getByText } = renderWithProvider(
-<<<<<<< HEAD
       <AccountNetworkRow
         address={MOCK_ADDRESS}
         network={{ ...MOCK_NETWORK, isSupported: false }}
       />,
       { state: MOCK_STATE },
-=======
-      <AccountNetworkRow network={{ ...MOCK_NETWORK, isSupported: false }} />,
-      {},
->>>>>>> stable
     );
 
     expect(getByText('Standard Account')).toBeTruthy();
     expect(getByText('Switch')).toBeTruthy();
   });
-<<<<<<< HEAD
 
   describe('Multichain Accounts Design', () => {
     it('renders network name correctly', () => {
@@ -306,6 +287,4 @@ describe('Account Network Row', () => {
       expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
     });
   });
-=======
->>>>>>> stable
 });

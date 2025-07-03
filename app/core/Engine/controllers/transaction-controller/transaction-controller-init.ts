@@ -127,11 +127,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
-<<<<<<< HEAD
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
-=======
-        publicKeyEIP7702: process.env.EIP_7702_PUBLIC_KEY as Hex | undefined,
->>>>>>> stable
       });
 
     addTransactionControllerListeners({

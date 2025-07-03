@@ -471,7 +471,6 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
-<<<<<<< HEAD
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
@@ -488,8 +487,6 @@ enum EVENT_NAME {
   DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED = 'Deep Link Public Modal Continue Clicked',
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Checked',
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Unchecked',
-=======
->>>>>>> stable
 }
 
 enum ACTIONS {
@@ -1168,7 +1165,6 @@ const events = {
   // Bridge
   BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
-<<<<<<< HEAD
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
@@ -1216,8 +1212,6 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-=======
->>>>>>> stable
 };
 
 /**

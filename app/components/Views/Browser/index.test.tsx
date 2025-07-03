@@ -14,7 +14,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { act } from '@testing-library/react';
-<<<<<<< HEAD
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -27,9 +26,6 @@ import { ToastContext } from '../../../component-library/components/Toast/Toast.
 import { parseCaipAccountId } from '@metamask/utils';
 
 jest.useFakeTimers();
-=======
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
->>>>>>> stable
 
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
@@ -38,7 +34,6 @@ jest.mock('../../hooks/useAccounts', () => ({
     ensByAccountAddress: {},
   }),
 }));
-<<<<<<< HEAD
 
 jest.mock('../../../core/Permissions', () => ({
   // Mock specific named exports. Add others if Browser.js uses them.
@@ -55,8 +50,6 @@ jest.mock('../../UI/Tabs/TabThumbnail/TabThumbnail', () => ({
   __esModule: true,
   default: jest.fn(() => 'TabThumbnail'),
 }));
-=======
->>>>>>> stable
 
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '', isArchived: false },
@@ -102,13 +95,10 @@ jest.mock('../../../core/Engine', () => {
         }),
       },
       AccountsController: mockAccountsControllerState,
-<<<<<<< HEAD
       PermissionsController: {
         getCaveat: jest.fn(), // Default mock, can be configured in tests
         getPermittedAccountsByHostname: jest.fn(),
       },
-=======
->>>>>>> stable
     },
   };
 });

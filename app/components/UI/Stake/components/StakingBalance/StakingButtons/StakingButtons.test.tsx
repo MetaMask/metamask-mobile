@@ -15,7 +15,6 @@ import {
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
-<<<<<<< HEAD
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
 import {
   selectPooledStakingEnabledFlag,
@@ -26,16 +25,10 @@ import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
-=======
-import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
->>>>>>> stable
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
 >;
-<<<<<<< HEAD
 
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
   Ethereum: '2.3',
@@ -79,8 +72,6 @@ jest.mock('../../../../../../selectors/earnController', () => ({
     }),
   },
 }));
-=======
->>>>>>> stable
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -89,10 +80,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
-<<<<<<< HEAD
   selectStablecoinLendingEnabledFlag: jest.fn(),
-=======
->>>>>>> stable
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -156,14 +144,11 @@ describe('StakingButtons', () => {
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
-<<<<<<< HEAD
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-=======
->>>>>>> stable
   });
 
   it('should render the stake and unstake buttons', () => {

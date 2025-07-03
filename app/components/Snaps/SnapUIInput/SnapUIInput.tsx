@@ -19,10 +19,7 @@ export interface SnapUIInputProps {
   style?: ViewStyle;
   disabled?: boolean;
   keyboardType?: KeyboardTypeOptions;
-<<<<<<< HEAD
   testID?: string;
-=======
->>>>>>> stable
 }
 
 export const SnapUIInput = ({
@@ -33,10 +30,7 @@ export const SnapUIInput = ({
   style,
   disabled,
   keyboardType,
-<<<<<<< HEAD
   testID,
-=======
->>>>>>> stable
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =

@@ -153,7 +153,6 @@ describe('useTokenRatesPolling', () => {
     );
     expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(0);
   });
-<<<<<<< HEAD
 
   it('polls with provided chain ids', () => {
     renderHookWithProvider(
@@ -175,6 +174,4 @@ describe('useTokenRatesPolling', () => {
       chainIds: ['0x89'],
     });
   });
-=======
->>>>>>> stable
 });

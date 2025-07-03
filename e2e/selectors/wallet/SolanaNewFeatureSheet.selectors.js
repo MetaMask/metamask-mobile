@@ -13,8 +13,4 @@ export const SolanaNewFeatureSheetSelectorsText = {
   TITLE: 'Solana is here!',
   DESCRIPTION: 'Create, send, and receive Solana tokens in MetaMask',
   CREATE_ACCOUNT_BUTTON: 'Create Solana Account',
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> stable

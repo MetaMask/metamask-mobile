@@ -34,13 +34,8 @@ import { selectMultichainAssetsRates } from '../../../../../selectors/multichain
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
-<<<<<<< HEAD
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
-=======
-import parseAmount from '../../../Ramp/utils/parseAmount';
-import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
->>>>>>> stable
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;

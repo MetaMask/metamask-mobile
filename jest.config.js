@@ -37,7 +37,6 @@ const config = {
     '<rootDir>/app/lib/ppom/ppom.html.js',
     '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
-    '<rootDir>/app/declarations/index.d.ts',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

@@ -1,15 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-<<<<<<< HEAD
 import {
   CaipAssetId,
   CaipAssetType,
   Hex,
   isCaipChainId,
 } from '@metamask/utils';
-=======
-import { CaipAssetId, Hex, isCaipChainId } from '@metamask/utils';
->>>>>>> stable
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';

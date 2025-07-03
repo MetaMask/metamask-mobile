@@ -939,7 +939,6 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   selectable={false}
-<<<<<<< HEAD
                                   style={
                                     [
                                       {
@@ -1005,8 +1004,6 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   selectable={false}
-=======
->>>>>>> stable
                                   style={
                                     [
                                       {

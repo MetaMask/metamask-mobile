@@ -286,6 +286,7 @@ const Login: React.FC = () => {
     } catch (loginErr: unknown) {
       const loginError = loginErr as Error;
       const loginErrorMessage = loginError.toString();
+
       if (
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||

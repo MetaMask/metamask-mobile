@@ -28,19 +28,8 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
-<<<<<<< HEAD
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
-=======
-import { TokenI } from '../../../Tokens/types';
-import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { EVENT_LOCATIONS } from '../../constants/events';
-import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
-import { useSelector } from 'react-redux';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
->>>>>>> stable
 
 export interface StakingEarningsProps {
   asset: TokenI;

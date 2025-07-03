@@ -372,7 +372,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       }
                       testID="network-container"
                     >
-<<<<<<<< HEAD:app/components/UI/CaipAccountSelectorList/__snapshots__/CaipAccountSelectorList.test.tsx.snap
                       <View
                         style={
                           {
@@ -383,18 +382,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                         testID="avatar-group-container"
                       />
                     </View>
-========
-                      1 ETH
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    />
->>>>>>>> stable:app/components/UI/CaipAccountSelectorList/__snapshots__/AccountSelectorList.test.tsx.snap
                   </View>
                 </View>
               </View>
@@ -788,7 +775,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       }
                       testID="network-container"
                     >
-<<<<<<<< HEAD:app/components/UI/CaipAccountSelectorList/__snapshots__/CaipAccountSelectorList.test.tsx.snap
                       <View
                         style={
                           {
@@ -799,18 +785,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                         testID="avatar-group-container"
                       />
                     </View>
-========
-                      2 ETH
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    />
->>>>>>>> stable:app/components/UI/CaipAccountSelectorList/__snapshots__/AccountSelectorList.test.tsx.snap
                   </View>
                 </View>
               </View>
@@ -2000,7 +1974,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       }
                       testID="network-container"
                     >
-<<<<<<<< HEAD:app/components/UI/CaipAccountSelectorList/__snapshots__/CaipAccountSelectorList.test.tsx.snap
                       <View
                         style={
                           {
@@ -2011,18 +1984,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                         testID="avatar-group-container"
                       />
                     </View>
-========
-                      1 ETH
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    />
->>>>>>>> stable:app/components/UI/CaipAccountSelectorList/__snapshots__/AccountSelectorList.test.tsx.snap
                   </View>
                 </View>
               </View>
@@ -2416,7 +2377,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       }
                       testID="network-container"
                     >
-<<<<<<<< HEAD:app/components/UI/CaipAccountSelectorList/__snapshots__/CaipAccountSelectorList.test.tsx.snap
                       <View
                         style={
                           {
@@ -2427,18 +2387,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                         testID="avatar-group-container"
                       />
                     </View>
-========
-                      2 ETH
-                    </Text>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    />
->>>>>>>> stable:app/components/UI/CaipAccountSelectorList/__snapshots__/AccountSelectorList.test.tsx.snap
                   </View>
                 </View>
               </View>
@@ -2475,7 +2423,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
             <SvgMock
               color="#121314"
               fill="currentColor"
-<<<<<<<< HEAD:app/components/UI/CaipAccountSelectorList/__snapshots__/CaipAccountSelectorList.test.tsx.snap
               height={16}
               name="MoreVertical"
               style={
@@ -3315,8 +3262,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
             <SvgMock
               color="#121314"
               fill="currentColor"
-========
->>>>>>>> stable:app/components/UI/CaipAccountSelectorList/__snapshots__/AccountSelectorList.test.tsx.snap
               height={16}
               name="MoreVertical"
               style={

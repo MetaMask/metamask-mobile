@@ -593,11 +593,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#b7bbc866",
-<<<<<<< HEAD
                                       "borderRadius": 12,
-=======
-                                      "borderRadius": 20,
->>>>>>> stable
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,
@@ -649,11 +645,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#b7bbc866",
-<<<<<<< HEAD
                                       "borderRadius": 12,
-=======
-                                      "borderRadius": 20,
->>>>>>> stable
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,

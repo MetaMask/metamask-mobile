@@ -29,10 +29,7 @@ import { Skeleton } from '../../../component-library/components/Skeleton';
 import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
-<<<<<<< HEAD
 import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
-=======
->>>>>>> stable
 
 export const safeComponentList = {
   BottomSheetFooter,

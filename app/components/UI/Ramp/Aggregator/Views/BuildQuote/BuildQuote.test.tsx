@@ -21,19 +21,11 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx
 import { toTokenMinimalUnit } from '../../../../../../util/number';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
-=======
-import { toTokenMinimalUnit } from '../../../../../util/number';
-import { RampType } from '../../../../../reducers/fiatOrders/types';
-import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { trace, endTrace, TraceName } from '../../../../../util/trace';
->>>>>>> stable:app/components/UI/Ramp/Views/BuildQuote/BuildQuote.test.tsx
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -272,11 +264,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx
 jest.mock('../../../../../../util/trace', () => ({
-=======
-jest.mock('../../../../../util/trace', () => ({
->>>>>>> stable:app/components/UI/Ramp/Views/BuildQuote/BuildQuote.test.tsx
   trace: jest.fn(),
   endTrace: jest.fn(),
   TraceName: {

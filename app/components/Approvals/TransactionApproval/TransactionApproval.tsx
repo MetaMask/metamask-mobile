@@ -34,13 +34,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   }, [propsOnComplete]);
 
   if (
-<<<<<<< HEAD
     (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !isQRSigning) ||
-=======
-    (approvalRequest?.type !== ApprovalTypes.TRANSACTION &&
-      !modalVisible &&
-      !isQRSigning) ||
->>>>>>> stable
     isRedesignedEnabled
   ) {
     return null;

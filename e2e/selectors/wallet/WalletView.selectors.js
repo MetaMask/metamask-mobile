@@ -68,17 +68,12 @@ export const WalletViewSelectorsIDs = {
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id) => `carousel-slide-${id}`,
   CAROUSEL_SLIDE_TITLE: (id) => `carousel-slide-${id}-title`,
-<<<<<<< HEAD
   CAROUSEL_SLIDE_CLOSE_BUTTON: (id) => `carousel-slide-${id}-close-button`,
 
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
-=======
-  CAROUSEL_SLIDE_CLOSE_BUTTON: (id) =>
-    `carousel-slide-${id}-close-button`,
->>>>>>> stable
 };
 
 export const WalletViewSelectorsText = {

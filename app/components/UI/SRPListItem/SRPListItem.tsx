@@ -24,11 +24,8 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
-<<<<<<< HEAD
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-=======
->>>>>>> stable
 
 const SRPListItem = ({
   name,
@@ -51,7 +48,6 @@ const SRPListItem = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-<<<<<<< HEAD
 
   const handleSRPSelection = () => {
     trackEvent(
@@ -69,12 +65,6 @@ const SRPListItem = ({
   return (
     <TouchableWithoutFeedback
       onPress={handleSRPSelection}
-=======
-
-  return (
-    <TouchableWithoutFeedback
-      onPress={() => onActionComplete(keyring.metadata.id)}
->>>>>>> stable
       testID={
         testID ??
         `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`

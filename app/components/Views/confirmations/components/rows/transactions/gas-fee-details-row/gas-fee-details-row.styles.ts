@@ -13,11 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
     secondaryValue: {
       color: theme.colors.text.alternative,
       ...fontStyles.normal,
-<<<<<<< HEAD:app/components/Views/confirmations/components/rows/transactions/gas-fee-details-row/gas-fee-details-row.styles.ts
       marginRight: 4,
-=======
-      marginRight: 8,
->>>>>>> stable:app/components/Views/confirmations/components/rows/transactions/gas-fee-details/gas-fee-details.styles.ts
     },
     valueContainer: {
       display: 'flex',

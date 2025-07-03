@@ -467,10 +467,7 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
-<<<<<<< HEAD
     "minimumBalanceForRentExemptionInLamports": "0",
-=======
->>>>>>> stable
     "quoteFetchError": null,
     "quoteRequest": {
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"

@@ -152,7 +152,6 @@ describe('useConfirmationLocation', () => {
     expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.TRANSFER);
   });
 
-<<<<<<< HEAD
   it.each([
     [TransactionType.tokenMethodApprove],
     [TransactionType.tokenMethodSetApprovalForAll],
@@ -174,9 +173,6 @@ describe('useConfirmationLocation', () => {
   });
 
   it('defaults to CONTRACT_INTERACTION for unknown transaction types', () => {
-=======
-  it('returns undefined for transaction approvals with unknown transaction type', () => {
->>>>>>> stable
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({
         type: ApprovalType.Transaction,

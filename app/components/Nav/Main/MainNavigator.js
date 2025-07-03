@@ -97,11 +97,8 @@ import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
-<<<<<<< HEAD
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
-=======
->>>>>>> stable
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -671,11 +668,7 @@ const SendFlowView = () => (
       options={Confirm.navigationOptions}
     />
     <Stack.Screen
-<<<<<<< HEAD
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-=======
-      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
->>>>>>> stable
       component={RedesignedConfirm}
     />
   </Stack.Navigator>
@@ -918,7 +911,6 @@ const MainNavigator = () => (
       component={TurnOnBackupAndSync}
       options={TurnOnBackupAndSync.navigationOptions}
     />
-<<<<<<< HEAD
     <Stack.Screen
       name="DeFiProtocolPositionDetails"
       component={DeFiProtocolPositionDetails}
@@ -926,8 +918,6 @@ const MainNavigator = () => (
         headerShown: true,
       }}
     />
-=======
->>>>>>> stable
   </Stack.Navigator>
 );
 

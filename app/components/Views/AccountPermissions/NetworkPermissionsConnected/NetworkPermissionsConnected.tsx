@@ -49,10 +49,7 @@ import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwit
 import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { toHex } from '@metamask/controller-utils';
-<<<<<<< HEAD
 import { parseCaipChainId } from '@metamask/utils';
-=======
->>>>>>> stable
 
 // Needs to be updated to handle non-evm
 const NetworkPermissionsConnected = ({

@@ -14,7 +14,6 @@ import {
 } from 'react-native-device-info';
 
 // Mock the required dependencies
-<<<<<<< HEAD
 jest.mock('react-native-blob-util', () => {
   const fsMock = {
     dirs: {
@@ -35,16 +34,6 @@ jest.mock('react-native-blob-util', () => {
     fs: fsMock,
   };
 });
-=======
-jest.mock('react-native-blob-util', () => ({
-  fs: {
-    dirs: {
-      DocumentDir: '/mock/docs',
-    },
-    writeFile: jest.fn(),
-  },
-}));
->>>>>>> stable
 
 jest.mock('react-native-share', () => ({
   open: jest.fn(),

@@ -25,13 +25,6 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-<<<<<<< HEAD
-=======
-
-  // Selectors returning state updated by the polling
-  const conversionRate = useSelector(selectConversionRate);
-  const currencyRates = useSelector(selectCurrencyRates);
->>>>>>> stable
 
   // if all networks are selected, poll all popular networks
   const networkConfigurationsToPoll =
@@ -78,11 +71,7 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       CurrencyRateController.stopPollingByPollingToken.bind(
         CurrencyRateController,
       ),
-<<<<<<< HEAD
     input,
-=======
-    input: isEvmSelected ? [{ nativeCurrencies }] : [],
->>>>>>> stable
   });
 };
 

@@ -63,13 +63,6 @@ import {
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
-<<<<<<< HEAD
-=======
-  selectTokens,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectTransformedTokens,
-  ///: END:ONLY_INCLUDE_IF
->>>>>>> stable
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -125,16 +118,12 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
-<<<<<<< HEAD
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-=======
-import { toFormattedAddress } from '../../../util/address';
->>>>>>> stable
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -274,11 +263,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-<<<<<<< HEAD
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
-=======
-  const { trackEvent, createEventBuilder } = useMetrics();
->>>>>>> stable
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
@@ -296,30 +281,7 @@ const Wallet = ({
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-<<<<<<< HEAD
 
-=======
-  /**
-   * An array that represents the user tokens
-   */
-  const tokens = useSelector(selectTokens);
-  /**
-   * An array that represents the user tokens by chainId and address
-   */
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
-  ///: END:ONLY_INCLUDE_IF
-  /**
-   * Current provider ticker
-   */
-  const ticker = useSelector(selectEvmTicker);
-  /**
-   * Current onboarding wizard step
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wizardStep = useSelector((state: any) => state.wizard.step);
->>>>>>> stable
   /**
    * Provider configuration for the current selected network
    */
@@ -698,28 +660,6 @@ const Wallet = ({
     selectedNetworkClientId,
   ]);
 
-<<<<<<< HEAD
-=======
-  const renderTabBar = useCallback(
-    (props: Record<string, unknown>) => (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.default}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          tabPadding={16}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
-    ),
-    [styles, colors],
-  );
-
->>>>>>> stable
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
     try {
       return {
@@ -733,11 +673,7 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-<<<<<<< HEAD
     async (obj: ChangeTabProperties) => {
-=======
-    async (obj: { ref: { props: { tabLabel: string } } }) => {
->>>>>>> stable
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
@@ -812,29 +748,6 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
-<<<<<<< HEAD
-=======
-  const collectibleContractsTabProps = useMemo(
-    () => ({
-      key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  function renderTokensContent() {
-    return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {isEvmSelected && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
-    );
-  }
-
->>>>>>> stable
   const renderContent = useCallback(
     () => (
       <View
@@ -871,7 +784,6 @@ const Wallet = ({
         </>
       </View>
     ),
-<<<<<<< HEAD
     [
       styles.banner,
       styles.carouselContainer,
@@ -882,26 +794,6 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
-=======
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      tokens,
-      accountBalanceByChainId,
-      styles,
-      colors,
-      basicFunctionalityEnabled,
-      turnOnBasicFunctionality,
-      onChangeTab,
-      navigation,
-      ticker,
-      conversionRate,
-      currentCurrency,
-      contractBalances,
-      isEvmSelected,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      tokensByChainIdAndAddress,
-      ///: END:ONLY_INCLUDE_IF
->>>>>>> stable
     ],
   );
   const renderLoader = useCallback(

@@ -106,7 +106,6 @@ await Assertions.checkIfObjectsMatch(
 4. Use appropriate assertions to verify event properties
 5. Consider testing both positive and negative cases (e.g., with and without metrics opt-in)
 
-<<<<<<< HEAD
 ## Important: MetaMetrics Opt-in State
 
 When testing Segment events, it's crucial to ensure the MetaMetrics opt-in state is properly set. There are two scenarios to consider:
@@ -136,16 +135,10 @@ await withFixtures({
 
 Without this, Segment events will not be sent even if `sendMetaMetricsinE2E: true` is set in launch arguments.
 
-=======
->>>>>>> stable
 ## Troubleshooting
 
 If events are not being captured:
 1. Verify `sendMetaMetricsinE2E: true` is set in `launchArgs`
 2. Check mock server setup
-<<<<<<< HEAD
 3. Ensure correct event names are being used
 4. If using injected state without onboarding, verify `withMetaMetricsOptIn()` is called
-=======
-3. Ensure correct event names are being used
->>>>>>> stable

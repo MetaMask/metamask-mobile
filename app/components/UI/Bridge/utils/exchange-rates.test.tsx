@@ -1,11 +1,7 @@
 import '../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
-<<<<<<< HEAD
 import { handleFetch } from '@metamask/controller-utils';
-=======
-import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
->>>>>>> stable
 import { getDisplayCurrencyValue, fetchTokenExchangeRates } from './exchange-rates';
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 
@@ -370,12 +366,7 @@ describe('exchange-rates', () => {
           '0x456': 2.5,
         };
         (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(mockResponse);
-<<<<<<< HEAD
 
-=======
-        (toChecksumHexAddress as jest.Mock).mockResolvedValue(mockResponse);
-        
->>>>>>> stable
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,

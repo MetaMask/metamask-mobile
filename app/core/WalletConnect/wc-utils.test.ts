@@ -303,11 +303,7 @@ describe('WalletConnect Utils', () => {
       // Verify addPermittedChain was called with the right parameters
       expect(mockUpdatePermittedChain).toHaveBeenCalledWith(
         'test-dapp.com',
-<<<<<<< HEAD
         ['eip155:3']
-=======
-        ['0x3']
->>>>>>> stable
       );
       expect(switchToNetwork).toHaveBeenCalled();
       expect(result).toBe(true);

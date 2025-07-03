@@ -210,20 +210,6 @@ const buildInpageBridgeTask = {
     // Ensure the build type is passed to the script
     const buildType = process.env.METAMASK_BUILD_TYPE || '';
     await $({ env: { METAMASK_BUILD_TYPE: buildType } })`./scripts/build-inpage-bridge.sh`;
-<<<<<<< HEAD
-=======
-  },
-};
-
-const nodeifyTask = {
-  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-  title: 'Nodeify npm packages',
-  task: async (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping nodeifying npm packages.');
-    }
-    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
->>>>>>> stable
   },
 };
 

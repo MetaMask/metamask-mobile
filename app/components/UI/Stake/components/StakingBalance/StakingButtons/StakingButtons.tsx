@@ -17,14 +17,7 @@ import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featu
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
-<<<<<<< HEAD
 import styleSheet from './StakingButtons.styles';
-=======
-import Engine from '../../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { TokenI } from '../../../../Tokens/types';
-import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
->>>>>>> stable
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;

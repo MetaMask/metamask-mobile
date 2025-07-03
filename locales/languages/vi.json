@@ -37,7 +37,6 @@
       "title": "Không đủ tiền",
       "message": "Bạn không có đủ %{nativeCurrency} trong tài khoản để thanh toán phí mạng.",
       "buy_action": "Mua %{nativeCurrency}"
-<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Một giao dịch trước đó vẫn đang được ký hoặc gửi."
@@ -50,8 +49,6 @@
     "batched_unused_approvals": {
       "title": "Quyền không cần thiết",
       "message": "Bạn đang cấp cho người khác quyền rút token của bạn, mặc dù điều đó không cần thiết cho giao dịch này."
-=======
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -596,7 +593,6 @@
     "multisrp": {
       "title": "Thêm nhiều Cụm từ khôi phục bí mật",
       "subtitle": "Nhập và sử dụng nhiều ví trong MetaMask"
-<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana hiện đã được hỗ trợ",
@@ -605,8 +601,6 @@
     "backupAndSync": {
       "title": "Giới thiệu về sao lưu và đồng bộ",
       "subtitle": "Sao lưu tài khoản và đồng bộ chế độ cài đặt của bạn."
-=======
->>>>>>> stable
     }
   },
   "wallet": {
@@ -980,13 +974,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Tạo tài khoản {{clientType}} thất bại"
-<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Cần có tài khoản Solana để kết nối với trang web này.",
       "button": "Tạo tài khoản Solana"
-=======
->>>>>>> stable
     }
   },
   "toast": {
@@ -4135,27 +4126,19 @@
       "permit_revoke": "Xóa quyền",
       "permit_NFTs": "Yêu cầu rút tiền",
       "signature_siwe": "Yêu cầu đăng nhập",
-<<<<<<< HEAD
       "contract_interaction": "Yêu cầu giao dịch",
       "transfer": "Yêu cầu chuyển tiền",
       "switch_account_type": "Cập nhật tài khoản",
       "approve": "Approve request"
-=======
-      "contract_interaction": "Yêu cầu giao dịch"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
       "permit_NFTs": "Trang web này muốn được cấp quyền rút NFT của bạn.",
       "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
       "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này.",
-<<<<<<< HEAD
       "contract_interaction": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
       "switch_to_smart_account": "Bạn đang chuyển sang tài khoản thông minh.",
       "switch_to_standard_account": "Bạn đang chuyển về tài khoản tiêu chuẩn (EOA)."
-=======
-      "contract_interaction": "Xem lại thông tin yêu cầu trước khi bạn xác nhận."
->>>>>>> stable
     },
     "request_from": "Yêu cầu từ",
     "staking_from": "Ký gửi từ",
@@ -4226,7 +4209,6 @@
       "includes_transaction": "Bao gồm {{transactionCount}} giao dịch"
     },
     "unlimited": "Không giới hạn",
-<<<<<<< HEAD
     "all": "Tất cả",
     "none": "Không có",
     "advanced_details": "Chi tiết nâng cao",
@@ -4236,12 +4218,6 @@
     "transferRequest": "Yêu cầu chuyển tiền",
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Transaction"
-=======
-    "none": "Không có",
-    "advanced_details": "Chi tiết nâng cao",
-    "interacting_with": "Tương tác với",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -4292,7 +4268,6 @@
     "bridge_to": "Cầu nối đến",
     "title": "Cầu nối",
     "submitting_transaction": "Đang gửi",
-<<<<<<< HEAD
     "fetching_quote": "Tìm nạp báo giá",
     "fee_disclaimer": "Bao gồm phí MM 0,875%",
     "hardware_wallet_not_supported": "Ví cứng hiện chưa được hỗ trợ. Hãy sử dụng ví nóng để tiếp tục.",
@@ -4302,14 +4277,6 @@
     "title": "Đã có báo giá mới",
     "description": "Tỷ giá được cập nhật mỗi {{refreshRate}} giây, hãy nhấn Nhận báo giá mới khi bạn sẵn sàng.",
     "get_new_quote": "Nhận báo giá mới"
-=======
-    "fetching_quote": "Tìm nạp báo giá"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
->>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Trạng thái",
@@ -4325,7 +4292,6 @@
     "transaction_details": "Chi tiết giao dịch",
     "bridge_to_chain": "Cầu nối đến {{chainName}}",
     "recipient": "Người nhận"
-<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Sao lưu và đồng bộ",
@@ -4442,7 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
->>>>>>> stable
   }
 }

@@ -55,15 +55,11 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-<<<<<<< HEAD
 import {
   getCaip25PermissionFromLegacyPermissions,
   rejectOriginPendingApprovals,
   requestPermittedChainsPermissionIncremental,
 } from '../../util/permissions';
-=======
-import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
->>>>>>> stable
 import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../util/permissions', () => ({
@@ -301,8 +297,8 @@ function setupGlobalState({
     .mockImplementation(() => ({
       browser: activeTab
         ? {
-          activeTab,
-        }
+            activeTab,
+          }
         : {},
       engine: {
         backgroundState: {
@@ -1839,154 +1835,6 @@ describe('getRpcMethodMiddlewareHooks', () => {
       hooks.rejectApprovalRequestsForOrigin();
 
       expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(testOrigin);
-    });
-  });
-});
-
-describe('getRpcMethodMiddlewareHooks', () => {
-  const testOrigin = 'https://test.com';
-  const hooks = getRpcMethodMiddlewareHooks(testOrigin);
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Your mocks will go here
-  });
-
-  describe('getCaveat', () => {
-    it('should return caveat when permission exists', () => {
-      const mockCaveat = {
-        value: { optionalScopes: { 'eip155:1': { accounts: [] } } },
-      };
-
-      MockEngine.context.PermissionController.getCaveat.mockReturnValue(
-        mockCaveat as unknown as ReturnType<
-          typeof MockEngine.context.PermissionController.getCaveat
-        >,
-      );
-
-      const params = {
-        target: Caip25EndowmentPermissionName,
-        caveatType: Caip25CaveatType,
-      };
-
-      const result = hooks.getCaveat(params);
-
-      expect(
-        MockEngine.context.PermissionController.getCaveat,
-      ).toHaveBeenCalledWith(testOrigin, params.target, params.caveatType);
-      expect(result).toEqual(mockCaveat);
-    });
-
-    it('should return undefined when permission does not exist', () => {
-      const params = {
-        target: Caip25EndowmentPermissionName,
-        caveatType: Caip25CaveatType,
-      };
-
-      MockEngine.context.PermissionController.getCaveat.mockImplementation(
-        () => {
-          throw new PermissionDoesNotExistError(testOrigin, params.target);
-        },
-      );
-
-      const result = hooks.getCaveat(params);
-      expect(result).toBeUndefined();
-    });
-
-    it('should propagate unexpected errors', () => {
-      const params = {
-        target: Caip25EndowmentPermissionName,
-        caveatType: Caip25CaveatType,
-      };
-
-      MockEngine.context.PermissionController.getCaveat.mockImplementation(
-        () => {
-          throw new Error('Unexpected error');
-        },
-      );
-
-      expect(() => hooks.getCaveat(params)).toThrow('Unexpected error');
-    });
-  });
-
-  describe('requestPermittedChainsPermissionIncrementalForOrigin', () => {
-    it('should call requestPermittedChainsPermissionIncremental with correct params', () => {
-      const options = {
-        origin: 'https://other-origin.com', // This should be overridden
-        chainId: toHex('0x1'),
-        autoApprove: true,
-      };
-
-      const mockRequestPermittedChainsPermissionIncremental = requestPermittedChainsPermissionIncremental as jest.Mock;
-      hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
-
-      expect(
-        mockRequestPermittedChainsPermissionIncremental,
-      ).toHaveBeenCalledWith({
-        ...options,
-        origin: testOrigin,
-      });
-    });
-  });
-
-  describe('hasApprovalRequestsForOrigin', () => {
-    it('should call ApprovalController.has with correct origin', () => {
-      hooks.hasApprovalRequestsForOrigin();
-
-      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
-        origin: testOrigin,
-      });
-    });
-  });
-
-  describe('getCurrentChainIdForDomain', () => {
-    it('should return chainId for the given domain', () => {
-      const domain = 'test.domain';
-      const networkClientId = 'mainnet';
-      const networkConfig = { chainId: '0x1' };
-
-      MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
-        networkClientId,
-      );
-      MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
-        networkConfig as ReturnType<
-          typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
-        >,
-      );
-
-      const result = hooks.getCurrentChainIdForDomain(domain);
-
-      expect(
-        MockEngine.context.SelectedNetworkController
-          .getNetworkClientIdForDomain,
-      ).toHaveBeenCalledWith(domain);
-      expect(
-        MockEngine.context.NetworkController
-          .getNetworkConfigurationByNetworkClientId,
-      ).toHaveBeenCalledWith(networkClientId);
-      expect(result).toBe('0x1');
-    });
-  });
-
-  describe('getNetworkConfigurationByChainId', () => {
-    it('should call the bound method with correct chainId', () => {
-      const chainId = '0x1';
-
-      hooks.getNetworkConfigurationByChainId(chainId);
-
-      expect(
-        MockEngine.context.NetworkController.getNetworkConfigurationByChainId,
-      ).toHaveBeenCalledWith(chainId);
-    });
-  });
-
-  describe('rejectApprovalRequestsForOrigin', () => {
-    it('should call "rejectOriginPendingApprovals" with correct origin', () => {
-      hooks.rejectApprovalRequestsForOrigin();
-
-      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(
-        testOrigin,
-      );
     });
   });
 });

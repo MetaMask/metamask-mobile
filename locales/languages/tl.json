@@ -34,7 +34,6 @@
       "message": "Ang site na humihiling ay hindi ang site kung saan ka nagsa-sign in. Maaaring isa itong pagtatangkang nakawin ang iyong mga kredensyal sa pag-login."
     },
     "insufficient_balance": {
-<<<<<<< HEAD
       "title": "Hindi sapat ang pondo",
       "message": "Wala kang sapat na %{nativeCurrency} sa iyong account para bayaran ang mga bayarin sa network.",
       "buy_action": "Bumili ng %{nativeCurrency}"
@@ -50,11 +49,6 @@
     "batched_unused_approvals": {
       "title": "Hindi kinakailangang pahintulot",
       "message": "Binibigyan mo ang ibang tao ng pahintulot na magwithdraw ng iyong mga token, kahit na hindi ito kinakailangan para sa transaksyong ito."
-=======
-      "title": "Insufficient funds",
-      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
-      "buy_action": "Buy %{nativeCurrency}"
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -106,19 +100,11 @@
     "connector": "sa"
   },
   "autocomplete": {
-<<<<<<< HEAD
     "placeholder": "Maghanap ayon sa token, site o address",
     "recents": "Mga Kamakailan",
     "favorites": "Mga Paborito",
     "sites": "Mga Site",
     "tokens": "Mga Token"
-=======
-    "placeholder": "Search by token, site or address",
-    "recents": "Mga Kamakailan",
-    "favorites": "Mga Paborito",
-    "sites": "Mga Site",
-    "tokens": "Tokens"
->>>>>>> stable
   },
   "navigation": {
     "back": "Bumalik",
@@ -987,15 +973,11 @@
       "solana_account_name": "Solana Account"
     },
     "error_messages": {
-<<<<<<< HEAD
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
     },
     "account_connect_create_initial_account": {
       "description": "Ang Solana account ay kinakailangan para makakonekta sa site na ito.",
       "button": "Gumawa ng Solana account"
-=======
-      "failed_to_create_account": "Failed to create {{clientType}} account"
->>>>>>> stable
     }
   },
   "toast": {
@@ -1330,11 +1312,7 @@
       "description": "I-overview at pamahalaan ang iyong mga snap",
       "snap_ui": {
         "link": {
-<<<<<<< HEAD
           "accessibilityHint": "Magbubukas sa bagong tab"
-=======
-          "accessibilityHint": "Opens in a new tab"
->>>>>>> stable
         }
       },
       "snap_settings": {
@@ -1716,11 +1694,7 @@
     "gas_fee_slow": "MABAGAL",
     "hex_data": "Hex na Data",
     "custom_nonce": "Nonce",
-<<<<<<< HEAD
     "custom_nonce_tooltip": "Ito ang numero ng transaksyon ng isang account. Ang nonce para sa unang transaksyon ay 0 at tumataas ito sa sunod-sunod na pagkakaayos.",
-=======
-    "custom_nonce_tooltip": "This is the transaction number of an account. Nonce for the first transaction is 0 and it increases in sequential order.",
->>>>>>> stable
     "this_is_an_advanced": "Isa itong advanced na feature na ginagamit para makansela o mapabilis ang anumang nakabinbing transaksyon.",
     "current_suggested_nonce": "Kasalukuyang iminumungkahing nonce:",
     "edit_transaction_nonce": "I-edit ang nonce ng transaksyon",
@@ -2000,11 +1974,7 @@
     "tx_details_not_available": "Hindi available",
     "smart_contract_interaction": "Interaksyon sa smart na kontrata",
     "swaps_transaction": "Transaksyon sa mga swap",
-<<<<<<< HEAD
     "bridge_transaction": "Mag-bridge",
-=======
-    "bridge_transaction": "Bridge",
->>>>>>> stable
     "approve": "Aprubahan",
     "increase_allowance": "Dagdag na Allowance",
     "set_approval_for_all": "Itakda ang Pag-apruba Para sa Lahat",
@@ -3139,11 +3109,7 @@
     "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
-<<<<<<< HEAD
     "title": "Mag-swap",
-=======
-    "title": "Swap",
->>>>>>> stable
     "onboarding": {
       "get_the": "Makuha ang",
       "best_price": "pinakasulit na presyo",
@@ -4160,38 +4126,26 @@
       "permit_revoke": "Alisin ang pahintulot",
       "permit_NFTs": "Kahilingang mag-withdraw",
       "signature_siwe": "Kahilingan sa pag-sign in",
-<<<<<<< HEAD
       "contract_interaction": "Kahilingan sa transaksyon",
       "transfer": "Kahilingan sa paglilipat",
       "switch_account_type": "Pag-update ng account",
       "approve": "Approve request"
-=======
-      "contract_interaction": "Transaction request"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
       "permit_NFTs": "Kailangan ng site na ito ng pahintulot para i-withdraw ang mga NFT mo.",
       "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
       "signature_siwe": "Hinihiling ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito.",
-<<<<<<< HEAD
       "contract_interaction": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
       "switch_to_smart_account": "Lilipat ka sa isang smart account.",
       "switch_to_standard_account": "Babalik ka sa isang standard account (EOA)."
-=======
-      "contract_interaction": "Review request details before you confirm."
->>>>>>> stable
     },
     "request_from": "Kahilingan mula sa/kay",
     "staking_from": "Pag-stake mula sa/kay",
     "signing_in_with": "Nagsa-sign in gamit ang",
     "message": "Mensahe",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
-<<<<<<< HEAD
     "transaction_tooltip": "Hinihingi ng site na ito ang iyong transaksyon",
-=======
-    "transaction_tooltip": "This site is asking for your transaction",
->>>>>>> stable
     "details": "Mga detalye",
     "qr_get_sign": "Kumuha ng Lagda",
     "qr_scan_text": "I-scan gamit ang iyong wallet na hardware",
@@ -4255,7 +4209,6 @@
       "includes_transaction": "Kasama ang {{transactionCount}} (na) transaksyon"
     },
     "unlimited": "Walang limitasyon",
-<<<<<<< HEAD
     "all": "Lahat",
     "none": "Wala",
     "advanced_details": "Advanced na mga detalye",
@@ -4265,12 +4218,6 @@
     "transferRequest": "Kahilingan sa paglilipat",
     "nested_transaction_heading": "Transaksyon {{index}}",
     "transaction": "Transaction"
-=======
-    "none": "Wala",
-    "advanced_details": "Advanced details",
-    "interacting_with": "Interacting with",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",
@@ -4314,7 +4261,6 @@
     "quote_info_content": "Nag-aalok ang quote na ito ng pinakamainam na return mula sa aming paghahanap. Nakabatay ito sa rate ng pag-swap, kabilang ang mga bayad sa pag-bridge at 0.875% na bayad sa MetaMask, ngunit hindi ito mga bayad sa gas. Iba-iba ang mga bayad sa gas depende sa aktibidad ng network at pagiging kumplikado ng transaksyon.",
     "quote_info_title": "Bakit namin inirerekomenda ang quote na ito",
     "see_other_quotes": "Tingnan ang ibang mga quote",
-<<<<<<< HEAD
     "receive_at": "Natanggap sa",
     "error_banner_description": "Hindi available ang ruta ng trade na ito sa ngayon. Subukang baguhin ang halaga, network, o token at hahanapin namin ang pinakamainam na solusyon.",
     "insufficient_funds": "Hindi sapat ang pondo",
@@ -4462,35 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
-    "receive_at": "Receive at",
-    "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
-    "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount",
-    "bridge_to": "Bridge to",
-    "title": "Bridge",
-    "submitting_transaction": "Submitting",
-    "fetching_quote": "Fetching quote"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
-  },
-  "bridge_transaction_details": {
-    "status": "Status",
-    "date": "Date",
-    "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion",
-    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
-    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
-    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
-    "view_on_block_explorer": "View on Block Explorer",
-    "block_explorer_description": "This transaction lives on two networks. The first link shows the source; the second shows the destination once it’s confirmed.",
-    "transaction_details": "Transaction Details",
-    "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
->>>>>>> stable
   }
 }

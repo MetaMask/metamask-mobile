@@ -9,13 +9,6 @@ import {
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-<<<<<<< HEAD
-=======
-import {
-  selectERC20TokensByChain,
-  selectTokenList,
-} from '../../../selectors/tokenListController';
->>>>>>> stable
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
@@ -27,13 +20,6 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-<<<<<<< HEAD
-=======
-
-  // Selectors returning state updated by the polling
-  const tokenList = useSelector(selectTokenList);
-  const tokenListByChain = useSelector(selectERC20TokensByChain);
->>>>>>> stable
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
@@ -60,13 +46,7 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
     startPolling: TokenListController.startPolling.bind(TokenListController),
     stopPollingByPollingToken:
       TokenListController.stopPollingByPollingToken.bind(TokenListController),
-<<<<<<< HEAD
     input,
-=======
-    input: isEvmSelected
-      ? chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
-      : [],
->>>>>>> stable
   });
 };
 

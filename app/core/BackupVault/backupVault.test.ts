@@ -57,21 +57,9 @@ jest.mock('react-native-keychain', () => ({
 describe('backupVault file', () => {
   const dummyPassword = 'dummy-password';
 
-<<<<<<< HEAD
   beforeEach(() => {
     jest.clearAllMocks();
     mockKeychainState = {};
-=======
-    const keyringState: KeyringControllerState = {
-      vault: undefined,
-      keyrings: [],
-      isUnlocked: false,
-    };
-
-    expect(async () => await backupVault(keyringState)).rejects.toThrow(
-      VAULT_BACKUP_FAILED,
-    );
->>>>>>> stable
   });
 
   describe('clearAllVaultBackups', () => {
@@ -88,17 +76,9 @@ describe('backupVault file', () => {
         dummyPassword,
       );
 
-<<<<<<< HEAD
       const primaryVaultCredentials = await getInternetCredentials(
         VAULT_BACKUP_KEY,
       );
-=======
-    const keyringState: KeyringControllerState = {
-      vault: undefined,
-      keyrings: [],
-      isUnlocked: false,
-    };
->>>>>>> stable
 
       const temporaryVaultCredentials = await getInternetCredentials(
         VAULT_BACKUP_TEMP_KEY,

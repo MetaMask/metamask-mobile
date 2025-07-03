@@ -81,16 +81,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-<<<<<<< HEAD
 import {
   TraceName,
   TraceOperation,
   endTrace,
   trace,
 } from '../../../util/trace';
-=======
-import { TraceName, TraceOperation, trace } from '../../../util/trace';
->>>>>>> stable
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';

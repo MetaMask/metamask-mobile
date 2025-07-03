@@ -112,11 +112,8 @@ jest.mock('../../../core/Engine', () => {
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
     MOCK_ADDRESS_1,
   );
-<<<<<<< HEAD
   // Ignore no shadowing warning for mocks.
   // eslint-disable-next-line @typescript-eslint/no-shadow
-=======
->>>>>>> stable
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
   return {
@@ -127,19 +124,12 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
-<<<<<<< HEAD
         scanUrl: jest.fn(async (url: string) => {
           if (url === 'https://phishing.com') {
             return { recommendedAction: 'BLOCK' };
           }
           return { recommendedAction: 'NONE' };
         }),
-=======
-        scanUrl: jest.fn((domainName: string) => ({
-          domainName,
-          recommendedAction: 'NONE'
-        })),
->>>>>>> stable
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
@@ -148,20 +138,6 @@ jest.mock('../../../core/Engine', () => {
         state: mockAccountsState,
         getAccountByAddress: jest.fn(),
         getNextAvailableAccountName: () => mockGetNextAvailableAccountName(),
-      },
-      KeyringController: {
-        state: {
-          keyrings: [
-            {
-              type: KeyringTypes.hd,
-              accounts: [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
-              metadata: {
-                id: '01JNG71B7GTWH0J1TSJY9891S0',
-                name: '',
-              },
-            },
-          ],
-        },
       },
       KeyringController: {
         state: {
@@ -453,11 +429,7 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-<<<<<<< HEAD
       multiSelector.props.onSubmit([`eip155:0:${mockAddress2}`]);
-=======
-      multiSelector.props.onSubmit([mockAddress2]);
->>>>>>> stable
 
       // Verify that the screen changed back to PermissionsSummary
       expect(
@@ -468,7 +440,6 @@ describe('AccountConnect', () => {
 
   it('should handle cancel button press correctly', () => {
     const { getByTestId } = renderWithProvider(
-<<<<<<< HEAD
       <AccountConnect
         route={{
           params: {
@@ -488,27 +459,6 @@ describe('AccountConnect', () => {
         }}
       />,
       { state: mockInitialState },
-=======
-        <AccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'mockOrigin',
-                  },
-                  permissions: {
-                    eth_accounts: {
-                      parentCapability: 'eth_accounts',
-                    },
-                  },
-                },
-                permissionRequestId: 'test',
-              },
-            }}
-        />,
-        { state: mockInitialState },
->>>>>>> stable
     );
 
     const cancelButton = getByTestId('cancel-button');

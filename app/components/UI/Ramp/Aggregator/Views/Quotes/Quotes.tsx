@@ -62,11 +62,7 @@ import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
-<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.tsx
 import { endTrace, TraceName } from '../../../../../../util/trace';
-=======
-import { endTrace, TraceName } from '../../../../../util/trace';
->>>>>>> stable:app/components/UI/Ramp/Views/Quotes/Quotes.tsx
 
 export interface QuotesParams {
   amount: number | string;

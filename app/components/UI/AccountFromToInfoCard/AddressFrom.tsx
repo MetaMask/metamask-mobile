@@ -1,3 +1,4 @@
+import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -19,12 +20,8 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-<<<<<<< HEAD
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
-=======
-import { toChecksumAddress } from 'ethereumjs-util';
->>>>>>> stable
 
 interface Asset {
   isETH?: boolean;

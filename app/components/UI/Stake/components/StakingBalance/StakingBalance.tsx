@@ -54,12 +54,9 @@ import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
-<<<<<<< HEAD
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
-=======
->>>>>>> stable
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -204,10 +201,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           !isLoadingVaultApyAverages &&
           isPooledStakingEnabled && (
             <StakingCta
-<<<<<<< HEAD
               chainId={asset.chainId as Hex}
-=======
->>>>>>> stable
               style={styles.stakingCta}
               estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
                 inputFormat: CommonPercentageInputUnits.PERCENTAGE,

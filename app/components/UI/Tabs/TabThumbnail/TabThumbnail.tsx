@@ -29,10 +29,7 @@ import { useSelector } from 'react-redux';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import { getPermittedEvmAddressesByHostname } from '../../../../core/Permissions';
 import { useFavicon } from '../../../hooks/useFavicon';
-<<<<<<< HEAD
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-=======
->>>>>>> stable
 import { areAddressesEqual } from '../../../../util/address';
 
 /**
@@ -60,13 +57,8 @@ const TabThumbnail = ({
 
   // This only works for EVM currently
   const activeAddress = permittedAccountsByHostname[0];
-<<<<<<< HEAD
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedAccount = internalAccounts.find((account) =>
-=======
-  const { evmAccounts: accounts } = useAccounts({});
-  const selectedAccount = accounts.find((account) =>
->>>>>>> stable
     areAddressesEqual(account.address, activeAddress),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);

@@ -22,15 +22,9 @@ export const refreshTokens = async ({
 }: RefreshTokensProps) => {
   if (!isEvmSelected) {
     const { MultichainBalancesController } = Engine.context;
-<<<<<<< HEAD
     if (selectedAccountId) {
       try {
         await MultichainBalancesController.updateBalance(selectedAccountId);
-=======
-    if (selectedAccount) {
-      try {
-        await MultichainBalancesController.updateBalance(selectedAccount.id);
->>>>>>> stable
       } catch (error) {
         Logger.error(error as Error, 'Error while refreshing NonEvm tokens');
       }

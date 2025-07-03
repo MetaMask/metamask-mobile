@@ -1,9 +1,5 @@
 import { initialState } from '../../_mocks_/initialState';
-<<<<<<< HEAD
 import { renderScreen , DeepPartial } from '../../../../../util/test/renderWithProvider';
-=======
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
->>>>>>> stable
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -18,15 +14,10 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-<<<<<<< HEAD
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
-=======
-import { isHardwareAccount } from '../../../../../util/address';
-import { strings } from '../../../../../../locales/i18n';
->>>>>>> stable
 
 const mockState = {
   ...initialState,
@@ -67,7 +58,6 @@ const mockState = {
         },
       },
     },
-<<<<<<< HEAD
   }
 } as DeepPartial<RootState>;
 
@@ -114,27 +104,11 @@ jest.mock('../../../../../core/Engine', () => {
                     type: 'HD Key Tree',
                   },
                 },
-=======
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          selectedAccount: '30786334-3935-4563-b064-363339643939',
-          accounts: {
-            '30786334-3935-4563-b064-363339643939': {
-              id: '30786334-3935-4563-b064-363339643939',
-              address: '0x1234567890123456789012345678901234567890',
-              name: 'Account 1',
-              type: 'eip155:eoa',
-              scopes: ['eip155:0'],
-              metadata: {
-                lastSelected: 0,
->>>>>>> stable
               },
             },
           },
         },
       },
-<<<<<<< HEAD
       GasFeeController: {
         startPolling: jest.fn(),
         stopPollingByPollingToken: jest.fn(),
@@ -150,12 +124,6 @@ jest.mock('../../../../../core/Engine', () => {
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
         updateBridgeQuoteRequestParams: jest.fn(),
       },
-=======
-    },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
->>>>>>> stable
     },
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
       balance: '1000000000000000000', // 1 ETH
@@ -657,11 +625,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-<<<<<<< HEAD
         { state: mockState },
-=======
-        { state: initialState },
->>>>>>> stable
       );
 
       await waitFor(() => {
@@ -685,11 +649,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-<<<<<<< HEAD
         { state: mockState },
-=======
-        { state: initialState },
->>>>>>> stable
       );
 
       await waitFor(() => {
@@ -716,11 +676,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-<<<<<<< HEAD
         { state: mockState },
-=======
-        { state: initialState },
->>>>>>> stable
       );
 
       await waitFor(() => {
@@ -748,11 +704,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-<<<<<<< HEAD
         { state: mockState },
-=======
-        { state: initialState },
->>>>>>> stable
       );
 
       await waitFor(() => {
@@ -789,11 +741,7 @@ describe('BridgeView', () => {
             symbol: 'SOL',
           },
         },
-<<<<<<< HEAD
       }, mockState);
-=======
-      });
->>>>>>> stable
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -908,4 +856,3 @@ describe('BridgeView', () => {
     });
   });
 });
-

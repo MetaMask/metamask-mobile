@@ -43,15 +43,10 @@ import { forgetLedger } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
-<<<<<<< HEAD
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
-=======
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { toHex } from '@metamask/controller-utils';
->>>>>>> stable
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -77,18 +72,10 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-<<<<<<< HEAD
-=======
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
->>>>>>> stable
   const keyringId = useMemo(
     () => selectedAccount.options.entropySource,
     [selectedAccount.options.entropySource],
   );
-<<<<<<< HEAD
-=======
-  ///: END:ONLY_INCLUDE_IF
->>>>>>> stable
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -174,10 +161,6 @@ const AccountActions = () => {
     });
   };
 
-<<<<<<< HEAD
-=======
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
->>>>>>> stable
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -446,7 +429,6 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-<<<<<<< HEAD
         {process.env.MM_SMART_ACCOUNT_UI_ENABLED === 'true' &&
           networkSupporting7702Present && (
             <AccountAction
@@ -455,15 +437,6 @@ const AccountActions = () => {
               onPress={goToSwitchAccountType}
             />
           )}
-=======
-        {process.env.MM_SMART_ACCOUNT_UI_ENABLED && (
-          <AccountAction
-            actionTitle={strings('account_actions.switch_to_smart_account')}
-            iconName={IconName.SwapHorizontal}
-            onPress={goToSwitchAccountType}
-          />
-        )}
->>>>>>> stable
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

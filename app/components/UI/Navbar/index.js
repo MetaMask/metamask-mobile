@@ -403,20 +403,9 @@ export function getPaymentRequestOptionsTitle(
         iconName={IconName.Close}
         size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
-<<<<<<< HEAD
         style={innerStyles.headerCloseButton}
         testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
       />
-=======
-        style={styles.closeButton}
-      >
-        <IonicIcon
-          name={'close'}
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
->>>>>>> stable
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,

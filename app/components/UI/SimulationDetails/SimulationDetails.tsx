@@ -128,7 +128,6 @@ const HeaderLayout: React.FC<{
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
-<<<<<<< HEAD
   noBalanceChanges?: boolean;
   children?: React.ReactNode;
 }> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
@@ -144,17 +143,6 @@ const SimulationDetailsLayout: React.FC<{
         </HeaderLayout>
         {children}
       </View>
-=======
-  children?: React.ReactNode;
-}> = ({ inHeader, children, isTransactionsRedesign }) => {
-  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-  return (
-    <View style={styles.container}>
-      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
-        {inHeader}
-      </HeaderLayout>
-      {children}
->>>>>>> stable
     </View>
   );
 };
@@ -171,7 +159,6 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
-<<<<<<< HEAD
   const {
     chainId,
     id: transactionId,
@@ -184,10 +171,6 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
     networkClientId,
   });
   const { isBatched } = use7702TransactionType();
-=======
-  const { chainId, id: transactionId, simulationData, networkClientId } = transaction;
-  const balanceChangesResult = useBalanceChanges({ chainId, simulationData, networkClientId });
->>>>>>> stable
   const loading = !simulationData || balanceChangesResult.pending;
   const isDappInteraction = isDappOrigin(transaction.origin);
 

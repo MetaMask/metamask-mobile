@@ -58,7 +58,6 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
-<<<<<<< HEAD
 import createTracingMiddleware, {
   MESSAGE_TYPE,
 } from '../createTracingMiddleware';
@@ -86,11 +85,6 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { uniq } from 'lodash';
 import { parseCaipAccountId } from '@metamask/utils';
-=======
-import createTracingMiddleware from '../createTracingMiddleware';
-import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
-import { getCaip25PermissionFromLegacyPermissions } from '../../util/permissions';
->>>>>>> stable
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 
 const legacyNetworkId = () => {
@@ -250,11 +244,7 @@ export class BackgroundBridge extends EventEmitter {
     // so that messages sent before BackgroundBridge's EIP-1193 JSON-RPC pipeline was
     // fully initialized can be retried
     if (!this.isRemoteConn && !this.isWalletConnect) {
-<<<<<<< HEAD
       this.notifyChainChanged();
-=======
-      this.notifyChainChanged()
->>>>>>> stable
     }
 
     if (this.isRemoteConn) {
@@ -373,13 +363,7 @@ export class BackgroundBridge extends EventEmitter {
       if (this.isWalletConnect) {
         approvedAccounts = getPermittedAccounts(this.url);
       } else {
-<<<<<<< HEAD
         approvedAccounts = getPermittedAccounts(this.channelId);
-=======
-        approvedAccounts = getPermittedAccounts(
-          this.channelId ?? this.hostname,
-        );
->>>>>>> stable
       }
       // Check if selectedAddress is approved
       const found = approvedAccounts.some((addr) =>
@@ -542,13 +526,8 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
-<<<<<<< HEAD
   setupProviderEngineEip1193() {
     const origin = this.origin;
-=======
-  setupProviderEngine() {
-    const origin = this.isMMSDK ? this.channelId : this.hostname;
->>>>>>> stable
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
@@ -588,12 +567,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(
       createEip1193MethodMiddleware({
         // Permission-related
-<<<<<<< HEAD
         getAccounts: (...args) => getPermittedAccounts(origin, ...args),
-=======
-        getAccounts: (...args) =>
-          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
->>>>>>> stable
         getCaip25PermissionFromLegacyPermissionsForOrigin: (
           requestedPermissions,
         ) =>
@@ -609,14 +583,11 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController.requestPermissions(
             { origin },
             requestedPermissions,
-<<<<<<< HEAD
             {
               metadata: {
                 isEip1193Request: true,
               },
             },
-=======
->>>>>>> stable
           ),
         revokePermissionsForOrigin: (permissionKeys) => {
           try {
@@ -654,12 +625,7 @@ export class BackgroundBridge extends EventEmitter {
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createEthAccountsMethodMiddleware({
-<<<<<<< HEAD
         getAccounts: (...args) => getPermittedAccounts(origin, ...args),
-=======
-        getAccounts: (...args) =>
-          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
->>>>>>> stable
       }),
     );
 

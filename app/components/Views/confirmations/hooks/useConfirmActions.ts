@@ -13,11 +13,7 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-<<<<<<< HEAD
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
-=======
-import { useStandaloneConfirmation } from './ui/useStandaloneConfirmation';
->>>>>>> stable
 
 export const useConfirmActions = () => {
   const {
@@ -34,17 +30,10 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-<<<<<<< HEAD
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-=======
-  const shouldUseSmartTransaction = useSelector(
-    (state: RootState) => selectShouldUseSmartTransaction(state, transactionMetadata?.chainId)
-  );
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
->>>>>>> stable
 
   const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
@@ -83,11 +72,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-<<<<<<< HEAD
     if (isFullScreenConfirmation) {
-=======
-    if (isStandaloneConfirmation) {
->>>>>>> stable
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -106,11 +91,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-<<<<<<< HEAD
     isFullScreenConfirmation,
-=======
-    isStandaloneConfirmation,
->>>>>>> stable
     shouldUseSmartTransaction,
   ]);
 

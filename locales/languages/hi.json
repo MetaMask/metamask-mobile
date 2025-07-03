@@ -37,7 +37,6 @@
       "title": "अपर्याप्त फंड",
       "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त %{nativeCurrency} नहीं है।",
       "buy_action": "%{nativeCurrency} खरीदें"
-<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "पिछले ट्रांसेक्शन को अभी भी साइन या सबमिट किया जा रहा है।"
@@ -50,8 +49,6 @@
     "batched_unused_approvals": {
       "title": "अनावश्यक अनुमति",
       "message": "आप किसी अन्य व्यक्ति को अपने टोकन निकालने की अनुमति दे रहे हैं, भले ही यह इस ट्रांसेक्शन के लिए आवश्यक नहीं है।"
-=======
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -596,7 +593,6 @@
     "multisrp": {
       "title": "कई सीक्रेट रिकवरी फ्रेज़ जोड़ें",
       "subtitle": "MetaMask में एकाधिक वॉलेट इंपोर्ट करें और उनका उपयोग करें"
-<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana अब सपोर्टेड है",
@@ -605,8 +601,6 @@
     "backupAndSync": {
       "title": "बैकअप और सिंक का परिचय",
       "subtitle": "अपने एकाउंट्स और सिंक सेटिंग्स का बैकअप लें।"
-=======
->>>>>>> stable
     }
   },
   "wallet": {
@@ -980,13 +974,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
-<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "इस साइट से कनेक्ट करने के लिए Solana अकाउंट होना ज़रूरी है।",
       "button": "Solana अकाउंट बनाएं"
-=======
->>>>>>> stable
     }
   },
   "toast": {
@@ -4135,27 +4126,19 @@
       "permit_revoke": "अनुमति हटाएं",
       "permit_NFTs": "विदड्रॉवल का अनुरोध",
       "signature_siwe": "साइन-इन का अनुरोध",
-<<<<<<< HEAD
       "contract_interaction": "ट्रांसेक्शन का अनुरोध",
       "transfer": "ट्रांसफर अनुरोध",
       "switch_account_type": "अकाउंट अपडेट",
       "approve": "Approve request"
-=======
-      "contract_interaction": "ट्रांसेक्शन का अनुरोध"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
       "permit_NFTs": "यह साइट आपके NFTs को निकालने की अनुमति चाहती है।",
       "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
       "signature_siwe": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।",
-<<<<<<< HEAD
       "contract_interaction": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
       "switch_to_smart_account": "आप स्मार्ट अकाउंट पर स्विच कर रहे हैं।",
       "switch_to_standard_account": "आप वापस मानक अकाउंट (EOA) पर स्विच कर रहे हैं।"
-=======
-      "contract_interaction": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
->>>>>>> stable
     },
     "request_from": "इनसे मिला अनुरोध",
     "staking_from": "से स्टेक किया जा रहा है",
@@ -4226,7 +4209,6 @@
       "includes_transaction": "{{transactionCount}} ट्रांसेक्शन शामिल हैं"
     },
     "unlimited": "असीमित",
-<<<<<<< HEAD
     "all": "सभी",
     "none": "कोई नहीं",
     "advanced_details": "एडवांस्ड विवरण",
@@ -4236,12 +4218,6 @@
     "transferRequest": "ट्रांसफर अनुरोध",
     "nested_transaction_heading": "ट्रांसेक्शन {{index}}",
     "transaction": "Transaction"
-=======
-    "none": "कोई नहीं",
-    "advanced_details": "एडवांस्ड विवरण",
-    "interacting_with": "के साथ इंटरैक्ट कर रहा है",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
@@ -4292,7 +4268,6 @@
     "bridge_to": "इसपर ब्रिज करें",
     "title": "ब्रिज",
     "submitting_transaction": "सबमिट किया जा रहा है",
-<<<<<<< HEAD
     "fetching_quote": "कोटेशन लाया जा रहा है",
     "fee_disclaimer": "0.875% MM शुल्क शामिल है",
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
@@ -4302,14 +4277,6 @@
     "title": "नये कोटेशन उपलब्ध हैं",
     "description": "दरें हर {{refreshRate}} सेकंड में अपडेट होती हैं, इसलिए जब आप तैयार हों तो नया कोटेशन प्राप्त करें पर टैप करें।",
     "get_new_quote": "नया कोटेशन प्राप्त करें"
-=======
-    "fetching_quote": "कोटेशन लाया जा रहा है"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
->>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "स्टेटस",
@@ -4325,7 +4292,6 @@
     "transaction_details": "ट्रांसेक्शन संबंधी विवरण",
     "bridge_to_chain": "{{chainName}} पर ब्रिज करें",
     "recipient": "प्राप्तकर्ता"
-<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "बैकअप और सिंक",
@@ -4442,7 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
->>>>>>> stable
   }
 }

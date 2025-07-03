@@ -10,7 +10,6 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../util/number';
-<<<<<<< HEAD
 import { selectEvmTicker, selectNetworkConfigurationByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
 import { selectAccounts, selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -25,18 +24,6 @@ import {
 import { useAsyncResult } from '../useAsyncResult';
 
 export const ERC20_DEFAULT_DECIMALS = 18;
-=======
-import { safeToChecksumAddress } from '../../../util/address';
-import {
-  selectEvmTicker,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { Asset } from './useAddressBalance.types';
-import { Hex } from '@metamask/utils';
->>>>>>> stable
 
 const useAddressBalance = (
   asset?: Asset,
@@ -70,17 +57,12 @@ const useAddressBalance = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-<<<<<<< HEAD
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   if (isPerDappSelectedNetworkEnabled() && chainId) {
     // If chainId is provided, use the accounts and ticker for that chain
     accounts = accountsByChainId[chainId] ?? {};
     ticker = networkConfigurationByChainId?.nativeCurrency;
   }
-=======
-  const ticker = useSelector(selectEvmTicker);
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
->>>>>>> stable
 
   useEffect(() => {
     if (asset && !asset.isETH && !asset.tokenId) {
@@ -99,7 +81,7 @@ const useAddressBalance = (
         return;
       }
 
-      if (!contractBalances[contractAddress as Hex] && !dontWatchAsset) {
+      if (!contractBalances[contractAddress] && !dontWatchAsset) {
         TokensController.addToken({
           address: contractAddress,
           symbol,
@@ -151,22 +133,11 @@ const useAddressBalance = (
       if (!contractAddress) {
         return;
       }
-<<<<<<< HEAD
       if (balance) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
           balance ?? '0',
           Number(tokenDetails?.decimals || decimals || ERC20_DEFAULT_DECIMALS),
         )} ${tokenDetails?.symbol ?? symbol}`;
-=======
-      const hexContractAddress = contractAddress as Hex;
-      if (selectedAddress === address && contractBalances[hexContractAddress]) {
-        fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[hexContractAddress]
-            ? contractBalances[hexContractAddress]
-            : '0',
-          decimals,
-        )} ${symbol}`;
->>>>>>> stable
         setAddressBalance(fromAccBalance);
       } else {
         (async () => {

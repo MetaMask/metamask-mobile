@@ -11,22 +11,11 @@ import {
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
-<<<<<<< HEAD:app/components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistory.tsx
 import { EARN_EXPERIENCES } from '../../../constants/experiences';
 import useEarningsHistory, {
   EarningHistory,
 } from '../../../hooks/useEarningsHistory';
 import { EarnTokenDetails } from '../../../types/lending.types';
-=======
-import { Hex } from '@metamask/utils';
-import {
-  EarningsHistoryData,
-  StakingEarningsHistoryProps,
-  TimePeriodGroupInfo,
-} from './StakingEarningsHistory.types';
-import StakingEarningsHistoryList from './StakingEarningsHistoryList/StakingEarningsHistoryList';
-import TimePeriodButtonGroup from './StakingEarningsTimePeriod/StakingEarningsTimePeriod';
->>>>>>> stable:app/components/UI/Stake/components/StakingEarnings/StakingEarningsHistory/StakingEarningsHistory.tsx
 import {
   EARNINGS_HISTORY_CHART_BAR_LIMIT,
   EARNINGS_HISTORY_DAYS_LIMIT,

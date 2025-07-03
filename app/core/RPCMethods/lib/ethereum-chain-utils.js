@@ -4,13 +4,8 @@ import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
-<<<<<<< HEAD
   isPrefixedFormattedHexString,
   isPerDappSelectedNetworkEnabled,
-=======
-  isChainPermissionsFeatureEnabled,
-  isPrefixedFormattedHexString,
->>>>>>> stable
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
@@ -220,11 +215,7 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
  * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param {string} params.origin - The origin sending this request.
-<<<<<<< HEAD
  * @param {boolean} params.autoApprove - Variable to check if the switch should be auto approved.
-=======
- * @param {boolean} params.isAddNetworkFlow - Variable to check if its add flow.
->>>>>>> stable
  * @param {object} params.hooks - Method hooks passed to the method implementation.
  * @returns a null response on success or an error if user rejects an approval when autoApprove is false or on unexpected errors.
  */
@@ -234,11 +225,7 @@ export async function switchToNetwork({
   requestUserApproval,
   analytics,
   origin,
-<<<<<<< HEAD
   autoApprove = false,
-=======
-  isAddNetworkFlow = false,
->>>>>>> stable
   hooks,
 }) {
   const {
@@ -257,15 +244,6 @@ export async function switchToNetwork({
 
   const [networkConfigurationId, networkConfiguration] = network;
 
-<<<<<<< HEAD
-=======
-  // for some reason this extra step is necessary for accessing the env variable in test environment
-  const chainPermissionsFeatureEnabled =
-    { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-      : isChainPermissionsFeatureEnabled;
-
->>>>>>> stable
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
     caveatType: Caip25CaveatType,
@@ -279,7 +257,6 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
-<<<<<<< HEAD
       autoApprove,
     });
   }
@@ -289,21 +266,6 @@ export async function switchToNetwork({
   const requestModalType = autoApprove ? 'new' : 'switch';
 
   const shouldShowRequestModal = !autoApprove && shouldGrantPermissions;
-=======
-      autoApprove: isAddNetworkFlow,
-    });
-  }
-
-  const shouldGrantPermissions =
-    chainPermissionsFeatureEnabled &&
-    (!ethChainIds || !ethChainIds.includes(chainId));
-
-  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-
-  const shouldShowRequestModal =
-    (!isAddNetworkFlow && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
->>>>>>> stable
 
   const requestData = {
     rpcUrl:
@@ -346,7 +308,6 @@ export async function switchToNetwork({
     }
   }
 
-<<<<<<< HEAD
   if (!shouldShowRequestModal && !ethChainIds?.includes(chainId)) {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
@@ -354,15 +315,6 @@ export async function switchToNetwork({
       autoApprove,
     });
   } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
-=======
-  if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
-    await requestPermittedChainsPermissionIncrementalForOrigin({
-      origin,
-      chainId,
-      autoApprove: isAddNetworkFlow,
-    });
-  } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
->>>>>>> stable
     await requestUserApproval({
       origin,
       type: ApprovalType.SwitchEthereumChain,
@@ -374,11 +326,6 @@ export async function switchToNetwork({
   }
 
   rejectApprovalRequestsForOrigin?.();
-<<<<<<< HEAD
-=======
-
-  const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
->>>>>>> stable
 
   const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
 

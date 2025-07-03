@@ -25,7 +25,6 @@ jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
   context: {
-<<<<<<< HEAD
     KeyringController: {
       state: {
         keyrings: [
@@ -34,10 +33,6 @@ jest.mock('../../../../core/Engine', () => ({
           },
         ],
       },
-=======
-    TokenListController: {
-      fetchTokenList: jest.fn(),
->>>>>>> stable
     },
   },
 }));

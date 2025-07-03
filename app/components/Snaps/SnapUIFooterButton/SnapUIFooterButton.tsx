@@ -43,10 +43,7 @@ interface SnapUIFooterButtonProps {
   disabled?: boolean;
   loading?: boolean;
   children: React.ReactNode;
-<<<<<<< HEAD
   testID?: string;
-=======
->>>>>>> stable
 }
 
 export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({

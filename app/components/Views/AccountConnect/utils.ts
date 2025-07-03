@@ -1,22 +1,12 @@
-<<<<<<< HEAD
 import { CaipAccountId, CaipChainId, CaipNamespace, parseCaipAccountId } from '@metamask/utils';
-=======
-import { Hex } from '@metamask/utils';
->>>>>>> stable
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
-<<<<<<< HEAD
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
-=======
-  setEthAccounts,
-  setPermittedEthChainIds,
-} from '@metamask/chain-agnostic-permission';
->>>>>>> stable
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
@@ -92,7 +82,6 @@ export function getRequestedCaip25CaveatValue(
  * Modifies the requested CAIP-25 permissions object after UI confirmation.
  *
  * @param caip25CaveatValue - The requested CAIP-25 caveat value to modify.
-<<<<<<< HEAD
  * @param caipAccountIds - The list of permitted CAIP account IDs.
  * @param caipChainIds - The list of permitted CAIP chain IDs.
  * @returns the CAIP-25 permissions object.
@@ -101,21 +90,11 @@ export function getCaip25PermissionsResponse(
   caip25CaveatValue: Caip25CaveatValue,
   caipAccountIds: CaipAccountId[],
   caipChainIds: CaipChainId[],
-=======
- * @param ethAccountAddresses - The list of permitted eth addresses.
- * @param ethChainIds - The list of permitted eth chainIds.
- */
-export function getCaip25PermissionsResponse(
-  caip25CaveatValue: Caip25CaveatValue,
-  ethAccountAddresses: Hex[],
-  ethChainIds: Hex[],
->>>>>>> stable
 ): {
   [Caip25EndowmentPermissionName]: {
     caveats: [{ type: string; value: Caip25CaveatValue }];
   };
 } {
-<<<<<<< HEAD
   const caveatValueWithChains = setChainIdsInCaip25CaveatValue(
     caip25CaveatValue,
     caipChainIds,
@@ -124,16 +103,6 @@ export function getCaip25PermissionsResponse(
   const caveatValueWithAccounts = setNonSCACaipAccountIdsInCaip25CaveatValue(
     caveatValueWithChains,
     caipAccountIds,
-=======
-  const caveatValueWithChains = setPermittedEthChainIds(
-    caip25CaveatValue,
-    ethChainIds,
-  );
-
-  const caveatValueWithAccounts = setEthAccounts(
-    caveatValueWithChains,
-    ethAccountAddresses,
->>>>>>> stable
   );
 
   return {
@@ -147,7 +116,6 @@ export function getCaip25PermissionsResponse(
     },
   };
 }
-<<<<<<< HEAD
 
 /**
  * Sorts a list of InternalAccounts by most recently selected
@@ -222,5 +190,3 @@ export function getDefaultAccounts(
 
   return defaultAccounts;
 }
-=======
->>>>>>> stable

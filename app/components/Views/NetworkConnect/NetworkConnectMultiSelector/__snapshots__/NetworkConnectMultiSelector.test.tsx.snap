@@ -174,25 +174,15 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
       data={
         [
           {
-<<<<<<< HEAD
             "caipChainId": "eip155:1",
             "id": "eip155:1",
-=======
-            "chainId": "0x1",
-            "id": "0x1",
->>>>>>> stable
             "imageSource": 1,
             "isSelected": false,
             "name": "Ethereum Mainnet",
           },
           {
-<<<<<<< HEAD
             "caipChainId": "eip155:137",
             "id": "eip155:137",
-=======
-            "chainId": "0x89",
-            "id": "0x89",
->>>>>>> stable
             "imageSource": 1,
             "isSelected": false,
             "name": "Polygon",

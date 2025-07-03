@@ -16,12 +16,6 @@ const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
 // yet received a response for.
 let metamaskConnectSent;
 
-// Flag that tracks if the inpage provider has been notified that
-// the wallet background ready to receive requests and that the
-// inpage provider should retry and pending requests it has not
-// yet received a response for.
-let metamaskConnectSent;
-
 // Setup stream for content script communication
 const metamaskStream = new ReactNativePostMessageStream({
   name: INPAGE,

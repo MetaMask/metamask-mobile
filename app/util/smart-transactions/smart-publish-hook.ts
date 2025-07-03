@@ -27,10 +27,7 @@ import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
-<<<<<<< HEAD
 import { isPerDappSelectedNetworkEnabled } from '../networks';
-=======
->>>>>>> stable
 import { isLegacyTransaction } from '../transactions';
 
 export type AllowedActions = never;
@@ -267,11 +264,7 @@ class SmartTransactionHook {
         `${LOG_PREFIX}: A list of transactions are required for batch submissions`,
       );
     }
-<<<<<<< HEAD
   };
-=======
-  }
->>>>>>> stable
 
   async submitBatch() {
     this.#validateSubmitBatch();

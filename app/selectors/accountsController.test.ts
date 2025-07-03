@@ -21,10 +21,7 @@ import {
   selectSolanaAccountAddress,
   selectSolanaAccount,
   selectPreviouslySelectedEvmAccount,
-<<<<<<< HEAD
   selectSelectedInternalAccountId,
-=======
->>>>>>> stable
   selectInternalEvmAccounts,
 } from './accountsController';
 import {
@@ -730,7 +727,6 @@ describe('selectPreviouslySelectedEvmAccount', () => {
   });
 });
 
-<<<<<<< HEAD
 describe('selectSelectedInternalAccountId', () => {
   const arrangeAccount = () =>
     createMockInternalAccount(
@@ -757,8 +753,6 @@ describe('selectSelectedInternalAccountId', () => {
   });
 });
 
-=======
->>>>>>> stable
 describe('selectInternalEvmAccounts', () => {
   it(`returns internal accounts with evm account type`, () => {
     const mockAccountsControllerReversed =
@@ -771,11 +765,7 @@ describe('selectInternalEvmAccounts', () => {
     expect(stateAccountsList).toHaveLength(6);
 
     stateAccountsList[0].type = 'solana:data-account';
-<<<<<<< HEAD
     stateAccountsList[1].type = 'bip122:p2pkh';
-=======
-    stateAccountsList[1].type = 'bip122:p2wpkh';
->>>>>>> stable
 
     const result = selectInternalEvmAccounts({
       engine: {

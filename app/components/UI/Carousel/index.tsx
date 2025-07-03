@@ -31,7 +31,6 @@ import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
-<<<<<<< HEAD
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -40,9 +39,6 @@ import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 
 const MAX_CAROUSEL_SLIDES = 15;
 
-=======
-
->>>>>>> stable
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
@@ -68,11 +64,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     selectLastSelectedSolanaAccount,
   );
   ///: END:ONLY_INCLUDE_IF
-<<<<<<< HEAD
-=======
-
-  const isZeroBalance = !hasBalance;
->>>>>>> stable
 
   const isZeroBalance = !hasBalance;
 
@@ -117,7 +108,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     });
   }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
 
-<<<<<<< HEAD
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
       const isCurrentlyActive = isActive(slide);
@@ -147,34 +137,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-=======
-  const visibleSlides = useMemo(
-    () =>
-      slidesConfig.filter((slide) => {
-        ///: BEGIN:ONLY_INCLUDE_IF(solana)
-        if (
-          slide.id === 'solana' &&
-          selectedAccount?.type === SolAccountType.DataAccount
-        ) {
-          return false;
-        }
-        ///: END:ONLY_INCLUDE_IF
-
-        if (slide.id === 'fund' && isZeroBalance) {
-          return true;
-        }
-        return !dismissedBanners.includes(slide.id);
-      }),
-    [
-      slidesConfig,
-      isZeroBalance,
-      dismissedBanners,
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      selectedAccount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
-  );
->>>>>>> stable
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =

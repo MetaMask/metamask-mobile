@@ -7,15 +7,11 @@ import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
-<<<<<<< HEAD
 import {
   Caip25EndowmentPermissionName,
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
-=======
-import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
->>>>>>> stable
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type

@@ -75,7 +75,6 @@ export const mockEvents = {
             signatures: true,
             staking_confirmations: true,
             contract_interaction: true,
-<<<<<<< HEAD
             transfer: true,
           },
         },
@@ -124,10 +123,6 @@ export const mockEvents = {
             enabled: true,
             featureVersion: '1',
             minimumVersion: '7.46.0',
-=======
-            // Regardless of the redesigned flags, transfer is disabled for now
-            transfer: false,
->>>>>>> stable
           },
         },
       ],

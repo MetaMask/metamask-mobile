@@ -203,7 +203,6 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "tokens": [],
               },
               "balanceError": undefined,
-<<<<<<< HEAD
               "caipAccountId": "eip155:0:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
               "id": "mock-account-id-1",
               "isLoadingAccount": false,
@@ -212,10 +211,6 @@ exports[`AccountPermissions renders correctly 1`] = `
               "scopes": [
                 "eip155:0",
               ],
-=======
-              "isSelected": true,
-              "name": "Account 1",
->>>>>>> stable
               "type": "HD Key Tree",
               "yOffset": 0,
             },
@@ -550,7 +545,6 @@ exports[`AccountPermissions renders correctly 1`] = `
                           >
                             $3200.00
                           </Text>
-<<<<<<< HEAD
                           <View
                             style={
                               {
@@ -648,32 +642,6 @@ exports[`AccountPermissions renders correctly 1`] = `
                               </View>
                             </View>
                           </View>
-=======
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "textAlign": "right",
-                              }
-                            }
-                          >
-                            1 ETH
-                          </Text>
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                              }
-                            }
-                          />
->>>>>>> stable
                         </View>
                       </View>
                     </View>

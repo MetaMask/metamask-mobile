@@ -13,15 +13,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import { PREDEFINED_SLIDES } from './constants';
-<<<<<<< HEAD
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
 import { CarouselSlide } from './types';
 // eslint-disable-next-line import/no-namespace
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-=======
->>>>>>> stable
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -458,81 +455,5 @@ describe('Carousel with dynamic banners', () => {
         payload: 'contentful-regular-1',
       }),
     );
-  });
-
-  it('does not render solana banner if user has a solana account', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: [],
-        },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '1',
-                accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
-                    type: SolAccountType.DataAccount,
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-    );
-
-    const { queryByTestId } = render(<Carousel />);
-    const solanaBanner = queryByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
-    );
-
-    expect(solanaBanner).toBeNull();
-  });
-
-  it('changes to a solana address if user has a solana account', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: [],
-        },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '1',
-                accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
-                  },
-                  '2': {
-                    address: 'SomeSolanaAddress',
-                    type: SolAccountType.DataAccount,
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-    );
-
-    const { getByTestId } = render(<Carousel />);
-    const solanaBanner = getByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
-    );
-    fireEvent.press(solanaBanner);
-
-    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
   });
 });

@@ -2,13 +2,9 @@ import React from 'react';
 import StakingEarnings from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
-<<<<<<< HEAD
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-=======
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
->>>>>>> stable
 
 const mockNavigate = jest.fn();
 
@@ -34,7 +30,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-<<<<<<< HEAD
 jest.mock('../../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../../selectors/earnController'),
   earnSelectors: {
@@ -59,20 +54,12 @@ jest.mock('../../../../../selectors/earnController', () => ({
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
-=======
-// Mock the feature flags selector
-jest.mock('../../../Earn/selectors/featureFlags', () => ({
->>>>>>> stable
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
 
-<<<<<<< HEAD
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
-=======
-jest.mock('../../hooks/useStakingEarnings', () => ({
->>>>>>> stable
   __esModule: true,
   default: () => ({
     annualRewardRate: '2.6%',
@@ -140,13 +127,9 @@ describe('Staking Earnings', () => {
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
     expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
-<<<<<<< HEAD
     expect(
       getByText(strings('earn.view_earnings_history.staking')),
     ).toBeDefined();
-=======
-    expect(getByText(strings('stake.view_earnings_history'))).toBeDefined();
->>>>>>> stable
     expect(
       queryByText(
         strings('earn.service_interruption_banner.maintenance_message'),

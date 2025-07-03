@@ -10,10 +10,7 @@ export interface Network {
     imageUrl?: string;
   };
   rpcUrl: string;
-<<<<<<< HEAD
   failoverRpcUrls?: string[];
-=======
->>>>>>> stable
   ticker: string;
   /**
    * Not supported by Infura

@@ -1,10 +1,6 @@
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { mockedMinimumAppVersion } from './minimumAppVersion/constants';
-<<<<<<< HEAD
 import { mockedEarnFeatureFlagsEnabledState } from '../../components/UI/Earn/__mocks__/earnMockData';
-=======
-import { mockedEarnFeatureFlagsEnabledState } from '../../components/UI/Earn/__mocks__/mockData';
->>>>>>> stable
 
 export const mockedState = {
   engine: {

@@ -303,48 +303,12 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     }
                   }
                 >
-<<<<<<< HEAD
                   <RCTScrollView
                     collapsable={false}
                     data={
                       [
                         "eip155:0:0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
                       ]
-=======
-                  <SvgMock
-                    color="#686e7d"
-                    fill="currentColor"
-                    height={20}
-                    name="Wallet"
-                    style={
-                      {
-                        "height": 20,
-                        "width": 20,
-                      }
-                    }
-                    width={20}
-                  />
-                </View>
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "marginLeft": 12,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
->>>>>>> stable
                     }
                     getItem={[Function]}
                     getItemCount={[Function]}
@@ -636,39 +600,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                   style={
                     {
                       "alignItems": "center",
-<<<<<<< HEAD
                       "marginTop": 8,
-=======
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#0000001a",
-                      "borderRadius": 16,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "overflow": "hidden",
-                      "width": 32,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#686e7d"
-                    fill="currentColor"
-                    height={20}
-                    name="Data"
-                    style={
-                      {
-                        "height": 20,
-                        "width": 20,
-                      }
-                    }
-                    width={20}
-                  />
-                </View>
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "marginLeft": 12,
->>>>>>> stable
                     }
                   }
                   testID="account-list-bottom-sheet"

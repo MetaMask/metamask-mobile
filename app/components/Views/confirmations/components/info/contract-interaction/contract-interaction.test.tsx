@@ -18,7 +18,6 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
-<<<<<<< HEAD
 jest.mock('../../rows/account-network-info-row', () => ({
   __esModule: true,
   default: () => null,
@@ -34,8 +33,6 @@ jest.mock('../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
-=======
->>>>>>> stable
 jest.mock('../../../../../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   return {
@@ -43,10 +40,7 @@ jest.mock('../../../../../../core/Engine', () => {
       getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
-<<<<<<< HEAD
         findNetworkClientIdByChainId: jest.fn(),
-=======
->>>>>>> stable
       },
       GasFeeController: {
         startPolling: jest.fn(),

@@ -6,11 +6,8 @@ import {
   selectAllTokenBalances,
   selectTokensBalances,
   selectAddressHasTokenBalances,
-<<<<<<< HEAD
   selectHasAnyBalance,
   selectSingleTokenBalance,
-=======
->>>>>>> stable
 } from './tokenBalancesController';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 
@@ -192,7 +189,6 @@ describe('TokenBalancesController Selectors', () => {
       expect(selectAddressHasTokenBalances(mockState)).toBe(true);
     });
   });
-<<<<<<< HEAD
 
   describe('selectHasAnyBalance', () => {
     const arrange = () => {
@@ -296,6 +292,4 @@ describe('TokenBalancesController Selectors', () => {
       expect(result2).toBe(result4);
     });
   });
-=======
->>>>>>> stable
 });

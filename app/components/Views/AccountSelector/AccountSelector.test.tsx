@@ -21,22 +21,12 @@ const mockAccounts = [
     id: internalAccount1.id,
     address: internalAccount1.address,
     balance: '0x0',
-<<<<<<< HEAD
     name: internalAccount1.metadata.name,
-=======
-    name: 'EVM Account 1',
-  },
-  {
-    address: '9JFiCmqKEmKjmBXN6p9xAZT72kr5f5WvxN6pUZRH6YNU',
-    balance: '0x0',
-    name: 'Solana Account 1',
->>>>>>> stable
   },
   {
     id: internalSolanaAccount1.id,
     address: internalSolanaAccount1.address,
     balance: '0x0',
-<<<<<<< HEAD
     name: internalSolanaAccount1.metadata.name,
   },
   {
@@ -44,13 +34,8 @@ const mockAccounts = [
     address: internalAccount2.address,
     balance: '0x0',
     name: internalAccount2.metadata.name,
-=======
-    name: 'EVM Account 2',
->>>>>>> stable
   },
 ];
-
-const mockEvmAccounts = [mockAccounts[0], mockAccounts[2]];
 
 const mockEnsByAccountAddress = {
   [internalAccount2.address]: 'test.eth',
@@ -89,20 +74,13 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../hooks/useAccounts', () => ({
-<<<<<<< HEAD
   useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
     evmAccounts: [mockAccounts[0], mockAccounts[2]],
-=======
-  useAccounts: () => ({
-    accounts: mockAccounts,
-    evmAccounts: mockEvmAccounts,
->>>>>>> stable
     ensByAccountAddress: mockEnsByAccountAddress,
   })),
 }));
 
-<<<<<<< HEAD
 jest.mock('../../../core/Engine', () => {
   const {
     MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState,
@@ -123,25 +101,6 @@ jest.mock('../../../core/Engine', () => {
     setSelectedAddress: jest.fn(),
   };
 });
-=======
-jest.mock('../../../core/Engine', () => ({
-  setSelectedAddress: jest.fn(),
-  context: {
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {},
-        },
-      },
-    },
-    KeyringController: {
-      state: {
-        keyrings: [{}],
-      },
-    },
-  },
-}));
->>>>>>> stable
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -198,15 +157,9 @@ describe('AccountSelector', () => {
     );
 
     expect(accountsList).toBeDefined();
-<<<<<<< HEAD
     expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
     expect(queryByText(internalSolanaAccount1.metadata.name)).toBeDefined();
     expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
-=======
-    expect(queryByText('EVM Account 1')).toBeDefined();
-    expect(queryByText('Solana Account 1')).toBeDefined();
-    expect(queryByText('EVM Account 2')).toBeDefined();
->>>>>>> stable
   });
 
   it('includes only EVM accounts if isEvmOnly', () => {
@@ -226,15 +179,9 @@ describe('AccountSelector', () => {
     );
 
     expect(accountsList).toBeDefined();
-<<<<<<< HEAD
     expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
     expect(queryByText(internalSolanaAccount1.metadata.name)).toBeNull();
     expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
-=======
-    expect(queryByText('EVM Account 1')).toBeDefined();
-    expect(queryByText('Solana Account 1')).toBeNull();
-    expect(queryByText('EVM Account 2')).toBeDefined();
->>>>>>> stable
   });
 
   it('should display add account button', () => {

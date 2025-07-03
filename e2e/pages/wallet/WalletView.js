@@ -133,10 +133,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> stable
   get carouselProgressDots() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
@@ -316,7 +312,6 @@ class WalletView {
    */
   async tapCarouselSlide(id) {
     await Gestures.tap(this.getCarouselSlide(id));
-<<<<<<< HEAD
   }
 
   get defiTab() {
@@ -352,8 +347,6 @@ class WalletView {
   async tapOnDeFiPosition(positionName) {
     const elem = Matchers.getElementByText(positionName);
     await Gestures.waitAndTap(elem);
-=======
->>>>>>> stable
   }
 }
 

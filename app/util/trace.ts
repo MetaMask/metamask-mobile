@@ -52,7 +52,6 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
-<<<<<<< HEAD
   FetchHistoricalPrices = 'Fetch Historical Prices',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
@@ -63,8 +62,6 @@ export enum TraceName {
   QRTabSwitcher = 'QR Tab Switcher',
   RevealPrivateKey = 'Reveal Private Key',
   RevealSrp = 'Reveal Srp',
-=======
->>>>>>> stable
 }
 
 export enum TraceOperation {

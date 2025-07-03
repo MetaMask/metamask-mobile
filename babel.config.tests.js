@@ -10,7 +10,6 @@ const newOverrides = [
   ...baseConfig.overrides,
   // Don't transform environment variables for files that depend on them.
   {
-<<<<<<< HEAD
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
@@ -18,9 +17,6 @@ const newOverrides = [
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],
-=======
-    exclude: ['app/components/UI/Earn/selectors/featureFlags/index.ts'],
->>>>>>> stable
     plugins: ['transform-inline-environment-variables'],
   },
 ];

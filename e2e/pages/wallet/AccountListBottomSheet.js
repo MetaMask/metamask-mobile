@@ -71,11 +71,7 @@ class AccountListBottomSheet {
 
   /**
    * Retrieves the title/name of an element using the `cellbase-avatar-title` ID.
-<<<<<<< HEAD
    * Note: The `select-with-menu` ID element seems to never receive the tap event,
-=======
-   * Note: The `select-with-menu` ID element seems to never receive the tap event, 
->>>>>>> stable
    * so this method fetches the title/name instead.
    *
    * @param {number} index - The index of the element to retrieve.

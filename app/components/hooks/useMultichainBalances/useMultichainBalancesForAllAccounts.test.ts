@@ -1,9 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-<<<<<<<< HEAD:app/components/hooks/useMultichainBalances/useMultichainBalancesForAllAccounts.test.ts
 import useMultichainBalances from './useMultichainBalancesForAllAccounts';
-========
-import useSelectedAccountMultichainBalances from './useSelectedAccountMultichainBalances';
->>>>>>>> stable:app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.test.ts
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -76,11 +72,7 @@ jest.mock('../../../util/networks', () => ({
   isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
 }));
 
-<<<<<<<< HEAD:app/components/hooks/useMultichainBalances/useMultichainBalancesForAllAccounts.test.ts
 describe('useMultichainBalancesForAllAccounts', () => {
-========
-describe('useSelectedAccountMultichainBalances', () => {
->>>>>>>> stable:app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.test.ts
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) =>
@@ -109,7 +101,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       mockBalance,
     );
 
-    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
+    const { result } = renderHook(() => useMultichainBalances());
 
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID],
@@ -148,7 +140,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       mockBalance,
     );
 
-    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
+    const { result } = renderHook(() => useMultichainBalances());
 
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
@@ -213,7 +205,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       mockTotalFiatBalancesCrossChain,
     );
 
-    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
+    const { result } = renderHook(() => useMultichainBalances());
 
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
@@ -245,7 +237,7 @@ describe('useSelectedAccountMultichainBalances', () => {
       mockBalance,
     );
 
-    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
+    const { result } = renderHook(() => useMultichainBalances());
 
     expect(
       result.current.multichainBalancesForAllAccounts[MOCK_SELECTED_ACCOUNT_ID]
@@ -253,7 +245,6 @@ describe('useSelectedAccountMultichainBalances', () => {
     ).toBe(false);
   });
 
-<<<<<<<< HEAD:app/components/hooks/useMultichainBalances/useMultichainBalancesForAllAccounts.test.ts
   it('returns balances for all accounts', () => {
     // Use the predefined account IDs from the test utils
     const firstAccountId = expectedUuid;
@@ -338,43 +329,5 @@ describe('useSelectedAccountMultichainBalances', () => {
       result.current.multichainBalancesForAllAccounts[secondAccountId]
         ?.totalNativeTokenBalance,
     ).toBe('0.025');
-========
-  it('returns undefined when no selected account is available', () => {
-    // Create a modified state with no selected account
-    const stateWithNoSelectedAccount = {
-      ...MOCK_STORE_STATE,
-      engine: {
-        ...MOCK_STORE_STATE.engine,
-        backgroundState: {
-          ...MOCK_STORE_STATE.engine.backgroundState,
-          AccountsController: {
-            ...MOCK_STORE_STATE.engine.backgroundState.AccountsController,
-            internalAccounts: {
-              ...MOCK_STORE_STATE.engine.backgroundState.AccountsController
-                .internalAccounts,
-              // Set selected account to an ID that doesn't exist
-              selectedAccount: 'non-existent-id',
-            },
-          },
-        },
-      },
-    };
-
-    // Reset the mocks to make sure previous test state doesn't affect this one
-    jest.clearAllMocks();
-
-    // Use our modified state for this test only
-    mockUseSelector.mockImplementation((selector) =>
-      selector(stateWithNoSelectedAccount),
-    );
-
-    // Reset mock for useGetTotalFiatBalanceCrossChains to ensure we don't
-    // have leftover values from other tests
-    (useGetTotalFiatBalanceCrossChains as jest.Mock).mockReturnValue({});
-
-    const { result } = renderHook(() => useSelectedAccountMultichainBalances());
-
-    expect(result.current.selectedAccountMultichainBalance).toBeUndefined();
->>>>>>>> stable:app/components/hooks/useMultichainBalances/useSelectedAccountMultichainBalances.test.ts
   });
 });

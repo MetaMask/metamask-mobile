@@ -36,11 +36,7 @@ interface TokenListProps {
   setShowScamWarningModal: () => void;
 }
 
-<<<<<<< HEAD
 const TokenListComponent = ({
-=======
-export const TokenList = ({
->>>>>>> stable
   tokenKeys,
   refreshing,
   isAddTokenEnabled,

@@ -266,11 +266,7 @@ exports[`QuoteExpiredModal renders correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "flex-start",
                 "backgroundColor": "#4459ff",
-<<<<<<< HEAD
                 "borderRadius": 12,
-=======
-                "borderRadius": 24,
->>>>>>> stable
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,

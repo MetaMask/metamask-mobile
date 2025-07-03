@@ -79,11 +79,7 @@ const getNonEvmDisplayBalance = (
   shouldShowFiat: boolean,
   currentCurrency: string,
 ) => {
-<<<<<<< HEAD
   if (!shouldShowFiat || nonEvmAccountBalance.totalBalanceFiat === undefined) {
-=======
-  if (!shouldShowFiat || !nonEvmAccountBalance.totalBalanceFiat) {
->>>>>>> stable
     if (!nonEvmAccountBalance.totalNativeTokenBalance) {
       return '0';
     }

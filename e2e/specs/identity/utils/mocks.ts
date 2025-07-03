@@ -6,7 +6,6 @@ import { Mockttp } from 'mockttp';
 
 const AuthMocks = AuthenticationController.Mocks;
 
-<<<<<<< HEAD:e2e/specs/identity/utils/mocks.ts
 interface MockResponse {
   url: string | RegExp;
   requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -14,15 +13,6 @@ interface MockResponse {
 }
 
 export async function mockIdentityServices(server: Mockttp) {
-=======
-/**
- * E2E mock setup for identity APIs (Auth, UserStorage, Backup and sync)
- *
- * @param server - server obj used to mock our endpoints
- * @param userStorageMockttpController - optional controller to mock user storage endpoints
- */
-export async function mockIdentityServices(server) {
->>>>>>> stable:e2e/specs/identity/utils/mocks.js
   // Auth
   mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   mockAPICall(server, AuthMocks.getMockAuthLoginResponse());

@@ -25,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -207,7 +207,6 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
-<<<<<<< HEAD
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
@@ -226,8 +225,6 @@ import {
   MultichainRouterIsSupportedScopeEvent,
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
-=======
->>>>>>> stable
 import { captureException } from '@sentry/react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -331,7 +328,6 @@ export class Engine {
       },
     });
 
-<<<<<<< HEAD
     const errorReportingServiceMessenger =
       this.controllerMessenger.getRestricted({
         name: 'ErrorReportingService',
@@ -462,25 +458,6 @@ export class Engine {
         });
       },
     );
-=======
-    const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
-        allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      getRpcServiceOptions: () => ({
-        fetch,
-        btoa,
-      }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
-      captureException,
-    };
-    const networkController = new NetworkController(networkControllerOpts);
-
->>>>>>> stable
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -525,13 +502,8 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-<<<<<<< HEAD
     const remoteFeatureFlagControllerMessenger =
       this.controllerMessenger.getRestricted({
-=======
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      messenger: this.controllerMessenger.getRestricted({
->>>>>>> stable
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
         allowedEvents: [],
@@ -1184,7 +1156,7 @@ export class Engine {
         chainId,
       }: {
         transactionParams: TransactionParams;
-        chainId: Hex;
+        chainId: ChainId;
       }) =>
         this.transactionController.getLayer1GasFee({
           transactionParams,
@@ -1747,7 +1719,6 @@ export class Engine {
     );
     ///: END:ONLY_INCLUDE_IF
 
-<<<<<<< HEAD
     // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
     // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
     // it would cause a deadlock.
@@ -1777,8 +1748,6 @@ export class Engine {
         withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
 
-=======
->>>>>>> stable
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();

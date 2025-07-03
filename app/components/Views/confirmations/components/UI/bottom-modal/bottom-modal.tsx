@@ -18,7 +18,6 @@ interface BottomModalProps {
   onSwipeComplete?: () => void;
   testID?: string;
   visible?: boolean;
-  isTooltip?: boolean;
 }
 
 /**

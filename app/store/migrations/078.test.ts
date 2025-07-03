@@ -137,8 +137,4 @@ describe('Migration 078: Reset PhishingController phishingLists', () => {
       'Migration 078: cleaning PhishingController state failed with error',
     );
   });
-<<<<<<< HEAD
 });
-=======
-}); 
->>>>>>> stable

@@ -21,31 +21,13 @@ jest.mock('../../../../../../UI/Name', () => ({
   default: jest.fn(() => null),
 }));
 
-<<<<<<< HEAD
 jest.mock(
   '../../../../legacy/SendFlow/components/CustomNonceModal',
   () => 'CustomNonceModal',
 );
-=======
-jest.mock('../../../../legacy/SendFlow/components/CustomNonceModal', () => 'CustomNonceModal');
-jest.mock('../../../UI/expandable', () => 'Expandable');
-jest.mock('../../../../../../../component-library/components/Texts/Text', () => ({
-  TextColor: { Primary: 'primary' },
-  TextVariant: { BodyMD: 'bodyMD' },
-  default: 'Text',
-}));
->>>>>>> stable
 
 jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
-}));
-
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
 }));
 
 describe('AdvancedDetailsRow', () => {

@@ -76,11 +76,7 @@ const SignatureMessageSection = ({
         </View>
       }
       expandedContentTitle={strings('confirm.message')}
-<<<<<<< HEAD
       testID={ConfirmationRowComponentIDs.MESSAGE}
-=======
-      testID={ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION}
->>>>>>> stable
     />
   );
 };

@@ -44,7 +44,6 @@ export const selectTokenMarketData = createSelector(
     tokenRatesControllerState.marketData,
 );
 
-<<<<<<< HEAD
 export function selectPricePercentChange1d(
   state: RootState,
   chainId: Hex,
@@ -73,8 +72,6 @@ export const selectSingleTokenPriceMarketData = createSelector(
   },
 );
 
-=======
->>>>>>> stable
 export const selectTokenMarketPriceData = createDeepEqualSelector(
   [selectTokenMarketData],
   (marketData) => {

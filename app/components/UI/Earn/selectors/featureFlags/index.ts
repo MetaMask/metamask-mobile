@@ -15,11 +15,7 @@ const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) =>
   Boolean(remoteFlag?.enabled) &&
   hasMinimumRequiredVersion(remoteFlag?.minimumVersion);
 
-<<<<<<< HEAD
 export const prioritizeFlagsByEnv = (
-=======
-const prioritizeFlagsByEnv = (
->>>>>>> stable
   localFlag: boolean,
   remoteFlag: EarnLaunchDarklyFlag,
 ) => {

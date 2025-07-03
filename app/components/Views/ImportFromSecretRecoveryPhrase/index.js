@@ -638,7 +638,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-<<<<<<< HEAD
   const isError =
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
 
@@ -649,25 +648,6 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
     });
-=======
-  const clearSecretRecoveryPhrase = async (seed) => {
-    // get clipboard contents
-    const clipboardContents = await Clipboard.getString();
-    const parsedClipboardContents = parseSeedPhrase(clipboardContents);
-    if (
-      // only clear clipboard if contents isValidMnemonic
-      !failedSeedPhraseRequirements(parsedClipboardContents) &&
-      isValidMnemonic(parsedClipboardContents) &&
-      // only clear clipboard if the seed phrase entered matches what's in the clipboard
-      parseSeedPhrase(seed) === parsedClipboardContents
-    ) {
-      try {
-        await Clipboard.clearString();
-      } catch (_) {
-        //Fail silently
-      }
-    }
->>>>>>> stable
   };
 
   const canShowSeedPhraseWord = useCallback(

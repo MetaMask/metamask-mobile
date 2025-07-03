@@ -12,13 +12,9 @@ import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-<<<<<<< HEAD
 import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
 import { areAddressesEqual } from '../../../util/address';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-=======
-import { areAddressesEqual } from '../../../util/address';
->>>>>>> stable
 
 const createStyles = (colors) =>
   StyleSheet.create({

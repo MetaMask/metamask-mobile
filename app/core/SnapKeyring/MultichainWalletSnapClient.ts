@@ -40,10 +40,6 @@ export interface MultichainWalletSnapOptions {
   synchronize?: boolean;
   entropySource?: string;
   accountNameSuggestion?: string;
-<<<<<<< HEAD
-=======
-  ///: END:ONLY_INCLUDE_IF
->>>>>>> stable
   derivationPath?: string;
 }
 
@@ -122,7 +118,6 @@ export abstract class MultichainWalletSnapClient {
       options?.accountNameSuggestion ??
       getMultichainAccountName(options.scope, this.getClientType());
 
-<<<<<<< HEAD
     return await this.withSnapKeyring(
       async (keyring) =>
         await keyring.createAccount(
@@ -134,18 +129,6 @@ export abstract class MultichainWalletSnapClient {
           snapKeyringOptions ?? this.snapKeyringOptions,
         ),
     );
-=======
-    return await this.withSnapKeyring(async (keyring) => {
-      await keyring.createAccount(
-        this.snapId,
-        {
-          ...options,
-          accountNameSuggestion: accountName,
-        } as unknown as Record<string, Json>,
-        snapKeyringOptions ?? this.snapKeyringOptions,
-      );
-    });
->>>>>>> stable
   }
 
   /**
@@ -188,12 +171,9 @@ export abstract class MultichainWalletSnapClient {
    * @throws Error if account discovery or addition fails
    */
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
-<<<<<<< HEAD
 
     let totalDiscoveredAccounts = 0;
 
-=======
->>>>>>> stable
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -240,20 +220,14 @@ export abstract class MultichainWalletSnapClient {
               setSelectedAccount: false,
             },
           );
-<<<<<<< HEAD
           totalDiscoveredAccounts += 1;
-=======
->>>>>>> stable
         } catch (error) {
           captureException(new Error(`Failed to create account ${error}`));
         }
       }
     }
-<<<<<<< HEAD
 
     return totalDiscoveredAccounts;
-=======
->>>>>>> stable
   }
 }
 
@@ -273,7 +247,6 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
   }
-<<<<<<< HEAD
 
   async createAccount(
     options: MultichainWalletSnapOptions,
@@ -284,8 +257,6 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
       snapKeyringOptions,
     );
   }
-=======
->>>>>>> stable
 }
 
 export class SolanaWalletSnapClient extends MultichainWalletSnapClient {

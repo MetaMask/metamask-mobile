@@ -572,11 +572,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "transparent",
                                   "borderColor": "#b7bbc866",
-<<<<<<< HEAD
                                   "borderRadius": 12,
-=======
-                                  "borderRadius": 20,
->>>>>>> stable
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 40,
@@ -628,11 +624,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "#ffffff",
-<<<<<<< HEAD
                                           "borderRadius": 4,
-=======
-                                          "borderRadius": 8,
->>>>>>> stable
                                           "height": 16,
                                           "justifyContent": "center",
                                           "marginRight": 0,
@@ -668,11 +660,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "#ffffff",
-<<<<<<< HEAD
                                           "borderRadius": 4,
-=======
-                                          "borderRadius": 8,
->>>>>>> stable
                                           "height": 16,
                                           "justifyContent": "center",
                                           "marginRight": 0,

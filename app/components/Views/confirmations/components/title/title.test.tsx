@@ -9,29 +9,15 @@ import {
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
   transferConfirmationState,
-<<<<<<< HEAD
   upgradeOnlyAccountConfirmation,
   getAppStateForConfirmation,
   downgradeAccountConfirmation,
   upgradeAccountConfirmation,
-=======
->>>>>>> stable
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 import Title from './title';
 
-<<<<<<< HEAD
-=======
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
->>>>>>> stable
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
     const { getByText } = renderWithProvider(<Title />, {
@@ -87,7 +73,6 @@ describe('Confirm Title', () => {
 
   it('renders correct title for transfer', () => {
     const { getByText } = renderWithProvider(<Title />, {
-<<<<<<< HEAD
       state: merge(transferConfirmationState, {
         engine: {
           backgroundState: {
@@ -101,14 +86,10 @@ describe('Confirm Title', () => {
           },
         },
       }),
-=======
-      state: transferConfirmationState,
->>>>>>> stable
     });
     expect(getByText('Transfer request')).toBeTruthy();
   });
 
-<<<<<<< HEAD
   it('renders correct title and subtitle for upgrade smart account', () => {
     const { getByText } = renderWithProvider(<Title />, {
       state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
@@ -169,6 +150,4 @@ describe('Confirm Title', () => {
       ).toBeNull();
     },
   );
-=======
->>>>>>> stable
 });

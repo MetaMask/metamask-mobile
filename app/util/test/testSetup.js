@@ -9,12 +9,9 @@ import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-<<<<<<< HEAD
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
 
-=======
->>>>>>> stable
 jest.mock('react-native-quick-crypto', () => ({
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
@@ -43,7 +40,6 @@ jest.mock('react-native-quick-crypto', () => ({
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
     }),
     encrypt: jest.fn((algorithm, key, data) => {
-<<<<<<< HEAD
       return Promise.resolve(
         new Uint8Array([
           123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
@@ -56,20 +52,6 @@ jest.mock('react-native-quick-crypto', () => ({
           123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
         ]),
       );
-=======
-      return Promise.resolve(new Uint8Array([
-        123,  34, 116, 101, 115,
-        116,  34,  58,  34, 100,
-         97, 116,  97,  34, 125
-      ]));
-    }),
-    decrypt: jest.fn((algorithm, key, data) => {
-      return Promise.resolve(new Uint8Array([
-        123,  34, 116, 101, 115,
-        116,  34,  58,  34, 100,
-         97, 116,  97,  34, 125
-      ]));
->>>>>>> stable
     }),
   },
 }));

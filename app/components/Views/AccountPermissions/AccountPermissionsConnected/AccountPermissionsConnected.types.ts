@@ -14,11 +14,7 @@ import { CaipAccountId } from '@metamask/utils';
 export interface AccountPermissionsConnectedProps
   extends Omit<UseAccounts, 'evmAccounts'> {
   isLoading?: boolean;
-<<<<<<< HEAD
   selectedAddresses: CaipAccountId[];
-=======
-  selectedAddresses: string[];
->>>>>>> stable
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
   onDismissSheet: () => void;
   hostname: string;

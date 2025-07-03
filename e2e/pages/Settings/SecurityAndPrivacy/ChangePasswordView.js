@@ -42,10 +42,6 @@ class ChangePasswordView {
     );
   }
 
-  get submitButton() {
-    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
-  }
-
   async typeInConfirmPasswordInputBox(PASSWORD) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, PASSWORD);
   }

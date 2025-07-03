@@ -30,12 +30,8 @@ const AccountNetworkInfoExpanded = () => {
     chainId = transactionBatchesMetadata?.chainId as Hex;
     fromAddress = transactionBatchesMetadata?.from as string;
   }
-<<<<<<< HEAD
 
   const { accountAddress } = useAccountInfo(fromAddress, chainId as Hex);
-=======
-  const { accountAddress } = useAccountInfo(fromAddress);
->>>>>>> stable
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const balanceToDisplay = selectedAccountMultichainBalance?.displayBalance;

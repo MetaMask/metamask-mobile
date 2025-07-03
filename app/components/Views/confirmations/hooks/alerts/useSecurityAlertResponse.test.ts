@@ -6,17 +6,6 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 
-<<<<<<< HEAD
-=======
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
-
->>>>>>> stable
 describe('useSecurityAlertResponse', () => {
   it('returns security alert response for signature request is present', () => {
     const { result } = renderHookWithProvider(useSecurityAlertResponse, {

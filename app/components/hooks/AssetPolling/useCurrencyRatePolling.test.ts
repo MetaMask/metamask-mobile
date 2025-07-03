@@ -168,7 +168,6 @@ describe('useCurrencyRatePolling', () => {
     );
     expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(0);
   });
-<<<<<<< HEAD
 
   it('polls with provided chain ids', () => {
     const state = {
@@ -231,6 +230,4 @@ describe('useCurrencyRatePolling', () => {
       nativeCurrencies: ['POL'],
     });
   });
-=======
->>>>>>> stable
 });

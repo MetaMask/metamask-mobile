@@ -1,10 +1,6 @@
 import React from 'react';
-<<<<<<< HEAD
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-=======
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
->>>>>>> stable
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow from '../../../UI/info-row';
@@ -20,8 +16,7 @@ import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRe
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
 import styleSheet from './info-section-origin-and-details.styles';
-import { isValidHexAddress } from '../../../../../../../util/address';
-
+import { isValidAddress } from 'ethereumjs-util';
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -64,11 +59,7 @@ export const InfoSectionOriginAndDetails = () => {
       >
         <DisplayURL url={origin} />
       </InfoRow>
-<<<<<<< HEAD
       {isValidAddress(verifyingContract) && (
-=======
-      {isValidHexAddress(verifyingContract) && (
->>>>>>> stable
         <InfoRow label={strings('confirm.label.interacting_with')}>
           <InfoRowAddress address={verifyingContract} chainId={chainId} />
         </InfoRow>

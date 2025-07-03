@@ -7,14 +7,7 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-<<<<<<< HEAD
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-=======
-import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
-import Browser from '../../pages/Browser/BrowserView';
-import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
->>>>>>> stable
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
@@ -38,10 +31,7 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingCarouselView.titleThree);
     await Assertions.checkIfVisible(OnboardingCarouselView.imageThree);
     await OnboardingCarouselView.tapOnGetStartedButton();
-<<<<<<< HEAD
     await acceptTermOfUse();
-=======
->>>>>>> stable
     await Assertions.checkIfVisible(OnboardingView.container);
   });
 
@@ -49,10 +39,6 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     await OnboardingView.tapCreateWallet();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
     await MetaMetricsOptIn.tapNoThanksButton();
-<<<<<<< HEAD
-=======
-    await acceptTermOfUse();
->>>>>>> stable
     await Assertions.checkIfVisible(CreatePasswordView.container);
   });
 
@@ -74,60 +60,4 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
     // Press Done on the Onboarding Success screen
     await OnboardingSuccessView.tapDone();
   });
-<<<<<<< HEAD
-=======
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should go through the onboarding wizard flow', async () => {
-    // Check that Take the tour CTA is visible and tap it
-    await TestHelpers.delay(3000);
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
-    await OnboardingWizardModal.tapTakeTourButton();
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepTwoContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 3 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
-    // await WalletView.editAccountName(ACCOUNT);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    // Tap on Back
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 6 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 5 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapBackButton();
-    // Ensure step 4 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 6 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 7 is shown correctly
-    await Assertions.checkIfVisible(OnboardingWizardModal.stepSevenContainer);
-    await OnboardingWizardModal.tapGotItButton();
-    // Check that we are on the Browser page
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    await Assertions.checkIfVisible(Browser.browserScreenID);
-  });
->>>>>>> stable
 });

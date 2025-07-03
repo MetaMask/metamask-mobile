@@ -216,7 +216,6 @@ describe('useAccountTrackerPolling', () => {
       0,
     );
   });
-<<<<<<< HEAD
 
   it('polls with provided network client ids', () => {
     renderHookWithProvider(
@@ -246,6 +245,4 @@ describe('useAccountTrackerPolling', () => {
       networkClientIds: ['specificNetworkClientId2'],
     });
   });
-=======
->>>>>>> stable
 });

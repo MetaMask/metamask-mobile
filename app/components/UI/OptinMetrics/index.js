@@ -36,7 +36,6 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-<<<<<<< HEAD
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import Text, {
   TextColor,
@@ -48,11 +47,6 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-=======
-import {
-  UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
->>>>>>> stable
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -166,11 +160,7 @@ class OptinMetrics extends PureComponent {
     /**
      * Tracks the scroll view's height.
      */
-<<<<<<< HEAD
     scrollViewHeight: undefined,
-=======
-    scrollViewHeight: undefined
->>>>>>> stable
   };
 
   getStyles = () => {
@@ -180,39 +170,32 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-      action: value,
-      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-      description: strings(
-        `privacy_policy.action_description_${value}_description`,
-      ),
-    }))
-    : [1, 2, 3, 4, 5].map((value) => {
-      const actionVal = value <= 2 ? 0 : 1;
-      return {
-        action: actionVal,
-        prefix: actionVal
-          ? `${strings('privacy_policy.action_description_never_legacy')} `
-          : '',
+        action: value,
+        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
         description: strings(
-          `privacy_policy.action_description_${value}_legacy`,
+          `privacy_policy.action_description_${value}_description`,
         ),
-      };
-    });
+      }))
+    : [1, 2, 3, 4, 5].map((value) => {
+        const actionVal = value <= 2 ? 0 : 1;
+        return {
+          action: actionVal,
+          prefix: actionVal
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
+            : '',
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
+        };
+      });
 
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
   componentDidUpdate(_, prevState) {
-<<<<<<< HEAD
     const { scrollViewContentHeight, isEndReached, scrollViewHeight } =
       this.state;
-=======
-    // Update the navbar
-    this.updateNavBar();
-
-    const { scrollViewContentHeight, isEndReached, scrollViewHeight } = this.state;
->>>>>>> stable
 
     // Only run this check if any of the relevant values have changed
     if (
@@ -220,17 +203,10 @@ class OptinMetrics extends PureComponent {
       prevState.isEndReached !== isEndReached ||
       prevState.scrollViewHeight !== scrollViewHeight
     ) {
-<<<<<<< HEAD
       if (scrollViewContentHeight === undefined) return;
 
       // Check if content fits view port of scroll view
       if (scrollViewHeight >= scrollViewContentHeight && !isEndReached) {
-=======
-      if (scrollViewContentHeight === undefined || isEndReached) return;
-
-      // Check if content fits view port of scroll view
-      if (scrollViewHeight >= scrollViewContentHeight) {
->>>>>>> stable
         this.onScrollEndReached();
       }
     }
@@ -378,13 +354,9 @@ class OptinMetrics extends PureComponent {
       metrics
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
-<<<<<<< HEAD
           [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
             isDataCollectionForMarketingEnabled,
           ),
-=======
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(isDataCollectionForMarketingEnabled),
->>>>>>> stable
           is_metrics_opted_in: true,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
@@ -395,10 +367,7 @@ class OptinMetrics extends PureComponent {
     await metrics.addTraitsToUser({
       ...generateDeviceAnalyticsMetaData(),
       ...generateUserSettingsAnalyticsMetaData(),
-<<<<<<< HEAD
       [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
-=======
->>>>>>> stable
     });
 
     // track onboarding events that were stored before user opted in
@@ -569,12 +538,8 @@ class OptinMetrics extends PureComponent {
    * @param {number} _
    * @param {number} height
    */
-<<<<<<< HEAD
   onContentSizeChange = (_, height) =>
     this.setState({ scrollViewContentHeight: height });
-=======
-  onContentSizeChange = (_, height) => (this.setState({ scrollViewContentHeight: height }));
->>>>>>> stable
 
   /**
    * Layout event for the ScrollView.
@@ -592,10 +557,6 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-<<<<<<< HEAD
-=======
-    if (this.state.isEndReached) return;
->>>>>>> stable
     const currentYOffset = nativeEvent.contentOffset.y;
     const paddingAllowance = Platform.select({
       ios: 16,

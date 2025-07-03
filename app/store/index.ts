@@ -13,12 +13,8 @@ import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { toggleBasicFunctionality } from '../actions/settings';
-<<<<<<< HEAD
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
-=======
-import { setCompletedOnboarding } from '../actions/onboarding';
->>>>>>> stable
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -46,19 +42,6 @@ const createStoreAndPersistor = async () => {
 
   const middlewares = [sagaMiddleware, thunk];
 
-<<<<<<< HEAD
-=======
-  /*
-  if (__DEV__) {
-    // Add redux flipper middleware for debugging Redux with Flipper
-    // Flipper's client side plugin is https://github.com/jk-gan/flipper-plugin-redux-debugger, which needs to be added as a plugin
-    // flipper-plugin-redux-debugger is named redux-debugger in Flipper's plugin list
-    /* eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const createReduxFlipperDebugger = require('redux-flipper').default;
-    middlewares.push(createReduxFlipperDebugger());
-  }*/
-
->>>>>>> stable
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -88,18 +71,6 @@ const createStoreAndPersistor = async () => {
     store.dispatch(
       toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
-<<<<<<< HEAD
-=======
-
-    // This sets the completedOnboarding value based on the KeyringController state
-    // This cannot be done in a migration because `state.onboarding` was previously blacklisted in `persistConfig`
-    if (
-      !currentState.onboarding.completedOnboarding &&
-      Boolean(currentState.engine.backgroundState.KeyringController.vault)
-    ) {
-      store.dispatch(setCompletedOnboarding(true));
-    }
->>>>>>> stable
   };
 
   persistor = persistStore(store, null, onPersistComplete);

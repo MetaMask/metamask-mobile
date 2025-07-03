@@ -16,21 +16,14 @@ const MOCK_STORE_STATE = {
   engine: {
     backgroundState: {
       UserStorageController: {
-<<<<<<< HEAD
         isBackupAndSyncEnabled: true,
-=======
-        isProfileSyncingEnabled: true,
->>>>>>> stable
       },
       AuthenticationController: {
         isSignedIn: true,
       },
-<<<<<<< HEAD
       KeyringController: {
         keyrings: [],
       },
-=======
->>>>>>> stable
     },
   },
   settings: {
@@ -160,11 +153,7 @@ describe('BackupAndSyncToggle', () => {
             backgroundState: {
               ...MOCK_STORE_STATE.engine.backgroundState,
               UserStorageController: {
-<<<<<<< HEAD
                 isBackupAndSyncEnabled: false,
-=======
-                isProfileSyncingEnabled: false,
->>>>>>> stable
               },
             },
           },
@@ -199,11 +188,7 @@ describe('BackupAndSyncToggle', () => {
             backgroundState: {
               ...MOCK_STORE_STATE.engine.backgroundState,
               UserStorageController: {
-<<<<<<< HEAD
                 isBackupAndSyncEnabled: false,
-=======
-                isProfileSyncingEnabled: false,
->>>>>>> stable
               },
             },
           },

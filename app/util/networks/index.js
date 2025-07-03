@@ -9,10 +9,7 @@ import {
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
-<<<<<<< HEAD
   MONAD_TESTNET,
-=======
->>>>>>> stable
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import {
@@ -520,11 +517,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  *
  * @param {object} params - Params that contains information about the network.
  * @param {string=} params.networkType - Type of network from the provider.
-<<<<<<< HEAD
  * @param {string} params.chainId - Hex EVM chain ID of the EVM network.
-=======
- * @param {string} params.chainId - ChainID of the network.
->>>>>>> stable
  * @returns {Object} - Image source of the network.
  */
 const getEvmNetworkImageSource = ({ networkType, chainId }) => {
@@ -655,10 +648,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId.mainnet]: 'Mainnet',
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
-<<<<<<< HEAD
   [ChainId['monad-testnet']]: 'Monad Testnet',
-=======
->>>>>>> stable
 };
 
 /**

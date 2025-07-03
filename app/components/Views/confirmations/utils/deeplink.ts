@@ -16,11 +16,8 @@ import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
-<<<<<<< HEAD
 export type DeeplinkRequest = ParseOutput & { origin: string };
 
-=======
->>>>>>> stable
 const getNetworkClientIdForChainId = (chainId: Hex) => {
   const { NetworkController } = Engine.context;
   const selectedNetworkClientId = getGlobalNetworkClientId();
@@ -65,12 +62,8 @@ export async function addTransactionForDeeplink({
   function_name,
   parameters,
   target_address,
-<<<<<<< HEAD
   origin,
 }: DeeplinkRequest) {
-=======
-}: ParseOutput) {
->>>>>>> stable
   const { AccountsController } = Engine.context;
 
   // Temporary solution for preventing back to back deeplink requests
@@ -92,21 +85,12 @@ export async function addTransactionForDeeplink({
     chainId = CHAIN_IDS.MAINNET;
   }
 
-<<<<<<< HEAD
   const networkClientId = getNetworkClientIdForChainId(chainId);
   const from = safeToChecksumAddress(selectedAccountAddress) as string;
   const to = safeToChecksumAddress(target_address);
   const checkSummedParamAddress = safeToChecksumAddress(
     parameters?.address ?? '',
   );
-=======
-  // This should be anything *except* 'MMM' (MetaMask Mobile) to avoid layout issues in redesigned confirmations
-  const origin = 'deeplink';
-  const networkClientId = getNetworkClientIdForChainId(chainId);
-  const from = safeToChecksumAddress(selectedAccountAddress) as string;
-  const to = safeToChecksumAddress(target_address);
-  const checkSummedParamAddress = safeToChecksumAddress(parameters?.address ?? '');
->>>>>>> stable
 
   if (function_name === ETH_ACTIONS.TRANSFER) {
     // ERC20 transfer

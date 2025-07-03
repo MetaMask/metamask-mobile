@@ -1,8 +1,4 @@
 import { TransactionType } from '@metamask/transaction-controller';
-<<<<<<< HEAD
-=======
-import { ParseOutput } from 'eth-url-parser';
->>>>>>> stable
 
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
 import { selectConfirmationRedesignFlagsFromRemoteFeatureFlags } from '../../../../selectors/featureFlagController/confirmations';
@@ -12,16 +8,11 @@ import { generateTransferData } from '../../../../util/transactions';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-<<<<<<< HEAD
   type DeeplinkRequest,
 } from './deeplink';
 
 const ORIGIN_MOCK = 'example.test-dapp.com';
 
-=======
-} from './deeplink';
-
->>>>>>> stable
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RemoteFeatureFlagController: {
@@ -64,10 +55,7 @@ jest.mock('../../../../util/transactions', () => ({
 
 describe('isDeeplinkRedesignedConfirmationCompatible', () => {
   const enabledTransferFlags = {
-<<<<<<< HEAD
     approve: false,
-=======
->>>>>>> stable
     transfer: true,
     signatures: true,
     staking_confirmations: false,
@@ -157,12 +145,8 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-<<<<<<< HEAD
       origin: ORIGIN_MOCK,
     } as unknown as DeeplinkRequest);
-=======
-    } as unknown as ParseOutput);
->>>>>>> stable
 
     expect(mockAddTransaction).toHaveBeenCalledWith(
       {
@@ -172,11 +156,7 @@ describe('addTransactionForDeeplink', () => {
       },
       {
         networkClientId: 'another-network',
-<<<<<<< HEAD
         origin: ORIGIN_MOCK,
-=======
-        origin: 'deeplink',
->>>>>>> stable
         type: TransactionType.simpleSend,
       },
     );
@@ -188,12 +168,8 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-<<<<<<< HEAD
       origin: ORIGIN_MOCK,
     } as unknown as DeeplinkRequest);
-=======
-    } as unknown as ParseOutput);
->>>>>>> stable
 
     expect(mockAddTransaction).toHaveBeenCalledWith(
       {
@@ -203,11 +179,7 @@ describe('addTransactionForDeeplink', () => {
       },
       {
         networkClientId: 'mainnet',
-<<<<<<< HEAD
         origin: ORIGIN_MOCK,
-=======
-        origin: 'deeplink',
->>>>>>> stable
         type: TransactionType.simpleSend,
       },
     );
@@ -220,12 +192,8 @@ describe('addTransactionForDeeplink', () => {
         value: '1000',
       },
       target_address: TO_ADDRESS_MOCK,
-<<<<<<< HEAD
       origin: ORIGIN_MOCK,
     } as unknown as DeeplinkRequest);
-=======
-    } as unknown as ParseOutput);
->>>>>>> stable
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
 
@@ -234,12 +202,8 @@ describe('addTransactionForDeeplink', () => {
         value: '9999',
       },
       target_address: TO_ADDRESS_MOCK,
-<<<<<<< HEAD
       origin: ORIGIN_MOCK,
     } as unknown as DeeplinkRequest);
-=======
-    } as unknown as ParseOutput);
->>>>>>> stable
 
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
@@ -257,12 +221,8 @@ describe('addTransactionForDeeplink', () => {
         uint256: '1000',
       },
       target_address: ERC20_ADDRESS_MOCK,
-<<<<<<< HEAD
       origin: ORIGIN_MOCK,
     } as unknown as DeeplinkRequest);
-=======
-    } as unknown as ParseOutput);
->>>>>>> stable
 
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',
@@ -280,11 +240,7 @@ describe('addTransactionForDeeplink', () => {
       },
       {
         networkClientId: 'mainnet',
-<<<<<<< HEAD
         origin: ORIGIN_MOCK,
-=======
-        origin: 'deeplink',
->>>>>>> stable
         type: TransactionType.tokenMethodTransfer,
       },
     );

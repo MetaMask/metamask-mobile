@@ -1,16 +1,3 @@
-<<<<<<< HEAD
-=======
-import {
-  MultichainNetworkControllerState,
-  NON_EVM_TESTNET_IDS,
-  type MultichainNetworkConfiguration,
-} from '@metamask/multichain-network-controller';
-import { RootState } from '../../reducers';
-import { createSelector } from 'reselect';
-import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
-import imageIcons from '../../images/image-icons';
->>>>>>> stable
 import { ImageSourcePropType } from 'react-native';
 import { createSelector } from 'reselect';
 import {
@@ -79,7 +66,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     };
 
     // TODO: Add support for non-EVM testnets
-<<<<<<< HEAD
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
       multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
       {};
@@ -109,18 +95,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
           },
           {},
         );
-=======
-    const networks: Record<CaipChainId, MultichainNetworkConfiguration> = multichainNetworkControllerState.multichainNetworkConfigurationsByChainId || {};
-    const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
-      Object.keys(networks)
-        .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
-        .reduce((filteredNetworks: Record<CaipChainId, MultichainNetworkConfiguration>, key: string) => {
-          // @ts-expect-error - key is typed as string because that is the type of Object.keys but we know it is a CaipChainId
-          filteredNetworks[key] = networks[key];
-          return filteredNetworks;
-      },
-    {});
->>>>>>> stable
 
     return Object.fromEntries(
       Object.entries(nonEvmNetworks).map(([key, network]) => [

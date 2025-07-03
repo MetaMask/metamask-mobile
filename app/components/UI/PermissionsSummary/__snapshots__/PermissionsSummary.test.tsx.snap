@@ -286,25 +286,12 @@ exports[`PermissionsSummary should render correctly 1`] = `
               }
             }
           >
-<<<<<<< HEAD
             <RCTScrollView
               collapsable={false}
               data={
                 [
                   "eip155:0:0xS0M3FAk3ADDr355Dc8Ebf7A2152cdfB9D43FAk3",
                 ]
-=======
-            <SvgMock
-              color="#686e7d"
-              fill="currentColor"
-              height={20}
-              name="Wallet"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
->>>>>>> stable
               }
               getItem={[Function]}
               getItemCount={[Function]}
@@ -877,91 +864,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
             onPress={[Function]}
             testID="navigate_to_edit_networks_permissions_button"
           >
-<<<<<<< HEAD
-=======
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={20}
-              name="ArrowRight"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        testID="navigate_to_edit_networks_permissions_button"
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "marginBottom": 16,
-              "marginHorizontal": 24,
-              "marginTop": 8,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
-                "borderRadius": 16,
-                "height": 32,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "width": 32,
-              }
-            }
-          >
-            <SvgMock
-              color="#686e7d"
-              fill="currentColor"
-              height={20}
-              name="Data"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-          <View
-            style={
-              {
-                "flex": 1,
-                "marginLeft": 12,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Use your enabled networks
-            </Text>
->>>>>>> stable
             <View
               style={
                 {
@@ -1155,28 +1057,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 />
               </View>
             </View>
-<<<<<<< HEAD
           </TouchableOpacity>
-=======
-          </View>
-          <View
-            testID="connection-details-button"
-          >
-            <SvgMock
-              color="#121314"
-              fill="currentColor"
-              height={20}
-              name="ArrowRight"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
->>>>>>> stable
         </View>
       </View>
     </View>
@@ -3098,46 +2979,6 @@ exports[`PermissionsSummary should render only the network permissions card when
               }
             }
           >
-<<<<<<< HEAD
-=======
-            <SvgMock
-              color="#686e7d"
-              fill="currentColor"
-              height={20}
-              name="Data"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-          <View
-            style={
-              {
-                "flex": 1,
-                "marginLeft": 12,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Use your enabled networks
-            </Text>
->>>>>>> stable
             <View
               style={
                 {

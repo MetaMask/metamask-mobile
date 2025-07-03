@@ -37,7 +37,6 @@
       "title": "Dana tidak cukup",
       "message": "%{nativeCurrency} di akun Anda tidak cukup untuk membayar biaya jaringan.",
       "buy_action": "Beli %{nativeCurrency}"
-<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Transaksi sebelumnya masih dalam proses penandatanganan atau pengiriman."
@@ -50,8 +49,6 @@
     "batched_unused_approvals": {
       "title": "Izin yang tidak diperlukan",
       "message": "Anda memberikan izin kepada orang lain untuk menarik token, meskipun itu tidak diperlukan untuk transaksi ini."
-=======
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -596,7 +593,6 @@
     "multisrp": {
       "title": "Tambahkan beberapa Frasa Pemulihan Rahasia",
       "subtitle": "Impor dan gunakan beberapa dompet di MetaMask"
-<<<<<<< HEAD
     },
     "solana": {
       "title": "Kini mendukung Solana",
@@ -605,8 +601,6 @@
     "backupAndSync": {
       "title": "Memperkenalkan pencadangan dan sinkronisasi",
       "subtitle": "Cadangkan akun Anda dan sinkronkan pengaturan."
-=======
->>>>>>> stable
     }
   },
   "wallet": {
@@ -980,13 +974,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "Gagal membuat akun {{clientType}}"
-<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Akun Solana diperlukan untuk terhubung ke situs ini.",
       "button": "Buat akun Solana"
-=======
->>>>>>> stable
     }
   },
   "toast": {
@@ -4135,27 +4126,19 @@
       "permit_revoke": "Hapus izin",
       "permit_NFTs": "Permintaan penarikan",
       "signature_siwe": "Permintaan masuk",
-<<<<<<< HEAD
       "contract_interaction": "Permintaan transaksi",
       "transfer": "Permintaan transfer",
       "switch_account_type": "Pembaruan akun",
       "approve": "Approve request"
-=======
-      "contract_interaction": "Permintaan transaksi"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
       "permit_NFTs": "Situs ini meminta izin untuk menarik NFT Anda.",
       "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
       "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini.",
-<<<<<<< HEAD
       "contract_interaction": "Tinjau detail permintaan sebelum mengonfirmasi.",
       "switch_to_smart_account": "Anda beralih ke akun cerdas.",
       "switch_to_standard_account": "Anda beralih kembali ke akun standar (EOA)."
-=======
-      "contract_interaction": "Tinjau detail permintaan sebelum mengonfirmasi."
->>>>>>> stable
     },
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
@@ -4226,7 +4209,6 @@
       "includes_transaction": "Mencakup {{transactionCount}} transaksi"
     },
     "unlimited": "Tak terbatas",
-<<<<<<< HEAD
     "all": "Semua",
     "none": "Kosong",
     "advanced_details": "Detail lanjutan",
@@ -4236,12 +4218,6 @@
     "transferRequest": "Permintaan transfer",
     "nested_transaction_heading": "Transaksi {{index}}",
     "transaction": "Transaction"
-=======
-    "none": "Kosong",
-    "advanced_details": "Detail lanjutan",
-    "interacting_with": "Berinteraksi dengan",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
@@ -4292,7 +4268,6 @@
     "bridge_to": "Bridge ke",
     "title": "Bridge",
     "submitting_transaction": "Mengirim",
-<<<<<<< HEAD
     "fetching_quote": "Mengambil kuotasi",
     "fee_disclaimer": "Termasuk biaya MM 0,875%",
     "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
@@ -4302,14 +4277,6 @@
     "title": "Kuotasi baru tersedia",
     "description": "Harga diperbarui setiap {{refreshRate}} detik, jadi, ketuk Dapatkan kuotasi baru saat sudah siap.",
     "get_new_quote": "Dapatkan kuotasi baru"
-=======
-    "fetching_quote": "Mengambil kuotasi"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
->>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -4325,7 +4292,6 @@
     "transaction_details": "Detail Transaksi",
     "bridge_to_chain": "Bridge ke {{chainName}}",
     "recipient": "Penerima"
-<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Pencadangan dan sinkronisasi",
@@ -4442,7 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
->>>>>>> stable
   }
 }

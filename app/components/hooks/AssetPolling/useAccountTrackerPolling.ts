@@ -52,15 +52,7 @@ const useAccountTrackerPolling = ({
 
   const { AccountTrackerController } = Engine.context;
 
-<<<<<<< HEAD
   const input = providedNetworkClientIds ?? chainIdsToPoll;
-=======
-  const input = isEvmSelected
-    ? chainIdsToPoll.map((chainId) => ({
-        networkClientIds: [chainId.networkClientId],
-      }))
-    : [];
->>>>>>> stable
 
   usePolling({
     startPolling: AccountTrackerController.startPolling.bind(

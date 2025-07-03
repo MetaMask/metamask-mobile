@@ -119,7 +119,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       rpcEndpoints: [
         {
           networkClientId: 'mainnet',
-          type: 'Custom',
+          type: 'custom',
           url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
         },
       ],
@@ -128,7 +128,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
     '0x5': {
       chainId: '0x5',
       name: 'Goerli',
-<<<<<<< HEAD
       rpcEndpoints: [
         {
           networkClientId: 'goerli',
@@ -136,9 +135,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           url: 'https://goerli.infura.io/v3/{infuraProjectId}',
         },
       ],
-=======
-      rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
->>>>>>> stable
     },
   },
   networkOnboardedState: { '0x1': true, '0xe708': true },
@@ -966,15 +962,11 @@ describe('NetworkSettings', () => {
       // Set complete form state
       wrapper.setState({
         rpcUrls: [
-<<<<<<< HEAD
           {
             url: 'http://localhost:8545',
             type: 'custom',
             name: 'test',
           },
-=======
-          { url: 'http://localhost:8545', type: 'custom', name: 'test' },
->>>>>>> stable
         ],
         rpcUrl: 'http://localhost:8545',
         chainId: '0x1',
@@ -1151,10 +1143,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
-<<<<<<< HEAD
         undefined,
-=======
->>>>>>> stable
         null,
         'Custom',
       );
@@ -1396,7 +1385,6 @@ describe('NetworkSettings', () => {
 
       await instance.handleNetworkUpdate({
         rpcUrl: 'http://localhost:8080',
-<<<<<<< HEAD
         rpcUrls: [
           {
             url: 'http://localhost:8080',
@@ -1404,9 +1392,6 @@ describe('NetworkSettings', () => {
             name: '',
           },
         ],
-=======
-        rpcUrls: [{ url: 'http://localhost:8080', type: 'custom', name: '' }],
->>>>>>> stable
         blockExplorerUrls: ['https://etherscan.io'],
         isNetworkExists: [],
         chainId: '0x1',
@@ -1425,15 +1410,11 @@ describe('NetworkSettings', () => {
           name: undefined,
           nativeCurrency: undefined,
           rpcEndpoints: [
-<<<<<<< HEAD
             {
               name: '',
               type: 'custom',
               url: 'http://localhost:8080',
             },
-=======
-            { name: '', type: 'custom', url: 'http://localhost:8080' },
->>>>>>> stable
           ],
         }),
         { replacementSelectedRpcEndpointIndex: 0 },
@@ -1448,28 +1429,20 @@ describe('NetworkSettings', () => {
         chainId: '0x1',
         name: 'Mainnet',
         rpcEndpoints: [
-<<<<<<< HEAD
           {
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
           },
-=======
-          { url: 'https://mainnet.infura.io/v3/{infuraProjectId}' },
->>>>>>> stable
         ],
       },
       '0x5': {
         chainId: '0x5',
         name: 'Goerli',
         rpcEndpoints: [
-<<<<<<< HEAD
           {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
           },
-=======
-          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
->>>>>>> stable
         ],
       },
     };
@@ -1516,15 +1489,11 @@ describe('NetworkSettings', () => {
         chainId: '0x2',
         name: 'Another Network',
         rpcEndpoints: [
-<<<<<<< HEAD
           {
             type: 'custom',
             networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
           },
-=======
-          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
->>>>>>> stable
         ],
       };
 

@@ -18,7 +18,6 @@ import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
 import { getDecimalChainId } from '../../../../../util/networks';
-<<<<<<< HEAD
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
@@ -29,11 +28,6 @@ import styleSheet from './EmptyStateCta.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-=======
-import _ from 'lodash';
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
->>>>>>> stable
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -52,17 +46,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-<<<<<<< HEAD
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
   );
-=======
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
->>>>>>> stable
 
   const earnToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, token),
@@ -95,7 +81,6 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-<<<<<<< HEAD
   const navigateToLendingHistoricApyChart = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_LEARN_MORE_CLICKED)
@@ -120,8 +105,6 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-=======
->>>>>>> stable
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (

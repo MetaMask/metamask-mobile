@@ -10,10 +10,7 @@ import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-<<<<<<< HEAD
 import { BITCOIN_WALLET_SNAP_ID } from './BitcoinWalletSnap';
-=======
->>>>>>> stable
 
 const mockSnapKeyring = {
   createAccount: jest.fn(),
@@ -290,7 +287,6 @@ describe('Wallet Client Implementations', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
     });
-<<<<<<< HEAD
 
     it('adds synchronize parameter to createAccount', async () => {
       const mockOptions = {
@@ -308,8 +304,6 @@ describe('Wallet Client Implementations', () => {
         mockSnapKeyringOptions,
       );
     });
-=======
->>>>>>> stable
   });
 
   describe('SolanaWalletSnapClient', () => {

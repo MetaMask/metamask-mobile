@@ -118,16 +118,12 @@ describe('network-utils', () => {
     const allNetworks = getAllNetworks();
     it('should get all networks', () => {
       expect(allNetworks).toStrictEqual([
-<<<<<<< HEAD
         MAINNET,
         LINEA_MAINNET,
         SEPOLIA,
         LINEA_SEPOLIA,
         MEGAETH_TESTNET,
         MONAD_TESTNET,
-=======
-        MAINNET,LINEA_MAINNET, SEPOLIA, LINEA_SEPOLIA, MEGAETH_TESTNET
->>>>>>> stable
       ]);
     });
 

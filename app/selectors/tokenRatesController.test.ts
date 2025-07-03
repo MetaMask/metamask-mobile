@@ -3,11 +3,8 @@ import { RootState } from '../reducers';
 import {
   selectContractExchangeRates,
   selectContractExchangeRatesByChainId,
-<<<<<<< HEAD
   selectPricePercentChange1d,
   selectSingleTokenPriceMarketData,
-=======
->>>>>>> stable
   selectTokenMarketData,
   selectTokenMarketDataByChainId,
   selectTokenMarketPriceData,
@@ -28,10 +25,7 @@ const createMockMarketTokenDetails = () => {
   const mockChainMarketDetails = {
     '0x111': {
       price: 0.1,
-<<<<<<< HEAD
       pricePercentChange1d: 0.01,
-=======
->>>>>>> stable
     } as MarketDataDetails,
   };
   return mockChainMarketDetails;
@@ -144,7 +138,6 @@ describe('selectTokenMarketDataByChainId', () => {
     );
   });
 });
-<<<<<<< HEAD
 
 describe('selectPricePercentChange1d', () => {
   const arrange = () => {
@@ -228,5 +221,3 @@ describe('selectSingleTokenPriceMarketData', () => {
     expect(result2).toBe(result4);
   });
 });
-=======
->>>>>>> stable

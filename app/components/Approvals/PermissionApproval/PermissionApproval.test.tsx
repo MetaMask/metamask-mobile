@@ -12,11 +12,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useOriginSource from '../../hooks/useOriginSource';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-<<<<<<< HEAD
 import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics.types';
 import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
-=======
->>>>>>> stable
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useMetrics');
@@ -35,11 +32,7 @@ jest.mock('react-redux', () => ({
 const PERMISSION_REQUEST_ID_MOCK = 'testId';
 
 const HOST_INFO_MOCK = {
-<<<<<<< HEAD
   permissions: { [Caip25EndowmentPermissionName]: { caveats: [] } },
-=======
-  permissions: { [Caip25EndowmentPermissionName]: true },
->>>>>>> stable
   metadata: { id: PERMISSION_REQUEST_ID_MOCK },
 };
 
@@ -224,14 +217,10 @@ describe('PermissionApproval', () => {
 
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-<<<<<<< HEAD
       requestData: {
         ...HOST_INFO_MOCK,
         permissions: { [Caip25EndowmentPermissionName]: false },
       },
-=======
-      requestData: { ...HOST_INFO_MOCK, permissions: { [Caip25EndowmentPermissionName]: false } },
->>>>>>> stable
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);

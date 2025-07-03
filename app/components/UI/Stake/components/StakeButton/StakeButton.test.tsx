@@ -16,19 +16,12 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
-<<<<<<< HEAD
-=======
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
->>>>>>> stable
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-<<<<<<< HEAD
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-=======
->>>>>>> stable
 
 const mockNavigate = jest.fn();
 
@@ -300,7 +293,6 @@ describe('StakeButton', () => {
     });
   });
 
-<<<<<<< HEAD
   describe('Stablecoin Lending', () => {
     it('navigates to Lending Input View when earn button is pressed', async () => {
       const { getByTestId } = renderWithProvider(
@@ -323,8 +315,6 @@ describe('StakeButton', () => {
     });
   });
 
-=======
->>>>>>> stable
   it('does not render button when all earn experiences are disabled', () => {
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
@@ -341,7 +331,6 @@ describe('StakeButton', () => {
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
-<<<<<<< HEAD
 
   it('does not render button when all pooled staking experience is disabled and token is ETH', () => {
     (
@@ -359,6 +348,4 @@ describe('StakeButton', () => {
 
     expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
-=======
->>>>>>> stable
 });

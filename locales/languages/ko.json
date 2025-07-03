@@ -37,7 +37,6 @@
       "title": "자금 부족",
       "message": "계정에 네트워크 수수료를 지불할 %{nativeCurrency}(이)가 부족합니다.",
       "buy_action": "%{nativeCurrency} 구매"
-<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "이전 트랜잭션이 아직 서명 중 또는 제출 중입니다."
@@ -50,8 +49,6 @@
     "batched_unused_approvals": {
       "title": "불필요한 권한",
       "message": "이 트랜잭션에 필요하지 않음에도 불구하고 타인에게 토큰을 인출할 수 있는 권한을 부여하고 있습니다."
-=======
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -596,7 +593,6 @@
     "multisrp": {
       "title": "여러 비밀복구구문 추가",
       "subtitle": "MetaMask로 여러 지갑 가져와 사용하기"
-<<<<<<< HEAD
     },
     "solana": {
       "title": "이제 솔라나가 지원됩니다",
@@ -605,8 +601,6 @@
     "backupAndSync": {
       "title": "백업 및 동기화 소개",
       "subtitle": "계정을 백업하고 설정을 동기화하세요."
-=======
->>>>>>> stable
     }
   },
   "wallet": {
@@ -980,13 +974,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
-<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "이 사이트에 연결하려면 솔라나 계정이 필요합니다.",
       "button": "솔라나 계정 생성"
-=======
->>>>>>> stable
     }
   },
   "toast": {
@@ -4135,27 +4126,19 @@
       "permit_revoke": "권한 제거",
       "permit_NFTs": "출금 요청",
       "signature_siwe": "로그인 요청",
-<<<<<<< HEAD
       "contract_interaction": "트랜잭션 요청",
       "transfer": "전송 요청",
       "switch_account_type": "계정 업데이트",
       "approve": "Approve request"
-=======
-      "contract_interaction": "트랜잭션 요청"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
       "permit_NFTs": "이 사이트에서 NFT 인출 권한을 요청합니다.",
       "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
       "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다.",
-<<<<<<< HEAD
       "contract_interaction": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
       "switch_to_smart_account": "스마트 계정으로 전환 중입니다.",
       "switch_to_standard_account": "일반 계정(EOA)으로 전환 중입니다."
-=======
-      "contract_interaction": "컨펌하기 전에 요청 세부 사항을 검토하세요."
->>>>>>> stable
     },
     "request_from": "요청자:",
     "staking_from": "스테이킹 출처:",
@@ -4226,7 +4209,6 @@
       "includes_transaction": "트랜잭션 {{transactionCount}}건 포함"
     },
     "unlimited": "무제한",
-<<<<<<< HEAD
     "all": "모두",
     "none": "없음",
     "advanced_details": "고급 세부 정보",
@@ -4236,12 +4218,6 @@
     "transferRequest": "전송 요청",
     "nested_transaction_heading": "트랜잭션 {{index}}",
     "transaction": "Transaction"
-=======
-    "none": "없음",
-    "advanced_details": "고급 세부 정보",
-    "interacting_with": "상호작용 대상:",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -4292,7 +4268,6 @@
     "bridge_to": "브릿지 대상:",
     "title": "브릿지",
     "submitting_transaction": "제출 중",
-<<<<<<< HEAD
     "fetching_quote": "견적 가져오기",
     "fee_disclaimer": "MetaMask 수수료 0.875% 포함",
     "hardware_wallet_not_supported": "하드웨어 지갑은 아직 지원되지 않습니다. 핫월렛을 사용하여 계속하세요.",
@@ -4302,14 +4277,6 @@
     "title": "새로운 견적이 있습니다",
     "description": "환율은 {{refreshRate}}초마다 갱신됩니다. 준비가 되면 ‘새 견적 받기’를 눌러주세요.",
     "get_new_quote": "새 견적 받기"
-=======
-    "fetching_quote": "견적 가져오기"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
->>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "상태",
@@ -4325,7 +4292,6 @@
     "transaction_details": "트랜잭션 세부 사항",
     "bridge_to_chain": "{{chainName}}(으)로 브릿지",
     "recipient": "받는 사람"
-<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "백업 및 동기화",
@@ -4442,7 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
->>>>>>> stable
   }
 }

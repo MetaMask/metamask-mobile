@@ -39,17 +39,12 @@ const ConfirmationLocationMap = {
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
         return CONFIRMATION_EVENT_LOCATIONS.TRANSFER;
-<<<<<<< HEAD
       case TransactionType.tokenMethodApprove:
       case TransactionType.tokenMethodIncreaseAllowance:
       case TransactionType.tokenMethodSetApprovalForAll:
         return CONFIRMATION_EVENT_LOCATIONS.APPROVE;
       default:
         return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION;
-=======
-      default:
-        return undefined;
->>>>>>> stable
     }
   },
 };

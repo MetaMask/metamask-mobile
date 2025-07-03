@@ -62,16 +62,8 @@ describe('useEditNonce', () => {
     expect(mockUpdateTransaction).not.toHaveBeenCalled();
   });
 
-<<<<<<< HEAD
   it('fetches network nonce when transaction metadata is available', async () => {
     const { result } = renderHook(() => useEditNonce());
-=======
-  it('should fetch network nonce when transaction metadata is available', async () => {
-    // Use a resolved promise to ensure the getNetworkNonce completes
-    mockGetNetworkNonce.mockImplementation(async () => Promise.resolve(42));
-
-    const { result, waitForNextUpdate } = renderHook(() => useEditNonce());
->>>>>>> stable
 
     // Wait for the effect to run
     await act(async () => {
@@ -134,39 +126,17 @@ describe('useEditNonce', () => {
       await Promise.resolve();
     });
 
-<<<<<<< HEAD
     // The proposedNonce not have changed
-=======
-    // The proposedNonce should not have changed
->>>>>>> stable
     expect(result.current.proposedNonce).toBe(42);
 
     // Ensure getNetworkNonce was called twice
     expect(mockGetNetworkNonce).toHaveBeenCalledTimes(2);
   });
 
-<<<<<<< HEAD
   it('updates transaction with userSelectedNonce when updateNonce is called', async () => {
     const { result } = renderHook(() => useEditNonce());
 
     // Wait for initial effect to run
-=======
-  it('should update transaction with userSelectedNonce when it changes', async () => {
-    let resolveFn: (value: number) => void;
-    const promise = new Promise<number>((resolve) => {
-      resolveFn = resolve;
-    });
-    mockGetNetworkNonce.mockReturnValueOnce(promise);
-
-    const { result } = renderHook(() => useEditNonce());
-
-    // Resolve the getNetworkNonce promise
-    act(() => {
-      resolveFn(42);
-    });
-
-    // Wait for the state to update
->>>>>>> stable
     await act(async () => {
       await Promise.resolve();
     });
@@ -175,23 +145,7 @@ describe('useEditNonce', () => {
     expect(result.current.proposedNonce).toBe(42);
     expect(result.current.userSelectedNonce).toBe(42);
 
-<<<<<<< HEAD
     // Call updateNonce with a new value
-=======
-    // Set up a mock implementation for updateTransaction
-    let updateTransactionResolveFn: () => void;
-    const updateTransactionPromise = new Promise<void>((resolve) => {
-      updateTransactionResolveFn = resolve;
-    });
-    mockUpdateTransaction.mockReturnValueOnce(updateTransactionPromise);
-
-    // Change the user selected nonce
-    act(() => {
-      result.current.setUserSelectedNonce(100);
-    });
-
-    // Wait for the updateTransaction to be called
->>>>>>> stable
     await act(async () => {
       await result.current.updateNonce(100);
     });
@@ -205,14 +159,6 @@ describe('useEditNonce', () => {
       mockTransactionMetadata.id
     );
 
-<<<<<<< HEAD
-=======
-    // Resolve the updateTransaction promise
-    act(() => {
-      updateTransactionResolveFn();
-    });
-
->>>>>>> stable
     // Final state check
     expect(result.current.userSelectedNonce).toBe(100);
   });

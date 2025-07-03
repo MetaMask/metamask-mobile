@@ -1,10 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
-<<<<<<< HEAD
 import { EthScope } from '@metamask/keyring-api';
 import { toChecksumAddress } from 'ethereumjs-util';
-=======
->>>>>>> stable
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -12,7 +9,6 @@ import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import { safeToChecksumAddress } from '../../../util/address';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -36,11 +32,7 @@ const MOCK_ACCOUNTS = Object.values(
 const MOCK_ACCOUNT_1: Account = {
   id: MOCK_ACCOUNTS[0].id,
   name: 'Account 1',
-<<<<<<< HEAD
   address: toChecksumAddress(MOCK_ACCOUNTS[0].address) as Hex,
-=======
-  address: safeToChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
->>>>>>> stable
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -48,21 +40,14 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-<<<<<<< HEAD
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
-=======
->>>>>>> stable
   isLoadingAccount: false,
 };
 const MOCK_ACCOUNT_2: Account = {
   id: MOCK_ACCOUNTS[1].id,
   name: 'Account 2',
-<<<<<<< HEAD
   address: toChecksumAddress(MOCK_ACCOUNTS[1].address) as Hex,
-=======
-  address: safeToChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
->>>>>>> stable
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -70,11 +55,8 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-<<<<<<< HEAD
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
-=======
->>>>>>> stable
   isLoadingAccount: false,
 };
 

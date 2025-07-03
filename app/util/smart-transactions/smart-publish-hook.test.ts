@@ -736,11 +736,7 @@ describe('submitBatchSmartTransactionHook', () => {
       },
       async ({ request }) => {
         request.shouldUseSmartTransaction = false;
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         // The function should throw an error because smart transactions are disabled
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
           'STX publishHook: Smart Transaction is required for batch submissions'
@@ -754,11 +750,7 @@ describe('submitBatchSmartTransactionHook', () => {
       {
         transactions: undefined,
       },
-<<<<<<< HEAD
       async ({ request }) => {
-=======
-      async ({ request }) => {        
->>>>>>> stable
         // The function should throw an error because transactions is required
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
           'STX publishHook: A list of transactions are required for batch submissions'
@@ -773,11 +765,7 @@ describe('submitBatchSmartTransactionHook', () => {
         transactions: [],
       },
       async ({ request }) => {
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         // The function should throw an error because transactions cannot be empty
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
           'STX publishHook: A list of transactions are required for batch submissions'
@@ -846,11 +834,7 @@ describe('submitBatchSmartTransactionHook', () => {
           txHash: transactionHash,
           txHashes: [transactionHash, transactionHash],
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         setImmediate(() => {
           controllerMessenger.publish(
             'SmartTransactionsController:smartTransaction',
@@ -874,11 +858,7 @@ describe('submitBatchSmartTransactionHook', () => {
             } as SmartTransaction,
           );
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
@@ -887,11 +867,7 @@ describe('submitBatchSmartTransactionHook', () => {
             { transactionHash },
           ],
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             signedTransactions: [mockSignedTx, mockSignedTx],
@@ -918,11 +894,7 @@ describe('submitBatchSmartTransactionHook', () => {
             isSwapTransaction: false,
           },
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         expect(
           request.approvalController.updateRequestState,
         ).toHaveBeenCalledWith({
@@ -961,11 +933,7 @@ describe('submitBatchSmartTransactionHook', () => {
           txHash: transactionHash,
           txHashes: [transactionHash, transactionHash],
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         setImmediate(() => {
           controllerMessenger.publish(
             'SmartTransactionsController:smartTransaction',
@@ -989,11 +957,7 @@ describe('submitBatchSmartTransactionHook', () => {
             } as SmartTransaction,
           );
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
@@ -1002,11 +966,7 @@ describe('submitBatchSmartTransactionHook', () => {
             { transactionHash },
           ],
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             signedTransactions: [mockSignedTx, mockSignedTx],
@@ -1063,11 +1023,7 @@ describe('submitBatchSmartTransactionHook', () => {
           txHash: transactionHash,
           // No txHashes property
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         setImmediate(() => {
           controllerMessenger.publish(
             'SmartTransactionsController:smartTransaction',
@@ -1080,11 +1036,7 @@ describe('submitBatchSmartTransactionHook', () => {
             } as SmartTransaction,
           );
         });
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> stable
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({

@@ -3,10 +3,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
-<<<<<<< HEAD
 import { InternalAccount } from '@metamask/keyring-internal-api';
-=======
->>>>>>> stable
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
@@ -68,29 +65,19 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
-<<<<<<< HEAD
   let discoveredAccountsCount = 0;
 
-=======
->>>>>>> stable
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
 
-<<<<<<< HEAD
   discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(newKeyring.id);
   ///: END:ONLY_INCLUDE_IF
 
   Engine.setSelectedAddress(newAccountAddress);
 
   return { address: newAccountAddress, discoveredAccountsCount };
-=======
-  await multichainClient.addDiscoveredAccounts(newKeyring.id);
-  ///: END:ONLY_INCLUDE_IF
-
-  return Engine.setSelectedAddress(newAccountAddress);
->>>>>>> stable
 }
 
 export async function createNewSecretRecoveryPhrase() {
@@ -138,7 +125,6 @@ export async function addNewHdAccount(
     Engine.setAccountLabel(addedAccountAddress, name);
   }
 
-<<<<<<< HEAD
   const account = AccountsController.getAccountByAddress(addedAccountAddress);
 
   // This should always be true. If it's not, we have a bug.
@@ -147,17 +133,12 @@ export async function addNewHdAccount(
     throw new Error('Account not found after creation');
   }
 
-=======
->>>>>>> stable
   // We consider the account to be created once it got selected and renamed.
   store.dispatch(
     endPerformanceTrace({
       eventName: PerformanceEventNames.AddHdAccount,
     }),
   );
-<<<<<<< HEAD
 
   return account;
-=======
->>>>>>> stable
 }

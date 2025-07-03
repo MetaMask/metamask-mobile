@@ -32,13 +32,8 @@ import {
 } from '../../Tokens/constants';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-<<<<<<< HEAD
 import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
 import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
-=======
-import SkeletonText from '../../Ramp/components/SkeletonText';
-import parseAmount from '../../Ramp/utils/parseAmount';
->>>>>>> stable
 
 const createStyles = ({
   theme,

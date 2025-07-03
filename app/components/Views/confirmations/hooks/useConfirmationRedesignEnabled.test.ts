@@ -11,10 +11,7 @@ import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
   transferConfirmationState,
-<<<<<<< HEAD
   upgradeAccountConfirmation,
-=======
->>>>>>> stable
 } from '../../../../util/test/confirm-data-helpers';
 import { approveERC20TransactionStateMock } from '../__mocks__/approve-transaction-mock';
 import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
@@ -25,10 +22,7 @@ const disabledFeatureFlags = {
   staking_confirmations: false,
   contract_interaction: false,
   transfer: false,
-<<<<<<< HEAD
   approve: false,
-=======
->>>>>>> stable
 };
 
 jest.mock('../../../../util/address', () => ({
@@ -46,9 +40,6 @@ jest.mock('../../../../core/Engine', () => ({
       },
       getOrAddQRKeyring: jest.fn(),
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -61,7 +52,6 @@ describe('useConfirmationRedesignEnabled', () => {
   const confirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
-<<<<<<< HEAD
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
@@ -69,8 +59,6 @@ describe('useConfirmationRedesignEnabled', () => {
     isHardwareAccountMock.mockReturnValue(false);
     confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
   });
-=======
->>>>>>> stable
 
   describe('signature confirmations', () => {
     it('returns true for personal sign request', async () => {
@@ -90,11 +78,6 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     it('returns false when remote flag is disabled', async () => {
-<<<<<<< HEAD
-=======
-      confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
-
->>>>>>> stable
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -272,7 +255,6 @@ describe('useConfirmationRedesignEnabled', () => {
         expect(result.current.isRedesignedEnabled).toBe(false);
       });
     });
-<<<<<<< HEAD
 
     describe('7702 - upgrade / downgrade confirmations', () => {
       it('returns true for smart account upgrade confirmation', async () => {
@@ -372,7 +354,5 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     expect(result.current.isRedesignedEnabled).toBe(false);
-=======
->>>>>>> stable
   });
 });

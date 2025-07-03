@@ -1,6 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-<<<<<<< HEAD
 exports[`Asset Multichain Functionality should exclude mixed token/SOL transactions from native SOL view 1`] = `
 <View
   style={
@@ -17185,8 +17184,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
 </View>
 `;
 
-=======
->>>>>>> stable
 exports[`Asset should display swaps button if the asset is allowed 1`] = `
 <View
   style={

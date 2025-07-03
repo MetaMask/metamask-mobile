@@ -6,13 +6,8 @@ import {
   PooledStakingContract,
 } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-<<<<<<< HEAD
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
-=======
-import BigNumber from 'bignumber.js';
-import { act, fireEvent } from '@testing-library/react-native';
->>>>>>> stable
 import BN4 from 'bnjs4';
 import { BigNumber as EthersBigNumber, Contract } from 'ethers';
 import React from 'react';
@@ -21,10 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-<<<<<<< HEAD
 // eslint-disable-next-line import/no-namespace
-=======
->>>>>>> stable
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -52,18 +44,9 @@ import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
-<<<<<<< HEAD
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-=======
-import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
-import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
->>>>>>> stable
 import {
   createMockToken,
   getCreateMockTokenOptions,
@@ -74,7 +57,6 @@ import { useEarnMetadata } from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
-<<<<<<< HEAD
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
@@ -98,9 +80,6 @@ jest.mock('../../hooks/useEarnMetadata', () => ({
     isLoadingEarnMetadata: false,
   })),
 }));
-=======
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
->>>>>>> stable
 
 const MOCK_USDC_MAINNET_ASSET = createMockToken({
   ...getCreateMockTokenOptions(
@@ -214,7 +193,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
-<<<<<<< HEAD
 const mockLendingContracts = {
   aave: {
     '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2': {
@@ -231,8 +209,6 @@ const mockLendingContracts = {
   },
 };
 
-=======
->>>>>>> stable
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
@@ -372,11 +348,8 @@ describe('EarnInputView', () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-<<<<<<< HEAD
   const selectConversionRateMock = jest.mocked(selectConversionRate);
 
-=======
->>>>>>> stable
   const baseProps: EarnInputViewProps = {
     route: {
       params: {
@@ -393,15 +366,12 @@ describe('EarnInputView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-<<<<<<< HEAD
 
     // Reset the mocked function to default value
     (
       getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
     ).mockReturnValue(false);
 
-=======
->>>>>>> stable
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
         ({
@@ -420,7 +390,6 @@ describe('EarnInputView', () => {
     } as unknown as ReturnType<typeof useMetrics>);
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
-<<<<<<< HEAD
 
     (useEarnTokens as jest.Mock).mockReturnValue({
       getEarnToken: jest.fn(() => ({
@@ -495,8 +464,6 @@ describe('EarnInputView', () => {
 
   afterEach(() => {
     (getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock).mockClear();
-=======
->>>>>>> stable
   });
 
   function render(
@@ -527,7 +494,6 @@ describe('EarnInputView', () => {
     it('renders the correct USDC token', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
-<<<<<<< HEAD
       selectConversionRateMock.mockReturnValueOnce(1);
 
       (useEarnTokens as jest.Mock).mockReturnValue({
@@ -563,8 +529,6 @@ describe('EarnInputView', () => {
         })),
       });
 
-=======
->>>>>>> stable
       const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
@@ -589,13 +553,8 @@ describe('EarnInputView', () => {
       expect(getByText('$0')).toBeDefined();
 
       // Token Selector should display USDC as selected token
-<<<<<<< HEAD
       expect(getByText('2.5% APR')).toBeDefined();
       expect(getByText('100 USDC')).toBeDefined();
-=======
-      expect(getByText('4.5% APR')).toBeDefined();
-      expect(getByText('1 USDC')).toBeDefined();
->>>>>>> stable
 
       await act(async () => {
         fireEvent.press(getByText('1'));
@@ -900,7 +859,6 @@ describe('EarnInputView', () => {
       });
     });
 
-<<<<<<< HEAD
     it('earn lending deposit view to deposit tokens', async () => {
       selectConversionRateMock.mockReturnValueOnce(1);
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
@@ -943,14 +901,6 @@ describe('EarnInputView', () => {
           chainId: CHAIN_IDS.MAINNET,
         })),
       });
-=======
-      it('redesigned stake deposit confirmation view', async () => {
-        const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
-        // Override the mock value for this specific test
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags);
->>>>>>> stable
 
       // User has exact allowance needed to directly deposit
       (
@@ -975,13 +925,7 @@ describe('EarnInputView', () => {
         fireEvent.press(getByText(strings('stake.review')));
       });
 
-<<<<<<< HEAD
       expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
-=======
-        jest.useFakeTimers({ legacyFakeTimers: true });
-        // Wait for approval to be processed
-        await flushPromises();
->>>>>>> stable
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
@@ -1293,7 +1237,6 @@ describe('EarnInputView', () => {
     it('should track EARN_INPUT_VALUE_CHANGED for quick amount button press', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
-<<<<<<< HEAD
       (useEarnTokens as jest.Mock).mockReturnValue({
         getEarnToken: jest.fn(() => ({
           ...MOCK_USDC_MAINNET_ASSET,
@@ -1306,27 +1249,6 @@ describe('EarnInputView', () => {
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
             apr: '4.5%',
-=======
-        const { getByText } = renderComponent();
-
-        fireEvent.press(getByText('25%'));
-
-        fireEvent.press(getByText(strings('stake.review')));
-
-        jest.useRealTimers();
-
-        await new Promise(process.nextTick);
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-          screen: Routes.STAKING.STAKE_CONFIRMATION,
-          params: {
-            amountFiat: '750',
-            amountWei: '375000000000000000',
-            annualRewardRate: '2.5%',
-            annualRewardsToken: '0.00946 ETH',
-            annualRewardsFiat: '18.92 USD',
->>>>>>> stable
           },
         })),
         getOutputToken: jest.fn(() => ({

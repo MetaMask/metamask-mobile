@@ -6,7 +6,6 @@ import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
-<<<<<<< HEAD
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
@@ -14,8 +13,6 @@ import ContractInteraction from '../info/contract-interaction';
 import PersonalSign from '../info/personal-sign';
 import SwitchAccountType from '../info/switch-account-type';
 import TransactionBatch from '../info/transaction-batch';
-=======
->>>>>>> stable
 import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
@@ -49,14 +46,11 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
         return Transfer;
-<<<<<<< HEAD
       case TransactionType.tokenMethodApprove:
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
       // Default to contract interaction as generic transaction confirmation
-=======
->>>>>>> stable
       default:
         return ContractInteraction;
     }

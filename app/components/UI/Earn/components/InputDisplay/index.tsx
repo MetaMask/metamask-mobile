@@ -21,17 +21,12 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import CurrencyToggle from '../CurrencySwitch';
-<<<<<<< HEAD
 import FadeInView from '../FadeInView';
 
 export const INPUT_DISPLAY_TEST_IDS = {
   LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
     'LendingMaxSafeWithdrawalTooltipIcon',
 };
-=======
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
->>>>>>> stable
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -55,14 +50,10 @@ const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
-<<<<<<< HEAD
   params: {
     isStablecoinLendingEnabled: boolean;
     shouldShowLendingMaxSafeWithdrawalMessage: boolean;
   },
-=======
-  params: { isStablecoinLendingEnabled: boolean },
->>>>>>> stable
 ) =>
   StyleSheet.create({
     inputContainer: {
@@ -126,7 +117,6 @@ const InputDisplay = ({
   error,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
-<<<<<<< HEAD
   const navigation = useNavigation();
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -154,13 +144,6 @@ const InputDisplay = ({
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
 
   const ticker = asset.ticker ?? asset.symbol;
-=======
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-  const styles = createStyles(colors, { isStablecoinLendingEnabled });
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
->>>>>>> stable
 
   useEffect(() => {
     const blinkAnimation = Animated.loop(

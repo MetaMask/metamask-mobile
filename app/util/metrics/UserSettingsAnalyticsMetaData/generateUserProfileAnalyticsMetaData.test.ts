@@ -1,10 +1,7 @@
 import generateUserProfileAnalyticsMetaData from './generateUserProfileAnalyticsMetaData';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { Appearance } from 'react-native';
-<<<<<<< HEAD
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-=======
->>>>>>> stable
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({

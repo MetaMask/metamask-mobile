@@ -594,13 +594,6 @@
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
     },
-<<<<<<< HEAD
-=======
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
-    },
->>>>>>> stable
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
@@ -1164,9 +1157,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -1920,13 +1915,7 @@
       "generic": "This website has been blocked from automatically opening an external application"
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
-    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings.",
-    "toast": {
-      "solana_dapp_connection_coming_soon": {
-        "title": "Solana dapp connection coming soon",
-        "message": "You can connect to Solana dapps in the extension or trade Solana tokens in-app."
-      }
-    }
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -3217,7 +3206,7 @@
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",   
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -3829,7 +3818,6 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Lend {{tokenSymbol}} and earn",
-<<<<<<< HEAD
       "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
       "annually": "annually.",
       "learn_more": "Learn more.",
@@ -3906,15 +3894,6 @@
       "staking": "Payout history"
     },
     "allowance_reset": "Allowance Reset"
-=======
-      "body_prefix": "You could earn up to",
-      "body_suffix": "per year by lending your {{tokenSymbol}}.",
-      "start_earning": "Start earning"
-    },
-    "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
-    }
->>>>>>> stable
   },
   "stake": {
     "stake": "Stake",
@@ -4150,13 +4129,9 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
-<<<<<<< HEAD
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request"
-=======
-      "transfer": "Transfer request"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -4218,7 +4193,6 @@
     "7702_functionality": {
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
-<<<<<<< HEAD
       "switch": "Switch",
       "splashpage": {
         "accept": "Yes",
@@ -4235,25 +4209,17 @@
         "upgradeBannerTitle": "Switch to smart account"
       },
       "includes_transaction": "Includes {{transactionCount}} transactions"
-=======
-      "switch": "Switch"
->>>>>>> stable
     },
     "unlimited": "Unlimited",
     "all": "All",
     "none": "None",
     "advanced_details": "Advanced details",
     "interacting_with": "Interacting with",
-<<<<<<< HEAD
     "data": "Data",
     "review": "Review",
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction"
-=======
-    "review": "Review",
-    "transferRequest": "Transfer request"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -4343,12 +4309,8 @@
     },
     "privacyLink": "Learn how we protect your privacy",
     "features": {
-<<<<<<< HEAD
       "accounts": "Accounts",
       "contacts": "Contacts"
-=======
-      "accounts": "Accounts"
->>>>>>> stable
     },
     "manageWhatYouSync": {
       "title": "Manage what you sync",
@@ -4358,7 +4320,6 @@
   "snap_ui": {
     "asset_selector": {
       "title": "Select an asset"
-<<<<<<< HEAD
     },
     "hideSentitiveInfo": {
       "message": "Hide sensitive information"
@@ -4449,8 +4410,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
-    }
->>>>>>> stable
   }
 }

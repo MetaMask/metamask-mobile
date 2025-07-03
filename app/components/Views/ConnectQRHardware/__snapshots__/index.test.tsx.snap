@@ -328,11 +328,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
           [
             [
               {
-<<<<<<< HEAD
                 "borderRadius": 12,
-=======
-                "borderRadius": 100,
->>>>>>> stable
                 "justifyContent": "center",
                 "padding": 15,
               },

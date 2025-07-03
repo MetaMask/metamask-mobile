@@ -15,10 +15,7 @@ import {
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
-<<<<<<< HEAD:e2e/specs/confirmations-redesigned/signatures/signatures.spec.ts
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-=======
->>>>>>> stable:e2e/specs/confirmations-redesigned/signatures/signatures.spec.js
 
 const SIGNATURE_LIST = [
   {
@@ -70,13 +67,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
-<<<<<<< HEAD:e2e/specs/confirmations-redesigned/signatures/signatures.spec.ts
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
             )
-=======
-            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
->>>>>>> stable:e2e/specs/confirmations-redesigned/signatures/signatures.spec.js
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,

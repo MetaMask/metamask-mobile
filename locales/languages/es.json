@@ -37,7 +37,6 @@
       "title": "Fondos insuficientes",
       "message": "No tiene suficiente %{nativeCurrency} en su cuenta para pagar las tarifas de red.",
       "buy_action": "Comprar %{nativeCurrency}"
-<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Aún se está firmando o enviando una transacción anterior."
@@ -50,8 +49,6 @@
     "batched_unused_approvals": {
       "title": "Permiso innecesario",
       "message": "Le estás dando permiso a otra persona para que retire tus tokens, aunque no sea necesario para esta transacción."
-=======
->>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -596,7 +593,6 @@
     "multisrp": {
       "title": "Agregar varias frases secretas de recuperación",
       "subtitle": "Importar y usar varios monederos en MetaMask"
-<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana ahora es compatible",
@@ -605,8 +601,6 @@
     "backupAndSync": {
       "title": "Presentamos la copia de respaldo y la sincronización",
       "subtitle": "Realice una copia de respaldo de sus cuentas y sincronice la configuración."
-=======
->>>>>>> stable
     }
   },
   "wallet": {
@@ -980,13 +974,10 @@
     },
     "error_messages": {
       "failed_to_create_account": "No se pudo crear la cuenta de {{clientType}}"
-<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Se requiere una cuenta de Solana para conectarse a este sitio.",
       "button": "Crear cuenta de Solana"
-=======
->>>>>>> stable
     }
   },
   "toast": {
@@ -4135,27 +4126,19 @@
       "permit_revoke": "Eliminar permiso",
       "permit_NFTs": "Solicitud de retiro",
       "signature_siwe": "Solicitud de inicio de sesión",
-<<<<<<< HEAD
       "contract_interaction": "Solicitud de transacción",
       "transfer": "Solicitud de transferencia",
       "switch_account_type": "Actualización de la cuenta",
       "approve": "Approve request"
-=======
-      "contract_interaction": "Solicitud de transacción"
->>>>>>> stable
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
       "permit_NFTs": "Este sitio necesita permiso para retirar sus NFT.",
       "signature": "Revise los detalles de la solicitud antes de confirmar.",
       "signature_siwe": "Un sitio quiere que inicie sesión para demostrar que usted es el titular de esta cuenta.",
-<<<<<<< HEAD
       "contract_interaction": "Revise los detalles de la solicitud antes de confirmar.",
       "switch_to_smart_account": "Cambiará a una cuenta inteligente.",
       "switch_to_standard_account": "Volverá a una cuenta estándar (EOA)."
-=======
-      "contract_interaction": "Revise los detalles de la solicitud antes de confirmar."
->>>>>>> stable
     },
     "request_from": "Solicitud de",
     "staking_from": "Staking de",
@@ -4226,7 +4209,6 @@
       "includes_transaction": "Incluye {{transactionCount}} transacciones"
     },
     "unlimited": "Ilimitado",
-<<<<<<< HEAD
     "all": "Todo",
     "none": "Ninguno",
     "advanced_details": "Datos avanzados",
@@ -4236,12 +4218,6 @@
     "transferRequest": "Solicitud de transferencia",
     "nested_transaction_heading": "{{index}} de transacción",
     "transaction": "Transaction"
-=======
-    "none": "Ninguno",
-    "advanced_details": "Datos avanzados",
-    "interacting_with": "Interactuando con",
-    "review": "Review"
->>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",
@@ -4292,7 +4268,6 @@
     "bridge_to": "Puentear a",
     "title": "Puentear",
     "submitting_transaction": "Enviando",
-<<<<<<< HEAD
     "fetching_quote": "Obteniendo cotización",
     "fee_disclaimer": "Incluye comisión MM del 0,875 %",
     "hardware_wallet_not_supported": "Las billeteras físicas aún no son compatibles. Usa una billetera en caliente para continuar.",
@@ -4302,14 +4277,6 @@
     "title": "Hay nuevas cotizaciones disponibles",
     "description": "Las tarifas se actualizan cada {{refreshRate}} segundos, así que toque Obtener nueva cotización cuando esté listo.",
     "get_new_quote": "Obtener nueva cotización"
-=======
-    "fetching_quote": "Obteniendo cotización"
-  },
-  "quote_expired_modal": {
-    "title": "New quotes are available",
-    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
-    "get_new_quote": "Get new quote"
->>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Estado",
@@ -4325,7 +4292,6 @@
     "transaction_details": "Detalles de la transacción",
     "bridge_to_chain": "Puentear a {{chainName}}",
     "recipient": "Destinatario"
-<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Copia de respaldo y sincronización",
@@ -4442,7 +4408,5 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
-=======
->>>>>>> stable
   }
 }

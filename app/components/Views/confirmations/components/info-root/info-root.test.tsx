@@ -76,11 +76,8 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     TransactionController: {
       getTransactions: jest.fn().mockReturnValue([]),
-<<<<<<< HEAD
       getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
       updateTransaction: jest.fn(),
-=======
->>>>>>> stable
     },
   },
   controllerMessenger: {

@@ -30,14 +30,11 @@ describe('getTokenDetails', () => {
     aggregators: ['uniswap', '1inch'],
   };
 
-<<<<<<< HEAD
   beforeEach(() => {
     // Clear mock calls before each test for proper isolation
     (parseCaipAssetType as jest.Mock).mockClear();
   });
 
-=======
->>>>>>> stable
   describe('Network-specific behavior', () => {
     it('should format token details for non-EVM networks for spl token', () => {
       (parseCaipAssetType as jest.Mock).mockReturnValue({
@@ -122,7 +119,6 @@ describe('getTokenDetails', () => {
         tokenList: 'uniswap, 1inch',
       });
     });
-<<<<<<< HEAD
 
     it('converts raw Solana address to CAIP format for non-EVM networks', () => {
       const solanaAsset: TokenI = {
@@ -228,8 +224,6 @@ describe('getTokenDetails', () => {
         tokenList: 'uniswap, 1inch',
       });
     });
-=======
->>>>>>> stable
   });
 
   describe('Metadata handling', () => {
@@ -293,29 +287,6 @@ describe('getTokenDetails', () => {
   });
 
   describe('Asset property handling', () => {
-<<<<<<< HEAD
-=======
-    it('should handle empty address in asset', () => {
-      const assetWithoutAddress: TokenI = {
-        ...mockAsset,
-        address: '',
-      };
-
-      const result = getTokenDetails(
-        assetWithoutAddress,
-        true, // isNonEvmAsset
-        undefined,
-        mockEvmMetadata,
-      );
-
-      expect(result).toEqual({
-        contractAddress: null,
-        tokenDecimal: 18,
-        tokenList: 'uniswap, 1inch',
-      });
-    });
-
->>>>>>> stable
     it('should handle zero decimals in asset', () => {
       (parseCaipAssetType as jest.Mock).mockReturnValue({
         assetNamespace: 'token',

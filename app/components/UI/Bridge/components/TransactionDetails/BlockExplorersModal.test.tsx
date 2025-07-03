@@ -1,18 +1,8 @@
-<<<<<<< HEAD
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-=======
-import '../../_mocks_/initialState';
-import React from 'react';
-import BlockExplorersModal from './BlockExplorersModal';
->>>>>>> stable
 import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-<<<<<<< HEAD
-=======
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
->>>>>>> stable
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import React from 'react';

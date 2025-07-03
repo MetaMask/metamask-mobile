@@ -18,11 +18,7 @@ type MessageOrContent =
       /**
        * The message is a summary of the alert details.
        */
-<<<<<<< HEAD
       message?: string | ReactElement;
-=======
-      message?: string;
->>>>>>> stable
     }
   | {
       /**
@@ -33,11 +29,7 @@ type MessageOrContent =
       /**
        * The message is a summary of the alert details.
        */
-<<<<<<< HEAD
       message: string | ReactElement;
-=======
-      message: string;
->>>>>>> stable
     };
 
 /**

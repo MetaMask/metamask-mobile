@@ -1,10 +1,6 @@
 {
   "name": "metamask",
-<<<<<<< HEAD
   "version": "7.50.0",
-=======
-  "version": "7.47.1",
->>>>>>> stable
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -160,26 +156,18 @@
     "content-hash/**/base-x": "3.0.11",
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
-<<<<<<< HEAD
     "@ethereumjs/tx": "^5.4.0",
     "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.9.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "1.0.4",
-=======
-    "@metamask/network-controller/@metamask/controller-utils": "11.7.1-backport"
-  },
-  "dependencies": {
-    "@config-plugins/detox": "^9.0.0",
->>>>>>> stable
     "@consensys/on-ramp-sdk": "2.1.10",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
-<<<<<<< HEAD
     "@metamask/accounts-controller": "^30.0.0",
     "@metamask/account-tree-controller": "0.1.1",
     "@metamask/address-book-controller": "^6.1.0",
@@ -200,26 +188,6 @@
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^17.0.1",
-=======
-    "@metamask/accounts-controller": "^29.0.1",
-    "@metamask/address-book-controller": "^6.0.3",
-    "@metamask/app-metadata-controller": "^1.0.0",
-    "@metamask/approval-controller": "^7.1.3",
-    "@metamask/assets-controllers": "^62.0.0",
-    "@metamask/base-controller": "^8.0.0",
-    "@metamask/bitcoin-wallet-snap": "^0.12.1",
-    "@metamask/bridge-controller": "^28.0.0",
-    "@metamask/bridge-status-controller": "^25.0.0",
-    "@metamask/chain-agnostic-permission": "^0.6.0",
-    "@metamask/composable-controller": "^11.0.0",
-    "@metamask/controller-utils": "11.7.1-backport",
-    "@metamask/design-tokens": "^7.0.0",
-    "@metamask/earn-controller": "^0.13.0",
-    "@metamask/eip1193-permission-middleware": "^0.1.0",
-    "@metamask/eth-hd-keyring": "^12.1.0",
-    "@metamask/eth-json-rpc-filters": "^9.0.0",
-    "@metamask/eth-json-rpc-middleware": "^17.0.0",
->>>>>>> stable
     "@metamask/eth-ledger-bridge-keyring": "^11.0.3",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^8.0.0",
@@ -232,44 +200,25 @@
     "@metamask/json-rpc-engine": "^10.0.3",
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "^10.1.1",
-<<<<<<< HEAD
     "@metamask/keyring-api": "^18.0.0",
     "@metamask/keyring-controller": "^22.0.1",
     "@metamask/keyring-internal-api": "^6.2.0",
     "@metamask/keyring-snap-client": "^5.0.0",
-=======
-    "@metamask/keyring-api": "^17.4.0",
-    "@metamask/keyring-controller": "^22.0.0",
-    "@metamask/keyring-internal-api": "^4.0.3",
-    "@metamask/keyring-snap-client": "^4.0.1",
->>>>>>> stable
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
-<<<<<<< HEAD
     "@metamask/multichain-api-client": "^0.6.3",
     "@metamask/multichain-api-middleware": "^0.4.0",
     "@metamask/multichain-network-controller": "^0.8.0",
     "@metamask/multichain-transactions-controller": "^2.0.0",
     "@metamask/network-controller": "^23.6.0",
     "@metamask/notification-services-controller": "^11.0.0",
-=======
-    "@metamask/multichain-network-controller": "^0.4.0",
-    "@metamask/multichain-transactions-controller": "^1.0.0",
-    "@metamask/network-controller": "23.2.1-backport",
-    "@metamask/notification-services-controller": "^7.0.0",
->>>>>>> stable
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^12.5.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
-<<<<<<< HEAD
     "@metamask/preferences-controller": "^18.1.0",
     "@metamask/profile-sync-controller": "^18.0.0",
-=======
-    "@metamask/preferences-controller": "^17.0.0",
-    "@metamask/profile-sync-controller": "^13.0.0",
->>>>>>> stable
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
@@ -278,7 +227,6 @@
     "@metamask/remote-feature-flag-controller": "^1.6.0",
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
-<<<<<<< HEAD
     "@metamask/sdk-analytics": "0.0.5",
     "@metamask/sdk-communication-layer": "0.33.0",
     "@metamask/selected-network-controller": "^22.1.0",
@@ -297,34 +245,12 @@
     "@metamask/swaps-controller": "^13.1.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "^57.2.0",
-=======
-    "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/selected-network-controller": "^22.0.0",
-    "@metamask/signature-controller": "^28.0.0",
-    "@metamask/slip44": "^4.1.0",
-    "@metamask/smart-transactions-controller": "^16.3.1",
-    "@metamask/snaps-controllers": "^11.2.3",
-    "@metamask/snaps-execution-environments": "^7.2.2",
-    "@metamask/snaps-rpc-methods": "^12.1.0",
-    "@metamask/snaps-sdk": "^6.22.1",
-    "@metamask/snaps-utils": "^9.2.1",
-    "@metamask/solana-wallet-snap": "^1.31.2",
-    "@metamask/stake-sdk": "^1.0.0",
-    "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^13.1.0",
-    "@metamask/token-search-discovery-controller": "^3.1.0",
-    "@metamask/transaction-controller": "^56.2.0",
->>>>>>> stable
     "@metamask/utils": "^11.2.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@noble/hashes": "^1.7.1",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
-<<<<<<< HEAD
-=======
-    "@react-native-community/blur": "^4.4.1",
->>>>>>> stable
     "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/cli": "15.0.1",
     "@react-native-community/cli-platform-android": "15.0.1",
@@ -393,11 +319,8 @@
     "expo": "52.0.27",
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.18",
-<<<<<<< HEAD
     "expo-file-system": "~18.0.7",
     "fast-equals": "^5.2.2",
-=======
->>>>>>> stable
     "fuse.js": "3.4.4",
     "he": "^1.2.0",
     "https-browserify": "0.0.1",
@@ -583,10 +506,7 @@
     "babel-loader": "^9.1.3",
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
-<<<<<<< HEAD
     "babel-plugin-react-compiler": "^19.1.0-rc.2",
-=======
->>>>>>> stable
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
     "browserstack-local": "^1.5.1",
@@ -638,10 +558,7 @@
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.3.1",
-<<<<<<< HEAD
     "redux-devtools-expo-dev-plugin": "^1.0.0",
-=======
->>>>>>> stable
     "redux-saga-test-plan": "^4.0.6",
     "regenerator-runtime": "0.13.9",
     "serve-handler": "^6.1.5",
@@ -717,12 +634,8 @@
       "@storybook/addon-ondevice-controls>core-js": false,
       "viem>ws>bufferutil": false,
       "viem>ws>utf-8-validate": false,
-<<<<<<< HEAD
       "detox>@wix-pilot/core>canvas": true,
       "ts-node>@swc/core": false
-=======
-      "detox>@wix-pilot/core>canvas": true
->>>>>>> stable
     }
   },
   "packageManager": "yarn@1.22.22",

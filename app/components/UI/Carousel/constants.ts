@@ -11,16 +11,7 @@ import fundImage from '../../../images/banners/banner_image_fund.png';
 import cashoutImage from '../../../images/banners/banner_image_cashout.png';
 import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
 import backupAndSyncImage from '../../../images/banners/banner_image_backup_and_sync.png';
-<<<<<<< HEAD
-=======
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
->>>>>>> stable
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
-import solanaImage from '../../../images/banners/banner_image_solana.png';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import solanaImage from '../../../images/banners/banner_image_solana.png';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -98,10 +89,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       navigationStack: Routes.SHEET.ACCOUNT_ACTIONS,
     },
   },
-<<<<<<< HEAD
-=======
-  ///: END:ONLY_INCLUDE_IF
->>>>>>> stable
   {
     id: 'backupAndSync',
     title: strings('banner.backupAndSync.title'),
@@ -120,10 +107,6 @@ export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   cashout: cashoutImage,
   aggregated: aggregatedImage,
   multisrp: multiSrpImage,
-  backupAndSync: backupAndSyncImage,
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  solana: solanaImage,
-  ///: END:ONLY_INCLUDE_IF
   backupAndSync: backupAndSyncImage,
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   solana: solanaImage,

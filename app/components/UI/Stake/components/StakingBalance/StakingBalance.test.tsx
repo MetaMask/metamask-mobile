@@ -18,7 +18,6 @@ import { earnSelectors } from '../../../../../selectors/earnController';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
-<<<<<<< HEAD
 import {
   getMockEarnControllerState,
   getMockUseEarnTokens,
@@ -51,11 +50,6 @@ jest.mock('../../../../../selectors/earnController', () => ({
     selectEarnOutputToken: jest.fn(),
   },
 }));
-=======
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
->>>>>>> stable
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
   typeof selectPooledStakingEnabledFlag
@@ -186,13 +180,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
-<<<<<<< HEAD
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
-=======
->>>>>>> stable
 }));
 
 afterEach(() => {
@@ -205,7 +196,6 @@ describe('StakingBalance', () => {
     (
       selectPooledStakingEnabledFlag as MockSelectPooledStakingEnabledFlagSelector
     ).mockReturnValue(true);
-<<<<<<< HEAD
     (earnSelectors.selectEarnToken as unknown as jest.Mock).mockImplementation(
       (_token: TokenI) => {
         const experienceType =
@@ -237,8 +227,6 @@ describe('StakingBalance', () => {
     (
       earnSelectors.selectEarnOutputToken as unknown as jest.Mock
     ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
-=======
->>>>>>> stable
   });
 
   it('render matches snapshot', () => {

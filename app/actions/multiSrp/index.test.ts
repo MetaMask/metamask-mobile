@@ -9,7 +9,6 @@ import {
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 
-<<<<<<< HEAD
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
   testAddress,
@@ -17,8 +16,6 @@ const mockExpectedAccount = createMockInternalAccount(
   KeyringTypes.hd,
 );
 
-=======
->>>>>>> stable
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
@@ -27,10 +24,7 @@ const mockAddAccounts = jest.fn();
 const mockSetAccountLabel = jest.fn();
 const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
-<<<<<<< HEAD
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
-=======
->>>>>>> stable
 
 const hdKeyring = {
   getAccounts: () => {
@@ -65,10 +59,7 @@ jest.mock('../../core/Engine', () => ({
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
-<<<<<<< HEAD
       getAccountByAddress: () => mockGetAccountByAddress(),
-=======
->>>>>>> stable
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),

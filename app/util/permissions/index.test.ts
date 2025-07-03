@@ -4,7 +4,6 @@ import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain
 import { PermissionKeys } from '../../core/Permissions/specifications';
 import { pick } from 'lodash';
 import { CaveatTypes } from '../../core/Permissions/constants';
-<<<<<<< HEAD
 import {
   getCaip25PermissionFromLegacyPermissions,
   getChangedAuthorization,
@@ -12,9 +11,6 @@ import {
   rejectOriginApprovals,
   requestPermittedChainsPermissionIncremental
 } from '.';
-=======
-import { getCaip25PermissionFromLegacyPermissions, rejectOriginApprovals, requestPermittedChainsPermissionIncremental } from './index';
->>>>>>> stable
 import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { Json } from '@metamask/utils';
@@ -47,23 +43,6 @@ describe('Permission Utils', () => {
   });
 
   describe('requestPermittedChainsPermissionIncremental', () => {
-<<<<<<< HEAD
-=======
-    it('throws if the origin is snapId', async () => {
-      await expect(() =>
-        requestPermittedChainsPermissionIncremental({
-          origin: 'npm:snap',
-          chainId: '0x1',
-          autoApprove: false,
-        }),
-      ).rejects.toThrow(
-        new Error(
-          'Cannot request permittedChains permission for Snaps with origin "npm:snap"',
-        ),
-      );
-    });
-
->>>>>>> stable
     it('requests permittedChains approval if autoApprove: false', async () => {
       const subjectPermissions: Partial<
         SubjectPermissions<
@@ -426,12 +405,9 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
-<<<<<<< HEAD
                     'eip155:100': {
                       accounts: [],
                     },
-=======
->>>>>>> stable
                     'wallet:eip155': {
                       accounts: [],
                     },
@@ -446,11 +422,7 @@ describe('Permission Utils', () => {
       );
     });
 
-<<<<<<< HEAD
     it('returns approval from the PermissionsController for eth_accounts and permittedChains when both eth_accounts and permittedChains are specified in params and origin is snapId', async () => {
-=======
-    it('returns approval from the PermissionsController for only eth_accounts when both eth_accounts and permittedChains are specified in params and origin is snapId', async () => {
->>>>>>> stable
       const permissions = await getCaip25PermissionFromLegacyPermissions(
         'npm:snap',
         {
@@ -482,14 +454,11 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
-<<<<<<< HEAD
                     'eip155:100': {
                       accounts: [
                         'eip155:100:0x0000000000000000000000000000000000000001'
                       ],
                     },
-=======
->>>>>>> stable
                     'wallet:eip155': {
                       accounts: [
                         'wallet:eip155:0x0000000000000000000000000000000000000001',
@@ -558,11 +527,7 @@ describe('Permission Utils', () => {
       );
     });
 
-<<<<<<< HEAD
     it('returns CAIP-25 approval with approved accounts for the `wallet:eip155` scope with isMultichainOrigin: false if origin is snapId', async () => {
-=======
-    it('returns CAIP-25 approval with approved accounts for the `wallet:eip155` scope (and no approved chainIds) with isMultichainOrigin: false if origin is snapId', async () => {
->>>>>>> stable
       const origin = 'npm:snap';
 
       const permissions = await getCaip25PermissionFromLegacyPermissions(
@@ -596,15 +561,12 @@ describe('Permission Utils', () => {
                 value: {
                   requiredScopes: {},
                   optionalScopes: {
-<<<<<<< HEAD
                     'eip155:1': {
                       accounts: ['eip155:1:0xdeadbeef'],
                     },
                     'eip155:5': {
                       accounts: ['eip155:5:0xdeadbeef'],
                     },
-=======
->>>>>>> stable
                     'wallet:eip155': {
                       accounts: ['wallet:eip155:0xdeadbeef'],
                     },
@@ -646,7 +608,6 @@ describe('Permission Utils', () => {
       );
     });
   });
-<<<<<<< HEAD
 
   describe('getChangedAuthorization', () => {
     it('returns the new authorization if the previous value is undefined', () => {
@@ -831,6 +792,4 @@ describe('Permission Utils', () => {
       );
     });
   });
-=======
->>>>>>> stable
 });

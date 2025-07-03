@@ -221,7 +221,6 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
           value={true}
         />
       </View>
-<<<<<<< HEAD
       <View
         style={
           {
@@ -294,8 +293,6 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
           value={true}
         />
       </View>
-=======
->>>>>>> stable
     </View>
   </View>
 </RCTScrollView>

@@ -29,13 +29,8 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
-<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/components/RegionModal.tsx
 } from '../../../../../component-library/components/Texts/Text';
 import { SelectRegionSelectors } from '../../../../../../e2e/selectors/Ramps/SelectRegion.selectors';
-=======
-} from '../../../../component-library/components/Texts/Text';
-import { SelectRegionSelectors } from '../../../../../e2e/selectors/Ramps/SelectRegion.selectors';
->>>>>>> stable:app/components/UI/Ramp/components/RegionModal.tsx
 
 const MAX_REGION_RESULTS = 20;
 

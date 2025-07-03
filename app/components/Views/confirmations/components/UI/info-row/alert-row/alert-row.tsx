@@ -32,16 +32,6 @@ const AlertRow = ({
   const { fieldAlerts } = useAlerts();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
   const { styles } = useStyles(styleSheet, {});
-<<<<<<< HEAD
-=======
-
-  const handleInlineAlertClick = () => {
-    if(!alertSelected) return;
-    setAlertKey(alertSelected.key);
-    showAlertModal();
-    trackInlineAlertClicked(alertSelected.field);
-  };
->>>>>>> stable
 
   if (!alertSelected && isShownWithAlertsOnly) {
     return null;
