@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { Platform, StatusBar, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
