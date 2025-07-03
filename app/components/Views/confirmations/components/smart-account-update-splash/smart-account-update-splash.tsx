@@ -2,7 +2,7 @@ import React, { ReactElement, useCallback, useState } from 'react';
 import { Hex } from '@metamask/utils';
 import { Image, Linking, View } from 'react-native';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
@@ -68,7 +68,6 @@ const ListItem = ({
 export const SmartAccountUpdateSplash = () => {
   const { PreferencesController } = Engine.context;
   const [acknowledged, setAcknowledged] = useState(false);
-  const dispatch = useDispatch();
   const transactionMetadata = useTransactionMetadataRequest();
   const smartAccountOptInForAccounts = useSelector(
     selectSmartAccountOptInForAccounts,
@@ -101,7 +100,7 @@ export const SmartAccountUpdateSplash = () => {
     ]);
 
     setAcknowledged(true);
-  }, [dispatch, from, setAcknowledged, smartAccountOptInForAccounts]);
+  }, [from, setAcknowledged, smartAccountOptInForAccounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (
     !transactionMetadata ||

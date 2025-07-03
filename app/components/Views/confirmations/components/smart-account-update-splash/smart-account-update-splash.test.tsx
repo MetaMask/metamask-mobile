@@ -12,7 +12,6 @@ import * as ConfirmationActions from '../../hooks/useConfirmActions';
 // eslint-disable-next-line import/no-namespace
 import * as AddressUtils from '../../../../../util/address';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
-import { useDispatch } from 'react-redux';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -37,11 +36,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
-}));
-
 const renderComponent = (state?: Record<string, unknown>) =>
   renderWithProvider(<SmartAccountUpdateSplash />, {
     state:
@@ -63,13 +57,9 @@ describe('SmartContractWithLogo', () => {
   });
 
   it('close after `Yes` button is clicked', () => {
-    const mockDispatch = jest.fn();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-
     const { getByText, queryByText } = renderComponent();
     expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('Yes'));
-    expect(mockDispatch).toHaveBeenCalled();
     expect(
       Engine.context.PreferencesController.setSmartAccountOptInForAccounts,
     ).toHaveBeenCalled();
