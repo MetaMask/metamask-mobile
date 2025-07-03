@@ -171,7 +171,7 @@ export default class SnapBridge {
         createPreinstalledSnapsMiddleware({
           getPermissions: PermissionController.getPermissions.bind(
             PermissionController,
-            origin,
+            this.snapId,
           ),
           getAllEvmAccounts: () =>
             controllerMessenger
@@ -180,7 +180,7 @@ export default class SnapBridge {
           grantPermissions: (approvedPermissions) =>
             controllerMessenger.call('PermissionController:grantPermissions', {
               approvedPermissions,
-              subject: { origin },
+              subject: { origin: this.snapId },
             }),
         }),
       );
