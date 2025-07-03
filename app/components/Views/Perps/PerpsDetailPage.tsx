@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks';
@@ -16,6 +16,7 @@ import { Theme } from '../../../util/theme/models';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import PerpsPositionListItem from './PerpsPositionListItem';
+import HyperliquidWebSocketService from './WebSocketService';
 
 interface PositionData {
   id: string;
@@ -173,8 +174,26 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
+  // WebSocket state
+  const [isConnected, setIsConnected] = useState(false);
+
   // Get the position data from route params
   const position = (route.params as { position: PositionData })?.position;
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const ws = new HyperliquidWebSocketService();
+
+    // Check connection status periodically
+    const statusInterval = setInterval(() => {
+      setIsConnected(ws.getConnectionStatus());
+    }, 1000);
+
+    return () => {
+      clearInterval(statusInterval);
+      ws.disconnect();
+    };
+  }, []);
 
   if (!position) {
     Logger.log('PerpsDetailPage: No position data provided');
@@ -281,7 +300,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
             color={TextColor.Muted}
             style={styles.chartPlaceholder}
           >
-            Chart Coming Soon
+            WebSocket: {isConnected ? 'Connected' : 'Connecting...'}
           </Text>
           <Text
             variant={TextVariant.BodySM}
