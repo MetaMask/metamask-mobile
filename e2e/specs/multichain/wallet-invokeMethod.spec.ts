@@ -22,9 +22,7 @@
  */
 import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
-} from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
@@ -35,10 +33,24 @@ import MultichainUtilities from '../../utils/MultichainUtilities';
 import Assertions from '../../utils/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
-import Tenderly from '../../tenderly';
-import { CustomNetworks } from '../../resources/networks.e2e';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+
+const ANVIL_NODE_OPTIONS_WITH_GATOR = [
+  {
+    type: 'anvil',
+    options: {
+      hardfork: 'prague',
+      loadState: './e2e/seeder/network-states/7702/withDelegatorContracts.json',
+    },
+  },
+];
+const REMOTE_FEATURE_EIP_7702_MOCK = {
+  GET: [mockEvents.GET.remoteFeatureEip7702],
+};
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   beforeEach(() => {
@@ -405,33 +417,27 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   });
 
   describe('EIP-5792 methods', () => {
-    beforeAll(async () => {
-      await Tenderly.addFunds(
-        CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-        DEFAULT_FIXTURE_ACCOUNT,
-      );
-    });
-
     it('should be able to call: wallet_getCapabilties', async () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
+          testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
           await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-          const networksToTest =
-            MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-          await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+          const chainId = MultichainUtilities.CHAIN_IDS.LOCALHOST;
+          await MultichainTestDApp.createSessionWithNetworks([chainId]);
 
           await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
-          const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const method = 'wallet_getCapabilities';
 
-          await MultichainTestDApp.invokeMethodOnChain(chainId, method);
+          await MultichainTestDApp.invokeMethod(chainId, method);
 
           const resultText = await MultichainTestDApp.getInvokeMethodResult(
             chainId,
@@ -441,8 +447,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const result = JSON.parse(resultText ?? '{}');
 
           const expectedResult = {
-            '0x1': {
-              alternateGasFees: { supported: true },
+            '0x539': {
               atomic: { status: 'ready' },
             },
           };
@@ -456,29 +461,29 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder()
-            .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-            .build(),
+          fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
+          testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
           await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-          const networksToTest =
-            MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-          await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+          const chainId = '1337';
+          await MultichainTestDApp.createSessionWithNetworks([chainId]);
 
           const method = 'wallet_sendCalls';
 
-          await MultichainTestDApp.invokeMethodOnChain(
-            MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-            method,
-          );
+          await MultichainTestDApp.invokeMethod(chainId, method);
+
+          const yesButton = await Matchers.getElementByText('Yes');
+          await Gestures.waitAndTap(yesButton);
 
           await FooterActions.tapConfirmButton();
 
           const resultText = await MultichainTestDApp.getInvokeMethodResult(
-            MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
+            chainId,
             method,
           );
 
@@ -495,26 +500,25 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
       await withFixtures(
         {
           ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-          fixture: new FixtureBuilder()
-            .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-            .build(),
+          fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
+          testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
           await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-          const networksToTest =
-            MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-          await MultichainTestDApp.createSessionWithNetworks(networksToTest);
-
-          const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
+          const chainId = MultichainUtilities.CHAIN_IDS.LOCALHOST;
+          await MultichainTestDApp.createSessionWithNetworks([chainId]);
 
           // First call wallet_sendCalls to get a batch ID
           const sendCallsMethod = 'wallet_sendCalls';
-          await MultichainTestDApp.invokeMethodOnChain(
-            chainId,
-            sendCallsMethod,
-          );
+          await MultichainTestDApp.invokeMethod(chainId, sendCallsMethod);
+
+          const yesButton = await Matchers.getElementByText('Yes');
+          await Gestures.waitAndTap(yesButton);
+
           await FooterActions.tapConfirmButton();
 
           const sendCallsResultText =
@@ -537,11 +541,9 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           // Now call wallet_getCallsStatus with the batch ID
           const getStatusMethod = 'wallet_getCallsStatus';
 
-          await MultichainTestDApp.invokeMethod(
-            MultichainUtilities.EIP155_SCOPES.ETHEREUM_MAINNET,
-            getStatusMethod,
-            [batchId],
-          );
+          await MultichainTestDApp.invokeMethod(chainId, getStatusMethod, [
+            batchId,
+          ]);
 
           const getStatusResultText =
             await MultichainTestDApp.getInvokeMethodResult(
