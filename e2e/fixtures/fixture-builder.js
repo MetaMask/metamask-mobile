@@ -14,6 +14,9 @@ import {
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
   SNAPS_CONTROLLER_STATE,
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+  CASUAL_USER_STATE,
 } from './constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
@@ -1172,6 +1175,77 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.SnapController,
       SNAPS_CONTROLLER_STATE,
     );
+
+    return this;
+  }
+
+  withCoreUSERSnapUnencryptedState() {
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      CASUAL_USER_STATE.SNAPS_CONTROLLER_STATE,
+    );
+
+    return this;
+  }
+
+  withCoreUserSnapPermissions() {
+    merge(
+      this.fixture.state.engine.backgroundState.PermissionController,
+      CASUAL_USER_STATE.PERMISSION_CONTROLLER_STATE,
+    );
+    return this;
+  }
+
+  // withCoreUserKeyRing() {
+  //   merge(
+  //     this.fixture.state.engine.backgroundState.KeyringController,
+  //     CASUAL_USER_STATE.KEYRING_CONTROLLER_STATE,
+  //   );
+  //   return this;
+  // }
+
+
+  // This method basically make sure the default account is an evm account and not solana
+  // If you comment this out and use the above you will notice the test starts on solana mainnet
+  withCoreUserKeyRing() { 
+    merge(
+      this.fixture.state.engine.backgroundState.KeyringController,
+      CASUAL_USER_STATE.KEYRING_CONTROLLER_STATE,
+    );
+
+    // Add accounts controller with the first account selected
+    const firstAccountAddress =
+      CASUAL_USER_STATE.KEYRING_CONTROLLER_STATE.keyrings[0].accounts[0];
+    const accountId = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          [accountId]: {
+            address: firstAccountAddress,
+            id: accountId,
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: accountId,
+      },
+    });
 
     return this;
   }
