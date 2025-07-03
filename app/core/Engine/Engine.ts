@@ -204,6 +204,7 @@ import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { MetaMetrics as BackupAndSyncMetaMetrics } from '@metamask/profile-sync-controller';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -1026,11 +1027,11 @@ export class Engine {
               MetricsEventBuilder.createEventBuilder(
                 MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Updated',
-                })
+                .addProperties(
+                  BackupAndSyncMetaMetrics.BackupAndSyncEventProperties.CONTACT_UPDATED(
+                    profileId,
+                  ),
+                )
                 .build(),
             );
           },
@@ -1039,11 +1040,11 @@ export class Engine {
               MetricsEventBuilder.createEventBuilder(
                 MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Contact Deleted',
-                })
+                .addProperties(
+                  BackupAndSyncMetaMetrics.BackupAndSyncEventProperties.CONTACT_DELETED(
+                    profileId,
+                  ),
+                )
                 .build(),
             );
           },
@@ -1052,12 +1053,12 @@ export class Engine {
               MetricsEventBuilder.createEventBuilder(
                 MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
               )
-                .addProperties({
-                  profile_id: profileId,
-                  feature_name: 'Contacts Sync',
-                  action: 'Contacts Sync Erroneous Situation',
-                  additional_description: situationMessage,
-                })
+                .addProperties(
+                  BackupAndSyncMetaMetrics.BackupAndSyncEventProperties.CONTACT_SYNC_ERROR(
+                    profileId,
+                    situationMessage,
+                  ),
+                )
                 .build(),
             );
           },
