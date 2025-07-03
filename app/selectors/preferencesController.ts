@@ -172,3 +172,9 @@ export const selectSmartAccountOptIn = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartAccountOptIn ?? false,
 );
+
+export const selectSmartAccountOptInForAccounts = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.smartAccountOptInForAccounts ?? [],
+);
