@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks';
@@ -131,6 +131,23 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center' as const,
       marginTop: 8,
     },
+    candleDataSection: {
+      marginTop: 16,
+      padding: 12,
+      backgroundColor: colors.background.default,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+    },
+    candleTitle: {
+      marginBottom: 8,
+      textAlign: 'left' as const,
+      fontWeight: '600' as const,
+    },
+    candleData: {
+      marginBottom: 4,
+      textAlign: 'left' as const,
+    },
     actionButtonsSection: {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
@@ -176,7 +193,15 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
 
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
-  const [candleSubscribed, setCandleSubscribed] = useState(false);
+  const candleSubscribedRef = useRef(false);
+  const [latestCandle, setLatestCandle] = useState<{
+    time: number;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume: string;
+  } | null>(null);
 
   // Get the position data from route params
   const position = (route.params as { position: PositionData })?.position;
@@ -186,18 +211,44 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
     const ws = new HyperliquidWebSocketService();
 
     // Check connection status periodically and subscribe when connected
+    let connectionStableTime = 0;
     const statusInterval = setInterval(() => {
       const connected = ws.getConnectionStatus();
       setIsConnected(connected);
 
-      // Subscribe to candle data once connected
-      if (connected && position && !candleSubscribed) {
+      // Track how long the connection has been stable
+      if (connected) {
+        connectionStableTime += 1000;
+      } else {
+        connectionStableTime = 0;
+      }
+
+      // Subscribe to candle data once connected and stable for 2 seconds
+      if (
+        connected &&
+        position &&
+        !candleSubscribedRef.current &&
+        connectionStableTime >= 2000
+      ) {
         Logger.log(
-          'HyperliquidWebSocket: Subscribing to candle data for',
+          'HyperliquidWebSocket: Connection stable, subscribing directly to candle data for',
           position.assetSymbol,
         );
-        ws.subscribeToCandleData(position.assetSymbol, '1h');
-        setCandleSubscribed(true);
+
+        // Subscribe directly to candle data - no test needed
+        ws.subscribeToCandleData(position.assetSymbol, '1h', (candleData) => {
+          Logger.log(
+            'HyperliquidWebSocket: Received candle update:',
+            candleData,
+          );
+          // Get the latest candle (last one in the array)
+          if (candleData.candles && candleData.candles.length > 0) {
+            const latest = candleData.candles[candleData.candles.length - 1];
+            setLatestCandle(latest);
+          }
+        });
+
+        candleSubscribedRef.current = true;
       }
     }, 1000);
 
@@ -205,7 +256,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
       clearInterval(statusInterval);
       ws.disconnect();
     };
-  }, [position, candleSubscribed]);
+  }, [position]);
 
   if (!position) {
     Logger.log('PerpsDetailPage: No position data provided');
@@ -319,10 +370,58 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
             color={TextColor.Muted}
             style={styles.chartSubtext}
           >
-            {candleSubscribed
+            {candleSubscribedRef.current
               ? `Subscribed to ${position.assetSymbol} candle data`
               : 'Subscribing to candle data...'}
           </Text>
+
+          {/* Latest Candle Data Display */}
+          {latestCandle && (
+            <View style={styles.candleDataSection}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Default}
+                style={styles.candleTitle}
+              >
+                Latest 1h Candle:
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Muted}
+                style={styles.candleData}
+              >
+                Open: ${parseFloat(latestCandle.open).toFixed(2)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Muted}
+                style={styles.candleData}
+              >
+                High: ${parseFloat(latestCandle.high).toFixed(2)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Muted}
+                style={styles.candleData}
+              >
+                Low: ${parseFloat(latestCandle.low).toFixed(2)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Muted}
+                style={styles.candleData}
+              >
+                Close: ${parseFloat(latestCandle.close).toFixed(2)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Muted}
+                style={styles.candleData}
+              >
+                Volume: {parseFloat(latestCandle.volume).toFixed(2)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Action Buttons */}
