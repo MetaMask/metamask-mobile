@@ -1,6 +1,6 @@
 # 🚧 Migration Notice (Still In Progress)
 
-**UPDATE: TypeScript Framework Available**: The updated TypeScript framework is still in progress.
+**TypeScript Framework Utils is NOT YET READY**: The updated TypeScript framework is still in progress.
 
 - **Current Framework Utils**: `/e2e/utils/` (JavaScript - existing tests)
 - **New Framework Utils**: `/e2e/framework/` (TypeScript - new tests and migrations)
