@@ -14,7 +14,7 @@ import {
 } from '../../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import TokenApproveConfirmation from '../../../../pages/Confirmation/ApproveComponents';
+import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 
