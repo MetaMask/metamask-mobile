@@ -631,7 +631,7 @@ class AuthenticationService {
               const keyringMetadata = await KeyringController.addNewKeyring(
                 KeyringTypes.hd,
                 {
-                  mnemonic: item,
+                  mnemonic: uint8ArrayToMnemonic(item, wordlist),
                   numberOfAccounts: 1,
                 },
               );
