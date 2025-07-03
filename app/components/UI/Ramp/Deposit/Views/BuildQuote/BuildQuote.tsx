@@ -169,7 +169,7 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!selectedRegion?.supported) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
             ...createUnsupportedRegionModalNavigationDetails(),
