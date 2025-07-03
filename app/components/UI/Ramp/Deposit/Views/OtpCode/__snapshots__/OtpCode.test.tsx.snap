@@ -449,9 +449,8 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -498,7 +497,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -532,7 +531,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -566,7 +565,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -600,7 +599,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -634,7 +633,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -668,7 +667,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -730,9 +729,8 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -1279,9 +1277,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -1328,7 +1325,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1362,7 +1359,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1396,7 +1393,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1430,7 +1427,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1464,7 +1461,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1498,7 +1495,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1560,9 +1557,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -1579,9 +1575,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -2129,9 +2124,8 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2178,7 +2172,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2212,7 +2206,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2246,7 +2240,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2280,7 +2274,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2314,7 +2308,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2348,7 +2342,7 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -2395,9 +2389,8 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                               style={
                                 {
                                   "color": "#ca3542",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2425,9 +2418,8 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -2444,9 +2436,8 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -2994,9 +2985,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3043,7 +3033,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3077,7 +3067,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3111,7 +3101,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3145,7 +3135,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3179,7 +3169,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3213,7 +3203,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3275,9 +3265,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -3294,9 +3283,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -3844,9 +3832,8 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3893,7 +3880,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3927,7 +3914,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3961,7 +3948,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3995,7 +3982,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4029,7 +4016,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4063,7 +4050,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4125,9 +4112,8 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -4674,9 +4660,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -4723,7 +4708,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4757,7 +4742,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4791,7 +4776,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4825,7 +4810,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4859,7 +4844,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4893,7 +4878,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4955,9 +4940,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -4974,9 +4958,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -5524,9 +5507,8 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -5573,7 +5555,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5607,7 +5589,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5641,7 +5623,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5675,7 +5657,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5709,7 +5691,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5743,7 +5725,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5805,9 +5787,8 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
