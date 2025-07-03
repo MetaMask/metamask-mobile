@@ -493,7 +493,7 @@
       "select_a_payment_method": "Select a Payment Method"
     },
     "payment_duration": {
-      "instant":"Instant",
+      "instant": "Instant",
       "1_to_2_days": "1 to 2 days"
     },
     "unsupported_region_modal": {
@@ -696,6 +696,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Introducing backup and sync",
@@ -2199,7 +2203,8 @@
     "add_input_placeholder": "Public address (0x), or ENS",
     "between_account": "Transfer between my accounts",
     "others": "Others",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -4095,7 +4100,8 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "select_a_token": "Select a token",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
     "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
@@ -4323,6 +4329,14 @@
         "upgradeBannerTitle": "Switch to smart account"
       },
       "includes_transaction": "Includes {{transactionCount}} transactions"
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Unlimited",
     "all": "All",
