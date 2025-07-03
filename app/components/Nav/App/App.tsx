@@ -144,6 +144,7 @@ import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import { RootState } from '../../../reducers';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -786,6 +787,10 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
+  const isMetaMetricsUISeen = useSelector(
+    (state: RootState) => state.user.isMetaMetricsUISeen,
+  );
+
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -817,8 +822,25 @@ const App: React.FC = () => {
               await Authentication.appTriggeredAuth();
             },
           );
-          // we need to reset the navigator here so that the user cannot go back to the login screen
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+
+          if (!isMetaMetricsUISeen) {
+            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: () =>
+                    navigation.reset({
+                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+                    }),
+                },
+              },
+            });
+          } else {
+            navigation.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
@@ -839,7 +861,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation]);
+  }, [navigation, isMetaMetricsUISeen]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
