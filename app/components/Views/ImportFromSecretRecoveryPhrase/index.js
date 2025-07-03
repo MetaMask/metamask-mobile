@@ -214,13 +214,6 @@ const ImportFromSecretRecoveryPhrase = ({
           setSeedPhrase((prev) => {
             const newSeedPhrase = [...prev];
             newSeedPhrase[index] = text;
-
-            // Check if all fields are empty and switch back to TextArea
-            const allEmpty = newSeedPhrase.every((word) => !word.trim());
-            if (allEmpty && hasStartedTyping) {
-              setHasStartedTyping(false);
-            }
-
             return newSeedPhrase;
           });
         }
@@ -305,6 +298,14 @@ const ImportFromSecretRecoveryPhrase = ({
       setError('');
     }
   }, [seedPhrase, checkForWordErrors]);
+
+  // Check if all seed phrase fields are empty and switch back to TextArea
+  useEffect(() => {
+    const allEmpty = seedPhrase.every((word) => !word.trim());
+    if (allEmpty && hasStartedTyping) {
+      setHasStartedTyping(false);
+    }
+  }, [seedPhrase, hasStartedTyping]);
 
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
