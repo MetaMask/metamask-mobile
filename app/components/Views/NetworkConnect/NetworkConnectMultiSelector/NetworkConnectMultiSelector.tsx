@@ -25,9 +25,9 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
+
 import { CaipChainId } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({
