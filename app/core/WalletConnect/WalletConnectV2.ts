@@ -130,7 +130,7 @@ export class WC2Manager {
             JSON.stringify(permissionController.state, null, 2),
           );
           const accountPermission = permissionController.getPermission(
-            sessionKey,
+            pairingTopic,
             'eth_accounts',
           );
 
@@ -140,7 +140,7 @@ export class WC2Manager {
           );
 
           let approvedAccounts =
-            getPermittedAccounts(sessionKey) ?? [];
+            getPermittedAccounts(pairingTopic) ?? [];
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
@@ -157,13 +157,13 @@ export class WC2Manager {
             DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
           }
 
-          updatePermittedChains(sessionKey, wcSession.getAllowedChainIds, true);
+          updatePermittedChains(pairingTopic, wcSession.getAllowedChainIds, true);
 
           const chainId = wcSession.getCurrentChainId();
 
           const nChainId = parseInt(chainId, 16);
           DevLogger.log(
-            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
+            `WC2::init updateSession session=${pairingTopic} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
             approvedAccounts,
           );
           await this.sessions[sessionKey].updateSession({
