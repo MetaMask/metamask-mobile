@@ -80,9 +80,7 @@ describe('SolanaNewFeatureContent', () => {
     renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.HOME,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
@@ -102,9 +100,7 @@ describe('SolanaNewFeatureContent', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.HOME,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('handles import wallet button press correctly', async () => {
