@@ -57,7 +57,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
-  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
@@ -87,45 +86,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock('../../hooks/useDepositTokenExchange', () =>
   jest.fn(() => mockUseDepositTokenExchange()),
 );
-
-jest.mock('../ProviderWebview/ProviderWebview', () => ({
-  createProviderWebviewNavDetails: jest.fn(({ quote }) => [
-    'PROVIDER_WEBVIEW',
-    { quote },
-  ]),
-}));
-
-jest.mock('../BasicInfo/BasicInfo', () => ({
-  createBasicInfoNavDetails: jest.fn(({ quote, kycUrl }) => [
-    'BASIC_INFO',
-    { quote, kycUrl },
-  ]),
-}));
-
-jest.mock('../EnterEmail/EnterEmail', () => ({
-  createEnterEmailNavDetails: jest.fn(({ quote }) => [
-    'ENTER_EMAIL',
-    { quote },
-  ]),
-}));
-
-jest.mock('../KycWebview/KycWebview', () => ({
-  createKycWebviewNavDetails: jest.fn(({ quote, kycUrl }) => [
-    'KYC_WEBVIEW',
-    { quote, kycUrl },
-  ]),
-}));
-
-jest.mock('../KycProcessing/KycProcessing', () => ({
-  createKycProcessingNavDetails: jest.fn(() => ['KYC_PROCESSING', {}]),
-}));
-
-jest.mock('../Modals/UnsupportedRegionModal', () => ({
-  createUnsupportedRegionModalNavigationDetails: jest.fn(() => [
-    'DepositModals',
-    { screen: 'DepositUnsupportedRegionModal' },
-  ]),
-}));
 
 jest.mock('../../hooks/useUserDetailsPolling', () => ({
   KycStatus: {
@@ -325,7 +285,7 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('PROVIDER_WEBVIEW', {
+        expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
           quote: mockQuote,
         });
       });
@@ -350,7 +310,11 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('KYC_PROCESSING', {});
+        expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
+          quote: {
+            id: 'test-quote',
+          },
+        });
       });
     });
 
@@ -377,7 +341,7 @@ describe('BuildQuote Component', () => {
         expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
           id: 'idProof',
         });
-        expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
+        expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
           quote: mockQuote,
           kycUrl: 'test-kyc-url',
         });
@@ -407,7 +371,7 @@ describe('BuildQuote Component', () => {
         expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
           id: 'idProof',
         });
-        expect(mockNavigate).toHaveBeenCalledWith('BASIC_INFO', {
+        expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
           quote: mockQuote,
           kycUrl: 'test-kyc-url',
         });
@@ -437,7 +401,7 @@ describe('BuildQuote Component', () => {
         expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
           id: 'idProof',
         });
-        expect(mockNavigate).toHaveBeenCalledWith('KYC_WEBVIEW', {
+        expect(mockNavigate).toHaveBeenCalledWith('KycWebview', {
           quote: mockQuote,
           kycUrl: 'test-kyc-url',
         });
