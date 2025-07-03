@@ -54,7 +54,7 @@ export const IncreaseDecreaseAllowance = () => {
             text={amount ?? ''}
           />
           <Address
-            address={transactionMetadata.txParams.to as string}
+            address={transactionMetadata?.txParams?.to as string}
             chainId={transactionMetadata.chainId}
           />
         </View>

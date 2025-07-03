@@ -27,7 +27,7 @@ const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
           text={strings('confirm.all')}
         />
         <Address
-          address={transactionMetadata.txParams.to as string}
+          address={transactionMetadata?.txParams?.to as string}
           chainId={transactionMetadata.chainId}
         />
       </View>

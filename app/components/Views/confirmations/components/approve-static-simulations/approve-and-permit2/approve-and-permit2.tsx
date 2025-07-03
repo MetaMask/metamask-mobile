@@ -51,7 +51,7 @@ export const ApproveAndPermit2 = () => {
         >
           <View style={styles.amountAndAddressContainer}>
             <Address
-              address={transactionMetadata.txParams.to as string}
+              address={transactionMetadata?.txParams?.to as string}
               chainId={transactionMetadata.chainId}
             />
           </View>
@@ -94,7 +94,7 @@ export const ApproveAndPermit2 = () => {
             text={isERC20 ? amount ?? '' : `#${tokenId}`}
           />
           <Address
-            address={transactionMetadata.txParams.to as string}
+            address={transactionMetadata?.txParams?.to as string}
             chainId={transactionMetadata.chainId}
           />
         </View>
