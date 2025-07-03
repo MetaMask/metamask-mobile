@@ -514,6 +514,7 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
+          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
