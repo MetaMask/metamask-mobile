@@ -10,7 +10,7 @@ export default class Assertions {
   /**
    * Assert element is visible with auto-retry
    */
-  static async expectElementVisible(
+  static async expectElementToBeVisible(
     detoxElement: DetoxElement | WebElement,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -42,7 +42,7 @@ export default class Assertions {
   /**
    * Assert element is not visible with auto-retry
    */
-  static async expectElementNotVisible(
+  static async expectElementToNotBeVisible(
     detoxElement: DetoxElement | WebElement,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -72,7 +72,7 @@ export default class Assertions {
   /**
    * Assert element has specific text with auto-retry
    */
-  static async expectElementHasText(
+  static async expectElementToHaveText(
     detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
@@ -97,7 +97,7 @@ export default class Assertions {
   /**
    * Assert element does not have specific text with auto-retry
    */
-  static async expectElementDoesNotHaveText(
+  static async expectElementToNotHaveText(
     detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
@@ -122,7 +122,7 @@ export default class Assertions {
   /**
    * Assert element has specific label with auto-retry
    */
-  static async expectElementHasLabel(
+  static async expectElementToHaveLabel(
     detoxElement: DetoxElement,
     label: string,
     options: AssertionOptions = {},
@@ -437,18 +437,18 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element is visible (backwards compatibility)
-   * @deprecated Use expectElementVisible() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
     detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementVisible(detoxElement, { timeout });
+    return this.expectElementToBeVisible(detoxElement, { timeout });
   }
 
   /**
    * Legacy method: Check if a web element exists
-   * @deprecated Use expectElementVisible() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async webViewElementExists(detoxElement: DetoxElement): Promise<void> {
     // For web elements, just use the basic expect assertion
@@ -461,27 +461,27 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element is not visible
-   * @deprecated Use expectElementNotVisible() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToNotBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfNotVisible(
     detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementNotVisible(detoxElement as DetoxElement, {
+    return this.expectElementToNotBeVisible(detoxElement as DetoxElement, {
       timeout,
     });
   }
 
   /**
    * Legacy method: Check if an element has specific text
-   * @deprecated Use expectElementHasText() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToHaveText() instead for better error handling and retry mechanisms
    */
   static async checkIfElementToHaveText(
     detoxElement: DetoxElement,
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementHasText(detoxElement as DetoxElement, text, {
+    return this.expectElementToHaveText(detoxElement as DetoxElement, text, {
       timeout,
     });
   }
@@ -495,7 +495,7 @@ export default class Assertions {
     label: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementHasLabel(detoxElement, label, { timeout });
+    return this.expectElementToHaveLabel(detoxElement, label, { timeout });
   }
 
   /**
@@ -511,7 +511,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is not displayed
-   * @deprecated Use expectElementNotVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsNotDisplayed(
     text: string,
@@ -531,7 +531,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element does not have specific text
-   * @deprecated Use expectElementDoesNotHaveText() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToNotHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
     detoxElement: DetoxElement,
@@ -552,7 +552,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element does not have specific label
-   * @deprecated Use expectElementNotVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementDoesNotHaveLabel(
     detoxElement: DetoxElement,
