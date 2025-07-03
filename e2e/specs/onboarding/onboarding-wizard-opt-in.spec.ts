@@ -59,7 +59,7 @@ describe(
     });
 
     it('should check that metametrics is enabled in settings', async () => {
-      await TestHelpers.delay(1500); // Wait for UI to stabilize
+      await TestHelpers.delay(3000); // Wait for UI to stabilize
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1500); // Wait for settings to load
       await SettingsView.tapSecurityAndPrivacy();
