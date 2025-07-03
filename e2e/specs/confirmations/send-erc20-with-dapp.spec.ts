@@ -20,6 +20,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { megaEthLocalConfig, monadLocalConfig, megaEthProviderConfig, monadProviderConfig } from '../../resources/mock-configs';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -95,34 +96,17 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     );
   });
 
-it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
-    // Use the same working pattern but with Monad characteristics
-
-    // Create Monad-like Ganache configuration
-    const monadLocalConfig = {
-      ...defaultGanacheOptions,
-      chainId: parseInt(MONAD_TESTNET.chainId, 16), // Use Monad chain ID
-      networkId: parseInt(MONAD_TESTNET.chainId, 16),
-      // Keep other Monad characteristics
-      gasPrice: '0x1',        // 1 wei (ultra-low) like Monad
-      gasLimit: '0x5f5e100',  // 100M gas limit like Monad
-    };
-
+  it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
+    // Use shared Monad configuration
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x539',                     // Ganache chain ID (for compatibility)
-              rpcUrl: 'http://localhost:8545',      // Local Ganache
-              ticker: MONAD_TESTNET.ticker,         // "Monad" ticker (for display)
-              nickname: `${MONAD_TESTNET.nickname} (Local)`, // "Monad Testnet (Local)"
-              type: 'custom',
-            },
+            providerConfig: monadProviderConfig,
           })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']) // Ganache chain ID for permissions
+            buildPermissions([MONAD_TESTNET.chainId]) // Real Monad chain ID for permissions
           )
           .build(),
         restartDevice: true,
@@ -161,34 +145,17 @@ it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, as
     );
   });
 
-  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
-    // Use the same working pattern but with Mega ETH characteristics
-
-    // Create Mega ETH-like Ganache configuration
-    const megaEthLocalConfig = {
-      ...defaultGanacheOptions,
-      chainId: parseInt(MEGAETH_TESTNET.chainId, 16), // Use Mega ETH chain ID
-      networkId: parseInt(MEGAETH_TESTNET.chainId, 16),
-      // Keep other Mega ETH characteristics
-      gasPrice: '0x3b9aca00', // 1 gwei like Mega ETH
-      gasLimit: '0x1c9c380',  // 30M gas limit like Mega ETH
-    };
-
+  it.only(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
+    // Use shared Mega ETH configuration
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x539',                     // Ganache chain ID (for compatibility)
-              rpcUrl: 'http://localhost:8545',      // Local Ganache
-              ticker: MEGAETH_TESTNET.ticker,       // "MegaETH" ticker (for display)
-              nickname: `${MEGAETH_TESTNET.nickname} (Local)`, // "Mega Testnet (Local)"
-              type: 'custom',
-            },
+            providerConfig: megaEthProviderConfig,
           })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']) // Ganache chain ID for permissions
+            buildPermissions([MEGAETH_TESTNET.chainId]) // Real Mega ETH chain ID for permissions
           )
           .build(),
         restartDevice: true,

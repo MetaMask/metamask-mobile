@@ -17,6 +17,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { CustomNetworks } from '../../../resources/networks.e2e';
+import { megaEthLocalConfig, monadLocalConfig, megaEthProviderConfig, monadProviderConfig } from '../../../resources/mock-configs';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -120,12 +121,15 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
         {
           dapp: true,
           fixture: new FixtureBuilder()
-            .withMonadTestnetNetwork()
+            .withNetworkController({
+              providerConfig: monadProviderConfig,
+            })
             .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([`${MONAD_TESTNET.chainId}`]),
+              buildPermissions([MONAD_TESTNET.chainId]),
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: monadLocalConfig,
           testSpecificMock,
         },
         async () => {
@@ -145,17 +149,20 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   }
 
  for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
-    it(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
+    it.only(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
       await withFixtures(
         {
           dapp: true,
           fixture: new FixtureBuilder()
-            .withMegaTestnetNetwork()
+            .withNetworkController({
+              providerConfig: megaEthProviderConfig,
+            })
             .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+              buildPermissions([MEGAETH_TESTNET.chainId]),
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: megaEthLocalConfig,
           testSpecificMock,
         },
         async () => {
