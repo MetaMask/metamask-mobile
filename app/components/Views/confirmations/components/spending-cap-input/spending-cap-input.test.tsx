@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 import { ApproveMethod } from '../../types/approve';
 import { validateSpendingCap } from '../../utils/validations/approve';
+import { ApproveComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { SpendingCapInput } from './spending-cap-input';
 
 jest.mock('../../utils/validations/approve', () => ({
@@ -27,7 +28,7 @@ describe('SpendingCapInput', () => {
   it('renders with initial value', () => {
     const { getByTestId } = render(<SpendingCapInput {...defaultProps} />);
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     expect(input).toBeOnTheScreen();
   });
 
@@ -37,7 +38,7 @@ describe('SpendingCapInput', () => {
       <SpendingCapInput {...defaultProps} onChange={onChange} />,
     );
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     fireEvent.changeText(input, '200');
 
     expect(onChange).toHaveBeenCalledWith('200');
@@ -47,7 +48,7 @@ describe('SpendingCapInput', () => {
     mockValidateSpendingCap.mockReturnValue('Invalid input');
     const { getByTestId } = render(<SpendingCapInput {...defaultProps} />);
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     fireEvent.changeText(input, 'invalid');
 
     expect(mockValidateSpendingCap).toHaveBeenCalledWith(
@@ -65,7 +66,7 @@ describe('SpendingCapInput', () => {
       <SpendingCapInput {...defaultProps} onErrorChange={onErrorChange} />,
     );
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     fireEvent.changeText(input, 'invalid');
 
     expect(onErrorChange).toHaveBeenCalledWith('Error message');
@@ -79,7 +80,7 @@ describe('SpendingCapInput', () => {
       <SpendingCapInput {...defaultProps} onErrorChange={onErrorChange} />,
     );
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     fireEvent.changeText(input, '100');
 
     expect(onErrorChange).toHaveBeenCalledWith(false);
@@ -91,7 +92,7 @@ describe('SpendingCapInput', () => {
       <SpendingCapInput {...defaultProps} onChange={onChange} />,
     );
 
-    const input = getByTestId('spending-cap-input');
+    const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
     fireEvent.changeText(input, '  150  ');
 
     expect(onChange).toHaveBeenCalledWith('150');
@@ -108,7 +109,7 @@ describe('SpendingCapInput', () => {
       const props = { ...defaultProps, approveMethod: method };
       const { getByTestId } = render(<SpendingCapInput {...props} />);
 
-      const input = getByTestId('spending-cap-input');
+      const input = getByTestId(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
       expect(input).toBeOnTheScreen();
     });
   });
