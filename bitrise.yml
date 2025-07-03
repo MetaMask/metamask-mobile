@@ -234,7 +234,7 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
-      
+
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -954,6 +954,20 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
+
+  run_single_android_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - android_e2e_test
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  run_single_ios_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - ios_e2e_test
 
   android_e2e_test:
     before_run:
@@ -2425,7 +2439,7 @@ app:
     - opts:
         is_expand: false
       MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-  
+
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
