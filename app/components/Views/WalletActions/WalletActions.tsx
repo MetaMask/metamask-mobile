@@ -56,7 +56,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
-import { selectPerpsEnabledFlag } from '../../../selectors/featureFlagController/perps';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';

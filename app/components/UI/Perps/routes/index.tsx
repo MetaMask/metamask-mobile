@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../constants/navigation/Routes';
-import PerpsView from './PerpsView';
+import Routes from '../../../../constants/navigation/Routes';
+import PerpsView from '../Views/PerpsView';
 
 const Stack = createStackNavigator();
 
