@@ -705,12 +705,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       }
     }
   }, [
-    activeChainId,
-    navigation,
-    isFocused,
-    isInTabsView,
-    isTabActive,
-  ]);
+    activeChainId, navigation, isFocused, isInTabsView, isTabActive, ]);
 
   /**
    * Handles state changes for when the url changes
