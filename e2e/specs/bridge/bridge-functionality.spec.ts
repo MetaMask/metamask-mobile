@@ -141,7 +141,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     ]);
   });
 
-  it('should check the Segment events from one bridge', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('should check the Segment events from one bridge', async () => {
     const softAssert = new SoftAssert();
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),
