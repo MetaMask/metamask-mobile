@@ -134,9 +134,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -198,9 +197,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -254,9 +252,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -291,9 +288,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             style={
               {
                 "color": "#9ca1af",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -349,9 +345,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -501,9 +496,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -565,9 +559,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -621,9 +614,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -658,9 +650,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             style={
               {
                 "color": "#9ca1af",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -716,9 +707,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
