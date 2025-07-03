@@ -32,6 +32,7 @@ import {
   getShouldShowAggregatedPercentage,
 } from './utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { selectAccountTrackerControllerState } from '../../../selectors/accountTrackerController';
 /**
  * Hook to manage portfolio balance data across chains.
  *
@@ -50,6 +51,9 @@ const useSelectedAccountMultichainBalances =
     const isPopularNetwork = useSelector(selectIsPopularNetwork);
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
+
+    // Add AccountTrackerController state to ensure re-renders on balance updates
+    const accountTrackerState = useSelector(selectAccountTrackerControllerState);
 
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       [selectedInternalAccount as InternalAccount],
@@ -119,6 +123,7 @@ const useSelectedAccountMultichainBalances =
       isOriginalNativeEvmTokenSymbol,
       isPortfolioEnabled,
       totalFiatBalancesCrossEvmChain,
+      accountTrackerState,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssets,
       multichainAssetsRates,

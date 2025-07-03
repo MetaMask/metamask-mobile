@@ -5,7 +5,7 @@ import { createDeepEqualSelector } from './util';
 import { selectEvmChainId } from './networkController';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 
-const selectAccountTrackerControllerState = (state: RootState) =>
+export const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
 
 export const selectAccountsByChainId = createDeepEqualSelector(

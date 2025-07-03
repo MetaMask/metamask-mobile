@@ -526,6 +526,42 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  // Add listener for transaction confirmations to ensure balance updates
+  useEffect(() => {
+    const handleTransactionConfirmed = () => {
+      // Small delay to ensure transaction is fully processed
+      setTimeout(() => {
+        const { AccountTrackerController, TokenBalancesController } = Engine.context;
+        
+        // Refresh native token balances
+        Object.values(evmNetworkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh([
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            ]);
+          },
+        );
+        
+        // Also refresh token balances
+        TokenBalancesController.updateBalances({
+          chainIds: Object.keys(evmNetworkConfigurations) as Hex[],
+        });
+      }, 1000);
+    };
+
+    const unsubscribe = Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handleTransactionConfirmed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionConfirmed',
+        handleTransactionConfirmed,
+      );
+    };
+  }, [evmNetworkConfigurations]);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
