@@ -267,7 +267,7 @@ const EnterAddress = (): JSX.Element => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}
-              label={strings('deposit.basic_info.continue')}
+              label={strings('deposit.enter_address.continue')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
               isDisabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
