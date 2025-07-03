@@ -129,7 +129,7 @@ it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`,
     );
   });
 
-it.only(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
+it(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
     // Use shared Monad configuration
     await withFixtures(
       {

@@ -149,7 +149,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   }
 
  for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
-    it.only(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
+    it(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
       await withFixtures(
         {
           dapp: true,

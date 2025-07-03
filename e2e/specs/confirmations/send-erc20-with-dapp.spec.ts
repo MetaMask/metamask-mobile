@@ -145,7 +145,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     );
   });
 
-  it.only(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
+  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
     // Use shared Mega ETH configuration
     await withFixtures(
       {
