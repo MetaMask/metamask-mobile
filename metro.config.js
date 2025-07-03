@@ -43,6 +43,13 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
+          'node:crypto': 'react-native-quick-crypto',
+          'base64-js': 'react-native-quick-base64',
+          base64: 'react-native-quick-base64',
+          'js-base64': 'react-native-quick-base64',
+          buffer: '@craftzdog/react-native-buffer',
+          'node:buffer': '@craftzdog/react-native-buffer',
+          'node:stream': 'readable-stream',
         },
       },
       transformer: {
