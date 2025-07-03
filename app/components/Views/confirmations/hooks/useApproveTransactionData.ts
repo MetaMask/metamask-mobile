@@ -18,7 +18,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useERC20TokenBalance } from './useERC20TokenBalance';
 
 export interface ApproveTransactionData {
-  // ERC20 specific
+  // ERC20 specific - will be Unlimited if exceeds the max
   amount?: string;
 
   // Approve method
@@ -36,11 +36,8 @@ export interface ApproveTransactionData {
   // isRevoke approval
   isRevoke?: boolean;
 
-  // Token standard
-  tokenStandard?: TokenStandard;
-
-  // Token balance
-  tokenBalance?: string;
+  // ERC20 specific - amount in decimals
+  rawAmount?: string;
 
   // Spender address
   spender?: string;
@@ -50,6 +47,12 @@ export interface ApproveTransactionData {
 
   // ERC721 / ERC1155 specific
   tokenId?: string;
+
+  // Token standard
+  tokenStandard?: TokenStandard;
+
+  // Token balance
+  tokenBalance?: string;
 }
 
 /**
@@ -126,10 +129,12 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
           result.isRevoke =
             spender?.toLowerCase() === ZERO_ADDRESS.toLowerCase();
         } else {
-          result.amount = calculateApprovalTokenAmount(
+          const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
             amount?.toString() as string,
             details.decimalsNumber,
           );
+          result.amount = amountInDecimals;
+          result.rawAmount = rawAmount;
           result.isRevoke = amount?.toString() === ZERO_AMOUNT;
           result.tokenBalance = calculateTokenBalance(
             tokenBalance ?? '0',
@@ -143,10 +148,12 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
       case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE: {
         const [spender, amount] = parsedData?.args ?? [];
-        result.amount = calculateApprovalTokenAmount(
+        const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
           amount?.toString() as string,
           details.decimalsNumber,
         );
+        result.amount = amountInDecimals;
+        result.rawAmount = rawAmount;
         result.spender = spender;
         result.isRevoke = false;
         result.approveMethod =
@@ -170,10 +177,12 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         const [token, spender, amount, expiration] = parsedData?.args ?? [];
         result.token = token;
         result.spender = spender;
-        result.amount = calculateApprovalTokenAmount(
+        const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
           amount?.toString() as string,
           details.decimalsNumber,
         );
+        result.amount = amountInDecimals;
+        result.rawAmount = rawAmount;
         result.expiration = expiration?.toString();
         result.isRevoke = amount?.toString() === ZERO_AMOUNT;
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
