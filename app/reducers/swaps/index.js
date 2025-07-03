@@ -16,6 +16,7 @@ import { selectSelectedInternalAccountAddress } from '../../selectors/accountsCo
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -44,6 +45,21 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 // * Functions
 
 /**
+ * Normalizes token address based on chain type
+ * @param {string} address - Token address
+ * @param {string} chainId - Chain ID
+ * @returns {string} Normalized address
+ */
+function normalizeTokenAddress(address, chainId) {
+  // Solana addresses are case-sensitive, so preserve original case
+  if (chainId && isSolanaChainId(chainId)) {
+    return address;
+  }
+  // EVM addresses are case-insensitive, so normalize to lowercase
+  return address.toLowerCase();
+}
+
+/**
  * Processes and normalizes a token by removing unwanted properties
  * and ensuring consistent data types
  */
@@ -54,7 +70,7 @@ function processToken(token) {
     occurrences: 0,
     ...tokenData,
     decimals: Number(tokenData.decimals),
-    address: tokenData.address.toLowerCase(),
+    address: normalizeTokenAddress(tokenData.address, tokenData.chainId),
   };
 }
 
@@ -313,7 +329,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
     const tokensAddressesWithBalance = Object.entries(balances)
       .filter(([, balance]) => balance !== 0)
       .sort(([, balanceA], [, balanceB]) => (lte(balanceB, balanceA) ? -1 : 1))
-      .map(([address]) => address.toLowerCase());
+      .map(([address]) => normalizeTokenAddress(address, chainId));
     const tokensWithBalance = [];
     const originalTokens = [];
 

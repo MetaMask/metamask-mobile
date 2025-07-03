@@ -52,6 +52,7 @@ import { useTheme } from '../../../../util/theme';
 import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
 import { getSortedTokensByFiatValue } from '../utils/token-list-utils';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -130,6 +131,21 @@ const createStyles = (colors) =>
 
 const MAX_TOKENS_RESULTS = 20;
 
+/**
+ * Normalizes token address based on chain type
+ * @param {string} address - Token address
+ * @param {string} chainId - Chain ID
+ * @returns {string} Normalized address
+ */
+function normalizeTokenAddress(address, chainId) {
+  // Solana addresses are case-sensitive, so preserve original case
+  if (chainId && isSolanaChainId(chainId)) {
+    return address;
+  }
+  // EVM addresses are case-insensitive, so normalize to lowercase
+  return address.toLowerCase();
+}
+
 function TokenSelectModal({
   isVisible,
   dismiss,
@@ -161,16 +177,16 @@ function TokenSelectModal({
 
   const excludedAddresses = useMemo(
     () =>
-      excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
-    [excludeAddresses],
+      excludeAddresses.filter(Boolean).map((address) => normalizeTokenAddress(address, chainId)),
+    [excludeAddresses, chainId],
   );
 
   const filteredTokens = useMemo(
     () =>
       tokens?.filter(
-        (token) => !excludedAddresses.includes(token.address?.toLowerCase()),
+        (token) => !excludedAddresses.includes(normalizeTokenAddress(token.address || '', chainId)),
       ),
-    [tokens, excludedAddresses],
+    [tokens, excludedAddresses, chainId],
   );
 
   const sortedInitialTokensWithFiatValue = useMemo(
@@ -200,10 +216,10 @@ function TokenSelectModal({
         ? sortedInitialTokensWithFiatValue.filter(
             (token) =>
               typeof token !== 'undefined' &&
-              !excludedAddresses.includes(token?.address?.toLowerCase()),
+              !excludedAddresses.includes(normalizeTokenAddress(token?.address || '', chainId)),
           )
         : filteredTokens,
-    [excludedAddresses, filteredTokens, sortedInitialTokensWithFiatValue],
+    [excludedAddresses, filteredTokens, sortedInitialTokensWithFiatValue, chainId],
   );
 
   const tokenFuse = useMemo(
@@ -231,8 +247,8 @@ function TokenSelectModal({
     () =>
       tokenSearchResults.length === 0 &&
       isValidAddress(searchString) &&
-      !excludedAddresses.includes(searchString?.toLowerCase()),
-    [excludedAddresses, searchString, tokenSearchResults.length],
+      !excludedAddresses.includes(normalizeTokenAddress(searchString || '', chainId)),
+    [excludedAddresses, searchString, tokenSearchResults.length, chainId],
   );
 
   const [loadingTokenMetadata, tokenMetadata] = useFetchTokenMetadata(
