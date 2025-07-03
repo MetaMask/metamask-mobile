@@ -75,6 +75,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   'SeedlessOnboardingController:stateChange',
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  'SamplePetnamesController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
 ] as const;
 
 export const swapsSupportedChainIds = [

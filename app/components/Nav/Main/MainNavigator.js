@@ -102,6 +102,9 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
+///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -782,6 +785,14 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+const SampleFeatureFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -909,6 +920,13 @@ const MainNavigator = () => (
         headerShown: true,
       }}
     />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+    }
+    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeatureFlow} />
+    {
+      ///: END:ONLY_INCLUDE_IF
+    }
   </Stack.Navigator>
 );
 

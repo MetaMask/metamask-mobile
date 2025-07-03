@@ -257,6 +257,9 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SAMPLE_FEATURE: 'SampleFeature',
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export default Routes;
