@@ -750,7 +750,9 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -759,59 +761,50 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -1597,7 +1590,9 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -1606,59 +1601,40 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
                                 }
-                              >
-                                Verifying code...
-                              </Text>
+                              }
+                              testID="otp-code-submit-button"
+                            >
+                              <ActivityIndicator
+                                color="#ffffff"
+                                size="small"
+                              />
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -2458,7 +2434,9 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -2467,59 +2445,50 @@ exports[`OtpCode Component render matches error snapshot when API call fails 1`]
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -3305,7 +3274,9 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -3314,59 +3285,50 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -4133,7 +4095,9 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -4142,59 +4106,50 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -4980,7 +4935,9 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -4989,59 +4946,40 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
                                 }
-                              >
-                                Verifying code...
-                              </Text>
+                              }
+                              testID="otp-code-submit-button"
+                            >
+                              <ActivityIndicator
+                                color="#ffffff"
+                                size="small"
+                              />
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -5808,7 +5746,9 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -5817,59 +5757,50 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#4459ff",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
