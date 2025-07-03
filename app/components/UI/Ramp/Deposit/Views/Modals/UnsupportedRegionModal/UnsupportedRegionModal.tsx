@@ -21,9 +21,10 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { createBuyNavigationDetails } from '../../../../../../../components/UI/Ramp/Aggregator/routes/utils';
+
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import { useDepositSDK } from '../../../sdk';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 export const createUnsupportedRegionModalNavigationDetails =
   createNavigationDetails(
@@ -40,21 +41,32 @@ function UnsupportedRegionModal() {
 
   const handleNavigateToBuy = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
+      // @ts-expect-error navigation prop mismatch
+      navigation.dangerouslyGetParent()?.pop();
       navigation.navigate(...createBuyNavigationDetails());
     });
   }, [navigation]);
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails(),
-      );
+      navigation.navigate(...createRegionSelectorModalNavigationDetails());
+    });
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     });
   }, [navigation]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={handleNavigateToBuy}>
+      <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.unsupported_region_modal.title')}
         </Text>

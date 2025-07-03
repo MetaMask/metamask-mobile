@@ -84,10 +84,9 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () => ({
-  __esModule: true,
-  default: jest.fn(() => mockUseDepositTokenExchange()),
-}));
+jest.mock('../../hooks/useDepositTokenExchange', () =>
+  jest.fn(() => mockUseDepositTokenExchange()),
+);
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
   createProviderWebviewNavDetails: jest.fn(({ quote }) => [
@@ -136,10 +135,9 @@ jest.mock('../../hooks/useUserDetailsPolling', () => ({
   },
 }));
 
-jest.mock('../../hooks/useHandleNewOrder', () => ({
-  __esModule: true,
-  default: jest.fn(() => mockHandleNewOrder),
-}));
+jest.mock('../../hooks/useHandleNewOrder', () =>
+  jest.fn(() => mockHandleNewOrder()),
+);
 
 function render(Component: React.ComponentType) {
   return renderScreen(

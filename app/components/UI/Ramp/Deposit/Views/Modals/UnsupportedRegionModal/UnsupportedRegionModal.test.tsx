@@ -7,6 +7,10 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
+const mockPop = jest.fn();
+const mockDangerouslyGetParent = jest.fn(() => ({
+  pop: mockPop,
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -15,6 +19,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      dangerouslyGetParent: mockDangerouslyGetParent,
     }),
   };
 });
@@ -74,7 +79,7 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to buy screen when Buy Crypto button is pressed', () => {
+  it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'BR',
@@ -97,6 +102,9 @@ describe('UnsupportedRegionModal', () => {
 
     const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
+
+    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockPop).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
   });
 

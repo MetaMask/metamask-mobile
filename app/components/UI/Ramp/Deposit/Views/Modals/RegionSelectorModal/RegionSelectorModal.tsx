@@ -19,9 +19,7 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
