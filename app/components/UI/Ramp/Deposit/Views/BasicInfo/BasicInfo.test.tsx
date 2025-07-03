@@ -7,17 +7,9 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-const mockQuote: MockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-};
+const mockQuote = {
+  quoteId: 'test-quote-id',
+} as BuyQuote;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -84,7 +76,7 @@ describe('BasicInfo Component', () => {
       '1234567890',
     );
     fireEvent.changeText(
-      screen.getByPlaceholderText('MM/DD/YYYY'),
+      screen.getByTestId('date-of-birth-input'),
       '01/01/1990',
     );
     fireEvent.changeText(
@@ -103,7 +95,7 @@ describe('BasicInfo Component', () => {
           mobileNumber: '+11234567890',
           ssn: '123456789',
         },
-        quote: mockQuote as unknown as BuyQuote,
+        quote: mockQuote,
       }),
     );
   });

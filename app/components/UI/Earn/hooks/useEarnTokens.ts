@@ -1,112 +1,134 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { earnSelectors } from '../../../../selectors/earnController/earn';
+import { getDecimalChainId } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
-import { getSupportedEarnTokens, filterEligibleTokens } from '../utils';
-import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
-import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { useEarnTokenDetails } from './useEarnTokenDetails';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../selectors/featureFlags';
+import { EarnTokenDetails } from '../types/lending.types';
+import { getEstimatedAnnualRewards } from '../utils/token';
 
-// Filters user's tokens to only return the supported and enabled earn tokens.
-const useEarnTokens = ({
-  includeStakingTokens = false,
-  includeLendingTokens = false,
-  includeReceiptTokens = false,
-}: Partial<{
-  includeStakingTokens: boolean;
-  includeLendingTokens: boolean;
-  includeReceiptTokens: boolean;
-}> = {}) => {
-  const tokens = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChains(state),
+const useEarnTokens = () => {
+  const earnTokensData = useSelector(earnSelectors.selectEarnTokens);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const getEarnToken = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const earnToken =
+        earnTokensData.earnTokensByChainIdAndAddress?.[
+          getDecimalChainId(token?.chainId)
+        ]?.[token.address.toLowerCase()];
+      if (token?.isETH && token?.isStaked !== earnToken?.isStaked) return;
+
+      return earnToken;
+    },
+    [earnTokensData.earnTokensByChainIdAndAddress],
   );
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const getOutputToken = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const outputToken =
+        earnTokensData.earnOutputTokensByChainIdAndAddress?.[
+          getDecimalChainId(token?.chainId)
+        ]?.[token.address.toLowerCase()];
+      if (token?.isETH && token?.isStaked !== outputToken?.isStaked) return;
 
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
+      return outputToken;
+    },
+    [earnTokensData.earnOutputTokensByChainIdAndAddress],
   );
 
-  const {
-    isEligible: isEligibleToStake,
-    isLoadingEligibility: isLoadingStakingEligibility,
-  } = useStakingEligibility();
-
-  const supportedEarnTokens = useMemo(() => {
-    if (isLoadingStakingEligibility || !isPortfolioViewEnabled()) return [];
-
-    const allTokens = Object.values(tokens).flat() as TokenI[];
-
-    if (!allTokens.length) return [];
-
-    const supportedTokens = getSupportedEarnTokens(allTokens, {
-      stakingTokens: includeStakingTokens,
-      lendingTokens: includeLendingTokens,
-      receiptTokens: includeReceiptTokens,
-    });
-
-    const eligibleTokens = filterEligibleTokens(
-      supportedTokens,
-      // TODO: Add eligibility check for stablecoin lending before launch.
-      {
-        canStake: isEligibleToStake && isPooledStakingEnabled,
-        canLend: isStablecoinLendingEnabled,
-      },
-    );
-
-    const eligibleTokensWithBalances = eligibleTokens?.map((token) =>
-      getTokenWithBalanceAndApr(token),
-    );
-
-    // Tokens with a balance of 0 are placed at the end of the list.
-    return eligibleTokensWithBalances.sort((a, b) => {
-      const fiatBalanceA = parseFloat(a.balanceFormatted);
-      const fiatBalanceB = parseFloat(b.balanceFormatted);
-
-      return (fiatBalanceA === 0 ? 1 : 0) - (fiatBalanceB === 0 ? 1 : 0);
-    });
-  }, [
-    getTokenWithBalanceAndApr,
-    includeLendingTokens,
-    includeReceiptTokens,
-    includeStakingTokens,
-    isEligibleToStake,
-    isLoadingStakingEligibility,
-    isPooledStakingEnabled,
-    isStablecoinLendingEnabled,
-    tokens,
-  ]);
-
-  return supportedEarnTokens;
-};
-
-export const useHasSupportedStablecoin = (
-  tokenChainId: Hex,
-  tokenSymbol?: string,
-  isStaked?: boolean,
-) => {
-  const tokens = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChains(state),
-  );
-
-  const hasSupportedStablecoin = useMemo(() => {
-    const tokensByChainId = tokens?.[tokenChainId] as TokenI[] | undefined;
-    return (
-      isStaked &&
-      tokensByChainId?.some(
-        (t) => t?.chainId === tokenChainId && t?.symbol === tokenSymbol,
+  const getPairedEarnOutputToken = useCallback(
+    (underlyingToken: TokenI | EarnTokenDetails) => {
+      const pairedEarnOutputToken =
+        earnTokensData.earnTokenPairsByChainIdAndAddress?.[
+          Number(underlyingToken.chainId)
+        ]?.[underlyingToken.address.toLowerCase()]?.[0];
+      if (
+        underlyingToken.isETH &&
+        underlyingToken.isStaked === pairedEarnOutputToken?.isStaked
       )
-    );
-  }, [isStaked, tokenChainId, tokenSymbol, tokens]);
+        return;
 
-  return Boolean(hasSupportedStablecoin);
+      return pairedEarnOutputToken;
+    },
+
+    [earnTokensData.earnTokenPairsByChainIdAndAddress],
+  );
+
+  const getPairedEarnTokenFromOutputToken = useCallback(
+    (outputToken: TokenI | EarnTokenDetails) => {
+      const pairedEarnToken =
+        earnTokensData.earnOutputTokenPairsByChainIdAndAddress?.[
+          Number(outputToken.chainId)
+        ]?.[outputToken.address.toLowerCase()]?.[0];
+
+      if (
+        outputToken.isETH &&
+        outputToken.isStaked === pairedEarnToken?.isStaked
+      )
+        return;
+
+      return pairedEarnToken;
+    },
+    [earnTokensData.earnOutputTokenPairsByChainIdAndAddress],
+  );
+
+  const getEarnExperience = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      const tokenToUse = getEarnToken(token) || getOutputToken(token);
+      return tokenToUse?.experiences?.[0];
+    },
+    [getEarnToken, getOutputToken],
+  );
+
+  const getPairedEarnTokens = useCallback(
+    (token: TokenI | EarnTokenDetails) => {
+      let earnTokenToUse;
+      let outputTokenToUse;
+      const earnToken = getEarnToken(token);
+      const outputToken = getOutputToken(token);
+      if (earnToken) {
+        earnTokenToUse = earnToken;
+        outputTokenToUse = getPairedEarnOutputToken(earnToken);
+      } else if (outputToken) {
+        outputTokenToUse = outputToken;
+        earnTokenToUse = getPairedEarnTokenFromOutputToken(outputToken);
+      }
+      return {
+        earnToken: earnTokenToUse,
+        outputToken: outputTokenToUse,
+      };
+    },
+    [
+      getEarnToken,
+      getOutputToken,
+      getPairedEarnOutputToken,
+      getPairedEarnTokenFromOutputToken,
+    ],
+  );
+
+  const getEstimatedAnnualRewardsForAmount = (
+    earnToken: EarnTokenDetails,
+    amountTokenMinimalUnit: string,
+    amountFiatNumber: number,
+  ) =>
+    getEstimatedAnnualRewards(
+      earnToken.experience.apr,
+      amountFiatNumber,
+      amountTokenMinimalUnit,
+      currentCurrency,
+      earnToken.decimals,
+      earnToken?.ticker || earnToken.symbol,
+    );
+
+  return {
+    ...earnTokensData,
+    getEarnToken,
+    getOutputToken,
+    getPairedEarnTokens,
+    getEarnExperience,
+    getEstimatedAnnualRewardsForAmount,
+  };
 };
 
 export default useEarnTokens;

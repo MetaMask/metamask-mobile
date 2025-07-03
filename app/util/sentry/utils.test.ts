@@ -129,6 +129,14 @@ describe('deriveSentryEnvironment', () => {
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
     expect(env).toBe('main-beta');
   });
+
+  it('returns main-exp for experimental environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'exp';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-exp');
+  });
 });
 
 describe('captureSentryFeedback', () => {
@@ -439,6 +447,7 @@ describe('captureSentryFeedback', () => {
         customOrderIds: [],
         getStartedAgg: false,
         getStartedSell: false,
+        getStartedDeposit: false,
         networks: [],
         orders: [],
         selectedPaymentMethodAgg: null,
@@ -466,10 +475,7 @@ describe('captureSentryFeedback', () => {
       },
       security: {
         allowLoginWithRememberMe: false,
-        automaticSecurityChecksEnabled: false,
         dataCollectionForMarketing: null,
-        hasUserSelectedAutomaticSecurityCheckOption: false,
-        isAutomaticSecurityChecksModalOpen: false,
         isNFTAutoDetectionModalViewed: false,
       },
       signatureRequest: {

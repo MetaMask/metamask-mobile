@@ -8,7 +8,7 @@ import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
 } from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import TestHelpers from '../../helpers';
 
 class TransactionConfirmationView {

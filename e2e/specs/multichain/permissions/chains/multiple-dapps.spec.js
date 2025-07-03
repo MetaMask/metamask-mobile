@@ -42,6 +42,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), () => {
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp({}, true)
           .withChainPermission()
+          .withSecondTestDappTab()
           .build(),
         restartDevice: true,
       },

@@ -207,14 +207,7 @@ export const sentryStateMask = {
       },
       AuthenticationController: {
         isSignedIn: false,
-        sessionData: {
-          token: {
-            accessToken: false,
-            expiresIn: true,
-            obtainedAt: true,
-          },
-          profile: true,
-        },
+        srpSessionData: false,
       },
       UserStorageController: {
         isBackupAndSyncEnabled: true,
@@ -533,6 +526,8 @@ export function deriveSentryEnvironment(
         return 'main-beta';
       case 'rc':
         return 'main-rc';
+      case 'exp':
+        return 'main-exp';
       default:
         return metamaskEnvironment;
     }

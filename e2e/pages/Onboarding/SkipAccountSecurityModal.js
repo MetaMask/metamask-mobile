@@ -14,13 +14,15 @@ class SkipAccountSecurityModal {
   }
 
   get skipButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-          SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
-        )
-      : Matchers.getElementByID(
-          SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
-        );
+    return Matchers.getElementByID(
+      SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
+    );
+  }
+
+  get cancelButton() {
+    return Matchers.getElementByID(
+      SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON,
+    );
   }
 
   async tapIUnderstandCheckBox() {
@@ -29,6 +31,10 @@ class SkipAccountSecurityModal {
 
   async tapSkipButton() {
     await Gestures.waitAndTap(this.skipButton);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 
