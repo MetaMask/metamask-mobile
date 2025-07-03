@@ -1707,12 +1707,10 @@ workflows:
   build_android_flask_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
-      - BUILD_COMMAND: 'yarn build:android:devbuild:flask'
+      - BUILD_COMMAND: 'yarn build:android:flask:local'
     after_run:
       - _android_e2e_build_template
     meta:

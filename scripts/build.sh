@@ -279,7 +279,8 @@ buildAndroidDevBuild(){
 	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
 }
 
-buildAndroidFlaskDevBuild(){
+# Builds the Flask APK for local development
+buildAndroidFlaskLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
@@ -602,7 +603,11 @@ buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildAndroidFlaskRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidFlaskLocal
+		else
+			buildAndroidFlaskRelease
+		fi
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
@@ -615,8 +620,6 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "flaskDevBuild" ]; then
-		buildAndroidFlaskDevBuild
 	elif [ "$MODE" == "devBuild" ] ; then
 		buildAndroidDevBuild
 	else
@@ -729,7 +732,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapEnvVariableExperimental
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" || [ "$MODE" == "flaskDevBuild" ] ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ] ]; then
 	remapFlaskEnvVariables
 fi
 
