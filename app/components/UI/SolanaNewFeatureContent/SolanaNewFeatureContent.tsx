@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Linking, View } from 'react-native';
+import { Linking, View, Modal } from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import Text from '../../../component-library/components/Texts/Text';
 import BottomSheet, {
@@ -107,58 +107,66 @@ const SolanaNewFeatureContent = () => {
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      onClose={handleSheetClose}
-      shouldNavigateBack={false}
-      testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET}
+    <Modal
+      visible={isVisible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
-      <View style={styles.wrapper}>
-        <SolanaLogo name="solana-logo" height={65} />
-        <Text style={styles.title}>
-          {strings('solana_new_feature_content.title')}
-        </Text>
+      <BottomSheet
+        ref={sheetRef}
+        onClose={handleSheetClose}
+        shouldNavigateBack={false}
+        testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET}
+      >
+        <View style={styles.wrapper}>
+          <SolanaLogo name="solana-logo" height={65} />
+          <Text style={styles.title}>
+            {strings('solana_new_feature_content.title')}
+          </Text>
 
-        <View style={styles.featureList}>
-          {features.map((feature, index) => (
-            <FeatureItem
-              key={index}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
+          <View style={styles.featureList}>
+            {features.map((feature, index) => (
+              <FeatureItem
+                key={index}
+                title={feature.title}
+                description={feature.description}
+              />
+            ))}
+          </View>
+
+          <Button
+            style={styles.learnMore}
+            variant={ButtonVariants.Link}
+            label={strings('solana_new_feature_content.learn_more')}
+            onPress={onLearnMoreClicked}
+            testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings(
+              hasExistingSolanaAccount
+                ? 'solana_new_feature_content.view_solana_account'
+                : 'solana_new_feature_content.create_solana_account',
+            )}
+            onPress={
+              hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
+            }
+            width={ButtonWidthTypes.Full}
+            testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
+          />
+
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('solana_new_feature_content.not_now')}
+            onPress={handleClose}
+            style={styles.cancelButton}
+            testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          />
         </View>
-
-        <Button
-          style={styles.learnMore}
-          variant={ButtonVariants.Link}
-          label={strings('solana_new_feature_content.learn_more')}
-          onPress={onLearnMoreClicked}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings(
-            hasExistingSolanaAccount
-              ? 'solana_new_feature_content.view_solana_account'
-              : 'solana_new_feature_content.create_solana_account',
-          )}
-          onPress={
-            hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
-          }
-          width={ButtonWidthTypes.Full}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
-        />
-
-        <Button
-          variant={ButtonVariants.Link}
-          label={strings('solana_new_feature_content.not_now')}
-          onPress={handleClose}
-          style={styles.cancelButton}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-        />
-      </View>
-    </BottomSheet>
+      </BottomSheet>
+    </Modal>
   );
 };
 
