@@ -147,6 +147,7 @@ import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivat
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import DebugLogViewer from '../../UI/DebugLogViewer';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -781,8 +782,8 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  console.error('🚀 App: Component starting to render');
-  console.error('🚀 App: Timestamp:', new Date().toISOString());
+  Logger.debug('🚀 App', 'Component starting to render');
+  Logger.debug('🚀 App', 'Timestamp:', new Date().toISOString());
   
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
@@ -795,7 +796,7 @@ const App: React.FC = () => {
   const isFirstRender = useRef(true);
 
   if (isFirstRender.current) {
-    console.error('🚀 App: First render - initializing traces');
+    Logger.debug('🚀 App', 'First render - initializing traces');
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
@@ -806,7 +807,7 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    console.error('🚀 App: First useEffect - ending UI startup trace');
+    Logger.debug('🚀 App', 'First useEffect - ending UI startup trace');
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
@@ -815,11 +816,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      console.error('🚀 App: appTriggeredAuth called with existingUser:', existingUser);
+      Logger.debug('🚀 App', 'appTriggeredAuth called with existingUser:', existingUser);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          console.error('🚀 App: existingUser is true, attempting authentication');
+          Logger.debug('🚀 App', 'existingUser is true, attempting authentication');
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -831,20 +832,20 @@ const App: React.FC = () => {
             },
           );
           // we need to reset the navigator here so that the user cannot go back to the login screen
-          console.error('🚀 App: Authentication successful, navigating to HOME_NAV');
+          Logger.debug('🚀 App', 'Authentication successful, navigating to HOME_NAV');
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
-          console.error('🚀 App: existingUser is false, navigating to ONBOARDING.ROOT_NAV');
+          Logger.debug('🚀 App', 'existingUser is false, navigating to ONBOARDING.ROOT_NAV');
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
         const errorMessage = (error as Error).message;
-        console.error('🚀 App: Authentication failed with error:', errorMessage);
+        Logger.debug('🚀 App', 'Authentication failed with error:', errorMessage);
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        console.error('🚀 App: Calling lockApp with locked:', locked);
+        Logger.debug('🚀 App', 'Calling lockApp with locked:', locked);
         await Authentication.lockApp({ reset: false, locked });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -853,9 +854,9 @@ const App: React.FC = () => {
         );
       }
     };
-    console.error('🚀 App: Starting appTriggeredAuth');
+    Logger.debug('🚀 App', 'Starting appTriggeredAuth');
     appTriggeredAuth().catch((error) => {
-      console.error('🚀 App: Error in appTriggeredAuth:', error);
+              Logger.debug('🚀 App', 'Error in appTriggeredAuth:', error);
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
@@ -964,7 +965,7 @@ const App: React.FC = () => {
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
-          console.error(`Cannot initialize SDKConnect`, err);
+          Logger.error(err as Error, 'Cannot initialize SDKConnect');
         }
       }
     }
@@ -983,7 +984,7 @@ const App: React.FC = () => {
       DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
       WC2Manager.init({ navigation: NavigationService.navigation }).catch(
         (err) => {
-          console.error('Cannot initialize WalletConnect Manager.', err);
+          Logger.error(err as Error, 'Cannot initialize WalletConnect Manager.');
         },
       );
     }
@@ -1068,6 +1069,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <DebugLogViewer visible />
     </>
   );
 };

@@ -11,6 +11,68 @@ interface ExtraInfo {
   [key: string]: unknown;
 }
 
+interface LogEntry {
+  timestamp: string;
+  level: 'debug' | 'error' | 'info';
+  prefix: string;
+  message: string;
+  data?: unknown;
+}
+
+/**
+ * Debug log capture system for production builds
+ */
+export class DebugLogCapture {
+  private static logs: LogEntry[] = [];
+  private static maxLogs = 1000; // Keep last 1000 logs
+  private static isEnabled = true; // Always enabled by default for debugging
+
+  static addLog(level: LogEntry['level'], prefix: string, message: string, data?: unknown) {
+    if (!this.isEnabled) return;
+
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      prefix,
+      message,
+      data,
+    };
+
+    this.logs.push(logEntry);
+
+    // Keep only the last maxLogs entries
+    if (this.logs.length > this.maxLogs) {
+      this.logs = this.logs.slice(-this.maxLogs);
+    }
+  }
+
+  static getLogs(): LogEntry[] {
+    return [...this.logs];
+  }
+
+  static clearLogs(): void {
+    this.logs = [];
+  }
+
+  static enable(): void {
+    this.isEnabled = true;
+  }
+
+  static disable(): void {
+    this.isEnabled = false;
+  }
+
+  static isLoggingEnabled(): boolean {
+    return this.isEnabled;
+  }
+
+  static getLogsAsString(): string {
+    return this.logs
+      .map(log => `[${log.timestamp}] ${log.prefix} ${log.level.toUpperCase()}: ${log.message}${log.data ? ` ${JSON.stringify(log.data)}` : ''}`)
+      .join('\n');
+  }
+}
+
 /**
  * Wrapper class that allows us to override
  * console.log and console.error and in the future
@@ -129,5 +191,21 @@ export default class Logger {
     AsyncLogger.error(error, extra).catch(() => {
       // ignore error but avoid dangling promises
     });
+  }
+
+  /**
+   * console.error replacement for debug logging - captures logs for display
+   * @param prefix - Log prefix (emoji + description)
+   * @param message - Log message
+   * @param data - Optional data to log
+   */
+  static debug(prefix: string, message: string, data?: unknown) {
+    // Always log to console in dev
+    if (__DEV__) {
+      console.log(prefix, message, data || ''); // eslint-disable-line no-console
+    }
+    
+    // Capture for debug viewer
+    DebugLogCapture.addLog('debug', prefix, message, data);
   }
 }
