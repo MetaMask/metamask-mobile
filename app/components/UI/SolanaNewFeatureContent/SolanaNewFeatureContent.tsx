@@ -60,9 +60,7 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.HOME,
-    });
+    navigate(Routes.WALLET.HOME);
   };
 
   const importAccountWithSRP = async () => {
