@@ -94,10 +94,12 @@ export const SmartAccountUpdateSplash = () => {
     if (!from) {
       return;
     }
-    PreferencesController.setSmartAccountOptInForAccounts([
-      ...smartAccountOptInForAccounts,
-      from as Hex,
-    ]);
+    if (!smartAccountOptInForAccounts.includes(from as Hex)) {
+      PreferencesController.setSmartAccountOptInForAccounts([
+        ...smartAccountOptInForAccounts,
+        from as Hex,
+      ]);
+    }
 
     setAcknowledged(true);
   }, [from, setAcknowledged, smartAccountOptInForAccounts]); // eslint-disable-line react-hooks/exhaustive-deps

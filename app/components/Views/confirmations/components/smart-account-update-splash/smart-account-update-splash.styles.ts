@@ -17,12 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       padding: 8,
     },
-    edit: {
-      position: 'absolute',
-      right: 10,
-    },
     image: {
-      marginTop: 28,
       height: '28%',
       width: '100%',
     },
