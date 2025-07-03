@@ -58,6 +58,7 @@
     "build:ios:main:beta": "./scripts/build.sh ios main beta",
     "build:ios:main:rc": "./scripts/build.sh ios main rc",
     "build:ios:main:exp": "./scripts/build.sh ios main exp",
+    "build:ios:flask:local": "./scripts/build.sh ios flask local",
     "build:ios:devbuild": "./scripts/build.sh ios devbuild",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",

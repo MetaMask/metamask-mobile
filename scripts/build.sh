@@ -388,22 +388,28 @@ buildIosDeviceFlask(){
 	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
+# Generates the 
 generateArchivePackages() {
-  scheme="$1"
+	scheme="$1"
+	configuration="${2:-Release}"
 
-  if [ "$scheme" = "MetaMask-QA" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
-  elif [ "$scheme" = "MetaMask-Flask" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
-  else
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
-  fi
+	if [ "$scheme" = "MetaMask-QA" ] ; then
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+	elif [ "$scheme" = "MetaMask-Flask" ] ; then
+		if [ "$configuration" = "Debug" ] ; then
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+		else
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
+		fi
+	else
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
+	fi
 
-  echo "exportOptionsPlist: $exportOptionsPlist"
-  echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-  echo "Generating ipa for $scheme"
-  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	echo "exportOptionsPlist: $exportOptionsPlist"
+	echo "Generating archive packages for $scheme in $configuration configuration"
+	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+	echo "Generating ipa for $scheme"
+	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 }
 
 buildIosRelease(){
@@ -433,10 +439,14 @@ buildIosRelease(){
 	fi
 }
 
-buildIosFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
+buildIosFlaskLocal() {
+	prebuild_ios
 
+	# Generate a Flask debug .ipa for local development
+	generateArchivePackages "MetaMask-Flask" "Debug"
+}
+
+buildIosFlaskRelease(){
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -642,7 +652,11 @@ buildIos() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildIosFlaskRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosFlaskLocal
+		else
+			buildIosFlaskRelease
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
