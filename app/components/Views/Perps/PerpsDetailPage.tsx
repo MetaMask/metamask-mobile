@@ -17,6 +17,7 @@ import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import PerpsPositionListItem from './PerpsPositionListItem';
 import HyperliquidWebSocketService from './WebSocketService';
+import CandlestickChartComponent from './CandlestickChart';
 
 interface PositionData {
   id: string;
@@ -115,39 +116,7 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionTitle: {
       marginBottom: 16,
     },
-    chartSection: {
-      marginBottom: 32,
-      height: 250,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
-      padding: 16,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-    },
-    chartPlaceholder: {
-      textAlign: 'center' as const,
-    },
-    chartSubtext: {
-      textAlign: 'center' as const,
-      marginTop: 8,
-    },
-    candleDataSection: {
-      marginTop: 16,
-      padding: 12,
-      backgroundColor: colors.background.default,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    candleTitle: {
-      marginBottom: 8,
-      textAlign: 'left' as const,
-      fontWeight: '600' as const,
-    },
-    candleData: {
-      marginBottom: 4,
-      textAlign: 'left' as const,
-    },
+
     actionButtonsSection: {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
@@ -182,6 +151,13 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     actionButton: {
       flex: 1,
+    },
+    connectionStatus: {
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+      alignItems: 'center' as const,
     },
   };
 };
@@ -396,96 +372,23 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           </View>
         </View>
 
-        {/* Chart Section */}
-        <View style={styles.chartSection}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
-            style={styles.chartPlaceholder}
-          >
-            WebSocket: {isConnected ? 'Connected' : 'Connecting...'}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Muted}
-            style={styles.chartSubtext}
-          >
-            {candleSubscribedRef.current
-              ? `Subscribed to ${position.assetSymbol} candle data`
-              : 'Subscribing to candle data...'}
-          </Text>
+        {/* Candlestick Chart */}
+        <CandlestickChartComponent
+          candleData={candleData}
+          isLoading={isLoadingHistory}
+          height={350}
+        />
 
-          {/* Candle Data Display */}
-          {isLoadingHistory ? (
-            <View style={styles.candleDataSection}>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Muted}
-                style={styles.candleTitle}
-              >
-                Loading historical data...
-              </Text>
-            </View>
-          ) : candleData && candleData.candles.length > 0 ? (
-            <View style={styles.candleDataSection}>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Default}
-                style={styles.candleTitle}
-              >
-                Candle Data ({candleData.candles.length} candles):
-              </Text>
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Muted}
-                style={styles.candleData}
-              >
-                Latest: $
-                {parseFloat(
-                  candleData.candles[candleData.candles.length - 1].close,
-                ).toFixed(2)}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Muted}
-                style={styles.candleData}
-              >
-                24h Range: $
-                {Math.min(
-                  ...candleData.candles
-                    .slice(-24)
-                    .map((c) => parseFloat(c.low)),
-                ).toFixed(2)}{' '}
-                - $
-                {Math.max(
-                  ...candleData.candles
-                    .slice(-24)
-                    .map((c) => parseFloat(c.high)),
-                ).toFixed(2)}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Muted}
-                style={styles.candleData}
-              >
-                Volume (Latest):{' '}
-                {parseFloat(
-                  candleData.candles[candleData.candles.length - 1].volume,
-                ).toFixed(4)}{' '}
-                BTC
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.candleDataSection}>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Muted}
-                style={styles.candleTitle}
-              >
-                No candle data available
-              </Text>
-            </View>
-          )}
+        {/* Connection Status */}
+        <View style={styles.connectionStatus}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            WebSocket: {isConnected ? '🟢 Connected' : '🟡 Connecting...'}
+          </Text>
+          <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+            {candleSubscribedRef.current
+              ? `✅ Live updates for ${position.assetSymbol}`
+              : 'Subscribing to live data...'}
+          </Text>
         </View>
 
         {/* Action Buttons */}
