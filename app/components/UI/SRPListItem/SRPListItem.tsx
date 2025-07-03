@@ -78,7 +78,7 @@ const SRPListItem = ({
             <View style={styles.srpItemIconContainer}>
               <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
               <View style={styles.srpIconContainer}>
-                {showArrowName && (
+                {Boolean(showArrowName) && (
                   <Text
                     variant={TextVariant.BodyMDMedium}
                     color={TextColor.Alternative}
