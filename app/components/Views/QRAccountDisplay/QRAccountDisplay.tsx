@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { SafeAreaView, StyleProp, ViewStyle } from 'react-native';
+import { SafeAreaView, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
