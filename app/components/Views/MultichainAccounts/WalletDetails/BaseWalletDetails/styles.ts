@@ -22,10 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
   } as ViewStyle;
 
   return StyleSheet.create({
-    safeArea: {
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
-
     container: {
       padding: 16,
     },
