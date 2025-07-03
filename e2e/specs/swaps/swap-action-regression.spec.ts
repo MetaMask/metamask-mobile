@@ -1,10 +1,8 @@
 'use strict';
-import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -12,39 +10,39 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-import Tenderly from '../../tenderly';
+import Ganache from '../../../app/util/test/ganache';
+import { localNodeOptions, testSpecificMock } from './helpers/constants'
+import { startMockServer } from './helpers/swap-mocks';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let mockServer: Mockttp;
+  let localNode: Ganache;
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
 
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
+    localNode = new Ganache();
+    await localNode.start(localNodeOptions);
+
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+      .withGanacheNetwork('0x1')
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -66,27 +64,14 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await TabBarComponent.tapWallet();
   });
 
-  it('should be able to import account', async () => {
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
-    await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
-    await SuccessImportAccountView.tapCloseButton();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.checkIfVisible(WalletView.container);
-  });
-
   it.each`
-    type            | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}     | ${'.03'} | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unapproved'} | ${'3'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'erc20'}      | ${'10'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    type            | quantity | sourceTokenSymbol | destTokenSymbol | chainId
+    ${'native'}     | ${'.03'} | ${'ETH'}          | ${'DAI'}        | ${'0x1'}
+    ${'unapproved'} | ${'3'}   | ${'DAI'}          | ${'USDC'}       | ${'0x1'}
+    ${'erc20'}      | ${'10'}  | ${'DAI'}          | ${'ETH'}        | ${'0x1'}
   `(
-    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
+    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId",
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }) => {
       await TabBarComponent.tapActions();
       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
       await WalletActionsBottomSheet.tapSwapButton();
@@ -96,7 +81,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         quantity,
         sourceTokenSymbol,
         destTokenSymbol,
-        network.providerConfig.chainId,
+        chainId,
       );
 
       // Check the swap activity completed

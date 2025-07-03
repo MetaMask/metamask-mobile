@@ -9,6 +9,7 @@ export async function submitSwapUnifiedUI(
   chainId: string,
 ) {
     await device.disableSynchronization();
+    await Assertions.checkIfVisible(QuoteView.selectAmountLabel);
     await QuoteView.enterAmount(quantity);
 
     if (sourceTokenSymbol!=='ETH') {
@@ -18,7 +19,7 @@ export async function submitSwapUnifiedUI(
 
     await QuoteView.tapSwapTo();
     await TestHelpers.delay(2000);
-    await QuoteView.selectNetwork('Tenderly - Mainnet');
+    await QuoteView.selectNetwork('Localhost');
     await QuoteView.tapToken(chainId, destTokenSymbol);
 
     await device.disableSynchronization();
