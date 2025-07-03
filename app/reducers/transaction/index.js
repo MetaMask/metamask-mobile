@@ -1,6 +1,5 @@
 import { REHYDRATE } from 'redux-persist';
 import { getTxData, getTxMeta } from '../../util/transaction-reducer-helpers';
-import { SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID } from '../../actions/transaction';
 
 const initialState = {
   ensRecipient: undefined,
@@ -31,7 +30,6 @@ const initialState = {
   nonce: undefined,
   securityAlertResponses: {},
   useMax: false,
-  sendFlowContextualChainId: null,
 };
 
 const getAssetType = (selectedAsset) => {
