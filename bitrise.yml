@@ -1662,6 +1662,21 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_uat:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+      - METAMASK_ENVIRONMENT: 'uat'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
@@ -1769,7 +1784,7 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - source: $BITRISEIO_FLASK_UAT_URL
             - destination: android/keystores/internalRelease.keystore
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
