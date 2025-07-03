@@ -33,8 +33,6 @@ const SolanaNewFeatureContent = () => {
 
   useEffect(() => {
     const checkModalStatus = async () => {
-      await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'false');
-
       const hasSeenModal = await StorageWrapper.getItem(
         SOLANA_FEATURE_MODAL_SHOWN,
       );

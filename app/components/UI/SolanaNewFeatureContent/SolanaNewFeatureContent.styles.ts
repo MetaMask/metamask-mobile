@@ -19,7 +19,7 @@ const createStyles = () =>
     largeFoxWrapper: {
       alignItems: 'center',
       paddingTop: Device.isLargeDevice() ? 30 : 20,
-      
+      paddingBottom: Device.isLargeDevice() ? 50 : 30,
     },
     title: {
       fontSize: 60,
