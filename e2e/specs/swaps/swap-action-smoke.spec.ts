@@ -29,6 +29,7 @@ import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 const fixtureServer: FixtureServer = new FixtureServer();
 
 
+// eslint-disable-next-line jest/no-disabled-tests
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;

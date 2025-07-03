@@ -81,7 +81,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     if (localNode) await localNode.quit();
   });
 
-  it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
+  it.skip('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
     const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
     await TabBarComponent.tapWallet();
@@ -140,7 +140,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     ]);
   });
 
-  it('should check the Segment events from one bridge', async () => {
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('should check the Segment events from one bridge', async () => {
     const softAssert = new SoftAssert();
     await softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),

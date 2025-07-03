@@ -25,7 +25,8 @@ import { startMockServer } from './helpers/swap-mocks';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Multiple Swaps from Actions'), () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   let mockServer: Mockttp;

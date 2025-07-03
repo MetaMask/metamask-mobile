@@ -571,20 +571,22 @@ const stakingConfirmationBaseState = {
       TokensController: {
         allTokens: {
           '0x1': {
-            '0x0000000000000000000000000000000000000000': [{
-              address: '0x0000000000000000000000000000000000000000',
-              aggregators: [],
-              balance: '0xde0b6b3a7640000',
-              chainId: '0x1',
-              decimals: 18,
-              isETH: true,
-              isNative: true,
-              name: 'Ethereum',
-              symbol: 'ETH',
-              ticker: 'ETH',
-            }]
-          }
-        }
+            '0x0000000000000000000000000000000000000000': [
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                aggregators: [],
+                balance: '0xde0b6b3a7640000',
+                chainId: '0x1',
+                decimals: 18,
+                isETH: true,
+                isNative: true,
+                name: 'Ethereum',
+                symbol: 'ETH',
+                ticker: 'ETH',
+              },
+            ],
+          },
+        },
       },
       TransactionController: {
         transactions: [
@@ -913,13 +915,17 @@ export const mockTransaction = {
   origin: 'https://metamask.github.io',
 } as unknown as TransactionMeta;
 
-export const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
-  engine: {
-    backgroundState: {
-      TransactionController: { transactions: [mockTransaction] },
+export const contractInteractionBaseState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: { transactions: [mockTransaction] },
+      },
     },
   },
-});
+);
 
 export const generateContractInteractionState = {
   ...contractInteractionBaseState,
@@ -965,10 +971,14 @@ export const transferConfirmationState = merge(
   },
 );
 
-export const getAppStateForConfirmation = (confirmation: TransactionMeta) => ({
+export const getAppStateForConfirmation = (
+  confirmation: TransactionMeta,
+  backgroundStateArgs: Record<string, unknown> = {},
+) => ({
   engine: {
     backgroundState: {
       ...backgroundState,
+      ...backgroundStateArgs,
       ApprovalController: {
         pendingApprovals: {
           [confirmation.id]: {
