@@ -14,12 +14,12 @@ import {
 } from '../../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import ApproveComponents from '../../../../pages/Browser/Confirmations/ApproveComponents';
+import TokenApproveConfirmation from '../../../../pages/Confirmation/ApproveComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 
 describe(
-  SmokeConfirmationsRedesigned('Approve - increaseAllowance method'),
+  SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
   () => {
     const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -80,16 +80,16 @@ describe(
 
           // Check spending cap is visible and has the correct value
           await Assertions.checkIfElementToHaveText(
-            ApproveComponents.SpendingCapValue,
+            TokenApproveConfirmation.SpendingCapValue,
             '1',
           );
 
           // Change the spending cap to 10 and save it
-          await ApproveComponents.tapEditSpendingCapButton();
-          await ApproveComponents.inputSpendingCap('5');
-          await ApproveComponents.tapEditSpendingCapSaveButton();
+          await TokenApproveConfirmation.tapEditSpendingCapButton();
+          await TokenApproveConfirmation.inputSpendingCap('5');
+          await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
           await Assertions.checkIfElementToHaveText(
-            ApproveComponents.SpendingCapValue,
+            TokenApproveConfirmation.SpendingCapValue,
             '5',
           );
 

@@ -1,9 +1,9 @@
-import { ApproveComponentIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../utils/Matchers';
-import Gestures from '../../../utils/Gestures';
+import { ApproveComponentIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 // This components are used to check the approve confirmation specific components in the confirmation modal
-class ApproveComponents {
+class TokenApproveConfirmation {
   get SpendingCapValue() {
     return Matchers.getElementByID(ApproveComponentIDs.SPENDING_CAP_VALUE);
   }
@@ -37,4 +37,4 @@ class ApproveComponents {
   }
 }
 
-export default new ApproveComponents();
+export default new TokenApproveConfirmation();

@@ -14,11 +14,11 @@ import {
 } from '../../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import ApproveComponents from '../../../../pages/Browser/Confirmations/ApproveComponents';
+import TokenApproveConfirmation from '../../../../pages/Confirmation/ApproveComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 
-describe(SmokeConfirmationsRedesigned('Approve - approve method'), () => {
+describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
   const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
 
@@ -79,16 +79,16 @@ describe(SmokeConfirmationsRedesigned('Approve - approve method'), () => {
 
         // Check spending cap is visible and has the correct value
         await Assertions.checkIfElementToHaveText(
-          ApproveComponents.SpendingCapValue,
+          TokenApproveConfirmation.SpendingCapValue,
           '7',
         );
 
         // Change the spending cap to 10 and save it
-        await ApproveComponents.tapEditSpendingCapButton();
-        await ApproveComponents.inputSpendingCap('10');
-        await ApproveComponents.tapEditSpendingCapSaveButton();
+        await TokenApproveConfirmation.tapEditSpendingCapButton();
+        await TokenApproveConfirmation.inputSpendingCap('10');
+        await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
         await Assertions.checkIfElementToHaveText(
-          ApproveComponents.SpendingCapValue,
+          TokenApproveConfirmation.SpendingCapValue,
           '10',
         );
 
@@ -142,7 +142,7 @@ describe(SmokeConfirmationsRedesigned('Approve - approve method'), () => {
         // Check spending cap is visible and has the correct value
         // #1 means the token id for ERC 721
         await Assertions.checkIfElementToHaveText(
-          ApproveComponents.SpendingCapValue,
+          TokenApproveConfirmation.SpendingCapValue,
           '#1',
         );
 

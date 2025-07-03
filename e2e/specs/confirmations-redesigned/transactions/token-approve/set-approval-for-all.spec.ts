@@ -14,12 +14,12 @@ import {
 } from '../../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
-import ApproveComponents from '../../../../pages/Browser/Confirmations/ApproveComponents';
+import TokenApproveConfirmation from '../../../../pages/Confirmation/ApproveComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 
 describe(
-  SmokeConfirmationsRedesigned('Approve - setApprovalForAll method'),
+  SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
   () => {
     const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
     const ERC_1155_CONTRACT = SMART_CONTRACTS.ERC1155;
@@ -81,7 +81,7 @@ describe(
 
           // Check spending cap is visible and has the correct value
           await Assertions.checkIfElementToHaveText(
-            ApproveComponents.SpendingCapValue,
+            TokenApproveConfirmation.SpendingCapValue,
             'All',
           );
 
@@ -134,7 +134,7 @@ describe(
 
           // Check spending cap is visible and has the correct value
           await Assertions.checkIfElementToHaveText(
-            ApproveComponents.SpendingCapValue,
+            TokenApproveConfirmation.SpendingCapValue,
             'All',
           );
 
@@ -189,7 +189,7 @@ describe(
             // Check spending cap is visible and has the correct value
             // All means, all token permissions revoked
             await Assertions.checkIfElementToHaveText(
-              ApproveComponents.SpendingCapValue,
+              TokenApproveConfirmation.SpendingCapValue,
               'All',
             );
 
