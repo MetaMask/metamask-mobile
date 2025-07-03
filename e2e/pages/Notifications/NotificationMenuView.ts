@@ -28,6 +28,12 @@ class EnableNotificationsModal {
     );
   }
 
+  get closeNotificationsButton() {
+    return Matchers.getElementByID(
+      NotificationMenuViewSelectorsIDs.CLOSE_NOTIFICATIONS_BUTTON,
+    );
+  }
+
   selectNotificationItem(id: string) {
     return Matchers.getElementByID(
       NotificationMenuViewSelectorsIDs.ITEM(id),
@@ -48,6 +54,9 @@ class EnableNotificationsModal {
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
     );
+  }
+  async tapOnCloseNotificationsButton() {
+    await Gestures.waitAndTap(this.closeNotificationsButton);
   }
 }
 

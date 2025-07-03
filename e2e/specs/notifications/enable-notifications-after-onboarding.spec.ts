@@ -7,52 +7,62 @@ import NotificationMenuView from '../../pages/Notifications/NotificationMenuView
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import { getMockServerPort } from '../../fixtures/utils';
-import {
-  NOTIFICATIONS_TEAM_PASSWORD,
-  NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from './utils/constants';
+import { loginToApp } from '../../viewHelper';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
+import FixtureServer from '../../fixtures/fixture-server';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from '../../fixtures/fixture-helper';
 
-const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
+const fixtureServer = new FixtureServer();
+
+const launchAppSettings = (mockServerPort: number, fixtureServerPort: number): DeviceLaunchAppConfig => ({
   newInstance: true,
   delete: true,
   permissions: {
     notifications: 'YES',
   },
-  launchArgs: { mockServerPort: port },
+  launchArgs: {
+    mockServerPort,
+    fixtureServerPort,
+  },
 });
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
+    jest.setTimeout(120000);  // Going through all notifications takes a while
     await TestHelpers.reverseServerPort();
 
+    const fixture = new FixtureBuilder()
+      .withDefaultFixture()
+      .build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    const fixtureServerPort = getFixturesServerPort();
+
     // Mock Server
-    mockServer = await startMockServer({}, getMockServerPort());
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
     await mockNotificationServices(mockServer);
 
     // Launch App
-    await TestHelpers.launchApp(launchAppSettings(mockServer.port));
+    await TestHelpers.launchApp(launchAppSettings(mockServerPort, fixtureServerPort));
+    await loginToApp();
   });
 
   afterAll(async () => {
     await stopMockServer(mockServer);
+    await stopFixtureServer(fixtureServer);
   });
 
   it('enables notifications through bell icon', async () => {
-    // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase({
-      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-      password: NOTIFICATIONS_TEAM_PASSWORD,
-    });
-
     // Bell Icon
     await WalletView.tapBellIcon();
 
@@ -68,6 +78,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       NotificationMenuView.selectNotificationItem(
         getMockFeatureAnnouncementItemId(),
       ),
+      1500,  // Notifications even being mocked take a while to populate
     );
   });
 
