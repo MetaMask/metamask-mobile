@@ -1,4 +1,4 @@
-import { toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress, Hex } from '@metamask/utils';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -62,7 +62,7 @@ const AddressFrom = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
-  const activeAddress = toChecksumAddress(from);
+  const activeAddress = getChecksumAddress(from as Hex);
 
   const networkName = useSelector(selectEvmNetworkName);
   const networkImage = useSelector(selectEvmNetworkImageSource);

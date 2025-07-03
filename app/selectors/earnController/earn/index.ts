@@ -3,7 +3,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, getChecksumAddress } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
 import { createSelector } from 'reselect';
@@ -28,7 +28,6 @@ import { selectNetworkConfigurations } from '../../networkController';
 import { selectTokensBalances } from '../../tokenBalancesController';
 import { selectTokenMarketData } from '../../tokenRatesController';
 import { pooledStakingSelectors } from '../pooledStaking';
-import { toChecksumAddress } from 'ethereumjs-util';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -194,12 +193,16 @@ const selectEarnTokens = createDeepEqualSelector(
       // TODO: balance logic, extract to utils then use when we are clear to add token
       const rawAccountBalance = selectedAddress
         ? accountsByChainId[token?.chainId as Hex]?.[
-            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
+            isEvmAddress
+              ? getChecksumAddress(selectedAddress as Hex)
+              : selectedAddress
           ]?.balance
         : '0';
       const rawStakedAccountBalance = selectedAddress
         ? accountsByChainId[token?.chainId as Hex]?.[
-            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
+            isEvmAddress
+              ? getChecksumAddress(selectedAddress as Hex)
+              : selectedAddress
           ]?.stakedBalance
         : '0';
       const balanceWei = hexToBN(rawAccountBalance);

@@ -17,7 +17,7 @@ import {
   fromWei,
   fromTokenMinimalUnit,
 } from '../../../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -443,7 +443,7 @@ class Send extends PureComponent {
    */
   handleTokenDeeplink = async (address) => {
     const { tokens, tokenList } = this.props;
-    address = toChecksumAddress(address);
+    address = getChecksumAddress(address);
     // First check if we have token information in token list
     if (address in tokenList) {
       return tokenList[address];
@@ -582,7 +582,7 @@ class Send extends PureComponent {
       let checksummedAddress = null;
 
       if (assetType === 'ETH') {
-        checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+        checksummedAddress = getChecksumAddress(transactionMeta.transaction.to);
       } else if (assetType === 'ERC20') {
         try {
           const [addressTo] = decodeTransferData(
@@ -590,7 +590,7 @@ class Send extends PureComponent {
             transactionMeta.transaction.data,
           );
           if (addressTo) {
-            checksummedAddress = toChecksumAddress(addressTo);
+            checksummedAddress = getChecksumAddress(addressTo);
           }
         } catch (e) {
           Logger.log('Error decoding transfer data', transactionMeta.data);
@@ -603,7 +603,7 @@ class Send extends PureComponent {
           );
           const addressTo = data[1];
           if (addressTo) {
-            checksummedAddress = toChecksumAddress(addressTo);
+            checksummedAddress = getChecksumAddress(addressTo);
           }
         } catch (e) {
           Logger.log('Error decoding transfer data', transactionMeta.data);

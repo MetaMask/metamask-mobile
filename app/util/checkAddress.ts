@@ -1,5 +1,5 @@
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress } from '@metamask/utils';
 
 /**
  * Check whether the recipient of the given transaction is included in
@@ -27,19 +27,19 @@ const checkIfAddressIsSaved = (
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addressEntries = Object.values(chainAddresses).map((entry: any) => ({
-      address: toChecksumAddress(entry.address),
+      address: getChecksumAddress(entry.address),
       nickname: entry.name,
     }));
 
     if (
       addressEntries.some(
         (entry) =>
-          entry.address === toChecksumAddress(transaction.to) &&
+          entry.address === getChecksumAddress(transaction.to) &&
           addressBookChainId === chainId,
       )
     ) {
       return addressEntries.filter(
-        (entry) => entry.address === toChecksumAddress(transaction.to),
+        (entry) => entry.address === getChecksumAddress(transaction.to),
       );
     }
     return [];

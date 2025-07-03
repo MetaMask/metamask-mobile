@@ -6,7 +6,7 @@ import { fontStyles } from '../../../../styles/common';
 import Identicon from '../../Identicon';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress } from '@metamask/utils';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { ImportTokenViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/ImportTokenView.selectors';
@@ -103,7 +103,7 @@ const AssetList = ({
         return <NetworkMainAssetLogo big style={styles.ethLogo} />;
       }
       const token =
-        tokenList?.[toChecksumAddress(address)] ||
+        tokenList?.[getChecksumAddress(address)] ||
         tokenList?.[address.toLowerCase()];
       const iconUrl = token?.iconUrl;
       if (!iconUrl) {
