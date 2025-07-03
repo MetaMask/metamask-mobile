@@ -9,7 +9,9 @@ class ImportWalletView {
   }
 
   get title() {
-    return Matchers.getElementByID(ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID);
+    return Matchers.getElementByID(
+      ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
+    );
   }
 
   get newPasswordInput() {
@@ -51,35 +53,11 @@ class ImportWalletView {
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
-    const words = secretRecoveryPhrase.trim().split(/\s+/);
-
-    for (let i = 0; i < words.length; i++) {
-      let wordInput;
-      if (i === 0) {
-        wordInput = this.seedPhraseInput;
-      } else {
-        wordInput = Matchers.getElementByID(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
-        );
-      }
-
-      const elemDescription = `Seed Phrase Input ${i + 1}`;
-      if (i !== 11) {
-        await Gestures.typeText(wordInput, words[i] + ' ', {
-          hideKeyboard: true,
-          elemDescription,
-          sensitive: true,
-        });
-      } else {
-        await Gestures.typeText(wordInput, words[i], {
-          hideKeyboard: true,
-          elemDescription,
-          sensitive: true,
-        });
-      }
-    }
+    await Gestures.replaceText(
+      this.seedPhraseInput,
+      secretRecoveryPhrase,
+    );
   }
-
   async clearSecretRecoveryPhraseInputBox() {
     await Gestures.clearField(this.seedPhraseInput);
   }
