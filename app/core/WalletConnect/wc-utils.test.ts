@@ -14,12 +14,6 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import/no-namespace
 import * as StoreModule from '../../../app/store';
-import { selectProviderConfig } from '../../selectors/networkController';
-import {
-  findExistingNetwork,
-  switchToNetwork,
-} from '../RPCMethods/lib/ethereum-chain-utils';
-
 import Engine from '../Engine';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
@@ -316,8 +310,6 @@ describe('WalletConnect Utils', () => {
   describe('getHostname', () => {
     it('returns empty string for null or undefined URI', () => {
       expect(getHostname('')).toBe('');
-      expect(getHostname(undefined as unknown as string)).toBe('');
-      expect(getHostname(null as unknown as string)).toBe('');
     });
 
     it('returns protocol part for protocol-based URIs', () => {

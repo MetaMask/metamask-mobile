@@ -191,11 +191,6 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    /* eslint-disable no-debugger */
-    debugger;
-    /* eslint-enable no-debugger */
-
-
     if (origin && isPerDappSelectedNetworkEnabled()) {
       const perOriginChainId = selectPerOriginChainId(
         store.getState(),

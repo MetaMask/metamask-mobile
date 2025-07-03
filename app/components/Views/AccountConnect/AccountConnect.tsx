@@ -314,7 +314,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         channelIdOrHostname.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else if (isOriginWalletConnect) {
-      title = wc2Metadata.lastVerifiedUrl ?? wc2Metadata.url;
+      title = wc2Metadata?.lastVerifiedUrl ?? wc2Metadata?.url ?? channelIdOrHostname;
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
@@ -330,6 +330,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     isChannelId,
     dappUrl,
     channelIdOrHostname,
+    wc2Metadata?.lastVerifiedUrl,
+    wc2Metadata?.url,
   ]);
 
   const urlWithProtocol =
