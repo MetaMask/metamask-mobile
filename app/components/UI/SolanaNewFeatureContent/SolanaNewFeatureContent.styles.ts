@@ -15,24 +15,21 @@ const createStyles = () =>
     image: {
       alignSelf: 'center',
       width: Device.isLargeDevice() ? 300 : 220,
-      height: Device.isLargeDevice() ? 300 : 220,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 60 : 40,
-      paddingBottom: Device.isLargeDevice() ? 100 : 40,
+      paddingTop: Device.isLargeDevice() ? 30 : 20,
+      
     },
     title: {
-      fontSize: 50,
-      lineHeight: 50,
-      justifyContent: 'center',
+      fontSize: 60,
+      lineHeight: 60,
       textAlign: 'center',
-      paddingHorizontal: 60,
-      paddingTop: 20,
+      paddingTop: 60,
       fontFamily: 'MMPoly-Regular',
     },
     titleDescription: {
-      paddingTop: 10,
+      paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
       fontFamily: 'MMSans-Regular',
@@ -41,14 +38,13 @@ const createStyles = () =>
       flex: 1,
       position: 'relative',
       width: '100%',
-      paddingHorizontal: 20,
-      paddingTop: 20,
+      paddingHorizontal: 30,
     },
     createWrapper: {
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      rowGap: 16,
+      rowGap: 5,
       marginBottom: 16,
     },
     learnMoreButton: {

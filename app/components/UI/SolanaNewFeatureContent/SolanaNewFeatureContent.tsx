@@ -33,6 +33,8 @@ const SolanaNewFeatureContent = () => {
 
   useEffect(() => {
     const checkModalStatus = async () => {
+      await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'false');
+
       const hasSeenModal = await StorageWrapper.getItem(
         SOLANA_FEATURE_MODAL_SHOWN,
       );
@@ -110,15 +112,14 @@ const SolanaNewFeatureContent = () => {
         contentContainerStyle={styles.scroll}
       >
         <View style={styles.wrapper}>
-          <View style={styles.ctas}>
-            <Text
+          <Text
               style={styles.title}
               variant={TextVariant.HeadingLG}
               color={importedColors.gettingStartedTextColor}
             >
               {strings('solana_new_feature_content.title')}
             </Text>
-
+          <View style={styles.ctas}>
             <Text
               variant={TextVariant.BodyMD}
               color={importedColors.gettingStartedTextColor}
