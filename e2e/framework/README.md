@@ -22,7 +22,7 @@
 // New framework usage
 import { Assertions, Gestures, Matchers } from '../framework';
 
-await Assertions.expectVisible(element, { description: 'element should be visible' });
+await Assertions.expectElementVisible(element, { description: 'element should be visible' });
 await Gestures.tap(element, { description: 'tap element' });
 ```
 
@@ -103,7 +103,7 @@ The new TypeScript framework utilities provides enhanced reliability, better err
 
 #### Core Classes:
 - **`Assertions.ts`** - Enhanced assertions with auto-retry and detailed error messages
-  - Modern methods: `expectVisible()`, `expectText()`, `expectLabel()`, `expectTextDisplayed()`
+  - Modern methods: `expectElementVisible()`, `expectElementHasText()`, `expectElementHasLabel()`, `expectTextDisplayed()`
   - Legacy methods marked `@deprecated` - use modern equivalents
 - **`Gestures.ts`** - Robust user interactions with configurable element state checking
   - Modern methods: `tap()`, `typeText()`, `longPress()`, `swipe()`, `scrollToElement()`
@@ -134,8 +134,8 @@ import Gestures from '../utils/Gestures';
 import Matchers from '../utils/Matchers';
 
 // Configurable element state checking
-const button = Matchers.getElementByID('my-button');
-await Assertions.expectVisible(button, { description: 'button should be visible' });
+const button = await Matchers.getElementByID('my-button');
+await Assertions.expectElementVisible(button, { description: 'button should be visible' });
 
 // Default behavior: checkVisibility=true, checkEnabled=true, checkStability=false
 await Gestures.tap(button, { description: 'tap button' });
@@ -163,7 +163,7 @@ The original JavaScript framework continues to work but legacy methods are depre
 await Assertions.checkIfVisible(element(by.id('my-element')), 15000);
 
 // ✅ DO: Use modern methods instead
-await Assertions.expectVisible(element, { description: 'element should be visible' });
+await Assertions.expectElementVisible(element, { description: 'element should be visible' });
 ```
 
 ## 📋 Page Object Pattern Best Practices
@@ -206,7 +206,7 @@ export default new LoginPage();
 
 ```typescript
 // Per-operation timeout override
-await Assertions.expectVisible(element, {
+await Assertions.expectElementVisible(element, {
   timeout: 30000,
   description: 'slow loading element'
 });
@@ -229,7 +229,7 @@ await Assertions.checkIfVisible(element);         // Deprecated method
 await Gestures.tap(button);                       // Missing description
 
 // ✅ ESLint approves these patterns  
-await Assertions.expectVisible(element, { description: 'button should appear' });
+await Assertions.expectElementVisible(element, { description: 'button should appear' });
 await Gestures.tap(button, { description: 'tap submit button' });
 ```
 
@@ -269,9 +269,9 @@ describe('Feature: User Login', () => {
 
 | Legacy Pattern | Modern Replacement |
 |----------------|-------------------|
-| `TestHelpers.delay(5000)` | `Assertions.expectVisible(element, {timeout: 5000})` |
-| `checkIfVisible(element, 15000)` | `expectVisible(element, {timeout: 15000, description: '...'})` |
-| `waitFor(element).toBeVisible()` | `expectVisible(element, {description: '...'})` |
+| `TestHelpers.delay(5000)` | `Assertions.expectElementVisible(element, {timeout: 5000})` |
+| `checkIfVisible(element, 15000)` | `expectElementVisible(element, {timeout: 15000, description: '...'})` |
+| `waitFor(element).toBeVisible()` | `expectElementVisible(element, {description: '...'})` |
 | `element.tap()` | `Gestures.tap(element, {description: '...'})` |
 | `clearField(element); typeText(element, text)` | `typeText(element, text, {clearFirst: true})` |
 | Manual retry loops | `executeWithRetry()` with proper configuration |
@@ -307,10 +307,10 @@ The new TypeScript framework is fully backwards compatible. You can:
 The following legacy methods are marked `@deprecated` and should be replaced:
 
 #### Assertions.ts Legacy Methods:
-- `checkIfVisible()` → Use `expectVisible()`
+- `checkIfVisible()` → Use `expectElementVisible()`
 - `checkIfTextIsDisplayed()` → Use `expectTextDisplayed()`
-- `checkIfElementToHaveText()` → Use `expectText()`
-- `checkIfElementHasLabel()` → Use `expectLabel()`
+- `checkIfElementToHaveText()` → Use `expectElementHasText()`
+- `checkIfElementHasLabel()` → Use `expectElementHasLabel()`
 - And many more... (see `@deprecated` tags in code)
 
 #### Gestures.ts Legacy Methods:
@@ -513,7 +513,7 @@ async tapOpenAllTabsButton(): Promise<void> {
         timeout: 2000  // Short timeout for individual action
       });
 
-      await Assertions.expectVisible(this.tabsNumber, {
+      await Assertions.expectElementVisible(this.tabsNumber, {
         timeout: 2000  // Short timeout for verification
       });
     },
