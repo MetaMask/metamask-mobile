@@ -16,7 +16,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  EXISTING_USER,
+  TRUE,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -234,6 +238,9 @@ class OptinMetrics extends PureComponent {
     if (onContinue) {
       return onContinue();
     }
+
+    // Mark user as existing now that onboarding is complete
+    await StorageWrapper.setItem(EXISTING_USER, TRUE);
 
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
