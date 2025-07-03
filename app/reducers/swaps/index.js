@@ -16,6 +16,7 @@ import { selectSelectedInternalAccountAddress } from '../../selectors/accountsCo
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 import { invert } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -50,11 +51,18 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 function processToken(token) {
   if (!token) return null;
   const { hasBalanceError, image, ...tokenData } = token;
+  
+  // For Solana tokens, preserve case-sensitive addresses
+  // For EVM tokens, normalize to lowercase for consistent comparison
+  const normalizedAddress = token.chainId && isSolanaChainId(token.chainId)
+    ? tokenData.address
+    : tokenData.address.toLowerCase();
+
   return {
     occurrences: 0,
     ...tokenData,
     decimals: Number(tokenData.decimals),
-    address: tokenData.address.toLowerCase(),
+    address: normalizedAddress,
   };
 }
 
@@ -62,7 +70,7 @@ function processToken(token) {
  * Combines tokens from multiple sources with deduplication
  * Maintains first-occurrence-wins behavior
  */
-function combineTokens(tokenSources) {
+export function combineTokens(tokenSources) {
   const tokenMap = new Map();
 
   for (const tokens of tokenSources) {

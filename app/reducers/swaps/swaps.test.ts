@@ -6,6 +6,7 @@ import { NetworkClientType } from '@metamask/network-controller';
 import * as tokensControllerSelectors from '../../selectors/tokensController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
+import { combineTokens } from './index';
 
 // Type definitions for the swaps reducer
 // Note: The reducer is written in JavaScript without proper TypeScript types,
@@ -64,6 +65,11 @@ import reducer, {
   selectSwapsChainFeatureFlags,
   getFeatureFlagChainId,
 } from './index';
+
+// Mock the isSolanaChainId function since it's a new dependency
+jest.mock('@metamask/bridge-controller', () => ({
+  isSolanaChainId: jest.fn((chainId: string) => chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+}));
 
 const emptyAction: SwapsAction = { type: null };
 
@@ -1187,5 +1193,118 @@ describe('swaps reducer', () => {
       payload: true,
     }) as SwapsState;
     expect(liveState.hasOnboarded).toBe(true);
+  });
+
+  describe('combineTokens', () => {
+    it('should deduplicate identical Solana tokens with case-sensitive addresses', () => {
+      const solanaUSDC = {
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USD Coin',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+
+      const duplicateSolanaUSDC = {
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USDC', // Different name but same address
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+
+      // Test with two arrays containing the same Solana token
+      const result = combineTokens([[solanaUSDC], [duplicateSolanaUSDC]]);
+
+      // Should only have one USDC token (first occurrence wins)
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('USDC');
+      expect(result[0].name).toBe('USD Coin'); // First occurrence name
+      expect(result[0].address).toBe(solanaUSDC.address);
+    });
+
+    it('should deduplicate EVM tokens with case-insensitive addresses', () => {
+      const evmUSDC = {
+        address: '0xA0b86a33E6C1a7b3d9c9a9f37B23f4fC8d5e9F1',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USD Coin',
+        chainId: '0x1', // Mainnet
+      };
+
+      const duplicateEvmUSDCDifferentCase = {
+        address: '0xa0b86a33e6c1a7b3d9c9a9f37b23f4fc8d5e9f1', // Different case
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USDC',
+        chainId: '0x1',
+      };
+
+      const result = combineTokens([[evmUSDC], [duplicateEvmUSDCDifferentCase]]);
+
+      // Should only have one USDC token (addresses normalized to lowercase)
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('USDC');
+      expect(result[0].name).toBe('USD Coin');
+      expect(result[0].address).toBe('0xa0b86a33e6c1a7b3d9c9a9f37b23f4fc8d5e9f1'); // Normalized to lowercase
+    });
+
+    it('should preserve case-sensitive Solana addresses vs case-insensitive EVM addresses', () => {
+      const solanaToken = {
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'SOL-USDC',
+        decimals: 6,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+
+      const evmToken = {
+        address: '0xA0b86a33E6C1a7b3d9c9a9f37B23f4fC8d5e9F1',
+        symbol: 'ETH-USDC',
+        decimals: 6,
+        chainId: '0x1',
+      };
+
+      const result = combineTokens([[solanaToken, evmToken]]);
+
+      expect(result).toHaveLength(2);
+      
+      const solResult = result.find(token => token.symbol === 'SOL-USDC');
+      const evmResult = result.find(token => token.symbol === 'ETH-USDC');
+
+      // Solana address should preserve original case
+      expect(solResult?.address).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+      
+      // EVM address should be normalized to lowercase
+      expect(evmResult?.address).toBe('0xa0b86a33e6c1a7b3d9c9a9f37b23f4fc8d5e9f1');
+    });
+
+    it('should handle tokens without chainId gracefully', () => {
+      const tokenWithoutChainId = {
+        address: '0xSomeAddress',
+        symbol: 'TEST',
+        decimals: 18,
+        // No chainId property
+      };
+
+      const result = combineTokens([[tokenWithoutChainId]]);
+
+      expect(result).toHaveLength(1);
+      // Should default to lowercase for tokens without chainId
+      expect(result[0].address).toBe('0xsomeaddress');
+    });
+
+    it('should handle null and undefined tokens', () => {
+      const validToken = {
+        address: '0xValid',
+        symbol: 'VALID',
+        decimals: 18,
+        chainId: '0x1',
+      };
+
+      const result = combineTokens([[null, validToken, undefined]]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('VALID');
+    });
   });
 });
