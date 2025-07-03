@@ -235,7 +235,13 @@ android {
         keyAlias 'androiddebugkey'
         keyPassword 'android'
       }
-      flask {
+      flaskUat{
+        storeFile file('../keystores/flask-uat.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      flaskRelease {
         storeFile file('../keystores/flaskRelease.keystore')
         storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
         keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
@@ -277,8 +283,10 @@ android {
             // Use the appropriate signing config based on environment
             if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
               signingConfig signingConfigs.qa
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'uat') {
+              signingConfig signingConfigs.flaskUat
             } else {
-              signingConfig signingConfigs.flask
+              signingConfig signingConfigs.flaskRelease
             }
           }
     	  }
