@@ -20,10 +20,18 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { megaEthLocalConfig, monadLocalConfig, megaEthProviderConfig, monadProviderConfig } from '../../resources/mock-configs';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
 const HST_CONTRACT = SMART_CONTRACTS.HST;
+
+// Shared mock configuration for all tests
+const testSpecificMock = {
+  GET: [
+    mockEvents.GET.suggestedGasFeesApiGanache
+  ],
+};
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -32,7 +40,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   });
 
   it('send an ERC20 token from a dapp', async () => {
-    const testSpecificMock  = {
+    const testSpecificMockWithFlags = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations
@@ -49,7 +57,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,
-        testSpecificMock,
+        testSpecificMock: testSpecificMockWithFlags,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,18 +96,23 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     );
   });
 
-it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () => {
+  it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
+    // Use shared Monad configuration
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMonadTestnetNetwork()
+          .withNetworkController({
+            providerConfig: monadProviderConfig,
+          })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MONAD_TESTNET.chainId}`]),
+            buildPermissions([MONAD_TESTNET.chainId]) // Real Monad chain ID for permissions
           )
           .build(),
         restartDevice: true,
         smartContract: HST_CONTRACT,
+        ganacheOptions: monadLocalConfig, // Apply Monad characteristics
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,18 +145,23 @@ it(`send an ERC20 token from a dapp using ${MONAD_TESTNET.nickname}`, async () =
     );
   });
 
-  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname}`, async () => {
+  it(`send an ERC20 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
+    // Use shared Mega ETH configuration
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withMegaTestnetNetwork()
+          .withNetworkController({
+            providerConfig: megaEthProviderConfig,
+          })
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([`${MEGAETH_TESTNET.chainId}`]),
+            buildPermissions([MEGAETH_TESTNET.chainId]) // Real Mega ETH chain ID for permissions
           )
           .build(),
         restartDevice: true,
         smartContract: HST_CONTRACT,
+        ganacheOptions: megaEthLocalConfig, // Apply Mega ETH characteristics
+        testSpecificMock,
       },
       // Remove any once withFixtures is typed
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
