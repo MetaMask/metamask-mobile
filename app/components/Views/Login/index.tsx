@@ -91,7 +91,6 @@ import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@met
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
 import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
@@ -130,7 +129,6 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
@@ -272,7 +270,7 @@ const Login: React.FC = () => {
 
   const checkMetricsUISeen = async (): Promise<void> => {
     if (!isMetaMetricsUISeen) {
-      navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
+      navigation.replace(Routes.ONBOARDING.ROOT_NAV, {
         screen: Routes.ONBOARDING.NAV,
         params: {
           screen: Routes.ONBOARDING.OPTIN_METRICS,

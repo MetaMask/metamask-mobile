@@ -11,9 +11,7 @@ import { trace } from '../../../util/trace';
 import StorageWrapper from '../../../store/storage-wrapper';
 
 // Mock dependencies
-import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import {
   passcodeType,
@@ -56,34 +54,6 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
-
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
-
-const mockRoute = jest.fn();
-// mock useNavigation
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      replace: mockReplace,
-    }),
-    useRoute: () => mockRoute(),
-  };
-});
-
-// Mock Authentication module
-jest.mock('../../../core', () => ({
-  Authentication: {
-    userEntryAuth: jest.fn(),
-    componentAuthenticationType: jest.fn(),
-    lockApp: jest.fn(),
-    getType: jest.fn(),
-    appTriggeredAuth: jest.fn(),
-  },
-}));
 
 // Mock password requirements
 jest.mock('../../../util/password', () => ({
@@ -616,7 +586,15 @@ describe('Login', () => {
       });
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.ROOT_NAV, {
+        screen: Routes.ONBOARDING.NAV,
+        params: {
+          screen: Routes.ONBOARDING.OPTIN_METRICS,
+          params: {
+            onContinue: expect.any(Function),
+          },
+        },
+      });
     });
 
     it('should handle biometric authentication failure', async () => {
