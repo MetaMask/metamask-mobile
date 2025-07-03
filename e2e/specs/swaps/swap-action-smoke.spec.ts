@@ -112,10 +112,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         currentNetwork = network.providerConfig.nickname;
       }
 
-      await Assertions.expectVisible(WalletView.container);
+      await Assertions.expectElementVisible(WalletView.container);
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSwapButton();
-      await Assertions.expectVisible(QuoteView.getQuotes);
+      await Assertions.expectElementVisible(QuoteView.getQuotes);
 
       //Select source token, if native tiken can skip because already selected
       if (type !== 'native' && type !== 'wrap') {
@@ -136,16 +136,16 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       //Make sure slippage is zero for wrapped tokens
       if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await Assertions.expectText(QuoteView.maxSlippage, 'Max slippage 0%');
+        await Assertions.expectElementHasText(QuoteView.maxSlippage, 'Max slippage 0%');
       }
       // This call is needed because otherwise the device never becomes idle
       await device.disableSynchronization();
 
       await QuoteView.tapOnGetQuotes();
-      await Assertions.expectVisible(SwapView.quoteSummary);
-      await Assertions.expectVisible(SwapView.gasFee);
+      await Assertions.expectElementVisible(SwapView.quoteSummary);
+      await Assertions.expectElementVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
-      await Assertions.expectVisible(SwapView.swapButton);
+      await Assertions.expectElementVisible(SwapView.swapButton);
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
       try {
@@ -166,11 +166,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();
-      await Assertions.expectVisible(ActivitiesView.title);
-      await Assertions.expectVisible(
+      await Assertions.expectElementVisible(ActivitiesView.title);
+      await Assertions.expectElementVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.expectText(
+      await Assertions.expectElementHasText(
         ActivitiesView.transactionStatus(FIRST_ROW),
         ActivitiesViewSelectorsText.CONFIRM_TEXT,
         {
@@ -180,10 +180,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
       // Check the token approval completed
       if (type === 'unapproved') {
-        await Assertions.expectVisible(
+        await Assertions.expectElementVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await Assertions.expectText(
+        await Assertions.expectElementHasText(
           ActivitiesView.transactionStatus(SECOND_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {

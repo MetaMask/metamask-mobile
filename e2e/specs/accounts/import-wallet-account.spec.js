@@ -31,19 +31,19 @@ describe(SmokeNetworkExpansion('Import account via private to wallet'), () => {
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await Assertions.expectVisible(AccountListBottomSheet.accountList);
+    await Assertions.expectElementVisible(AccountListBottomSheet.accountList);
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.expectVisible(ImportAccountView.container);
+    await Assertions.expectElementVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
     await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await Assertions.expectVisible(SuccessImportAccountView.container);
+    await Assertions.expectElementVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.expectVisible(WalletView.container);
-    await Assertions.expectNotToHaveText(
+    await Assertions.expectElementVisible(WalletView.container);
+    await Assertions.expectElementDoesNotHaveText(
       WalletView.accountName,
       'Account 1',
     );

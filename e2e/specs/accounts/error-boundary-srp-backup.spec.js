@@ -40,7 +40,7 @@ describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapInvalidSigButton();
-        await Assertions.expectVisible(ErrorBoundaryView.title, {
+        await Assertions.expectElementVisible(ErrorBoundaryView.title, {
           description: 'Error Boundary title should be visible',
         });
         await ErrorBoundaryView.tapSRPLinkText();
@@ -50,7 +50,7 @@ describe(SmokeNetworkExpansion('Error Boundary Screen'), () => {
         );
         // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
         await RevealSecretRecoveryPhrase.tapToReveal();
-        await Assertions.expectVisible(RevealSecretRecoveryPhrase.container, {
+        await Assertions.expectElementVisible(RevealSecretRecoveryPhrase.container, {
           description: 'Reveal SRP screen should be visible',
         });
 

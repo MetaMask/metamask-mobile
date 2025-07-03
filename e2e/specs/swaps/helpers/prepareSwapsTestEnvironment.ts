@@ -30,19 +30,19 @@ export async function prepareSwapsTestEnvironment(wallet: ethers.Wallet): Promis
     try {
         // Import funded account for swaps
         await WalletView.tapIdenticon();
-        await Assertions.expectVisible(AccountListBottomSheet.accountList);
+        await Assertions.expectElementVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapImportAccount();
-        await Assertions.expectVisible(ImportAccountView.container, {
+        await Assertions.expectElementVisible(ImportAccountView.container, {
             description: 'Import Account View',
         });
         await ImportAccountView.enterPrivateKey(wallet.privateKey);
-        await Assertions.expectVisible(SuccessImportAccountView.container, {
+        await Assertions.expectElementVisible(SuccessImportAccountView.container, {
             description: 'Success Import Account View',
         });
         await SuccessImportAccountView.tapCloseButton();
         await AccountListBottomSheet.swipeToDismissAccountsModal();
-        await Assertions.expectVisible(WalletView.container);
+        await Assertions.expectElementVisible(WalletView.container);
     } catch (e) {
         throw new Error('Failed to import account for swaps: ' + (e instanceof Error ? e.message : e));
     }

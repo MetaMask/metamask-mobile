@@ -37,7 +37,7 @@ export const connectSolanaTestDapp = async (
 
 export const navigateToSolanaTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
-  await Assertions.expectVisible(BrowserView.browserScreenID, {
+  await Assertions.expectElementVisible(BrowserView.browserScreenID, {
     description: 'Browser screen',
   });
   await SolanaTestDApp.navigateToSolanaTestDApp();

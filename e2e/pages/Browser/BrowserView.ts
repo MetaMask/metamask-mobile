@@ -153,7 +153,7 @@ class Browser {
           timeout: 2000
         });
 
-        await Assertions.expectVisible(this.tabsNumber, {
+        await Assertions.expectElementVisible(this.tabsNumber, {
           timeout: 2000
         });
       },

@@ -180,7 +180,7 @@ class WalletView {
 
   async tapIdenticon() {
     await Gestures.waitAndTap(this.accountIcon);
-    await Assertions.expectVisible(AccountListBottomSheet.accountList); // Ensure the account list is visible after tapping the identicon
+    await Assertions.expectElementVisible(AccountListBottomSheet.accountList); // Ensure the account list is visible after tapping the identicon
   }
 
   async tapBellIcon() {

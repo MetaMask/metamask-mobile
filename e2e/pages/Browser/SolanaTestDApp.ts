@@ -81,7 +81,7 @@ class SolanaTestDApp {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     );
 
-    await Assertions.expectVisible(browserWebView, {
+    await Assertions.expectElementVisible(browserWebView, {
       description: 'Solana Test DApp WebView',
       timeout: SOLANA_TEST_TIMEOUTS.ELEMENT_VISIBILITY,
     });

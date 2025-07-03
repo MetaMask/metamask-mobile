@@ -34,7 +34,7 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await Assertions.expectVisible(TermsOfUseModal.container, {
+  await Assertions.expectElementVisible(TermsOfUseModal.container, {
     description: 'Terms of Use modal should be visible',
   });
 
@@ -42,7 +42,7 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.tapAgreeCheckBox();
   await TermsOfUseModal.tapAcceptButton();
 
-  await Assertions.expectNotVisible(TermsOfUseModal.container, {
+  await Assertions.expectElementNotVisible(TermsOfUseModal.container, {
     description: 'Terms of Use modal should not be visible',
   });
 };
@@ -63,9 +63,9 @@ have to have all these workarounds in the tests
   */
 
   try {
-    await Assertions.expectVisible(ToastModal.container);
+    await Assertions.expectElementVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
-    await Assertions.expectNotVisible(ToastModal.container);
+    await Assertions.expectElementNotVisible(ToastModal.container);
   } catch {
     // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
@@ -84,11 +84,11 @@ have to have all these workarounds in the tests
 export const skipNotificationsDeviceSettings = async () => {
 
   try {
-    await Assertions.expectVisible(
+    await Assertions.expectElementVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
     await EnableDeviceNotificationsAlert.tapOnEnableDeviceNotificationsButton();
-    await Assertions.expectNotVisible(
+    await Assertions.expectElementNotVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
@@ -132,7 +132,7 @@ export const importWalletWithRecoveryPhrase = async ({
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.expectVisible(OnboardingCarouselView.container, {
+  await Assertions.expectElementVisible(OnboardingCarouselView.container, {
     description: 'Onboarding carousel should be visible',
   });
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -153,7 +153,7 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  await Assertions.expectVisible(MetaMetricsOptIn.container, {
+  await Assertions.expectElementVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In modal should be visible',
   });
   if (optInToMetrics) {
@@ -163,7 +163,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await Assertions.expectVisible(OnboardingSuccessView.container, {
+  await Assertions.expectElementVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success view should be visible',
   });
   await OnboardingSuccessView.tapDone();
@@ -291,12 +291,12 @@ export const switchToSepoliaNetwork = async () => {
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
-  await Assertions.expectVisible(LoginView.container, {
+  await Assertions.expectElementVisible(LoginView.container, {
     description: 'Login view should be visible',
     timeout: 30000,
   });
 
-  await Assertions.expectVisible(LoginView.passwordInput,{
+  await Assertions.expectElementVisible(LoginView.passwordInput,{
     description: 'Password input should be visible',
   });
 
@@ -304,7 +304,7 @@ export const loginToApp = async () => {
 };
 
 export const waitForTestDappToLoad = async () => {
-  await Assertions.expectVisible(TestDApp.testDappFoxLogo);
-  await Assertions.expectVisible(TestDApp.testDappPageTitle);
-  await Assertions.expectVisible(TestDApp.DappConnectButton);
+  await Assertions.expectElementVisible(TestDApp.testDappFoxLogo);
+  await Assertions.expectElementVisible(TestDApp.testDappPageTitle);
+  await Assertions.expectElementVisible(TestDApp.DappConnectButton);
 };

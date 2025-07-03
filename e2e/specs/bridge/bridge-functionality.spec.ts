@@ -89,19 +89,19 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await AddNewHdAccountComponent.tapConfirm();
     await Assertions.expectVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectNotVisible(
+    await Assertions.expectElementNotVisible(
       NetworkEducationModal.container as DetoxElement,
     );
-    await Assertions.expectVisible(WalletView.container);
+    await Assertions.expectElementVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
     await Assertions.expectVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectNotVisible(
+    await Assertions.expectElementNotVisible(
       NetworkEducationModal.container as DetoxElement,
     );
-    await Assertions.expectVisible(WalletView.container);
+    await Assertions.expectElementVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
@@ -110,22 +110,22 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapBridgeTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
-    await Assertions.expectVisible(QuoteView.token('SOL'));
+    await Assertions.expectElementVisible(QuoteView.token('SOL'));
     await TestHelpers.delay(1000);
     await QuoteView.selectToken('SOL');
-    await Assertions.expectVisible(QuoteView.networkFeeLabel, {
+    await Assertions.expectElementVisible(QuoteView.networkFeeLabel, {
       timeout: 60000,
     });
-    await Assertions.expectVisible(QuoteView.confirmButton);
+    await Assertions.expectElementVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
     await TestHelpers.delay(1000);
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
-    await Assertions.expectVisible(ActivitiesView.title);
-    await Assertions.expectVisible(
+    await Assertions.expectElementVisible(ActivitiesView.title);
+    await Assertions.expectElementVisible(
       ActivitiesView.bridgeActivityTitle('Solana'),
     );
-    await Assertions.expectText(
+    await Assertions.expectElementHasText(
       ActivitiesView.transactionStatus(
         FIRST_ROW,
       ) as Promise<IndexableNativeElement>,
@@ -287,7 +287,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
     await TabBarComponent.tapWallet();
-    await Assertions.expectVisible(WalletView.container);
+    await Assertions.expectElementVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
     await WalletActionsBottomSheet.tapBridgeButton();
@@ -299,16 +299,16 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('Base');
     await Assertions.expectVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
-    await Assertions.expectVisible(QuoteView.networkFeeLabel, {
+    await Assertions.expectElementVisible(QuoteView.networkFeeLabel, {
       timeout: 60000,
     });
-    await Assertions.expectVisible(QuoteView.confirmButton);
+    await Assertions.expectElementVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
     await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
-    await Assertions.expectVisible(ActivitiesView.title);
+    await Assertions.expectElementVisible(ActivitiesView.title);
     await Assertions.expectVisible(ActivitiesView.bridgeActivityTitle('Base'));
     await Assertions.checkIfElementToHaveText(
       ActivitiesView.transactionStatus(
@@ -321,7 +321,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
   it('should bridge ETH (Mainnet) to ETH (BNB Smart Chain Mainnet)', async () => {
     await TabBarComponent.tapWallet();
-    await Assertions.expectVisible(WalletView.container);
+    await Assertions.expectElementVisible(WalletView.container);
 
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvancedTitle();
@@ -340,20 +340,20 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('OP Mainnet');
     await Assertions.expectVisible(QuoteView.token('ETH'));
     await QuoteView.selectToken('ETH');
-    await Assertions.expectVisible(QuoteView.networkFeeLabel, {
+    await Assertions.expectElementVisible(QuoteView.networkFeeLabel, {
       timeout: 60000,
     });
-    await Assertions.expectVisible(QuoteView.confirmButton);
+    await Assertions.expectElementVisible(QuoteView.confirmButton);
     await QuoteView.tapConfirm();
     await TestHelpers.delay(1000);
 
     // Check the bridge activity completed
     await TabBarComponent.tapActivity();
-    await Assertions.expectVisible(ActivitiesView.title);
+    await Assertions.expectElementVisible(ActivitiesView.title);
     await Assertions.expectVisible(
       ActivitiesView.bridgeActivityTitle('Optimism'),
     );
-    await Assertions.expectText(
+    await Assertions.expectElementHasText(
       ActivitiesView.transactionStatus(
         FIRST_ROW,
       ) as Promise<IndexableNativeElement>,

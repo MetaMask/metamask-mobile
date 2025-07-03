@@ -77,8 +77,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
   it('should get to the Amount to buy screen, after selecting Get Started', async () => {
     await setupOnRampTest(async () => {
-      await Assertions.expectVisible(BuildQuoteView.amountToBuyLabel);
-      await Assertions.expectVisible(BuildQuoteView.getQuotesButton);
+      await Assertions.expectElementVisible(BuildQuoteView.amountToBuyLabel);
+      await Assertions.expectElementVisible(BuildQuoteView.getQuotesButton);
       await BuildQuoteView.tapCancelButton();
     });
   });
@@ -86,15 +86,15 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
   it('should skip to the Amount to buy screen for returning user', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
-    await Assertions.expectVisible(BuildQuoteView.amountToBuyLabel);
-    await Assertions.expectVisible(BuildQuoteView.getQuotesButton);
+    await Assertions.expectElementVisible(BuildQuoteView.amountToBuyLabel);
+    await Assertions.expectElementVisible(BuildQuoteView.getQuotesButton);
   });
 
   it('should enter amount and show quotes', async () => {
     await setupOnRampTest(async () => {
       await BuildQuoteView.enterAmount('100');
       await BuildQuoteView.tapGetQuotesButton();
-      await Assertions.expectVisible(QuotesView.quotes);
+      await Assertions.expectElementVisible(QuotesView.quotes);
     });
   });
 
@@ -103,8 +103,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       await device.disableSynchronization();
       try {
         await QuotesView.tapExploreMoreOptions();
-        await Assertions.expectVisible(QuotesView.expandedQuotesSection);
-        await Assertions.expectVisible(QuotesView.continueWithProvider);
+        await Assertions.expectElementVisible(QuotesView.expandedQuotesSection);
+        await Assertions.expectElementVisible(QuotesView.continueWithProvider);
         await QuotesView.tapContinueWithProvider();
         await TestHelpers.pause(650); // Waiting for the last event to be sent
       } catch (error) {
