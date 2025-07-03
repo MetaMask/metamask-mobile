@@ -1,5 +1,9 @@
 import '../_mocks_/initialState';
-import { isBridgeAllowed, wipeBridgeStatus } from './index';
+import {
+  isBridgeAllowed,
+  wipeBridgeStatus,
+  normalizeToCaipAssetType,
+} from './index';
 import AppConstants from '../../../../core/AppConstants';
 import {
   ARBITRUM_CHAIN_ID,
@@ -30,7 +34,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockWipeBridgeStatus = Engine.context.BridgeStatusController.wipeBridgeStatus as jest.MockedFunction<typeof Engine.context.BridgeStatusController.wipeBridgeStatus>;
+const mockWipeBridgeStatus = Engine.context.BridgeStatusController
+  .wipeBridgeStatus as jest.MockedFunction<
+  typeof Engine.context.BridgeStatusController.wipeBridgeStatus
+>;
 
 describe('Bridge Utils', () => {
   beforeEach(() => {
@@ -116,6 +123,35 @@ describe('Bridge Utils', () => {
         address: testAddress,
         ignoreNetwork: false,
       });
+    });
+  });
+
+  describe('normalizeToCaipAssetType', () => {
+    it('should return CAIP format address as-is for Solana', () => {
+      const caipAddress =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const result = normalizeToCaipAssetType(caipAddress, SolScope.Mainnet);
+      expect(result).toBe(caipAddress);
+    });
+
+    it('should convert raw Solana address to CAIP format', () => {
+      const rawAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const result = normalizeToCaipAssetType(rawAddress, SolScope.Mainnet);
+      expect(result).toBe(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      );
+    });
+
+    it('should return EVM address as-is', () => {
+      const evmAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const result = normalizeToCaipAssetType(evmAddress, ETH_CHAIN_ID);
+      expect(result).toBe(evmAddress);
+    });
+
+    it('should handle different EVM chain IDs', () => {
+      const evmAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const result = normalizeToCaipAssetType(evmAddress, POLYGON_CHAIN_ID);
+      expect(result).toBe(evmAddress);
     });
   });
 });

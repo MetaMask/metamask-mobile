@@ -1,11 +1,11 @@
 import {
   CaipChainId,
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SolScope
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 } from '@metamask/keyring-api';
 import AppConstants from '../../../../core/AppConstants';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipAssetType } from '@metamask/utils';
 import {
   ARBITRUM_CHAIN_ID,
   AVALANCHE_CHAIN_ID,
@@ -44,8 +44,10 @@ export const isBridgeAllowed = (chainId: Hex | CaipChainId) => {
   return ALLOWED_CHAIN_IDS.includes(chainId);
 };
 
-
-export const wipeBridgeStatus = (address: string, chainId: Hex | CaipChainId) => {
+export const wipeBridgeStatus = (
+  address: string,
+  chainId: Hex | CaipChainId,
+) => {
   Engine.context.BridgeStatusController.wipeBridgeStatus({
     address,
     ignoreNetwork: false,
@@ -58,3 +60,23 @@ export const wipeBridgeStatus = (address: string, chainId: Hex | CaipChainId) =>
     });
   }
 };
+
+/**
+ * Normalizes a token address to CAIP format for non-EVM chains (e.g., Solana).
+ * If the address is already in CAIP format, returns it as-is.
+ * Otherwise, converts it to CAIP format using the provided chainId.
+ * For EVM chains, returns the address as-is.
+ */
+export function normalizeToCaipAssetType(
+  address: string,
+  chainId: Hex | CaipChainId,
+): string {
+  if (isSolanaChainId(chainId)) {
+    if (isCaipAssetType(address)) {
+      return address;
+    }
+    return `${chainId}/token:${address}`;
+  }
+  // For EVM, just return the address
+  return address;
+}
