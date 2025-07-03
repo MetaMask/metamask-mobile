@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
+import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
 import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { useDispatch, useSelector } from 'react-redux';
@@ -123,16 +123,24 @@ const DeleteWalletModal: React.FC = () => {
   return (
     <BottomSheet ref={modalRef}>
       {!isResetWallet && !isResetWalletFromParams ? (
-        <View style={styles.forgotPasswordContainer}>
+        <View 
+          style={styles.forgotPasswordContainer}
+          testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
+        >
           <Text
             style={styles.heading}
             variant={TextVariant.HeadingMD}
             color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.TITLE}
           >
             {strings('login.forgot_password_desc')}
           </Text>
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
+          >
             {strings('login.forgot_password_desc_2')}
           </Text>
 
@@ -191,14 +199,14 @@ const DeleteWalletModal: React.FC = () => {
               setIsResetWallet(true);
               track(MetaMetricsEvents.RESET_WALLET, {});
             }}
-            testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
+            testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
           />
         </View>
       ) : (
         <View style={styles.container}>
           <View
             style={styles.areYouSure}
-            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+            testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
           >
             <View style={styles.iconContainer}>
               {!isResetWalletFromParams ? (
@@ -225,6 +233,7 @@ const DeleteWalletModal: React.FC = () => {
               style={styles.heading}
               variant={TextVariant.HeadingMD}
               color={TextColor.Default}
+              testID={ForgotPasswordModalSelectorsIDs.WARNING_TEXT}
             >
               {strings('login.are_you_sure')}
             </Text>
@@ -252,7 +261,7 @@ const DeleteWalletModal: React.FC = () => {
                 label={strings('login.erase_my')}
                 width={ButtonWidthTypes.Full}
                 isDanger
-                testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -260,7 +269,7 @@ const DeleteWalletModal: React.FC = () => {
                 onPress={triggerClose}
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
-                testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
               />
             </View>
           </View>
