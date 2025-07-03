@@ -21,15 +21,15 @@ import { loadFixture, startFixtureServer, stopFixtureServer } from '../../fixtur
 
 const fixtureServer = new FixtureServer();
 
-const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
+const launchAppSettings = (mockServerPort: number, fixtureServerPort: number): DeviceLaunchAppConfig => ({
   newInstance: true,
   delete: true,
   permissions: {
     notifications: 'YES',
   },
   launchArgs: {
-    mockServerPort: port,
-    fixtureServerPort: `${getFixturesServerPort()}`,
+    mockServerPort,
+    fixtureServerPort,
   },
 });
 
@@ -37,6 +37,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
+    jest.setTimeout(120000);  // Going through all notifications takes a while
     await TestHelpers.reverseServerPort();
 
     const fixture = new FixtureBuilder()
@@ -44,13 +45,15 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
+    const fixtureServerPort = getFixturesServerPort();
 
     // Mock Server
-    mockServer = await startMockServer({}, getMockServerPort());
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
     await mockNotificationServices(mockServer);
 
     // Launch App
-    await TestHelpers.launchApp(launchAppSettings(mockServer.port));
+    await TestHelpers.launchApp(launchAppSettings(mockServerPort, fixtureServerPort));
     await loginToApp();
   });
 
