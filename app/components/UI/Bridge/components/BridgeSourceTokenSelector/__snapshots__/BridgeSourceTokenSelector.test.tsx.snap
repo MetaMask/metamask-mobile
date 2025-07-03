@@ -912,7 +912,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-HELLO"
+                                    testID="asset-0x1-HELLO"
                                   >
                                     <View
                                       alignItems="center"
@@ -1170,7 +1170,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-FOO"
+                                    testID="asset-0xa-FOO"
                                   >
                                     <View
                                       alignItems="center"
@@ -1428,7 +1428,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-ETH"
+                                    testID="asset-0xa-ETH"
                                   >
                                     <View
                                       alignItems="center"
@@ -1718,7 +1718,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-TOKEN1"
+                                    testID="asset-0x1-TOKEN1"
                                   >
                                     <View
                                       alignItems="center"
@@ -1976,7 +1976,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-ETH"
+                                    testID="asset-0x1-ETH"
                                   >
                                     <View
                                       alignItems="center"
