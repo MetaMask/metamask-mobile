@@ -26,10 +26,13 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await AccountListBottomSheet.scrollToAccount(
-        SIMPLE_KEYPAIR_ACCOUNT.index,
-        true,
-      );
+      if (device.getPlatform() === 'android') {
+        await AccountListBottomSheet.scrollToBottomOfAccountList();
+      } else {
+        await AccountListBottomSheet.scrollToAccount(
+          SIMPLE_KEYPAIR_ACCOUNT.index,
+        );
+      }
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list
