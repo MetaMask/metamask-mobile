@@ -4,7 +4,6 @@ import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
@@ -31,7 +30,6 @@ const useIsInsufficientBalance = ({
   token,
 }: UseIsInsufficientBalanceParams): boolean => {
   const { quoteRequest } = useSelector(selectBridgeControllerState);
-  const providerConfig = useSelector(selectProviderConfig);
 
   const latestBalance = useLatestBalance({
     address: token?.address,
@@ -55,12 +53,9 @@ const useIsInsufficientBalance = ({
       return decimalPlaces <= token.decimals;
     })();
 
-  // Mainnet will have type: "mainnet"
-  const isTenderly = providerConfig.type === 'networkClientId6';
-
   // quoteRequest.insufficientBal is undefined for Solana quotes, so we need to manually check if the source amount is greater than the balance
   const isInsufficientBalance =
-    (!isTenderly && quoteRequest?.insufficientBal) ||
+    (quoteRequest?.insufficientBal) ||
     (isValidAmount &&
       hasValidDecimals &&
       parseUnits(normalizeAmount(amount, token.decimals), token.decimals).gt(
