@@ -99,3 +99,35 @@ export const testConfigurations = {
     testSpecificMock,
   },
 };
+
+/**
+ * Test configurations for easy network testing
+ * Add new networks here to automatically include them in all tests
+ */
+export const NETWORK_TEST_CONFIGS = [
+  {
+    name: 'MegaETH',
+    networkConfig: MEGAETH_TESTNET,
+    ganacheOptions: megaEthLocalConfig,
+    providerConfig: megaEthProviderConfig,
+    permissions: [MEGAETH_TESTNET.chainId],
+    testSpecificMock,
+  },
+  {
+    name: 'Monad',
+    networkConfig: MONAD_TESTNET,
+    ganacheOptions: monadLocalConfig,
+    providerConfig: monadProviderConfig,
+    permissions: [MONAD_TESTNET.chainId],
+    testSpecificMock,
+  },
+  // Add new networks here:
+  // {
+  //   name: 'Polygon',
+  //   networkConfig: POLYGON_TESTNET,
+  //   ganacheOptions: polygonLocalConfig,
+  //   providerConfig: polygonProviderConfig,
+  //   permissions: [POLYGON_TESTNET.chainId],
+  //   testSpecificMock,
+  // },
+];

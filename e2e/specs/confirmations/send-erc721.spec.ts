@@ -16,10 +16,7 @@ import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import { megaEthLocalConfig, monadLocalConfig, megaEthProviderConfig, monadProviderConfig } from '../../resources/mock-configs';
-const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
+import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -78,104 +75,57 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
     );
   });
 
-it(`send an ERC721 token from a dapp using ${MEGAETH_TESTNET.nickname} (local)`, async () => {
-    // Use shared Mega ETH configuration
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withNetworkController({
-            providerConfig: megaEthProviderConfig,
-          })
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([MEGAETH_TESTNET.chainId]) // Real Mega ETH chain ID for permissions
-          )
-          .build(),
-        restartDevice: true,
-        smartContract: NFT_CONTRACT,
-        ganacheOptions: megaEthLocalConfig,
-        testSpecificMock,
-      },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
+// Table-driven tests for all networks
+  for (const networkConfig of NETWORK_TEST_CONFIGS) {
+    it(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
+      await withFixtures(
+        {
+          dapp: true,
+          fixture: new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: networkConfig.providerConfig,
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(networkConfig.permissions)
+            )
+            .build(),
+          restartDevice: true,
+          smartContract: NFT_CONTRACT,
+          ganacheOptions: networkConfig.ganacheOptions,
+          testSpecificMock: networkConfig.testSpecificMock,
+        },
+        // Remove any once withFixtures is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async ({ contractRegistry }: { contractRegistry: any }) => {
+          const nftsAddress = await contractRegistry.getContractAddress(
+            NFT_CONTRACT,
+          );
 
-        await loginToApp();
+          await loginToApp();
 
-        // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
-        await TestDApp.navigateToTestDappWithContract({
-          contractAddress: nftsAddress,
-        });
+          // Navigate to the browser screen
+          await TabBarComponent.tapBrowser();
+          await TestDApp.navigateToTestDappWithContract({
+            contractAddress: nftsAddress,
+          });
 
-        // Transfer NFT
-        await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
+          // Transfer NFT
+          await TestDApp.tapNFTTransferButton();
+          await TestHelpers.delay(3000);
 
-        // Accept confirmation
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
+          // Accept confirmation
+          await FooterActions.tapConfirmButton();
+          await TestHelpers.delay(3000);
 
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
-        );
-      },
-    );
-  });
-
-it.only(`send an ERC721 token from a dapp using ${MONAD_TESTNET.nickname} (local)`, async () => {
-    // Use shared Monad configuration
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withNetworkController({
-            providerConfig: monadProviderConfig,
-          })
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([MONAD_TESTNET.chainId]) // Real Monad chain ID for permissions
-          )
-          .build(),
-        restartDevice: true,
-        smartContract: NFT_CONTRACT,
-        ganacheOptions: monadLocalConfig, // Apply Monad characteristics
-        testSpecificMock,
-      },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
-        await loginToApp();
-
-        // Navigate to the browser screen
-        await TabBarComponent.tapBrowser();
-        await TestDApp.navigateToTestDappWithContract({
-          contractAddress: nftsAddress,
-        });
-        // Transfer NFT
-        await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
-
-        // Accept confirmation
-        await FooterActions.tapConfirmButton();
-        await TestHelpers.delay(3000);
-
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
-        );
-      },
-    );
-  });
+          // Check activity tab
+          await TabBarComponent.tapActivity();
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
+          await Assertions.checkIfTextIsDisplayed(
+            ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
+          );
+        },
+      );
+    });
+  }
 
 });
