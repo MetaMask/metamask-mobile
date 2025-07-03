@@ -23,6 +23,7 @@ export const IncreaseDecreaseAllowance = () => {
     decimals,
     tokenBalance,
     tokenStandard,
+    rawAmount,
     spender,
   } = useApproveTransactionData();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -42,7 +43,7 @@ export const IncreaseDecreaseAllowance = () => {
               approveMethod: approveMethod as ApproveMethod,
               balance: tokenBalance ?? '0',
               decimals: decimals ?? 1,
-              spendingCap: amount ?? '',
+              spendingCap: rawAmount ?? '',
               onSpendingCapUpdate,
             }}
           />

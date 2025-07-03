@@ -29,7 +29,7 @@ class ApproveComponents {
   }
 
   async tapEditSpendingCapSaveButton() {
-    await Gestures.waitAndTap(this.EditSpendingCapSaveButton);
+    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, { delayBeforeTap: 1000 });
   }
 
   async inputSpendingCap(spendingCap: string) {
