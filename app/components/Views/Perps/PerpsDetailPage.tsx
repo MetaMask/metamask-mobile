@@ -114,6 +114,12 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionTitle: {
       marginBottom: 16,
     },
+    actionButtonsSection: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginBottom: 32,
+      gap: 6,
+    },
     statsSection: {
       marginBottom: 32,
     },
@@ -139,6 +145,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     button: {
       marginBottom: 16,
+    },
+    actionButton: {
+      flex: 1,
     },
   };
 };
@@ -249,6 +258,26 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           </View>
         </View>
 
+        {/* Action Buttons */}
+        <View style={styles.actionButtonsSection}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Auto}
+            label="Edit Position"
+            onPress={handleEditPosition}
+            style={styles.actionButton}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Auto}
+            label="Close Position"
+            onPress={handleClosePosition}
+            style={styles.actionButton}
+          />
+        </View>
+
         {/* Position Details */}
         <View style={styles.detailsSection}>
           <Text
@@ -258,7 +287,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           >
             Position Details
           </Text>
-          <PerpsPositionListItem position={position} />
+          <PerpsPositionListItem position={position} buttonsConfig={[]} />
         </View>
 
         {/* Stats Section */}
@@ -292,7 +321,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           </View>
         </View>
 
-        {/* Action Buttons */}
+        {/* Back Button */}
         <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Secondary}

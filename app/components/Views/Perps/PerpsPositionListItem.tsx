@@ -31,8 +31,15 @@ interface PositionData {
   takeProfitStopLoss: number;
 }
 
+interface ButtonConfig {
+  label: string;
+  onPress: () => void;
+  variant?: ButtonVariants;
+}
+
 interface PerpsPositionListItemProps {
   position: PositionData;
+  buttonsConfig?: ButtonConfig[];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -132,6 +139,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
   position,
+  buttonsConfig = [],
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -152,7 +160,7 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
 
   const expandedHeight = expandAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 260], // Increased height to accommodate buttons
+    outputRange: [0, buttonsConfig.length > 0 ? 260 : 200], // Dynamic height based on button presence
   });
 
   const rotateArrow = expandAnimation.interpolate({
@@ -293,24 +301,21 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
             </View>
 
             {/* Action Buttons */}
-            <View style={styles.buttonContainer}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                width={ButtonWidthTypes.Auto}
-                label="Edit"
-                onPress={handleEditPosition}
-                style={styles.actionButton}
-              />
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Md}
-                width={ButtonWidthTypes.Auto}
-                label="Close"
-                onPress={handleClosePosition}
-                style={styles.actionButton}
-              />
-            </View>
+            {buttonsConfig.length > 0 && (
+              <View style={styles.buttonContainer}>
+                {buttonsConfig.map((button, index) => (
+                  <Button
+                    key={index}
+                    variant={button.variant || ButtonVariants.Secondary}
+                    size={ButtonSize.Md}
+                    width={ButtonWidthTypes.Auto}
+                    label={button.label}
+                    onPress={button.onPress}
+                    style={styles.actionButton}
+                  />
+                ))}
+              </View>
+            )}
           </>
         )}
       </Animated.View>

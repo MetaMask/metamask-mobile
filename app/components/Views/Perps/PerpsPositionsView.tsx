@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks';
 import Button, {
   ButtonVariants,
@@ -18,6 +19,7 @@ import PerpsPositionListItem from './PerpsPositionListItem';
 import PerpsPositionsHeader from './PerpsPositionsHeader';
 import { Theme } from '../../../util/theme/models';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import Routes from '../../../constants/navigation/Routes';
 
 // Import Hyperliquid SDK components
 import { HttpTransport, InfoClient } from '@deeeed/hyperliquid-node20';
@@ -109,6 +111,7 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
     selectSelectedInternalAccountFormattedAddress,
   );
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true); // Start with loading state
   const [positions, setPositions] = useState<PositionData[]>([]); // Start with empty array
   const [accountValue, setAccountValue] = useState<number>(0);
@@ -217,9 +220,24 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
     }
   };
 
-  const renderPositionItem = ({ item }: { item: PositionData }) => (
-    <PerpsPositionListItem position={item} />
-  );
+  const renderPositionItem = ({ item }: { item: PositionData }) => {
+    const buttonsConfig = [
+      {
+        label: 'View Position',
+        onPress: () => {
+          navigation.navigate(
+            Routes.PERPS.DETAIL_PAGE as never,
+            { position: item } as never,
+          );
+        },
+        variant: ButtonVariants.Primary,
+      },
+    ];
+
+    return (
+      <PerpsPositionListItem position={item} buttonsConfig={buttonsConfig} />
+    );
+  };
 
   const renderSkeletonHeader = () => (
     <View style={styles.headerContainer}>
