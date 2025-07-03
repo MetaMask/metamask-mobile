@@ -4,7 +4,7 @@
  */
 import { SolScope } from '@metamask/keyring-api';
 import TestHelpers from '../../../helpers';
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeMultiChainAPI } from '../../../tags';
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
@@ -22,7 +22,7 @@ import Matchers from '../../../utils/Matchers';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
-describe(SmokeNetworkExpansion('Solana - wallet_invokeMethod'), () => {
+describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
