@@ -114,6 +114,22 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionTitle: {
       marginBottom: 16,
     },
+    chartSection: {
+      marginBottom: 32,
+      height: 250,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 12,
+      padding: 16,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+    },
+    chartPlaceholder: {
+      textAlign: 'center' as const,
+    },
+    chartSubtext: {
+      textAlign: 'center' as const,
+      marginTop: 8,
+    },
     actionButtonsSection: {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
@@ -256,6 +272,24 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
               24h
             </Text>
           </View>
+        </View>
+
+        {/* Chart Section */}
+        <View style={styles.chartSection}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+            style={styles.chartPlaceholder}
+          >
+            Chart Coming Soon
+          </Text>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Muted}
+            style={styles.chartSubtext}
+          >
+            Price chart will be displayed here
+          </Text>
         </View>
 
         {/* Action Buttons */}
