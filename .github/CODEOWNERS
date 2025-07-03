@@ -129,7 +129,7 @@ app/selectors/earnController         @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
 
 # Perps Team
-app/components/Views/Perps/          @MetaMask/perps
+app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps

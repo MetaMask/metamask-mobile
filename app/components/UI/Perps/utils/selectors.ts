@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../index';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 /**
  * Selector for perps enabled feature flag

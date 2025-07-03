@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '../../../../component-library/hooks';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes
-} from '../../../component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor
-} from '../../../component-library/components/Texts/Text';
-import ScreenView from '../../Base/ScreenView';
-import Logger from '../../../util/Logger';
+} from '../../../../component-library/components/Texts/Text';
+import ScreenView from '../../../Base/ScreenView';
+import Logger from '../../../../util/Logger';
 
 // Import Hyperliquid SDK components
 import { HttpTransport, InfoClient, WebSocketTransport, SubscriptionClient } from '@deeeed/hyperliquid-node20';
