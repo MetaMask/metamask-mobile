@@ -18,41 +18,19 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 8,
     },
     edit: {
+      left: 10,
+      top: 10,
       position: 'absolute',
-      right: 10,
-    },
-    image: {
-      marginTop: 28,
-      height: '28%',
-      width: '100%',
-    },
-    buttonSection: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-    },
-    buttons: {
-      width: '48%',
     },
     title: {
-      marginLeft: 8,
+      marginBottom: 20,
     },
-    requestSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    icon: {
-      height: 24,
-      width: 24,
-    },
-    listWrapper: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      paddingInline: 2,
-    },
-    textSection: {
-      marginLeft: 8,
-      width: '90%',
+    selectAllWrapper: {
+      display: 'flex',
+      justifyContent: 'flex-start',
+      marginBottom: 10,
+      marginLeft: 32,
+      width: '100%',
     },
   });
 };

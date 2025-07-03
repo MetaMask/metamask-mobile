@@ -577,6 +577,9 @@ const EvmAccountSelectorList = ({
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
+        // Prop extraData has been added to re-render the list when selected accounts change
+        // From docs of flashlist it is a - `A marker property for telling the list to re-render`
+        extraData={selectedAddresses}
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
         disableAutoLayout
         {...props}

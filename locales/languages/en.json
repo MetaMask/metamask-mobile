@@ -4328,7 +4328,9 @@
         "upgradeBannerDescription": "Same address. Smarter features.",
         "upgradeBannerTitle": "Switch to smart account"
       },
-      "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions",
+      "selectAll": "Select all",
+      "editAccounts": "Edit Accounts"
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",
