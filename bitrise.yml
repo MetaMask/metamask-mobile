@@ -92,7 +92,6 @@ pipelines:
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
       - notify: {}
-
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
@@ -127,6 +126,11 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
+  nightly_build_pipeline:
+    stages:
+      # - bump_version_stage: {}
+      - create_build_release: {}
+      - nightly_notify_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -337,6 +341,9 @@ stages:
           envs:
             - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
       - deploy_ios_to_store:
+  nightly_notify_stage:
+    workflows:
+      - nightly_slack_notification: {}
 
 workflows:
   # Code Setups
@@ -499,6 +506,42 @@ workflows:
             - command: build:announce
           title: Announcing pre-release
           is_always_run: false
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
+
+  # Send Slack notification for nightly builds with public install links
+  nightly_slack_notification:
+    before_run:
+      - _get_workflow_info
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull build artifacts
+      - slack-message@4:
+          is_always_run: true
+          inputs:
+            - webhook_url: 'https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}'
+            - channel: '$SLACK_CHANNEL'
+            - text: 'Nightly build completed successfully! 🌙'
+            - pretext: '*Nightly Build Available*'
+            - color: '#3bc3a3'
+            - from_username: 'Bitrise Bot'
+            - title: 'MetaMask Mobile Nightly Build'
+            - message: |-
+                Build completed for commit: ${BITRISE_GIT_COMMIT}
+                Branch: ${BITRISE_GIT_BRANCH}
+                
+                📱 **Download Links:**
+                • iOS: (Available on TestFlight)[https://testflight.apple.com/join/hBrjtFuA]
+                • Android: ${BITRISE_PUBLIC_INSTALL_PAGE_URL}
+            - buttons: |-
+                View Build|${BITRISE_BUILD_URL}
+                Install Android APK|${BITRISE_PUBLIC_INSTALL_PAGE_URL}
+            - footer: 'MetaMask Mobile CI'
+            - timestamp: 'yes'
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1654,6 +1697,21 @@ workflows:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_flask_uat:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+      - METAMASK_ENVIRONMENT: 'uat'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
     after_run:
