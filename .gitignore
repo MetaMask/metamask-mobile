@@ -139,6 +139,8 @@ dist/
 web-build/
 expo-env.d.ts
 
+temp
+
 # CICD
 github-tools/
 

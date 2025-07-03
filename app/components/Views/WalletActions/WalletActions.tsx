@@ -56,6 +56,7 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
+import { selectPerpsEnabledFlag } from '../../../selectors/featureFlagController/perps';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
@@ -80,6 +81,7 @@ const WalletActions = () => {
   const isDepositWalletActionEnabled = useSelector(
     selectDepositEntrypointWalletActions,
   );
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -349,6 +351,12 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
+  const onPerps = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const sendIconStyle = useMemo(
     () => ({
       transform: [{ rotate: '-45deg' }],
@@ -419,6 +427,17 @@ const WalletActions = () => {
             iconName={IconName.Bridge}
             onPress={goToBridge}
             actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
+        {AppConstants.PERPS.ACTIVE && isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Perps}
+            iconName={IconName.TrendUp}
+            onPress={onPerps}
+            actionID="perps-button"
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
