@@ -27,7 +27,7 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 
-import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -66,7 +66,9 @@ function TokenSelectorModal() {
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const allNetworkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -101,7 +103,8 @@ function TokenSelectorModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: DepositCryptoCurrency }) => {
-      const networkName = allNetworkConfigurations[token.chainId]?.name;
+      const networkName =
+        allNetworkConfigurations[token.chainId as `${string}:${string}`]?.name;
       const networkImageSource = getNetworkImageSource({
         chainId: token.chainId,
       });
