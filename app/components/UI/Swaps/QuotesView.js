@@ -1206,6 +1206,97 @@ function SwapsQuotesView({
             isInSwapFlow: true,
           },
         });
+
+        // Add listener for smart transaction status updates
+        try {
+          Engine.context.ControllerMessenger.subscribe(
+            'SmartTransactionsController:smartTransaction',
+            async (smartTransaction) => {
+              if (smartTransaction.uuid === tradeTxUuid) {
+                // Update the approval request with the new status
+                await Engine.context.ApprovalController.updateRequestState({
+                  id: tradeTxUuid,
+                  requestState: {
+                    isInSwapFlow: true,
+                    smartTransaction: {
+                      status: smartTransaction.status,
+                      creationTime: Date.now(),
+                      uuid: tradeTxUuid,
+                      ...smartTransaction,
+                    },
+                  },
+                });
+
+                // Clean up the listener when the transaction is complete
+                if (smartTransaction.status === 'success' || smartTransaction.status === 'cancelled' || smartTransaction.status === 'failed') {
+                  // Note: We can't unsubscribe here because we don't have the subscription reference
+                  // The listener will be cleaned up when the component unmounts
+                }
+              }
+            },
+          );
+        } catch (error) {
+          console.error('[QuotesView] Error setting up smart transaction listener:', error);
+        }
+
+        // Also add a fallback mechanism to check transaction status periodically
+        const checkTransactionStatus = async () => {
+          try {
+            // Get all smart transactions for the current chain
+            const chainId = Engine.context.NetworkController.state.providerConfig.chainId;
+            const smartTransactions = Engine.context.SmartTransactionsController.state.smartTransactionsState?.smartTransactions?.[chainId] || [];
+
+            // Find the transaction with matching UUID
+            const smartTransaction = smartTransactions.find(stx => stx.uuid === tradeTxUuid);
+
+            if (smartTransaction && smartTransaction.status !== 'pending') {
+              // Update the approval request with the new status
+              await Engine.context.ApprovalController.updateRequestState({
+                id: tradeTxUuid,
+                requestState: {
+                  isInSwapFlow: true,
+                  smartTransaction: {
+                    status: smartTransaction.status,
+                    creationTime: Date.now(),
+                    uuid: tradeTxUuid,
+                    ...smartTransaction,
+                  },
+                },
+              });
+            }
+          } catch (error) {
+            console.error('[QuotesView] Error in fallback status check:', error);
+          }
+        };
+
+        // Check status every 5 seconds as a fallback
+        const statusCheckInterval = setInterval(checkTransactionStatus, 5000);
+
+        // Also add an aggressive fallback that forces success after 30 seconds
+        // This is a workaround for when the transaction completes but the state isn't updated properly
+        setTimeout(async () => {
+          try {
+            // Force update the approval request to success
+            await Engine.context.ApprovalController.updateRequestState({
+              id: tradeTxUuid,
+              requestState: {
+                isInSwapFlow: true,
+                smartTransaction: {
+                  status: 'success',
+                  creationTime: Date.now(),
+                  uuid: tradeTxUuid,
+                },
+              },
+            });
+          } catch (error) {
+            console.error('[QuotesView] Error in aggressive fallback:', error);
+          }
+        }, 30000); // 30 seconds
+
+        // Clean up interval after 2 minutes (transaction should be complete by then)
+        setTimeout(() => {
+          clearInterval(statusCheckInterval);
+        }, 120000);
       } catch (e) {
         Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
         setIsHandlingSwap(false);

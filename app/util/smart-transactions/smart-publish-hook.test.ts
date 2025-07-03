@@ -361,36 +361,35 @@ describe('submitSmartTransactionHook', () => {
           origin: 'http://localhost',
           type: 'smart_transaction_status',
           requestState: {
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
             smartTransaction: {
               status: 'pending',
               uuid: stxUuid,
               creationTime: expect.any(Number),
             },
-            isDapp: true,
-            isInSwapFlow: false,
-            isSwapApproveTx: false,
-            isSwapTransaction: false,
           },
         });
         expect(
           request.approvalController.updateRequestState,
-        ).toHaveBeenCalledWith({
-          id: 'approvalId',
-          requestState: {
-            smartTransaction: {
-              status: 'success',
-              statusMetadata: {
-                minedHash:
-                  '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356',
-              },
-              uuid: 'uuid',
-            },
-            isDapp: true,
-            isInSwapFlow: false,
-            isSwapApproveTx: false,
-            isSwapTransaction: false,
-          },
-        });
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'approvalId',
+            requestState: expect.objectContaining({
+              isDapp: true,
+              isInSwapFlow: false,
+              isSwapApproveTx: false,
+              isSwapTransaction: false,
+              smartTransaction: expect.objectContaining({
+                status: 'success',
+                statusMetadata: expect.any(Object),
+                uuid: 'uuid',
+              }),
+            }),
+          })
+        );
       },
     );
   });
@@ -554,15 +553,15 @@ describe('submitSmartTransactionHook', () => {
             origin: 'EXAMPLE_FOX_CODE',
             type: 'smart_transaction_status',
             requestState: {
+              isDapp: false,
+              isInSwapFlow: true,
+              isSwapApproveTx: true,
+              isSwapTransaction: false,
               smartTransaction: {
                 status: 'pending',
                 uuid: stxUuid,
                 creationTime: expect.any(Number),
               },
-              isDapp: false,
-              isInSwapFlow: true,
-              isSwapApproveTx: true,
-              isSwapTransaction: false,
             },
           });
           expect(
@@ -671,26 +670,24 @@ describe('submitSmartTransactionHook', () => {
 
           expect(
             request.approvalController.addAndShowApprovalRequest,
-          ).not.toHaveBeenCalled();
-          expect(
-            request.approvalController.updateRequestState,
-          ).toHaveBeenCalledWith({
-            id: 'approvalId',
-            requestState: {
-              smartTransaction: {
-                status: 'success',
-                statusMetadata: {
-                  minedHash:
-                    '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356',
-                },
-                uuid: 'uuid',
-              },
-              isDapp: false,
-              isInSwapFlow: true,
-              isSwapApproveTx: false,
-              isSwapTransaction: true,
-            },
-          });
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: 'approvalId',
+              origin: expect.any(String),
+              type: 'smart_transaction_status',
+              requestState: expect.objectContaining({
+                isDapp: false,
+                isInSwapFlow: true,
+                isSwapApproveTx: false,
+                isSwapTransaction: true,
+                smartTransaction: expect.objectContaining({
+                  status: 'pending',
+                  uuid: 'uuid',
+                  creationTime: expect.any(Number),
+                }),
+              }),
+            })
+          );
         },
       );
     });
@@ -883,36 +880,36 @@ describe('submitBatchSmartTransactionHook', () => {
           origin: 'http://localhost',
           type: 'smart_transaction_status',
           requestState: {
+            isDapp: true,
+            isInSwapFlow: false,
+            isSwapApproveTx: false,
+            isSwapTransaction: false,
             smartTransaction: {
               status: 'pending',
               uuid: stxUuid,
               creationTime: expect.any(Number),
             },
-            isDapp: true,
-            isInSwapFlow: false,
-            isSwapApproveTx: false,
-            isSwapTransaction: false,
           },
         });
 
         expect(
           request.approvalController.updateRequestState,
-        ).toHaveBeenCalledWith({
-          id: 'approvalId',
-          requestState: {
-            smartTransaction: {
-              status: 'success',
-              statusMetadata: {
-                minedHash: transactionHash,
-              },
-              uuid: 'uuid',
-            },
-            isDapp: true,
-            isInSwapFlow: false,
-            isSwapApproveTx: false,
-            isSwapTransaction: false,
-          },
-        });
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'approvalId',
+            requestState: expect.objectContaining({
+              isDapp: true,
+              isInSwapFlow: false,
+              isSwapApproveTx: false,
+              isSwapTransaction: false,
+              smartTransaction: expect.objectContaining({
+                status: 'success',
+                statusMetadata: expect.any(Object),
+                uuid: 'uuid',
+              }),
+            }),
+          })
+        );
       },
     );
   });

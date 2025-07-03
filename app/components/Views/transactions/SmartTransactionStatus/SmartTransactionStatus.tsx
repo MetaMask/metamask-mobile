@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
@@ -9,12 +9,12 @@ import Icon, {
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../../util/theme';
 import {
-  Hex,
-  SmartTransaction,
   SmartTransactionStatuses,
+  SmartTransaction,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
@@ -26,8 +26,7 @@ import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
-import { selectSmartTransactionsForCurrentChain } from '../../../../selectors/smartTransactionsController';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { Hex } from '@metamask/utils';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -250,18 +249,12 @@ const createStyles = (colors: ThemeColors) =>
   });
 
 const SmartTransactionStatus = ({
-  requestState: { smartTransaction, isDapp, isInSwapFlow },
+  requestState,
   origin,
   onConfirm,
 }: Props) => {
-  const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
-  const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
-
-  // We use a custom flow for swaps. We don't go through the STX hook for swaps, so there's no listener for the latest smart transaction.
-  // Read it directly from the SmartTransactionsController.
-  const { status, creationTime, uuid } = isInSwapFlow
-    ? latestSmartTransaction
-    : smartTransaction;
+  const { smartTransaction, isInSwapFlow, isDapp } = requestState;
+  const { status, creationTime, uuid } = smartTransaction;
 
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -279,6 +272,18 @@ const SmartTransactionStatus = ({
     creationTime,
     isStxPending,
   });
+
+  // Auto-dismiss when transaction is successful
+  useEffect(() => {
+    if (status === SmartTransactionStatuses.SUCCESS) {
+      // Add a small delay to let the user see the success state
+      const timer = setTimeout(() => {
+        onConfirm();
+      }, 2000); // 2 second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [status, onConfirm]);
 
   const viewActivity = () => {
     onConfirm();

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
@@ -18,8 +18,32 @@ const useApprovalRequest = () => {
     | ApprovalRequestType
     | undefined;
 
+  // Use a ref to track the previous approval request to prevent unnecessary re-renders
+  const prevApprovalRequestRef = useRef<ApprovalRequestType | undefined>();
+
   const approvalRequest = useMemo(
-    () => cloneDeep(firstPendingApproval),
+    () => {
+      if (!firstPendingApproval) return undefined;
+
+      // For smart transaction status, check if the content has actually changed
+      if (firstPendingApproval.type === 'smart_transaction_status') {
+        const prevRequest = prevApprovalRequestRef.current;
+        const currentRequest = firstPendingApproval;
+
+        // If we have a previous request and the content is the same, return the previous reference
+        if (prevRequest &&
+            prevRequest.type === currentRequest.type &&
+            prevRequest.id === currentRequest.id &&
+            isEqual(prevRequest.requestState, currentRequest.requestState)) {
+          return prevRequest;
+        }
+      }
+
+      // Update the ref and return the new request
+      const newRequest = cloneDeep(firstPendingApproval);
+      prevApprovalRequestRef.current = newRequest;
+      return newRequest;
+    },
     [firstPendingApproval],
   );
 
