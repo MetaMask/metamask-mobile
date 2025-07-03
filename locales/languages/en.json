@@ -697,6 +697,10 @@
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
     },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
+    },
     "backupAndSync": {
       "title": "Introducing backup and sync",
       "subtitle": "Back up your accounts and sync settings."
@@ -2196,7 +2200,8 @@
     "add_input_placeholder": "Public address (0x), or ENS",
     "between_account": "Transfer between my accounts",
     "others": "Others",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
