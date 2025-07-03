@@ -292,8 +292,8 @@ const Login: React.FC = () => {
   const tooManyAttemptsError = async (remainingTime: number) => {
     setDisabledInput(true);
     for (let i = remainingTime; i > 0; i--) {
+      setError(strings('login.too_many_attempts', { remainingTime: i }));
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setError(strings('login.too_many_attempts', { i }));
     }
     setDisabledInput(false);
   };
