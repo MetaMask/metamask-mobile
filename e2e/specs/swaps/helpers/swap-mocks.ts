@@ -98,7 +98,6 @@ export const startMockServer = async (events: MockEvents, port: number) => {
           'insufficientBal=false',
           'insufficientBal=true',
         );
-        console.log(urlEndpoint);
       }
       // If no matching mock found, pass through to actual endpoint
       const updatedUrl =

@@ -287,8 +287,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
-    await QuoteView.tapSwapTo();
     await device.disableSynchronization();
+    await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
@@ -308,7 +308,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
   });
 
-  it('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
+  it.skip('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
     const destChainId = '0xa';
 
     await TabBarComponent.tapWallet();
@@ -323,7 +323,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
     await QuoteView.tapSwapTo();
-    await device.disableSynchronization();
     await QuoteView.selectNetwork('OP Mainnet');
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');

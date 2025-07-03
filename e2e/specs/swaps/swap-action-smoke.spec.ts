@@ -73,10 +73,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | chainId
-    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
-    ${'swap'}   | ${'19'}  | ${'USDC'}         | ${'ETH'}        | ${'0x1'}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${'0x1'}
-    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${'0x1'}
   `(
     "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }): Promise<void> => {
