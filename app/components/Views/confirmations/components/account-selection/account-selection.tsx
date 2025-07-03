@@ -56,8 +56,12 @@ export const AccountSelection = ({
   }, [accounts, selectedAddresses, setSelectedAddresses]);
 
   const accountList = useMemo(
-    () => (accounts ?? []).map((acc) => ({ ...acc, isSelected: false })),
-    [accounts],
+    () =>
+      (accounts ?? []).map((acc) => ({
+        ...acc,
+        isSelected: selectedAddresses.includes(acc.address as Hex),
+      })),
+    [accounts, selectedAddresses],
   );
 
   return (
@@ -85,7 +89,6 @@ export const AccountSelection = ({
       </View>
       <EvmAccountSelectorList
         onSelectAccount={onSelectAccount}
-        selectedAddresses={selectedAddresses}
         accounts={accountList}
         ensByAccountAddress={ensByAccountAddress}
         isMultiSelect
