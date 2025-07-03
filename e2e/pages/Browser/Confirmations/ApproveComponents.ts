@@ -33,7 +33,7 @@ class ApproveComponents {
   }
 
   async inputSpendingCap(spendingCap: string) {
-    await Gestures.typeTextWithoutKeyboard(this.EditSpendingCapInput, spendingCap);
+    await Gestures.typeTextAndHideKeyboard(this.EditSpendingCapInput, spendingCap);
   }
 }
 
