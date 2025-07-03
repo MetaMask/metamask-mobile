@@ -13,6 +13,7 @@ import Text, {
 import ScreenView from '../../Base/ScreenView';
 import Logger from '../../../util/Logger';
 import PerpsPositionListItem from './PerpsPositionListItem';
+import PerpsPositionsHeader from './PerpsPositionsHeader';
 import { Theme } from '../../../util/theme/models';
 
 // Mock data structure for positions
@@ -49,40 +50,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       marginBottom: 32,
     },
-    balanceSection: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-between' as const,
-      alignItems: 'center' as const,
-      marginBottom: 24,
-      paddingHorizontal: 16,
-      paddingVertical: 20,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
-    },
-    balanceLeft: {
-      flex: 1,
-    },
-    balanceAmount: {
-      marginBottom: 4,
-    },
-    priceChange: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-    },
-    priceChangePositive: {
-      color: colors.success.default,
-    },
-    priceChangeNegative: {
-      color: colors.error.default,
-    },
-    chartPlaceholder: {
-      width: 80,
-      height: 40,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-    },
+
     positionsSection: {
       flex: 1,
     },
@@ -209,37 +177,12 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
           </Text>
         </View>
 
-        {/* Balance Section */}
-        <View style={styles.balanceSection}>
-          <View style={styles.balanceLeft}>
-            <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={styles.balanceAmount}
-            >
-              ${totalPortfolioValue.toLocaleString()}
-            </Text>
-            <View style={styles.priceChange}>
-              <Text
-                variant={TextVariant.BodySM}
-                style={
-                  total24hChangePercent >= 0
-                    ? styles.priceChangePositive
-                    : styles.priceChangeNegative
-                }
-              >
-                {total24hChangePercent >= 0 ? '+' : ''}$
-                {total24hChange.toFixed(2)} ({total24hChangePercent.toFixed(2)}
-                %)
-              </Text>
-            </View>
-          </View>
-          <View style={styles.chartPlaceholder}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              Chart
-            </Text>
-          </View>
-        </View>
+        {/* Header Section */}
+        <PerpsPositionsHeader
+          totalPortfolioValue={totalPortfolioValue}
+          total24hChange={total24hChange}
+          total24hChangePercent={total24hChangePercent}
+        />
 
         {/* Positions Section */}
         <View style={styles.positionsSection}>
