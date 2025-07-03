@@ -420,6 +420,23 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 }
               >
                 If I forget this password, MetaMask can't recover it for me.
+                <Text
+                  accessibilityRole="text"
+                  onPress={[Function]}
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="learn-more-link"
+                >
+                   Learn more.
+                </Text>
               </Text>
             </Text>
           </View>

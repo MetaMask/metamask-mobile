@@ -351,7 +351,11 @@ class ChoosePassword extends PureComponent {
     const canSubmit = passwordsMatch && isSelected;
     if (loading) return;
     if (!canSubmit) {
-      if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+      if (
+        password !== '' &&
+        confirmPassword !== '' &&
+        password !== confirmPassword
+      ) {
         this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
@@ -380,7 +384,6 @@ class ChoosePassword extends PureComponent {
         this.state.biometryChoice,
         this.state.rememberMe,
       );
-
 
       const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
       authType.oauth2Login = oauth2LoginSuccess;
@@ -858,6 +861,14 @@ class ChoosePassword extends PureComponent {
                         color={TextColor.Default}
                       >
                         {strings('import_from_seed.learn_more')}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
                       </Text>
                     }
                   />
