@@ -1239,7 +1239,7 @@ function SwapsQuotesView({
           console.error('[QuotesView] Error setting up smart transaction listener:', error);
         }
 
-        // Also add a fallback mechanism to check transaction status periodically
+        // Fallback to check transaction status periodically
         const checkTransactionStatus = async () => {
           try {
             // Get all smart transactions for the current chain
@@ -1272,7 +1272,7 @@ function SwapsQuotesView({
         // Check status every 5 seconds as a fallback
         const statusCheckInterval = setInterval(checkTransactionStatus, 5000);
 
-        // Also add an aggressive fallback that forces success after 30 seconds
+        // Ffallback that forces success after 30 seconds
         // This is a workaround for when the transaction completes but the state isn't updated properly
         setTimeout(async () => {
           try {
@@ -1293,7 +1293,7 @@ function SwapsQuotesView({
           }
         }, 30000); // 30 seconds
 
-        // Clean up interval after 2 minutes (transaction should be complete by then)
+        // Clean up interval after 2 minutes (transaction should be complete)
         setTimeout(() => {
           clearInterval(statusCheckInterval);
         }, 120000);
