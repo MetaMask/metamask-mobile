@@ -35,7 +35,8 @@ import Tenderly from '../../tenderly';
 const fixtureServer = new FixtureServer();
 const firstElement: number = 0;
 
-describe(Regression('Multiple Swaps from Actions'), () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;

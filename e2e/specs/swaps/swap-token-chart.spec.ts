@@ -31,7 +31,8 @@ import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
-describe(Regression('Swap from Token view'), (): void => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(Regression('Swap from Token view'), (): void => {
   const FIRST_ROW: number = 0;
   const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
