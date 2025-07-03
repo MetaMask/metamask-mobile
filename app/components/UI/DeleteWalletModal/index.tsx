@@ -123,7 +123,7 @@ const DeleteWalletModal: React.FC = () => {
   return (
     <BottomSheet ref={modalRef}>
       {!isResetWallet && !isResetWalletFromParams ? (
-        <View 
+        <View
           style={styles.forgotPasswordContainer}
           testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
         >
@@ -215,7 +215,7 @@ const DeleteWalletModal: React.FC = () => {
                   size={ButtonIconSizes.Md}
                   iconColor={IconColor.Default}
                   onPress={() => setIsResetWallet(false)}
-                  testID={DeleteWalletModalSelectorsIDs.BACK_BUTTON}
+                  testID={ForgotPasswordModalSelectorsIDs.BACK_BUTTON}
                 />
               ) : (
                 <View style={styles.iconEmptyContainer} />

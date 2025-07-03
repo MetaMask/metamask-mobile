@@ -218,7 +218,7 @@ describe('DeleteWalletModal', () => {
 
       // Should show the back button when not coming from params
       const backButton = wrapper.getByTestId(
-        DeleteWalletModalSelectorsIDs.BACK_BUTTON,
+        ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
       );
       expect(backButton).toBeTruthy();
     });
