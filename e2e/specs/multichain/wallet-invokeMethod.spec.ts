@@ -404,7 +404,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     });
   });
 
-  describe.only('EIP-5792 methods', () => {
+  describe('EIP-5792 methods', () => {
     beforeAll(async () => {
       await Tenderly.addFunds(
         CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
