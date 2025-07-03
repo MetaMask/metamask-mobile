@@ -19,6 +19,8 @@ import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
+import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
+import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
 
 import ObjectMultiplex from '@metamask/object-multiplex';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
@@ -163,6 +165,26 @@ export default class SnapBridge {
 
     const { context, controllerMessenger } = Engine;
     const { PermissionController } = context;
+
+    if (isSnapPreinstalled(this.snapId)) {
+      engine.push(
+        createPreinstalledSnapsMiddleware({
+          getPermissions: PermissionController.getPermissions.bind(
+            PermissionController,
+            origin,
+          ),
+          getAllEvmAccounts: () =>
+            controllerMessenger
+              .call('AccountsController:listAccounts')
+              .map((account) => account.address),
+          grantPermissions: (approvedPermissions) =>
+            controllerMessenger.call('PermissionController:grantPermissions', {
+              approvedPermissions,
+              subject: { origin },
+            }),
+        }),
+      );
+    }
 
     engine.push(
       PermissionController.createPermissionMiddleware({
