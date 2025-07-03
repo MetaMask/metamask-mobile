@@ -86,6 +86,7 @@ export const useSwapBridgeNavigation = ({
       if (!bridgeToken) {
         return;
       }
+      dispatch(setBridgeViewMode(bridgeViewMode));
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
@@ -94,7 +95,6 @@ export const useSwapBridgeNavigation = ({
         } as BridgeRouteParams,
       });
 
-      dispatch(setBridgeViewMode(bridgeViewMode));
 
       trackEvent(
         createEventBuilder(

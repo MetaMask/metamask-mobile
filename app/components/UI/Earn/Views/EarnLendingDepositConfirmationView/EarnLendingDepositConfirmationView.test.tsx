@@ -19,7 +19,11 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getStakingNavbar } from '../../../Navbar';
-import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
+import {
+  MOCK_AUSDT_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
+} from '../../../Stake/__mocks__/stakeMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
@@ -31,6 +35,12 @@ import {
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
+
+type TxCallback = (event: {
+  transactionMeta: Partial<TransactionMeta>;
+}) => void;
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -288,6 +298,338 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  describe('USDT token allowance reset edge case', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      const routeParamsWithApproveAction = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+          token: MOCK_USDT_MAINNET_ASSET,
+          amountTokenMinimalUnit: '5000000',
+          // Existing non-zero allowance will need reset
+          allowanceMinimalTokenUnit: '1000000',
+        },
+      };
+
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+      (useEarnToken as jest.Mock).mockReturnValueOnce({
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDT_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDT_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: MOCK_AUSDT_MAINNET_ASSET.address,
+              },
+            },
+          },
+        },
+        getTokenSnapshot: jest.fn(),
+      });
+    });
+
+    it('renders allowance reset step for USDT on Ethereum mainnet', () => {
+      const { getByText, getAllByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByText(strings('earn.allowance_reset'))).toBeDefined();
+      // 3 Pending Steps
+      expect(
+        getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
+      ).toHaveLength(3);
+    });
+
+    it('initiates token allowance reset on confirm', async () => {
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const resetAllowanceButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(resetAllowanceButton);
+      });
+
+      expect(
+        Engine.context.EarnController.executeLendingTokenApprove,
+      ).toHaveBeenCalledWith({
+        amount: '0',
+        gasOptions: {
+          gasLimit: 'none',
+        },
+        protocol: 'AAVE v3',
+        txOptions: {
+          deviceConfirmedOn: 'metamask_mobile',
+          networkClientId: 'mainnet',
+          origin: 'metamask',
+          type: 'increaseAllowance',
+        },
+        underlyingTokenAddress: '0xaBc',
+      });
+    });
+
+    it("does not render allowance reset step for USDT on Ethereum mainnet when reset isn't required", () => {
+      const routeParamsWithApproveAction = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+          token: MOCK_USDT_MAINNET_ASSET,
+          amountTokenMinimalUnit: '5000000',
+          // Allowance is already zero, no reset needed
+          allowanceMinimalTokenUnit: '0',
+        },
+      };
+
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+      const { queryByText, getAllByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(queryByText(strings('earn.allowance_reset'))).toBeNull();
+      // 2 Pending Steps
+      expect(
+        getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
+      ).toHaveLength(2);
+    });
+
+    it('isAllowanceReset event property true', async () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
+          .addProperties({
+            action_type: 'deposit',
+            experience: 'STABLECOIN_LENDING',
+            network: 'Ethereum Mainnet',
+            token: 'USDT',
+            transaction_value: '5 USDT',
+            user_token_balance: undefined,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+    });
+
+    it('tracks transaction allowance reset status events', async () => {
+      const transactionMeta = {
+        id: '123',
+        type: TransactionType.tokenMethodIncreaseAllowance,
+      };
+
+      mockExecuteLendingTokenApprove.mockResolvedValue({
+        transactionMeta,
+      } as Result);
+
+      // Mock the subscribeOnceIf to simulate transaction status callbacks
+      let transactionStatusCallbackRejected: TxCallback | undefined;
+      let transactionStatusCallbackSubmitted: TxCallback | undefined;
+      let transactionStatusCallbackConfirmed:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackFailed: TxCallback | undefined;
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((_eventFilter, callback) => {
+          if (_eventFilter === 'TransactionController:transactionSubmitted') {
+            transactionStatusCallbackSubmitted = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          } else if (
+            _eventFilter === 'TransactionController:transactionRejected'
+          ) {
+            transactionStatusCallbackRejected = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          } else if (
+            _eventFilter === 'TransactionController:transactionConfirmed'
+          ) {
+            transactionStatusCallbackConfirmed = callback as (
+              transactionMeta: Partial<TransactionMeta>,
+            ) => void;
+          } else if (
+            _eventFilter === 'TransactionController:transactionFailed'
+          ) {
+            transactionStatusCallbackFailed = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+
+          return () => {
+            // Cleanup function
+          };
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const allowanceResetButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(allowanceResetButton);
+      });
+
+      expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+      // Clear previous calls
+      mockTrackEvent.mockClear();
+
+      // Simulate transaction rejected
+      await act(async () => {
+        if (transactionStatusCallbackRejected) {
+          transactionStatusCallbackRejected({
+            transactionMeta: {
+              ...transactionMeta,
+              status: TransactionStatus.rejected,
+            } as Partial<TransactionMeta>,
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_REJECTED)
+          .addProperties({
+            action_type: 'deposit',
+            token: 'USDT',
+            network: 'Ethereum Mainnet',
+            user_token_balance: undefined,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            transaction_value: '5 USDT',
+            transaction_id: '123',
+            transaction_type: TransactionType.tokenMethodIncreaseAllowance,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+
+      // Clear and test submitted status
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        if (transactionStatusCallbackSubmitted) {
+          transactionStatusCallbackSubmitted({
+            transactionMeta: {
+              ...transactionMeta,
+              status: TransactionStatus.submitted,
+            } as Partial<TransactionMeta>,
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED)
+          .addProperties({
+            action_type: 'deposit',
+            token: 'USDT',
+            network: 'Ethereum Mainnet',
+            user_token_balance: undefined,
+            transaction_value: '5 USDT',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            transaction_id: '123',
+            transaction_type: TransactionType.tokenMethodIncreaseAllowance,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+
+      // Clear and test confirmed status
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        if (transactionStatusCallbackConfirmed) {
+          transactionStatusCallbackConfirmed({
+            ...transactionMeta,
+            status: TransactionStatus.confirmed,
+          } as Partial<TransactionMeta>);
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED)
+          .addProperties({
+            action_type: 'deposit',
+            token: 'USDT',
+            network: 'Ethereum Mainnet',
+            user_token_balance: undefined,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            transaction_value: '5 USDT',
+            transaction_id: '123',
+            transaction_type: TransactionType.tokenMethodIncreaseAllowance,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+
+      // Clear and test failed status
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        if (transactionStatusCallbackFailed) {
+          transactionStatusCallbackFailed({
+            transactionMeta: {
+              ...transactionMeta,
+              status: TransactionStatus.failed,
+            } as Partial<TransactionMeta>,
+          });
+        }
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        mockCreateEventBuilder(MetaMetricsEvents.EARN_TRANSACTION_FAILED)
+          .addProperties({
+            action_type: 'deposit',
+            token: 'USDT',
+            network: 'Ethereum Mainnet',
+            user_token_balance: undefined,
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            transaction_value: '5 USDT',
+            transaction_id: '123',
+            transaction_type: TransactionType.tokenMethodIncreaseAllowance,
+            isAllowanceReset: true,
+          })
+          .build(),
+      );
+    });
+  });
+
   describe('Analytics', () => {
     it('tracks EARN_CONFIRMATION_PAGE_VIEWED on render', async () => {
       renderWithProvider(<EarnLendingDepositConfirmationView />, {
@@ -307,6 +649,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             token: 'USDC',
             transaction_value: '5 USDC',
             user_token_balance: undefined,
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -353,7 +696,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     it('tracks transaction status events', async () => {
       const transactionMeta = {
         id: '123',
-        type: 'lendingDeposit' as TransactionType,
+        type: TransactionType.lendingDeposit as TransactionType,
       };
 
       mockExecuteLendingDeposit.mockResolvedValue({
@@ -361,23 +704,13 @@ describe('EarnLendingDepositConfirmationView', () => {
       } as Result);
 
       // Mock the subscribeOnceIf to simulate transaction status callbacks
-      let transactionStatusCallbackRejected:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
-      let transactionStatusCallbackSubmitted:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
-      let transactionStatusCallbackConfirmed1:
+      let transactionStatusCallbackRejected: TxCallback | undefined;
+      let transactionStatusCallbackSubmitted: TxCallback | undefined;
+      let transactionStatusCallbackConfirmed:
         | ((transactionMeta: Partial<TransactionMeta>) => void)
         | undefined;
-      let transactionStatusCallbackConfirmed2:
-        | ((transactionMeta: Partial<TransactionMeta>) => void)
-        | undefined;
-      let transactionStatusCallbackFailed:
-        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
-        | undefined;
+      let transactionStatusCallbackFailed: TxCallback | undefined;
 
-      let confirmedCallbackCount = 0;
       jest
         .mocked(Engine.controllerMessenger.subscribeOnceIf)
         .mockImplementation((_eventFilter, callback) => {
@@ -394,17 +727,9 @@ describe('EarnLendingDepositConfirmationView', () => {
           } else if (
             _eventFilter === 'TransactionController:transactionConfirmed'
           ) {
-            // The component has two transactionConfirmed subscriptions
-            if (confirmedCallbackCount === 0) {
-              transactionStatusCallbackConfirmed1 = callback as (
-                transactionMeta: Partial<TransactionMeta>,
-              ) => void;
-            } else {
-              transactionStatusCallbackConfirmed2 = callback as (
-                transactionMeta: Partial<TransactionMeta>,
-              ) => void;
-            }
-            confirmedCallbackCount++;
+            transactionStatusCallbackConfirmed = callback as (
+              transactionMeta: Partial<TransactionMeta>,
+            ) => void;
           } else if (
             _eventFilter === 'TransactionController:transactionFailed'
           ) {
@@ -458,7 +783,8 @@ describe('EarnLendingDepositConfirmationView', () => {
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
             transaction_id: '123',
-            transaction_type: 'lendingDeposit',
+            transaction_type: TransactionType.lendingDeposit,
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -487,23 +813,25 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_value: '5 USDC',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_id: '123',
-            transaction_type: 'lendingDeposit',
+            transaction_type: TransactionType.lendingDeposit,
+            isAllowanceReset: false,
           })
           .build(),
       );
+
+      // Wait for setTimeout to complete before checking navigation
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       // Clear and test confirmed status
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        if (transactionStatusCallbackConfirmed1) {
-          transactionStatusCallbackConfirmed1({
-            ...transactionMeta,
-            status: TransactionStatus.confirmed,
-          } as Partial<TransactionMeta>);
-        }
-        if (transactionStatusCallbackConfirmed2) {
-          transactionStatusCallbackConfirmed2({
+        if (transactionStatusCallbackConfirmed) {
+          transactionStatusCallbackConfirmed({
             ...transactionMeta,
             status: TransactionStatus.confirmed,
           } as Partial<TransactionMeta>);
@@ -520,7 +848,8 @@ describe('EarnLendingDepositConfirmationView', () => {
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
             transaction_id: '123',
-            transaction_type: 'lendingDeposit',
+            transaction_type: TransactionType.lendingDeposit,
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -549,13 +878,14 @@ describe('EarnLendingDepositConfirmationView', () => {
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_value: '5 USDC',
             transaction_id: '123',
-            transaction_type: 'lendingDeposit',
+            transaction_type: TransactionType.lendingDeposit,
+            isAllowanceReset: false,
           })
           .build(),
       );
     });
 
-    it('tracks EARN_TRANSACTION_APPROVED on allowance confirmation', async () => {
+    it('tracks EARN_TRANSACTION_CONFIRMED on allowance increase confirmation', async () => {
       const routeParamsWithApproveAction = {
         ...defaultRouteParams,
         params: {
@@ -630,6 +960,7 @@ describe('EarnLendingDepositConfirmationView', () => {
             transaction_id: '456',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             transaction_type: 'increaseAllowance',
+            isAllowanceReset: false,
           })
           .build(),
       );
@@ -712,7 +1043,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -727,7 +1060,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     mockExecuteLendingDeposit.mockResolvedValue({
       transactionMeta: {
         id: '123',
-        type: 'lendingDeposit' as TransactionType,
+        type: TransactionType.lendingDeposit as TransactionType,
       },
     } as Result);
 
@@ -757,12 +1090,14 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
         origin: 'metamask',
-        type: 'lendingDeposit',
+        type: TransactionType.lendingDeposit,
       },
     });
   });
@@ -801,7 +1136,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
@@ -843,12 +1180,14 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
         origin: 'metamask',
-        type: 'lendingDeposit',
+        type: TransactionType.lendingDeposit,
       },
     });
 
@@ -951,7 +1290,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     ).mockResolvedValueOnce({
       transactionMeta: {
         id: '123',
-        type: 'lendingDeposit' as TransactionType,
+        type: TransactionType.lendingDeposit as TransactionType,
       },
     } as Result);
 
@@ -993,12 +1332,14 @@ describe('EarnLendingDepositConfirmationView', () => {
       amount: '5000000',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
-      gasOptions: {},
+      gasOptions: {
+        gasLimit: 'none',
+      },
       txOptions: {
         deviceConfirmedOn: 'metamask_mobile',
         networkClientId: 'mainnet',
         origin: 'metamask',
-        type: 'lendingDeposit',
+        type: TransactionType.lendingDeposit,
       },
     });
 

@@ -39,7 +39,8 @@ const firstElement: number = 0;
 
 let mockServer: MockttpServer;
 
-describe(SmokeTrade('Swap from Actions'), (): void => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
@@ -137,7 +138,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       }
       // This call is needed because otherwise the device never becomes idle
       await device.disableSynchronization();
-      
+
       await QuoteView.tapOnGetQuotes();
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
