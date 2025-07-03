@@ -592,7 +592,6 @@ class AuthenticationService {
       await this.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      SeedlessOnboardingController.clearState();
       await clearAllVaultBackups();
       SeedlessOnboardingController.clearState();
       throw error;
