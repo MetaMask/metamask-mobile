@@ -240,11 +240,12 @@ const WalletActions = () => {
     });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.DEPOSIT_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Deposit',
           location: 'TabBar',
           chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'DEPOSIT',
         })
         .build(),
     );
