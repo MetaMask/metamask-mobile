@@ -175,6 +175,7 @@ export function setAppServicesReady(): SetAppServicesReadyAction {
  * Action to set existing user flag
  */
 export function setExistingUser(existingUser: boolean): SetExistingUserAction {
+  console.error('🎯 Action: setExistingUser called with:', existingUser);
   return {
     type: UserActionType.SET_EXISTING_USER,
     payload: { existingUser },

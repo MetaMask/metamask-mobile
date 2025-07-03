@@ -117,6 +117,7 @@ const userReducer = (
         appServicesReady: true,
       };
     case UserActionType.SET_EXISTING_USER:
+      console.error('👤 User Reducer: SET_EXISTING_USER action dispatched with:', action.payload.existingUser);
       return {
         ...state,
         existingUser: action.payload.existingUser,
