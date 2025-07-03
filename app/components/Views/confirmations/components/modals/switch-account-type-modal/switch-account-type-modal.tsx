@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import Avatar, {
   AvatarSize,
@@ -18,19 +18,40 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
+import Engine from '../../../../../../core/Engine';
 
 const SwitchAccountTypeModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const route = useRoute();
-  const address = (route?.params as { address: Hex })?.address;
+  const navigation = useNavigation();
+  const address =
+    (route?.params as { address: Hex })?.address ??
+    Engine.context.AccountsController.getSelectedAccount()?.address;
   const { network7702List, pending } = useEIP7702Networks(address);
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(
     ({ address: accAddress }) => accAddress === address,
   );
 
+  const goBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   return (
     <BottomSheet>
+      <TouchableOpacity onPress={goBack} testID="switch-account-goback">
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Sm}
+          color={IconColor.Default}
+          style={styles.backIcon}
+        />
+      </TouchableOpacity>
       <View style={styles.wrapper}>
         {pending ? (
           <View style={styles.spinner} testID="network-data-loader">
@@ -41,7 +62,7 @@ const SwitchAccountTypeModal = () => {
             <View style={styles.account_info}>
               <Avatar
                 variant={AvatarVariant.Account}
-                size={AvatarSize.Lg}
+                size={AvatarSize.Md}
                 accountAddress={address}
               />
               <Text style={styles.account_name} variant={TextVariant.HeadingMD}>
