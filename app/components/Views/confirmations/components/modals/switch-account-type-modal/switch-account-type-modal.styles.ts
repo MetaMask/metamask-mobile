@@ -6,11 +6,14 @@ const styleSheet = () =>
       marginBottom: 16,
       marginTop: 24,
     },
+<<<<<<< HEAD
     spinner: {
       marginVertical: 32,
       flexDirection: 'row',
       justifyContent: 'center',
     },
+=======
+>>>>>>> stable
     account_info: {
       flexDirection: 'column',
       alignItems: 'center',

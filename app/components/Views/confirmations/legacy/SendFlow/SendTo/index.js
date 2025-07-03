@@ -2,7 +2,6 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -16,6 +15,7 @@ import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetwo
 import {
   isENS,
   isValidHexAddress,
+  safeToChecksumAddress,
   validateAddressOrENS,
   areAddressesEqual,
 } from '../../../../../../util/address';
@@ -482,7 +482,11 @@ class SendFlow extends PureComponent {
 
   safeChecksumAddress = (address) => {
     try {
+<<<<<<< HEAD
       return toChecksumAddress(address);
+=======
+      return safeToChecksumAddress(address);
+>>>>>>> stable
     } catch (error) {
       return address;
     }

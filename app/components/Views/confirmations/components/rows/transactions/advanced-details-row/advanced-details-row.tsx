@@ -5,7 +5,14 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
+<<<<<<< HEAD
 import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
+=======
+import {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text/Text.types';
+>>>>>>> stable
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
@@ -20,7 +27,10 @@ import { RootState } from '../../../../../../../reducers';
 import { selectSmartTransactionsOptInStatus } from '../../../../../../../selectors/preferencesController';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import CustomNonceModal from '../../../../legacy/SendFlow/components/CustomNonceModal';
+<<<<<<< HEAD
 import { use7702TransactionType } from '../../../../hooks/7702/use7702TransactionType';
+=======
+>>>>>>> stable
 import Expandable from '../../../UI/expandable';
 import InfoRow from '../../../UI/info-row';
 import InfoSection from '../../../UI/info-row/info-section';
@@ -67,7 +77,10 @@ const AdvancedDetailsRow = () => {
   return (
     <>
       <Expandable
+<<<<<<< HEAD
         testID={ConfirmationRowComponentIDs.ADVANCED_DETAILS}
+=======
+>>>>>>> stable
         collapsedContent={
           <InfoSection>
             <InfoRow
@@ -99,10 +112,23 @@ const AdvancedDetailsRow = () => {
               </InfoSection>
             )}
             <InfoSection>
+<<<<<<< HEAD
               <InfoRow
                 label={strings('transaction.custom_nonce')}
                 tooltip={strings('transaction.custom_nonce_tooltip')}
               >
+=======
+              <InfoRow label={strings('stake.interacting_with')}>
+                <Name
+                  value={transactionMetadata.txParams.to}
+                  type={NameType.EthereumAddress}
+                  variation={transactionMetadata.chainId}
+                />
+              </InfoRow>
+            </InfoSection>
+            <InfoSection>
+            <InfoRow label={strings('transaction.custom_nonce')} tooltip={strings('transaction.custom_nonce_tooltip')}>
+>>>>>>> stable
                 <Text
                   variant={TextVariant.BodyMD}
                   style={styles.nonceText}

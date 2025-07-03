@@ -1261,7 +1261,11 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1299,7 +1303,11 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.1;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1330,7 +1338,11 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1365,7 +1377,11 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.1;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1395,7 +1411,11 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1432,7 +1452,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.0;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1461,7 +1485,11 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1496,7 +1524,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.0;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1623,7 +1655,11 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1660,7 +1696,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.0;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1692,7 +1732,11 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
+<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 2062;
+=======
+				CURRENT_PROJECT_VERSION = 2004;
+>>>>>>> stable
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
@@ -1727,7 +1771,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 7.50.0;
+=======
+				MARKETING_VERSION = 7.47.0;
+>>>>>>> stable
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

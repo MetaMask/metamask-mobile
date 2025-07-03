@@ -191,6 +191,7 @@ describe('useTokenListPolling', () => {
     );
     expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(0);
   });
+<<<<<<< HEAD
 
   it('polls with provided chain ids', () => {
     renderHookWithProvider(
@@ -212,4 +213,6 @@ describe('useTokenListPolling', () => {
       chainId: '0x89',
     });
   });
+=======
+>>>>>>> stable
 });

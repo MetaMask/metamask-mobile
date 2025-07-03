@@ -67,12 +67,21 @@ have to have all these workarounds in the tests
   }
 
   // Handle Solana New feature sheet
+<<<<<<< HEAD
   if (solanaSheetAction === 'dismiss') {
     await SolanaNewFeatureSheet.tapNotNowButton();
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
   } else if (solanaSheetAction === 'viewAccount') {
     await SolanaNewFeatureSheet.tapViewAccountButton();
+=======
+  try {
+    await SolanaNewFeatureSheet.swipeWithCarouselLogo();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The new Solana feature modal is not visible');
+>>>>>>> stable
   }
 };
 
@@ -294,6 +303,10 @@ export const waitForTestDappToLoad = async () => {
 
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
+<<<<<<< HEAD
+=======
+
+>>>>>>> stable
     } catch (error) {
       if (attempt === MAX_RETRIES) {
         throw new Error(

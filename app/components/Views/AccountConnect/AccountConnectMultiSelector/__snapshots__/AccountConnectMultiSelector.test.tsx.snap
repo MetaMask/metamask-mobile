@@ -118,6 +118,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           [
             {
               "flexDirection": "row",
+<<<<<<< HEAD
               "justifyContent": "space-between",
             },
             undefined,
@@ -128,6 +129,18 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             disabled={false}
             onPress={[Function]}
+=======
+              "height": 24,
+              "marginLeft": 0,
+              "marginVertical": 12,
+              "opacity": 1,
+            }
+          }
+          testID="select-all-button"
+        >
+          <View
+            accessibilityRole="checkbox"
+>>>>>>> stable
             style={
               {
                 "alignItems": "center",
@@ -140,8 +153,17 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             }
             testID="select-all-button"
           >
+<<<<<<< HEAD
             <View
               accessibilityRole="checkbox"
+=======
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={20}
+              name="MinusBold"
+              onPress={[Function]}
+>>>>>>> stable
               style={
                 {
                   "alignItems": "center",
@@ -154,6 +176,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                   "width": 20,
                 }
               }
+<<<<<<< HEAD
             >
               <SvgMock
                 color="#ffffff"
@@ -172,6 +195,21 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               />
             </View>
             <View
+=======
+              testID="select-all-button"
+              width={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "marginLeft": 12,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+>>>>>>> stable
               style={
                 {
                   "marginLeft": 12,
@@ -243,8 +281,11 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           {
             "address": "0x1234",
             "balance": "0x1",
+<<<<<<< HEAD
             "caipAccountId": "eip155:0:0x1234",
             "id": "mock-account-id-1",
+=======
+>>>>>>> stable
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 1",
@@ -257,8 +298,11 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           {
             "address": "0x5678",
             "balance": "0x2",
+<<<<<<< HEAD
             "caipAccountId": "eip155:0:0x5678",
             "id": "mock-account-id-2",
+=======
+>>>>>>> stable
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 2",

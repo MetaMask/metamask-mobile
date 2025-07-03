@@ -4,12 +4,15 @@ import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { flushPromises } from '../../util/test/utils';
+<<<<<<< HEAD
 
 jest.mock('../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   addItemToChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1', 'eip155:100'],
   }),
 }));
+=======
+>>>>>>> stable
 
 const mockEngine = Engine;
 
@@ -540,4 +543,79 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
   });
+<<<<<<< HEAD
+=======
+
+  describe('MM_CHAIN_PERMISSIONS is enabled', () => {
+    beforeAll(() => {
+      process.env.MM_CHAIN_PERMISSIONS = 'true';
+    });
+    afterAll(() => {
+      process.env.MM_CHAIN_PERMISSIONS = 'false';
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    it('should grant permissions when chain is not already permitted', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: {},
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
+        otherOptions.hooks,
+        'requestPermittedChainsPermissionIncrementalForOrigin',
+      );
+
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
+        origin: 'https://example.com',
+        autoApprove: true,
+        chainId: '0x64',
+      });
+    });
+
+    it('should not grant permissions when chain is already permitted', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
+        Engine.context.PermissionController,
+        'grantPermissionsIncremental',
+      );
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: { 'eip155:100': { accounts: [] } },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(0);
+    });
+  });
+>>>>>>> stable
 });

@@ -60,6 +60,7 @@ function getAssetAmount(
 }
 
 // Fetches the decimals for the given token address.
+<<<<<<< HEAD
 async function fetchErc20Decimals(
   address: Hex,
   networkClientId: string,
@@ -71,6 +72,11 @@ async function fetchErc20Decimals(
       undefined,
       networkClientId,
     );
+=======
+async function fetchErc20Decimals(address: Hex, networkClientId: string): Promise<number> {
+  try {
+    const { decimals } = await getTokenDetails(address,undefined,undefined,networkClientId);
+>>>>>>> stable
     return decimals ? parseInt(decimals, 10) : ERC20_DEFAULT_DECIMALS;
   } catch {
     return ERC20_DEFAULT_DECIMALS;
@@ -86,9 +92,13 @@ async function fetchAllErc20Decimals(
     ...new Set(addresses.map((address) => address.toLowerCase() as Hex)),
   ];
   const allDecimals = await Promise.all(
+<<<<<<< HEAD
     uniqueAddresses.map((address) =>
       fetchErc20Decimals(address, networkClientId),
     ),
+=======
+    uniqueAddresses.map((address) => fetchErc20Decimals(address, networkClientId)),
+>>>>>>> stable
   );
   return Object.fromEntries(
     allDecimals.map((decimals, i) => [uniqueAddresses[i], decimals]),

@@ -24,9 +24,15 @@ afterEach(() => {
 const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
   approve: true,
   signatures: true,
+<<<<<<< HEAD
   staking_confirmations: true,
   contract_interaction: true,
   transfer: true,
+=======
+  staking_confirmations: false,
+  contract_interaction: false,
+  transfer: false,
+>>>>>>> stable
 };
 
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
@@ -34,7 +40,11 @@ const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
   signatures: false,
   staking_confirmations: true,
   contract_interaction: true,
+<<<<<<< HEAD
   transfer: false,
+=======
+  transfer: true,
+>>>>>>> stable
 };
 
 const mockedStateWithConfirmationFlags = {
@@ -101,6 +111,7 @@ describe('Confirmation Redesign Feature Flags', () => {
       confirmationRedesignFlagsDefaultValues
     );
   });
+<<<<<<< HEAD
 
   it('returns remote flag values when confirmation_redesign flags are set', () => {
     testFlagValues(
@@ -156,4 +167,6 @@ describe('Confirmation Redesign Feature Flags', () => {
       expectedKillSwitchValues
     );
   });
+=======
+>>>>>>> stable
 });

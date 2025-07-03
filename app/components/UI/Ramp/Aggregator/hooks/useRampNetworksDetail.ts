@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { SDK } from '../sdk';
 
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/hooks/useRampNetworksDetail.ts
 import Logger from '../../../../../util/Logger';
 import { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+=======
+import Logger from '../../../../util/Logger';
+import { Network } from '../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+>>>>>>> stable:app/components/UI/Ramp/hooks/useRampNetworksDetail.ts
 
 function useRampNetworksDetail() {
   const [isLoading, setIsLoading] = useState(true);

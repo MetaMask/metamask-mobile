@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, {
   useRef,
   useCallback,
@@ -5,6 +6,9 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
+=======
+import React, { useRef, useCallback } from 'react';
+>>>>>>> stable
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -33,6 +37,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import UpsellBanner from '../../../Stake/components/UpsellBanner';
 import { UPSELL_BANNER_VARIANTS } from '../../../Stake/components/UpsellBanner/UpsellBanner.types';
+<<<<<<< HEAD
 import Engine from '../../../../../core/Engine';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
@@ -47,6 +52,15 @@ import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
 import { sortByHighestRewards } from '../../utils';
+=======
+import EarnTokenListItem from '../EarnTokenListItem';
+import Engine from '../../../../../core/Engine';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+>>>>>>> stable
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -92,6 +106,7 @@ const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
+<<<<<<< HEAD
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -112,6 +127,11 @@ const EarnTokenList = () => {
 
     return () => clearTimeout(timer);
   }, []);
+=======
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  const supportedStablecoins = useEarnTokens();
+>>>>>>> stable
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

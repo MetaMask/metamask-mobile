@@ -5,7 +5,10 @@ import { strings } from '../../../../locales/i18n';
 import AddNewAccount from './AddNewAccount';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
+<<<<<<< HEAD
   createMockSnapInternalAccount,
+=======
+>>>>>>> stable
   internalAccount1,
   internalAccount2,
 } from '../../../util/test/accountsControllerTestUtils';
@@ -409,8 +412,15 @@ describe('AddNewAccount', () => {
         );
 
         const { getByText } = render(initialState, {
+<<<<<<< HEAD
           scope,
           clientType,
+=======
+          params: {
+            scope,
+            clientType,
+          },
+>>>>>>> stable
         });
 
         expect(
@@ -422,6 +432,7 @@ describe('AddNewAccount', () => {
         ).toBeDefined();
       },
     );
+<<<<<<< HEAD
 
     it('shows the correct number of accounts in srp item', () => {
       const solanaAccount = createMockSnapInternalAccount(
@@ -459,5 +470,7 @@ describe('AddNewAccount', () => {
       // 2 accounts are associated with the primary srp. 1 hd and 1 solana
       expect(getByText('Show 2 accounts')).toBeDefined();
     });
+=======
+>>>>>>> stable
   });
 });

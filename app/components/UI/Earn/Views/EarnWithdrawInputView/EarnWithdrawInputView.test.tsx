@@ -2,13 +2,19 @@ import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
+<<<<<<< HEAD
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+=======
+>>>>>>> stable
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
+<<<<<<< HEAD
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+=======
+>>>>>>> stable
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
@@ -26,11 +32,15 @@ import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
+<<<<<<< HEAD
 import { TokenI } from '../../../Tokens/types';
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
 }));
+=======
+import { flushPromises } from '../../../../../util/test/utils';
+>>>>>>> stable
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -168,6 +178,7 @@ jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
+<<<<<<< HEAD
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
@@ -396,6 +407,14 @@ describe('EarnWithdrawInputView', () => {
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
+=======
+}));
+
+describe('UnstakeInputView', () => {
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+>>>>>>> stable
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -522,10 +541,14 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(getByText('1'));
       });
 
+<<<<<<< HEAD
       await act(async () => {
         fireEvent.press(screen.getByText('Review'));
       });
 
+=======
+      jest.useFakeTimers({ legacyFakeTimers: true });
+>>>>>>> stable
       await flushPromises();
 
       expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();

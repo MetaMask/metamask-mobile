@@ -132,6 +132,7 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+<<<<<<< HEAD
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -144,6 +145,11 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+=======
+import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
+import AddNewAccount from '../../Views/AddNewAccount';
+import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
+>>>>>>> stable
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -537,6 +543,7 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+<<<<<<< HEAD
 const MultichainAccountDetails = () => {
   const route = useRoute();
 
@@ -581,6 +588,14 @@ const MultichainAccountDetails = () => {
   );
 };
 
+=======
+const FlatConfirmationRequest = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
+  </Stack.Navigator>
+);
+
+>>>>>>> stable
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -740,8 +755,21 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
+<<<<<<< HEAD
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
+=======
+        name={Routes.CONFIRMATION_REQUEST_FLAT}
+        component={FlatConfirmationRequest}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRMATION_REQUEST_MODAL}
+        component={ModalConfirmationRequest}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
+        component={ModalSwitchAccountType}
+>>>>>>> stable
       />
       {process.env.MM_SMART_ACCOUNT_UI_ENABLED === 'true' && (
         <Stack.Screen
@@ -978,7 +1006,6 @@ const App: React.FC = () => {
               rpcEndpoints: [
                 {
                   url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
                 },

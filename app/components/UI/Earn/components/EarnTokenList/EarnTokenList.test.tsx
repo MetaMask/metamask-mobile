@@ -16,18 +16,30 @@ import {
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
+<<<<<<< HEAD
 import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import * as useEarnTokensHook from '../../hooks/useEarnTokens';
+=======
+import * as portfolioNetworkUtils from '../../../../../util/networks';
+import { act, fireEvent } from '@testing-library/react-native';
+>>>>>>> stable
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
+<<<<<<< HEAD
 import { EarnTokenDetails } from '../../types/lending.types';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn().mockImplementation(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn().mockImplementation(() => true),
+=======
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectPooledStakingEnabledFlag: jest.fn(),
+>>>>>>> stable
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -143,11 +155,26 @@ describe('EarnTokenList', () => {
       true,
     );
 
+<<<<<<< HEAD
     jest
       .spyOn(ReactNative.Image, 'getSize')
       .mockImplementation((_uri, success) => {
         success(100, 100);
       });
+=======
+    filterEligibleTokensSpy = jest.spyOn(tokenUtils, 'filterEligibleTokens');
+
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(true);
+>>>>>>> stable
   });
 
   it('render matches snapshot', () => {
@@ -183,7 +210,13 @@ describe('EarnTokenList', () => {
 
   it('does not render the EarnTokenList when required feature flags are disabled', () => {
     (
+<<<<<<< HEAD
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
+=======
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+>>>>>>> stable
     ).mockReturnValue(false);
 
     jest
@@ -195,6 +228,50 @@ describe('EarnTokenList', () => {
     });
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('filters out pooled-staking assets when pooled staking is disabled', () => {
+    (
+      selectPooledStakingEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    const { queryAllByText, getByText, getAllByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Bottom Sheet Title
+    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
+
+    // Upsell Banner
+    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
+    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
+
+    // Token List
+    // Ethereum should be filtered out
+    expect(queryAllByText('Ethereum').length).toBe(0);
+    expect(queryAllByText('2.3% APR').length).toBe(0);
+
+    // DAI
+    expect(getByText('Dai Stablecoin')).toBeDefined();
+    expect(getByText('5.0% APR')).toBeDefined();
+
+    // USDT
+    expect(getByText('Tether USD')).toBeDefined();
+    expect(getByText('4.1% APR')).toBeDefined();
+
+    // USDC
+    expect(getByText('USDC')).toBeDefined();
+    expect(getAllByText('4.5% APR').length).toBe(1);
+
+    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
+    expect(filterEligibleTokensSpy).toHaveBeenCalled();
   });
 
   it('changes active network if selected token is on a different network', async () => {

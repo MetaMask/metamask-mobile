@@ -12,7 +12,6 @@ import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { isValidAddress } from 'ethereumjs-util';
 import { isSmartContractAddress } from '../../../util/transactions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -51,6 +50,7 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { isValidHexAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -358,7 +358,7 @@ class AddCustomToken extends PureComponent {
 
   validateCustomTokenAddress = async (address) => {
     let validated = true;
-    const isValidTokenAddress = isValidAddress(address);
+    const isValidTokenAddress = isValidHexAddress(address);
 
     const { chainId } = this.props;
     const toSmartContract =

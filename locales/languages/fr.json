@@ -37,6 +37,7 @@
       "title": "Fonds insuffisants",
       "message": "Vous n’avez pas assez de %{nativeCurrency} sur votre compte pour payer les frais de réseau.",
       "buy_action": "Achetez %{nativeCurrency}"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Une transaction précédente est toujours en cours de signature ou de soumission."
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "Autorisation inutile",
       "message": "Vous autorisez quelqu’un d’autre à retirer des jetons de votre compte, même si cela n’est pas nécessaire pour cette transaction."
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "Ajoutez plusieurs phrases secrètes de récupération",
       "subtitle": "Importez et utilisez plusieurs portefeuilles dans MetaMask"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana est désormais pris en charge",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "Présentation de la fonction de sauvegarde et de synchronisation",
       "subtitle": "Sauvegardez vos comptes et synchronisez vos paramètres."
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "La création du compte {{clientType}} a échoué"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Un compte Solana est requis pour se connecter à ce site.",
       "button": "Créer un compte Solana"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -1157,7 +1166,11 @@
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
+<<<<<<< HEAD
     "network_rpc_url_label": "URL RPC",
+=======
+    "network_rpc_url_label": "URL de l’appel de procédure à distance",
+>>>>>>> stable
     "network_rpc_name_label": "Nom du RPC",
     "network_rpc_placeholder": "Nouveau réseau RPC",
     "network_failover_rpc_url_label": "Basculement vers l’URL de l’appel de procédure à distance",
@@ -3109,7 +3122,11 @@
     "deposit_order_title": "{{currency}} Deposit"
   },
   "swaps": {
+<<<<<<< HEAD
     "title": "Échanger",
+=======
+    "title": "Swap",
+>>>>>>> stable
     "onboarding": {
       "get_the": "Bénéficiez en permanence",
       "best_price": "du meilleur prix",
@@ -4126,19 +4143,27 @@
       "permit_revoke": "Supprimer l’autorisation",
       "permit_NFTs": "Demande de retrait",
       "signature_siwe": "Demande de connexion",
+<<<<<<< HEAD
       "contract_interaction": "Demande de transaction",
       "transfer": "Demande de transfert",
       "switch_account_type": "Mise à jour du compte",
       "approve": "Approve request"
+=======
+      "contract_interaction": "Demande de transaction"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
       "permit_NFTs": "Ce site demande l’autorisation de retirer vos jetons.",
       "signature": "Vérifiez les détails de la demande avant de la confirmer.",
       "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte.",
+<<<<<<< HEAD
       "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer.",
       "switch_to_smart_account": "Vous passez à un compte intelligent.",
       "switch_to_standard_account": "Vous revenez à un compte standard (EOA)."
+=======
+      "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer."
+>>>>>>> stable
     },
     "request_from": "Demande de",
     "staking_from": "Staking à partir de",
@@ -4209,6 +4234,7 @@
       "includes_transaction": "Inclut {{transactionCount}} transactions"
     },
     "unlimited": "Illimité",
+<<<<<<< HEAD
     "all": "Tout",
     "none": "Aucun",
     "advanced_details": "Détails avancés",
@@ -4218,6 +4244,12 @@
     "transferRequest": "Demande de transfert",
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "Aucun",
+    "advanced_details": "Détails avancés",
+    "interacting_with": "Interagissant avec",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
@@ -4268,6 +4300,7 @@
     "bridge_to": "Établir une passerelle vers",
     "title": "Passerelle",
     "submitting_transaction": "En train d’envoyer",
+<<<<<<< HEAD
     "fetching_quote": "Récupération de la cotation",
     "fee_disclaimer": "Comprend 0,875 % de frais MM",
     "hardware_wallet_not_supported": "Les portefeuilles matériels ne sont pas encore pris en charge. Utilisez un portefeuille connecté pour continuer.",
@@ -4277,6 +4310,14 @@
     "title": "De nouvelles cotations sont disponibles",
     "description": "Les taux de change sont mis à jour toutes les {{refreshRate}} secondes. Appuyez sur « Obtenir une nouvelle cotation » lorsque vous êtes prêt.",
     "get_new_quote": "Obtenir une nouvelle cotation"
+=======
+    "fetching_quote": "Récupération de la cotation"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "État",
@@ -4284,6 +4325,7 @@
     "total_gas_fee": "Montant total des frais de gaz",
     "estimated_completion": "Temps estimé pour la réalisation de l’opération",
     "bridge_step_action_bridge_complete": "{{destSymbol}} reçu sur {{destChainName}}",
+<<<<<<< HEAD
     "bridge_step_action_bridge_pending": "Recevant {{destSymbol}} sur {{destChainName}}",
     "bridge_step_action_swap_complete": "A échangé {{srcSymbol}} contre {{destSymbol}}",
     "bridge_step_action_swap_pending": "Échangeant {{srcSymbol}} contre {{destSymbol}}",
@@ -4408,5 +4450,15 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+    "bridge_step_action_bridge_pending": "Recevoir {{destSymbol}} sur {{destChainName}}",
+    "bridge_step_action_swap_complete": "A échangé {{srcSymbol}} contre {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Échanger {{srcSymbol}} contre {{destSymbol}}",
+    "view_on_block_explorer": "Afficher sur l’explorateur de blocs",
+    "block_explorer_description": "Cette transaction se déroule sur deux réseaux. Le premier lien indique la source ; le second indique la destination une fois qu’elle est confirmée.",
+    "transaction_details": "Détails de la transaction",
+    "bridge_to_chain": "Établir une passerelle vers {{chainName}}",
+    "recipient": "Destinataire"
+>>>>>>> stable
   }
 }

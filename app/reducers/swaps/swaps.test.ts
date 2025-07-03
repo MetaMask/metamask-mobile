@@ -61,7 +61,10 @@ import reducer, {
   swapsSmartTxFlagEnabled,
   swapsTokensObjectSelector,
   selectSwapsChainFeatureFlags,
+<<<<<<< HEAD
   getFeatureFlagChainId,
+=======
+>>>>>>> stable
 } from './index';
 
 const emptyAction: SwapsAction = { type: null };
@@ -597,7 +600,11 @@ describe('swaps reducer', () => {
           globalSetting: true,
         },
       };
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       const chainFlags = {
         '0x1': {
           fallbackToV1: false,
@@ -607,12 +614,20 @@ describe('swaps reducer', () => {
           },
         },
       };
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       const rootState = createTestState({
         globalFeatureFlags: globalFlags,
         chainFeatureFlags: chainFlags,
       });
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       const result = selectSwapsChainFeatureFlags(rootState);
       expect(result).toEqual({
         fallbackToV1: false,
@@ -676,7 +691,11 @@ describe('swaps reducer', () => {
       });
     });
 
+<<<<<<< HEAD
     it('should return empty object when no chain entry exists', () => {
+=======
+    it('should throw when no chain entry exists', () => {
+>>>>>>> stable
       const rootState = createTestState({
         selectedChainId: '0x89',  // Chain ID not in swaps state
         globalFeatureFlags: {
@@ -687,12 +706,16 @@ describe('swaps reducer', () => {
         // No chain feature flags for 0x89
       });
 
+<<<<<<< HEAD
       const chainFlags = selectSwapsChainFeatureFlags(rootState);
       expect(chainFlags).toEqual({
         smartTransactions: {
           globalSetting: true,
         },
       });
+=======
+      expect(() => selectSwapsChainFeatureFlags(rootState)).toThrow();
+>>>>>>> stable
     });
   });
 

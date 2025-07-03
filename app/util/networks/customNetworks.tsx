@@ -9,6 +9,7 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
+<<<<<<< HEAD
 export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'ethereum-mainnet': () => process.env.QUICKNODE_MAINNET_URL,
   'linea-mainnet': () => process.env.QUICKNODE_LINEA_MAINNET_URL,
@@ -29,12 +30,13 @@ export function getFailoverUrlsForInfuraNetwork(
   return [];
 }
 
+=======
+>>>>>>> stable
 export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche C-Chain',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
@@ -46,7 +48,6 @@ export const PopularList = [
     chainId: toHex('42161'),
     nickname: 'Arbitrum One',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arbitrum-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
@@ -70,7 +71,6 @@ export const PopularList = [
     chainId: toHex('8453'),
     nickname: 'Base',
     rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('base-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -83,7 +83,6 @@ export const PopularList = [
     chainId: toHex('10'),
     nickname: 'OP Mainnet',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('optimism-mainnet'),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -106,7 +105,6 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('polygon-mainnet'),
     ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',

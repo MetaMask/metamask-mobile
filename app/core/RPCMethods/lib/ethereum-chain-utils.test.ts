@@ -73,7 +73,11 @@ describe('switchToNetwork', () => {
       requestUserApproval,
       analytics,
       origin,
+<<<<<<< HEAD
       autoApprove,
+=======
+      isAddNetworkFlow,
+>>>>>>> stable
       hooks: mockHooks,
     });
 

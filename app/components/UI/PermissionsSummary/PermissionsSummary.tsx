@@ -456,7 +456,12 @@ const PermissionsSummary = ({
                     }
                     imageSource={
                       isNonDappNetworkSwitch
+<<<<<<< HEAD
                         ? getNetworkImageSource({
+=======
+                        ?
+                          getNetworkImageSource({
+>>>>>>> stable
                             chainId,
                           })
                         : chainImage

@@ -18,12 +18,21 @@ import Row from '../../components/Row';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/NetworkSwitcher/NetworkSwitcher.tsx
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import imageIcons from 'images/image-icons';
 import Text from '../../../../../Base/Text';
 import CustomNetwork from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
 import { Network, ExtendedNetwork } from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+=======
+} from '../../../../../component-library/components/Avatars/Avatar';
+import imageIcons from '../../../../../images/image-icons';
+import Text from '../../../../Base/Text';
+import CustomNetwork from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import customNetworkStyles from '../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
+import { Network, ExtendedNetwork } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+>>>>>>> stable:app/components/UI/Ramp/Views/NetworkSwitcher/NetworkSwitcher.tsx
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
@@ -40,8 +49,17 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selec
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/NetworkSwitcher/NetworkSwitcher.tsx
 import { PopularList } from '../../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../../util/networks';
+
+interface NetworkWithAdded extends Network, ExtendedNetwork {
+  isAdded?: boolean;
+}
+=======
+import { PopularList } from '../../../../../util/networks/customNetworks';
+import { getDecimalChainId } from '../../../../../util/networks';
+>>>>>>> stable:app/components/UI/Ramp/Views/NetworkSwitcher/NetworkSwitcher.tsx
 
 interface NetworkWithAdded extends Network, ExtendedNetwork {
   isAdded?: boolean;

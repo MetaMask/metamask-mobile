@@ -84,7 +84,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {isNetworkModalVisible && selectedNetwork && (
+      {isNetworkModalVisible && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
           isVisible={isNetworkModalVisible}

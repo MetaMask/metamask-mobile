@@ -21,10 +21,21 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
+<<<<<<< HEAD
+=======
+import StakingEarnings from '../../Stake/components/StakingEarnings';
+>>>>>>> stable
 import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
+<<<<<<< HEAD
+=======
+import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
+import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
+import { parseFloatSafe } from '../../Earn/utils';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
+>>>>>>> stable
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
@@ -64,6 +75,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const { styles } = useStyles(styleSheet, {});
+<<<<<<< HEAD
+=======
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+>>>>>>> stable
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -93,6 +110,91 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     conversionTime: Number(multichainAssetRates?.conversionTime),
   };
   ///: END:ONLY_INCLUDE_IF
+<<<<<<< HEAD
+=======
+
+  const evmMarketData = useSelector((state: RootState) =>
+    !isNonEvmAsset
+      ? selectEvmTokenMarketData(state, {
+          chainId: asset.chainId as Hex,
+          tokenAddress: asset.address,
+        })
+      : null,
+  ) as EvmMarketData | null;
+
+  const evmConversionRate = isAssetFromSearch(asset)
+    ? 1
+    : conversionRateBySymbol;
+
+  const conversionRate = !isNonEvmAsset
+    ? evmConversionRate
+    : nonEvmMetadata.rate;
+
+  let marketData;
+  let tokenMetadata;
+
+  if (
+    isAssetFromSearch(asset) &&
+    tokenSearchResult?.found &&
+    tokenSearchResult.price
+  ) {
+    marketData = tokenSearchResult.price;
+    tokenMetadata = tokenSearchResult.token;
+  } else {
+    tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
+    marketData = !isNonEvmAsset
+      ? evmMarketData?.marketData
+      : nonEvmMarketData;
+  }
+  const tokenDetails = useMemo(
+    () =>
+      getTokenDetails(
+        asset,
+        isNonEvmAsset,
+        tokenContractAddress,
+        tokenMetadata as Record<string, string | number | string[]>,
+      ),
+    [asset, isNonEvmAsset, tokenContractAddress, tokenMetadata],
+  );
+
+  const marketDetails = useMemo(() => {
+    if (!marketData) return;
+
+    if (!conversionRate || conversionRate < 0) {
+      Logger.log('invalid conversion rate');
+      return;
+    }
+
+    return formatMarketDetails(
+      {
+        marketCap: marketData.marketCap
+          ? Number(marketData.marketCap)
+          : undefined,
+        totalVolume: marketData.totalVolume
+          ? Number(marketData.totalVolume)
+          : undefined,
+        circulatingSupply: marketData.circulatingSupply
+          ? Number(marketData.circulatingSupply)
+          : undefined,
+        allTimeHigh: marketData.allTimeHigh
+          ? Number(marketData.allTimeHigh)
+          : undefined,
+        allTimeLow: marketData.allTimeLow
+          ? Number(marketData.allTimeLow)
+          : undefined,
+        dilutedMarketCap: (marketData as MarketDataDetails)?.dilutedMarketCap
+          ? Number((marketData as MarketDataDetails).dilutedMarketCap)
+          : undefined,
+      },
+      {
+        locale: i18n.locale,
+        currentCurrency,
+        isEvmAssetSelected: !isNonEvmAsset,
+        conversionRate,
+      },
+    );
+  }, [marketData, currentCurrency, isNonEvmAsset, conversionRate]);
+>>>>>>> stable
 
   const evmMarketData = useSelector((state: RootState) =>
     !isNonEvmAsset
@@ -176,6 +278,13 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
+<<<<<<< HEAD
+=======
+      {asset.isETH && <StakingEarnings asset={asset} />}
+      {isStablecoinLendingEnabled &&
+        isSupportedLendingTokenByChainId(asset.symbol, asset.chainId ?? '') &&
+        hasAssetBalance && <EarnEmptyStateCta token={asset} />}
+>>>>>>> stable
       {(asset.isETH || tokenMetadata || isNonEvmAsset) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

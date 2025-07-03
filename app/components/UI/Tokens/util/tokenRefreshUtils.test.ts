@@ -84,14 +84,19 @@ describe('performEvmRefresh', () => {
 
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+<<<<<<< HEAD
     ).toHaveBeenCalledWith([
       { chainId: '0x1', nativeCurrency: 'ETH' },
       { chainId: '0x2', nativeCurrency: 'BNB' },
     ]);
+=======
+    ).toHaveBeenCalledTimes(2);
+>>>>>>> stable
 
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
+<<<<<<< HEAD
   it('filters network configurations when updating token exchange rates', async () => {
     // This is a rare edge-case. NetworkConfigurations should have a native currency
     const invalidNetworkConfiguration = {
@@ -105,6 +110,8 @@ describe('performEvmRefresh', () => {
     ).toHaveBeenCalledWith([]); // This controller handles when there is no chains to update
   });
 
+=======
+>>>>>>> stable
   it('should catch and log error if any action fails', async () => {
     (
       Engine.context.TokenDetectionController.detectTokens as jest.Mock

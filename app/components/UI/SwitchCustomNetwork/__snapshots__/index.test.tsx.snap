@@ -189,6 +189,46 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
               }
             }
           >
+<<<<<<< HEAD
+=======
+            <SvgMock
+              color="#686e7d"
+              fill="currentColor"
+              height={20}
+              name="Data"
+              style={
+                {
+                  "height": 20,
+                  "width": 20,
+                }
+              }
+              width={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "marginLeft": 12,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Use your enabled networks
+            </Text>
+>>>>>>> stable
             <View
               style={
                 {

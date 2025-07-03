@@ -36,9 +36,13 @@ const mockAccount: Account = {
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
+<<<<<<< HEAD
   caipAccountId: `eip155:0:${internalAccount2.address}`,
   isLoadingAccount: false,
   scopes: [EthScope.Eoa],
+=======
+  isLoadingAccount: false,
+>>>>>>> stable
 };
 
 jest.mock('../../../core/Engine', () => {

@@ -3,7 +3,11 @@ import useERC20GasLimitEstimation from './useERC20GasLimitEstimation';
 import { getGasLimit } from '../../../../../util/custom-gas';
 import { generateTransferData } from '../../../../../util/transactions';
 import { toHex } from '@metamask/controller-utils';
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/hooks/useERC20GasLimitEstimation.test.ts
 import { flushPromises } from '../../../../../util/test/utils';
+=======
+import { flushPromises } from '../../../../util/test/utils';
+>>>>>>> stable:app/components/UI/Ramp/hooks/useERC20GasLimitEstimation.test.ts
 
 jest.mock('../../../../../util/custom-gas', () => ({
   getGasLimit: jest.fn(),

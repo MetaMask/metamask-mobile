@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 import { Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+=======
+import React from 'react';
+import { View } from 'react-native';
+>>>>>>> stable
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Avatar, {
@@ -12,12 +17,16 @@ import Avatar, {
 import Button, {
   ButtonVariants,
 } from '../../../../../../../component-library/components/Buttons/Button';
+<<<<<<< HEAD
 import Routes from '../../../../../../../constants/navigation/Routes';
+=======
+>>>>>>> stable
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
+<<<<<<< HEAD
 import Spinner, { SpinnerSize } from '../../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
@@ -129,6 +138,20 @@ const AccountNetworkRow = ({
       </Box>
     );
   }
+=======
+import { useStyles } from '../../../../../../hooks/useStyles';
+import { EIP7702NetworkConfiguration } from '../../../../hooks/useEIP7702Networks';
+import styleSheet from './account-network-row.styles';
+
+const AccountNetworkRow = ({
+  network,
+}: {
+  network: EIP7702NetworkConfiguration;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  const { name, chainId, isSupported } = network;
+  const networkImage = getNetworkImageSource({ networkType: 'evm', chainId });
+>>>>>>> stable
 
   return (
     <View style={styles.wrapper}>
@@ -142,12 +165,17 @@ const AccountNetworkRow = ({
         <View style={styles.name_section}>
           <Text variant={TextVariant.BodyMDBold}>{name}</Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+<<<<<<< HEAD
             {addressSupportSmartAccount
+=======
+            {isSupported
+>>>>>>> stable
               ? strings('confirm.7702_functionality.smartAccountLabel')
               : strings('confirm.7702_functionality.standardAccountLabel')}
           </Text>
         </View>
       </View>
+<<<<<<< HEAD
       <View style={styles.button_section}>
         {hasPendingRequests || switchRequestSubmitted ? (
           <Spinner size={SpinnerSize.SM} />
@@ -159,6 +187,13 @@ const AccountNetworkRow = ({
           />
         )}
       </View>
+=======
+      <Button
+        variant={ButtonVariants.Link}
+        label={strings('confirm.7702_functionality.switch')}
+        onPress={() => undefined}
+      />
+>>>>>>> stable
     </View>
   );
 };

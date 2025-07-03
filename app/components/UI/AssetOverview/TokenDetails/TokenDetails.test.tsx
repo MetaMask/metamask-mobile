@@ -16,8 +16,15 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TokenDetails from './';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
+<<<<<<< HEAD
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+=======
+import { strings } from '../../../../../locales/i18n';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
+>>>>>>> stable
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -189,6 +196,11 @@ describe('TokenDetails', () => {
           return {};
         case selectIsEvmNetworkSelected:
           return true;
+<<<<<<< HEAD
+=======
+        case selectStablecoinLendingEnabledFlag:
+          return false;
+>>>>>>> stable
         default:
           return undefined;
       }
@@ -247,7 +259,10 @@ describe('TokenDetails', () => {
           aggregators: ['Metamask', 'Coinmarketcap'],
         },
       },
+<<<<<<< HEAD
+=======
     } as const;
+
 
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       if (typeof selectorOrCallback === 'function') {
@@ -338,5 +353,154 @@ describe('TokenDetails', () => {
     debug();
     expect(queryByText('Token details')).toBeNull();
     expect(getByText('Market details')).toBeDefined();
+  });
+
+  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    const SELECTOR_MOCKS = {
+      selectTokenMarketDataByChainId: {},
+      selectConversionRateBySymbol: mockExchangeRate,
+      selectNativeCurrencyByChainId: 'ETH',
+>>>>>>> stable
+    } as const;
+
+    useSelectorSpy.mockImplementation((selectorOrCallback) => {
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedSelector) {
+          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
+        }
+      }
+
+      switch (selectorOrCallback) {
+        case selectTokenList:
+          return mockAssets;
+        case selectContractExchangeRates:
+          return {};
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectProviderConfig:
+          return { ticker: 'ETH' };
+        case selectEvmTicker:
+          return 'ETH';
+        case selectMultichainAssetsRates:
+          return {};
+<<<<<<< HEAD
+        default:
+          return undefined;
+      }
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByText('Token details')).toBeDefined();
+    expect(queryByText('Market details')).toBeNull();
+  });
+
+  it('should render MarketDetails without TokenDetails when tokenList is null', () => {
+    const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
+    useSelectorSpy.mockImplementation((selectorOrCallback) => {
+      const SELECTOR_MOCKS = {
+        selectEvmTokenMarketData: {
+          marketData:
+            mockTokenMarketDataByChainId['0x1'][
+              '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+            ],
+        },
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+      } as const;
+
+      if (typeof selectorOrCallback === 'function') {
+        const selectorString = selectorOrCallback.toString();
+        const matchedSelector = Object.keys(SELECTOR_MOCKS).find((key) =>
+          selectorString.includes(key),
+        );
+        if (matchedSelector) {
+          return SELECTOR_MOCKS[matchedSelector as keyof typeof SELECTOR_MOCKS];
+        }
+      }
+
+      switch (selectorOrCallback) {
+        case selectContractExchangeRates:
+          return mockContractExchangeRates;
+        case selectConversionRate:
+          return mockExchangeRate;
+        case selectCurrentCurrency:
+          return mockCurrentCurrency;
+        case selectMultichainAssetsRates:
+          return {};
+        case selectIsEvmNetworkSelected:
+=======
+        case selectStablecoinLendingEnabledFlag:
+>>>>>>> stable
+          return true;
+        default:
+          return undefined;
+      }
+    });
+
+<<<<<<< HEAD
+    const { getByText, queryByText, debug } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+    debug();
+    expect(queryByText('Token details')).toBeNull();
+    expect(getByText('Market details')).toBeDefined();
+=======
+    const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
+      state: initialState,
+    });
+
+    expect(
+      getByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      getByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeDefined();
+  });
+
+  it('does not render EarnEmptyCta if asset can be lent but balance is zero', () => {
+    mockSelectors();
+
+    const mockDaiWithoutBalance = {
+      ...mockDAI,
+      balanceFiat: '$0.00',
+      balance: '0',
+    };
+
+    const { queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDaiWithoutBalance} />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      queryByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeNull();
+>>>>>>> stable
   });
 });

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { CaipAccountId, CaipChainId } from '@metamask/utils';
+=======
+import { Hex } from '@metamask/utils';
+>>>>>>> stable
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -7,9 +11,13 @@ import {
 import {
   getRequestedCaip25CaveatValue,
   getCaip25PermissionsResponse,
+<<<<<<< HEAD
   getDefaultAccounts,
 } from './utils';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
+=======
+} from './utils';
+>>>>>>> stable
 
 describe('getRequestedCaip25CaveatValue', () => {
   const defaultCaveatValue = {
@@ -226,6 +234,7 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
+<<<<<<< HEAD
     const accountIds: CaipAccountId[] = [
       'eip155:0:0x0000000000000000000000000000000000000001',
     ];
@@ -235,6 +244,17 @@ describe('getCaip25PermissionsResponse', () => {
       initialCaveatValue,
       accountIds,
       chainIds,
+=======
+    const ethAccountAddresses: Hex[] = [
+      '0x0000000000000000000000000000000000000001',
+    ];
+    const ethChainIds: Hex[] = ['0x1'];
+
+    const result = getCaip25PermissionsResponse(
+      initialCaveatValue,
+      ethAccountAddresses,
+      ethChainIds,
+>>>>>>> stable
     );
 
     expect(result).toEqual({
@@ -267,6 +287,7 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
+<<<<<<< HEAD
     const accountIds: CaipAccountId[] = [];
     const chainIds: CaipChainId[] = ['eip155:1'];
 
@@ -274,6 +295,15 @@ describe('getCaip25PermissionsResponse', () => {
       initialCaveatValue,
       accountIds,
       chainIds,
+=======
+    const ethAccountAddresses: Hex[] = [];
+    const ethChainIds: Hex[] = ['0x1'];
+
+    const result = getCaip25PermissionsResponse(
+      initialCaveatValue,
+      ethAccountAddresses,
+      ethChainIds,
+>>>>>>> stable
     );
 
     expect(result).toEqual({
@@ -308,6 +338,7 @@ describe('getCaip25PermissionsResponse', () => {
       isMultichainOrigin: false,
       sessionProperties: {},
     };
+<<<<<<< HEAD
     const accountIds: CaipAccountId[] = [
       'eip155:0:0x0000000000000000000000000000000000000002',
     ];
@@ -317,6 +348,17 @@ describe('getCaip25PermissionsResponse', () => {
       initialCaveatValue,
       accountIds,
       chainIds,
+=======
+    const ethAccountAddresses: Hex[] = [
+      '0x0000000000000000000000000000000000000002',
+    ];
+    const ethChainIds: Hex[] = ['0xa'];
+
+    const result = getCaip25PermissionsResponse(
+      initialCaveatValue,
+      ethAccountAddresses,
+      ethChainIds,
+>>>>>>> stable
     );
 
     expect(result).toEqual({
@@ -342,6 +384,7 @@ describe('getCaip25PermissionsResponse', () => {
     });
   });
 });
+<<<<<<< HEAD
 
 describe('getDefaultAccounts', () => {
 
@@ -407,3 +450,5 @@ describe('getDefaultAccounts', () => {
     )).toStrictEqual([allAccounts[2], allAccounts[4]]);
   });
 });
+=======
+>>>>>>> stable

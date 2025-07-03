@@ -17,9 +17,15 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
+<<<<<<< HEAD
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
+=======
+import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { useStandaloneConfirmation } from '../../hooks/ui/useStandaloneConfirmation';
+>>>>>>> stable
 import { useQRHardwareContext } from '../../context/qr-hardware-context/qr-hardware-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
@@ -44,7 +50,11 @@ export const Footer = () => {
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
+<<<<<<< HEAD
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+=======
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+>>>>>>> stable
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
@@ -86,7 +96,11 @@ export const Footer = () => {
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
     isStakingConfirmationBool,
+<<<<<<< HEAD
     isFullScreenConfirmation,
+=======
+    isStandaloneConfirmation,
+>>>>>>> stable
   });
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {

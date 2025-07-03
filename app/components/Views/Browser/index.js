@@ -39,11 +39,15 @@ import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+<<<<<<< HEAD
 
 import {
   appendURLParams,
   isTokenDiscoveryBrowserEnabled,
 } from '../../../util/browser';
+=======
+import { appendURLParams } from '../../../util/browser';
+>>>>>>> stable
 import {
   THUMB_WIDTH,
   THUMB_HEIGHT,
@@ -54,7 +58,13 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+<<<<<<< HEAD
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
+=======
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../core/Multichain/utils';
+import { useFocusEffect } from '@react-navigation/native';
+>>>>>>> stable
 ///: END:ONLY_INCLUDE_IF
 
 const MAX_BROWSER_TABS = 5;
@@ -97,6 +107,13 @@ export const Browser = (props) => {
   );
   const permittedAccountsList = useSelector(selectPermissionControllerState);
 
+<<<<<<< HEAD
+=======
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const currentSelectedAccount = useSelector(selectSelectedInternalAccount);
+  ///: END:ONLY_INCLUDE_IF
+
+>>>>>>> stable
   const homePageUrl = useCallback(
     () =>
       appendURLParams(AppConstants.HOMEPAGE_URL, {
@@ -106,6 +123,7 @@ export const Browser = (props) => {
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
+<<<<<<< HEAD
   const newTab = useCallback(
     (url, linkType) => {
       // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
@@ -123,6 +141,47 @@ export const Browser = (props) => {
   );
 
   const [currentUrl, setCurrentUrl] = useState(browserUrl || homePageUrl());
+=======
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // TODO remove after we release Solana dapp connectivity
+  useFocusEffect(
+    useCallback(() => {
+      if (isSolanaAccount(currentSelectedAccount)) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Network,
+          networkImageSource: require('../../../images/solana-logo.png'),
+          labelOptions: [
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.title',
+              )} \n`,
+              isBold: true,
+            },
+            {
+              label: `${strings(
+                'browser.toast.solana_dapp_connection_coming_soon.message',
+              )}`,
+            },
+          ],
+        });
+      }
+    }, [toastRef, currentSelectedAccount]),
+  );
+  ///: END:ONLY_INCLUDE_IF
+
+  const newTab = useCallback(
+    (url, linkType) => {
+      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+      if (tabs.length >= MAX_BROWSER_TABS) {
+        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+      } else {
+        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+        createNewTab(url || homePageUrl(), linkType);
+      }
+    },
+    [tabs, navigation, homePageUrl, createNewTab],
+  );
+>>>>>>> stable
 
   const updateTabInfo = useCallback(
     (tabID, info) => {
@@ -188,11 +247,18 @@ export const Browser = (props) => {
   }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
+<<<<<<< HEAD
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
       const permittedAccounts = getPermittedCaipAccountIdsByHostname(
         permittedAccountsList,
         hostnameForToastCheck,
       );
+=======
+    const checkIfActiveAccountChanged = () => {
+      const hostname = new URL(browserUrl).hostname;
+      const permittedAccounts = getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedAccounts?.[0];
+>>>>>>> stable
 
       const sortedPermittedAccounts =
         sortMultichainAccountsByLastSelected(permittedAccounts);
@@ -407,6 +473,7 @@ export const Browser = (props) => {
     () =>
       tabs
         .filter((tab) => !tab.isArchived)
+<<<<<<< HEAD
         .map((tab) => {
 
           // If the tab is not the active tab, don't render it
@@ -443,6 +510,28 @@ export const Browser = (props) => {
       updateTabInfo,
       showTabsView,
       activeTabId,
+=======
+        .map((tab) => (
+          <BrowserTab
+            id={tab.id}
+            key={`tab_${tab.id}`}
+            initialUrl={tab.url}
+            linkType={tab.linkType}
+            updateTabInfo={updateTabInfo}
+            showTabs={showTabs}
+            newTab={newTab}
+            isInTabsView={route.params?.showTabs}
+            homePageUrl={homePageUrl()}
+          />
+        )),
+    [
+      tabs,
+      route.params?.showTabs,
+      newTab,
+      homePageUrl,
+      updateTabInfo,
+      showTabs,
+>>>>>>> stable
     ],
   );
 

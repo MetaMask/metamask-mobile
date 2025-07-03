@@ -185,6 +185,10 @@ const Routes = {
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   LOCK_SCREEN: 'LockScreen',
+<<<<<<< HEAD
+=======
+  CONFIRMATION_REQUEST_FLAT: 'ConfirmationRequestFlat',
+>>>>>>> stable
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   NOTIFICATIONS: {
@@ -207,6 +211,7 @@ const Routes = {
       EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
+<<<<<<< HEAD
   EARN: {
     ROOT: 'EarnScreens',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
@@ -219,6 +224,13 @@ const Routes = {
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
+=======
+  STANDALONE_CONFIRMATIONS: {
+    STAKE_DEPOSIT: 'RedesignedStakeDeposit',
+    STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
+    STAKE_CLAIM: 'RedesignedStakeClaim',
+    TRANSFER: 'RedesignedTransfer',
+>>>>>>> stable
   },
   IDENTITY: {
     TURN_ON_BACKUP_AND_SYNC: 'TurnOnBackupAndSync',
@@ -236,6 +248,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+<<<<<<< HEAD
   SEEDPHRASE_MODAL: 'SeedphraseModal',
   SET_PASSWORD_FLOW: {
     ROOT: 'SetPasswordFlow',
@@ -244,6 +257,8 @@ const Routes = {
     MANUAL_BACKUP_STEP_3: 'ManualBackupStep3',
   },
 
+=======
+>>>>>>> stable
   EDIT_ACCOUNT_NAME: 'EditAccountName',
 };
 

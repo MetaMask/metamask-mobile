@@ -97,7 +97,7 @@ export default function useBalance(asset?: Asset) {
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(
-            balances[assetAddress],
+            balances[assetAddress as Hex],
             asset.decimals ?? 18,
           )
         : 0;
@@ -109,7 +109,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceBN =
       assetAddress && assetAddress in balances
-        ? hexToBN(balances[assetAddress])
+        ? hexToBN(balances[assetAddress as Hex])
         : null;
   }
 

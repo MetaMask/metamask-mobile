@@ -689,7 +689,11 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           avatarProps={
             {
               "imageSource": 1,
+<<<<<<< HEAD
               "name": "Base Mainnet",
+=======
+              "name": "Solana",
+>>>>>>> stable
               "variant": "Network",
             }
           }
@@ -703,7 +707,11 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
           }
           testID="celldisplay"
+<<<<<<< HEAD
           title="Base Mainnet"
+=======
+          title="Solana"
+>>>>>>> stable
         >
           <View
             style={
@@ -763,6 +771,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="cellbase-avatar-title"
               >
+<<<<<<< HEAD
                 Base Mainnet
               </Text>
             </View>
@@ -882,6 +891,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="cellbase-avatar-title"
               >
+=======
+>>>>>>> stable
                 Solana
               </Text>
             </View>

@@ -20,12 +20,17 @@ import {
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+<<<<<<< HEAD
 import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
 };
+=======
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
+import { toFormattedAddress } from '../util/address';
+>>>>>>> stable
 
 /**
  *
@@ -72,6 +77,7 @@ export const selectInternalEvmAccounts = createSelector(
   (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
 );
 
+<<<<<<< HEAD
 /**
  * A memoized selector that returns internal accounts from the AccountsController,
  * sorted by the order of KeyringController's keyring accounts,
@@ -89,6 +95,8 @@ export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
     }),
 );
 
+=======
+>>>>>>> stable
 /**
  * A memoized selector that returns the selected internal account from the AccountsController
  */
@@ -141,9 +149,14 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
 
 export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
+<<<<<<< HEAD
   (internalAccounts, address) =>
     internalAccounts.find((account) =>
       areAddressesEqual(account.address, address),
+=======
+  (internalAccounts, address) => internalAccounts.find((account) =>
+      isEqualCaseInsensitive(account.address, address),
+>>>>>>> stable
     ),
 );
 

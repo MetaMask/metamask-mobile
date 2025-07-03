@@ -1,11 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { View, InteractionManager, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+<<<<<<< HEAD
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+=======
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {
+  OutlinedTextField,
+  TextFieldProps,
+} from 'react-native-material-textfield';
+>>>>>>> stable
 import { createStyles } from './styles';
 import { useDeleteWallet } from '../../hooks/DeleteWallet';
 import { strings } from '../../../../locales/i18n';
@@ -115,6 +123,7 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   return (
+<<<<<<< HEAD
     <BottomSheet ref={modalRef}>
       {!isResetWallet ? (
         <View style={styles.forgotPasswordContainer}>
@@ -136,6 +145,42 @@ const DeleteWalletModal: React.FC = () => {
                 name={IconName.FaceId}
                 size={IconSize.Md}
                 color={IconColor.Muted}
+=======
+    <ReusableModal ref={modalRef}>
+      {showConfirm ? (
+        <WarningExistingUserModal
+          warningModalVisible
+          cancelText={strings('login.delete_my')}
+          cancelTestID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+          confirmTestID={DeleteWalletModalSelectorsIDs.DELETE_CANCEL_BUTTON}
+          cancelButtonDisabled={disableButton}
+          onCancelPress={deleteWallet}
+          onRequestClose={triggerClose}
+          onConfirmPress={triggerClose}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.areYouSure}>
+              <Text style={[styles.heading, styles.delete]}>
+                {strings('login.type_delete', {
+                  [DELETE_KEYWORD]: DELETE_KEYWORD,
+                })}
+              </Text>
+              <OutlinedTextField
+                style={styles.input as TextFieldProps}
+                {...generateTestId(
+                  Platform,
+                  DeleteWalletModalSelectorsIDs.INPUT,
+                )}
+                autoFocus
+                returnKeyType={'done'}
+                onChangeText={checkDelete}
+                autoCapitalize="none"
+                value={deleteText}
+                baseColor={colors.border.default}
+                tintColor={colors.primary.default}
+                placeholderTextColor={colors.text.muted}
+                keyboardAppearance={themeAppearance}
+>>>>>>> stable
               />
               <Text
                 variant={TextVariant.BodyMD}

@@ -91,7 +91,11 @@ import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+<<<<<<< HEAD
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+=======
+import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
+>>>>>>> stable
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
@@ -731,7 +735,11 @@ class Amount extends PureComponent {
         });
         this.setState({ isRedesignedTransferTransactionLoading: false });
         navigation.navigate('SendFlowView', {
+<<<<<<< HEAD
           screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+=======
+          screen: Routes.STANDALONE_CONFIRMATIONS.TRANSFER,
+>>>>>>> stable
         });
       } else {
         navigation.navigate(Routes.SEND_FLOW.CONFIRM);

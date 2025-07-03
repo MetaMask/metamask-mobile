@@ -43,9 +43,13 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
+<<<<<<< HEAD:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.ts
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0xaa36a7']),
           )
+=======
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+>>>>>>> stable:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.js
           .build(),
         restartDevice: true,
         testSpecificMock: {
@@ -79,7 +83,16 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
+<<<<<<< HEAD:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.ts
         await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
+=======
+        try {
+          await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('The banner alert is not visible');
+        }
+>>>>>>> stable:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.js
       });
     });
 
@@ -160,6 +173,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
+<<<<<<< HEAD:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.ts
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0xaa36a7']),
             )
@@ -167,6 +181,13 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           restartDevice: true,
           testSpecificMock: {
             GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
+=======
+            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
+            .build(),
+          restartDevice: true,
+          testSpecificMock: {
+            GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+>>>>>>> stable:e2e/specs/confirmations-redesigned/signatures/alert-system.spec.js
           },
         },
         async () => {

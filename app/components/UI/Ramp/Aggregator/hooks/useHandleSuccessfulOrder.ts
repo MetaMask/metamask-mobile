@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import Engine from '../../../../../core/Engine';
@@ -11,6 +12,15 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { areAddressesEqual } from '../../../../../util/address';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
+=======
+import { protectWalletModalVisible } from '../../../../actions/user';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
+import Engine from '../../../../core/Engine';
+import NotificationManager from '../../../../core/NotificationManager';
+import { addFiatOrder, FiatOrder } from '../../../../reducers/fiatOrders';
+import { areAddressesEqual } from '../../../../util/address';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
+>>>>>>> stable:app/components/UI/Ramp/hooks/useHandleSuccessfulOrder.ts
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails, stateHasOrder } from '../utils';
 import useAnalytics from './useAnalytics';

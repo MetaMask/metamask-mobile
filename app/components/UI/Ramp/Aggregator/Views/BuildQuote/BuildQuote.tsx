@@ -82,11 +82,18 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+=======
+import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+>>>>>>> stable:app/components/UI/Ramp/Views/BuildQuote/BuildQuote.tsx
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

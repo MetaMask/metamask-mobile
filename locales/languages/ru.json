@@ -37,6 +37,7 @@
       "title": "Недостаточно средств",
       "message": "На вашем счете недостаточно %{nativeCurrency} для оплаты комиссий сети.",
       "buy_action": "Купить %{nativeCurrency}"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Предыдущая транзакция все еще находится в процессе подписания или отправки."
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "Ненужное разрешение",
       "message": "Вы даете кому-то другому разрешение на снятие ваших токенов, даже если это не является необходимым для данной транзакции."
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "Добавьте несколько секретных фраз для восстановления",
       "subtitle": "Импорт и использование нескольких кошельков в MetaMask"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Теперь поддерживается Solana",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "Представляем резервное копирование и синхронизацию",
       "subtitle": "Создавайте резервные копии своих счетов и синхронизируйте настройки."
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "Не удалось создать счет {{clientType}}"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Для подключения к этому сайту необходим счет Solana.",
       "button": "Создать счет Solana"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -4126,19 +4135,27 @@
       "permit_revoke": "Удалить разрешение",
       "permit_NFTs": "Запрос на вывод средств",
       "signature_siwe": "Запрос на вход",
+<<<<<<< HEAD
       "contract_interaction": "Запрос транзакции",
       "transfer": "Запрос на перевод",
       "switch_account_type": "Обновление счета",
       "approve": "Approve request"
+=======
+      "contract_interaction": "Запрос транзакции"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
       "permit_NFTs": "Этот сайт запрашивает разрешение на вывод ваших NFT.",
       "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
       "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета.",
+<<<<<<< HEAD
       "contract_interaction": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
       "switch_to_smart_account": "Вы переходите на смарт-счет.",
       "switch_to_standard_account": "Вы переходите обратно на стандартный счет (EOA)."
+=======
+      "contract_interaction": "Прежде чем подтвердить запрос, просмотрите детали запроса."
+>>>>>>> stable
     },
     "request_from": "Запрос от",
     "staking_from": "Стейкинг от",
@@ -4209,6 +4226,7 @@
       "includes_transaction": "Включает {{transactionCount}} транзакции(-ий)"
     },
     "unlimited": "Неограничено",
+<<<<<<< HEAD
     "all": "Все",
     "none": "Нет",
     "advanced_details": "Дополнительные сведения",
@@ -4218,6 +4236,12 @@
     "transferRequest": "Запрос на перевод",
     "nested_transaction_heading": "Транзакция {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "Нет",
+    "advanced_details": "Дополнительные сведения",
+    "interacting_with": "Взаимодействие с",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -4268,6 +4292,7 @@
     "bridge_to": "Мост к",
     "title": "Мост",
     "submitting_transaction": "Выполняется отправка",
+<<<<<<< HEAD
     "fetching_quote": "Получение котировки",
     "fee_disclaimer": "Включает комиссию MM в размере 0,875%",
     "hardware_wallet_not_supported": "Аппаратные кошельки пока не поддерживаются. Используйте горячий кошелек, чтобы продолжить.",
@@ -4277,6 +4302,14 @@
     "title": "Доступны новые котировки",
     "description": "Курсы обновляются каждые {{refreshRate}} секунд, поэтому нажмите «Получить новую котировку», когда будете готовы.",
     "get_new_quote": "Получить новую котировку"
+=======
+    "fetching_quote": "Получение котировки"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Статус",
@@ -4292,6 +4325,7 @@
     "transaction_details": "Сведения о транзакции",
     "bridge_to_chain": "Мост к {{chainName}}",
     "recipient": "Получатель"
+<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Резервное копирование и синхронизация",
@@ -4408,5 +4442,7 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+>>>>>>> stable
   }
 }

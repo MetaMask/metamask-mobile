@@ -39,8 +39,15 @@ jest
   .mockImplementation(mockRunAfterInteractions);
 
 describe('AccountBackupStep1B', () => {
+<<<<<<< HEAD
   beforeEach(() => {
     jest.useFakeTimers();
+=======
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers({ legacyFakeTimers: true });
+>>>>>>> stable
   });
 
   afterEach(() => {

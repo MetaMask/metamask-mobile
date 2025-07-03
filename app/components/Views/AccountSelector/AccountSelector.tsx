@@ -7,7 +7,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
+<<<<<<< HEAD
 import { InteractionManager, useWindowDimensions } from 'react-native';
+=======
+import { InteractionManager, View } from 'react-native';
+>>>>>>> stable
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -129,6 +133,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
     },
     [],
+<<<<<<< HEAD
   );
 
   const addAccountButtonProps: ButtonProps[] = useMemo(
@@ -143,6 +148,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       },
     ],
     [handleAddAccount],
+=======
+>>>>>>> stable
   );
 
   const renderAccountSelector = useCallback(
@@ -158,10 +165,25 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
+<<<<<<< HEAD
         <BottomSheetFooter
           buttonPropsArray={addAccountButtonProps}
           style={styles.sheet}
         />
+=======
+        <View style={styles.sheet}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('account_actions.add_account_or_hardware_wallet')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            onPress={handleAddAccount}
+            testID={
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+            }
+          />
+        </View>
+>>>>>>> stable
       </Fragment>
     ),
     [
@@ -171,8 +193,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
+<<<<<<< HEAD
       styles.sheet,
       addAccountButtonProps,
+=======
+      handleAddAccount,
+>>>>>>> stable
     ],
   );
 

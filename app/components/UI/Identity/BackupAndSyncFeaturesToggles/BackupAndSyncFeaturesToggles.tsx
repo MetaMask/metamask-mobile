@@ -11,7 +11,10 @@ import { useBackupAndSync } from '../../../../util/identity/hooks/useBackupAndSy
 import { useSelector } from 'react-redux';
 import {
   selectIsAccountSyncingEnabled,
+<<<<<<< HEAD
   selectIsContactSyncingEnabled,
+=======
+>>>>>>> stable
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
@@ -31,6 +34,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     featureReduxSelector: selectIsAccountSyncingEnabled,
     testID: 'toggle-accountSyncing',
   },
+<<<<<<< HEAD
   {
     id: 'contacts',
     titleI18NKey: strings('backupAndSync.features.contacts'),
@@ -39,6 +43,8 @@ export const backupAndSyncFeaturesTogglesSections = [
     featureReduxSelector: selectIsContactSyncingEnabled,
     testID: 'toggle-contactSyncing',
   },
+=======
+>>>>>>> stable
 ];
 
 const FeatureToggle = ({

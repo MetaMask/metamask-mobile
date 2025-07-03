@@ -34,7 +34,11 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
+<<<<<<< HEAD
 } from '../../UI/Ramp/Aggregator/routes/utils';
+=======
+} from '../../UI/Ramp/routes/utils';
+>>>>>>> stable
 import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
@@ -50,6 +54,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
+<<<<<<< HEAD
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -61,6 +66,10 @@ import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
+=======
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+>>>>>>> stable
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -91,6 +100,7 @@ const WalletActions = () => {
       location: SwapBridgeNavigationLocation.TabBar,
       sourcePage: 'MainView',
     });
+<<<<<<< HEAD
 
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
@@ -110,6 +120,8 @@ const WalletActions = () => {
     asset: assetToSend || { chainId, address: undefined },
     closeModal: () => sheetRef.current?.onCloseBottomSheet(),
   });
+=======
+>>>>>>> stable
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -252,9 +264,41 @@ const WalletActions = () => {
         .build(),
     );
 
+<<<<<<< HEAD
     // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset();
     if (wasHandledAsNonEvm) {
+=======
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Non-EVM (Snap) Send flow
+    if (selectedAccount && !isEvmAccountType(selectedAccount.type)) {
+      if (!selectedAccount.metadata.snap) {
+        throw new Error('Non-EVM needs to be Snap accounts');
+      }
+
+      // TODO: Remove this once we want to enable all non-EVM Snaps
+      if (!isMultichainWalletSnap(selectedAccount.metadata.snap.id as SnapId)) {
+        throw new Error(
+          `Non-EVM Snap is not whitelisted: ${selectedAccount.metadata.snap.id}`,
+        );
+      }
+
+      try {
+        await sendMultichainTransaction(
+          selectedAccount.metadata.snap.id as SnapId,
+          {
+            account: selectedAccount.id,
+            scope: chainId as CaipChainId,
+          },
+        );
+        sheetRef.current?.onCloseBottomSheet();
+      } catch {
+        // Restore the previous page in case of any error
+        sheetRef.current?.onCloseBottomSheet();
+      }
+
+      // Early return, not to let the non-EVM flow slip into the native send flow.
+>>>>>>> stable
       return;
     }
 
@@ -421,7 +465,11 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
+<<<<<<< HEAD
         {isEarnWalletActionEnabled && (
+=======
+        {isStablecoinLendingEnabled && (
+>>>>>>> stable
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}

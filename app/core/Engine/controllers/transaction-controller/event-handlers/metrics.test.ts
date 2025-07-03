@@ -26,10 +26,13 @@ jest.mock('../../../../../util/smart-transactions', () => {
     getSmartTransactionMetricsProperties: jest.fn(),
   };
 });
+<<<<<<< HEAD
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(true),
 }));
+=======
+>>>>>>> stable
 
 // Mock dependencies
 jest.mock('../../../../Analytics', () => ({

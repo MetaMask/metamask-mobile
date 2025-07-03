@@ -40,14 +40,22 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
+<<<<<<< HEAD
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import { EVENT_LOCATIONS } from '../../constants/events';
+=======
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../../Stake/constants/events';
+>>>>>>> stable
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
+<<<<<<< HEAD
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import {
@@ -67,6 +75,9 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
+=======
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+>>>>>>> stable
 
 const EarnInputView = () => {
   // navigation hooks
@@ -96,6 +107,9 @@ const EarnInputView = () => {
   );
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
+  );
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -530,6 +544,7 @@ const EarnInputView = () => {
     trackEvent,
   ]);
 
+<<<<<<< HEAD
   const handleEarnPress = useCallback(async () => {
     // Stablecoin Lending Flow
     if (
@@ -552,6 +567,9 @@ const EarnInputView = () => {
   const handleMaxButtonPress = useCallback(() => {
     lastQuickAmountButtonPressed.current = 'MAX';
 
+=======
+  const handleMaxButtonPress = () => {
+>>>>>>> stable
     if (!isStablecoinLendingEnabled || token.isETH) {
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.MAX_INPUT,
@@ -788,10 +806,14 @@ const EarnInputView = () => {
       />
       <View style={styles.rewardsRateContainer}>
         {isStablecoinLendingEnabled ? (
+<<<<<<< HEAD
           <EarnTokenSelector
             token={token}
             action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
           />
+=======
+          <EarnTokenSelector token={token} />
+>>>>>>> stable
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}

@@ -3,7 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
 import { useConfirmActions } from '../useConfirmActions';
+<<<<<<< HEAD
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+=======
+import { useStandaloneConfirmation } from './useStandaloneConfirmation';
+>>>>>>> stable
 import useClearConfirmationOnBackSwipe from './useClearConfirmationOnBackSwipe';
 
 jest.mock('@react-navigation/native', () => ({
@@ -19,8 +23,13 @@ jest.mock('../../../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
+<<<<<<< HEAD
 jest.mock('./useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(),
+=======
+jest.mock('./useStandaloneConfirmation', () => ({
+  useStandaloneConfirmation: jest.fn(),
+>>>>>>> stable
 }));
 
 describe('useClearConfirmationOnBackSwipe', () => {
@@ -46,8 +55,13 @@ describe('useClearConfirmationOnBackSwipe', () => {
   });
 
   it('does not set up back handler if confirmation is not standalone', () => {
+<<<<<<< HEAD
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({
       isFullScreenConfirmation: false,
+=======
+    (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+      isStandaloneConfirmation: false,
+>>>>>>> stable
     });
 
     renderHook(() => useClearConfirmationOnBackSwipe());
@@ -60,8 +74,13 @@ describe('useClearConfirmationOnBackSwipe', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(true);
       (Device.isAndroid as jest.Mock).mockReturnValue(false);
+<<<<<<< HEAD
       (useFullScreenConfirmation as jest.Mock).mockReturnValue({
         isFullScreenConfirmation: true,
+=======
+      (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+        isStandaloneConfirmation: true,
+>>>>>>> stable
       });
     });
 
@@ -101,8 +120,13 @@ describe('useClearConfirmationOnBackSwipe', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
       (Device.isAndroid as jest.Mock).mockReturnValue(true);
+<<<<<<< HEAD
       (useFullScreenConfirmation as jest.Mock).mockReturnValue({
         isFullScreenConfirmation: true,
+=======
+      (useStandaloneConfirmation as jest.Mock).mockReturnValue({
+        isStandaloneConfirmation: true,
+>>>>>>> stable
       });
     });
 

@@ -76,9 +76,28 @@ describe('refreshTokens', () => {
 
     expect(
       Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+<<<<<<< HEAD
     ).toHaveBeenCalledWith([
       { chainId: '0x1', nativeCurrency: 'ETH' },
       { chainId: '0x89', nativeCurrency: 'POL' },
+=======
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+    ).toHaveBeenCalledWith([
+      {
+        chainId: '0x1',
+        nativeCurrency: 'ETH',
+      },
+    ]);
+    expect(
+      Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+    ).toHaveBeenCalledWith([
+      {
+        chainId: '0x89',
+        nativeCurrency: 'POL',
+      },
+>>>>>>> stable
     ]);
   });
 

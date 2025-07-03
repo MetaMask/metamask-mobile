@@ -79,11 +79,30 @@ export const handleTransactionSubmittedEventForMetrics =
 export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
+<<<<<<< HEAD
 ): Promise<void> {
   // Generate default properties
   const defaultTransactionMetricProperties =
     await generateDefaultTransactionMetrics(
       TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+=======
+) {
+  const { getState, initMessenger, smartTransactionsController } =
+    transactionEventHandlerRequest;
+
+  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
+
+  let stxMetricsProperties = {};
+
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(getState(), transactionMeta.chainId);
+  if (shouldUseSmartTransaction) {
+    stxMetricsProperties = await getSmartTransactionMetricsProperties(
+      smartTransactionsController,
+>>>>>>> stable
       transactionMeta,
       transactionEventHandlerRequest,
     );

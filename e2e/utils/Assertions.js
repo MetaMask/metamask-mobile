@@ -18,6 +18,10 @@ class Assertions {
       .toBeVisible()
       .withTimeout(timeout);
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> stable
 
   /**
    * Check if an element with the specified web selector exists.

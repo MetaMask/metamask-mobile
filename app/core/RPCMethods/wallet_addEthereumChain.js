@@ -18,7 +18,11 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
+<<<<<<< HEAD
 import { addItemToChainIdList } from '../../util/metrics/MultichainAPI/networkMetricUtils';
+=======
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
+>>>>>>> stable
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -107,6 +111,10 @@ export const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
+<<<<<<< HEAD
+=======
+      isAddNetworkFlow,
+>>>>>>> stable
       autoApprove: shouldAddOrUpdateNetwork,
       hooks,
     });
@@ -277,6 +285,7 @@ export const wallet_addEthereumChain = async ({
         })
         .build(),
     );
+<<<<<<< HEAD
 
     MetaMetrics.getInstance().addTraitsToUser(addItemToChainIdList(chainId));
   }
@@ -284,3 +293,26 @@ export const wallet_addEthereumChain = async ({
 
   res.result = null;
 };
+=======
+  }
+  switchToNetworkAndMetrics(newNetworkConfiguration, true);
+
+  res.result = null;
+};
+
+export const addEthereumChainHandler = {
+  methodNames: [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN],
+  implementation: wallet_addEthereumChain,
+  hookNames: {
+    addNetwork: true,
+    updateNetwork: true,
+    getNetworkConfigurationByChainId: true,
+    setActiveNetwork: true,
+    requestUserApproval: true,
+    getCurrentChainIdForDomain: true,
+    getCaveat: true,
+    requestPermittedChainsPermissionIncrementalForOrigin: true,
+    rejectApprovalRequestsForOrigin: true,
+  },
+};
+>>>>>>> stable

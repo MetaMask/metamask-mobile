@@ -5,6 +5,7 @@ import {
   abiERC1155,
   abiFiatTokenV2,
 } from '@metamask/metamask-eth-abis';
+<<<<<<< HEAD
 import {
   TransactionMeta,
   TransactionParams,
@@ -14,12 +15,15 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
+=======
+>>>>>>> stable
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
 const erc1155Interface = new Interface(abiERC1155);
 const USDCInterface = new Interface(abiFiatTokenV2);
 
+<<<<<<< HEAD
 const ABI_PERMIT_2_APPROVE = {
   inputs: [
     { internalType: 'address', name: 'token', type: 'address' },
@@ -34,6 +38,8 @@ const ABI_PERMIT_2_APPROVE = {
 };
 const permit2Interface = new Interface([ABI_PERMIT_2_APPROVE]);
 
+=======
+>>>>>>> stable
 export function parseStandardTokenTransactionData(data?: string) {
   if (!data) {
     return undefined;
@@ -63,6 +69,7 @@ export function parseStandardTokenTransactionData(data?: string) {
     // ignore and return undefined
   }
 
+<<<<<<< HEAD
   try {
     return permit2Interface.parseTransaction({ data });
   } catch {
@@ -97,3 +104,7 @@ export async function addMMOriginatedTransaction(
 
   return transactionMeta;
 }
+=======
+  return undefined;
+}
+>>>>>>> stable

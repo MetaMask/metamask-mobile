@@ -7,6 +7,7 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+<<<<<<< HEAD
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 
 // Mock Solana transactions for testing
@@ -99,6 +100,9 @@ const mockSolanaTransactions = [
     to: [],
   },
 ];
+=======
+import { isPortfolioViewEnabled } from '../../../util/networks';
+>>>>>>> stable
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -222,11 +226,14 @@ jest.mock('../../../util/networks', () => ({
   isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
 }));
 
+<<<<<<< HEAD
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
   getBuildNumber: jest.fn().mockReturnValue(1),
 }));
 
+=======
+>>>>>>> stable
 jest.mock('../../../core/Engine', () => {
   const {
     MOCK_ADDRESS_1,

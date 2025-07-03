@@ -16,7 +16,7 @@ export interface CellBaseProps {
   /**
    * Title of the Cell Account, 1 line truncation.
    */
-  title: React.ReactNode;
+  title: string;
   /**
    * Optional props for title.
    */

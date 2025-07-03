@@ -261,6 +261,7 @@ function setSecurityAlertResponse(
   }: { updateControllerState?: boolean; securityAlertId?: string } = {},
 ) {
   if (isTransactionRequest(request)) {
+<<<<<<< HEAD
     if (securityAlertId && !transactionId) {
       fetchTransactionIdAndUpdateSecurityResultForTransaction(
         response,
@@ -273,6 +274,17 @@ function setSecurityAlertResponse(
         response,
         updateControllerState,
         securityAlertId,
+=======
+    store.dispatch(
+      setTransactionSecurityAlertResponse(transactionId, response),
+    );
+
+    if (updateControllerState) {
+      updateSecurityAlertResponse(
+        transactionId as string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { ...response, securityAlertId } as any,
+>>>>>>> stable
       );
     }
   } else {

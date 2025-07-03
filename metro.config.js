@@ -31,6 +31,7 @@ module.exports = function (baseConfig) {
           ...defaultConfig.resolver.extraNodeModules,
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),
+<<<<<<< HEAD
           _stream_transform: require.resolve('readable-stream/transform'),
           _stream_readable: require.resolve('readable-stream/readable'),
           _stream_writable: require.resolve('readable-stream/writable'),
@@ -42,6 +43,8 @@ module.exports = function (baseConfig) {
           os: require.resolve('react-native-os'),
           net: require.resolve('react-native-tcp'),
           fs: require.resolve('react-native-level-fs'),
+=======
+>>>>>>> stable
           images: path.resolve(__dirname, 'app/images'),
         },
       },

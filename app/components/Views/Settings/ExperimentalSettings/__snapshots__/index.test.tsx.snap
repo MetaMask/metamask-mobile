@@ -56,7 +56,11 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
+<<<<<<< HEAD
           "borderRadius": 12,
+=======
+          "borderRadius": 24,
+>>>>>>> stable
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,

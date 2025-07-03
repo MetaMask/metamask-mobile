@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import { Interface } from '@ethersproject/abi';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   addMMOriginatedTransaction,
   parseStandardTokenTransactionData,
 } from './transaction';
+=======
+import { parseStandardTokenTransactionData } from './transaction';
+import { Interface } from '@ethersproject/abi';
+>>>>>>> stable
 import {
   abiERC721,
   abiERC20,
@@ -11,6 +16,7 @@ import {
   abiFiatTokenV2,
 } from '@metamask/metamask-eth-abis';
 
+<<<<<<< HEAD
 import {
   buildPermit2ApproveTransactionData,
   upgradeAccountConfirmation,
@@ -28,6 +34,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+=======
+>>>>>>> stable
 describe('parseStandardTokenTransactionData', () => {
   const erc20Interface = new Interface(abiERC20);
   const erc721Interface = new Interface(abiERC721);
@@ -46,10 +54,14 @@ describe('parseStandardTokenTransactionData', () => {
     // Create ERC20 transfer data
     const recipient = '0x1234567890123456789012345678901234567890';
     const amount = '1000000000000000000'; // 1 token with 18 decimals
+<<<<<<< HEAD
     const transferData = erc20Interface.encodeFunctionData('transfer', [
       recipient,
       amount,
     ]);
+=======
+    const transferData = erc20Interface.encodeFunctionData('transfer', [recipient, amount]);
+>>>>>>> stable
 
     const result = parseStandardTokenTransactionData(transferData);
 
@@ -63,11 +75,15 @@ describe('parseStandardTokenTransactionData', () => {
     const from = '0x1234567890123456789012345678901234567890';
     const to = '0x2234567890123456789012345678901234567890';
     const tokenId = '123';
+<<<<<<< HEAD
     const transferData = erc721Interface.encodeFunctionData('transferFrom', [
       from,
       to,
       tokenId,
     ]);
+=======
+    const transferData = erc721Interface.encodeFunctionData('transferFrom', [from, to, tokenId]);
+>>>>>>> stable
 
     const result = parseStandardTokenTransactionData(transferData);
 
@@ -84,10 +100,20 @@ describe('parseStandardTokenTransactionData', () => {
     const tokenId = '123';
     const amount = '1';
     const data = '0x';
+<<<<<<< HEAD
     const transferData = erc1155Interface.encodeFunctionData(
       'safeTransferFrom',
       [from, to, tokenId, amount, data],
     );
+=======
+    const transferData = erc1155Interface.encodeFunctionData('safeTransferFrom', [
+      from,
+      to,
+      tokenId,
+      amount,
+      data,
+    ]);
+>>>>>>> stable
 
     const result = parseStandardTokenTransactionData(transferData);
 
@@ -102,10 +128,14 @@ describe('parseStandardTokenTransactionData', () => {
   it('parses USDC transfer data correctly', () => {
     const recipient = '0x1234567890123456789012345678901234567890';
     const amount = '1000000'; // 1 USDC (6 decimals)
+<<<<<<< HEAD
     const transferData = usdcInterface.encodeFunctionData('transfer', [
       recipient,
       amount,
     ]);
+=======
+    const transferData = usdcInterface.encodeFunctionData('transfer', [recipient, amount]);
+>>>>>>> stable
 
     const result = parseStandardTokenTransactionData(transferData);
 
@@ -115,6 +145,7 @@ describe('parseStandardTokenTransactionData', () => {
     expect(result?.args[1].toString()).toBe(amount);
   });
 
+<<<<<<< HEAD
   it('parses permit 2 approval data correctly', () => {
     const SPENDER_MOCK = '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb';
     const TOKEN_ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
@@ -132,10 +163,13 @@ describe('parseStandardTokenTransactionData', () => {
     expect(result?.name).toBe('approve');
     expect(result?.signature).toBe('approve(address,address,uint160,uint48)');
   });
+=======
+>>>>>>> stable
   it('returns undefined for invalid transaction data', () => {
     const invalidData = '0xinvaliddata';
     expect(parseStandardTokenTransactionData(invalidData)).toBeUndefined();
   });
+<<<<<<< HEAD
 
   describe('addTransaction', () => {
     it('call required methods to save and validate transaction', async () => {
@@ -156,4 +190,6 @@ describe('parseStandardTokenTransactionData', () => {
       expect(mockValidateRequest).toHaveBeenCalledTimes(1);
     });
   });
+=======
+>>>>>>> stable
 });

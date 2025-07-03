@@ -16,9 +16,15 @@ describe('Notification Selectors', () => {
           isSignedIn: true,
         },
         UserStorageController: {
+<<<<<<< HEAD
           isBackupAndSyncEnabled: true,
           isAccountSyncingEnabled: true,
           isBackupAndSyncUpdateLoading: false,
+=======
+          isProfileSyncingEnabled: true,
+          isAccountSyncingEnabled: true,
+          isProfileSyncingUpdateLoading: false,
+>>>>>>> stable
           isAccountSyncingReadyToBeDispatched: false,
         },
       },
@@ -36,6 +42,13 @@ describe('Notification Selectors', () => {
     expect(selectIsBackupAndSyncUpdateLoading(mockState)).toEqual(
       mockState.engine.backgroundState.UserStorageController
         .isBackupAndSyncUpdateLoading,
+    );
+  });
+
+  it('selectIsAccountSyncingEnabled returns correct value', () => {
+    expect(selectIsAccountSyncingEnabled(mockState)).toEqual(
+      mockState.engine.backgroundState.UserStorageController
+        .isAccountSyncingEnabled,
     );
   });
 

@@ -57,6 +57,7 @@ export interface Account {
    */
   balanceError?: string;
   /**
+<<<<<<< HEAD
    * Account address in CAIP-10 format.
    */
   caipAccountId: CaipAccountId;
@@ -68,6 +69,11 @@ export interface Account {
    * Account scopes.
    */
   scopes: CaipChainId[];
+=======
+   * Boolean that indicates if the account is loading.
+   */
+  isLoadingAccount: boolean;
+>>>>>>> stable
 }
 
 /**

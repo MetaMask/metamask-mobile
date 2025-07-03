@@ -75,6 +75,7 @@ export const selectContractBalances = createSelector(
     ]?.[chainId as Hex] ?? {},
 );
 
+<<<<<<< HEAD
 export const selectContractBalancesPerChainId = createSelector(
   selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
@@ -87,6 +88,8 @@ export const selectContractBalancesPerChainId = createSelector(
     ] ?? {},
 );
 
+=======
+>>>>>>> stable
 export const selectAllTokenBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>

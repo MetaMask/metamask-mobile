@@ -20,6 +20,13 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+<<<<<<< HEAD
+=======
+
+  // Selectors returning state updated by the polling
+  const contractExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenMarketData = useSelector(selectTokenMarketData);
+>>>>>>> stable
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
@@ -52,7 +59,17 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
+<<<<<<< HEAD
     input,
+=======
+    input: isEvmSelected
+      ? [
+          {
+            chainIds: chainIdsToPoll as Hex[],
+          },
+        ]
+      : [],
+>>>>>>> stable
   });
 };
 

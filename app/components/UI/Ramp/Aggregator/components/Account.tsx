@@ -10,8 +10,13 @@ import { colors as importedColors } from '../../../../../styles/common';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectInternalAccounts,
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/components/Account.tsx
 } from '../../../../../selectors/accountsController';
 import { areAddressesEqual } from '../../../../../util/address';
+=======
+} from '../../../../selectors/accountsController';
+import { areAddressesEqual } from '../../../../util/address';
+>>>>>>> stable:app/components/UI/Ramp/components/Account.tsx
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

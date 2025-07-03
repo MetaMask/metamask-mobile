@@ -100,7 +100,11 @@ class AuthenticationService {
       StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
     });
     ///: END:ONLY_INCLUDE_IF
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> stable
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
@@ -117,14 +121,22 @@ class AuthenticationService {
         },
       );
       await client.addDiscoveredAccounts(primaryHdKeyringId);
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
 
     try {
       await retryWithExponentialDelay(
         performSolanaAccountDiscovery,
+<<<<<<< HEAD
         3, // maxRetries
+=======
+        3, // maxRetries 
+>>>>>>> stable
         1000, // baseDelay
         10000, // maxDelay
       );
@@ -441,12 +453,20 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -495,12 +515,20 @@ class AuthenticationService {
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       // Try to complete any pending Solana account discovery
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       this.retrySolanaDiscoveryIfPending();
       ///: END:ONLY_INCLUDE_IF
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> stable
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {

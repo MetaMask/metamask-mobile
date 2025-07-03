@@ -121,12 +121,15 @@ export const MOCK_USDC_MAINNET_ASSET = createMockToken(
   ),
 );
 
+<<<<<<< HEAD:app/components/UI/Stake/__mocks__/stakeMockData.ts
 export const MOCK_AETHUSDC_MAINNET_ASSET = createMockToken({
   chainId: '0x1',
   symbol: 'AETHUSDC',
   name: 'Aave v3 USDC',
 });
 
+=======
+>>>>>>> stable:app/components/UI/Stake/__mocks__/mockData.ts
 export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(
     CHAIN_IDS.MAINNET,
@@ -134,6 +137,7 @@ export const MOCK_USDT_MAINNET_ASSET = createMockToken(
   ),
 );
 
+<<<<<<< HEAD:app/components/UI/Stake/__mocks__/stakeMockData.ts
 export const MOCK_USDT_BASE_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.USDT),
 );
@@ -145,6 +149,8 @@ export const MOCK_AUSDT_MAINNET_ASSET = createMockToken({
   address: '0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a',
 });
 
+=======
+>>>>>>> stable:app/components/UI/Stake/__mocks__/mockData.ts
 export const MOCK_DAI_MAINNET_ASSET = createMockToken(
   getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
 );

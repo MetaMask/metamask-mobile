@@ -1699,7 +1699,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
+<<<<<<< HEAD
                 "name": "Base Mainnet",
+=======
+                "name": "Solana",
+>>>>>>> stable
                 "variant": "Network",
               }
             }
@@ -1713,7 +1717,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
+<<<<<<< HEAD
             title="Base Mainnet"
+=======
+            title="Solana"
+>>>>>>> stable
           >
             <View
               style={
@@ -1773,6 +1781,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
+<<<<<<< HEAD
                   Base Mainnet
                 </Text>
               </View>
@@ -1892,6 +1901,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
+=======
+>>>>>>> stable
                   Solana
                 </Text>
               </View>

@@ -71,11 +71,17 @@ export default function useBlockaidAlerts(): Alert[] {
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackBlockaidAlertLinkClickedEvent } = useConfirmationMetricEvents();
 
+<<<<<<< HEAD
   const isResultTypeIgnored =
     !securityAlertResponse?.result_type ||
     IGNORED_RESULT_TYPES.includes(
       securityAlertResponse?.result_type as BlockaidResultType,
     );
+=======
+  const isResultTypeIgnored = IGNORED_RESULT_TYPES.includes(
+    securityAlertResponse?.result_type as BlockaidResultType,
+  );
+>>>>>>> stable
 
   const alerts = useMemo(() => {
     if (!securityAlertResponse || isResultTypeIgnored) {
@@ -90,9 +96,13 @@ export default function useBlockaidAlerts(): Alert[] {
         content: (
           <BlockaidAlertContent
             alertDetails={features}
+<<<<<<< HEAD
             securityAlertResponse={
               securityAlertResponse as SecurityAlertResponse
             }
+=======
+            securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
+>>>>>>> stable
             onContactUsClicked={trackBlockaidAlertLinkClickedEvent}
           />
         ),

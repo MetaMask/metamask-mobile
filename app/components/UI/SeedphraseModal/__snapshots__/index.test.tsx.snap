@@ -127,10 +127,125 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
+<<<<<<< HEAD
               }
             >
               Take all your money
             </Text>
+=======
+              >
+                <View
+                  style={
+                    {
+                      "width": 26,
+                    }
+                  }
+                />
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "flex": 1,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  What is a ‘Secret Recovery Phrase’
+                </Text>
+                <TouchableOpacity
+                  hitSlop={
+                    {
+                      "bottom": 10,
+                      "left": 10,
+                      "right": 10,
+                      "top": 10,
+                    }
+                  }
+                  style={
+                    {
+                      "alignItems": "flex-end",
+                      "padding": 5,
+                    }
+                  }
+                >
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
+                    style={
+                      [
+                        {
+                          "color": undefined,
+                          "fontSize": 12,
+                        },
+                        {
+                          "color": "#121314",
+                          "fontSize": 16,
+                        },
+                        {
+                          "fontFamily": "FontAwesome",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View>
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 20,
+                      "marginTop": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
+                </Text>
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 20,
+                      "marginTop": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.
+                </Text>
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 20,
+                      "marginTop": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
+                </Text>
+              </View>
+            </View>
+>>>>>>> stable
           </View>
           <View
             style={

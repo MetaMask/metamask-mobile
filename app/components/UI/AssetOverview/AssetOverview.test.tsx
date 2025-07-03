@@ -144,6 +144,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+<<<<<<< HEAD
 jest.mock('../../../core/SnapKeyring/utils/snaps', () => ({
   isMultichainWalletSnap: jest.fn().mockReturnValue(true),
 }));
@@ -156,6 +157,8 @@ jest.mock('../../hooks/useSendNonEvmAsset', () => ({
   useSendNonEvmAsset: jest.fn(),
 }));
 
+=======
+>>>>>>> stable
 const mockAddPopularNetwork = jest
   .fn()
   .mockImplementation(() => Promise.resolve());

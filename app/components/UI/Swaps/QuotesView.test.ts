@@ -456,7 +456,11 @@ describe('QuotesView', () => {
     const wrapper = render(QuotesView, state);
 
     const swapButton = await wrapper.findByTestId(
+<<<<<<< HEAD
       SwapsViewSelectorsIDs.SWAP_BUTTON,
+=======
+      SwapsViewSelectors.SWAP_BUTTON,
+>>>>>>> stable
     );
 
     act(() => {

@@ -9,12 +9,21 @@ import {
   DeepPartial,
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
+<<<<<<< HEAD
 import useEarnGasFee from '../../Earn/hooks/useEarnGasFee';
 import useBalance from '../../Stake/hooks/useBalance';
 import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
 import useEarnInputHandlers, { EarnInputProps } from './useEarnInput';
+=======
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../reducers';
+import BN4 from 'bnjs4';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+>>>>>>> stable
 
 jest.mock('../../Stake/hooks/useBalance');
 jest.mock('../../Earn/hooks/useEarnGasFee');

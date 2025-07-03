@@ -7,6 +7,7 @@ import {
 } from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
@@ -20,15 +21,22 @@ import {
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+<<<<<<< HEAD
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
+=======
+>>>>>>> stable
 import {
   isPermitDaiRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
+<<<<<<< HEAD
 import { BatchedTransactionTag } from '../batched-transactions-tag';
+=======
+import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
+>>>>>>> stable
 import styleSheet from './title.styles';
 
 const getTitleAndSubTitle = (
@@ -131,6 +139,15 @@ const getTitleAndSubTitle = (
       if (!isWalletInitiated) {
         return {
           title: strings('confirm.title.contract_interaction'),
+        };
+      }
+      if (
+        REDESIGNED_TRANSFER_TYPES.includes(
+          transactionMetadata?.type as TransactionType,
+        )
+      ) {
+        return {
+          title: strings('confirm.title.transfer'),
         };
       }
       return {};

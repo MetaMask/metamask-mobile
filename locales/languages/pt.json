@@ -35,6 +35,7 @@
     },
     "insufficient_balance": {
       "title": "Fundos insuficientes",
+<<<<<<< HEAD
       "message": "Você não tem %{nativeCurrency} suficiente em sua conta para pagar as taxas de rede.",
       "buy_action": "Comprar %{nativeCurrency}"
     },
@@ -49,6 +50,10 @@
     "batched_unused_approvals": {
       "title": "Permissão desnecessária",
       "message": "Você está dando permissão a outra pessoa para retirar seus tokens, mesmo que isso não seja necessário para esta transação."
+=======
+      "message": "Você não tem %{nativeCurrency} suficientes em sua conta para pagar as taxas de rede.",
+      "buy_action": "Compre %{nativeCurrency}"
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -100,7 +105,11 @@
     "connector": "em"
   },
   "autocomplete": {
+<<<<<<< HEAD
     "placeholder": "Pesquisar por token, site ou endereço",
+=======
+    "placeholder": "Pesquisar por token, local ou endereço",
+>>>>>>> stable
     "recents": "Recentes",
     "favorites": "Favoritos",
     "sites": "Sites",
@@ -591,6 +600,7 @@
       "subtitle": "Controle a visualização do seu saldo nas configurações"
     },
     "multisrp": {
+<<<<<<< HEAD
       "title": "Adicione múltiplas Frases de Recuperação Secretas",
       "subtitle": "Importe e use múltiplas carteiras na MetaMask"
     },
@@ -601,6 +611,10 @@
     "backupAndSync": {
       "title": "Apresentando o backup e a sincronização",
       "subtitle": "Faça backup de suas contas e configurações de sincronização."
+=======
+      "title": "Adicione múltiplas frases secretas de recuperação",
+      "subtitle": "Importe e use múltiplas carteiras na MetaMask"
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -966,6 +980,7 @@
     "show_accounts": "Exibir",
     "hide_accounts": "Ocultar",
     "labels": {
+<<<<<<< HEAD
       "bitcoin_testnet_account_name": "Conta na testnet do Bitcoin",
       "bitcoin_account_name": "Conta Bitcoin",
       "solana_devnet_account_name": "Conta na devnet do Solana",
@@ -978,6 +993,16 @@
     "account_connect_create_initial_account": {
       "description": "É necessária uma conta Solana para conectar-se a este site.",
       "button": "Criar conta Solana"
+=======
+      "bitcoin_testnet_account_name": "Conta Testnet do Bitcoin",
+      "bitcoin_account_name": "Conta Bitcoin",
+      "solana_devnet_account_name": "Conta Devnet Solana",
+      "solana_testnet_account_name": "Conta Testnet Solana",
+      "solana_account_name": "Conta Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Não foi possível criar conta {{clientType}}"
+>>>>>>> stable
     }
   },
   "toast": {
@@ -1694,7 +1719,11 @@
     "gas_fee_slow": "LENTO",
     "hex_data": "Dados hexa",
     "custom_nonce": "Nonce",
+<<<<<<< HEAD
     "custom_nonce_tooltip": "Este é o número da transação de uma conta. O nonce da primeira transação é 0 e aumenta em ordem sequencial.",
+=======
+    "custom_nonce_tooltip": "Este é o número da transação de uma conta. O valor nonce da primeira transação é 0 e vai aumentando em ordem sequencial.",
+>>>>>>> stable
     "this_is_an_advanced": "Esse é um recurso avançado usado para cancelar ou acelerar qualquer transação pendente.",
     "current_suggested_nonce": "Nonce atual sugerido:",
     "edit_transaction_nonce": "Editar nonce da transação",
@@ -2339,7 +2368,11 @@
     "info_text_2": "Isso garantirá que somente você poderá acessar seus fundos e permitirá que você recupere a carteira caso perca seu dispositivo",
     "cta_text": "Criar senha",
     "creating_password": "Criando senha...",
+<<<<<<< HEAD
     "srp_list_selection": "Selecionar Frase de Recuperação Secreta"
+=======
+    "srp_list_selection": "Selecione a frase secreta de recuperação"
+>>>>>>> stable
   },
   "account_backup_step_1": {
     "remind_me_later": "Lembre-me mais tarde",
@@ -4126,26 +4159,38 @@
       "permit_revoke": "Remover permissão",
       "permit_NFTs": "Solicitação de saque",
       "signature_siwe": "Solicitação de login",
+<<<<<<< HEAD
       "contract_interaction": "Solicitação de transação",
       "transfer": "Solicitação de transferência",
       "switch_account_type": "Atualização da conta",
       "approve": "Approve request"
+=======
+      "contract_interaction": "Solicitação de transação"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
       "permit_NFTs": "Este site quer permissão para sacar seus NFTs.",
       "signature": "Revise os detalhes da solicitação antes de confirmar.",
       "signature_siwe": "Um site deseja que você faça login para comprovar que você é o titular desta conta.",
+<<<<<<< HEAD
       "contract_interaction": "Revise os dados da solicitação antes de confirmar.",
       "switch_to_smart_account": "Você está mudando para uma conta inteligente.",
       "switch_to_standard_account": "Você está voltando para uma conta padrão (EOA)."
+=======
+      "contract_interaction": "Revise os detalhes da solicitação antes de confirmar."
+>>>>>>> stable
     },
     "request_from": "Solicitação de",
     "staking_from": "Staking de",
     "signing_in_with": "Fazendo login com",
     "message": "Mensagem",
     "personal_sign_tooltip": "Este site está solicitando sua assinatura",
+<<<<<<< HEAD
     "transaction_tooltip": "Este site está solicitando sua transação",
+=======
+    "transaction_tooltip": "Este local está solicitando sua transação",
+>>>>>>> stable
     "details": "Detalhes",
     "qr_get_sign": "Obter assinatura",
     "qr_scan_text": "Leia com sua carteira de hardware",
@@ -4209,6 +4254,7 @@
       "includes_transaction": "Inclui {{transactionCount}} transações"
     },
     "unlimited": "Ilimitado",
+<<<<<<< HEAD
     "all": "Tudo",
     "none": "Nenhum",
     "advanced_details": "Detalhes avançados",
@@ -4218,6 +4264,12 @@
     "transferRequest": "Solicitação de transferência",
     "nested_transaction_heading": "Transação {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "Nenhum",
+    "advanced_details": "Detalhes avançados",
+    "interacting_with": "Interagindo com",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",
@@ -4268,6 +4320,7 @@
     "bridge_to": "Fazer ponte para",
     "title": "Ponte",
     "submitting_transaction": "Enviando",
+<<<<<<< HEAD
     "fetching_quote": "Buscando cotação",
     "fee_disclaimer": "Inclui taxa de 0,875% da MM",
     "hardware_wallet_not_supported": "Ainda não oferecemos suporte a carteiras de hardware. Use uma hot wallet para continuar.",
@@ -4277,6 +4330,14 @@
     "title": "Novas cotações estão disponíveis",
     "description": "As taxas são atualizadas a cada {{refreshRate}} segundos. Portanto, toque em Obter nova cotação quando você estiver pronto.",
     "get_new_quote": "Obter nova cotação"
+=======
+    "fetching_quote": "Buscando cotação"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -4285,13 +4346,20 @@
     "estimated_completion": "Conclusão est.",
     "bridge_step_action_bridge_complete": "{{destSymbol}} recebido em {{destChainName}}",
     "bridge_step_action_bridge_pending": "Recebendo {{destSymbol}} em {{destChainName}}",
+<<<<<<< HEAD
     "bridge_step_action_swap_complete": "Trocou {{srcSymbol}} por {{destSymbol}}",
     "bridge_step_action_swap_pending": "Trocou {{srcSymbol}} por {{destSymbol}}",
     "view_on_block_explorer": "Ver no explorador de blocos",
+=======
+    "bridge_step_action_swap_complete": "Realizado swap de {{srcSymbol}} por {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Realizado swap de {{srcSymbol}} por {{destSymbol}}",
+    "view_on_block_explorer": "Ver no Explorador de Blocos",
+>>>>>>> stable
     "block_explorer_description": "Esta transação está ativa em duas redes. O primeiro link mostra a origem; o segundo, mostra o destino após sua confirmação.",
     "transaction_details": "Detalhes da transação",
     "bridge_to_chain": "Fazer ponte para {{chainName}}",
     "recipient": "Destinatário"
+<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Backup e sincronização",
@@ -4408,5 +4476,7 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+>>>>>>> stable
   }
 }

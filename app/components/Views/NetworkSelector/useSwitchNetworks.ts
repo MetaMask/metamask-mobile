@@ -2,8 +2,13 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
+<<<<<<< HEAD
   getDecimalChainId,
   isPerDappSelectedNetworkEnabled,
+=======
+  isMultichainV1Enabled,
+  getDecimalChainId,
+>>>>>>> stable
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -125,12 +130,19 @@ export function useSwitchNetworks({
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
+<<<<<<< HEAD
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
+=======
+      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
+>>>>>>> stable
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
         );
+<<<<<<< HEAD
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
+=======
+>>>>>>> stable
       } else {
         trace({
           name: TraceName.SwitchCustomNetwork,
@@ -146,7 +158,11 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
+<<<<<<< HEAD
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled())) dismissModal?.();
+=======
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) dismissModal?.();
+>>>>>>> stable
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(

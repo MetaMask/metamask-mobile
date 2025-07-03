@@ -49,10 +49,14 @@ async function handleEthereumUrl({
     }
 
     if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+<<<<<<< HEAD
       await addTransactionForDeeplink({
         ...txMeta,
         origin,
       });
+=======
+      await addTransactionForDeeplink(txMeta);
+>>>>>>> stable
       return;
     }
 

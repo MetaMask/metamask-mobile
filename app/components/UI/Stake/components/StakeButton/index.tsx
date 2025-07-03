@@ -30,9 +30,18 @@ import createStyles from '../../../Tokens/styles';
 import { BrowserTab, TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
+<<<<<<< HEAD
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
+=======
+import Engine from '../../../../../core/Engine';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
+>>>>>>> stable
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -54,6 +63,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+<<<<<<< HEAD
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
@@ -65,6 +75,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
+=======
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+
+  const onStakeButtonPress = async () => {
+>>>>>>> stable
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
         'mainnet',
@@ -114,6 +130,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     );
   };
 
+<<<<<<< HEAD
   const handleLendingRedirect = async () => {
     if (!asset?.chainId) return;
 
@@ -168,6 +185,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
+=======
+  if (areEarnExperiencesDisabled) return <></>;
+>>>>>>> stable
 
   return (
     <Pressable

@@ -7,6 +7,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
+<<<<<<< HEAD
 jest.mock('../../../hooks/useTokenAmount', () => ({
   useTokenAmount: jest.fn(() => ({
     usdValue: '3.359625',
@@ -50,6 +51,30 @@ jest.mock('../../../../../../core/Engine', () => {
     },
   };
 });
+=======
+jest.mock('../../../../../../core/Engine', () => ({
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    TokenListController: {
+      fetchTokenList: jest.fn(),
+    },
+    TransactionController: {
+      updateTransaction: jest.fn(),
+      getTransactions: jest.fn().mockReturnValue([]),
+      getNonceLock: jest
+        .fn()
+        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+    },
+  },
+}));
+>>>>>>> stable
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
@@ -68,11 +93,14 @@ jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe', () => ({
   default: jest.fn(),
 }));
 
+<<<<<<< HEAD
 jest.mock('../../../components/UI/animated-pulse', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+=======
+>>>>>>> stable
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -87,15 +115,22 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('Transfer', () => {
+<<<<<<< HEAD
   const mockUseClearConfirmationOnBackSwipe = jest.mocked(
     useClearConfirmationOnBackSwipe,
   );
+=======
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(useClearConfirmationOnBackSwipe);
+>>>>>>> stable
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
+<<<<<<< HEAD
   const mockSetConfirmationMetric = jest.fn();
+=======
+>>>>>>> stable
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -106,7 +141,10 @@ describe('Transfer', () => {
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
+<<<<<<< HEAD
       setConfirmationMetric: mockSetConfirmationMetric,
+=======
+>>>>>>> stable
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -124,7 +162,10 @@ describe('Transfer', () => {
     expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalled();
     expect(getByText('0xDc477...0c164')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
+<<<<<<< HEAD
     expect(getByText('Network')).toBeDefined();
+=======
+>>>>>>> stable
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: 'Review',
@@ -132,11 +173,14 @@ describe('Transfer', () => {
       addBackButton: true,
       theme: expect.any(Object),
     });
+<<<<<<< HEAD
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         transaction_transfer_usd_value: '3.359625',
         asset_type: 'erc20',
       },
     });
+=======
+>>>>>>> stable
   });
 });

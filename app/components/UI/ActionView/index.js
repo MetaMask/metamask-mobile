@@ -69,7 +69,10 @@ export default function ActionView({
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
   contentContainerStyle,
+<<<<<<< HEAD
   buttonContainerStyle,
+=======
+>>>>>>> stable
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -237,8 +240,11 @@ ActionView.propTypes = {
    * Optional View styles. Applies to scroll view
    */
   contentContainerStyle: PropTypes.object,
+<<<<<<< HEAD
   /**
    * Optional View styles. Applies to button container
    */
   buttonContainerStyle: PropTypes.object,
+=======
+>>>>>>> stable
 };

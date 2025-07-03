@@ -224,6 +224,7 @@ describe('useTokenBalancesPolling', () => {
     );
     expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(0);
   });
+<<<<<<< HEAD
 
   it('polls with provided chain ids', () => {
     renderHookWithProvider(
@@ -251,4 +252,6 @@ describe('useTokenBalancesPolling', () => {
       },
     );
   });
+=======
+>>>>>>> stable
 });

@@ -9,8 +9,12 @@ export type SlideId =
   | 'aggregated'
   | 'multisrp'
   | 'backupAndSync'
+<<<<<<< HEAD
   | 'solana'
   | `contentful-${string}`;
+=======
+  | 'solana';
+>>>>>>> stable
 
 interface NavigationParams {
   address?: string;
@@ -57,12 +61,15 @@ export interface CarouselSlide {
   navigation: NavigationAction;
   dismissed?: boolean;
   undismissable?: boolean;
+<<<<<<< HEAD
   href?: string;
   startDate?: string;
   endDate?: string;
   testID?: string;
   testIDTitle?: string;
   testIDCloseButton?: string;
+=======
+>>>>>>> stable
 }
 
 export interface CarouselProps {

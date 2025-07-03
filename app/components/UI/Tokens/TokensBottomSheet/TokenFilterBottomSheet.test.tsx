@@ -136,7 +136,11 @@ describe('TokenFilterBottomSheet', () => {
   it('sets filter to Current Network and closes bottom sheet when second option is pressed', async () => {
     const { getByText } = render(<TokenFilterBottomSheet />);
 
+<<<<<<< HEAD
     fireEvent.press(getByText('Current network'));
+=======
+    fireEvent.press(getByText('Current Network'));
+>>>>>>> stable
 
     await waitFor(() => {
       expect(

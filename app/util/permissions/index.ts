@@ -3,6 +3,7 @@ import Engine from '../../core/Engine';
 import { PermissionKeys } from '../../core/Permissions/specifications';
 import { CaveatTypes } from '../../core/Permissions/constants';
 import { pick } from 'lodash';
+<<<<<<< HEAD
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -12,6 +13,10 @@ import {
   setEthAccounts,
   setPermittedEthChainIds
 } from '@metamask/chain-agnostic-permission';
+=======
+import { isSnapId } from '@metamask/snaps-utils';
+import { Caip25CaveatType, Caip25EndowmentPermissionName, setEthAccounts, setPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+>>>>>>> stable
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
@@ -27,12 +32,20 @@ const approvalLog = createProjectLogger('approval-utils');
  * Requests user approval for the CAIP-25 permission for the specified origin
  * and returns a granted permissions object.
  *
+<<<<<<< HEAD
  * @param {string} _origin - The origin to request approval for.
+=======
+ * @param {string} origin - The origin to request approval for.
+>>>>>>> stable
  * @param requestedPermissions - The legacy permissions to request approval for.
  * @returns the approved permissions object.
  */
 export const getCaip25PermissionFromLegacyPermissions = (
+<<<<<<< HEAD
   _origin: string,
+=======
+  origin: string,
+>>>>>>> stable
   requestedPermissions?: {
     [PermissionKeys.eth_accounts]?: {
       caveats?: {
@@ -61,6 +74,13 @@ export const getCaip25PermissionFromLegacyPermissions = (
     permissions[PermissionKeys.permittedChains] = {};
   }
 
+<<<<<<< HEAD
+=======
+  if (isSnapId(origin)) {
+    delete permissions[PermissionKeys.permittedChains];
+  }
+
+>>>>>>> stable
   const requestedAccounts =
     permissions[PermissionKeys.eth_accounts]?.caveats?.find(
       (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
@@ -84,7 +104,11 @@ export const getCaip25PermissionFromLegacyPermissions = (
 
   const caveatValueWithChains = setPermittedEthChainIds(
     newCaveatValue,
+<<<<<<< HEAD
     requestedChains,
+=======
+    isSnapId(origin) ? [] : requestedChains,
+>>>>>>> stable
   );
 
   const caveatValueWithAccountsAndChains = setEthAccounts(
@@ -127,6 +151,15 @@ export const requestPermittedChainsPermissionIncremental = async ({
   chainId: Hex;
   autoApprove: boolean;
 }) => {
+<<<<<<< HEAD
+=======
+  if (isSnapId(origin)) {
+    throw new Error(
+      `Cannot request permittedChains permission for Snaps with origin "${origin}"`,
+    );
+  }
+
+>>>>>>> stable
   const { PermissionController } = Engine.context;
   const caveatValueWithChains = setPermittedEthChainIds(
     {
@@ -268,6 +301,7 @@ export const rejectOriginPendingApprovals = (origin: string) => {
     origin,
   });
 };
+<<<<<<< HEAD
 
 /**
  * Given the current and previous exposed CAIP-25 authorization for a PermissionController,
@@ -338,3 +372,5 @@ export const getRemovedAuthorization = (
     optionalScopes: removedOptionalScopes,
   };
 };
+=======
+>>>>>>> stable

@@ -15,7 +15,15 @@ export const ConfirmRoot = () => {
       if (isFullScreenConfirmation) {
         return;
       }
+<<<<<<< HEAD
       navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
+=======
+      navigation.navigate(
+        isFlatConfirmation
+          ? Routes.CONFIRMATION_REQUEST_FLAT
+          : Routes.CONFIRMATION_REQUEST_MODAL,
+      );
+>>>>>>> stable
     }
   }, [
     isFullScreenConfirmation,

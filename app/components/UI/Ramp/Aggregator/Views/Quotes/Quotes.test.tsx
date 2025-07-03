@@ -29,7 +29,11 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { RampType, Region } from '../../types';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.test.tsx
 import { endTrace, TraceName } from '../../../../../../util/trace';
+=======
+import { endTrace, TraceName } from '../../../../../util/trace';
+>>>>>>> stable:app/components/UI/Ramp/Views/Quotes/Quotes.test.tsx
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -183,7 +187,11 @@ jest.mock('../../hooks/useQuotesAndCustomActions', () =>
   jest.fn(() => mockUseQuotesAndCustomActionsValues),
 );
 
+<<<<<<< HEAD:app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.test.tsx
 jest.mock('../../../../../../util/trace', () => ({
+=======
+jest.mock('../../../../../util/trace', () => ({
+>>>>>>> stable:app/components/UI/Ramp/Views/Quotes/Quotes.test.tsx
   endTrace: jest.fn(),
   TraceName: {
     RampQuoteLoading: 'Ramp Quote Loading',

@@ -215,7 +215,10 @@ describe('handleEthereumUrl', () => {
       function_name: ETH_ACTIONS.TRANSFER,
       chain_id: 1,
       source: url,
+<<<<<<< HEAD
       origin,
+=======
+>>>>>>> stable
     });
   });
 

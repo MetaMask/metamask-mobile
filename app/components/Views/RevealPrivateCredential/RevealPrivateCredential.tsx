@@ -658,8 +658,11 @@ const RevealPrivateCredential = ({
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
         contentContainerStyle={styles.stretch}
+<<<<<<< HEAD
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
+=======
+>>>>>>> stable
       >
         <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
@@ -683,6 +686,7 @@ const RevealPrivateCredential = ({
               </>
             )}
           </View>
+<<<<<<< HEAD
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
@@ -691,6 +695,14 @@ const RevealPrivateCredential = ({
             </View>
           )}
         </ScrollView>
+=======
+          {renderWarning(credentialSlug)}
+
+          <View style={[styles.rowWrapper, styles.stretch]}>
+            {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
+          </View>
+        </>
+>>>>>>> stable
       </ActionView>
       {renderModal(isPrivateKey)}
 

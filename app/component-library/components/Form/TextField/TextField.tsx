@@ -32,7 +32,10 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
       autoFocus = false,
       onBlur,
       onFocus,
+<<<<<<< HEAD
       testID,
+=======
+>>>>>>> stable
       ...props
     },
     ref,
@@ -89,7 +92,10 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
               autoFocus={autoFocus}
               onBlur={onBlurHandler}
               onFocus={onFocusHandler}
+<<<<<<< HEAD
               testID={testID}
+=======
+>>>>>>> stable
               {...props}
               ref={ref}
               isStateStylesDisabled

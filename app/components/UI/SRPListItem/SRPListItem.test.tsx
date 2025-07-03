@@ -133,6 +133,7 @@ describe('SRPList', () => {
     fireEvent.press(srpItem);
 
     expect(mockOnKeyringSelect).toHaveBeenCalledWith(mockKeyring1.metadata.id);
+<<<<<<< HEAD
   });
 
   it('tracks SECRET_RECOVERY_PHRASE_PICKER_CLICKED event when toggle button is pressed', () => {
@@ -165,6 +166,8 @@ describe('SRPList', () => {
         })
         .build(),
     );
+=======
+>>>>>>> stable
   });
 
   it('displays accounts when toggle is clicked', () => {

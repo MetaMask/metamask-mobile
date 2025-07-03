@@ -8,9 +8,16 @@ import {
 import { checkNetworkAndAccountSupports1559 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 
+<<<<<<< HEAD
 export function useSupportsEIP1559(transactionMeta: TransactionMeta | TransactionBatchMeta) {
   const { networkClientId } = transactionMeta;
   const isLegacyTxn = (transactionMeta as TransactionMeta)?.txParams?.type === TransactionEnvelopeType.legacy;
+=======
+export function useSupportsEIP1559(transactionMeta: TransactionMeta) {
+  const { networkClientId } = transactionMeta;
+  const isLegacyTxn =
+    transactionMeta?.txParams?.type === TransactionEnvelopeType.legacy;
+>>>>>>> stable
   const networkSupportsEIP1559 = useSelector((state: RootState) =>
     checkNetworkAndAccountSupports1559(state, networkClientId),
   );

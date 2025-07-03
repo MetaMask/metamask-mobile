@@ -16,16 +16,24 @@ const MOCK_STORE_STATE = {
   engine: {
     backgroundState: {
       UserStorageController: {
+<<<<<<< HEAD
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: false,
         isContactSyncingEnabled: false,
+=======
+        isProfileSyncingEnabled: true,
+        isAccountSyncingEnabled: false,
+>>>>>>> stable
       },
       AuthenticationController: {
         isSignedIn: true,
       },
+<<<<<<< HEAD
       KeyringController: {
         keyrings: [],
       },
+=======
+>>>>>>> stable
     },
   },
   settings: {

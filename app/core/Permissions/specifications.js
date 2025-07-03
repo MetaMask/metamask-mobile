@@ -4,6 +4,7 @@ import {
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
 } from '@metamask/snaps-rpc-methods';
 ///: END:ONLY_INCLUDE_IF
+<<<<<<< HEAD
 import { RestrictedMethods } from './constants';
 import {
   caip25CaveatBuilder,
@@ -11,6 +12,10 @@ import {
   caip25EndowmentBuilder,
   createCaip25Caveat,
 } from '@metamask/chain-agnostic-permission';
+=======
+import {  RestrictedMethods } from './constants';
+import { caip25CaveatBuilder, Caip25CaveatType, caip25EndowmentBuilder, createCaip25Caveat } from '@metamask/chain-agnostic-permission';
+>>>>>>> stable
 
 /**
  * This file contains the specifications of the permissions and caveats
@@ -65,8 +70,11 @@ export const getCaveatSpecifications = ({
   [Caip25CaveatType]: caip25CaveatBuilder({
     listAccounts,
     findNetworkClientIdByChainId,
+<<<<<<< HEAD
     isNonEvmScopeSupported,
     getNonEvmAccountAddresses,
+=======
+>>>>>>> stable
   }),
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ...snapsCaveatsSpecifications,
@@ -164,8 +172,11 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_switchEthereumChain',
   'wallet_addEthereumChain',
   'wallet_sendCalls',
+<<<<<<< HEAD
   'wallet_getCallsStatus',
   'wallet_getCapabilities',
+=======
+>>>>>>> stable
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',

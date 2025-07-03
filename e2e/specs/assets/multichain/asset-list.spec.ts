@@ -97,6 +97,11 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       AVAX_NETWORK_NAME,
     );
+<<<<<<< HEAD:e2e/specs/assets/multichain/asset-list.spec.ts
+=======
+    await TestHelpers.delay(1500); // Nasty work. Only adding delay because app is slow on CI.
+    await NetworkEducationModal.tapNetworkName(); // to dismiss keyboard
+>>>>>>> stable:e2e/specs/assets/multichain/asset-list.spec.js
     await NetworkEducationModal.tapGotItButton();
   });
 

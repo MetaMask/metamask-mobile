@@ -26,7 +26,11 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockNetworkConfigurations = {
+<<<<<<< HEAD
   'eip155:1': {
+=======
+  '0x1': {
+>>>>>>> stable
     chainId: '0x1',
     name: 'Ethereum Mainnet',
     rpcEndpoints: [
@@ -38,7 +42,11 @@ const mockNetworkConfigurations = {
     defaultRpcEndpointIndex: 0,
     caipChainId: 'eip155:1'
   },
+<<<<<<< HEAD
   'eip155:137': {
+=======
+  '0x89': {
+>>>>>>> stable
     chainId: '0x89',
     name: 'Polygon',
     rpcEndpoints: [
@@ -59,7 +67,11 @@ describe('NetworkConnectMultiSelector', () => {
     onSubmit: jest.fn(),
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,
+<<<<<<< HEAD
     defaultSelectedChainIds: ['eip155:1' as CaipChainId],
+=======
+    defaultSelectedChainIds: ['0x1'],
+>>>>>>> stable
   };
 
   beforeEach(() => {
@@ -97,12 +109,20 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
+<<<<<<< HEAD
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
+=======
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+>>>>>>> stable
   });
 
   it('handles the select all button when not loading', () => {
     const { getByTestId, getAllByTestId } = renderWithProvider(
+<<<<<<< HEAD
       <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['eip155:1', 'eip155:137']} />,
+=======
+      <NetworkConnectMultiSelector {...defaultProps} defaultSelectedChainIds={['0x1', '0x89']} />,
+>>>>>>> stable
     );
 
     const selectAllbutton = getAllByTestId(ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON);
@@ -114,7 +134,11 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
+<<<<<<< HEAD
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1', 'eip155:137']);
+=======
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1', '0x89']);
+>>>>>>> stable
   });
 
   it('handles network selection correctly', () => {
@@ -134,14 +158,22 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
+<<<<<<< HEAD
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:137']);
+=======
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x89']);
+>>>>>>> stable
   });
 
   it('shows update button when some networks are selected', () => {
     const { getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector
         {...defaultProps}
+<<<<<<< HEAD
         defaultSelectedChainIds={['eip155:1']}
+=======
+        defaultSelectedChainIds={['0x1']}
+>>>>>>> stable
       />,
     );
     const updateButton = getByTestId(
@@ -150,7 +182,11 @@ describe('NetworkConnectMultiSelector', () => {
     expect(updateButton).toBeTruthy();
     fireEvent.press(updateButton);
 
+<<<<<<< HEAD
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
+=======
+    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['0x1']);
+>>>>>>> stable
   });
 
   it('shows disconnect button when no networks are selected', () => {

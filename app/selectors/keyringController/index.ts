@@ -1,4 +1,8 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
+<<<<<<< HEAD
+=======
+///: END:ONLY_INCLUDE_IF
+>>>>>>> stable
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> stable
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { strings } from '../../../../locales/i18n';
@@ -8,6 +12,7 @@ import { getHost, prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import stylesheet from './ApprovalTagUrl.styles';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 export const APPROVAL_TAG_URL_ORIGIN_PILL = 'APPROVAL_TAG_URL_ORIGIN_PILL';
@@ -31,6 +36,14 @@ const ApprovalTagUrl = ({
   const { styles } = useStyles(stylesheet, {});
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
 
+<<<<<<< HEAD
+=======
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const activeAddress = safeToChecksumAddress(from);
+
+>>>>>>> stable
   useEffect(() => {
     const isOriginDeepLinkVal =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;

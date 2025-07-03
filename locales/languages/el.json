@@ -37,6 +37,7 @@
       "title": "Ανεπαρκές ποσό",
       "message": "Δεν έχετε αρκετά %{nativeCurrency} στον λογαριασμό σας για να πληρώσετε τα τέλη δικτύου.",
       "buy_action": "Αγοράστε %{nativeCurrency}"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Μια προηγούμενη συναλλαγή βρίσκεται ακόμη στη διαδικασία υπογραφής ή υποβολής."
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "Μη απαραίτητη άδεια",
       "message": "Πρόκειται σε κάποιον άλλο την άδεια να αποσύρει τα tokens σας, παρόλο που αυτό δεν είναι απαραίτητο για αυτή τη συναλλαγή."
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "Προσθήκη πολλαπλών Φράσεων Μυστικής Ανάκτησης",
       "subtitle": "Εισαγωγή και χρήση πολλαπλών πορτοφολιών στο MetaMask"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Υποστηρίζουμε τώρα την Solana",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "Εισαγωγή στην δημιουργία αντιγράφων ασφαλείας και συγχρονισμού",
       "subtitle": "Δημιουργήστε αντίγραφα ασφαλείας των λογαριασμών και των ρυθμίσεων συγχρονισμού."
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Απαιτείται λογαριασμός στη Solana για να συνδεθείτε σε αυτόν τον ιστότοπο.",
       "button": "Δημιουργία λογαριασμού στη Solana"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -4126,19 +4135,27 @@
       "permit_revoke": "Κατάργηση άδειας",
       "permit_NFTs": "Αίτημα ανάληψης",
       "signature_siwe": "Αίτημα σύνδεσης",
+<<<<<<< HEAD
       "contract_interaction": "Αίτημα συναλλαγής",
       "transfer": "Αίτημα μεταφοράς",
       "switch_account_type": "Ενημέρωση λογαριασμού",
       "approve": "Approve request"
+=======
+      "contract_interaction": "Αίτημα συναλλαγής"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
       "permit_NFTs": "Αυτός ο ιστότοπος θέλει άδεια για την ανάληψη των NFT σας.",
       "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
       "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού.",
+<<<<<<< HEAD
       "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε.",
       "switch_to_smart_account": "Θα αλλάξετε σε έξυπνο λογαριασμό.",
       "switch_to_standard_account": "Θα επιστρέψετε σε βασικό λογαριασμό (EOA)."
+=======
+      "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε."
+>>>>>>> stable
     },
     "request_from": "Ζητήθηκε από",
     "staking_from": "Ποντάρισμα από",
@@ -4209,6 +4226,7 @@
       "includes_transaction": "Περιλαμβάνει {{transactionCount}} συναλλαγές"
     },
     "unlimited": "Απεριόριστα",
+<<<<<<< HEAD
     "all": "Όλα",
     "none": "Τίποτα",
     "advanced_details": "Λεπτομέρειες για προχωρημένους",
@@ -4218,6 +4236,12 @@
     "transferRequest": "Αίτημα μεταφοράς",
     "nested_transaction_heading": "Συναλλαγή {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "Τίποτα",
+    "advanced_details": "Λεπτομέρειες για προχωρημένους",
+    "interacting_with": "Αλληλεπίδραση με",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
@@ -4268,6 +4292,7 @@
     "bridge_to": "Διασύνδεση προς",
     "title": "Διασύνδεση",
     "submitting_transaction": "Υποβολή",
+<<<<<<< HEAD
     "fetching_quote": "Λήψη προσφοράς",
     "fee_disclaimer": "Περιλαμβάνει προμήθεια 0,875% MM",
     "hardware_wallet_not_supported": "Τα πορτοφόλια υλικού δεν υποστηρίζονται ακόμη. Χρησιμοποιήστε ένα θερμό πορτοφόλι για να συνεχίσετε.",
@@ -4277,6 +4302,14 @@
     "title": "Υπάρχουν διαθέσιμες νέες προσφορές",
     "description": "Οι τιμές ενημερώνονται κάθε {{refreshRate}} δευτερόλεπτα, οπότε πατήστε \"Ζητήστε νέα προσφορά\" όταν είστε έτοιμοι.",
     "get_new_quote": "Ζητήστε νέα προσφορά"
+=======
+    "fetching_quote": "Λήψη προσφοράς"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Κατάσταση",
@@ -4292,6 +4325,7 @@
     "transaction_details": "Λεπτομέρειες συναλλαγής",
     "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
     "recipient": "Αποδέκτης"
+<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Δημιουργία αντιγράφων ασφαλείας και συγχρονισμός",
@@ -4408,5 +4442,7 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+>>>>>>> stable
   }
 }

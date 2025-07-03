@@ -51,9 +51,13 @@ import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getCaip25Caveat,
+<<<<<<< HEAD
   getPermittedCaipAccountIdsByHostname,
   getPermittedEvmAddressesByHostname,
   sortMultichainAccountsByLastSelected,
+=======
+  getPermittedAccountsByHostname,
+>>>>>>> stable
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -119,9 +123,13 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+<<<<<<< HEAD
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
+=======
+import { toHex } from '@metamask/controller-utils';
+>>>>>>> stable
 
 /**
  * Tab component for the in-app browser
@@ -248,7 +256,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   }, []);
 
   const notifyAllConnections = useCallback((payload: unknown) => {
+<<<<<<< HEAD
     backgroundBridgeRef.current?.sendNotificationEip1193(payload);
+=======
+    backgroundBridgeRef.current?.sendNotification(payload);
+>>>>>>> stable
   }, []);
 
   /**
@@ -1239,6 +1251,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     (item: AutocompleteSearchResult) => {
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
+<<<<<<< HEAD
+=======
+
+>>>>>>> stable
       if (item.category === 'tokens') {
         navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
           chainId: item.chainId,

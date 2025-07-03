@@ -670,6 +670,7 @@ describe('AccountActions', () => {
         },
       );
     });
+<<<<<<< HEAD
 
     it('option should not be displayed if there is no network supporting 7702 for selected address', () => {
       jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
@@ -684,5 +685,7 @@ describe('AccountActions', () => {
 
       expect(queryByText('Switch to Smart account')).toBeNull();
     });
+=======
+>>>>>>> stable
   });
 });

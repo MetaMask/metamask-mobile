@@ -37,6 +37,7 @@
       "title": "资金不足",
       "message": "您的账户中没有足够的 %{nativeCurrency} 来支付网络费用。",
       "buy_action": "买入 %{nativeCurrency}"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "之前的交易仍在签署或提交中。"
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "不必要的许可",
       "message": "您在授予他人提取您的代币的许可，尽管当前交易不需要此操作。"
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "添加多个私钥助记词",
       "subtitle": "在 MetaMask 中导入并使用多个钱包"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana 现已获支持",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "备份与同步简介",
       "subtitle": "备份您的账户与同步设置。"
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "创建 {{clientType}} 账户失败"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "连接到此网站需要 Solana 账户。",
       "button": "创建 Solana 账户"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -4126,19 +4135,27 @@
       "permit_revoke": "去除许可",
       "permit_NFTs": "提取请求",
       "signature_siwe": "登录请求",
+<<<<<<< HEAD
       "contract_interaction": "交易请求",
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
       "approve": "Approve request"
+=======
+      "contract_interaction": "交易请求"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
       "permit_NFTs": "该网站想获得提取您的 NFT 的许可。",
       "signature": "在确认之前检查请求详情。",
       "signature_siwe": "一个网站需要您登录来证明您拥有此账户。",
+<<<<<<< HEAD
       "contract_interaction": "在确认之前检查请求详情。",
       "switch_to_smart_account": "您正在切换到智能账户。",
       "switch_to_standard_account": "您正在切换回标准账户（EOA）。"
+=======
+      "contract_interaction": "在确认之前检查请求详情。"
+>>>>>>> stable
     },
     "request_from": "请求来自",
     "staking_from": "质押提供商",
@@ -4209,6 +4226,7 @@
       "includes_transaction": "包含 {{transactionCount}} 笔交易"
     },
     "unlimited": "无限制",
+<<<<<<< HEAD
     "all": "所有",
     "none": "无",
     "advanced_details": "高级信息",
@@ -4218,6 +4236,12 @@
     "transferRequest": "转账请求",
     "nested_transaction_heading": "交易 {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "无",
+    "advanced_details": "高级信息",
+    "interacting_with": "正在与下述内容交互：",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -4268,6 +4292,7 @@
     "bridge_to": "桥接至",
     "title": "桥接",
     "submitting_transaction": "正在提交",
+<<<<<<< HEAD
     "fetching_quote": "正在获取报价",
     "fee_disclaimer": "包含0.875%的做市商手续费",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
@@ -4277,6 +4302,14 @@
     "title": "有新的报价",
     "description": "价格每 {{refreshRate}} 秒更新一次，请在准备就绪后点击“获取新报价”。",
     "get_new_quote": "获取新报价"
+=======
+    "fetching_quote": "正在获取报价"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "状态",
@@ -4292,6 +4325,7 @@
     "transaction_details": "交易详情",
     "bridge_to_chain": "桥接至 {{chainName}}",
     "recipient": "接收者"
+<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "备份与同步",
@@ -4408,5 +4442,7 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+>>>>>>> stable
   }
 }

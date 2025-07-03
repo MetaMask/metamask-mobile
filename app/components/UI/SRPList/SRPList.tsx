@@ -7,13 +7,19 @@ import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
 import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
+<<<<<<< HEAD
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+=======
+>>>>>>> stable
 
 const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
+<<<<<<< HEAD
   const { trackEvent, createEventBuilder } = useMetrics();
+=======
+>>>>>>> stable
 
   return (
     <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>

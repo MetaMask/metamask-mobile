@@ -34,10 +34,20 @@ export const performEvmRefresh = async (
     }),
     AccountTrackerController.refresh(networkClientIds),
     CurrencyRateController.updateExchangeRate(nativeCurrencies),
+<<<<<<< HEAD
     TokenRatesController.updateExchangeRatesByChainId(
       Object.values(evmNetworkConfigurationsByChainId).filter(
         (n) => n.chainId && n.nativeCurrency,
       ),
+=======
+    ...Object.values(evmNetworkConfigurationsByChainId).map((network) =>
+      TokenRatesController.updateExchangeRatesByChainId([
+        {
+          chainId: network.chainId,
+          nativeCurrency: network.nativeCurrency,
+        },
+      ]),
+>>>>>>> stable
     ),
   ];
 

@@ -172,7 +172,11 @@ describe('TokenListFooter', () => {
   });
 
   it('does not render the add tokens footer link Non EVM', () => {
+<<<<<<< HEAD
     const initialStateTest = {
+=======
+    const initialStateTest = { 
+>>>>>>> stable
       ...initialState,
       engine: {
         backgroundState: {

@@ -612,7 +612,11 @@ buildIos() {
 	elif [ "$MODE" == "qadebugE2E" ] ; then
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+<<<<<<< HEAD
 			buildIosFlaskSimulatorE2E
+=======
+			buildIosFlaskSimulatorE2E	
+>>>>>>> stable
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then

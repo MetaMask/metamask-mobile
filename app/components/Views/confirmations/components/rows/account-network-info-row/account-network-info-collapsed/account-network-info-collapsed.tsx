@@ -26,9 +26,18 @@ import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+<<<<<<< HEAD
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+=======
+import InfoSection from '../../../UI/info-row/info-section';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
+>>>>>>> stable
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import InfoSection from '../../../UI/info-row/info-section';

@@ -1,4 +1,3 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -12,6 +11,7 @@ import { selectAccountsByChainId } from '../../../../../../selectors/accountTrac
 import {
   getLabelTextByAddress,
   renderAccountName,
+  safeToChecksumAddress,
 } from '../../../../../../util/address';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import {
@@ -58,7 +58,7 @@ const ApproveTransactionHeader = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = toChecksumAddress(from);
+  const activeAddress = safeToChecksumAddress(from);
 
   const networkName = networkConfiguration?.name;
 

@@ -17,6 +17,7 @@ jest.mock('./useTokenBalancesPolling', () => jest.fn());
 jest.mock('./useAccountTrackerPolling', () => jest.fn());
 
 describe('AssetPollingProvider', () => {
+<<<<<<< HEAD
   const mockUseAccountTrackerPolling = jest.mocked(useAccountTrackerPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
@@ -47,6 +48,10 @@ describe('AssetPollingProvider', () => {
         address="0x1234567890abcdef"
       />,
     );
+=======
+  it('should call all polling hooks', () => {
+    render(<AssetPollingProvider />);
+>>>>>>> stable
 
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith({
       chainIds: ['0x1'],

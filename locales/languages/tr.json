@@ -37,6 +37,7 @@
       "title": "Para yetersiz",
       "message": "Hesabınızda ağ ücretlerini ödemek için yeterli %{nativeCurrency} yok.",
       "buy_action": "%{nativeCurrency} satın al"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Halen önceki bir işlem imzalanıyor veya gönderiliyor."
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "Gereksiz izin",
       "message": "Bu işlem için gerekli olmamasına rağmen bir başkasına token'lerinizi çekme izni veriyorsunuz."
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "Birden fazla Gizli Kurtarma İfadesi ekleyin",
       "subtitle": "MetaMask'te cüzdanları içe aktarın veya kullanın"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana artık destekleniyor",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "Yedekleme ve senkronizasyon hizmetinizde",
       "subtitle": "Hesaplarınızı yedekleyin ve ayarları senkronize edin."
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Bu siteye bağlanmak için bir Solana hesabı gereklidir.",
       "button": "Solana hesabı oluştur"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -3786,8 +3795,12 @@
     "feature_2_title": "Solana hesaplarını içe aktar",
     "feature_2_description": "Başka bir cüzdandan Solana hesabınızı taşımak için bir Gizli Kurtarma İfadesini içe aktarın.",
     "feature_3_title": "Daha fazla özellik çok yakında",
+<<<<<<< HEAD
     "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında.",
     "learn_more": "Solana hesapları hakkında daha fazla bilgi edinin"
+=======
+    "feature_3_description": "Solana merkeziyetsiz uygulamaları, NFT'ler, donanım cüzdanı desteği ve daha fazlası çok yakında."
+>>>>>>> stable
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ağ geçidi",
@@ -4126,26 +4139,38 @@
       "permit_revoke": "İzni kaldır",
       "permit_NFTs": "Para çekme talebi",
       "signature_siwe": "Giriş talebi",
+<<<<<<< HEAD
       "contract_interaction": "İşlem talebi",
       "transfer": "Transfer talebi",
       "switch_account_type": "Hesap güncellemesi",
       "approve": "Approve request"
+=======
+      "contract_interaction": "İşlem talebi"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
       "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
+<<<<<<< HEAD
       "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin.",
       "switch_to_smart_account": "Akıllı bir hesaba geçiş yapıyorsunuz.",
       "switch_to_standard_account": "Tekrar standart bir hesaba geçiş yapıyorsunuz (EOA)."
+=======
+      "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin."
+>>>>>>> stable
     },
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
+<<<<<<< HEAD
     "transaction_tooltip": "Bu site, işleminizi istiyor",
+=======
+    "transaction_tooltip": "Bu site işleminizi istiyor",
+>>>>>>> stable
     "details": "Ayrıntılar",
     "qr_get_sign": "İmza Al",
     "qr_scan_text": "Donanım cüzdanınızla tarayın",
@@ -4209,6 +4234,7 @@
       "includes_transaction": "{{transactionCount}} işlem içerir"
     },
     "unlimited": "Sınırsız",
+<<<<<<< HEAD
     "all": "Tümü",
     "none": "Hiçbiri",
     "advanced_details": "Gelişmiş bilgiler",
@@ -4218,6 +4244,12 @@
     "transferRequest": "Transfer talebi",
     "nested_transaction_heading": "{{index}} işlemi",
     "transaction": "Transaction"
+=======
+    "none": "Hiçbiri",
+    "advanced_details": "Gelişmiş bilgiler",
+    "interacting_with": "Etkileşimde",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -4261,6 +4293,7 @@
     "quote_info_content": "Aramamıza göre bu teklif en iyi getiriyi sunmaktadır. Swap oranına dayanır ve köprüleme ücretleri ve %0,875 MetaMask ücreti dahildir ancak gaz ücretleri dahil değildir. Gaz ücretleri ağ faaliyetine ve işlemin karmaşıklığına göre değişiklik gösterebilir.",
     "quote_info_title": "Neden bu teklifi öneriyoruz",
     "see_other_quotes": "Diğer teklifleri gör",
+<<<<<<< HEAD
     "receive_at": "Şurada alınacak:",
     "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve sizin için en iyi seçeneği bulalım.",
     "insufficient_funds": "Para yetersiz",
@@ -4277,6 +4310,21 @@
     "title": "Yeni teklifler mevcut",
     "description": "Oranlar {{refreshRate}} dakikada bir güncellenir, bu yüzden hazır olduğunuzda Yeni teklif al seçeneğine dokunun.",
     "get_new_quote": "Yeni teklif al"
+=======
+    "receive_at": "Alınacak",
+    "error_banner_description": "Bu işlem rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve en iyi seçeneği bulalım.",
+    "insufficient_funds": "Para yetersiz",
+    "select_amount": "Tutar seçin",
+    "bridge_to": "Köprü yapılan",
+    "title": "Köprü",
+    "submitting_transaction": "Gönderiliyor",
+    "fetching_quote": "Teklif alınıyor"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Durum",
@@ -4288,6 +4336,7 @@
     "bridge_step_action_swap_complete": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştirildi",
     "bridge_step_action_swap_pending": "{{srcSymbol}} - {{destSymbol}} swap işlemi gerçekleştiriliyor",
     "view_on_block_explorer": "Blok Gezgininde Görüntüle",
+<<<<<<< HEAD
     "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı, kaynağı gösterirken ikincisi onaylandıktan sonra hedefi gösterir.",
     "transaction_details": "İşlem Bilgileri",
     "bridge_to_chain": "{{chainName}} için köprü",
@@ -4408,5 +4457,11 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+    "block_explorer_description": "Bu işlem iki ağda da bulunuyor. Birinci bağlantı kaynağı gösterir, ikincisi onaylandıktan sonra hedefi gösterir.",
+    "transaction_details": "İşlem Bilgileri",
+    "bridge_to_chain": "{{chainName}} için köprü",
+    "recipient": "Alıcı"
+>>>>>>> stable
   }
 }

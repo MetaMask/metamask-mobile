@@ -18,9 +18,13 @@ export const escapeSpecialUnicode = (str: string): string => {
   return str.split('\u202D').join('\\u202D').split('\u202E').join('\\u202E');
 };
 
+<<<<<<< HEAD
 export const stripMultipleNewlines = (
   str: string | unknown,
 ): string | unknown => {
+=======
+export const stripMultipleNewlines = (str: string | unknown): string | unknown => {
+>>>>>>> stable
   if (!str || typeof str !== 'string') {
     return str;
   }
@@ -84,9 +88,12 @@ export const isArrayType = (potentialArrayType: string) =>
   potentialArrayType.match(/\[[[0-9]*\]*/u) !== null;
 
 export const isSolidityType = (type: string) => SOLIDITY_TYPES.includes(type);
+<<<<<<< HEAD
 
 export const formatSeedPhraseToSingleLine = (seedPhrase: string) =>
   seedPhrase
     .split('\n')
     .map((item) => item)
     .join(' ');
+=======
+>>>>>>> stable

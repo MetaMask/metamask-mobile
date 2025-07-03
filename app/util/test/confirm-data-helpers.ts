@@ -913,7 +913,11 @@ export const mockTransaction = {
   origin: 'https://metamask.github.io',
 } as unknown as TransactionMeta;
 
+<<<<<<< HEAD
 export const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+=======
+const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+>>>>>>> stable
   engine: {
     backgroundState: {
       TransactionController: { transactions: [mockTransaction] },
@@ -964,6 +968,7 @@ export const transferConfirmationState = merge(
     },
   },
 );
+<<<<<<< HEAD
 
 export const getAppStateForConfirmation = (confirmation: TransactionMeta) => ({
   engine: {
@@ -1326,3 +1331,5 @@ export function buildSetApproveForAllTransactionData(
     'function setApprovalForAll(address operator, bool approved)',
   ]).encodeFunctionData('setApprovalForAll', [address, approved]) as Hex;
 }
+=======
+>>>>>>> stable

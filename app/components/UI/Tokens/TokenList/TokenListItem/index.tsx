@@ -8,11 +8,50 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
+<<<<<<< HEAD
 import { useSelector } from 'react-redux';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+=======
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipAssetType,
+  CaipAssetId,
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  Hex,
+  isCaipChainId,
+} from '@metamask/utils';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../../../util/theme';
+import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
+import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccount,
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccountAddress,
+} from '../../../../../selectors/accountsController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../../selectors/currencyRateController';
+import { RootState } from '../../../../../reducers';
+import {
+  getTestNetImageByChainId,
+  isTestNet,
+  getDefaultNetworkByChainId,
+} from '../../../../../util/networks';
+import createStyles from '../../styles';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
+>>>>>>> stable
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -22,7 +61,18 @@ import BadgeWrapper, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+<<<<<<< HEAD
 import { RootState } from '../../../../../reducers';
+=======
+import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+import AssetElement from '../../../AssetElement';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import { TokenI } from '../../types';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { ScamWarningIcon } from '../ScamWarningIcon';
+import { StakeButton } from '../../../Stake/components/StakeButton';
+import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
+>>>>>>> stable
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
@@ -51,6 +101,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
+<<<<<<< HEAD
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
@@ -67,13 +118,26 @@ import { makeSelectNonEvmAssetById } from '../../../../../selectors/multichain/m
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { FlashListAssetKey } from '..';
 import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
+=======
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  makeSelectNonEvmAssetById,
+  selectMultichainAssetsRates,
+} from '../../../../../selectors/multichain/multichain';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+>>>>>>> stable
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+<<<<<<< HEAD
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 
+=======
+import { makeSelectAssetByAddressAndChainId } from '../../../../../selectors/multichain';
+import { FlashListAssetKey } from '..';
+>>>>>>> stable
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
@@ -124,7 +188,10 @@ export const TokenListItem = React.memo(
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
     const chainId = asset?.chainId as Hex;
+<<<<<<< HEAD
 
+=======
+>>>>>>> stable
     const primaryCurrency = useSelector(
       (state: RootState) => state.settings.primaryCurrency,
     );
@@ -139,9 +206,22 @@ export const TokenListItem = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
-    const styles = createStyles(colors);
+    const earnTokens = useEarnTokens();
 
+<<<<<<< HEAD
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
+=======
+    // Earn feature flags
+    const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+    const isStablecoinLendingEnabled = useSelector(
+      selectStablecoinLendingEnabledFlag,
+    );
+
+    const styles = createStyles(colors);
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+>>>>>>> stable
 
     // Market data selectors
     const exchangeRates = useSelector((state: RootState) =>
@@ -203,6 +283,28 @@ export const TokenListItem = React.memo(
       ],
     );
 
+<<<<<<< HEAD
+=======
+    const getPricePercentChange1d = () => {
+      const tokenPercentageChange = asset?.address
+        ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+            ?.pricePercentChange1d
+        : undefined;
+      const evmPricePercentChange1d = asset?.isNative
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
+        : tokenPercentageChange;
+      if (isEvmNetworkSelected) {
+        return evmPricePercentChange1d;
+      }
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      return allMultichainAssetsRates[asset?.address as CaipAssetType]
+        ?.marketData?.pricePercentChange?.P1D;
+      ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    };
+
+>>>>>>> stable
     // render balances according to primary currency
     let mainBalance;
     let secondaryBalance;
@@ -356,8 +458,19 @@ export const TokenListItem = React.memo(
       const shouldShowPooledStakingCta =
         isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
+<<<<<<< HEAD
       const shouldShowStablecoinLendingCta =
         earnToken && isStablecoinLendingEnabled;
+=======
+      const isAssetSupportedStablecoin = earnTokens.find(
+        (token) =>
+          token.symbol === asset.symbol &&
+          asset.chainId === token?.chainId &&
+          !asset?.isStaked,
+      );
+      const shouldShowStablecoinLendingCta =
+        isAssetSupportedStablecoin && isStablecoinLendingEnabled;
+>>>>>>> stable
 
       if (shouldShowPooledStakingCta || shouldShowStablecoinLendingCta) {
         // TODO: Rename to EarnCta
@@ -365,7 +478,11 @@ export const TokenListItem = React.memo(
       }
     }, [
       asset,
+<<<<<<< HEAD
       earnToken,
+=======
+      earnTokens,
+>>>>>>> stable
       evmAsset?.isETH,
       evmAsset?.isStaked,
       isPooledStakingEnabled,
@@ -405,6 +522,7 @@ export const TokenListItem = React.memo(
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
           <View style={styles.assetName}>
+<<<<<<< HEAD
             <Text variant={TextVariant.BodyMD} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
@@ -416,6 +534,17 @@ export const TokenListItem = React.memo(
             ) : null}
             {renderEarnCta()}
           </View>
+=======
+            <Text variant={TextVariant.BodyLGMedium} numberOfLines={1}>
+              {asset.name || asset.symbol}
+            </Text>
+            {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
+            {renderEarnCta()}
+          </View>
+          {!isTestNet(chainId) && showPercentageChange ? (
+            <PercentageChange value={getPricePercentChange1d()} />
+          ) : null}
+>>>>>>> stable
         </View>
         <ScamWarningIcon
           asset={asset}

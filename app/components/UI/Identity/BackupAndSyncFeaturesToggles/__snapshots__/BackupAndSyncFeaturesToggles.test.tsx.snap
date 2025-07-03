@@ -121,6 +121,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       value={false}
     />
   </View>
+<<<<<<< HEAD
   <View
     style={
       {
@@ -192,5 +193,7 @@ exports[`BackupAndSyncToggle renders correctly 1`] = `
       value={false}
     />
   </View>
+=======
+>>>>>>> stable
 </View>
 `;

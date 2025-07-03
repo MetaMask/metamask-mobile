@@ -18,7 +18,11 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
+<<<<<<< HEAD:e2e/specs/confirmations/send-to-contract-address.spec.ts
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+=======
+import { buildPermissions } from '../../fixtures/utils';
+>>>>>>> stable:e2e/specs/confirmations/send-to-contract-address.spec.js
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -38,7 +42,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork(buildPermissions(['0x539'])).build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: HST_CONTRACT,

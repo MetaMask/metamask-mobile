@@ -17,10 +17,17 @@ import { InteractionManager } from 'react-native';
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
 
+<<<<<<< HEAD
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
 }));
+=======
+describe('AccountBackupStep1', () => {
+  afterEach(() => {
+    jest.useFakeTimers({ legacyFakeTimers: true });
+  });
+>>>>>>> stable
 
 jest.mock('../../../core/Engine', () => ({
   hasFunds: jest.fn(),

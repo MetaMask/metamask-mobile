@@ -33,6 +33,12 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+<<<<<<< HEAD
+=======
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+>>>>>>> stable
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -41,10 +47,13 @@ import {
 } from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
+<<<<<<< HEAD
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
+=======
+>>>>>>> stable
 
 const AddNewAccount = ({
   scope,
@@ -59,8 +68,13 @@ const AddNewAccount = ({
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
+<<<<<<< HEAD
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const [primaryKeyringId] = hdKeyringsWithSnapAccounts;
+=======
+  const hdKeyrings = useSelector(selectHDKeyrings);
+  const [primaryKeyringId] = hdKeyrings;
+>>>>>>> stable
   const initialKeyringIdToUse = useMemo(
     () =>
       // For HD accounts (since v29.0.1), use the entropySource if available.
@@ -71,13 +85,18 @@ const AddNewAccount = ({
     [selectedInternalAccount, primaryKeyringId],
   );
   const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
+<<<<<<< HEAD
   const hasMultipleSRPs = hdKeyringsWithSnapAccounts.length > 1;
+=======
+  const hasMultipleSRPs = hdKeyrings.length > 1;
+>>>>>>> stable
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const { keyringToDisplay, keyringIndex } = useMemo(() => {
     const keyring =
+<<<<<<< HEAD
       hdKeyringsWithSnapAccounts.find((kr) => kr.metadata.id === keyringId) ??
       hdKeyringsWithSnapAccounts[0];
     return {
@@ -97,6 +116,17 @@ const AddNewAccount = ({
     } else {
       navigate(Routes.SHEET.ACCOUNT_SELECTOR);
     }
+=======
+      hdKeyrings.find((kr) => kr.metadata.id === keyringId) ?? hdKeyrings[0];
+    return {
+      keyringToDisplay: keyring,
+      keyringIndex: hdKeyrings.indexOf(keyring) + 1,
+    };
+  }, [hdKeyrings, keyringId]);
+
+  const onBack = () => {
+    navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+>>>>>>> stable
   };
 
   const isDuplicateName = useMemo(
@@ -119,7 +149,11 @@ const AddNewAccount = ({
       if (clientType && scope) {
         const multichainWalletSnapClient =
           MultichainWalletSnapFactory.createClient(clientType);
+<<<<<<< HEAD
         account = (await multichainWalletSnapClient.createAccount({
+=======
+        await multichainWalletSnapClient.createAccount({
+>>>>>>> stable
           scope,
           accountNameSuggestion: accountName,
           entropySource: keyringId,
@@ -171,6 +205,7 @@ const AddNewAccount = ({
   };
 
   return (
+<<<<<<< HEAD
     <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
       <Fragment>
         <SheetHeader
@@ -186,6 +221,29 @@ const AddNewAccount = ({
         ) : (
           <View style={styles.base}>
             <Fragment>
+=======
+    <BottomSheet ref={sheetRef}>
+      <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
+        <Fragment>
+          <SheetHeader
+            title={
+              showSRPList
+                ? strings('accounts.select_secret_recovery_phrase')
+                : addAccountTitle
+            }
+            onBack={() => {
+              if (showSRPList) {
+                setShowSRPList(false);
+                return;
+              }
+              onBack();
+            }}
+          />
+          {showSRPList ? (
+            <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
+          ) : (
+            <View style={styles.base}>
+>>>>>>> stable
               <View style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
@@ -212,6 +270,7 @@ const AddNewAccount = ({
                         'accounts.secret_recovery_phrase',
                       )} ${keyringIndex}`}
                       onActionComplete={() => {
+<<<<<<< HEAD
                         trackEvent(
                           createEventBuilder(
                             MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
@@ -221,6 +280,8 @@ const AddNewAccount = ({
                             })
                             .build(),
                         );
+=======
+>>>>>>> stable
                         setShowSRPList(true);
                       }}
                       testID={AddNewAccountIds.SRP_SELECTOR}
@@ -237,7 +298,11 @@ const AddNewAccount = ({
                   loading={isLoading}
                   style={styles.button}
                   variant={ButtonVariants.Secondary}
+<<<<<<< HEAD
                   onPress={handleOnBack}
+=======
+                  onPress={onBack}
+>>>>>>> stable
                   labelTextVariant={TextVariant.BodyMD}
                   label={strings('accounts.cancel')}
                 />
@@ -257,11 +322,19 @@ const AddNewAccount = ({
                   {error}
                 </Text>
               )}
+<<<<<<< HEAD
             </Fragment>
           </View>
         )}
       </Fragment>
     </SafeAreaView>
+=======
+            </View>
+          )}
+        </Fragment>
+      </SafeAreaView>
+    </BottomSheet>
+>>>>>>> stable
   );
 };
 

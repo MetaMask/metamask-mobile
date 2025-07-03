@@ -303,8 +303,19 @@ describe('TransactionsView', () => {
       ...storeOverrides,
     });
 
+<<<<<<< HEAD
     return render(
       <Provider store={testStore}>
+=======
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
+  });
+
+  it('renders correctly and matches snapshot', async () => {
+    const component = render(
+      <Provider store={store}>
+>>>>>>> stable
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen

@@ -49,6 +49,7 @@ import {
 import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
+<<<<<<< HEAD
 import BN from 'bnjs4';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
@@ -56,6 +57,16 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+=======
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import { RootState } from '../../../../../reducers';
+import { selectConversionRate } from '../../../../../selectors/currencyRateController';
+import { Hex } from '@metamask/utils';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+>>>>>>> stable
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -74,6 +85,10 @@ const EarnWithdrawInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
+  );
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;

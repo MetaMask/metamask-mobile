@@ -5,6 +5,10 @@ import {
   http,
 } from 'viem';
 import { anvil as baseAnvil } from 'viem/chains';
+<<<<<<< HEAD
+=======
+
+>>>>>>> stable
 /**
  * Creates a set of clients for interacting with an Anvil test node
  * @param {number} chainId - The chain ID for the network
@@ -17,7 +21,11 @@ import { anvil as baseAnvil } from 'viem/chains';
 function createAnvilClients(chainId: number, port: number) {
   const anvil = {
     ...baseAnvil,
+<<<<<<< HEAD
     id: chainId,
+=======
+    chainId,
+>>>>>>> stable
     rpcUrls: {
       default: {
         http: [`http://localhost:${port}`],

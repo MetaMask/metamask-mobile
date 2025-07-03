@@ -29,8 +29,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../core/Engine';
+<<<<<<< HEAD
 import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+=======
+>>>>>>> stable
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -50,9 +53,16 @@ const AccountPermissionsConnected = ({
   }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
+<<<<<<< HEAD
     (caipAccountId: CaipAccountId) => {
       const {address} = parseCaipAccountId(caipAccountId);
       Engine.setSelectedAddress(address);
+=======
+    (address: string) => {
+      if (address !== activeAddress) {
+        Engine.setSelectedAddress(address);
+      }
+>>>>>>> stable
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
         caipAccountId,

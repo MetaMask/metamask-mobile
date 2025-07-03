@@ -21,8 +21,11 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+<<<<<<< HEAD
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+=======
+>>>>>>> stable
 
 /**
  * Initialize the Snap controller.

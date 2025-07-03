@@ -10,6 +10,7 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+<<<<<<< HEAD
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -18,6 +19,11 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
+=======
+// eslint-disable-next-line import/no-namespace
+import * as useEarnTokenDetails from '../../../Earn/hooks/useEarnTokenDetails';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+>>>>>>> stable
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -40,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
+<<<<<<< HEAD
   selectPooledStakingEnabledFlag: jest.fn(),
 }));
 jest.mock('../../../../../selectors/earnController', () => ({
@@ -48,6 +55,8 @@ jest.mock('../../../../../selectors/earnController', () => ({
     selectEarnTokenPair: jest.fn(),
     selectEarnOutputToken: jest.fn(),
   },
+=======
+>>>>>>> stable
 }));
 
 const initialState = {
@@ -71,6 +80,7 @@ const initialState = {
   },
 };
 
+<<<<<<< HEAD
 const mockEarnToken: EarnTokenDetails = {
   ...MOCK_USDC_MAINNET_ASSET,
   balanceFormatted: '100.00 USDC',
@@ -191,6 +201,13 @@ const renderComponent = (token: TokenI, state = initialState) =>
     state,
   });
 
+=======
+const renderComponent = (token: TokenI, state = initialState) =>
+  renderWithProvider(<EarnEmptyStateCta token={token} />, {
+    state,
+  });
+
+>>>>>>> stable
 describe('EmptyStateCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -209,6 +226,7 @@ describe('EmptyStateCta', () => {
       getMetaMetricsId: jest.fn(),
     });
 
+<<<<<<< HEAD
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
@@ -257,12 +275,26 @@ describe('EmptyStateCta', () => {
       }),
       getEarnExperience: () => mockEarnToken.experience,
       getEstimatedAnnualRewardsForAmount: () => ({
+=======
+    jest.spyOn(useEarnTokenDetails, 'useEarnTokenDetails').mockReturnValue({
+      getTokenWithBalanceAndApr: () => ({
+        ...MOCK_USDC_MAINNET_ASSET,
+        apr: '4.5',
+>>>>>>> stable
         estimatedAnnualRewardsFormatted: '$5',
         estimatedAnnualRewardsFiatNumber: 4.5,
         estimatedAnnualRewardsTokenMinimalUnit: '4500000',
         estimatedAnnualRewardsTokenFormatted: '4.50 USDC',
       }),
     });
+  });
+
+  beforeEach(() => {
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(true);
   });
 
   it('renders correctly', () => {
@@ -342,14 +374,22 @@ describe('EmptyStateCta', () => {
     expect(toJSON()).toBeNull();
   });
 
+<<<<<<< HEAD
   it('does not render if stablecoin lending feature flag is disabled', () => {
+=======
+  it('does not render if stablecoin lending feature flag disabled', () => {
+>>>>>>> stable
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(false);
 
+<<<<<<< HEAD
     const { toJSON } = renderComponent(mockEarnToken);
+=======
+    const { toJSON } = renderComponent(MOCK_USDC_MAINNET_ASSET);
+>>>>>>> stable
     expect(toJSON()).toBeNull();
   });
 });

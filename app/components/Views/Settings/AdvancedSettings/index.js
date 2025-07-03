@@ -516,8 +516,11 @@ const mapStateToProps = (state) => ({
     state,
     selectChainId(state),
   ),
+<<<<<<< HEAD
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
+=======
+>>>>>>> stable
 });
 
 const mapDispatchToProps = (dispatch) => ({

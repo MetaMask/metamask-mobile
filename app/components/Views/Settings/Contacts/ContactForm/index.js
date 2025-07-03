@@ -13,12 +13,15 @@ import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderShortAddress,
+<<<<<<< HEAD
+=======
+  safeToChecksumAddress,
+>>>>>>> stable
   areAddressesEqual,
   validateAddressOrENS,
 } from '../../../../../util/address';
@@ -272,7 +275,7 @@ class ContactForm extends PureComponent {
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
     AddressBookController.set(
-      toChecksumAddress(toEnsAddress || address),
+      safeToChecksumAddress(toEnsAddress || address),
       name,
       chainId,
       memo,

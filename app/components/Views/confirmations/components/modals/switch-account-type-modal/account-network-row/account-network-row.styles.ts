@@ -16,6 +16,7 @@ const styleSheet = () =>
       flexDirection: 'column',
       marginLeft: 16,
     },
+<<<<<<< HEAD
     button_section: {
       flexDirection: 'row',
       justifyContent: 'center',
@@ -25,6 +26,8 @@ const styleSheet = () =>
       width: '100%',
       marginBottom: 8,
     },
+=======
+>>>>>>> stable
   });
 
 export default styleSheet;

@@ -37,6 +37,7 @@
       "title": "Unzureichende Gelder",
       "message": "Sie haben nicht genügend %{nativeCurrency} auf Ihrem Konto, um die Netzwerkgebühren zu bezahlen.",
       "buy_action": "%{nativeCurrency} kaufen"
+<<<<<<< HEAD
     },
     "signed_or_submitted": {
       "message": "Eine vorherige Transaktion wird noch unterzeichnet oder übermittelt."
@@ -49,6 +50,8 @@
     "batched_unused_approvals": {
       "title": "Unnötige Genehmigung",
       "message": "Sie erteilen jemand anderem die Genehmigung, Ihre Token abzuheben, obwohl dies für diese Transaktion nicht erforderlich ist."
+=======
+>>>>>>> stable
     }
   },
   "blockaid_banner": {
@@ -593,6 +596,7 @@
     "multisrp": {
       "title": "Mehrere geheime Wiederherstellungsphrasen hinzufügen",
       "subtitle": "Mehrere Wallets in MetaMask importieren und verwenden"
+<<<<<<< HEAD
     },
     "solana": {
       "title": "Solana wird jetzt unterstützt",
@@ -601,6 +605,8 @@
     "backupAndSync": {
       "title": "Einführung in Backup und Synchronisierung",
       "subtitle": "Sichern Sie Ihre Konten und Synchronisierungseinstellungen."
+=======
+>>>>>>> stable
     }
   },
   "wallet": {
@@ -974,10 +980,13 @@
     },
     "error_messages": {
       "failed_to_create_account": "Erstellung von {{clientType}}-Konto fehlgeschlagen"
+<<<<<<< HEAD
     },
     "account_connect_create_initial_account": {
       "description": "Für die Verbindung mit dieser Website ist ein Solana-Konto erforderlich.",
       "button": "Solana-Konto erstellen"
+=======
+>>>>>>> stable
     }
   },
   "toast": {
@@ -4126,19 +4135,27 @@
       "permit_revoke": "Genehmigung entfernen",
       "permit_NFTs": "Auszahlungsanfrage",
       "signature_siwe": "Anmeldeanfrage",
+<<<<<<< HEAD
       "contract_interaction": "Transaktionsanfrage",
       "transfer": "Übertragungsanfrage",
       "switch_account_type": "Konto-Update",
       "approve": "Approve request"
+=======
+      "contract_interaction": "Transaktionsanfrage"
+>>>>>>> stable
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
       "permit_NFTs": "Diese Website möchte die Genehmigung, Ihre NFTs auszuzahlen.",
       "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage.",
       "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind.",
+<<<<<<< HEAD
       "contract_interaction": "Überprüfen Sie vor der Bestätigung die Anfragedetails.",
       "switch_to_smart_account": "Sie wechseln zu einem Smart-Konto.",
       "switch_to_standard_account": "Sie wechseln zu einem Standardkonto (EOA) zurück."
+=======
+      "contract_interaction": "Überprüfen Sie vor der Bestätigung die Anfragedetails."
+>>>>>>> stable
     },
     "request_from": "Anfrage von",
     "staking_from": "Staking von",
@@ -4209,6 +4226,7 @@
       "includes_transaction": "Umfasst {{transactionCount}} Transaktionen"
     },
     "unlimited": "Unbegrenzt",
+<<<<<<< HEAD
     "all": "Alle",
     "none": "Keine",
     "advanced_details": "Erweiterte Details",
@@ -4218,6 +4236,12 @@
     "transferRequest": "Übertragungsanfrage",
     "nested_transaction_heading": "Transaktion {{index}}",
     "transaction": "Transaction"
+=======
+    "none": "Keine",
+    "advanced_details": "Erweiterte Details",
+    "interacting_with": "Interaktion mit",
+    "review": "Review"
+>>>>>>> stable
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",
@@ -4268,6 +4292,7 @@
     "bridge_to": "Bridge zu",
     "title": "Bridge",
     "submitting_transaction": "Absenden",
+<<<<<<< HEAD
     "fetching_quote": "Angebot einholen",
     "fee_disclaimer": "Einschließlich 0,875 % MM-Gebühr",
     "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
@@ -4277,6 +4302,14 @@
     "title": "Neue Angebote sind verfügbar",
     "description": "Die Preise werden alle {{refreshRate}} Sekunden aktualisiert. Tippen Sie also auf „Neues Angebot einholen“, wenn Sie bereit sind.",
     "get_new_quote": "Neues Angebot einholen"
+=======
+    "fetching_quote": "Angebot einholen"
+  },
+  "quote_expired_modal": {
+    "title": "New quotes are available",
+    "description": "Rates update every 10 seconds, so tap Get new quote when you're ready.",
+    "get_new_quote": "Get new quote"
+>>>>>>> stable
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -4292,6 +4325,7 @@
     "transaction_details": "Transaktionsdetails",
     "bridge_to_chain": "Bridge zu {{chainName}}",
     "recipient": "Empfänger"
+<<<<<<< HEAD
   },
   "backupAndSync": {
     "title": "Backup und Synchronisierung",
@@ -4408,5 +4442,7 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+=======
+>>>>>>> stable
   }
 }

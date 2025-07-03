@@ -144,7 +144,11 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           "alignSelf": "center",
           "backgroundColor": "transparent",
           "borderColor": "#4459ff",
+<<<<<<< HEAD
           "borderRadius": 12,
+=======
+          "borderRadius": 20,
+>>>>>>> stable
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 40,
@@ -184,7 +188,11 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#4459ff",
+<<<<<<< HEAD
           "borderRadius": 12,
+=======
+          "borderRadius": 20,
+>>>>>>> stable
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",

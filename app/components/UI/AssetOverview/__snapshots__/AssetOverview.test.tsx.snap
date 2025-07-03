@@ -3116,6 +3116,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               false,
             ]
           }
+<<<<<<< HEAD
           testID="token-send-button"
         >
           <View
@@ -3223,6 +3224,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               false,
             ]
           }
+=======
+>>>>>>> stable
           testID="token-receive-button"
         >
           <View
