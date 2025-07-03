@@ -79,6 +79,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       NotificationMenuView.selectNotificationItem(
         getMockFeatureAnnouncementItemId(),
       ),
+      1500,  // Notifications even being mocked take a while to populate
     );
   });
 
