@@ -19,7 +19,7 @@ import SettingsScreen from '../screen-objects/SettingsScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen';
 import SolanaNewFeatureSheet from '../screen-objects/Modals/SolanaFeatureSheet';
 import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED;
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();

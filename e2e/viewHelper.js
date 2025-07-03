@@ -32,7 +32,7 @@ import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED;
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen

@@ -19,7 +19,7 @@ import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED;
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 const PASSWORD = '12345678';
 
