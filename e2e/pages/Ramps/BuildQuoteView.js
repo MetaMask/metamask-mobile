@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
 
 class BuildQuoteView {
@@ -82,7 +82,9 @@ class BuildQuoteView {
 
   async tapTokenDropdown(token) {
     const tokenOption = Matchers.getElementByText(token);
-    await Gestures.waitAndTap(tokenOption);
+    await Gestures.waitAndTap(tokenOption, {
+      checkEnabled: false,
+    });
   }
 
   async tapSelectRegionDropdown() {
@@ -108,7 +110,10 @@ class BuildQuoteView {
 
   async tapPaymentMethodDropdown(paymentMethod) {
     const paymentMethodOption = Matchers.getElementByText(paymentMethod);
-    await Gestures.waitAndTap(paymentMethodOption);
+    await Gestures.waitAndTap(paymentMethodOption, {
+      elemDescription: `Payment method option: ${paymentMethod}`,
+      checkEnabled: false,
+    });
   }
 
   async tapRegionSelector() {

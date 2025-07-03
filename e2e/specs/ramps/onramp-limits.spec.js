@@ -5,7 +5,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';

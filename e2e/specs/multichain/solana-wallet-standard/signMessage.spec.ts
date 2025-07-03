@@ -2,7 +2,7 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions.ts';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 
 describe(

@@ -1,6 +1,6 @@
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 
 class SendActionBottomSheet {
   get solanaAddressInputField() {

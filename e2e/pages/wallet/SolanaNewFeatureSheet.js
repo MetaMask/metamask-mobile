@@ -1,10 +1,9 @@
 'use strict';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
-import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
+import Gestures from '../../framework/Gestures.ts';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers.ts';
 
 class SolanaNewFeatureSheet {
   // Sheet container
@@ -35,7 +34,9 @@ class SolanaNewFeatureSheet {
 
   // Interaction methods
   async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);
+    await Gestures.waitAndTap(this.createAccountButton, {
+        elemDescription: 'Create Solana Account Button',
+    });
   }
 
   async tapViewAccountButton() {

@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
 
 class SelectPaymentMethodView {
@@ -11,7 +11,10 @@ class SelectPaymentMethodView {
 
   async tapPaymentMethodOption(paymentMethod) {
     const paymentMethodOption = Matchers.getElementByText(paymentMethod);
-    await Gestures.waitAndTap(paymentMethodOption);
+    await Gestures.waitAndTap(paymentMethodOption, {
+      elemDescription: `Payment method option: ${paymentMethod}`,
+      checkEnabled: false,
+    });
   }
 
   async tapContinueButton() {

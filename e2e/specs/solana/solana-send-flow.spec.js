@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../tags';
 import { importWalletWithRecoveryPhrase, loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import TestHelpers from '../../helpers';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -52,7 +52,6 @@ describe(
       await WalletActionsBottomSheet.tapSendButton();
       await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
-      await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapContinueButton();
         SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
       // Snap UI components prove tricky for testID's require more time
@@ -62,11 +61,12 @@ describe(
     });
 
     it('Should verify that transaction is sent successfully', async () => {
-      await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapCloseButton();
       await TabBarComponent.tapActivity();
       await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
-      await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
+      await Assertions.expectTextDisplayed(RECIPIENT_SHORT_ADDRESS, {
+        allowDuplicates: true,
+      });
     });
   },
 );

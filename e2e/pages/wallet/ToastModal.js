@@ -19,7 +19,9 @@ class ToastModal {
   }
 
   async tapToastCloseButton() {
-    await Gestures.waitAndTap(this.toastCloseButton);
+    await Gestures.waitAndTap(this.toastCloseButton, {
+      elemDescription: 'Toast Close Button',
+    });
   }
 }
 

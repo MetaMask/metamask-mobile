@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { SuccessImportAccountIDs } from '../../selectors/ImportAccount/SuccessImportAccount.selectors';
 
 class SuccessImportAccountView {
@@ -12,7 +12,11 @@ class SuccessImportAccountView {
   }
 
   async tapCloseButton() {
-    await Gestures.waitAndTap(this.closeButton);
+    await Gestures.tap(this.closeButton,
+    {
+      elemDescription: 'Close button on Success Import Account View',
+    },
+  );
   }
 }
 

@@ -3,8 +3,8 @@ import {
   ConnectedAccountsSelectorsIDs,
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
 import type { IndexableNativeElement, NativeElement, IndexableSystemElement } from 'detox/detox';
 type DetoxElement = Promise<IndexableNativeElement | NativeElement | IndexableSystemElement>;
@@ -160,7 +160,7 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', 'fast');
+    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down');
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {

@@ -7,13 +7,15 @@ import {
 import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
+import Utilities from '../../framework/Utilities.ts';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import {
   TEST_DAPP_LOCAL_URL,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
+import Assertions from '../../framework/Assertions.ts';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -127,7 +129,9 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID);
+    await Gestures.waitAndTap(this.urlInputBoxID, {
+      elemDescription: 'URL Input Box',
+    });
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
@@ -143,7 +147,22 @@ class Browser {
   }
 
   async tapOpenAllTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.tabsButton, { delayBeforeTap: 4000 });
+    return Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabsButton, {
+          timeout: 2000
+        });
+
+        await Assertions.expectVisible(this.tabsNumber, {
+          timeout: 2000
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'tap open all tabs button and verify navigation',
+        elemDescription: 'Open All Tabs Button',
+      }
+    );
   }
 
   async tapSecondTabButton(): Promise<void> {
@@ -161,22 +180,27 @@ class Browser {
   }
 
   async tapCloseTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeAllTabsButton);
+    await Gestures.waitAndTap(this.closeAllTabsButton, {
+      elemDescription: 'Close All Tabs Button',
+    });
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
-    await Gestures.waitAndTap(secondTab);
+    await Gestures.waitAndTap(secondTab, {
+      elemDescription: 'Close Second Tab Button',
+    });
   }
 
   async tapOpenNewTabButton(): Promise<void> {
-    await Gestures.waitAndTap(this.multiTabButton);
+    await Gestures.waitAndTap(this.multiTabButton, {
+      elemDescription: 'Open New Tab Button',
+    });
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {
-    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
   }
 

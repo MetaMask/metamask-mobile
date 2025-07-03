@@ -22,7 +22,7 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
-import Assertions from '../../utils/Assertions.js';
+import Assertions from '../../framework/Assertions.ts';
 
 const fixtureServer = new FixtureServer();
 const PASSWORD = '123123123';

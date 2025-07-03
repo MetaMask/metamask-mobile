@@ -1,6 +1,6 @@
 import { SmokeNetworkExpansion } from '../../../tags';
 import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions.ts';
 
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
@@ -23,8 +23,8 @@ describe(
   () => {
     const PASSWORD_ONE = '123123123';
     const PASSWORD_TWO = '456456456';
-    const DATA_TO_ENCRYPT_ONE = 'random data to encrypt';
-    const DATA_TO_ENCRYPT_TWO = 'more random data to encrypt';
+    const DATA_TO_ENCRYPT_ONE = 'Random data to encrypt'; // failing on android becuase the app was capitalizing the first letter of the string
+    const DATA_TO_ENCRYPT_TWO = 'More random data to encrypt';
 
     beforeAll(async () => {
       jest.setTimeout(150000);
@@ -49,7 +49,7 @@ describe(
 
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
       await AesCryptoTestForm.decrypt(PASSWORD_ONE);
-      await Assertions.checkIfElementHasLabel(
+      await Assertions.expectLabel(
         AesCryptoTestForm.decryptResponse,
         DATA_TO_ENCRYPT_ONE,
       );
@@ -57,7 +57,7 @@ describe(
       // encrypt and decrypt with password second piece of data
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
       await AesCryptoTestForm.decrypt(PASSWORD_TWO);
-      await Assertions.checkIfElementHasLabel(
+      await Assertions.expectLabel(
         AesCryptoTestForm.decryptResponse,
         DATA_TO_ENCRYPT_TWO,
       );

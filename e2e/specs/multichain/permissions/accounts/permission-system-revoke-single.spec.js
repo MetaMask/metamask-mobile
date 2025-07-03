@@ -8,7 +8,7 @@ import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsM
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../utils/Assertions';
+import Assertions from '../../../../framework/Assertions.ts';
 
 describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {

@@ -2,10 +2,11 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
+import AccountListBottomSheet from './AccountListBottomSheet.js';
 
 class WalletView {
   get container() {
@@ -179,6 +180,7 @@ class WalletView {
 
   async tapIdenticon() {
     await Gestures.waitAndTap(this.accountIcon);
+    await Assertions.expectVisible(AccountListBottomSheet.accountList); // Ensure the account list is visible after tapping the identicon
   }
 
   async tapBellIcon() {

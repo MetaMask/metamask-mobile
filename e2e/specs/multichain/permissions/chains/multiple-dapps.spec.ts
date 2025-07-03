@@ -8,7 +8,7 @@ import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsM
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../utils/Assertions';
+import Assertions from '../../../../framework/Assertions.ts';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
@@ -70,7 +70,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Assertions.expectVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
         await Browser.navigateToTestDApp();
@@ -117,6 +117,8 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseTabsButton();
         await Browser.tapOpenNewTabButton();
+        await device.disableSynchronization();
+
 
         // In 2nd Dapp, Should verify that we are connected to Eth mainnet
 

@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -47,28 +47,32 @@ class QuoteView {
 
   async tapOnSelectDestToken() {
     await Gestures.waitAndTap(this.destToken, {
-      experimentalWaitForStability: true,
+      checkStability: true,
     });
   }
 
   async tapSearchToken() {
     await Gestures.waitAndTap(this.searchToken, {
-      experimentalWaitForStability: true,
+      checkStability: true,
     });
   }
 
   async typeSearchToken(symbol: string) {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
+    await Gestures.typeText(this.searchToken, symbol, {
+      hideKeyboard: true,
+    });
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
     const token = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(token);
+    await Gestures.waitAndTap(token, {
+      checkEnabled: false
+    });
   }
 
   async tapOnGetQuotes() {
     await Gestures.waitAndTap(this.getQuotes, {
-      experimentalWaitForStability: true,
+      checkStability: true,
     });
   }
 
