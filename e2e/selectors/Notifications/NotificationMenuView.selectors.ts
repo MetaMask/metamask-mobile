@@ -11,4 +11,5 @@ export const NotificationMenuViewSelectorsIDs = {
   COG_WHEEL: 'notification-menu-view-cog-wheel',
   ITEM: (id: string) => `notification-menu-view-item-${id}`,
   ITEM_LIST_SCROLLVIEW: 'notification-menu-scroll-view',
+  CLOSE_NOTIFICATIONS_BUTTON: 'close-notifications-button',
 };

@@ -186,6 +186,7 @@ NotificationsView.navigationOptions = ({
       iconName={IconName.Close}
       onPress={() => navigation.navigate(Routes.WALLET.HOME)}
       style={styles.icon}
+      testID={NotificationMenuViewSelectorsIDs.CLOSE_NOTIFICATIONS_BUTTON}
     />
   ),
   headerTitle: () => (

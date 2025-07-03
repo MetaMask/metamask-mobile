@@ -63,13 +63,17 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   });
 
   it('enables notifications through bell icon', async () => {
-
     // Bell Icon
     await WalletView.tapBellIcon();
 
     // Enable Notifications Modal
     await Assertions.checkIfVisible(EnableNotificationsModal.title);
     await EnableNotificationsModal.tapOnConfirm();
+
+    // Going back to force the load of notifications. this shouldn't be needed
+    // but CI seems to not be able to load notifications properly
+    await NotificationMenuView.tapOnCloseNotificationsButton();
+    await WalletView.tapBellIcon();
   });
 
   it('shows notifications visible in the notifications menu', async () => {
