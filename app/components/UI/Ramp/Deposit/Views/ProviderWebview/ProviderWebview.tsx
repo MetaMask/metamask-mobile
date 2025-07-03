@@ -19,12 +19,9 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import ErrorView from '../../../Aggregator/components/ErrorView';
 import { depositOrderToFiatOrder } from '../../orderProcessor';
-import { addFiatOrder, FiatOrder } from '../../../../../../reducers/fiatOrders';
-import NotificationManager from '../../../../../../core/NotificationManager';
-import stateHasOrder from '../../../utils/stateHasOrder';
-import { getNotificationDetails } from '../../utils';
-import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
+import useHandleNewOrder from '../../hooks/useHandleNewOrder';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 
 export interface ProviderWebviewParams {
   quote: BuyQuote;
@@ -39,12 +36,12 @@ const ProviderWebview = () => {
   const [webviewError, setWebviewError] = useState('');
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
-  const dispatchThunk = useThunkDispatch();
   const { quote } = useParams<ProviderWebviewParams>();
   const { styles, theme } = useStyles(styleSheet, {});
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const handleNewOrder = useHandleNewOrder();
 
   const [{ error: ottError, data: ottResponse, isFetching: isOttLoading }] =
     useDepositSdkMethod('requestOtt');
@@ -66,29 +63,6 @@ const ProviderWebview = () => {
       method: 'getOrder',
       onMount: false,
     });
-
-  const handleSuccessfulOrder = useCallback(
-    async (order: FiatOrder) => {
-      dispatchThunk((_dispatch, getState) => {
-        const state = getState();
-        if (stateHasOrder(state, order)) {
-          return;
-        }
-        _dispatch(addFiatOrder(order));
-        const notificationDetails = getNotificationDetails(order);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
-        }
-      });
-
-      navigation.navigate(
-        ...createOrderProcessingNavDetails({
-          orderId: order.id,
-        }),
-      );
-    },
-    [dispatchThunk, navigation],
-  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -127,19 +101,29 @@ const ProviderWebview = () => {
               return;
             }
 
+            const cryptoCurrency = getCryptoCurrencyFromTransakId(
+              order.cryptoCurrency,
+            );
             const processedOrder = {
               ...depositOrderToFiatOrder(order),
               account: selectedAddress || order.walletAddress,
+              network: cryptoCurrency?.chainId || order.network,
             };
 
-            await handleSuccessfulOrder(processedOrder);
+            await handleNewOrder(processedOrder);
+
+            navigation.navigate(
+              ...createOrderProcessingNavDetails({
+                orderId: order.id,
+              }),
+            );
           }
         } catch (e) {
           console.error('Error extracting orderId from URL:', e);
         }
       }
     },
-    [getOrder, selectedAddress, orderError, handleSuccessfulOrder],
+    [getOrder, selectedAddress, orderError, handleNewOrder, navigation],
   );
 
   const error = ottError || webviewError || paymentUrlError;

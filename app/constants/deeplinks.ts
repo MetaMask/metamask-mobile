@@ -29,6 +29,7 @@ export enum ACTIONS {
   HOME = 'home',
   SWAP = 'swap',
   EMPTY = '',
+  OAUTH_REDIRECT = 'oauth-redirect',
 }
 
 export const PREFIXES = {
@@ -45,6 +46,7 @@ export const PREFIXES = {
   [ACTIONS.SELL]: '',
   [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.SELL_CRYPTO]: '',
+  [ACTIONS.OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
   [ACTIONS.SWAP]: '',
   METAMASK: 'metamask://',

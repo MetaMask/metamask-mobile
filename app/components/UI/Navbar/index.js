@@ -77,6 +77,12 @@ const trackEvent = (event, params = {}) => {
 };
 
 const styles = StyleSheet.create({
+  hitSlop: {
+    top: 15,
+    bottom: 15,
+    left: 15,
+    right: 15,
+  },
   metamaskName: {
     width: 70,
     height: 35,
@@ -2081,7 +2087,8 @@ export function getStakingNavbar(
     headerStyle: {
       backgroundColor:
         navBarOptions?.backgroundColor ?? themeColors.background.default,
-      shadowOffset: null,
+      shadowColor: importedColors.transparent,
+      shadowOffset: null
     },
     headerLeft: {
       marginHorizontal: 16,
@@ -2164,6 +2171,7 @@ export function getStakingNavbar(
         </TouchableOpacity>
       ) : hasIconButton ? (
         <TouchableOpacity
+          hitSlop={styles.hitSlop}
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >

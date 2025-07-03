@@ -30,6 +30,11 @@ describe('getTokenDetails', () => {
     aggregators: ['uniswap', '1inch'],
   };
 
+  beforeEach(() => {
+    // Clear mock calls before each test for proper isolation
+    (parseCaipAssetType as jest.Mock).mockClear();
+  });
+
   describe('Network-specific behavior', () => {
     it('should format token details for non-EVM networks for spl token', () => {
       (parseCaipAssetType as jest.Mock).mockReturnValue({
@@ -114,6 +119,111 @@ describe('getTokenDetails', () => {
         tokenList: 'uniswap, 1inch',
       });
     });
+
+    it('converts raw Solana address to CAIP format for non-EVM networks', () => {
+      const solanaAsset: TokenI = {
+        ...mockAsset,
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // Raw Solana address
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // Solana chainId
+      };
+
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chain: {
+          namespace: 'solana',
+          reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      });
+
+      const result = getTokenDetails(
+        solanaAsset,
+        true, // isNonEvmAsset
+        undefined,
+        mockEvmMetadata,
+      );
+
+      // Verify parseCaipAssetType was called with the converted CAIP format
+      expect(parseCaipAssetType).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      );
+
+      expect(result).toEqual({
+        contractAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        tokenDecimal: 18,
+        tokenList: 'uniswap, 1inch',
+      });
+    });
+
+    it('handles address already in CAIP format for non-EVM networks', () => {
+      // Test that addresses already in CAIP format are handled correctly
+      const solanaAssetWithCaipAddress: TokenI = {
+        ...mockAsset,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // Already CAIP format
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chain: {
+          namespace: 'solana',
+          reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      });
+
+      const result = getTokenDetails(
+        solanaAssetWithCaipAddress,
+        true, // isNonEvmAsset
+        undefined,
+        mockEvmMetadata,
+      );
+
+      // Verify parseCaipAssetType was called with the original CAIP address (no conversion needed)
+      expect(parseCaipAssetType).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      );
+
+      expect(result).toEqual({
+        contractAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        tokenDecimal: 18,
+        tokenList: 'uniswap, 1inch',
+      });
+    });
+
+    it('should handle empty address in asset', () => {
+      const assetWithoutAddress: TokenI = {
+        ...mockAsset,
+        address: '',
+      };
+
+      // Mock for empty address case - should return null/empty assetReference
+      (parseCaipAssetType as jest.Mock).mockReturnValue({
+        assetNamespace: 'token',
+        assetReference: '', // Empty asset reference for empty address
+        chainId: 'test:test',
+        chain: {
+          namespace: 'slip44',
+          reference: '0x123',
+        },
+      });
+
+      const result = getTokenDetails(
+        assetWithoutAddress,
+        true, // isNonEvmAsset
+        undefined,
+        mockEvmMetadata,
+      );
+
+      expect(result).toEqual({
+        contractAddress: null, // Empty assetReference should result in null
+        tokenDecimal: 18,
+        tokenList: 'uniswap, 1inch',
+      });
+    });
   });
 
   describe('Metadata handling', () => {
@@ -177,26 +287,6 @@ describe('getTokenDetails', () => {
   });
 
   describe('Asset property handling', () => {
-    it('should handle empty address in asset', () => {
-      const assetWithoutAddress: TokenI = {
-        ...mockAsset,
-        address: '',
-      };
-
-      const result = getTokenDetails(
-        assetWithoutAddress,
-        true, // isNonEvmAsset
-        undefined,
-        mockEvmMetadata,
-      );
-
-      expect(result).toEqual({
-        contractAddress: null,
-        tokenDecimal: 18,
-        tokenList: 'uniswap, 1inch',
-      });
-    });
-
     it('should handle zero decimals in asset', () => {
       (parseCaipAssetType as jest.Mock).mockReturnValue({
         assetNamespace: 'token',

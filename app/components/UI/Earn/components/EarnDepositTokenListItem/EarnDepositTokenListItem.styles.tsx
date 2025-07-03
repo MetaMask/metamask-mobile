@@ -16,6 +16,7 @@ const styleSheet = () =>
     right: {
       alignItems: 'flex-end',
       justifyContent: 'center',
+      paddingLeft: 16,
     },
     assetName: {
       flex: 1,

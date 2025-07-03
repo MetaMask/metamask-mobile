@@ -9,7 +9,7 @@ import {
 } from '../../../../../../util/conversions';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { validateGas } from '../../../utils/gas-validations';
+import { validateGas } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './gas-input.styles';
 

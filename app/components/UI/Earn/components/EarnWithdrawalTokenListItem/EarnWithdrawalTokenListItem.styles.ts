@@ -8,13 +8,21 @@ const styleSheet = () =>
       alignItems: 'center',
     },
     left: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      position: 'relative',
+    },
+    textContainer: {
+      position: 'absolute',
+      left: 48,
+      flexDirection: 'column',
+      justifyContent: 'center',
     },
     right: {
       alignItems: 'flex-end',
       justifyContent: 'center',
+      paddingLeft: 16,
     },
     networkAvatar: {
       height: 32,

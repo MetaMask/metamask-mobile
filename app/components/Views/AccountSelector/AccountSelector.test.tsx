@@ -9,46 +9,43 @@ import {
   AccountSelectorProps,
 } from './AccountSelector.types';
 import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
+  MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
+  internalAccount1,
+  internalAccount2,
+  internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
 
 const mockAccounts = [
   {
-    address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+    id: internalAccount1.id,
+    address: internalAccount1.address,
     balance: '0x0',
-    name: 'EVM Account 1',
+    name: internalAccount1.metadata.name,
   },
   {
-    address: '9JFiCmqKEmKjmBXN6p9xAZT72kr5f5WvxN6pUZRH6YNU',
+    id: internalSolanaAccount1.id,
+    address: internalSolanaAccount1.address,
     balance: '0x0',
-    name: 'Solana Account 1',
+    name: internalSolanaAccount1.metadata.name,
   },
   {
-    address: '0x2B5634C42055806a59e9107ED44D43c426E58258',
+    id: internalAccount2.id,
+    address: internalAccount2.address,
     balance: '0x0',
-    name: 'EVM Account 2',
+    name: internalAccount2.metadata.name,
   },
 ];
 
 const mockEnsByAccountAddress = {
-  '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
+  [internalAccount2.address]: 'test.eth',
 };
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      KeyringController: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            accounts: [
-              '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-              '0x2B5634C42055806a59e9107ED44D43c426E58258',
-            ],
-          },
-        ],
-      },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
       AccountTreeController: {
         accountTree: {
           wallets: {},
@@ -87,21 +84,12 @@ jest.mock('../../hooks/useAccounts', () => ({
 jest.mock('../../../core/Engine', () => {
   const {
     MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState,
+    MOCK_KEYRING_CONTROLLER_STATE: KeyringControllerState,
   } = jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
     context: {
       KeyringController: {
-        state: {
-          keyrings: [
-            {
-              type: 'HD Key Tree',
-              accounts: [
-                '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-                '0x2B5634C42055806a59e9107ED44D43c426E58258',
-              ],
-            },
-          ],
-        },
+        state: KeyringControllerState,
         importAccountWithStrategy: jest.fn(),
       },
       AccountsController: {
@@ -169,9 +157,9 @@ describe('AccountSelector', () => {
     );
 
     expect(accountsList).toBeDefined();
-    expect(queryByText('EVM Account 1')).toBeDefined();
-    expect(queryByText('Solana Account 1')).toBeDefined();
-    expect(queryByText('EVM Account 2')).toBeDefined();
+    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
   it('includes only EVM accounts if isEvmOnly', () => {
@@ -191,9 +179,9 @@ describe('AccountSelector', () => {
     );
 
     expect(accountsList).toBeDefined();
-    expect(queryByText('EVM Account 1')).toBeDefined();
-    expect(queryByText('Solana Account 1')).toBeNull();
-    expect(queryByText('EVM Account 2')).toBeDefined();
+    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeNull();
+    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
   it('should display add account button', () => {

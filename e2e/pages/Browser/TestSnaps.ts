@@ -16,9 +16,11 @@ import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapAp
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { IndexableWebElement } from 'detox/detox';
+import Utilities from '../../utils/Utilities';
+import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.23.1/';
+  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
 
 class TestSnaps {
   get getConnectSnapButton() {
@@ -39,6 +41,10 @@ class TestSnaps {
     );
   }
 
+  get confirmSignatureButton() {
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -52,7 +58,23 @@ class TestSnaps {
     await Assertions.checkIfTextMatches(actualText, expectedMessage);
   }
 
+  async checkResultSpanIncludes(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    expectedMessage: string,
+  ) {
+    const webElement = (await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    )) as IndexableWebElement;
+
+    const actualText = await webElement.getText();
+    if (!actualText.includes(expectedMessage)) {
+      throw new Error(`Text did not contain "${expectedMessage}"`);
+    }
+  }
+
   async navigateToTestSnap() {
+    await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
@@ -62,7 +84,6 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     ) as any;
     await Gestures.scrollToWebViewPort(webElement);
-    await TestHelpers.delay(1000);
     await Gestures.tapWebElement(webElement);
   }
 
@@ -79,16 +100,16 @@ class TestSnaps {
     );
   }
 
-  async selectEntropySource(
+  async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
-    entropySource: string,
+    text: string,
   ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
-    const source = await this.getOptionValueByText(webElement, entropySource);
+    const source = await this.getOptionValueByText(webElement, text);
 
     await webElement.runScript(
       (el, value) => {
@@ -122,6 +143,47 @@ class TestSnaps {
 
   async approveSignRequest() {
     await Gestures.waitAndTap(this.getApproveSignRequestButton);
+  }
+
+  async approveNativeConfirmation() {
+    await Gestures.waitAndTap(this.confirmSignatureButton);
+  }
+
+  async waitForWebSocketUpdate(state: {
+    open: boolean;
+    origin: string | null;
+    blockNumber: string | null;
+  }) {
+    const resultElement = (await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS.networkAccessResultSpan,
+    )) as IndexableWebElement;
+    
+    await Utilities.waitUntil(
+      async () => {
+        try {
+          await this.tapButton('getWebSocketState');
+
+          await TestHelpers.delay(250);
+
+          const text = await resultElement.getText();
+
+          const { open, origin, blockNumber } = JSON.parse(text);
+
+          const blockNumberMatch =
+            typeof state.blockNumber === 'string'
+              ? typeof blockNumber === state.blockNumber
+              : blockNumber === state.blockNumber;
+
+          return (
+            open === state.open && origin === state.origin && blockNumberMatch
+          );
+        } catch (error) {
+          return false;
+        }
+      },
+      { timeout: 10000, interval: 1000 },
+    );
   }
 }
 

@@ -1,6 +1,5 @@
 // External dependencies.
 import { IconSize } from '../../Icons/Icon';
-import { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';
@@ -45,13 +44,6 @@ export type AvatarProps =
  */
 export type IconSizeByAvatarSize = {
   [key in AvatarSize]: IconSize;
-};
-
-/**
- * Mapping of TextVariant by AvatarSize.
- */
-export type TextVariantByAvatarSize = {
-  [key in AvatarSize]: TextVariant;
 };
 
 /**

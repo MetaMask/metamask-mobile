@@ -13,7 +13,7 @@ import styleSheet from './text-field-with-label.styles';
 export type TextFieldWithLabelProps = {
   error: string | boolean;
   inputType: string;
-  label: string;
+  label?: string;
 } & TextFieldProps;
 
 export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {

@@ -1,4 +1,4 @@
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import { AccountId, AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -21,8 +21,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
-import { toFormattedAddress } from '../util/address';
+import { areAddressesEqual, toFormattedAddress } from '../util/address';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -35,6 +34,14 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  */
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
+
+/**
+ * A memoized selector that returns internal accounts from the AccountsController.
+ */
+export const selectInternalAccountsById = createDeepEqualSelector(
+  selectAccountsControllerState,
+  (accountControllerState): Record<AccountId, InternalAccount> => accountControllerState.internalAccounts.accounts,
+);
 
 /**
  * A memoized selector that returns internal accounts from the AccountsController, sorted by the order of KeyringController's keyring accounts
@@ -136,7 +143,7 @@ export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
   (internalAccounts, address) =>
     internalAccounts.find((account) =>
-      isEqualCaseInsensitive(account.address, address),
+      areAddressesEqual(account.address, address),
     ),
 );
 

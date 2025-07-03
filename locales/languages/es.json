@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana ahora es compatible",
       "subtitle": "Cree una cuenta de Solana para comenzar"
+    },
+    "backupAndSync": {
+      "title": "Presentamos la copia de respaldo y la sincronización",
+      "subtitle": "Realice una copia de respaldo de sus cuentas y sincronice la configuración."
     }
   },
   "wallet": {

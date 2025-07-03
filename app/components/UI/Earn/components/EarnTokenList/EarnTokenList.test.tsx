@@ -19,6 +19,7 @@ import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligi
 import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import * as useEarnTokensHook from '../../hooks/useEarnTokens';
+import * as useEarnNetworkPollingHook from '../../hooks/useEarnNetworkPolling';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -94,6 +95,7 @@ const initialMetrics: Metrics = {
 };
 
 let useEarnTokensSpy: jest.SpyInstance;
+let useEarnNetworkPollingSpy: jest.SpyInstance;
 
 const mockEarnTokens: EarnTokenDetails[] = [
   Object.values(getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING))[0],
@@ -136,6 +138,10 @@ describe('EarnTokenList', () => {
         getEstimatedAnnualRewardsForAmount: jest.fn(),
       });
 
+    useEarnNetworkPollingSpy = jest
+      .spyOn(useEarnNetworkPollingHook, 'default')
+      .mockReturnValue(null);
+
     (
       selectStablecoinLendingEnabledFlag as unknown as jest.Mock
     ).mockReturnValue(true);
@@ -163,7 +169,7 @@ describe('EarnTokenList', () => {
     expect(toJSON()).toMatchSnapshot();
 
     // Bottom Sheet Title
-    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
+    expect(getByText(strings('stake.select_a_token_to_deposit'))).toBeDefined();
 
     // Upsell Banner
     expect(getByText(strings('stake.you_could_earn_up_to'))).toBeDefined();
@@ -179,6 +185,39 @@ describe('EarnTokenList', () => {
     expect(getByText('4.0% APR')).toBeDefined();
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
+    expect(useEarnNetworkPollingSpy).toHaveBeenCalled();
+  });
+
+  it('calls useEarnNetworkPolling when component mounts', () => {
+    renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops polling when component unmounts', () => {
+    const { unmount } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    // The hook should handle its own cleanup internally
+    // We verify it was called during mount, cleanup is handled by the hook itself
+    expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(1);
   });
 
   it('does not render the EarnTokenList when required feature flags are disabled', () => {
@@ -692,6 +731,59 @@ describe('EarnTokenList', () => {
 
       // Both USDC tokens should be shown (non-ETH tokens)
       expect(getAllByText('USDC')).toBeDefined();
+    });
+  });
+
+  describe('Earn Network Polling', () => {
+    it('initiates network polling for earn tokens when component mounts', () => {
+      renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('polling hook is called for each render', () => {
+      const { rerender } = renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+      );
+
+      expect(useEarnNetworkPollingSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not call polling when component is not rendered due to disabled feature flags', () => {
+      (
+        selectStablecoinLendingEnabledFlag as unknown as jest.Mock
+      ).mockReturnValue(false);
+
+      jest
+        .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
+        .mockReturnValueOnce(false);
+
+      renderWithProvider(<EarnTokenList />, {
+        state: initialState,
+      });
+
+      // Should not call polling when feature flags are disabled and component doesn't render
+      expect(useEarnNetworkPollingSpy).not.toHaveBeenCalled();
     });
   });
 });

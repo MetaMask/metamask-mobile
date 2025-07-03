@@ -597,6 +597,10 @@
     "solana": {
       "title": "이제 솔라나가 지원됩니다",
       "subtitle": "솔라나 계정을 만들고 시작하세요"
+    },
+    "backupAndSync": {
+      "title": "백업 및 동기화 소개",
+      "subtitle": "계정을 백업하고 설정을 동기화하세요."
     }
   },
   "wallet": {

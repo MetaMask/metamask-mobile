@@ -168,6 +168,7 @@ const useAccounts = ({
 
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
+          id: internalAccount.id,
           name: internalAccount.metadata.name,
           address: formattedAddress,
           type: internalAccount.metadata.keyring.type as KeyringTypes,

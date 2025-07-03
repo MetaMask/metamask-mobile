@@ -714,6 +714,97 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(input0).toBeOnTheScreen();
       expect(input0.props.value).toBe('');
     });
+
+    it('shows "Paste" button initially and "Clear All" when user starts typing', async () => {
+      const { getByText, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Initially should show "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+
+      // Type something to trigger hasStartedTyping
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Should now show "Clear All" button
+      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
+      expect(clearAllButton).toBeOnTheScreen();
+    });
+
+    it('switches back to "Paste" button when all content is cleared', async () => {
+      const { getByText, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Start with TextArea and type something
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Verify "Clear All" button is shown
+      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
+      expect(clearAllButton).toBeOnTheScreen();
+
+      // Click "Clear All"
+      fireEvent.press(clearAllButton);
+
+      // Should switch back to "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+    });
+
+    it('switches back to TextArea when all individual fields are cleared', async () => {
+      const { getByPlaceholderText, getByTestId, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Start with TextArea and type something
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Verify individual inputs are shown
+      const firstInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+      expect(firstInput).toBeOnTheScreen();
+
+      // Clear the input
+      await act(async () => {
+        fireEvent.changeText(firstInput, '');
+      });
+
+      // Should switch back to TextArea
+      const textAreaAfterClear = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      expect(textAreaAfterClear).toBeOnTheScreen();
+
+      // Should show "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+    });
   });
 
   describe('Create password UI', () => {

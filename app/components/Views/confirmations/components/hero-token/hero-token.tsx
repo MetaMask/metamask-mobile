@@ -48,13 +48,13 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
 
   const { maxValueMode } = useSelector(selectTransactionState);
 
-  const { amountPrecise, amount, fiat } = useTokenAmount({ amountWei });
+  const { amountPrecise, amount, fiat, isNative } = useTokenAmount({ amountWei });
   const isRoundedAmount = amountPrecise !== amount;
 
   return (
     <AnimatedPulse
       isPulsing={isTransactionValueUpdating}
-      preventPulse={!maxValueMode}
+      preventPulse={!maxValueMode || !isNative}
     >
       <Hero
         componentAsset={<AvatarTokenWithNetworkBadge />}

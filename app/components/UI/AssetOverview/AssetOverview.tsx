@@ -70,10 +70,11 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { TraceName, endTrace } from '../../../util/trace';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../selectors/multichain';
+import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isEvmAccountType, KeyringAccountType } from '@metamask/keyring-api';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -152,6 +153,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     },
   });
 
+  // Hook for handling non-EVM asset sending
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: asset.chainId as string,
+      address: asset.address,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
@@ -187,6 +196,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Try non-EVM first, if handled, return early
+    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    if (wasHandledAsNonEvm) {
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
@@ -194,6 +211,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       },
     });
 
+    // For EVM networks, switch the network if needed
     if (asset.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;
       const networkConfiguration =

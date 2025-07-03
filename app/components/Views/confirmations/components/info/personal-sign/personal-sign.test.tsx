@@ -22,7 +22,14 @@ jest.mock('../../../../../../core/Engine', () => ({
         internalAccounts: {
           accounts: {
             '1': {
+              id: '1',
               address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
             },
           },
         },

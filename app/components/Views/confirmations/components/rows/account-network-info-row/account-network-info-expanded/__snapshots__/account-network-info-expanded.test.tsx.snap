@@ -46,9 +46,8 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -104,9 +103,8 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -176,9 +174,8 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

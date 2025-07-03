@@ -20,6 +20,7 @@ import Text, {
 import { useStyles } from '../../hooks/useStyles';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import { use7702TransactionType } from '../../Views/confirmations/hooks/7702/use7702TransactionType';
+import { isDappOrigin } from '../../Views/confirmations/utils/origin';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import BatchApprovalRow from './BatchApprovalRow/BatchApprovalRow';
@@ -171,6 +172,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   });
   const { isBatched } = use7702TransactionType();
   const loading = !simulationData || balanceChangesResult.pending;
+  const isDappInteraction = isDappOrigin(transaction.origin);
 
   useSimulationMetrics({
     enableMetrics,
@@ -179,6 +181,10 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
     simulationData,
     transactionId,
   });
+
+  if (!isDappInteraction) {
+    return null;
+  }
 
   if (loading) {
     return (

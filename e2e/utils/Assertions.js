@@ -1,4 +1,5 @@
 import { waitFor, element, by } from 'detox';
+import { Buffer } from 'buffer/';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -141,6 +142,7 @@ class Assertions {
 
   /**
    * Check if two text values match exactly.
+   * Automatically normalizes non-breaking spaces and other whitespace characters.
    * @param {string} actualText - The actual text value to check.
    * @param {string} expectedText - The expected text value to match against.
    */
@@ -150,11 +152,24 @@ class Assertions {
         throw new Error('Both actual and expected text must be provided');
       }
 
-      return expect(actualText).toBe(expectedText);
+      // Normalize non-breaking spaces to regular spaces for comparison
+      const normalizedActual = actualText.replace(/\u00A0/g, ' ');
+      const normalizedExpected = expectedText.replace(/\u00A0/g, ' ');
+
+      return expect(normalizedActual).toBe(normalizedExpected);
     } catch (error) {
-      if (actualText !== expectedText) {
+      // Check normalized versions for comparison
+      const normalizedActual = actualText.replace(/\u00A0/g, ' ');
+      const normalizedExpected = expectedText.replace(/\u00A0/g, ' ');
+
+      if (normalizedActual !== normalizedExpected) {
+        // Provide detailed debugging information
+        const actualBytes = Buffer.from(actualText, 'utf8').toString('hex');
+        const expectedBytes = Buffer.from(expectedText, 'utf8').toString('hex');
         throw new Error(
-          `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"`,
+          `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"\n` +
+          `Expected (hex): ${expectedBytes}\nActual (hex): ${actualBytes}\n` +
+          `Expected (normalized): "${normalizedExpected}"\nActual (normalized): "${normalizedActual}"`,
         );
       }
     }
@@ -292,6 +307,50 @@ class Assertions {
         resolve();
       }
     });
+  }
+
+   /**
+   * Checks if the actual object contains all keys from the expected array
+   * @param {Object} actual - The object to check against
+   * @param {Object} validations - Object with keys and their expected values
+   */
+   static checkIfObjectHasKeysAndValidValues(actual, validations) {
+    const errors = [];
+
+    for (const [key, validation] of Object.entries(validations)) {
+      if (!Object.prototype.hasOwnProperty.call(actual, key)) {
+        errors.push(`Missing key: ${key}`);
+        continue;
+      }
+
+      const value = actual[key];
+
+      if (typeof validation === 'string') {
+        const actualType = typeof value;
+
+        if (Array.isArray(value) && validation === 'array') continue;
+        if (value === null && validation === 'null') continue;
+
+        // Check type
+        if (actualType !== validation && !(Array.isArray(value) && validation === 'array')) {
+          errors.push(`Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`);
+        }
+      }
+      else if (typeof validation === 'function') {
+        try {
+          const valid = validation(value);
+          if (!valid) {
+            errors.push(`Validation failed for key "${key}": custom validator returned false`);
+          }
+        } catch (err) {
+          errors.push(`Validation error for key "${key}": ${err.message}`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new Error('Object validation failed:\n' + errors.join('\n'));
+    }
   }
 
   /**

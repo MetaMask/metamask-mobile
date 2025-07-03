@@ -53,7 +53,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "maxWidth": 210,
+              "maxWidth": "95%",
               "paddingRight": 16,
             }
           }
@@ -184,9 +184,8 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginLeft": 8,
@@ -235,17 +234,19 @@ exports[`EarnTokenSelector renders correctly 1`] = `
           style={
             {
               "alignItems": "flex-end",
+              "maxWidth": "100%",
+              "minWidth": "50%",
             }
           }
         >
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#1c7e33",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -255,14 +256,17 @@ exports[`EarnTokenSelector renders correctly 1`] = `
           </Text>
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
+            numberOfLines={1}
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 14,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "right",
+                "width": "100%",
               }
             }
           >

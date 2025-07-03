@@ -6,7 +6,7 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
       paddingVertical: 4,
       width: '100%',
     },

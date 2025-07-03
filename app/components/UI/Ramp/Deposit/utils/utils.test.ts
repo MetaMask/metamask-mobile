@@ -1,11 +1,11 @@
 import {
-  formatUSPhoneNumber,
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
+  hasDepositOrderField,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -14,22 +14,12 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
+import { DepositPaymentMethod } from '../constants';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
-
-describe('formatUSPhoneNumber', () => {
-  it('should return empty string for empty input', () => {
-    expect(formatUSPhoneNumber('')).toBe('');
-  });
-
-  it('should format phone number correctly', () => {
-    expect(formatUSPhoneNumber('1234567890')).toBe('(123) 456-7890');
-    expect(formatUSPhoneNumber('123')).toBe('(123');
-    expect(formatUSPhoneNumber('123456')).toBe('(123) 456');
-  });
-});
 
 describe('formatCurrency', () => {
   it('should format currency amounts correctly', () => {
@@ -152,6 +142,7 @@ describe('Transak Utils', () => {
           id: 'credit_debit_card',
           name: 'Credit/Debit Card',
           duration: 'instant',
+          icon: IconName.Card,
         }),
       ).toBe('credit_debit_card');
     });
@@ -162,7 +153,7 @@ describe('Transak Utils', () => {
           id: 'unsupported',
           name: 'Unsupported',
           duration: 'unknown',
-        }),
+        } as unknown as DepositPaymentMethod),
       ).toThrow('Unsupported payment method: unsupported');
     });
   });
@@ -278,5 +269,84 @@ describe('getNotificationDetails', () => {
       description: 'Your ETH deposit is being processed.',
       status: 'pending',
     });
+  });
+});
+
+describe('hasDepositOrderField', () => {
+  it('should return true when object has the specified field', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+      txHash: '0x987654321',
+    } as DepositOrder;
+
+    const result = hasDepositOrderField(validDepositOrder, 'cryptoCurrency');
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false for null or undefined data', () => {
+    expect(hasDepositOrderField(null, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(undefined, 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false for non-object data', () => {
+    expect(hasDepositOrderField('string', 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(123, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField([], 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false when field does not exist', () => {
+    const objectWithoutField = {
+      id: 'test-id',
+      provider: 'test-provider',
+    };
+
+    const result = hasDepositOrderField(objectWithoutField, 'cryptoCurrency');
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when field exists but is undefined', () => {
+    const objectWithUndefinedField = {
+      id: 'test-id',
+      provider: 'test-provider',
+      cryptoCurrency: undefined,
+    };
+
+    const result = hasDepositOrderField(
+      objectWithUndefinedField,
+      'cryptoCurrency',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('should return true for different valid fields', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+    } as DepositOrder;
+
+    expect(hasDepositOrderField(validDepositOrder, 'id')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
   });
 });

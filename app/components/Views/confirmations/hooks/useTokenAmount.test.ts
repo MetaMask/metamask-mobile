@@ -30,6 +30,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
+          isNative: true,
           usdValue: '0.36',
         });
       });
@@ -45,6 +46,7 @@ describe('useTokenAmount', () => {
           amount: '0.0001',
           amountPrecise: '0.0001',
           fiat: '$0.36',
+          isNative: true,
           usdValue: '0.36',
         });
       });
@@ -63,6 +65,7 @@ describe('useTokenAmount', () => {
           amount: '0.001',
           amountPrecise: '0.001',
           fiat: '$3.60',
+          isNative: true,
           usdValue: '3.60',
         });
       });
@@ -114,6 +117,7 @@ describe('ERC20 token transactions', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$539.44', // 0.1 * 3596.25 * 1.5
+        isNative: false,
         usdValue: '539.44',
       });
     });
@@ -129,6 +133,7 @@ describe('ERC20 token transactions', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$0',
+        isNative: false,
         usdValue: '0.00',
       });
     });
@@ -168,6 +173,7 @@ describe('ERC20 token transactions', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$0',
+        isNative: false,
         usdValue: '0.00',
       });
     });
@@ -201,6 +207,7 @@ describe('ERC20 token transactions', () => {
       expect(result.current).toEqual({
         amount: '0.1',
         amountPrecise: '0.1',
+        isNative: false,
         fiat: '$719.25', // 0.1 * 3596.25 * 2.0
         usdValue: '719.25',
       });
@@ -257,6 +264,7 @@ describe('Edge cases', () => {
         amount: '0.0001',
         amountPrecise: '0.0001',
         fiat: '$0.36',
+        isNative: true,
         usdValue: '0.36',
       });
     });
@@ -294,6 +302,7 @@ describe('Edge cases', () => {
         amount: '0.1',
         amountPrecise: '0.1',
         fiat: '$0',
+        isNative: false,
         usdValue: '0.00',
       });
     });
@@ -326,6 +335,7 @@ describe('Edge cases', () => {
         amount: '0.0001',
         amountPrecise: '0.0001',
         fiat: '$0.36',
+        isNative: true,
         usdValue: null,
       });
     });
