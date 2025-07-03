@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, FlatList } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../component-library/hooks';
 import Button, {
   ButtonVariants,
@@ -10,11 +11,16 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import { Skeleton } from '../../../component-library/components/Skeleton';
 import ScreenView from '../../Base/ScreenView';
 import Logger from '../../../util/Logger';
 import PerpsPositionListItem from './PerpsPositionListItem';
 import PerpsPositionsHeader from './PerpsPositionsHeader';
 import { Theme } from '../../../util/theme/models';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+
+// Import Hyperliquid SDK components
+import { HttpTransport, InfoClient } from '@deeeed/hyperliquid-node20';
 
 // Mock data structure for positions
 interface PositionData {
@@ -50,6 +56,18 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       marginBottom: 32,
     },
+    headerBalance: {
+      alignItems: 'center' as const,
+      marginBottom: 16,
+    },
+    headerChart: {
+      alignItems: 'center' as const,
+    },
+    skeletonRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+    },
 
     positionsSection: {
       flex: 1,
@@ -84,65 +102,25 @@ const styleSheet = (params: { theme: Theme }) => {
   };
 };
 
-// Mock position data
-const mockPositions: PositionData[] = [
-  {
-    id: '1',
-    assetSymbol: 'BTC',
-    tokenPair: 'BTC-USDC',
-    leverage: '5x',
-    currentPrice: 43250.75,
-    priceChange24h: 1250.5,
-    priceChangePercent24h: 2.98,
-    positionSize: 25000,
-    entryPrice: 42000.25,
-    liquidationPrice: 38500.0,
-    funding: -125.5,
-    margin: 5000.0,
-    takeProfitStopLoss: 45000.0,
-  },
-  {
-    id: '2',
-    assetSymbol: 'ETH',
-    tokenPair: 'ETH-USDC',
-    leverage: '3x',
-    currentPrice: 2580.45,
-    priceChange24h: -85.3,
-    priceChangePercent24h: -3.2,
-    positionSize: 15000,
-    entryPrice: 2650.8,
-    liquidationPrice: 2200.0,
-    funding: 45.25,
-    margin: 5000.0,
-    takeProfitStopLoss: 2800.0,
-  },
-  {
-    id: '3',
-    assetSymbol: 'SOL',
-    tokenPair: 'SOL-USDC',
-    leverage: '10x',
-    currentPrice: 98.75,
-    priceChange24h: 5.25,
-    priceChangePercent24h: 5.61,
-    positionSize: 8000,
-    entryPrice: 95.5,
-    liquidationPrice: 88.0,
-    funding: 12.8,
-    margin: 800.0,
-    takeProfitStopLoss: 105.0,
-  },
-];
+// Mock position data removed - now using real API data with skeleton loaders
 
 const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const { styles } = useStyles(styleSheet, {});
-  const [isLoading, setIsLoading] = useState(false);
-  const [positions] = useState<PositionData[]>(mockPositions);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading state
+  const [positions, setPositions] = useState<PositionData[]>([]); // Start with empty array
+  const [accountValue, setAccountValue] = useState<number>(0);
+  const [hasInitialLoad, setHasInitialLoad] = useState(false); // Track if we've loaded data at least once
+
+  // Use the selected address from Redux state, fallback to env variable for testing
+  const userAddress = selectedAddress;
 
   // Calculate total portfolio value and 24h change
-  const totalPortfolioValue = positions.reduce(
-    (total, position) => total + position.positionSize,
-    0,
-  );
+  const totalPortfolioValue =
+    accountValue ||
+    positions.reduce((total, position) => total + position.positionSize, 0);
   const total24hChange = positions.reduce(
     (total, position) => total + position.priceChange24h,
     0,
@@ -150,19 +128,126 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
   const total24hChangePercent =
     totalPortfolioValue > 0 ? (total24hChange / totalPortfolioValue) * 100 : 0;
 
-  const handleRefresh = async () => {
+  const fetchUserPositions = async (address: string) => {
     setIsLoading(true);
-    Logger.log('PerpsPositionsView: Refreshing positions');
+    try {
+      Logger.log('PerpsPositions: Fetching user positions for', address);
+      const transport = new HttpTransport();
+      const infoClient = new InfoClient({ transport });
 
-    // Simulate refresh operation
-    setTimeout(() => {
+      // Fetch user's clearinghouse state (positions)
+      const userState = await infoClient.clearinghouseState({
+        user: address as `0x${string}`,
+      });
+
+      if (userState?.assetPositions) {
+        Logger.log('PerpsPositions: Received position data', {
+          positionCount: userState.assetPositions.length,
+          accountValue: userState.marginSummary?.accountValue,
+        });
+
+        // Update account value from API
+        if (userState.marginSummary?.accountValue) {
+          setAccountValue(parseFloat(userState.marginSummary.accountValue));
+        }
+
+        // Transform API data to our PositionData format
+        const transformedPositions: PositionData[] =
+          userState.assetPositions.map((pos: any, index: number) => {
+            const { position } = pos;
+            const currentPrice =
+              parseFloat(position.entryPx) *
+              (1 +
+                (parseFloat(position.unrealizedPnl) /
+                  parseFloat(position.positionValue) || 0));
+
+            return {
+              id: `${position.coin}-${index}`,
+              assetSymbol: position.coin,
+              tokenPair: `${position.coin}-USDC`,
+              leverage: `${position.leverage?.value || 1}x`,
+              currentPrice,
+              priceChange24h: parseFloat(position.unrealizedPnl) || 0,
+              priceChangePercent24h:
+                (parseFloat(position.unrealizedPnl) /
+                  parseFloat(position.positionValue)) *
+                  100 || 0,
+              positionSize: parseFloat(position.positionValue),
+              entryPrice: parseFloat(position.entryPx),
+              liquidationPrice: parseFloat(position.liquidationPx || '0'),
+              funding: parseFloat(position.cumFunding?.allTime || '0'),
+              margin: parseFloat(position.marginUsed),
+              takeProfitStopLoss: 0, // Not available in API response
+            };
+          });
+
+        setPositions(transformedPositions);
+        Logger.log('PerpsPositions: Transformed positions', {
+          count: transformedPositions.length,
+        });
+      } else {
+        Logger.log('PerpsPositions: No positions found for user');
+        setPositions([]);
+        setAccountValue(0);
+      }
+    } catch (error) {
+      Logger.log('PerpsPositions: Error fetching positions', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      Logger.log('PerpsPositions: Failed to load positions:', errorMessage);
+      // On error, show empty state rather than mock data
+      setPositions([]);
+      setAccountValue(0);
+    } finally {
       setIsLoading(false);
-      Logger.log('PerpsPositionsView: Positions refreshed');
-    }, 1000);
+      setHasInitialLoad(true);
+    }
+  };
+
+  // Fetch positions on component mount
+  useEffect(() => {
+    if (userAddress) {
+      fetchUserPositions(userAddress);
+    }
+  }, [userAddress]);
+
+  const handleRefresh = async () => {
+    if (userAddress) {
+      await fetchUserPositions(userAddress);
+    }
   };
 
   const renderPositionItem = ({ item }: { item: PositionData }) => (
     <PerpsPositionListItem position={item} />
+  );
+
+  const renderSkeletonHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.headerBalance}>
+        <Skeleton height={32} width={200} style={{ marginBottom: 8 }} />
+        <Skeleton height={16} width={120} />
+      </View>
+      <View style={styles.headerChart}>
+        <Skeleton height={60} width={100} />
+      </View>
+    </View>
+  );
+
+  const renderSkeletonPositions = () => (
+    <View>
+      {[1, 2, 3].map((index) => (
+        <View key={index} style={styles.positionItem}>
+          <View style={styles.skeletonRow}>
+            <Skeleton height={20} width={60} />
+            <Skeleton height={20} width={80} />
+          </View>
+          <View style={[styles.skeletonRow, { marginTop: 12 }]}>
+            <Skeleton height={16} width={100} />
+            <Skeleton height={16} width={70} />
+          </View>
+        </View>
+      ))}
+    </View>
   );
 
   return (
@@ -178,11 +263,15 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
         </View>
 
         {/* Header Section */}
-        <PerpsPositionsHeader
-          totalPortfolioValue={totalPortfolioValue}
-          total24hChange={total24hChange}
-          total24hChangePercent={total24hChangePercent}
-        />
+        {isLoading && !hasInitialLoad ? (
+          renderSkeletonHeader()
+        ) : (
+          <PerpsPositionsHeader
+            totalPortfolioValue={totalPortfolioValue}
+            total24hChange={total24hChange}
+            total24hChangePercent={total24hChangePercent}
+          />
+        )}
 
         {/* Positions Section */}
         <View style={styles.positionsSection}>
@@ -191,10 +280,16 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
             color={TextColor.Default}
             style={styles.sectionTitle}
           >
-            Open Positions ({positions.length})
+            {isLoading && !hasInitialLoad ? (
+              <Skeleton height={20} width={150} />
+            ) : (
+              `Open Positions (${positions.length})`
+            )}
           </Text>
 
-          {positions.length > 0 ? (
+          {isLoading && !hasInitialLoad ? (
+            renderSkeletonPositions()
+          ) : positions.length > 0 ? (
             <FlatList
               data={positions}
               keyExtractor={(item) => item.id}
