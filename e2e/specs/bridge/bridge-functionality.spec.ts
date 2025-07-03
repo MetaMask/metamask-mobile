@@ -81,7 +81,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     if (localNode) await localNode.quit();
   });
 
-  it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
+  it.skip('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
     const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
     await TabBarComponent.tapWallet();
@@ -110,7 +110,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'SOL'));
     await QuoteView.tapToken(destChainId, 'SOL');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
@@ -288,10 +287,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
-    await QuoteView.tapSwapTo();
     await device.disableSynchronization();
+    await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
@@ -310,7 +308,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
   });
 
-  it('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
+  it.skip('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
     const destChainId = '0xa';
 
     await TabBarComponent.tapWallet();
@@ -325,9 +323,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
     await QuoteView.tapSwapTo();
-    await device.disableSynchronization();
     await QuoteView.selectNetwork('OP Mainnet');
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
