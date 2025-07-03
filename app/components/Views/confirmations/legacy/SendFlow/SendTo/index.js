@@ -66,7 +66,7 @@ import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
-import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
 import { store } from '../../../../../../store';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';

@@ -145,7 +145,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../../selectors
 import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

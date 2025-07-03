@@ -105,7 +105,7 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
-import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
+import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
 
 interface infuraNetwork {
   name: string;

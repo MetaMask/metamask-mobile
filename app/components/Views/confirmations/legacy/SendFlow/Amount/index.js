@@ -111,7 +111,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { selectSendFlowContextualChainId } from '../../../../../../selectors/transaction';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
