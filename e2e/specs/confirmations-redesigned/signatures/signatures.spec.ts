@@ -16,11 +16,7 @@ import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import { buildPermissions } from '../../../fixtures/utils.js';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { CustomNetworks } from '../../../resources/networks.e2e';
-import { megaEthLocalConfig, monadLocalConfig, megaEthProviderConfig, monadProviderConfig } from '../../../resources/mock-configs';
-
-const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
-const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
+import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
@@ -115,69 +111,39 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     });
   }
 
-  for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
-    it(`should sign ${specName} using ${MONAD_TESTNET.nickname}`, async () => {
-      await withFixtures(
-        {
-          dapp: true,
-          fixture: new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: monadProviderConfig,
-            })
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([MONAD_TESTNET.chainId]),
-            )
-            .build(),
-          restartDevice: true,
-          ganacheOptions: monadLocalConfig,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToApp();
+  // Table-driven tests for all networks
+  for (const networkConfig of NETWORK_TEST_CONFIGS) {
+    for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
+      it(`should sign ${specName} using ${networkConfig.name}`, async () => {
+        await withFixtures(
+          {
+            dapp: true,
+            fixture: new FixtureBuilder()
+              .withNetworkController({
+                providerConfig: networkConfig.providerConfig,
+              })
+              .withPermissionControllerConnectedToTestDapp(
+                buildPermissions(networkConfig.permissions),
+              )
+              .build(),
+            restartDevice: true,
+            ganacheOptions: networkConfig.ganacheOptions,
+            testSpecificMock: networkConfig.testSpecificMock,
+          },
+          async () => {
+            await loginToApp();
 
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
+            await TabBarComponent.tapBrowser();
+            await Browser.navigateToTestDApp();
 
-          //Signing Flow
-          await testDappBtn();
-          await Assertions.checkIfVisible(requestType);
-          await FooterActions.tapConfirmButton();
-          await Assertions.checkIfNotVisible(requestType);
-        },
-      );
-    });
-  }
-
- for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
-    it(`should sign ${specName} using ${MEGAETH_TESTNET.nickname}`, async () => {
-      await withFixtures(
-        {
-          dapp: true,
-          fixture: new FixtureBuilder()
-            .withNetworkController({
-              providerConfig: megaEthProviderConfig,
-            })
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions([MEGAETH_TESTNET.chainId]),
-            )
-            .build(),
-          restartDevice: true,
-          ganacheOptions: megaEthLocalConfig,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToApp();
-
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
-
-          //Signing Flow
-          await testDappBtn();
-          await Assertions.checkIfVisible(requestType);
-          await FooterActions.tapConfirmButton();
-          await Assertions.checkIfNotVisible(requestType);
-        },
-      );
-    });
+            //Signing Flow
+            await testDappBtn();
+            await Assertions.checkIfVisible(requestType);
+            await FooterActions.tapConfirmButton();
+            await Assertions.checkIfNotVisible(requestType);
+          },
+        );
+      });
+    }
   }
 });
