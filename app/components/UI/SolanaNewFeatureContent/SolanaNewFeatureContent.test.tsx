@@ -80,7 +80,9 @@ describe('SolanaNewFeatureContent', () => {
     renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.HOME,
+      });
     });
   });
 
