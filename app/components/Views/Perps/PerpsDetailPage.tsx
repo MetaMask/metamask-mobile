@@ -176,6 +176,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
 
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
+  const [candleSubscribed, setCandleSubscribed] = useState(false);
 
   // Get the position data from route params
   const position = (route.params as { position: PositionData })?.position;
@@ -184,16 +185,27 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
   useEffect(() => {
     const ws = new HyperliquidWebSocketService();
 
-    // Check connection status periodically
+    // Check connection status periodically and subscribe when connected
     const statusInterval = setInterval(() => {
-      setIsConnected(ws.getConnectionStatus());
+      const connected = ws.getConnectionStatus();
+      setIsConnected(connected);
+
+      // Subscribe to candle data once connected
+      if (connected && position && !candleSubscribed) {
+        Logger.log(
+          'HyperliquidWebSocket: Subscribing to candle data for',
+          position.assetSymbol,
+        );
+        ws.subscribeToCandleData(position.assetSymbol, '1h');
+        setCandleSubscribed(true);
+      }
     }, 1000);
 
     return () => {
       clearInterval(statusInterval);
       ws.disconnect();
     };
-  }, []);
+  }, [position, candleSubscribed]);
 
   if (!position) {
     Logger.log('PerpsDetailPage: No position data provided');
@@ -307,7 +319,9 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
             color={TextColor.Muted}
             style={styles.chartSubtext}
           >
-            Price chart will be displayed here
+            {candleSubscribed
+              ? `Subscribed to ${position.assetSymbol} candle data`
+              : 'Subscribing to candle data...'}
           </Text>
         </View>
 

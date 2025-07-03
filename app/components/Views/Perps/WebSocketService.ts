@@ -4,6 +4,7 @@ class HyperliquidWebSocketService {
   private ws: WebSocket | null = null;
   private readonly url = 'wss://api.hyperliquid.xyz/ws';
   private isConnected = false;
+  private subscriptions: Set<string> = new Set();
 
   constructor() {
     this.connect();
@@ -22,7 +23,7 @@ class HyperliquidWebSocketService {
 
       this.ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        Logger.log('HyperliquidWebSocket: Received message:', data);
+        this.handleMessage(data);
       };
 
       this.ws.onclose = (event) => {
@@ -41,6 +42,49 @@ class HyperliquidWebSocketService {
     }
   }
 
+  private handleMessage(data: { channel?: string; data?: unknown }): void {
+    if (data.channel === 'subscriptionResponse') {
+      Logger.log('HyperliquidWebSocket: Subscription confirmed:', data.data);
+    } else if (data.channel === 'candle') {
+      Logger.log('HyperliquidWebSocket: Received candle data:', data.data);
+    } else {
+      Logger.log('HyperliquidWebSocket: Received message:', data);
+    }
+  }
+
+  public subscribeToCandleData(coin: string, interval: string = '1h'): void {
+    if (!this.isConnected || !this.ws) {
+      Logger.log('HyperliquidWebSocket: Cannot subscribe - not connected');
+      return;
+    }
+
+    const subscriptionKey = `candle_${coin}_${interval}`;
+
+    if (this.subscriptions.has(subscriptionKey)) {
+      Logger.log(
+        'HyperliquidWebSocket: Already subscribed to',
+        subscriptionKey,
+      );
+      return;
+    }
+
+    const subscriptionMessage = {
+      method: 'subscribe',
+      subscription: {
+        type: 'candle',
+        coin,
+        interval,
+      },
+    };
+
+    Logger.log(
+      'HyperliquidWebSocket: Subscribing to candle data:',
+      subscriptionMessage,
+    );
+    this.ws.send(JSON.stringify(subscriptionMessage));
+    this.subscriptions.add(subscriptionKey);
+  }
+
   public getConnectionStatus(): boolean {
     return this.isConnected;
   }
@@ -50,6 +94,7 @@ class HyperliquidWebSocketService {
       this.ws.close();
       this.ws = null;
       this.isConnected = false;
+      this.subscriptions.clear();
       Logger.log('HyperliquidWebSocket: Disconnected');
     }
   }
