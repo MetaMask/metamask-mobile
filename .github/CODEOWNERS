@@ -191,7 +191,6 @@ app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
-
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
 # ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.

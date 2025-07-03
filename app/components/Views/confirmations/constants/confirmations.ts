@@ -21,6 +21,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodIncreaseAllowance,
   TransactionType.tokenMethodSetApprovalForAll,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
@@ -51,4 +52,9 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
-]
+];
+
+export const EARN_CONTRACT_INTERACTION_TYPES = [
+  TransactionType.lendingDeposit,
+  TransactionType.lendingWithdraw,
+];

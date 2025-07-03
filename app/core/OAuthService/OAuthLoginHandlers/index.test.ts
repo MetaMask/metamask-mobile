@@ -1,7 +1,8 @@
 import { Platform } from 'react-native';
-import { AuthConnection } from '../OAuthInterface';
+import { AuthConnection, HandleFlowParams } from '../OAuthInterface';
 import { createLoginHandler } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
+import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
   type: 'success',
@@ -41,6 +42,17 @@ jest.mock('expo-apple-authentication', () => ({
     FULL_NAME: 'full_name',
     EMAIL: 'email',
   },
+}));
+
+const mockRandomUUID = jest.fn();
+jest.mock('react-native-quick-crypto', () => ({
+  randomBytes: jest.fn().mockReturnValue(new Uint8Array(32)),
+  createHash: jest.fn().mockReturnValue({
+    update: jest.fn().mockReturnValue({
+      digest: jest.fn().mockReturnValue(new Uint8Array(32)),
+    }),
+  }),
+  randomUUID: () => mockRandomUUID(),
 }));
 
 const mockSignInWithGoogle = jest.fn().mockResolvedValue({
@@ -97,7 +109,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, () => {
+      it(`should have correct scope and authServerPath for ${os} ${provider} handler`, async () => {
         const handler = createLoginHandler(os as Platform['OS'], provider);
 
         switch (os) {
@@ -108,7 +120,7 @@ describe('OAuth login handlers', () => {
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
             }
@@ -118,16 +130,51 @@ describe('OAuth login handlers', () => {
             switch (provider) {
               case AuthConnection.Apple:
                 expect(handler.scope).toEqual(['name', 'email']);
-                expect(handler.authServerPath).toBe('api/v1/oauth/token');
+                // Apple BBF flow
+                expect(handler.authServerPath).toBe(
+                  'api/v1/oauth/callback/verify',
+                );
                 break;
               case AuthConnection.Google:
-                expect(handler.scope).toEqual(['email', 'profile']);
+                expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
             }
             break;
           }
         }
+
+        jest.spyOn(global, 'fetch').mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: 'access-token',
+              refresh_token: 'refresh-token',
+              id_token: 'id-token',
+              indexes: [1, 2, 3],
+              endpoints: {
+                'https://example.com': 'https://endpoint.example.com',
+              },
+            }),
+            {
+              status: 200,
+            },
+          ),
+        );
+
+        const mockAuthTokenParams: HandleFlowParams = {
+          idToken: 'id-token',
+          code: 'code',
+          authConnection: provider,
+          clientId: 'mock-client-id',
+          web3AuthNetwork: Web3AuthNetwork.Mainnet,
+        };
+
+        const authTokens = await handler.getAuthTokens(
+          mockAuthTokenParams as HandleFlowParams,
+          'https://auth.example.com',
+        );
+
+        expect(authTokens).toBeDefined();
       });
     }
   }

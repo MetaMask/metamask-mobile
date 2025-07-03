@@ -714,6 +714,97 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(input0).toBeOnTheScreen();
       expect(input0.props.value).toBe('');
     });
+
+    it('shows "Paste" button initially and "Clear All" when user starts typing', async () => {
+      const { getByText, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Initially should show "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+
+      // Type something to trigger hasStartedTyping
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Should now show "Clear All" button
+      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
+      expect(clearAllButton).toBeOnTheScreen();
+    });
+
+    it('switches back to "Paste" button when all content is cleared', async () => {
+      const { getByText, getByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Start with TextArea and type something
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Verify "Clear All" button is shown
+      const clearAllButton = getByText(strings('import_from_seed.clear_all'));
+      expect(clearAllButton).toBeOnTheScreen();
+
+      // Click "Clear All"
+      fireEvent.press(clearAllButton);
+
+      // Should switch back to "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+    });
+
+    it('switches back to TextArea when all individual fields are cleared', async () => {
+      const { getByPlaceholderText, getByTestId, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Start with TextArea and type something
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test');
+      });
+
+      // Verify individual inputs are shown
+      const firstInput = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+      );
+      expect(firstInput).toBeOnTheScreen();
+
+      // Clear the input
+      await act(async () => {
+        fireEvent.changeText(firstInput, '');
+      });
+
+      // Should switch back to TextArea
+      const textAreaAfterClear = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      expect(textAreaAfterClear).toBeOnTheScreen();
+
+      // Should show "Paste" button
+      const pasteButton = getByText(strings('import_from_seed.paste'));
+      expect(pasteButton).toBeOnTheScreen();
+    });
   });
 
   describe('Create password UI', () => {
@@ -855,6 +946,42 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await waitFor(() => {
         expect(confirmPasswordInput.props.editable).toBe(true);
       });
+    });
+
+    it('confirm password field is cleared when new password is removed', async () => {
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+
+      expect(passwordInput.props.value).toBe('StrongPass123!');
+
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass12');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('StrongPass123!');
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+
+      expect(confirmPasswordInput.props.value).toBe('');
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {

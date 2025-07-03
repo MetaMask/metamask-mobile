@@ -20,22 +20,21 @@ export const SEEDLESS_ONBOARDING_ENABLED =
  * main_rc -> main_prod
  *
  * @param buildType - The build type to map
- * @param dev - Whether the build is a development build
+ * @param isDev - Whether the build is a development build
  * @returns The mapped build type
  */
-const buildTypeMapping = (buildType: string, dev: boolean) => {
+const buildTypeMapping = (buildType: string, isDev: boolean) => {
   // use development config for now
-  if (process.env.DEV_OAUTH_CONFIG === 'true' || dev) {
+  if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
     return 'development';
   }
+  const IS_QA = process.env.METAMASK_ENVIRONMENT === 'qa';
 
   switch (buildType) {
     case 'main':
-      return dev ? 'main_dev' : 'main_prod';
-    case 'qa':
-      return dev ? 'main_dev' : 'main_uat';
+      return isDev ? 'main_dev' : IS_QA ? 'main_uat' : 'main_prod';
     case 'flask':
-      return dev ? 'flask_dev' : 'flask_prod';
+      return isDev ? 'flask_dev' : IS_QA ? 'flask_uat' : 'flask_prod';
     default:
       return 'development';
   }
@@ -49,13 +48,12 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
-export const IosGID = CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID;
-export const IosGoogleRedirectUri =
-  CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI;
 export const IosAppleClientId = CURRENT_OAUTH_CONFIG.IOS_APPLE_CLIENT_ID;
-export const AndroidGoogleWebGID =
-  CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID;
-export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
+
+export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
+export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
+export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;

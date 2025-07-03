@@ -1,26 +1,17 @@
 import { ResponseType, AuthRequest } from 'expo-auth-session';
 import {
   AuthConnection,
-  AuthResponse,
+  AuthRequestParams,
   HandleFlowParams,
   LoginHandler,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
-import { sha256 } from '@noble/hashes/sha256';
-import { bytesToBase64 } from '@metamask/utils';
-export interface AndroidAppleLoginHandlerParams {
-  clientId: string;
-  redirectUri: string;
-  appRedirectUri: string;
-}
 
-export function toBase64UrlSafe(base64String: string): string {
-  return base64String
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]/g, '');
+export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
+  clientId: string;
+  appRedirectUri: string;
 }
 
 /**
@@ -30,8 +21,7 @@ export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
 {
-  public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
-
+  public readonly OAUTH_SERVER_URL: string;
   readonly #scope = ['name', 'email'];
 
   protected clientId: string;
@@ -47,7 +37,7 @@ export class AndroidAppleLoginHandler
   }
 
   get authServerPath() {
-    return 'api/v1/oauth/token';
+    return 'api/v1/oauth/callback/verify';
   }
 
   /**
@@ -58,11 +48,12 @@ export class AndroidAppleLoginHandler
    * @param params.appRedirectUri - The Android App redirectUri for the customChromeTab to handle auth-session login.
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
-    super();
-    const { appRedirectUri, redirectUri, clientId } = params;
+    super(params);
+    const { appRedirectUri, clientId, authServerUrl } = params;
     this.clientId = clientId;
-    this.redirectUri = redirectUri;
+    this.redirectUri = `${authServerUrl}/api/v1/oauth/callback`;
     this.appRedirectUri = appRedirectUri;
+    this.OAUTH_SERVER_URL = `${authServerUrl}/api/v1/oauth/initiate`;
   }
 
   /**
@@ -72,61 +63,44 @@ export class AndroidAppleLoginHandler
    * It then prompts the auth request via the client auth request instance with auth url generated with server redirect uri and state.
    *
    * Data flow:
-   * App -> Apple -> AuthServer -> App
+   * App -> AuthServer -> Apple -> AuthServer -> App
    *
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
-    const codeChallenge = bytesToBase64(sha256(this.nonce));
-    const codeChallengeBase64SafeUrl = toBase64UrlSafe(codeChallenge);
+    const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
 
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
-      redirectUri: this.redirectUri,
       clientId: this.clientId,
-      random: this.nonce,
-      code_challenge: codeChallengeBase64SafeUrl,
+      code_challenge: challenge,
+      nonce: this.nonce,
     });
 
     const authRequest = new AuthRequest({
       clientId: this.clientId,
-      redirectUri: this.redirectUri,
+      redirectUri: this.appRedirectUri,
       scopes: this.#scope,
       responseType: ResponseType.Code,
+      usePKCE: false,
       state,
       extraParams: {
         response_mode: 'form_post',
       },
     });
-    // generate the auth url
-    const authUrl = await authRequest.makeAuthUrlAsync({
+
+    const result = await authRequest.promptAsync({
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
-    // create a client auth request instance so that the auth-session can return result on appRedirectUrl
-    const authRequestClient = new AuthRequest({
-      clientId: this.clientId,
-      redirectUri: this.appRedirectUri,
-      state,
-    });
-
-    // prompt the auth request using generated auth url instead of the client auth request instance
-    const result = await authRequestClient.promptAsync(
-      {
-        authorizationEndpoint: this.OAUTH_SERVER_URL,
-      },
-      {
-        url: authUrl,
-      },
-    );
     if (result.type === 'success') {
       return {
         authConnection: AuthConnection.Apple,
-        code: codeChallengeBase64SafeUrl,
+        code: challenge,
         clientId: this.clientId,
         redirectUri: this.redirectUri,
-        codeVerifier: this.nonce,
+        codeVerifier,
       };
     }
     if (result.type === 'error') {
@@ -156,55 +130,22 @@ export class AndroidAppleLoginHandler
     );
   }
 
-  async getAuthTokens(
-    params: HandleFlowParams,
-    authServerUrl: string,
-  ): Promise<AuthResponse> {
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
     if (!('code' in params)) {
       throw new OAuthError(
-        'Missing code params',
+        'handleAndroidAppleLogin: Invalid params',
         OAuthErrorType.InvalidGetAuthTokenParams,
       );
     }
-    const {
-      code,
-      codeVerifier,
-      clientId,
-      authConnection,
-      redirectUri,
-      web3AuthNetwork,
-    } = params;
-
-    const body = {
-      code,
+    const { code, clientId, codeVerifier, web3AuthNetwork, redirectUri } =
+      params;
+    return {
       client_id: clientId,
-      login_provider: authConnection,
+      code,
+      login_provider: this.authConnection,
       network: web3AuthNetwork,
-      redirect_uri: redirectUri,
       code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
     };
-
-    const res = await fetch(`${authServerUrl}/api/v1/oauth/callback/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (res.status === 200) {
-      const data = (await res.json()) satisfies AuthResponse;
-      if (data.success) {
-        return data;
-      }
-      throw new OAuthError(data.message, OAuthErrorType.AuthServerError);
-    }
-
-    throw new OAuthError(
-      `AuthServer Error, request failed with status: [${
-        res.status
-      }]: ${await res.text()}`,
-      OAuthErrorType.AuthServerError,
-    );
   }
 }

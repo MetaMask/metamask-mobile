@@ -1,3 +1,4 @@
+import { OAUTH_CONFIG } from './config';
 import {
   AppRedirectUri,
   web3AuthNetwork,
@@ -9,7 +10,6 @@ import {
   AppleWebClientId,
   AppleServerRedirectUri,
   AuthConnectionConfig,
-
 } from './constants';
 
 describe('OAuth Constants', () => {
@@ -20,34 +20,30 @@ describe('OAuth Constants', () => {
   });
 
   describe('Environment-based constants', () => {
+    const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
+
     it('should have web3AuthNetwork from jest config', () => {
-      expect(web3AuthNetwork).toBe('sapphire_devnet');
+      expect(web3AuthNetwork).toBe('sapphire_mainnet');
     });
 
     it('should have AuthServerUrl from jest config', () => {
-      expect(AuthServerUrl).toBe('https://api-develop-torus-byoa.web3auth.io');
+      expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
     });
 
     it('should have IOS configuration from jest config', () => {
-      expect(IosGID).toBe(
-        '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com',
-      );
-      expect(IosGoogleRedirectUri).toBe(
-        'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google',
-      );
+      expect(IosGID).toBe('iosGoogleClientId');
+      expect(IosGoogleRedirectUri).toBe('iosGoogleRedirectUri');
       expect(IosAppleClientId).toBe('io.metamask.MetaMask');
     });
 
     it('should have Android configuration from jest config', () => {
-      expect(AndroidGoogleWebGID).toBe(
-        '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com',
-      );
-      expect(AppleWebClientId).toBe('com.web3auth.appleloginextension');
+      expect(AndroidGoogleWebGID).toBe('androidGoogleWebClientId');
+      expect(AppleWebClientId).toBe('androidAppleClientId');
     });
 
     it('should generate correct Apple server redirect URI', () => {
       expect(AppleServerRedirectUri).toBe(
-        'https://api-develop-torus-byoa.web3auth.io/api/v1/oauth/callback',
+        CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL + '/api/v1/oauth/callback',
       );
     });
   });

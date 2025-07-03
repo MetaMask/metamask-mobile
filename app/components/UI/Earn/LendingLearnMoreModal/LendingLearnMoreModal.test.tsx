@@ -63,6 +63,29 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../hooks/useEarnToken', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    earnToken: {
+      symbol: 'USDC',
+    },
+    outputToken: {
+      symbol: 'aUSDC',
+    },
+    earnTokenPair: {
+      outputToken: {
+        symbol: 'aUSDC',
+      },
+    },
+    getTokenSnapshot: jest.fn(),
+    tokenSnapshot: {
+      token: {
+        symbol: 'USDC',
+      },
+    },
+  }),
+}));
+
 const mockInitialState = {
   engine: {
     backgroundState: {

@@ -8,10 +8,7 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import { EncryptionKey } from '../../../Encryptor/types';
-import {
-  SEEDLESS_ONBOARDING_ENABLED,
-  web3AuthNetwork,
-} from '../../../OAuthService/OAuthLoginHandlers/constants';
+import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -36,10 +33,9 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
 
   const { controllerMessenger, persistedState } = request;
 
-  const seedlessOnboardingControllerState = SEEDLESS_ONBOARDING_ENABLED
-    ? persistedState.SeedlessOnboardingController ??
-      getDefaultSeedlessOnboardingControllerState()
-    : getDefaultSeedlessOnboardingControllerState();
+  const seedlessOnboardingControllerState =
+    persistedState.SeedlessOnboardingController ??
+    getDefaultSeedlessOnboardingControllerState();
 
   const controller = new SeedlessOnboardingController({
     messenger: controllerMessenger,

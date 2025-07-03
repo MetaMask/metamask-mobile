@@ -1,16 +1,21 @@
-import { LoginHandlerCodeResult, AuthConnection } from '../../OAuthInterface';
+import {
+  LoginHandlerCodeResult,
+  AuthConnection,
+  AuthRequestParams,
+  HandleFlowParams,
+} from '../../OAuthInterface';
 import {
   AuthRequest,
   CodeChallengeMethod,
   ResponseType,
 } from 'expo-auth-session';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 
 /**
  * IosGoogleLoginHandlerParams is the params for the Google login handler
  */
-export interface IosGoogleLoginHandlerParams {
+export interface IosGoogleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
   redirectUri: string;
 }
@@ -22,7 +27,7 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
   public readonly OAUTH_SERVER_URL =
     'https://accounts.google.com/o/oauth2/v2/auth';
 
-  readonly #scope = ['email', 'profile'];
+  readonly #scope = ['email', 'profile', 'openid'];
 
   protected clientId: string;
   protected redirectUri: string;
@@ -46,7 +51,11 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    * @param params.redirectUri - The iOS redirectUri for the Google login.
    */
   constructor(params: IosGoogleLoginHandlerParams) {
-    super();
+    super({
+      authServerUrl: params.authServerUrl,
+      clientId: params.clientId,
+      web3AuthNetwork: params.web3AuthNetwork,
+    });
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri;
   }
@@ -98,5 +107,24 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
       'handleIosGoogleLogin: Unknown error',
       OAuthErrorType.UnknownError,
     );
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('code' in params)) {
+      throw new OAuthError(
+        'handleIosGoogleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { redirectUri, code, clientId, codeVerifier, web3AuthNetwork } =
+      params;
+    return {
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+      code_verifier: codeVerifier,
+    };
   }
 }

@@ -10,6 +10,8 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockLinkingOpenURL = jest.fn();
+const mockUseDepositSDK = jest.fn();
+const mockCancelOrder = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -42,6 +44,20 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrderById: jest.fn(),
 }));
 
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: jest.fn().mockImplementation((config) => {
+    if (config?.method === 'cancelOrder') {
+      return [{ error: null }, mockCancelOrder];
+    }
+    return [{ error: null }, jest.fn()];
+  }),
+}));
+
 describe('OrderProcessing Component', () => {
   const mockOrder = {
     id: 'test-order-id',
@@ -59,6 +75,9 @@ describe('OrderProcessing Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getOrderById as jest.Mock).mockReturnValue(mockOrder);
+    mockUseDepositSDK.mockReturnValue({
+      isAuthenticated: false,
+    });
   });
 
   it('renders success state correctly', () => {
@@ -89,6 +108,20 @@ describe('OrderProcessing Component', () => {
   it('renders processing state correctly', () => {
     const processingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.PENDING };
     (getOrderById as jest.Mock).mockReturnValue(processingOrder);
+
+    renderWithProvider(<OrderProcessing />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders created state correctly', () => {
+    const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
+    (getOrderById as jest.Mock).mockReturnValue(createdOrder);
 
     renderWithProvider(<OrderProcessing />, {
       state: {
