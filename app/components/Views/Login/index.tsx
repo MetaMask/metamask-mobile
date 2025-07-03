@@ -289,18 +289,13 @@ const Login: React.FC = () => {
     OAuthService.resetOauthState();
   };
 
-  const tooManyAttemptsError = (remainingTime: number) => {
-    if (remainingTime > 0) {
-      setError(strings('login.too_many_attempts', { remainingTime }));
-      timeoutRef.current = setTimeout(
-        () => tooManyAttemptsError(remainingTime - 1),
-        1000,
-      );
-      setDisabledInput(true);
-    } else {
-      setError('');
-      setDisabledInput(false);
+  const tooManyAttemptsError = async (remainingTime: number) => {
+    setDisabledInput(true);
+    for (let i = remainingTime; i > 0; i--) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setError(strings('login.too_many_attempts', { i }));
     }
+    setDisabledInput(false);
   };
 
   useEffect(
@@ -316,7 +311,7 @@ const Login: React.FC = () => {
     seedlessError: SeedlessOnboardingControllerRecoveryError,
   ) => {
     if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime);
+      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
     } else {
       const errMessage = seedlessError.message.replace(
         'SeedlessOnboardingController - ',
