@@ -34,9 +34,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  token(chainId: string, symbol: string): DetoxElement {
-    console.log(`asset-${chainId}-${symbol}`)
-    return Matchers.getElementByID(`asset-${chainId}-${symbol}`);
+  token(chainId: string, symbol: string): Detox.NativeElement {
+    const elementId = `asset-${chainId}-${symbol}`;
+    console.log(elementId)
+    return element(by.id(elementId)).atIndex(0);
   }
 
   async enterAmount(amount: string): Promise<void> {

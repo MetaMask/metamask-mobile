@@ -20,9 +20,7 @@ import Assertions from '../../utils/Assertions.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { getEventsPayloads } from '../analytics/helpers';
-import {
-  stopMockServer,
-} from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
@@ -30,7 +28,6 @@ import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
-let mockServer: MockttpServer;
 
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -39,16 +36,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   let localNode: Ganache;
 
   beforeAll(async (): Promise<void> => {
-      localNode = new Ganache();
-      await localNode.start(localNodeOptions);
+    localNode = new Ganache();
+    await localNode.start(localNodeOptions);
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
-
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -79,13 +71,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   });
 
   it.each`
-    type        | quantity | sourceTokenSymbol | destTokenSymbol | network
+    type        | quantity | sourceTokenSymbol | destTokenSymbol | chainId
     ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
     ${'swap'}   | ${'19'}  | ${'USDC'}         | ${'ETH'}        | ${'0x1'}
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${'0x1'}
     ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${'0x1'}
   `(
-    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='chainId",
+    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }): Promise<void> => {
       await TabBarComponent.tapActions();
       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
@@ -162,7 +154,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     };
 
     // METAMETRICS EVENTS
-    const events = await getEventsPayloads(mockServer, Object.values(EVENT_NAMES));
+    const events = await getEventsPayloads(mockServer as MockttpServer, Object.values(EVENT_NAMES));
 
     const softAssert: SoftAssert = new SoftAssert();
 

@@ -2,30 +2,12 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import AdvancedSettingsView from '../../../pages/Settings/AdvancedView.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import ImportAccountView from '../../../pages/importAccount/ImportAccountView.js';
-import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView.js';
-import Assertions from '../../../utils/Assertions.js';
-import { ethers } from 'ethers';
-import axios, { AxiosResponse } from 'axios';
-
-// Define types for the API response
-interface BridgeConfigV2 {
-  chains: Record<string, { isUnifiedUIEnabled: boolean }>;
-}
-
-interface FlagItem {
-  bridgeConfigV2?: BridgeConfigV2;
-}
 
 /**
- * Prepares the swaps test environment by disabling Smart Transactions (stx)
- * and importing a funded account for swaps.
+ * Prepares the swaps test environment by disabling Smart Transactions (stx).
  * Throws a descriptive error if any step fails.
  *
- * @param wallet - An object with a privateKey property for the account to import
- * @throws {Error} If disabling stx or importing the account fails
+ * @throws {Error} If disabling stx fails
  */
 export async function prepareSwapsTestEnvironment(): Promise<void> {
     try {

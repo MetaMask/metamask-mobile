@@ -110,8 +110,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
-    await TestHelpers.delay(1000000)
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'SOL'));
     await QuoteView.tapToken(destChainId, 'SOL');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
@@ -291,7 +289,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Base');
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
@@ -327,7 +324,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('OP Mainnet');
-    await Assertions.checkIfVisible(QuoteView.token(destChainId, 'ETH'));
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
     await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);

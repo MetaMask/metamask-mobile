@@ -1,7 +1,5 @@
 'use strict';
-import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import Onboarding from '../../pages/swaps/OnBoarding';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -15,35 +13,33 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Tenderly from '../../tenderly';
+import Ganache from '../../../app/util/test/ganache';
+import { localNodeOptions, testSpecificMock } from './helpers/constants'
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-
+import { Mockttp, MockttpServer } from 'mockttp';
+import { startMockServer } from './helpers/swap-mocks';
 const fixtureServer: FixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), (): void => {
-  const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
-  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
-  let isUnifiedUIEnabled: boolean | undefined;
+  let mockServer: Mockttp;
+  let localNode: Ganache;
 
   beforeAll(async (): Promise<void> => {
+    localNode = new Ganache();
+    await localNode.start(localNodeOptions);
 
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+      .withGanacheNetwork('0x1')
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -69,19 +65,6 @@ describe(Regression('Swap from Token view'), (): void => {
     await TabBarComponent.tapWallet();
   });
 
-  it('should be able to import account', async (): Promise<void> => {
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
-    await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
-    await SuccessImportAccountView.tapCloseButton();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.checkIfVisible(WalletView.container);
-  });
-
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
     const FIRST_ROW: number = 0;
     const quantity: string = '1';
@@ -94,14 +77,13 @@ describe(Regression('Swap from Token view'), (): void => {
     await Assertions.checkIfVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
     await TokenOverview.tapSwapButton();
-    if (!swapOnboarded) await Onboarding.tapStartSwapping();
 
     // Submit the Swap
     await submitSwapUnifiedUI(
       quantity,
       sourceTokenSymbol,
       destTokenSymbol,
-      CustomNetworks.Tenderly.Mainnet.providerConfig.chainId,
+      '0x1',
     );
 
     // After the swap is complete, the DAI balance shouldn't be 0
