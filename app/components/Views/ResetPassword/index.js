@@ -770,7 +770,7 @@ class ResetPassword extends PureComponent {
           'reset_password.warning_password_change_description',
         ),
         type: 'error',
-        icon: IconName.RichDanger,
+        icon: IconName.Danger,
         secondaryButtonLabel: strings(
           'reset_password.warning_password_cancel_button',
         ),

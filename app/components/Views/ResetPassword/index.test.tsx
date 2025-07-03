@@ -290,7 +290,7 @@ describe('ResetPassword', () => {
               'reset_password.warning_password_change_description',
             ),
             type: 'error',
-            icon: undefined,
+            icon: 'Danger',
             secondaryButtonLabel: strings(
               'reset_password.warning_password_cancel_button',
             ),
