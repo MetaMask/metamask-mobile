@@ -7,10 +7,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { merge } from 'lodash';
-import { act, waitFor } from '@testing-library/react-native';
 
 const initialState = {
   engine: {
@@ -346,7 +345,8 @@ describe('SmartTransactionStatus', () => {
               smartTransaction: {
                 ...PENDING_APPROVALS.Send.pending.requestState.smartTransaction,
                 creationTime,
-              } as any,
+                uuid: 'test-uuid',
+              },
               isDapp: PENDING_APPROVALS.Send.pending.requestState.isDapp,
               isInSwapFlow: PENDING_APPROVALS.Send.pending.requestState.isInSwapFlow,
             }}
