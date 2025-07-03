@@ -5,16 +5,28 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
+import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
 import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
+import { ApproveMethod } from '../../../types/approve';
+import { EditSpendingCapButton } from '../../edit-spending-cap-button';
 import styleSheet from '../shared-styles';
 
 export const ApproveAndPermit2 = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { amount, tokenStandard, isRevoke, tokenId, spender } =
-    useApproveTransactionData();
+  const {
+    approveMethod,
+    amount,
+    decimals,
+    isRevoke,
+    tokenBalance,
+    tokenId,
+    tokenStandard,
+    spender,
+  } = useApproveTransactionData();
+  const { onSpendingCapUpdate } = useApproveTransactionActions();
 
   const transactionMetadata = useTransactionMetadataRequest();
   const isERC20 = tokenStandard === TokenStandard.ERC20;
@@ -62,6 +74,17 @@ export const ApproveAndPermit2 = () => {
         }
       >
         <View style={styles.amountAndAddressContainer}>
+          {isERC20 && (
+            <EditSpendingCapButton
+              spendingCapProps={{
+                approveMethod: approveMethod as ApproveMethod,
+                balance: tokenBalance ?? '0',
+                decimals: decimals ?? 1,
+                spendingCap: amount ?? '',
+                onSpendingCapUpdate,
+              }}
+            />
+          )}
           <Pill text={isERC20 ? amount ?? '' : `#${tokenId}`} />
           <Address
             address={transactionMetadata?.txParams?.to ?? ''}

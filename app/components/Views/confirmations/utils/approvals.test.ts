@@ -8,6 +8,7 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import {
   calculateApprovalTokenAmount,
+  calculateTokenBalance,
   parseApprovalTransactionData,
   updateApprovalAmount,
 } from './approvals';
@@ -244,6 +245,70 @@ describe('Approvals Utils', () => {
     it('handles moderate amounts with custom decimals', () => {
       const amount = '500000'; // 0.5 tokens with 6 decimals
       expect(calculateApprovalTokenAmount(amount, 6)).toBe('0.5');
+    });
+  });
+
+  describe('calculateTokenBalance', () => {
+    it('calculates undefined tokenBalance', () => {
+      expect(calculateTokenBalance(undefined)).toBe('0');
+    });
+
+    it('calculates null tokenBalance', () => {
+      expect(calculateTokenBalance(null as unknown as string)).toBe('0');
+    });
+
+    it('calculates zero string tokenBalance', () => {
+      expect(calculateTokenBalance('0')).toBe('0');
+    });
+
+    it('calculates undefined decimals', () => {
+      expect(calculateTokenBalance('100', undefined)).toBe('100');
+    });
+
+    it('calculates null decimals', () => {
+      expect(calculateTokenBalance('100', null as unknown as number)).toBe(
+        '100',
+      );
+    });
+
+    it('calculates zero decimals', () => {
+      expect(calculateTokenBalance('100', 0)).toBe('100');
+    });
+
+    it('calculates positive decimals', () => {
+      expect(calculateTokenBalance('100000', 5)).toBe('1');
+    });
+
+    it('calculates both undefined parameters', () => {
+      expect(calculateTokenBalance(undefined, undefined)).toBe('0');
+    });
+
+    it('calculates undefined tokenBalance with defined decimals', () => {
+      expect(calculateTokenBalance(undefined, 6)).toBe('0');
+    });
+
+    it('calculates defined tokenBalance with undefined decimals', () => {
+      expect(calculateTokenBalance('1000000000000000000', undefined)).toBe(
+        '1000000000000000000',
+      );
+    });
+
+    it('calculates both defined parameters', () => {
+      expect(calculateTokenBalance('1000000000000000000', 18)).toBe('1');
+    });
+
+    it('calculates negative tokenBalance', () => {
+      expect(calculateTokenBalance('-1000000000000000000')).toBe(
+        '-1000000000000000000',
+      );
+    });
+
+    it('calculates negative decimals', () => {
+      expect(calculateTokenBalance('100', -2)).toBe('10000');
+    });
+
+    it('calculates fractional tokenBalance with custom decimals', () => {
+      expect(calculateTokenBalance('150000', 5)).toBe('1.5');
     });
   });
 });
