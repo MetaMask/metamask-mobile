@@ -1746,12 +1746,10 @@ workflows:
   build_android_qa_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'qa'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'qa'
-      - BUILD_COMMAND: 'yarn build:android:devbuild:qa'
+      - BUILD_COMMAND: 'yarn build:android:qa:local'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2306,12 +2304,11 @@ workflows:
   build_ios_qa_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'qa'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+      - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
   build_ios_flask_simbuild:
@@ -2327,13 +2324,11 @@ workflows:
   build_ios_qa_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'qa'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+      - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
   build_ios_qa:
