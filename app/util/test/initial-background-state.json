@@ -189,6 +189,8 @@
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
     "showTestNetworks": false,
+    "smartAccountOptIn": true,
+    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,

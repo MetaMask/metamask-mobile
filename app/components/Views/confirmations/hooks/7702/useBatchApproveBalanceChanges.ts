@@ -146,7 +146,8 @@ async function buildSimulationTokenBalanceChanges({
 
     const isUnlimited =
       !isNFT &&
-      (amountOrTokenId?.toNumber() ?? 0) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
+      (amountOrTokenId?.abs().toNumber() ?? 0) >
+        TOKEN_VALUE_UNLIMITED_THRESHOLD;
 
     const balanceChange: ApprovalSimulationBalanceChange = {
       address: to as Hex,

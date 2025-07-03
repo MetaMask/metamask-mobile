@@ -90,4 +90,14 @@ export type BalanceChange = Readonly<{
    * Optional field, symbol of the ERC20 token
    */
   tokenSymbol?: string;
+
+  /**
+   * Optional field is balance change in All Approval
+   */
+  isAllApproval?: boolean;
+
+  /**
+   * Optional field is balance change in Unlimited Approval
+   */
+  isUnlimitedApproval?: boolean;
 }>;
