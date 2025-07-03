@@ -367,7 +367,11 @@ export default class Utilities {
       `🔍 Last error: ${lastError?.message || 'Unknown error'}`,
     ].join('\n');
 
-    throw new Error(errorMessage);
+    const enhancedError = new Error(errorMessage);
+    if (lastError?.stack) {
+      enhancedError.stack = `${errorMessage}\n\nOriginal error stack:\n${lastError.stack}`;
+    }
+    throw enhancedError;
   }
 }
 

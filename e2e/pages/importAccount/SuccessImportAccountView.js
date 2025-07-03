@@ -12,7 +12,11 @@ class SuccessImportAccountView {
   }
 
   async tapCloseButton() {
-    await Gestures.waitAndTap(this.closeButton);
+    await Gestures.tap(this.closeButton,
+    {
+      elemDescription: 'Close button on Success Import Account View',
+    },
+  );
   }
 }
 

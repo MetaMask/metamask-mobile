@@ -27,6 +27,7 @@ class ImportAccountView {
       privateKey,
       {
         hideKeyboard: true,
+        sensitive: true,
       }
     );
   }

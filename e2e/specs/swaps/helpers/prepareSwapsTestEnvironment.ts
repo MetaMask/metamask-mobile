@@ -33,9 +33,13 @@ export async function prepareSwapsTestEnvironment(wallet: ethers.Wallet): Promis
         await Assertions.expectVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapImportAccount();
-        await Assertions.expectVisible(ImportAccountView.container);
+        await Assertions.expectVisible(ImportAccountView.container, {
+            description: 'Import Account View',
+        });
         await ImportAccountView.enterPrivateKey(wallet.privateKey);
-        await Assertions.expectVisible(SuccessImportAccountView.container);
+        await Assertions.expectVisible(SuccessImportAccountView.container, {
+            description: 'Success Import Account View',
+        });
         await SuccessImportAccountView.tapCloseButton();
         await AccountListBottomSheet.swipeToDismissAccountsModal();
         await Assertions.expectVisible(WalletView.container);
