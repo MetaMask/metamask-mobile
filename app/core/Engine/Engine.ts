@@ -231,9 +231,7 @@ import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
-///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1267,9 +1265,7 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         NetworkEnablementController: networkEnablementControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -1284,10 +1280,8 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
-    ///: END:ONLY_INCLUDE_IF
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1645,9 +1639,7 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
     };
 
@@ -2370,9 +2362,7 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController,
     } = instance.datamodel.state;
 
@@ -2427,9 +2417,7 @@ export default {
       BridgeStatusController,
       EarnController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController,
     };
   },
