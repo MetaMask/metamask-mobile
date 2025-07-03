@@ -29,6 +29,7 @@ const MOCK_NO_SCOPES_ADDRESS = '0xdef';
 
 const MOCK_ACCOUNTS: Account[] = [
   {
+    id: 'mock-account-id-1',
     address: MOCK_ETH_ADDRESS,
     caipAccountId: `eip155:1:${MOCK_ETH_ADDRESS}` as CaipAccountId,
     name: 'Account 1',
@@ -40,6 +41,7 @@ const MOCK_ACCOUNTS: Account[] = [
     isLoadingAccount: false,
   },
   {
+    id: 'mock-account-id-btc',
     address: MOCK_BTC_ADDRESS,
     caipAccountId:
       `bip122:000000000019d6689c085ae165831e93:${MOCK_BTC_ADDRESS}` as CaipAccountId,
@@ -52,6 +54,7 @@ const MOCK_ACCOUNTS: Account[] = [
     isLoadingAccount: false,
   },
   {
+    id: 'mock-account-id-sol',
     address: MOCK_SOL_ADDRESS,
     caipAccountId:
       `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:${MOCK_SOL_ADDRESS}` as CaipAccountId,
@@ -64,6 +67,7 @@ const MOCK_ACCOUNTS: Account[] = [
     isLoadingAccount: false,
   },
   {
+    id: 'mock-account-id-no-scopes',
     address: MOCK_NO_SCOPES_ADDRESS,
     caipAccountId: `eip155:1:${MOCK_NO_SCOPES_ADDRESS}` as CaipAccountId,
     name: 'Account with no scopes',
