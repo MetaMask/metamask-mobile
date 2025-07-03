@@ -1,5 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
+import { Mockttp } from 'mockttp';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -10,7 +11,6 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
@@ -22,13 +22,14 @@ import Ganache from '../../../app/util/test/ganache';
 import { localNodeOptions, testSpecificMock } from './helpers/constants'
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-import { Mockttp, MockttpServer } from 'mockttp';
+import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
+
 const fixtureServer: FixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), (): void => {
-  let mockServer: Mockttp;
   let localNode: Ganache;
+  let mockServer: Mockttp;
 
   beforeAll(async (): Promise<void> => {
     localNode = new Ganache();
@@ -45,13 +46,18 @@ describe(Regression('Swap from Token view'), (): void => {
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${mockServerPort}`,
+      },
     });
     await loginToApp();
   });
 
   afterAll(async (): Promise<void> => {
     await stopFixtureServer(fixtureServer);
+    if (mockServer) await stopMockServer(mockServer);
+    if (localNode) await localNode.quit();
   });
 
   beforeEach(async (): Promise<void> => {

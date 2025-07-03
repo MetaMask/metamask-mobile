@@ -1,7 +1,6 @@
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import AdvancedSettingsView from '../../../pages/Settings/AdvancedView.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
 
 /**
  * Prepares the swaps test environment by disabling Smart Transactions (stx).

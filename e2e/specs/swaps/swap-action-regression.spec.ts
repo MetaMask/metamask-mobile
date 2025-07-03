@@ -21,6 +21,7 @@ import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
 import { localNodeOptions, testSpecificMock } from './helpers/constants'
+import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
 
 const fixtureServer = new FixtureServer();
@@ -49,13 +50,18 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${mockServerPort}`,
+      },
     });
     await loginToApp();
   });
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
+    if (mockServer) await stopMockServer(mockServer);
+    if (localNode) await localNode.quit();
   });
 
   it('should turn off stx', async () => {
