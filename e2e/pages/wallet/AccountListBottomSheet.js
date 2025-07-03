@@ -129,13 +129,23 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
 
-  async scrollToAccount(index) {
+  async scrollToAccount(index, multichainAccountDetailsDesignEnabled = false) {
+    // With the new multichain account design, the account list can only show a maximum of
+    // 4 accounts and sometimes only partially 5 accounts. If the test is trying to select the 4th account or higher,
+    // the matcher would sometimes return a null value thus causing the test to fail.
+    let indexToUse = index;
+    if (multichainAccountDetailsDesignEnabled) {
+      indexToUse = Math.min(index, 3);
+    }
+
     await Gestures.scrollToElement(
-      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
+      Matchers.getElementByID(
+        WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+        indexToUse,
+      ),
       by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
     );
   }
-
 }
 
 export default new AccountListBottomSheet();
