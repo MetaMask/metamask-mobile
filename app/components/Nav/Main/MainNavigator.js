@@ -502,7 +502,6 @@ const HomeTabs = () => {
               number_of_accounts: accountsLength,
               chain_id: getDecimalChainId(chainId),
               source: 'Navigation Tab',
-              active_connected_dapp: activeConnectedDapp,
               number_of_open_tabs: amountOfBrowserOpenTabs,
             })
             .build(),

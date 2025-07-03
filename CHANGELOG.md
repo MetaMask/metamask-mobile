@@ -7,10 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
-- feat(bridge): fetch all tokens for bridge input([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
-- fix(bridge): don't show currency value unless amount is above zero ([#15798](https://github.com/MetaMask/metamask-mobile/pull/15798))
-- fix(bridge): prevent crash when viewing Solana asset details ([#16770](https://github.com/MetaMask/metamask-mobile/pull/16770))
+
+## [7.47.3]
+
+### Fixed
+- chore(runway): cherry-pick fix(bridge): fix: cp-7.47.3 prevent crash when viewing Solana asset details ([#16776](https://github.com/MetaMask/metamask-mobile/pull/16776)
+
+## [7.47.2]
+
+### Fixed
+- chore(runway): cherry-pick chore: bump pbkdf ([#16629](https://github.com/MetaMask/metamask-mobile/pull/16629))
+- chore(runway): cherry-pick fix: cp-7.47.2 migrate caip permission to include sessionProperties value ([#16643](https://github.com/MetaMask/metamask-mobile/pull/16643))
+- chore(runway): cherry-pick fix:  account address missmatch with identity ([#16683](https://github.com/MetaMask/metamask-mobile/pull/16683))
+- chore(runway): cherry-pick fix: Remove delay for dispatch of INIT_BG_STATE_KEY ([#16703](https://github.com/MetaMask/metamask-mobile/pull/16703))
 
 ## [7.47.1]
 
@@ -232,6 +241,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: escape / sanitize signTypedData update ([#14280](https://github.com/MetaMask/metamask-mobile/pull/14280))
 - feat: add phishing tracking events to PhishingModal component ([#14254](https://github.com/MetaMask/metamask-mobile/pull/14254))
 - feat: upgrade to brand evolution colors ([#14218](https://github.com/MetaMask/metamask-mobile/pull/14218))
+
+### Changed
+
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+- fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
 
@@ -5529,7 +5543,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.2...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...HEAD
+[7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.3...v7.50.0
+[7.47.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.2...v7.47.3
+[7.47.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.1...v7.47.2
+[7.47.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.0...v7.47.1
+[7.47.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.2...v7.47.0
 [7.46.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...v7.46.2
 [7.46.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.0...v7.46.1
 [7.46.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.45.1...v7.46.0
