@@ -33,7 +33,7 @@ class ApproveComponents {
   }
 
   async inputSpendingCap(spendingCap: string) {
-    await Gestures.replaceTextInField(this.EditSpendingCapInput, spendingCap);
+    await Gestures.typeTextWithoutKeyboard(this.EditSpendingCapInput, spendingCap);
   }
 }
 

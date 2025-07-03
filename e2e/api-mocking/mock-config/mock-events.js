@@ -104,6 +104,7 @@ export const mockEvents = {
             contract_deployment: true,
             contract_interaction: true,
             transfer: true,
+            approve: true,
           },
         },
       ],
