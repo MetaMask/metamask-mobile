@@ -15,6 +15,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
 import { Hex } from 'viem/_types/types/misc';
+import { trace, TraceName } from '../../../../../../util/trace';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -31,6 +32,7 @@ const StakingCta = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
+    trace({ name: TraceName.EarnFaq });
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: { chainId },

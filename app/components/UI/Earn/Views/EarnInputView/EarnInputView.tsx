@@ -68,9 +68,8 @@ import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
-import { TraceName } from '../../../../../util/trace';
+import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
-
 
 const EarnInputView = () => {
   // navigation hooks
@@ -187,6 +186,7 @@ const EarnInputView = () => {
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      trace({ name: TraceName.EarnFaq });
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: earnToken },

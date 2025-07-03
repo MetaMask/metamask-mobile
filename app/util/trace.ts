@@ -69,7 +69,9 @@ export enum TraceName {
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
   EarnWithdrawScreen = 'Earn Withdraw Screen',
-  EarnEarnings = 'Earn Earnings'
+  EarnEarnings = 'Earn Earnings',
+  EarnFaq = 'Earn FAQ',
+  EarnFaqApys = 'Earn FAQ APYs',
 }
 
 export enum TraceOperation {
