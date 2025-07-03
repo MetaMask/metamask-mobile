@@ -416,7 +416,7 @@ describe('WalletConnect2Session', () => {
           eip155: {
             chains: ['eip155:1'],
             methods: ['eth_sendTransaction'],
-            events: ['chainChanges', 'accountsChanged'],
+            events: ['chainChanged', 'accountsChanged'],
             accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
           },
         },
@@ -1065,7 +1065,7 @@ describe('WalletConnect2Session', () => {
       await buildCase(request, testChainId, testChainCaip);
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanges', parseInt(testChainId, 16));
+      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanged', parseInt(testChainId, 16));
 
 
     });
@@ -1109,7 +1109,7 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanges', parseInt(testChainId, 16));
+      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanged', parseInt(testChainId, 16));
     });
 
     it('handles eth_sendTransaction correctly with valid chainId that it has permissions for isPerDappSelectedNetworkEnabled() = false', async () => {
@@ -1151,7 +1151,7 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanges', parseInt(testChainId, 16));
+      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanged', parseInt(testChainId, 16));
     });
 
     it('handles eth_signTypedData_v3 correctly with valid chainId that it has permissions for', async () => {
@@ -1216,7 +1216,7 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanges', parseInt(testChainId, 16));
+      expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanged', parseInt(testChainId, 16));
     });
 
   })
