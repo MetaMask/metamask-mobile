@@ -22,7 +22,7 @@ export type BrowserUrlBarRef = {
  * BrowserUrlBar props
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type BrowserUrlBarProps = {
+type BrowserUrlBarPropsBase = {
   connectionType: ConnectionType;
   onSubmitEditing: (text: string) => void;
   onCancel: () => void;
@@ -34,3 +34,16 @@ export type BrowserUrlBarProps = {
   setIsUrlBarFocused: (focused: boolean) => void;
   isUrlBarFocused: boolean;
 };
+
+export type BrowserUrlBarProps = BrowserUrlBarPropsBase & (
+  | {
+      discoveryMode?: false;
+      showTabs?: never;
+      newTab?: never;
+    }
+  | {
+      discoveryMode: true;
+      showTabs: () => void;
+      newTab: (url?: string) => void;
+    }
+);

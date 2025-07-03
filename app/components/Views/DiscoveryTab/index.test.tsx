@@ -2,7 +2,8 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DiscoveryTab from './DiscoveryTab';
-import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteCategory } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete from '../../UI/UrlAutocomplete';
+import { SearchDiscoveryResultItem, SearchDiscoveryCategory } from '../../UI/SearchDiscoveryResult/types';
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -38,6 +39,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
+  const original = jest.requireActual('../../UI/Bridge/hooks/useSwapBridgeNavigation');
+  return {
+    ...original,
+    useSwapBridgeNavigation: jest.fn().mockReturnValue({
+      goToSwaps: jest.fn(),
+      goToBridge: jest.fn(),
+      networkModal: null,
+    }),
+  };
+});
+
 const mockInitialState = {
   browser: {
     activeTab: 1,
@@ -59,8 +72,8 @@ const mockInitialState = {
 
 const mockProps = {
   id: 1,
-  updateTabInfo: jest.fn(),
   showTabs: jest.fn(),
+  newTab: jest.fn(),
 };
 
 const Stack = createStackNavigator();
@@ -79,12 +92,12 @@ describe('DiscoveryTab', () => {
       { state: mockInitialState }
     );
     await waitFor(() => {
-      expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
+      expect(screen.getByText('Popular Tokens')).toBeOnTheScreen();
     });
   });
 
   it('should navigate to the asset loader when selecting a token from the autocomplete', () => {
-    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    let onSelectProp: (item: SearchDiscoveryResultItem) => void = jest.fn();
     jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
       onSelectProp = onSelect;
       return 'UrlAutocomplete';
@@ -100,7 +113,7 @@ describe('DiscoveryTab', () => {
       { state: mockInitialState }
     );
     onSelectProp?.({
-      category: UrlAutocompleteCategory.Tokens,
+      category: SearchDiscoveryCategory.Tokens,
       address: '0x123',
       chainId: '0x1',
       name: 'Test Token',
@@ -117,30 +130,27 @@ describe('DiscoveryTab', () => {
   });
 
   it('should navigate to a site when selecting a URL from the autocomplete', () => {
-    let onSelectProp: (item: AutocompleteSearchResult) => void = jest.fn();
+    let onSelectProp: (item: SearchDiscoveryResultItem) => void = jest.fn();
     jest.mocked(UrlAutocomplete).mockImplementation(({ onSelect }) => {
       onSelectProp = onSelect;
       return 'UrlAutocomplete';
     });
 
-    const updateTabInfo = jest.fn();
     renderWithProvider(
       <NavigationContainer independent>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
-            {() => <DiscoveryTab {...mockProps} updateTabInfo={updateTabInfo} />}
+            {() => <DiscoveryTab {...mockProps} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>,
       { state: mockInitialState }
     );
     onSelectProp?.({
-      category: UrlAutocompleteCategory.Sites,
+      category: SearchDiscoveryCategory.Sites,
       name: 'Test Token',
       url: 'https://metamask.io',
     });
-    expect(updateTabInfo).toHaveBeenCalledWith(1, {
-      url: 'https://metamask.io',
-    });
+    expect(mockProps.newTab).toHaveBeenCalledWith('https://metamask.io');
   });
 });

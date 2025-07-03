@@ -3,21 +3,21 @@ import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../../core/Engine';
 import { selectRecentTokenSearches } from '../../../../selectors/tokenSearchDiscoveryController';
-import { TokenSearchResponseItem } from '@metamask/token-search-discovery-controller';
+import { MoralisTokenResponseItem } from '@metamask/token-search-discovery-controller';
 import { tokenSearchDiscoveryEnabled } from '../../../../selectors/featureFlagController/tokenSearchDiscovery';
 
 const SEARCH_DEBOUNCE_DELAY = 250;
 const MINIMUM_QUERY_LENGTH = 2;
 export const MAX_RESULTS = '20';
 
-export const useTokenSearchDiscovery = () => {
+export const useTokenSearch = () => {
   const recentSearches = useSelector(selectRecentTokenSearches);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [results, setResults] = useState<TokenSearchResponseItem[]>([]);
+  const [results, setResults] = useState<MoralisTokenResponseItem[]>([]);
   const latestRequestId = useRef<number>(0);
   const tokenSearchEnabled = useSelector(tokenSearchDiscoveryEnabled);
-
+  const latestSearchTermWithoutResults = useRef<string | null>(null);
 
   const searchTokens = useMemo(
     () =>
@@ -25,7 +25,18 @@ export const useTokenSearchDiscovery = () => {
         setIsLoading(true);
         setError(null);
 
-        if (query.length < MINIMUM_QUERY_LENGTH || !tokenSearchEnabled) {
+        /*
+        Short-circuit the search if the query is too short, the token search is disabled,
+        the query is a URL, or the query is a continuation of a previous search that yielded no results
+        */
+        if (
+          query.length < MINIMUM_QUERY_LENGTH ||
+          !tokenSearchEnabled ||
+          query.trim() === '' ||
+          query.match(/^https?:\/\//) ||
+          query.startsWith('www.') ||
+          latestSearchTermWithoutResults.current && query.startsWith(latestSearchTermWithoutResults.current)
+        ) {
           setResults([]);
           setIsLoading(false);
           return;
@@ -35,12 +46,18 @@ export const useTokenSearchDiscovery = () => {
 
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
-          const result = await TokenSearchDiscoveryController.searchSwappableTokens({
+          const result = await TokenSearchDiscoveryController.searchTokensFormatted({
             query,
             limit: MAX_RESULTS,
+            swappable: true,
           });
           if (requestId === latestRequestId.current) {
             setResults(result);
+            if (result.length === 0) {
+              latestSearchTermWithoutResults.current = query;
+            } else {
+              latestSearchTermWithoutResults.current = null;
+            }
           }
         } catch (err) {
           if (requestId === latestRequestId.current) {
@@ -51,7 +68,7 @@ export const useTokenSearchDiscovery = () => {
             setIsLoading(false);
           }
         }
-      }, SEARCH_DEBOUNCE_DELAY),
+      }, SEARCH_DEBOUNCE_DELAY, {leading: true}),
     [tokenSearchEnabled],
   );
 
@@ -71,4 +88,4 @@ export const useTokenSearchDiscovery = () => {
   };
 };
 
-export default useTokenSearchDiscovery;
+export default useTokenSearch;

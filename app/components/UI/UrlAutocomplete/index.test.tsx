@@ -7,7 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { removeBookmark } from '../../../actions/bookmarks';
 import { noop } from 'lodash';
 import { createStackNavigator } from '@react-navigation/stack';
-import { TokenSearchResponseItem } from '@metamask/token-search-discovery-controller';
+import { MoralisTokenResponseItem } from '@metamask/token-search-discovery-controller';
 
 const defaultState = {
   browser: { history: [
@@ -33,7 +33,7 @@ type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
 jest.mock('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch', () => {
   const searchTokens = jest.fn();
-  const results: TokenSearchResponseItem[] = [];
+  const results: MoralisTokenResponseItem[] = [];
   const reset = jest.fn();
   return jest.fn(() => ({
       results,
@@ -49,7 +49,7 @@ const mockUseTSDReturnValue = ({
   reset,
   searchTokens,
 }: {
-  results: TokenSearchResponseItem[];
+  results: MoralisTokenResponseItem[];
   isLoading: boolean;
   reset: () => void;
   searchTokens: () => void;
@@ -105,6 +105,58 @@ jest.mock('../../../selectors/tokenSearchDiscoveryDataController', () => {
     selectSupportedSwapTokenAddresses: jest.fn().mockImplementation(() => ['0x123', '0x456']),
   };
 });
+
+const createMockToken = (partial: Partial<MoralisTokenResponseItem>): MoralisTokenResponseItem => ({
+    token_address: '0x123',
+    chain_id: '0x1',
+    token_name: 'Dogecoin',
+    token_symbol: 'DOGE',
+    price_usd: 1,
+    token_logo: 'https://example.com/logo.png',
+    token_age_in_days: 1,
+    on_chain_strength_index: 1,
+    security_score: 1,
+    market_cap: 1,
+    fully_diluted_valuation: 1,
+    twitter_followers: 1,
+    price_percent_change_usd: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    holders_change: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    liquidity_change_usd: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    experienced_net_buyers_change: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    net_volume_change_usd: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    volume_change_usd: {
+      '1h': null,
+      '1d': 1,
+      '1w': 1,
+      '1M': 1,
+    },
+    ...partial,
+  });
 
 describe('UrlAutocomplete', () => {
   beforeAll(() => {
@@ -164,7 +216,7 @@ describe('UrlAutocomplete', () => {
     expect(await screen.findByText('MyBookmark', {includeHiddenElements: true})).toBeDefined();
   });
 
-  it('should not show Recents and Favorites when nothing is found', async () => {
+  it('should not show Recents and Favorites when nothing is found', () => {
     const ref = React.createRef<UrlAutocompleteRef>();
     render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
 
@@ -172,8 +224,8 @@ describe('UrlAutocomplete', () => {
       ref.current?.search('nothing');
       jest.runAllTimers();
     });
-    expect(await screen.queryByText('Recents', {includeHiddenElements: true})).toBeNull();
-    expect(await screen.queryByText('Favorites', {includeHiddenElements: true})).toBeNull();
+    expect(screen.queryByText('Recents', {includeHiddenElements: true})).toBeNull();
+    expect(screen.queryByText('Favorites', {includeHiddenElements: true})).toBeNull();
   });
 
   it('should delete a bookmark when pressing the trash icon', async () => {
@@ -212,26 +264,18 @@ describe('UrlAutocomplete', () => {
   it('should display token search results', async () => {
     mockUseTSDReturnValue({
       results: [
-      {
-        tokenAddress: '0x123',
-        chainId: '0x1',
-        name: 'Dogecoin',
-        symbol: 'DOGE',
-        usdPrice: 1,
-        usdPricePercentChange: {
-          oneDay: 1,
-        },
-      },
-      {
-        tokenAddress: '0x456',
-        chainId: '0x1',
-        name: 'Dog Wif Hat',
-        symbol: 'WIF',
-        usdPrice: 1,
-        usdPricePercentChange: {
-          oneDay: 1,
-        },
-      },
+      createMockToken({
+        token_address: '0x123',
+        chain_id: '0x1',
+        token_name: 'Dogecoin',
+        token_symbol: 'DOGE',
+      }),
+      createMockToken({
+        token_address: '0x456',
+        chain_id: '0x1',
+        token_name: 'Dog Wif Hat',
+        token_symbol: 'WIF',
+      }),
     ],
       isLoading: false,
       reset: jest.fn(),
@@ -251,16 +295,12 @@ describe('UrlAutocomplete', () => {
   it('should swap a token when the swap button is pressed', async () => {
     mockUseTSDReturnValue({
       results: [
-      {
-        tokenAddress: '0x123',
-        chainId: '0x1',
-        name: 'Dogecoin',
-        symbol: 'DOGE',
-        usdPrice: 1,
-        usdPricePercentChange: {
-          oneDay: 1,
-        },
-      },
+      createMockToken({
+        token_address: '0x123',
+        chain_id: '0x1',
+        token_name: 'Dogecoin',
+        token_symbol: 'DOGE',
+      }),
     ],
       isLoading: false,
       reset: jest.fn(),
@@ -292,16 +332,12 @@ describe('UrlAutocomplete', () => {
   it('should call onSelect when a token is selected', async () => {
     mockUseTSDReturnValue({
       results: [
-        {
-          tokenAddress: '0x123',
-          chainId: '0x1',
-          name: 'Dogecoin',
-          symbol: 'DOGE',
-          usdPrice: 1,
-          usdPricePercentChange: {
-            oneDay: 1,
-          },
-        },
+        createMockToken({
+          token_address: '0x123',
+          chain_id: '0x1',
+          token_name: 'Dogecoin',
+          token_symbol: 'DOGE',
+        }),
       ],
       isLoading: false,
       reset: jest.fn(),

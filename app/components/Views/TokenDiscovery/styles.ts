@@ -5,8 +5,11 @@ export const styleSheet = ({ theme: { colors } }: { theme: Theme }) => StyleShee
         container: {
             ...baseStyles.flexGrow,
             backgroundColor: colors.background.default,
-            alignItems: 'center',
+        },
+        loadingContainer: {
+            flex: 1,
             justifyContent: 'center',
+            alignItems: 'center',
         },
     });
 
