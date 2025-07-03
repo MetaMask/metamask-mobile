@@ -154,17 +154,17 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   useEffect(() => {
-    if (selectedRegion) {
+    if (selectedRegion?.currency) {
       if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
       } else if (selectedRegion.currency === 'EUR') {
         setFiatCurrency(EUR_CURRENCY);
       }
     }
-  }, [selectedRegion]);
+  }, [selectedRegion?.currency]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(...createRegionSelectorModalNavigationDetails({}));
+    navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
 
   useFocusEffect(
@@ -172,7 +172,7 @@ const BuildQuote = () => {
       if (!selectedRegion?.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({}),
+            ...createUnsupportedRegionModalNavigationDetails(),
           );
         });
       }

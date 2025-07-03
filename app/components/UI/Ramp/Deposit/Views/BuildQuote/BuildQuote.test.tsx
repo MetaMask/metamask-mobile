@@ -2,9 +2,16 @@ import React from 'react';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+
+const { InteractionManager } = jest.requireActual('react-native');
+
+InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
+  callback(),
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -15,13 +22,9 @@ const mockFetchKycFormData = jest.fn();
 const mockFetchUserDetails = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockCreateUnsupportedRegionModalNavigationDetails = jest.fn();
 const mockCreateReservation = jest.fn();
 const mockCreateOrder = jest.fn();
 const mockHandleNewOrder = jest.fn();
-const mockInteractionManager = {
-  runAfterInteractions: jest.fn((callback) => callback()),
-};
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -44,17 +47,13 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
+      setOptions: mockSetNavigationOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
   };
 });
-
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Build Quote',
-  }),
-}));
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -87,7 +86,7 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 
 jest.mock('../../hooks/useDepositTokenExchange', () => ({
   __esModule: true,
-  default: () => mockUseDepositTokenExchange(),
+  default: jest.fn(() => mockUseDepositTokenExchange()),
 }));
 
 jest.mock('../ProviderWebview/ProviderWebview', () => ({
@@ -122,6 +121,13 @@ jest.mock('../KycProcessing/KycProcessing', () => ({
   createKycProcessingNavDetails: jest.fn(() => ['KYC_PROCESSING', {}]),
 }));
 
+jest.mock('../Modals/UnsupportedRegionModal', () => ({
+  createUnsupportedRegionModalNavigationDetails: jest.fn(() => [
+    'DepositModals',
+    { screen: 'DepositUnsupportedRegionModal' },
+  ]),
+}));
+
 jest.mock('../../hooks/useUserDetailsPolling', () => ({
   KycStatus: {
     APPROVED: 'APPROVED',
@@ -130,26 +136,25 @@ jest.mock('../../hooks/useUserDetailsPolling', () => ({
   },
 }));
 
-jest.mock('../Modals/UnsupportedRegionModal', () => ({
-  createUnsupportedRegionModalNavigationDetails:
-    mockCreateUnsupportedRegionModalNavigationDetails,
-}));
-
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    InteractionManager: mockInteractionManager,
-  };
-});
-
 jest.mock('../../hooks/useHandleNewOrder', () => ({
   __esModule: true,
-  default: () => mockHandleNewOrder,
+  default: jest.fn(() => mockHandleNewOrder),
 }));
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.BUILD_QUOTE);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.BUILD_QUOTE,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
 }
 
 describe('BuildQuote Component', () => {
@@ -159,11 +164,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockCreateUnsupportedRegionModalNavigationDetails.mockReturnValue([
-      'DepositModals',
-      'DepositUnsupportedRegionModal',
-      {},
-    ]);
     mockHandleNewOrder.mockResolvedValue(undefined);
   });
 
@@ -185,23 +185,10 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
-        params: {},
       });
     });
 
-    it('updates fiat currency to EUR when selectedRegion changes to EUR region', () => {
-      const mockSetSelectedRegion = jest.fn();
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          setSelectedRegion: mockSetSelectedRegion,
-        }),
-      );
-
-      const { rerender } = render(BuildQuote);
-
-      expect(screen.toJSON()).toMatchSnapshot();
-
+    it('displays EUR currency when selectedRegion is EUR', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           selectedRegion: {
@@ -211,13 +198,34 @@ describe('BuildQuote Component', () => {
             currency: 'EUR',
             supported: true,
           },
-          setSelectedRegion: mockSetSelectedRegion,
         }),
       );
 
-      rerender(<BuildQuote />);
+      render(BuildQuote);
 
       expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('navigates to unsupported region modal when selectedRegion is not supported', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({
+          selectedRegion: {
+            isoCode: 'XX',
+            flag: '🏳️',
+            name: 'Unsupported Region',
+            currency: 'XXX',
+            supported: false,
+          },
+        }),
+      );
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+          screen: 'DepositUnsupportedRegionModal',
+        });
+      });
     });
   });
 
