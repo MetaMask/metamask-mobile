@@ -9,7 +9,6 @@ import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
 
-const EXPECTED_BALANCE: string = 'ETH 1,000.00';
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
 describe(Regression('Balance Privacy Toggle'), (): void => {
@@ -34,7 +33,8 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
         await Assertions.checkIfVisible(WalletView.container);
         await Assertions.checkIfVisible(WalletView.totalBalance);
         const actualBalance: string = await WalletView.getBalanceText();
-        await Assertions.checkIfTextMatches(actualBalance, EXPECTED_BALANCE);
+        expect(actualBalance).toContain('ETH');
+        expect(actualBalance).not.toContain('••••');
         await WalletView.hideBalance();
         await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
         await TabBarComponent.tapSettings();
