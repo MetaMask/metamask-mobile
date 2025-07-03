@@ -449,7 +449,9 @@ buildIosRelease(){
 buildIosFlaskLocal() {
 	prebuild_ios
 
-	# Generate a Flask debug .ipa for local development
+	# Go to ios directory
+	cd ios
+	# Generate a Flask debug .ipa for local
 	generateIosBinary "MetaMask-Flask" "Debug"
 }
 
