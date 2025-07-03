@@ -1,9 +1,8 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
@@ -26,10 +25,11 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { getNetworkImageSource, isTestNet } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
-import { selectCustomNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -44,11 +44,15 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
-  const customNetworkConfigurations = useSelector(
-    selectCustomNetworkConfigurationsByCaipChainId,
-  );
-
-  const [selectedNetwork, setSelectedNetwork] = useState('');
+  // Use custom hooks for network management
+  const { networks } = useNetworksByNamespace({
+    networkType: 'custom',
+  });
+  const { selectNetwork } = useNetworkSelection({
+    mode: 'single',
+    networks,
+    resetNetworkType: 'popular',
+  });
 
   const goToNetworkSettings = useCallback(() => {
     navigate(Routes.ADD_NETWORK, {
@@ -57,42 +61,31 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
     });
   }, [navigate]);
 
-  const customNetworks = useMemo(
-    () =>
-      customNetworkConfigurations.map((network) => {
-        const rpcUrl =
-          'rpcEndpoints' in network
-            ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
-            : undefined;
-        return {
-          id: network.caipChainId,
-          name: network.name,
-          caipChainId: network.caipChainId,
-          isSelected: selectedNetwork === network.caipChainId,
-          imageSource: getNetworkImageSource({
-            chainId: network.caipChainId,
-          }),
-          networkTypeOrRpcUrl: rpcUrl,
-        };
-      }),
-    [customNetworkConfigurations, selectedNetwork],
-  );
-
   const renderNetworkItem: ListRenderItem<CustomNetworkItem> = useCallback(
     ({ item }) => {
-      const { name, caipChainId, networkTypeOrRpcUrl } = item;
+      const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
+      const handlePress = () => selectNetwork(caipChainId);
+
+      const handleMenuPress = () => {
+        openModal({
+          isVisible: true,
+          caipChainId,
+          displayEdit: !isTestNet(chainId),
+          networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
+          isReadOnly: false,
+        });
+      };
+
       return (
-        <View
-          testID={`${name}-${selectedNetwork ? 'selected' : 'not-selected'}`}
-        >
+        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
             variant={CellVariant.SelectWithMenu}
-            isSelected={selectedNetwork === caipChainId}
+            isSelected={isSelected}
             title={name}
-            onPress={() => setSelectedNetwork(caipChainId)}
+            onPress={handlePress}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -101,21 +94,13 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
             }}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
-              onButtonClick: () => {
-                openModal({
-                  isVisible: true,
-                  caipChainId,
-                  displayEdit: !isTestNet(chainId),
-                  networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
-                  isReadOnly: false,
-                });
-              },
+              onButtonClick: handleMenuPress,
             }}
-          ></Cell>
+          />
         </View>
       );
     },
-    [selectedNetwork, openModal],
+    [selectNetwork, openModal],
   );
 
   const renderFooter = useCallback(
@@ -136,19 +121,13 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         </Text>
       </TouchableOpacity>
     ),
-    [
-      goToNetworkSettings,
-      colors.icon.alternative,
-      colors.text.alternative,
-      styles.addNetworkButtonContainer,
-      styles.iconContainer,
-    ],
+    [goToNetworkSettings, colors, styles],
   );
 
   return (
     <View style={styles.container}>
       <FlashList
-        data={customNetworks}
+        data={networks}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         estimatedItemSize={60}
