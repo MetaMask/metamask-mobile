@@ -45,6 +45,15 @@ const renderComponent = (state?: Record<string, unknown>) =>
       }),
   });
 
+const renderComponent = (state?: Record<string, unknown>) =>
+  renderWithProvider(<SmartAccountUpdateSplash />, {
+    state:
+      state ??
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+  });
+
 describe('SmartContractWithLogo', () => {
   beforeEach(() => {
     jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(false);
