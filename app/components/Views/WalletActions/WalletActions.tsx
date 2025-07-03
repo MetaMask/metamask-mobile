@@ -435,9 +435,9 @@ const WalletActions = () => {
         {AppConstants.PERPS.ACTIVE && isPerpsEnabled && (
           <WalletAction
             actionType={WalletActionType.Perps}
-            iconName={IconName.TrendUp}
+            iconName={IconName.Chart}
             onPress={onPerps}
-            actionID="perps-button"
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
