@@ -15,6 +15,7 @@ import ScreenView from '../../Base/ScreenView';
 import { Theme } from '../../../util/theme/models';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+import PerpsPositionListItem from './PerpsPositionListItem';
 
 interface PositionData {
   id: string;
@@ -50,40 +51,56 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 32,
     },
     assetHeader: {
+      alignItems: 'flex-start' as const,
+      marginBottom: 32,
+    },
+    assetPill: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
-      marginBottom: 24,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      marginBottom: 16,
+      alignSelf: 'flex-start' as const,
     },
     assetIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: colors.background.alternative,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.background.default,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      marginRight: 16,
+      marginRight: 8,
     },
     assetText: {
-      fontSize: 16,
+      fontSize: 8,
       fontWeight: '700' as const,
       color: colors.text.default,
     },
-    assetInfo: {
-      flex: 1,
+    pillText: {
+      fontSize: 12,
+      fontWeight: '600' as const,
+      color: colors.text.default,
     },
-    tokenPair: {
-      marginBottom: 4,
-    },
-    leverage: {
-      marginBottom: 8,
-    },
-    currentPrice: {
-      fontSize: 24,
+    entryPrice: {
+      fontSize: 32,
       fontWeight: '700' as const,
-      marginBottom: 4,
+      marginBottom: 8,
+      color: colors.text.default,
+    },
+    priceChangeContainer: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
     },
     priceChange: {
+      fontSize: 16,
+      fontWeight: '600' as const,
+      marginRight: 8,
+    },
+    timeInterval: {
       fontSize: 14,
+      color: colors.text.muted,
     },
     priceChangePositive: {
       color: colors.success.default,
@@ -96,25 +113,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     sectionTitle: {
       marginBottom: 16,
-    },
-    detailGrid: {
-      flexDirection: 'row' as const,
-      flexWrap: 'wrap' as const,
-      justifyContent: 'space-between' as const,
-    },
-    detailItem: {
-      width: '48%' as const,
-      marginBottom: 20,
-      padding: 16,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
-    },
-    detailLabel: {
-      marginBottom: 8,
-    },
-    detailValue: {
-      fontWeight: '600' as const,
-      fontSize: 16,
     },
     buttonContainer: {
       marginTop: 'auto' as const,
@@ -155,18 +153,6 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
 
   const isPositiveChange = position.priceChangePercent24h >= 0;
 
-  const detailData = [
-    { label: 'Position Size', value: formatCurrency(position.positionSize) },
-    { label: 'Entry Price', value: formatCurrency(position.entryPrice) },
-    {
-      label: 'Liquidation Price',
-      value: formatCurrency(position.liquidationPrice),
-    },
-    { label: 'Funding', value: formatCurrency(position.funding) },
-    { label: 'Margin', value: formatCurrency(position.margin) },
-    { label: 'TP/SL', value: formatCurrency(position.takeProfitStopLoss) },
-  ];
-
   const handleBackToPositions = () => {
     navigation.navigate(Routes.PERPS.POSITIONS_VIEW as never);
   };
@@ -186,33 +172,29 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
       <View style={styles.content}>
         {/* Asset Header */}
         <View style={styles.assetHeader}>
-          <View style={styles.assetIcon}>
-            <Text style={styles.assetText}>{position.assetSymbol}</Text>
+          {/* Asset Pill */}
+          <View style={styles.assetPill}>
+            <View style={styles.assetIcon}>
+              <Text style={styles.assetText}>{position.assetSymbol}</Text>
+            </View>
+            <Text style={styles.pillText}>
+              {position.tokenPair} {position.leverage}
+            </Text>
           </View>
-          <View style={styles.assetInfo}>
+
+          {/* Entry Price (Main Value) */}
+          <Text
+            variant={TextVariant.HeadingLG}
+            color={TextColor.Default}
+            style={styles.entryPrice}
+          >
+            {formatCurrency(position.entryPrice)}
+          </Text>
+
+          {/* 24h Price Change */}
+          <View style={styles.priceChangeContainer}>
             <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={styles.tokenPair}
-            >
-              {position.tokenPair}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
-              style={styles.leverage}
-            >
-              {position.leverage} leverage
-            </Text>
-            <Text
-              variant={TextVariant.HeadingLG}
-              color={TextColor.Default}
-              style={styles.currentPrice}
-            >
-              {formatCurrency(position.currentPrice)}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyLGMedium}
               style={[
                 styles.priceChange,
                 isPositiveChange
@@ -221,7 +203,16 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
               ]}
             >
               {isPositiveChange ? '+' : ''}
-              {position.priceChangePercent24h.toFixed(2)}% (24h)
+              {formatCurrency(position.priceChange24h)} (
+              {isPositiveChange ? '+' : ''}
+              {position.priceChangePercent24h.toFixed(2)}%)
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Muted}
+              style={styles.timeInterval}
+            >
+              24h
             </Text>
           </View>
         </View>
@@ -235,26 +226,7 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           >
             Position Details
           </Text>
-          <View style={styles.detailGrid}>
-            {detailData.map((item, index) => (
-              <View key={index} style={styles.detailItem}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Muted}
-                  style={styles.detailLabel}
-                >
-                  {item.label}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Default}
-                  style={styles.detailValue}
-                >
-                  {item.value}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <PerpsPositionListItem position={position} />
         </View>
 
         {/* Action Buttons */}
