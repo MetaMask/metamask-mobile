@@ -22,9 +22,8 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -40,9 +39,8 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -90,9 +88,8 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -203,9 +200,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -234,9 +230,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -265,9 +260,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -296,9 +290,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -327,9 +320,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -358,9 +350,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -449,9 +440,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -462,9 +452,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -477,9 +466,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -556,9 +544,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -569,9 +556,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -584,9 +570,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -663,9 +648,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -676,9 +660,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -691,9 +674,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -770,9 +752,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -783,9 +764,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -798,9 +778,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -877,9 +856,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -890,9 +868,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -905,9 +882,8 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -929,9 +905,8 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -1094,9 +1069,8 @@ exports[`AssetOverview should render correctly 1`] = `
                 "alignSelf": "flex-start",
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1111,9 +1085,8 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1135,9 +1108,8 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1209,9 +1181,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1227,9 +1198,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -1277,9 +1247,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1390,9 +1359,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1421,9 +1389,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1452,9 +1419,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1483,9 +1449,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1514,9 +1479,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1545,9 +1509,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -1636,9 +1599,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1649,9 +1611,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1664,9 +1625,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1743,9 +1703,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1756,9 +1715,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1771,9 +1729,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1850,9 +1807,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1863,9 +1819,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1878,9 +1833,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1957,9 +1911,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1970,9 +1923,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1985,9 +1937,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2064,9 +2015,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2077,9 +2027,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2092,9 +2041,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2116,9 +2064,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -2286,9 +2233,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2318,9 +2264,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "alignSelf": "flex-start",
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2335,9 +2280,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2359,9 +2303,8 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2433,9 +2376,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -2451,9 +2393,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -2467,9 +2408,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -2480,9 +2420,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#1c7e33",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2523,9 +2462,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2616,9 +2554,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2647,9 +2584,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2678,9 +2614,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2709,9 +2644,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2740,9 +2674,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 3,
               "lineHeight": 22,
               "textAlign": "center",
@@ -2831,9 +2764,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2844,9 +2776,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2859,9 +2790,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2938,9 +2868,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2951,9 +2880,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2966,9 +2894,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3045,9 +2972,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3058,9 +2984,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3073,15 +2998,118 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
           }
         >
           Bridge
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-send-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="Arrow2UpRight"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Send
         </Text>
       </View>
       <View
@@ -3152,9 +3180,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3165,9 +3192,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3180,9 +3206,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3204,9 +3229,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -3403,9 +3427,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "alignSelf": "flex-start",
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "justifyContent": "flex-start",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -3420,9 +3443,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 14,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -3444,9 +3466,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -3497,9 +3518,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 18,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "paddingVertical": 8,
@@ -3530,9 +3550,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -3545,9 +3564,8 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }

@@ -18,7 +18,7 @@ import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
-import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
@@ -69,13 +69,13 @@ const MultichainTransactionListItem = ({
       'transactions.to',
     )} ${toUnit}`;
   } else if (isBridgeTx) {
-    title = getBridgeTxActivityTitle(bridgeHistoryItem) ?? strings('bridge.title');
+    title = getSwapBridgeTxActivityTitle(bridgeHistoryItem) ?? strings('bridge.title');
   }
 
   const style = styles(colors, typography);
 
   const handlePress = () => {
-    if (isBridgeTx) {
+    if (isBridgeTx || type === TransactionType.Swap) {
       navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         multiChainTx: transaction,
       });

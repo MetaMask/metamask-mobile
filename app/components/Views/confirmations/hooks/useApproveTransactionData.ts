@@ -1,16 +1,23 @@
 import { useMemo } from 'react';
+
 import { APPROVAL_4BYTE_SELECTORS, ZERO_AMOUNT } from '../constants/approve';
 import {
   get4ByteCode,
   parseStandardTokenTransactionData,
 } from '../utils/transaction';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import {
+  calculateApprovalTokenAmount,
+  calculateTokenBalance,
+} from '../utils/approvals';
+
 import { ZERO_ADDRESS } from '../constants/address';
-import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
 import { TokenStandard } from '../types/token';
 import { ApproveMethod } from '../types/approve';
+import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { useERC20TokenBalance } from './useERC20TokenBalance';
 
-interface ApproveTransactionData {
+export interface ApproveTransactionData {
   // ERC20 specific
   amount?: string;
 
@@ -20,6 +27,9 @@ interface ApproveTransactionData {
   // Permit2 specific
   expiration?: string;
 
+  // ERC20 specific
+  decimals?: number;
+
   // Approval parsing loading state
   isLoading: boolean;
 
@@ -28,6 +38,9 @@ interface ApproveTransactionData {
 
   // Token standard
   tokenStandard?: TokenStandard;
+
+  // Token balance
+  tokenBalance?: string;
 
   // Spender address
   spender?: string;
@@ -65,8 +78,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
   const contractAddress = txParams?.to;
   const { details, isPending: isTokenStandardPending } =
     useGetTokenStandardAndDetails(contractAddress, networkClientId);
+  const { tokenBalance } = useERC20TokenBalance(
+    contractAddress as string,
+    txParams?.from as string,
+    networkClientId as string,
+  );
 
-  const tokenStandard = details?.standard;
+  const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize parsing operations
   const { fourByteCode, parsedData } = useMemo(() => {
@@ -93,23 +111,30 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       isRevoke: false,
       tokenStandard: tokenStandard as TokenStandard,
       approveMethod: undefined,
+      tokenBalance: undefined,
+      decimals: details?.decimalsNumber,
     };
 
     switch (fourByteCode) {
       case APPROVAL_4BYTE_SELECTORS.APPROVE: {
         const [spender, amount] = parsedData?.args ?? [];
 
-        const normalizedAmount = amount?.toString();
-
         result.spender = spender;
 
         if (tokenStandard === TokenStandard.ERC721) {
-          result.tokenId = normalizedAmount;
+          result.tokenId = amount?.toString();
           result.isRevoke =
             spender?.toLowerCase() === ZERO_ADDRESS.toLowerCase();
         } else {
-          result.amount = normalizedAmount;
-          result.isRevoke = normalizedAmount === ZERO_AMOUNT;
+          result.amount = calculateApprovalTokenAmount(
+            amount?.toString() as string,
+            details.decimalsNumber,
+          );
+          result.isRevoke = amount?.toString() === ZERO_AMOUNT;
+          result.tokenBalance = calculateTokenBalance(
+            tokenBalance ?? '0',
+            details.decimalsNumber,
+          );
         }
 
         result.approveMethod = ApproveMethod.APPROVE;
@@ -118,13 +143,20 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
       case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE: {
         const [spender, amount] = parsedData?.args ?? [];
+        result.amount = calculateApprovalTokenAmount(
+          amount?.toString() as string,
+          details.decimalsNumber,
+        );
         result.spender = spender;
-        result.amount = amount?.toString();
         result.isRevoke = false;
         result.approveMethod =
           fourByteCode === APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE
             ? ApproveMethod.DECREASE_ALLOWANCE
             : ApproveMethod.INCREASE_ALLOWANCE;
+        result.tokenBalance = calculateTokenBalance(
+          tokenBalance ?? '0',
+          details.decimalsNumber,
+        );
         break;
       }
       case APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL: {
@@ -138,10 +170,17 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         const [token, spender, amount, expiration] = parsedData?.args ?? [];
         result.token = token;
         result.spender = spender;
-        result.amount = amount?.toString();
+        result.amount = calculateApprovalTokenAmount(
+          amount?.toString() as string,
+          details.decimalsNumber,
+        );
         result.expiration = expiration?.toString();
         result.isRevoke = amount?.toString() === ZERO_AMOUNT;
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
+        result.tokenBalance = calculateTokenBalance(
+          tokenBalance ?? '0',
+          details.decimalsNumber,
+        );
         break;
       }
       default: {
@@ -152,11 +191,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
     return result;
   }, [
-    transactionMetadata,
+    details.decimalsNumber,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,
     parsedData,
+    transactionMetadata,
+    tokenBalance,
   ]);
 
   return parsedApproveData;
