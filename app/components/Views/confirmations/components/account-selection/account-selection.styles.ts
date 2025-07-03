@@ -21,39 +21,6 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       right: 10,
     },
-    image: {
-      marginTop: 28,
-      height: '28%',
-      width: '100%',
-    },
-    buttonSection: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-    },
-    buttons: {
-      width: '48%',
-    },
-    title: {
-      marginLeft: 8,
-    },
-    requestSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    icon: {
-      height: 24,
-      width: 24,
-    },
-    listWrapper: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      paddingInline: 2,
-    },
-    textSection: {
-      marginLeft: 8,
-      width: '90%',
-    },
   });
 };
 

@@ -1,30 +1,40 @@
 import React, { ReactElement, useCallback, useState } from 'react';
+import { Hex } from '@metamask/utils';
 import { Image, Linking, View } from 'react-native';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
+import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import { EIP5792ErrorCode } from '../../../../../constants/transaction';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { selectSmartAccountOptIn } from '../../../../../selectors/preferencesController';
+import {
+  selectSmartAccountOptIn,
+  selectSmartAccountOptInForAccounts,
+} from '../../../../../selectors/preferencesController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
 import { useTheme } from '../../../../../util/theme';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { selectUpgradeSplashPageAcknowledgedForAccounts } from '../../selectors/confirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { AccountSelection } from '../account-selection';
 import styleSheet from './smart-account-update-splash.styles';
 
 const ACCOUNT_UPGRADE_URL =
@@ -65,9 +75,10 @@ const ListItem = ({
 export const SmartAccountUpdateSplash = () => {
   const [acknowledged, setAcknowledged] = useState(false);
   const dispatch = useDispatch();
+  const [accountSelectionVisible, setShowAccountSelection] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const upgradeSplashPageAcknowledgedForAccounts = useSelector(
-    selectUpgradeSplashPageAcknowledgedForAccounts,
+  const smartAccountOptInForAccounts = useSelector(
+    selectSmartAccountOptInForAccounts,
   );
   const smartAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
@@ -95,17 +106,38 @@ export const SmartAccountUpdateSplash = () => {
     setAcknowledged(true);
   }, [dispatch, from, setAcknowledged]);
 
+  const showAccountSelection = useCallback(
+    () => setShowAccountSelection(true),
+    [setShowAccountSelection],
+  );
+
+  const hideAccountSelection = useCallback(
+    () => setShowAccountSelection(false),
+    [setShowAccountSelection],
+  );
+
   if (
     !transactionMetadata ||
     acknowledged ||
     (smartAccountOptIn && from && !isHardwareAccount(from)) ||
-    upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
+    smartAccountOptInForAccounts.includes(from as Hex)
   ) {
     return null;
   }
 
+  if (accountSelectionVisible) {
+    return <AccountSelection onClose={hideAccountSelection} />;
+  }
+
   return (
     <View style={styles.wrapper}>
+      <ButtonIcon
+        iconColor={IconColor.Default}
+        iconName={IconName.Edit}
+        onPress={showAccountSelection}
+        size={ButtonIconSizes.Md}
+        style={styles.edit}
+      />
       <Image source={smartAccountUpdateImage} style={styles.image} />
       <Text variant={TextVariant.HeadingLG} style={styles.title}>
         {strings('confirm.7702_functionality.splashpage.splashTitle')}
