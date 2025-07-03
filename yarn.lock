@@ -5918,10 +5918,10 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^14.0.2":
-  version "14.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-14.0.2.tgz#d7200eea1186d52533c6ff557ebdfa12480a5a67"
-  integrity sha512-VB7aQsmRQb0M2GVAI5MUj2Cystqi5EmwS3kIW+uBUvrDMMUOrYtMlHxZZ9HH669Pb/LsV0OEqJgXtL4y2YE9NA==
+"@metamask/snaps-controllers@^13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-13.1.1.tgz#88297e2f000ff159f792784dcf72b9fd0f05fa75"
+  integrity sha512-cjw6voIuMghNn2F1OHjP7qU0Z8hOvz9ZhFqVyKXLwWRaBmeXVBzwYPWtgmf9zWN9cpiofDZtcCy8F7swTkfB5w==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.1"
@@ -5934,10 +5934,10 @@
     "@metamask/post-message-stream" "^10.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-registry" "^3.2.3"
-    "@metamask/snaps-rpc-methods" "^13.3.0"
-    "@metamask/snaps-sdk" "^9.1.0"
-    "@metamask/snaps-utils" "^11.0.0"
-    "@metamask/utils" "^11.4.1"
+    "@metamask/snaps-rpc-methods" "^13.1.0"
+    "@metamask/snaps-sdk" "^8.1.0"
+    "@metamask/snaps-utils" "^10.1.0"
+    "@metamask/utils" "^11.4.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
     concat-stream "^2.0.0"
@@ -5978,7 +5978,7 @@
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
 
-"@metamask/snaps-rpc-methods@^13.1.0", "@metamask/snaps-rpc-methods@^13.3.0":
+"@metamask/snaps-rpc-methods@^13.1.0":
   version "13.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-13.3.0.tgz#9b8229363bdb258fe52080ed1ff1832dcbda1fdb"
   integrity sha512-Ln1LVSvAFHZgw6lKv4qraZI3CG5siaQwjrw+SPUiJpdEJc0fPF/GDFVnM1DDTMi+QpOScbCUWUI16hTm9dRDTg==
