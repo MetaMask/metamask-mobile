@@ -66,7 +66,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
