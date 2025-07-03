@@ -1216,11 +1216,6 @@ export class Engine {
       estimateGasFeeFn: (
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
       addTransactionBatchFn: (
         ...args: Parameters<typeof this.transactionController.addTransactionBatch>
       ) => this.transactionController.addTransactionBatch(...args),
