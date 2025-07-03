@@ -31,7 +31,6 @@ describe(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8002;
     const unencryptedAccounts = accountsToMockForAccountsSync;
 
     const INITIAL_ACCOUNTS = [
@@ -77,7 +76,7 @@ describe(
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -107,7 +106,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
 
       // PHASE 1: Initial setup and account creation
@@ -150,7 +149,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
 
       await importWalletWithRecoveryPhrase({

@@ -1439,10 +1439,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.6.tgz#48bc12161fcd830100c677b85de91e6b503c9210"
-  integrity sha512-C62A4LTEhtfASTjLrwBB66x6YbTUAlRODawFaTyB4bw0hzmJRugeQii4AHRl0dQkwNKojYkxm1ThimIs2hK3tw==
+"@consensys/native-ramps-sdk@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.9.tgz#96df592b0f54e3544a4cbad1250315797530c3fe"
+  integrity sha512-BPN7JjOFg3LkYVMhvnqkgOmudB0j8qKAjcuv3ZzmnRt7kIxtyQarWxYVQLzRJjkIgqbdV6b4NhJutALXoUgncA==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
@@ -5884,10 +5884,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.2.0.tgz#cba629120b5ea45761c1bf58069d87a12c30af4d"
   integrity sha512-pcPwwaedVmZwcoWbxUY27ZaMBrt3+LXrWprmCeoNNbZSkJh1fK4RcrDS7mB1oXX/ZGsREBrayzZ+VZASDmM2kw==
 
-"@metamask/smart-transactions-controller@^16.4.0":
-  version "16.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.4.0.tgz#9478a290384db85d21b572986b865846550712c4"
-  integrity sha512-Q2D6MDI84bRkisgUmT9y1G0esJU0x4dhpiggaxvuazYq/AnuXAG1hQ1DrNOT6vuvHpTZRNX9UMcIXCxb7Kdsqg==
+"@metamask/smart-transactions-controller@^16.5.0":
+  version "16.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.5.0.tgz#e53944b3af0f10888501f1db69a321f778a8c466"
+  integrity sha512-HATEQgS0tlnMN2zZqUIQeN6swhw5ahNgTyoQ4UfLD1pwlTniNSmA2JMsfsExTeVnvHNLiKeJwux+xi5pyOmQ6g==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
