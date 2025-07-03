@@ -37,6 +37,7 @@ import { isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
+import { updateWC2Metadata } from '../../actions/sdk';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -554,6 +555,17 @@ class WalletConnect2Session {
     const caip2ChainId = `eip155:${parseInt(hexChainId, 16)}`as CaipChainId;
     const methodParams = requestEvent.params.request.params;
 
+    const currentMetadata = store.getState().sdk.wc2Metadata ?? {
+      id: this.channelId,
+      url: origin,
+      name: this.session.peer.metadata.name,
+      icon: this.session.peer.metadata.icons?.[0] as string,
+    };
+    
+    store.dispatch(updateWC2Metadata({
+      ...currentMetadata,
+      lastVerifiedUrl: origin,
+    }))
     DevLogger.log(
       `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,
     );
