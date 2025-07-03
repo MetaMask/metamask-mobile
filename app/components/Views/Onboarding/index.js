@@ -459,6 +459,8 @@ class Onboarding extends PureComponent {
       } else {
         errorMessage = 'oauth_error';
       }
+    } else {
+      errorMessage = 'oauth_error';
     }
 
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
