@@ -105,10 +105,10 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await TestHelpers.delay(500);
-    await WalletActionsBottomSheet.tapBridgeButton();
+    await WalletActionsBottomSheet.tapSwapButton();
     await device.disableSynchronization();
     await QuoteView.enterBridgeAmount('1');
-    await QuoteView.tapBridgeTo();
+    await QuoteView.tapSwapTo();
     await TestHelpers.delay(1000);
     await QuoteView.selectNetwork('Solana');
     await Assertions.checkIfVisible(QuoteView.token('SOL'));

@@ -14,6 +14,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.BRIDGE_TO);
   }
 
+  get swapTo(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.SWAP_TO);
+  }
+
   get searchToken(): Promise<Detox.IndexableNativeElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT) as Promise<Detox.IndexableNativeElement>;
   }
@@ -39,6 +43,10 @@ class QuoteView {
 
   async tapBridgeTo(): Promise<void> {
     await Gestures.waitAndTap(this.bridgeTo);
+  }
+
+  async tapSwapTo(): Promise<void> {
+    await Gestures.waitAndTap(this.swapTo);
   }
 
   async selectNetwork(network: string): Promise<void> {
