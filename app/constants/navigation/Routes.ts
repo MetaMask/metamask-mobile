@@ -200,6 +200,7 @@ const Routes = {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
     POSITIONS_VIEW: 'PerpsPositionsView',
+    DETAIL_PAGE: 'PerpsDetailPage',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',

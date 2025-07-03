@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import PerpsView from './PerpsView';
 import PerpsPositionsView from './PerpsPositionsView';
+import PerpsDetailPage from './PerpsDetailPage';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,14 @@ const PerpsScreenStack = () => (
       component={PerpsPositionsView}
       options={{
         title: 'Perps Positions',
+        headerShown: true,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.DETAIL_PAGE}
+      component={PerpsDetailPage}
+      options={{
+        title: 'Position Details',
         headerShown: true,
       }}
     />

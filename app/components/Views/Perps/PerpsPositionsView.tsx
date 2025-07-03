@@ -253,15 +253,6 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
   return (
     <ScreenView>
       <View style={styles.content}>
-        <View style={styles.headerContainer}>
-          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Perps Positions
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            Monitor your trading positions
-          </Text>
-        </View>
-
         {/* Header Section */}
         {isLoading && !hasInitialLoad ? (
           renderSkeletonHeader()

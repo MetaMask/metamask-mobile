@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Animated } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { Theme } from '../../../util/theme/models';
+import Logger from '../../../util/Logger';
+import Routes from '../../../constants/navigation/Routes';
 
 interface PositionData {
   id: string;
@@ -108,6 +116,17 @@ const styleSheet = (params: { theme: Theme }) => {
     expandedValue: {
       fontWeight: '600' as const,
     },
+    buttonContainer: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 12,
+    },
+    actionButton: {
+      flex: 1,
+    },
   };
 };
 
@@ -115,6 +134,7 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
   position,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandAnimation] = useState(new Animated.Value(0));
 
@@ -132,7 +152,7 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
 
   const expandedHeight = expandAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 200], // Adjust this based on content height
+    outputRange: [0, 260], // Increased height to accommodate buttons
   });
 
   const rotateArrow = expandAnimation.interpolate({
@@ -146,6 +166,25 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
       currency: 'USD',
       minimumFractionDigits: 2,
     }).format(value);
+
+  const handleClosePosition = () => {
+    // TODO: Implement close position logic
+    Logger.log(
+      'PerpsPositionListItem: Close position for',
+      position.assetSymbol,
+    );
+  };
+
+  const handleEditPosition = () => {
+    Logger.log(
+      'PerpsPositionListItem: Navigate to detail page for',
+      position.assetSymbol,
+    );
+    navigation.navigate(
+      Routes.PERPS.DETAIL_PAGE as never,
+      { position } as never,
+    );
+  };
 
   const expandedData = [
     { label: 'Position Size', value: formatCurrency(position.positionSize) },
@@ -231,26 +270,48 @@ const PerpsPositionListItem: React.FC<PerpsPositionListItemProps> = ({
       {/* Expanded Content */}
       <Animated.View style={[styles.expandedContent, expandedContentStyle]}>
         {isExpanded && (
-          <View style={styles.expandedGrid}>
-            {expandedData.map((item, index) => (
-              <View key={index} style={styles.expandedItem}>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Muted}
-                  style={styles.expandedLabel}
-                >
-                  {item.label}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.expandedValue}
-                >
-                  {item.value}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <>
+            <View style={styles.expandedGrid}>
+              {expandedData.map((item, index) => (
+                <View key={index} style={styles.expandedItem}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Muted}
+                    style={styles.expandedLabel}
+                  >
+                    {item.label}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.expandedValue}
+                  >
+                    {item.value}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.buttonContainer}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Md}
+                width={ButtonWidthTypes.Auto}
+                label="Edit"
+                onPress={handleEditPosition}
+                style={styles.actionButton}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Md}
+                width={ButtonWidthTypes.Auto}
+                label="Close"
+                onPress={handleClosePosition}
+                style={styles.actionButton}
+              />
+            </View>
+          </>
         )}
       </Animated.View>
     </View>
