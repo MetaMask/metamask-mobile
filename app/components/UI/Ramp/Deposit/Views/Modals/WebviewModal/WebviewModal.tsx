@@ -11,32 +11,27 @@ import {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { WebView } from '@metamask/react-native-webview';
 import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
-import ErrorView from '../../../../Aggregator/components/ErrorView';
 import { strings } from '../../../../../../../../locales/i18n';
-
-interface ProviderModalNavigationDetails {
-  onExitToWalletHome?: () => void;
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
+interface WebviewModalParams {
   sourceUrl: string;
   handleNavigationStateChange?: (navState: { url: string }) => void;
-  error?: string;
 }
 
-export const createProviderModalNavigationDetails = createNavigationDetails(
+export const createWebviewModalNavigationDetails = createNavigationDetails(
   Routes.DEPOSIT.MODALS.ID,
   Routes.DEPOSIT.MODALS.WEBVIEW,
 );
 
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const {
-    sourceUrl,
-    handleNavigationStateChange,
-    error: errorParam,
-  } = useParams<ProviderModalNavigationDetails>();
+  const { sourceUrl, handleNavigationStateChange } =
+    useParams<WebviewModalParams>();
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
-
-  const error = webviewError || errorParam;
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isFullscreen>
@@ -44,16 +39,14 @@ function WebviewModal() {
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
 
-      {error ? (
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            {/* TODO: Replace this with a proper error view */}
-            <ErrorView description={error} location="Provider Webview" />
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      ) : (
-        <ScreenLayout>
-          <ScreenLayout.Body>
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          {webviewError ? (
+            // TODO: Replace this with a proper error view
+            <Text variant={TextVariant.HeadingMD} color={TextColor.Error}>
+              {webviewError}
+            </Text>
+          ) : (
             <WebView
               source={{ uri: sourceUrl }}
               onNavigationStateChange={handleNavigationStateChange}
@@ -71,9 +64,9 @@ function WebviewModal() {
               enableApplePay
               mediaPlaybackRequiresUserAction={false}
             />
-          </ScreenLayout.Body>
-        </ScreenLayout>
-      )}
+          )}
+        </ScreenLayout.Body>
+      </ScreenLayout>
     </BottomSheet>
   );
 }
