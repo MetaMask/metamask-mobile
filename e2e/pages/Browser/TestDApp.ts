@@ -205,6 +205,20 @@ class TestDApp {
     );
   }
 
+  get erc721RevokeApprovalButton(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ERC_721_REVOKE_APPROVAL_BUTTON_ID,
+    );
+  }
+
+  get erc1155RevokeApprovalButton(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ERC_1155_REVOKE_APPROVAL_BUTTON_ID,
+    );
+  }
+
   async connect(): Promise<void> {
     await this.tapButton(this.DappConnectButton);
   }
@@ -316,6 +330,14 @@ class TestDApp {
 
   async tapDeployContractButton() {
     await this.tapButton(this.deployContractButton);
+  }
+
+  async tapERC721RevokeApprovalButton(): Promise<void> {
+    await this.tapButton(this.erc721RevokeApprovalButton);
+  }
+
+  async tapERC1155RevokeApprovalButton(): Promise<void> {
+    await this.tapButton(this.erc1155RevokeApprovalButton);
   }
 }
 
