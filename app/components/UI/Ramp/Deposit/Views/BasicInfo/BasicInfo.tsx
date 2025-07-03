@@ -240,7 +240,7 @@ const BasicInfo = (): JSX.Element => {
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
             testID="continue-button"
-          ></Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

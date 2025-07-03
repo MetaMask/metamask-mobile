@@ -78,7 +78,7 @@ const VerifyIdentity = () => {
             label={strings('deposit.verify_identity.button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

@@ -571,7 +571,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

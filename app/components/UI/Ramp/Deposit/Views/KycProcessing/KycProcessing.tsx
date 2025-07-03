@@ -124,7 +124,7 @@ const KycProcessing = () => {
               label={strings('deposit.kyc_processing.error_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
-            ></Button>
+            />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -165,7 +165,7 @@ const KycProcessing = () => {
               label={strings('deposit.kyc_processing.success_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
-            ></Button>
+            />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -203,7 +203,7 @@ const KycProcessing = () => {
             label={strings('deposit.kyc_processing.button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

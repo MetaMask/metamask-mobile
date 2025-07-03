@@ -102,7 +102,7 @@ const GetStarted: React.FC = () => {
             label={strings('fiat_on_ramp_aggregator.onboarding.get_started')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

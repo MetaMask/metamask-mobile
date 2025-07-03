@@ -129,7 +129,7 @@ const EnterEmail = () => {
             width={ButtonWidthTypes.Full}
             loading={loading}
             disabled={loading}
-          ></Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

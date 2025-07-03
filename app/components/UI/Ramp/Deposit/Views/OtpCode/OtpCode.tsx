@@ -240,7 +240,7 @@ const OtpCode = () => {
             loading={loading}
             isDisabled={loading || value.length !== CELL_COUNT}
             testID="otp-code-submit-button"
-          ></Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

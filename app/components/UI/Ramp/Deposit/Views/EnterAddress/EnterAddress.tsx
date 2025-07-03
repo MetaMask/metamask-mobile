@@ -273,7 +273,7 @@ const EnterAddress = (): JSX.Element => {
               isDisabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
               loading={kycIsFetching || purposeIsFetching || ssnIsFetching}
               testID="address-continue-button"
-            ></Button>
+            />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
