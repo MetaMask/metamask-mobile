@@ -100,7 +100,7 @@ describe('SolanaNewFeatureContent', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_NOT_NOW_CLICKED,
+      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET.HOME,
@@ -121,7 +121,7 @@ describe('SolanaNewFeatureContent', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_IMPORT_ACCOUNT_CLICKED,
+      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MULTI_SRP.IMPORT);
   });
@@ -137,27 +137,6 @@ describe('SolanaNewFeatureContent', () => {
     });
 
     expect(mockOpenURL).toHaveBeenCalledWith(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
-    expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE_CLICKED,
-    );
-
-    mockOpenURL.mockRestore();
-  });
-
-  it('tracks analytics with correct properties for learn more click', async () => {
-    const mockOpenURL = jest.spyOn(Linking, 'openURL').mockImplementation(() => Promise.resolve(true));
-    
-    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
-
-    await waitFor(() => {
-      const learnMoreButton = getByText('solana_new_feature_content.learn_more');
-      fireEvent.press(learnMoreButton);
-    });
-
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE_CLICKED,
-    );
 
     mockOpenURL.mockRestore();
   });

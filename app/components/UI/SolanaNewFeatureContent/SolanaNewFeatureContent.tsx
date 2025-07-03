@@ -51,11 +51,11 @@ const SolanaNewFeatureContent = () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_NOT_NOW_CLICKED,
-      )
+      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
+          feature: 'solana-import-wallet',
+          action: 'decline',
         })
         .build(),
     );
@@ -67,11 +67,11 @@ const SolanaNewFeatureContent = () => {
 
   const importAccountWithSRP = async () => {
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_IMPORT_ACCOUNT_CLICKED,
-      )
+      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
+          feature: 'solana-import-wallet',
+          action: 'engage',
         })
         .build(),
     );
@@ -82,17 +82,6 @@ const SolanaNewFeatureContent = () => {
 
   const navigateToLearnMoreAboutSolanaAccounts = () => {
     Linking.openURL(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE_CLICKED,
-      )
-        .addProperties({
-          location: 'solana_new_feature_content',
-          text: 'Learn More',
-          url_domain: SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
-        })
-        .build(),
-    );
   };
 
   const lottieSrc = useMemo(() => SolanaFoxAnimation as AnimationObject, []);
@@ -111,12 +100,12 @@ const SolanaNewFeatureContent = () => {
       >
         <View style={styles.wrapper}>
           <Text
-              style={styles.title}
-              variant={TextVariant.HeadingLG}
-              color={importedColors.gettingStartedTextColor}
-            >
-              {strings('solana_new_feature_content.title')}
-            </Text>
+            style={styles.title}
+            variant={TextVariant.HeadingLG}
+            color={importedColors.gettingStartedTextColor}
+          >
+            {strings('solana_new_feature_content.title')}
+          </Text>
           <View style={styles.ctas}>
             <Text
               variant={TextVariant.BodyMD}
