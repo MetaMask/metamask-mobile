@@ -704,7 +704,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive,]);
+  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
 
   /**
    * Handles state changes for when the url changes
