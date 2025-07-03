@@ -385,9 +385,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -423,9 +422,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -438,9 +436,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -481,7 +478,7 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -497,9 +494,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -654,9 +650,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -692,9 +687,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -744,9 +738,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -759,9 +752,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -819,9 +811,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -1687,9 +1678,8 @@ exports[`BuildQuote Component Continue button functionality renders KYC forms fe
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -2099,9 +2089,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2137,9 +2126,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2152,9 +2140,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2195,7 +2182,7 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -2211,9 +2198,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2368,9 +2354,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -2406,9 +2391,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2458,9 +2442,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -2473,9 +2456,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -2533,9 +2515,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -3401,9 +3382,8 @@ exports[`BuildQuote Component Continue button functionality renders quote fetch 
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3813,9 +3793,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -3851,9 +3830,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3866,9 +3844,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3909,7 +3886,7 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -3925,9 +3902,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -4082,9 +4058,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -4148,9 +4123,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -4163,9 +4137,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -4223,9 +4196,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -5091,9 +5063,8 @@ exports[`BuildQuote Component Continue button functionality renders success stat
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -5503,9 +5474,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -5541,9 +5511,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -5556,9 +5525,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -5599,7 +5567,7 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -5615,9 +5583,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -5772,9 +5739,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -5810,9 +5776,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -5862,9 +5827,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -5877,9 +5841,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -5937,9 +5900,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -6805,9 +6767,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -7217,9 +7178,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -7255,9 +7215,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -7270,9 +7229,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -7313,7 +7271,7 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -7329,9 +7287,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -7486,9 +7443,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -7524,9 +7480,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -7576,9 +7531,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -7591,9 +7545,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -7651,9 +7604,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -8519,9 +8471,8 @@ exports[`BuildQuote Component Continue button functionality shows error when SEP
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -8931,9 +8882,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -8969,9 +8919,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -8984,9 +8933,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -9027,7 +8975,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -9043,9 +8991,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -9200,9 +9147,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -9266,9 +9212,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -9281,9 +9226,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -9341,9 +9285,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -10209,9 +10152,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -10621,9 +10563,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -10659,9 +10600,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -10674,9 +10614,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -10717,7 +10656,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -10733,9 +10672,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -10890,9 +10828,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -10956,9 +10893,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -10971,9 +10907,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -11031,9 +10966,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -11899,9 +11833,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -12311,9 +12244,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -12349,9 +12281,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -12364,9 +12295,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -12407,7 +12337,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -12423,9 +12353,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -12580,9 +12509,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -12646,9 +12574,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -12661,9 +12588,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -12721,9 +12647,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -13589,9 +13514,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -14001,9 +13925,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -14039,9 +13962,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -14054,9 +13976,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -14097,7 +14018,7 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -14113,9 +14034,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -14270,9 +14190,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -14336,9 +14255,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -14351,9 +14269,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -14411,9 +14328,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -15279,9 +15195,8 @@ exports[`BuildQuote Component Region Selection handles unsupported region select
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -15691,9 +15606,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -15729,9 +15643,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -15744,9 +15657,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -15785,7 +15697,7 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -15801,9 +15713,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -15958,9 +15869,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -16024,9 +15934,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -16039,9 +15948,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -16099,9 +16007,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -16967,9 +16874,8 @@ exports[`BuildQuote Component Region Selection updates selected region and fiat 
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -17379,9 +17285,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -17417,9 +17322,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -17432,9 +17336,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -17473,7 +17376,7 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -17489,9 +17392,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -17646,9 +17548,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -17712,9 +17613,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -17727,9 +17627,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -17787,9 +17686,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -18655,9 +18553,8 @@ exports[`BuildQuote Component Region Selection updates selected region but keeps
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -19067,9 +18964,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -19105,9 +19001,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -19120,9 +19015,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -19161,7 +19055,7 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -19177,9 +19071,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -19334,9 +19227,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -19400,9 +19292,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -19415,9 +19306,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -19475,9 +19365,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -20343,9 +20232,8 @@ exports[`BuildQuote Component Region Selection updates selected region when hand
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -20755,9 +20643,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -20793,9 +20680,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -20808,9 +20694,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -20851,7 +20736,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 64,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -20867,9 +20752,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -21024,9 +20908,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 24,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 32,
                                       }
@@ -21090,9 +20973,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -21105,9 +20987,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -21165,9 +21046,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                             }
@@ -22033,9 +21913,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
