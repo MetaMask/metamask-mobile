@@ -18,8 +18,6 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
-import OnboardingSheet from '../../../../e2e/pages/Onboarding/OnboardingSheet';
-import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
 
 const mockInitialState = {
   engine: {
@@ -351,7 +349,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
 
       await act(async () => {
@@ -563,7 +561,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -644,7 +642,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -729,7 +727,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
