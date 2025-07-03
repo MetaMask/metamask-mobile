@@ -24,9 +24,7 @@ import Banner, {
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -53,7 +51,9 @@ const ProtectYourWallet = ({
 
   const openSRPList = () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+      )
         .addProperties({
           button_type: 'picker',
         })
@@ -85,12 +85,10 @@ const ProtectYourWallet = ({
   };
 
   let oauthFlow = false;
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   oauthFlow = !!useSelector(selectSeedlessOnboardingLoginFlow);
   const onProtectYourWalletPressed = () => {
     navigation.navigate('WalletRecovery');
   };
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
@@ -166,21 +164,17 @@ const ProtectYourWallet = ({
             testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
           />
         ))}
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
-        oauthFlow && (
-          <Button
-            label={strings('app_settings.protect_title')}
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            onPress={onProtectYourWalletPressed}
-            style={styles.accessory}
-            testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
-          />
-        )
-        ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-      }
+      {oauthFlow && (
+        <Button
+          label={strings('app_settings.protect_title')}
+          width={ButtonWidthTypes.Full}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={onProtectYourWalletPressed}
+          style={styles.accessory}
+          testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+        />
+      )}
     </View>
   );
 };
