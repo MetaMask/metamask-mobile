@@ -119,11 +119,9 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
 import { parseCaipAccountId } from '@metamask/utils';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 
 /**
  * Tab component for the in-app browser
@@ -712,7 +710,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     isFocused,
     isInTabsView,
     isTabActive,
-    isPerDappSelectedNetworkEnabled,
   ]);
 
   /**
@@ -770,7 +767,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       addToBrowserHistory,
       navigation,
       checkTabPermissions,
-      isPerDappSelectedNetworkEnabled,
     ],
   );
 
