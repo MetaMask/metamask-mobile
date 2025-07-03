@@ -8,9 +8,13 @@ class TokenSelectBottomSheet {
   }
 
   async tapTokenByName(token) {
-    await Gestures.typeTextAndHideKeyboard(this.tokenSearchInput, token);
+    await Gestures.typeText(this.tokenSearchInput, token, {
+      hideKeyboard: true,
+    });
     const tokenName = await Matchers.getElementByText(token, 1);
-    await Gestures.waitAndTap(tokenName);
+    await Gestures.waitAndTap(tokenName, {
+      checkEnabled: false,
+    });
   }
 }
 

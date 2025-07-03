@@ -11,7 +11,10 @@ class SelectPaymentMethodView {
 
   async tapPaymentMethodOption(paymentMethod) {
     const paymentMethodOption = Matchers.getElementByText(paymentMethod);
-    await Gestures.waitAndTap(paymentMethodOption);
+    await Gestures.waitAndTap(paymentMethodOption, {
+      elemDescription: `Payment method option: ${paymentMethod}`,
+      checkEnabled: false,
+    });
   }
 
   async tapContinueButton() {

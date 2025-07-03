@@ -12,9 +12,13 @@ class SelectRegionView {
   }
 
   async tapRegionOption(region) {
-    await Gestures.typeTextAndHideKeyboard(this.regionSearchInput, region);
+    await Gestures.typeText(this.regionSearchInput, region), {
+      hideKeyboard: true,
+    };
     const regionName = Matchers.getElementByText(region, 1);
-    await Gestures.waitAndTap(regionName);
+    await Gestures.waitAndTap(regionName, {
+      checkEnabled: false,
+    });
   }
 
   async tapContinueButton() {

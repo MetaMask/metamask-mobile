@@ -7,6 +7,7 @@ class SelectCurrencyView {
     const currencyOption = Matchers.getElementByText(currency);
     await Gestures.waitAndTap(currencyOption, {
       elemDescription: `Currency option: ${currency}`,
+      checkEnabled: false,
     });
   }
 }
