@@ -12,7 +12,6 @@ import { FlashListAssetKey } from '../Tokens/TokenList';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import balanceScannerAbi from './balanceScannerAbi.json';
 import { StyleProp, ViewStyle } from 'react-native';
-import { ThemeColors } from '@metamask/design-tokens';
 import BigNumber from 'bignumber.js';
 import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
 import { AllowanceState, TokenConfig } from './types';
@@ -601,21 +600,19 @@ export const isCardHolder = async (
   }
 };
 
-const renderChip = (state: AllowanceState, colors: ThemeColors) => {
+const renderChip = (state: AllowanceState) => {
   const tagConfig: Record<
     AllowanceState,
     { label: string; style?: StyleProp<ViewStyle> }
   > = {
     [AllowanceState.Delegatable]: {
-      label: 'Delegatable',
+      label: 'Not activated',
     },
     [AllowanceState.Unlimited]: {
       label: 'Enabled',
-      style: { backgroundColor: colors.success.muted },
     },
     [AllowanceState.Limited]: {
       label: 'Spend Limited',
-      style: { backgroundColor: colors.warning.muted },
     },
   };
 
@@ -624,12 +621,11 @@ const renderChip = (state: AllowanceState, colors: ThemeColors) => {
 
 export const mapTokenBalanceToTokenKey = (
   tokenBalance: TokenConfig,
-  colors: ThemeColors,
 ): FlashListAssetKey => ({
   address: tokenBalance.address,
   chainId: LINEA_CHAIN_ID, // Assuming LINEA_CHAIN_ID is the chain ID
   isStaked: false,
-  tag: renderChip(tokenBalance.allowanceState, colors),
+  tag: renderChip(tokenBalance.allowanceState),
 });
 
 /**
@@ -639,9 +635,8 @@ export const mapTokenBalanceToTokenKey = (
  */
 export const mapTokenBalancesToTokenKeys = (
   tokenBalances: TokenConfig[],
-  colors: ThemeColors,
 ): FlashListAssetKey[] =>
-  tokenBalances.map((token) => mapTokenBalanceToTokenKey(token, colors));
+  tokenBalances.map((token) => mapTokenBalanceToTokenKey(token));
 
 /**
  * This function retrieves the user's geolocation using the Ramps Geolocation API.

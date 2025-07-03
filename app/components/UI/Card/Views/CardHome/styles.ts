@@ -5,6 +5,7 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
+      backgroundColor: theme.colors.background.default,
     },
     defaultPadding: {
       paddingHorizontal: 16,
@@ -14,9 +15,9 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
       marginBottom: 8,
     },
     balanceContainer: {
-      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 16,
     },
     balanceTextContainer: {
       flexDirection: 'row',
@@ -34,12 +35,16 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
       width: deviceWidth - 16 * 2, // Subtracting horizontal padding
     },
     spendingWithContainer: {
+      marginTop: 16,
       gap: 8,
     },
   });
 
 export const headerStyle = StyleSheet.create({
   icon: { marginHorizontal: 16 },
+  invisibleIcon: {
+    display: 'none',
+  },
   title: { alignSelf: 'center' },
 });
 

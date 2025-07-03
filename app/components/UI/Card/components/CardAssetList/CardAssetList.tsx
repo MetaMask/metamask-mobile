@@ -1,10 +1,11 @@
 /* eslint-disable no-empty-function */
 import React, { memo } from 'react';
 import { ScrollView } from 'react-native';
-import { useTheme } from '../../../../util/theme';
 import createStyles from './styles';
-import { mapTokenBalancesToTokenKeys, TokenConfig } from '../card.utils';
-import { TokenList } from '../../Tokens/TokenList';
+import { mapTokenBalancesToTokenKeys } from '../../card.utils';
+import { useTheme } from '../../../../../util/theme';
+import { TokenList } from '../../../Tokens/TokenList';
+import { TokenConfig } from '../../types';
 
 export interface CardAssetListProps {
   tokenBalances: TokenConfig[];
@@ -16,7 +17,7 @@ const CardAssetList: React.FC<CardAssetListProps> = memo(
   ({ tokenBalances, refreshing, onRefresh }) => {
     const { colors } = useTheme();
     const styles = createStyles(colors);
-    const tokenKeys = mapTokenBalancesToTokenKeys(tokenBalances, colors);
+    const tokenKeys = mapTokenBalancesToTokenKeys(tokenBalances);
 
     return (
       <ScrollView style={styles.wrapper}>

@@ -88,7 +88,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
-import { CardRoutes } from '../../UI/Card/routes';
+import CardRoutes from '../../UI/Card/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -826,7 +826,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
-    <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+    <Stack.Screen name={Routes.CARD.ROOT} component={() => <CardRoutes />} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen

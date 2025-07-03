@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Dimensions, TouchableOpacity, View } from 'react-native';
+import { Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
@@ -22,8 +22,6 @@ import SensitiveText, {
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import createStyles, { headerStyle } from './styles';
 import Button, {
   ButtonSize,
@@ -34,8 +32,16 @@ import Loader from '../../../../../component-library/components-temp/Loader';
 import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
 import { TokenListItem } from '../../../Tokens/TokenList/TokenListItem';
 import { mapTokenBalanceToTokenKey } from '../../sdk';
-import { useCardTokenBalances, useUserLocation } from '../../hooks';
-import CardAssetList from '../../components/CardAssetList/CardAssetList';
+import { useCardTokenBalances } from '../../hooks';
+import CardImage from '../../assets/card.svg';
+import ManageCardListItem from '../../components/ManageCardListItem/ManageCardListItem';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { isSwapsAllowed } from '../../../Swaps/utils';
+import AppConstants from '../../../../../core/AppConstants';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -49,21 +55,17 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
-  const {
-    priorityToken,
-    balances: supportedTokenBalances,
-    isLoading: isLoadingBalances,
-    refetch: fetchBalances,
-  } = useCardTokenBalances(true);
-  const { location: geolocation } = useUserLocation(true);
+  const { priorityToken, isLoading: isLoadingBalances } =
+    useCardTokenBalances(true);
+  const chainId = useSelector(selectChainId);
 
   const selectedTokenKey = useMemo(() => {
     if (!priorityToken) {
       return null;
     }
 
-    return mapTokenBalanceToTokenKey(priorityToken, theme.colors);
-  }, [priorityToken, theme]);
+    return mapTokenBalanceToTokenKey(priorityToken);
+  }, [priorityToken]);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -71,6 +73,32 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     },
     [PreferencesController],
   );
+
+  const isSwapEnabled = useMemo(
+    () => AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId),
+    [chainId],
+  );
+
+  const swapToken = useMemo(() => {
+    if (priorityToken) {
+      return {
+        chainId,
+        address: priorityToken.address,
+        decimals: priorityToken.decimals,
+        symbol: priorityToken.symbol,
+      };
+    }
+  }, [priorityToken, chainId]);
+
+  const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TabBar,
+    sourcePage: 'CardHome',
+    targetToken: swapToken,
+  });
+
+  const goToAddFunds = useCallback(() => {
+    goToSwapsBase(swapToken);
+  }, [goToSwapsBase, swapToken]);
 
   if (isLoadingBalances) {
     return (
@@ -81,7 +109,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   }
 
   return (
-    <View style={styles.wrapper}>
+    <ScrollView style={styles.wrapper}>
       <View style={styles.defaultPadding}>
         <View style={styles.balanceContainer}>
           <View style={styles.balanceTextContainer}>
@@ -106,27 +134,11 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
               />
             </TouchableOpacity>
           </View>
-          {geolocation && (
-            <View>
-              <Icon
-                name={IconName.Location}
-                size={IconSize.Md}
-                color={theme.colors.text.muted}
-                style={styles.privacyIcon}
-              />
-              <Text
-                variant={TextVariant.BodySM}
-                style={styles.privacyIcon}
-                testID="card-view-geolocation"
-              >
-                {geolocation}
-              </Text>
-            </View>
-          )}
+          <CardImage name="CardImage" />
         </View>
         <View style={styles.spendingWithContainer}>
           <Text
-            variant={TextVariant.HeadingMD}
+            variant={TextVariant.HeadingSM}
             style={styles.spendingWithTitle}
           >
             Spending with
@@ -145,41 +157,43 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
                 showPercentageChange={false}
               />
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariants.Primary}
                 label="Add funds"
-                size={ButtonSize.Md}
-                onPress={() => {
-                  Logger.log('Add funds button pressed');
-                }}
+                size={ButtonSize.Sm}
+                onPress={goToAddFunds}
+                disabled={!isSwapEnabled}
                 width={ButtonWidthTypes.Full}
               />
             </View>
           )}
-
-          <BannerAlert
-            severity={BannerAlertSeverity.Info}
-            description="To switch the token you spend from, see transaction history, you’ll need to login to your card account."
-          />
         </View>
 
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           testID={'card-view-balance-title'}
         >
-          Other Assets
+          Manage card
         </Text>
       </View>
-      <CardAssetList
-        tokenBalances={supportedTokenBalances || []}
-        refreshing={isLoadingBalances}
-        onRefresh={fetchBalances}
+      <ManageCardListItem
+        title="Change asset"
+        description={priorityToken?.symbol}
+      />
+      <ManageCardListItem
+        title="Manage spending limit"
+        description="Currently on Approve card spending"
+      />
+      <ManageCardListItem
+        title="Advanced Card Management"
+        description="See detailed transactions, freeze your card, etc."
+        rightIcon={IconName.Export}
       />
       <ScreenshotDeterrent
         hasNavigation={hasNavigation}
         enabled
         isSRP={false}
       />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -211,7 +225,7 @@ CardHome.navigationOptions = ({
     <ButtonIcon
       size={ButtonIconSizes.Md}
       iconName={IconName.Setting}
-      style={headerStyle.icon}
+      style={headerStyle.invisibleIcon}
     />
   ),
 });
