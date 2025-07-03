@@ -29,28 +29,6 @@ jest.mock('../../../sdk', () => ({
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-  createNavigationDetails: jest.fn((params: Record<string, unknown>) => [
-    'DepositModals',
-    'DepositUnsupportedRegionModal',
-    params,
-  ]),
-}));
-
-jest.mock('../RegionSelectorModal', () => ({
-  createRegionSelectorModalNavigationDetails: jest.fn(() => [
-    'DepositModals',
-    'DepositRegionSelectorModal',
-    {},
-  ]),
-}));
-
-jest.mock('../../../../utils/withRampAndDepositSDK', () =>
-  jest.fn((Component) => (props: Record<string, unknown>) => (
-    <Component {...props} />
-  )),
-);
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -134,11 +112,9 @@ describe('UnsupportedRegionModal', () => {
     const changeRegionButton = getByText('Change region');
     fireEvent.press(changeRegionButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'DepositModals',
-      'DepositRegionSelectorModal',
-      {},
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositRegionSelectorModal',
+    });
   });
 
   it('handles missing region gracefully', () => {
