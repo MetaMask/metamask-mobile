@@ -2089,7 +2089,7 @@ workflows:
                   BINARY_EXTENSION=".app"
                 else
                   BUILD_DIR="ios/build/output"
-                  DEVICE_TYPE="physical"
+                  DEVICE_TYPE="device"
                   BINARY_EXTENSION=".ipa"
                 fi
 
