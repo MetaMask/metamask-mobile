@@ -194,14 +194,19 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
   const candleSubscribedRef = useRef(false);
-  const [latestCandle, setLatestCandle] = useState<{
-    time: number;
-    open: string;
-    high: string;
-    low: string;
-    close: string;
-    volume: string;
+  const [candleData, setCandleData] = useState<{
+    coin: string;
+    interval: string;
+    candles: {
+      time: number;
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      volume: string;
+    }[];
   } | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Get the position data from route params
   const position = (route.params as { position: PositionData })?.position;
@@ -209,6 +214,40 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
   // Initialize WebSocket connection
   useEffect(() => {
     const ws = new HyperliquidWebSocketService();
+
+    // First, fetch historical data
+    const fetchHistoricalData = async () => {
+      if (!position) return;
+
+      setIsLoadingHistory(true);
+      Logger.log(
+        'PerpsDetailPage: Fetching historical candle data for',
+        position.assetSymbol,
+      );
+
+      try {
+        const historicalData = await ws.fetchHistoricalCandles(
+          position.assetSymbol,
+          '1h',
+          100,
+        );
+        if (historicalData) {
+          setCandleData(historicalData);
+          Logger.log(
+            'PerpsDetailPage: Historical data loaded:',
+            historicalData.candles.length,
+            'candles',
+          );
+        }
+      } catch (error) {
+        Logger.log('PerpsDetailPage: Error fetching historical data:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    // Fetch historical data first
+    fetchHistoricalData();
 
     // Check connection status periodically and subscribe when connected
     let connectionStableTime = 0;
@@ -236,17 +275,18 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
         );
 
         // Subscribe directly to candle data - no test needed
-        ws.subscribeToCandleData(position.assetSymbol, '1h', (candleData) => {
-          Logger.log(
-            'HyperliquidWebSocket: Received candle update:',
-            candleData,
-          );
-          // Get the latest candle (last one in the array)
-          if (candleData.candles && candleData.candles.length > 0) {
-            const latest = candleData.candles[candleData.candles.length - 1];
-            setLatestCandle(latest);
-          }
-        });
+        ws.subscribeToCandleData(
+          position.assetSymbol,
+          '1h',
+          (updatedCandleData) => {
+            Logger.log(
+              'HyperliquidWebSocket: Received candle update:',
+              updatedCandleData,
+            );
+            // Update the full candle data
+            setCandleData(updatedCandleData);
+          },
+        );
 
         candleSubscribedRef.current = true;
       }
@@ -375,50 +415,74 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
               : 'Subscribing to candle data...'}
           </Text>
 
-          {/* Latest Candle Data Display */}
-          {latestCandle && (
+          {/* Candle Data Display */}
+          {isLoadingHistory ? (
+            <View style={styles.candleDataSection}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Muted}
+                style={styles.candleTitle}
+              >
+                Loading historical data...
+              </Text>
+            </View>
+          ) : candleData && candleData.candles.length > 0 ? (
             <View style={styles.candleDataSection}>
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Default}
                 style={styles.candleTitle}
               >
-                Latest 1h Candle:
+                Candle Data ({candleData.candles.length} candles):
               </Text>
               <Text
                 variant={TextVariant.BodyXS}
                 color={TextColor.Muted}
                 style={styles.candleData}
               >
-                Open: ${parseFloat(latestCandle.open).toFixed(2)}
+                Latest: $
+                {parseFloat(
+                  candleData.candles[candleData.candles.length - 1].close,
+                ).toFixed(2)}
               </Text>
               <Text
                 variant={TextVariant.BodyXS}
                 color={TextColor.Muted}
                 style={styles.candleData}
               >
-                High: ${parseFloat(latestCandle.high).toFixed(2)}
+                24h Range: $
+                {Math.min(
+                  ...candleData.candles
+                    .slice(-24)
+                    .map((c) => parseFloat(c.low)),
+                ).toFixed(2)}{' '}
+                - $
+                {Math.max(
+                  ...candleData.candles
+                    .slice(-24)
+                    .map((c) => parseFloat(c.high)),
+                ).toFixed(2)}
               </Text>
               <Text
                 variant={TextVariant.BodyXS}
                 color={TextColor.Muted}
                 style={styles.candleData}
               >
-                Low: ${parseFloat(latestCandle.low).toFixed(2)}
+                Volume (Latest):{' '}
+                {parseFloat(
+                  candleData.candles[candleData.candles.length - 1].volume,
+                ).toFixed(4)}{' '}
+                BTC
               </Text>
+            </View>
+          ) : (
+            <View style={styles.candleDataSection}>
               <Text
-                variant={TextVariant.BodyXS}
+                variant={TextVariant.BodySM}
                 color={TextColor.Muted}
-                style={styles.candleData}
+                style={styles.candleTitle}
               >
-                Close: ${parseFloat(latestCandle.close).toFixed(2)}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Muted}
-                style={styles.candleData}
-              >
-                Volume: {parseFloat(latestCandle.volume).toFixed(2)}
+                No candle data available
               </Text>
             </View>
           )}

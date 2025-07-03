@@ -19,9 +19,25 @@ interface PendingSubscription {
   callback?: (data: CandleData) => void;
 }
 
+interface RawCandleData {
+  t?: number;
+  time?: number;
+  o?: string;
+  open?: string;
+  h?: string;
+  high?: string;
+  l?: string;
+  low?: string;
+  c?: string;
+  close?: string;
+  v?: string;
+  volume?: string;
+}
+
 class HyperliquidWebSocketService {
   private ws: WebSocket | null = null;
   private readonly url = 'wss://api.hyperliquid.xyz/ws';
+  private readonly httpUrl = 'https://api.hyperliquid.xyz/info';
   private isConnected = false;
   private subscriptions: Set<string> = new Set();
   private candleData: Map<string, CandleData> = new Map();
@@ -208,42 +224,90 @@ class HyperliquidWebSocketService {
 
   private processCandleData(rawData: unknown): void {
     try {
-      const candleArray = rawData as {
-        coin: string;
-        interval: string;
-        candles: {
-          time: number;
-          open: string;
-          high: string;
-          low: string;
-          close: string;
-          volume: string;
-        }[];
+      // Handle the actual format from Hyperliquid WebSocket
+      const rawCandle = rawData as {
+        s: string; // symbol
+        i: string; // interval
+        t: number; // start time
+        T: number; // end time
+        o: string; // open
+        h: string; // high
+        l: string; // low
+        c: string; // close
+        v: string; // volume
+        n: number; // number of trades
       };
 
-      if (candleArray?.coin && candleArray?.candles) {
-        const subscriptionKey = `candle_${candleArray.coin}_${candleArray.interval}`;
+      if (rawCandle?.s && rawCandle?.i) {
+        const subscriptionKey = `candle_${rawCandle.s}_${rawCandle.i}`;
 
-        const processedData: CandleData = {
-          coin: candleArray.coin,
-          interval: candleArray.interval,
-          candles: candleArray.candles,
+        // Get existing data or create new
+        const existingData = this.candleData.get(subscriptionKey);
+        const newCandle = {
+          time: rawCandle.t,
+          open: rawCandle.o,
+          high: rawCandle.h,
+          low: rawCandle.l,
+          close: rawCandle.c,
+          volume: rawCandle.v,
         };
 
-        this.candleData.set(subscriptionKey, processedData);
+        let updatedData: CandleData;
+
+        if (existingData) {
+          // Check if this candle already exists (same timestamp)
+          const existingIndex = existingData.candles.findIndex(
+            (c) => c.time === rawCandle.t,
+          );
+
+          if (existingIndex >= 0) {
+            // Update existing candle
+            existingData.candles[existingIndex] = newCandle;
+            updatedData = existingData;
+            Logger.log(
+              'HyperliquidWebSocket: Updated existing candle for',
+              rawCandle.s,
+              'at timestamp',
+              rawCandle.t,
+            );
+          } else {
+            // Append new candle and keep sorted by time
+            existingData.candles.push(newCandle);
+            existingData.candles.sort((a, b) => a.time - b.time);
+            updatedData = existingData;
+            Logger.log(
+              'HyperliquidWebSocket: Appended new candle for',
+              rawCandle.s,
+              'Total candles:',
+              existingData.candles.length,
+            );
+          }
+        } else {
+          // Create new data with single candle
+          updatedData = {
+            coin: rawCandle.s,
+            interval: rawCandle.i,
+            candles: [newCandle],
+          };
+          Logger.log(
+            'HyperliquidWebSocket: Created new candle data for',
+            rawCandle.s,
+          );
+        }
+
+        this.candleData.set(subscriptionKey, updatedData);
 
         // Call callback if registered
         const callback = this.candleCallbacks.get(subscriptionKey);
         if (callback) {
-          callback(processedData);
+          callback(updatedData);
         }
 
         Logger.log(
-          'HyperliquidWebSocket: Processed candle data for',
-          candleArray.coin,
-          'with',
-          candleArray.candles.length,
-          'candles',
+          'HyperliquidWebSocket: Processed candle update for',
+          rawCandle.s,
+          'OHLCV:',
+          `O:${rawCandle.o} H:${rawCandle.h} L:${rawCandle.l} C:${rawCandle.c} V:${rawCandle.v}`,
         );
       }
     } catch (error) {
@@ -334,6 +398,90 @@ class HyperliquidWebSocketService {
       this.isConnected = false;
       this.subscriptions.clear();
       Logger.log('HyperliquidWebSocket: Disconnected');
+    }
+  }
+
+  // Fetch historical candle data via HTTP
+  public async fetchHistoricalCandles(
+    coin: string,
+    interval: string = '1h',
+    limit: number = 100,
+  ): Promise<CandleData | null> {
+    try {
+      Logger.log(
+        'HyperliquidWebSocket: Fetching historical candles for',
+        coin,
+        'interval:',
+        interval,
+        'limit:',
+        limit,
+      );
+
+      const response = await fetch(this.httpUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'candleSnapshot',
+          req: {
+            coin,
+            interval,
+            startTime: Date.now() - limit * 60 * 60 * 1000, // limit hours ago
+            endTime: Date.now(),
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        Logger.log(
+          'HyperliquidWebSocket: Historical candles fetch failed:',
+          response.status,
+        );
+        return null;
+      }
+
+      const rawData = await response.json();
+      Logger.log('HyperliquidWebSocket: Historical candles response:', rawData);
+
+      // Process the response - format may vary, let's handle both possible formats
+      if (Array.isArray(rawData)) {
+        const processedCandles = rawData.map((candle: RawCandleData) => ({
+          time: candle.t || candle.time || 0,
+          open: candle.o || candle.open || '0',
+          high: candle.h || candle.high || '0',
+          low: candle.l || candle.low || '0',
+          close: candle.c || candle.close || '0',
+          volume: candle.v || candle.volume || '0',
+        }));
+
+        const historicalData: CandleData = {
+          coin,
+          interval,
+          candles: processedCandles,
+        };
+
+        // Store in cache
+        const subscriptionKey = `candle_${coin}_${interval}`;
+        this.candleData.set(subscriptionKey, historicalData);
+
+        Logger.log(
+          'HyperliquidWebSocket: Processed',
+          processedCandles.length,
+          'historical candles for',
+          coin,
+        );
+
+        return historicalData;
+      }
+
+      return null;
+    } catch (error) {
+      Logger.log(
+        'HyperliquidWebSocket: Error fetching historical candles:',
+        error,
+      );
+      return null;
     }
   }
 }
