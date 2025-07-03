@@ -7,17 +7,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import { EIP5792ErrorCode } from '../../../../../constants/transaction';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -27,15 +21,14 @@ import {
   selectSmartAccountOptInForAccounts,
 } from '../../../../../selectors/preferencesController';
 import { isHardwareAccount } from '../../../../../util/address';
-import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
 import { useTheme } from '../../../../../util/theme';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { AccountSelection } from '../account-selection';
 import styleSheet from './smart-account-update-splash.styles';
+import Engine from '../../../../../core/Engine';
 
 const ACCOUNT_UPGRADE_URL =
   'https://support.metamask.io/configure/accounts/what-is-a-smart-account';
@@ -73,9 +66,9 @@ const ListItem = ({
 };
 
 export const SmartAccountUpdateSplash = () => {
+  const { PreferencesController } = Engine.context;
   const [acknowledged, setAcknowledged] = useState(false);
   const dispatch = useDispatch();
-  const [accountSelectionVisible, setShowAccountSelection] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
   const smartAccountOptInForAccounts = useSelector(
     selectSmartAccountOptInForAccounts,
@@ -102,19 +95,13 @@ export const SmartAccountUpdateSplash = () => {
     if (!from) {
       return;
     }
-    dispatch(upgradeSplashPageAcknowledgedForAccount(from));
+    PreferencesController.setSmartAccountOptInForAccounts([
+      ...smartAccountOptInForAccounts,
+      from as Hex,
+    ]);
+
     setAcknowledged(true);
-  }, [dispatch, from, setAcknowledged]);
-
-  const showAccountSelection = useCallback(
-    () => setShowAccountSelection(true),
-    [setShowAccountSelection],
-  );
-
-  const hideAccountSelection = useCallback(
-    () => setShowAccountSelection(false),
-    [setShowAccountSelection],
-  );
+  }, [dispatch, from, setAcknowledged, smartAccountOptInForAccounts]);
 
   if (
     !transactionMetadata ||
@@ -125,19 +112,8 @@ export const SmartAccountUpdateSplash = () => {
     return null;
   }
 
-  if (accountSelectionVisible) {
-    return <AccountSelection onClose={hideAccountSelection} />;
-  }
-
   return (
     <View style={styles.wrapper}>
-      <ButtonIcon
-        iconColor={IconColor.Default}
-        iconName={IconName.Edit}
-        onPress={showAccountSelection}
-        size={ButtonIconSizes.Md}
-        style={styles.edit}
-      />
       <Image source={smartAccountUpdateImage} style={styles.image} />
       <Text variant={TextVariant.HeadingLG} style={styles.title}>
         {strings('confirm.7702_functionality.splashpage.splashTitle')}

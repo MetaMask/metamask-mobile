@@ -1,13 +1,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   getAppStateForConfirmation,
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
-import * as ConfirmationReducerActions from '../../../../../actions/confirmations';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
 // eslint-disable-next-line import/no-namespace
@@ -21,6 +20,11 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    PreferencesController: {
+      setSmartAccountOptInForAccounts: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -61,16 +65,14 @@ describe('SmartContractWithLogo', () => {
   it('close after `Yes` button is clicked', () => {
     const mockDispatch = jest.fn();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    const spyUpgradeSplashPageAcknowledgedForAccount = jest.spyOn(
-      ConfirmationReducerActions,
-      'upgradeSplashPageAcknowledgedForAccount',
-    );
 
     const { getByText, queryByText } = renderComponent();
     expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('Yes'));
     expect(mockDispatch).toHaveBeenCalled();
-    expect(spyUpgradeSplashPageAcknowledgedForAccount).toHaveBeenCalled();
+    expect(
+      Engine.context.PreferencesController.setSmartAccountOptInForAccounts,
+    ).toHaveBeenCalled();
     expect(queryByText('Request for')).toBeNull();
   });
 
