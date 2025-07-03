@@ -4,6 +4,7 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
@@ -91,27 +92,33 @@ export const useLatestBalance = (
       chainId && !isCaipChainId(chainId) &&
       selectedAddress
     ) {
-      trace({
-        name: TraceName.BridgeBalancesUpdated,
-        data: {
-          srcChainId: chainId,
-          isNative: isNativeAddress(token?.address),
-        },
-        startTime: Date.now(),
-      });
-      const web3Provider = getProviderByChainId(chainId);
-      const atomicBalance = await fetchEvmAtomicBalance(
-        web3Provider,
-        selectedAddress,
-        token.address,
-        chainId,
-      );
-      endTrace({ name: TraceName.BridgeBalancesUpdated, timestamp: Date.now() });
-      if (atomicBalance && token.decimals) {
-        setBalance({
-          displayBalance: formatUnits(atomicBalance, token.decimals),
-          atomicBalance,
+      // Create a unique UUID for this trace to prevent collisions
+      const traceId = uuidv4();
+      try {
+        trace({
+          name: TraceName.BridgeBalancesUpdated,
+          id: traceId,
+          data: {
+            srcChainId: chainId,
+            isNative: isNativeAddress(token?.address),
+          },
+          startTime: Date.now(),
         });
+        const web3Provider = getProviderByChainId(chainId);
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          token.address,
+          chainId,
+        );
+        if (atomicBalance && token.decimals) {
+          setBalance({
+            displayBalance: formatUnits(atomicBalance, token.decimals),
+            atomicBalance,
+          });
+        }
+      } finally {
+        endTrace({ name: TraceName.BridgeBalancesUpdated, id: traceId, timestamp: Date.now() });
       }
     }
   }, [token.address, token.decimals, chainId, selectedAddress]);
