@@ -28,14 +28,13 @@ describe(
   () => {
     const NEW_CONTACT_NAME = 'New Test Contact';
     const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8007;
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
@@ -55,7 +54,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
     });
 
@@ -107,7 +106,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
 
       await importWalletWithRecoveryPhrase({

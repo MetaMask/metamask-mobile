@@ -8,6 +8,7 @@ export const ForgotPasswordModalSelectorsIDs = {
   YES_RESET_WALLET_BUTTON: 'forgot-password-modal-yes-reset-wallet-button',
   CANCEL_BUTTON: 'forgot-password-modal-cancel-button',
   WARNING_TEXT: 'forgot-password-modal-warning-text',
+  BACK_BUTTON: 'forgot-password-modal-back-button',
 };
 
 export const ForgotPasswordModalSelectorsText = {
@@ -17,4 +18,4 @@ export const ForgotPasswordModalSelectorsText = {
   YES_RESET_WALLET: enContent.login.erase_my, // 'Yes, reset wallet',
   CANCEL: enContent.login.cancel, // 'Cancel',
   WARNING: enContent.login.are_you_sure, // 'Are you sure?',
-}; 
+};

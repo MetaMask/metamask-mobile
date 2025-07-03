@@ -22,6 +22,7 @@ import {
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
   UserActionType,
+  type SetMetaMetricsUISeenAction,
 } from './types';
 
 export * from './types';
@@ -167,5 +168,16 @@ export function onPersistedDataLoaded(): PersistedDataLoadedAction {
 export function setAppServicesReady(): SetAppServicesReadyAction {
   return {
     type: UserActionType.SET_APP_SERVICES_READY,
+  };
+}
+
+export function setMetaMetricsUISeen(
+  isMetaMetricsUISeen: boolean,
+): SetMetaMetricsUISeenAction {
+  return {
+    type: UserActionType.SET_META_METRICS_UI_SEEN,
+    payload: {
+      isMetaMetricsUISeen,
+    },
   };
 }

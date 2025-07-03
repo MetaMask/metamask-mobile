@@ -79,7 +79,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     );
   });
 
-  it.skip('can sign BIP-32 message using ed25519Bip32', async () => {
+  it('can sign BIP-32 message using ed25519Bip32', async () => {
     await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip32ed25519Bip32Button');
     await Assertions.checkIfTextIsDisplayed('Signature request');

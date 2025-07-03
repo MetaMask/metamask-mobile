@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { ApproveComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { ApproveMethod } from '../../types/approve';
 import { validateSpendingCap } from '../../utils/validations/approve';
 import { TextFieldWithLabel } from '../UI/text-field-with-label';
@@ -52,7 +53,7 @@ export const SpendingCapInput = ({
       inputType="spending-cap"
       keyboardType="numeric"
       onChangeText={handleChange}
-      testID="spending-cap-input"
+      testID={ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT}
       value={value}
     />
   );
