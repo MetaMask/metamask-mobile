@@ -179,6 +179,7 @@ const EarnInputView = () => {
     const tokenExperience = earnToken?.experience?.type;
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -186,7 +187,7 @@ const EarnInputView = () => {
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-      trace({ name: TraceName.EarnFaq });
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: earnToken },

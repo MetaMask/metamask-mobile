@@ -40,6 +40,7 @@ import {
 import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -131,7 +132,7 @@ const PoolStakingLearnMoreModal = () => {
   };
 
   useEffect(() => {
-    trace({ name: TraceName.EarnFaqApys });
+    trace({ name: TraceName.EarnFaqApys, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
     endTrace({ name: TraceName.EarnFaq });
   }, []);
 

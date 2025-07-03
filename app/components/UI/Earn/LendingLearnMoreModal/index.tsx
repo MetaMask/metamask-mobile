@@ -150,7 +150,7 @@ export const LendingLearnMoreModal = () => {
   };
 
   useEffect(() => {
-    trace({ name: TraceName.EarnFaqApys });
+    trace({ name: TraceName.EarnFaqApys, data: { experience: EARN_EXPERIENCES.STABLECOIN_LENDING } });
     endTrace({ name: TraceName.EarnFaq });
   }, []);
 
