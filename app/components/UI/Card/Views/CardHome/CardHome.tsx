@@ -38,10 +38,6 @@ import ManageCardListItem from '../../components/ManageCardListItem/ManageCardLi
 import { selectChainId } from '../../../../../selectors/networkController';
 import { isSwapsAllowed } from '../../../Swaps/utils';
 import AppConstants from '../../../../../core/AppConstants';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../Bridge/hooks/useSwapBridgeNavigation';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -79,26 +75,18 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     [chainId],
   );
 
-  const swapToken = useMemo(() => {
-    if (priorityToken) {
-      return {
-        chainId,
-        address: priorityToken.address,
-        decimals: priorityToken.decimals,
-        symbol: priorityToken.symbol,
-      };
-    }
-  }, [priorityToken, chainId]);
-
-  const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TabBar,
-    sourcePage: 'CardHome',
-    targetToken: swapToken,
-  });
-
   const goToAddFunds = useCallback(() => {
-    goToSwapsBase(swapToken);
-  }, [goToSwapsBase, swapToken]);
+    if (isSwapEnabled && priorityToken) {
+      navigation?.navigate(Routes.SWAPS, {
+        screen: Routes.SWAPS_AMOUNT_VIEW,
+        params: {
+          chainId,
+          destinationToken: priorityToken?.address,
+          sourcePage: 'CardHome',
+        },
+      });
+    }
+  }, [navigation, chainId, priorityToken, isSwapEnabled]);
 
   if (isLoadingBalances) {
     return (

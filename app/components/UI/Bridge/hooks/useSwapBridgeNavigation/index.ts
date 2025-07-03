@@ -31,21 +31,17 @@ export enum SwapBridgeNavigationLocation {
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
- * @param sourcePage the page from which the navigation is initiated, used for analytics.
  * @param token token object containing address and chainId we want to set as source.
- * @param targetToken optional token object containing address and chainId we want to set as target.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
   token: tokenBase,
-  targetToken,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
   token?: BridgeToken;
-  targetToken?: BridgeToken;
 }) => {
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
@@ -191,10 +187,10 @@ export const useSwapBridgeNavigation = ({
         navigation.navigate(Routes.SWAPS, {
           screen: Routes.SWAPS_AMOUNT_VIEW,
           params: {
-            sourcePage,
             sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
             destinationToken: swapToken?.address,
             chainId: swapToken?.chainId,
+            sourcePage,
           },
         });
       } else {
@@ -203,20 +199,12 @@ export const useSwapBridgeNavigation = ({
           params: {
             sourceToken: swapToken?.address,
             chainId: swapToken?.chainId,
-            destinationToken: targetToken?.address,
             sourcePage,
           },
         });
       }
     },
-    [
-      navigation,
-      tokenBase,
-      selectedChainId,
-      sourcePage,
-      addPopularNetwork,
-      targetToken,
-    ],
+    [navigation, tokenBase, selectedChainId, sourcePage, addPopularNetwork],
   );
 
   const goToSwaps = useCallback(
