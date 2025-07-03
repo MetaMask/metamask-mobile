@@ -131,9 +131,8 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       SnapControllerGetSnapAction,
     ),
-    trackError: (error: Error) => {
-      return captureException(error);
-    },
+    trackError: (error: Error) =>
+      captureException(error),
     trackEvent: (eventPayload: {
       event: string;
       properties: Record<string, Json>;
