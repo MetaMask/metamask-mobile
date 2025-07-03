@@ -114,6 +114,26 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionTitle: {
       marginBottom: 16,
     },
+    statsSection: {
+      marginBottom: 32,
+    },
+    statsGrid: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      justifyContent: 'space-between' as const,
+    },
+    statItem: {
+      width: '48%' as const,
+      marginBottom: 16,
+      paddingVertical: 8,
+    },
+    statLabel: {
+      marginBottom: 4,
+    },
+    statValue: {
+      fontWeight: '600' as const,
+      fontSize: 14,
+    },
     buttonContainer: {
       marginTop: 'auto' as const,
     },
@@ -152,6 +172,18 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
     }).format(value);
 
   const isPositiveChange = position.priceChangePercent24h >= 0;
+
+  // Mock stats data - in real app this would come from API
+  const statsData = [
+    { label: '24h High', value: formatCurrency(position.currentPrice * 1.05) },
+    { label: '24h Low', value: formatCurrency(position.currentPrice * 0.95) },
+    { label: 'Mark', value: formatCurrency(position.currentPrice) },
+    { label: 'Oracle', value: formatCurrency(position.currentPrice * 1.001) },
+    { label: '24h Volume', value: '$2.4B' },
+    { label: 'Open Interest', value: '$847M' },
+    { label: 'Funding Rate', value: '0.0125%' },
+    { label: 'Countdown', value: '7h 23m' },
+  ];
 
   const handleBackToPositions = () => {
     navigation.navigate(Routes.PERPS.POSITIONS_VIEW as never);
@@ -229,24 +261,39 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           <PerpsPositionListItem position={position} />
         </View>
 
+        {/* Stats Section */}
+        <View style={styles.statsSection}>
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.sectionTitle}
+          >
+            Stats
+          </Text>
+          <View style={styles.statsGrid}>
+            {statsData.map((item, index) => (
+              <View key={index} style={styles.statItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Muted}
+                  style={styles.statLabel}
+                >
+                  {item.label}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  style={styles.statValue}
+                >
+                  {item.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Edit Position"
-            onPress={handleEditPosition}
-            style={styles.button}
-          />
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Close Position"
-            onPress={handleClosePosition}
-            style={styles.button}
-          />
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
