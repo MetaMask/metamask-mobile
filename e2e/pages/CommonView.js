@@ -33,6 +33,7 @@ class CommonView {
   async tapOKAlertButton() {
     await Gestures.waitAndTap(this.okAlertButton, {
       elemDescription: 'OK Alert Button',
+      checkEnabled: false
     });
   }
 }
