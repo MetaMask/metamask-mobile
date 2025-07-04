@@ -31,7 +31,6 @@ import { MockttpServer } from 'mockttp';
 describe(
   SmokeWalletPlatform('Account syncing - syncs after adding a second SRP'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8003;
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
 
@@ -49,7 +48,7 @@ describe(
 
     beforeAll(async () => {
       jest.setTimeout(2500000);
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
@@ -67,7 +66,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
     });
@@ -143,7 +142,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
 
