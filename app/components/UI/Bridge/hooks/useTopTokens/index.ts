@@ -94,7 +94,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
         address: bridgeAsset.address,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
-        image: bridgeAsset.iconUrl || bridgeAsset.icon,
+        image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
         chainId: caipChainId === SolScope.Mainnet ? caipChainId : hexChainId,
       };

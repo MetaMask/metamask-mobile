@@ -22,7 +22,7 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
     address,
     name: nativeAsset.name ?? '',
     symbol: nativeAsset.symbol,
-    image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl : '',
+    image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl || '' : '',
     decimals: nativeAsset.decimals,
     chainId,
   };

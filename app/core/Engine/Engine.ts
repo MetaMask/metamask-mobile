@@ -1191,6 +1191,7 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
@@ -1213,11 +1214,12 @@ export class Engine {
       estimateGasFeeFn: (
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
+      addTransactionBatchFn: (
+        ...args: Parameters<typeof this.transactionController.addTransactionBatch>
+      ) => this.transactionController.addTransactionBatch(...args),
+      updateTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.updateTransaction>
+      ) => this.transactionController.updateTransaction(...args),
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
