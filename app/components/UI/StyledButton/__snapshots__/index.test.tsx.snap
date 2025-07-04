@@ -378,7 +378,7 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
         "padding": 15,
       },
       {
-        "backgroundColor": "transparent",
+        "backgroundColor": "#ffffff",
         "borderColor": "#4459ff",
         "borderWidth": 1,
       },
