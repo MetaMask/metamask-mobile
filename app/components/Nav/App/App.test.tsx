@@ -7,13 +7,14 @@ import App from '.';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
-import StorageWrapper from '../../../store/storage-wrapper';
 import Routes from '../../../constants/navigation/Routes';
+import { Authentication } from '../../../core/Authentication/Authentication';
 
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
     isMetaMetricsUISeen: true,
+    existingUser: true,
   },
   engine: {
     backgroundState,
@@ -72,16 +73,24 @@ describe('App', () => {
 
   describe('Authentication flow logic', () => {
     it('navigates to onboarding when user does not exist', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
-      renderScreen(App, { name: 'App' }, { state: initialState });
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: { ...initialState.user, existingUser: false },
+          },
+        },
+      );
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
         });
       });
     });
+
     it('navigates to login when user exists and logs in', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
       renderScreen(App, { name: 'App' }, { state: initialState });
       await waitFor(() => {
@@ -92,7 +101,6 @@ describe('App', () => {
     });
 
     it('navigates to OptinMetrics when user exists and isMetaMetricsUISeen is false', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
       renderScreen(
         App,
@@ -100,7 +108,7 @@ describe('App', () => {
         {
           state: {
             ...initialState,
-            user: { ...initialState.user, isMetaMetricsUISeen: false },
+            user: { ...initialState.user, isMetaMetricsUISeen: false, existingUser: true },
           },
         },
       );
