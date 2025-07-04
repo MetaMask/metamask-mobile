@@ -20,6 +20,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import branch from 'react-native-branch';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -29,10 +32,6 @@ const initialState: DeepPartial<RootState> = {
     backgroundState,
   },
 };
-
-jest.mock('react-native-branch', () => ({
-  subscribe: jest.fn(),
-}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -56,6 +55,17 @@ jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
 }));
 
 jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
+
+jest.mock('react-native-branch', () => ({
+  subscribe: jest.fn(),
+  getLatestReferringParams: jest.fn(),
+}));
+
+jest.mock('../../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    setCurrentDeeplink: jest.fn(),
+  },
+}));
 
 jest.mock('../../../core/NavigationService', () => ({
   navigation: {
@@ -263,6 +273,64 @@ describe('App', () => {
       expect(
         getByText(strings('onboarding_carousel.get_started')),
       ).toBeTruthy();
+    });
+  });
+
+  describe('Branch deeplink handling', () => {
+    it('initializes SharedDeeplinkManager with navigation and dispatch', async () => {
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(SharedDeeplinkManager.init).toHaveBeenCalledWith({
+          navigation: expect.any(Object),
+          dispatch: expect.any(Function),
+        });
+      });
+    });
+    it('calls getBranchDeeplink immediately for cold start deeplink check', async () => {
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+      });
+    });
+    it('processes cold start deeplink when non-branch link is found', async () => {
+      const mockDeeplink = 'https://link.metamask.io/home';
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+        '+non_branch_link': mockDeeplink,
+      });
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+        expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
+          mockDeeplink,
+        );
+      });
+    });
+
+    it('subscribes to Branch deeplink events', async () => {
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(branch.subscribe).toHaveBeenCalled();
+      });
+    });
+    it('processes deeplink from subscription callback when uri is provided', async () => {
+      const mockUri = 'https://link.metamask.io/home';
+      const mockDeeplink = 'https://link.metamask.io/swap';
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+        '+non_branch_link': mockDeeplink,
+      });
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
+      });
+      const subscribeCallback = (branch.subscribe as jest.Mock).mock
+        .calls[0][0];
+      subscribeCallback({ uri: mockUri });
+      await waitFor(() => {
+        expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
+          mockUri,
+        );
+      });
     });
   });
 });
