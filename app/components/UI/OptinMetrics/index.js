@@ -248,7 +248,6 @@ class OptinMetrics extends PureComponent {
       this.props.setOnboardingWizardStep(1);
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
-    this.props.setMetaMetricsUISeen(true);
   };
 
   /**
@@ -317,6 +316,11 @@ class OptinMetrics extends PureComponent {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
     } = this.props;
+
+    // Set the state immediately to prevent race condition
+    // This ensures the state is updated before navigation happens
+    this.props.setMetaMetricsUISeen(true);
+
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
@@ -346,7 +350,7 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-
+    this.props.setMetaMetricsUISeen(true);
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -395,7 +399,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
