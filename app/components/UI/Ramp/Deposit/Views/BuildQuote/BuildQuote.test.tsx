@@ -87,13 +87,6 @@ jest.mock('../../hooks/useDepositTokenExchange', () =>
   jest.fn(() => mockUseDepositTokenExchange()),
 );
 
-jest.mock('../Modals/UnsupportedRegionModal', () => ({
-  createUnsupportedRegionModalNavigationDetails: jest.fn(() => [
-    'DepositModals',
-    { screen: 'DepositUnsupportedRegionModal' },
-  ]),
-}));
-
 jest.mock('../../hooks/useUserDetailsPolling', () => ({
   KycStatus: {
     APPROVED: 'APPROVED',
