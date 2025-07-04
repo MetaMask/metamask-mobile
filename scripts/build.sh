@@ -283,10 +283,16 @@ buildAndroidDevBuild(){
 buildAndroidFlaskLocal(){
 	prebuild_android
 
-	# assembleQaDebug app:assembleQaDebugAndroidTest
-
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the QA APK for local development
+buildAndroidQaLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -632,13 +638,17 @@ buildAndroid() {
 		else
 			buildAndroidFlaskRelease
 		fi
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidQaLocal
+		else
+			buildAndroidQA
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
@@ -762,6 +772,8 @@ if [ "$MODE" == "main" ]; then
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ] ]; then
 	remapFlaskEnvVariables
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
+	remapEnvVariableQA
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
