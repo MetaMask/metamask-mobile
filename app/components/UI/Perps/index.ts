@@ -1,6 +1,6 @@
 // Main exports for Perps module
 export { default as PerpsView } from './Views/PerpsView';
-export { PerpsScreenStack } from './routes';
+export { PerpsScreenStack, PerpsModalStack } from './routes';
 export { selectPerpsEnabledFlag } from './utils/selectors';
 export { PERPS_CONSTANTS } from './constants';
 export * from './types';
