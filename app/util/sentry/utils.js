@@ -281,7 +281,7 @@ function getProtocolFromURL(url) {
   return new URL(url).protocol;
 }
 
-function rewriteBreadcrumb(breadcrumb) {
+export function rewriteBreadcrumb(breadcrumb) {
   if (breadcrumb.data?.url) {
     breadcrumb.data.url = getProtocolFromURL(breadcrumb.data.url);
   }
@@ -412,7 +412,7 @@ export function maskObject(objectToMask, mask = {}) {
   }, {});
 }
 
-function rewriteReport(report) {
+export function rewriteReport(report) {
   try {
     // filter out SES from error stack trace
     removeSES(report);
@@ -478,8 +478,11 @@ function sanitizeUrlsFromErrorMessages(report) {
     const urlsInMessage = errorMessage.match(regex.sanitizeUrl);
 
     urlsInMessage?.forEach((url) => {
-      if (!ERROR_URL_ALLOWLIST.some((allowedUrl) => url.match(allowedUrl))) {
-        errorMessage.replace(url, '**');
+      const isAllowed = ERROR_URL_ALLOWLIST.some((allowedUrl) =>
+        url.match(allowedUrl),
+      );
+      if (!isAllowed) {
+        errorMessage = errorMessage.replace(url, '**');
       }
     });
     return errorMessage;
@@ -535,7 +538,7 @@ export function deriveSentryEnvironment(
 }
 
 // Setup sentry remote error reporting
-export function setupSentry() {
+export async function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
@@ -572,7 +575,7 @@ export function setupSentry() {
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
     });
   };
-  init();
+  await init();
 }
 
 // eslint-disable-next-line no-empty-function

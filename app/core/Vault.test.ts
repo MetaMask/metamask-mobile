@@ -19,6 +19,14 @@ import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
 } from '../util/test/accountsControllerTestUtils';
+import ReduxService from './redux/ReduxService';
+import { RootState } from '../reducers';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+} from '../util/trace';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -199,8 +207,28 @@ jest.mock('./Ledger/Ledger', () => ({
 }));
 const mockWithLedgerKeyring = jest.mocked(withLedgerKeyring);
 
+jest.mock('./redux/ReduxService', () => ({
+  store: {
+    getState: jest.fn().mockReturnValue({
+      engine: {
+        backgroundState: {
+          SeedlessOnboardingController: {
+            vault: null,
+          },
+        },
+      },
+    }),
+  },
+}));
+
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+jest.mock('../util/trace', () => ({
+  ...jest.requireActual('../util/trace'),
+  bufferedTrace: jest.fn(),
+  bufferedEndTrace: jest.fn(),
 }));
 
 const mockMultichainWalletSnapClient = {
@@ -352,6 +380,10 @@ describe('Vault', () => {
   });
 
   describe('recreateVaultWithNewPassword', () => {
+    const mockReduxState = jest.mocked(ReduxService.store.getState);
+    const mockBufferedTrace = jest.mocked(bufferedTrace);
+    const mockBufferedEndTrace = jest.mocked(bufferedEndTrace);
+
     it('should recreate vault with new password', async () => {
       const newPassword = 'new-password';
       const primarySeedPhrase = 'seed-phrase';
@@ -469,6 +501,208 @@ describe('Vault', () => {
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockHdAccount1.address,
       );
+    });
+
+    it('should handle seedless onboarding vault password change successfully', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+      mockReduxState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'vault-data',
+            },
+          },
+        },
+      } as unknown as RootState);
+      const mockSeedlessOnboardingController = {
+        changePassword: jest.fn().mockResolvedValue(null),
+      };
+      (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
+        mockSeedlessOnboardingController;
+
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledTimes(1);
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith(newPassword, [
+        primarySeedPhrase,
+      ]);
+      expect(
+        mockSeedlessOnboardingController.changePassword,
+      ).toHaveBeenCalledWith(newPassword, 'password');
+      expect(mockBufferedTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: true },
+      });
+    });
+
+    it('should handle seedless onboarding vault password change error', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const error = new Error('Password change failed in controller');
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+      mockReduxState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: { some: 'vault-data' },
+            },
+          },
+        },
+      } as unknown as RootState);
+      const mockSeedlessOnboardingController = {
+        changePassword: jest.fn().mockRejectedValueOnce(error),
+      };
+      (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
+        mockSeedlessOnboardingController;
+
+      await expect(
+        recreateVaultWithNewPassword(
+          'password',
+          newPassword,
+          mockHdAccount1.address,
+        ),
+      ).rejects.toThrow('Password change failed');
+      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledTimes(2);
+      expect(mockCreateNewVaultAndRestore).toHaveBeenNthCalledWith(
+        1,
+        newPassword,
+        [primarySeedPhrase],
+      );
+      expect(mockCreateNewVaultAndRestore).toHaveBeenNthCalledWith(
+        2,
+        'password',
+        [primarySeedPhrase],
+      );
+      expect(mockBufferedTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      expect(mockBufferedTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPasswordError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: 'Password change failed in controller' },
+      });
+      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPasswordError,
+      });
+      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: false },
+      });
+    });
+
+    it('should throw error when getSeedPhrase fails', async () => {
+      const newPassword = 'new-password';
+      const error = new Error('Failed to get seed phrase');
+
+      mockExportSeedPhrase.mockRejectedValue(error);
+
+      await expect(
+        recreateVaultWithNewPassword(
+          'password',
+          newPassword,
+          mockHdAccount1.address,
+        ),
+      ).rejects.toThrow(
+        'error while trying to get seed phrase on recreate vault',
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to get seed phrase on recreate vault',
+      );
+      expect(mockBufferedTrace).not.toHaveBeenCalled();
+      expect(mockBufferedEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('should log error when getting imported accounts fails', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const error = new Error('Failed to export account');
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockExportAccount.mockRejectedValue(error);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockWithKeyring.mockResolvedValue(null);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to get imported accounts on recreate vault',
+      );
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledTimes(1);
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith(newPassword, [
+        primarySeedPhrase,
+      ]);
+      expect(mockBufferedTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: true },
+      });
+    });
+
+    it('should log error when importing accounts with strategy fails', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const mockPrivateKey = 'very-private-key';
+      const error = new Error('Failed to import account');
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockExportAccount.mockResolvedValue(mockPrivateKey);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockWithKeyring.mockResolvedValue(null);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+      mockImportAccountWithStrategy.mockRejectedValue(error);
+
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'error while trying to import accounts on recreate vault',
+      );
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledTimes(1);
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith(newPassword, [
+        primarySeedPhrase,
+      ]);
+      expect(mockImportAccountWithStrategy).toHaveBeenCalledWith('privateKey', [
+        mockPrivateKey,
+      ]);
+      expect(mockBufferedTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: true },
+      });
     });
   });
 });

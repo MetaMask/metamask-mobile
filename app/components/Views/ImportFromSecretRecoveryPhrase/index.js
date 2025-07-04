@@ -98,6 +98,12 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
+import {
+  TraceName,
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceOperation,
+} from '../../../util/trace';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -120,8 +126,8 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const seedPhraseInputRefs = useRef([]);
   const confirmPasswordInput = useRef();
-
   const { toastRef } = useContext(ToastContext);
+  const passwordSetupAttemptTraceCtxRef = useRef(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -387,6 +393,13 @@ const ImportFromSecretRecoveryPhrase = ({
     termsOfUse();
   }, [termsOfUse]);
 
+  useEffect(() => () => {
+    if (passwordSetupAttemptTraceCtxRef.current) {
+      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      passwordSetupAttemptTraceCtxRef.current = null;
+    }
+  }, []);
+
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
     setBiometryChoice(biometryChoice);
@@ -509,6 +522,15 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     setCurrentStep(currentStep + 1);
+    // Start the trace when moving to the password setup step
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      passwordSetupAttemptTraceCtxRef.current = bufferedTrace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
   };
 
   const isContinueButtonDisabled = useMemo(
@@ -608,6 +630,9 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
+        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+
         if (isMetricsEnabled()) {
           navigation.dispatch(resetAction);
         } else {
@@ -634,6 +659,17 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           error_type: error.toString(),
         });
+
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        if (onboardingTraceCtx) {
+          bufferedTrace({
+            name: TraceName.OnboardingPasswordSetupError,
+            op: TraceOperation.OnboardingUserJourney,
+            parentContext: onboardingTraceCtx,
+            tags: { errorMessage: error.toString() },
+          });
+          bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupError });
+        }
       }
     }
   };

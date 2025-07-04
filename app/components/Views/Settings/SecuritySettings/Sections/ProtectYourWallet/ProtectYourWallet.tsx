@@ -164,17 +164,19 @@ const ProtectYourWallet = ({
             testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
           />
         ))}
-      {oauthFlow && (
-        <Button
-          label={strings('app_settings.protect_title')}
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={onProtectYourWalletPressed}
-          style={styles.accessory}
-          testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
-        />
-      )}
+      {
+        oauthFlow && (
+          <Button
+            label={strings('app_settings.protect_title')}
+            width={ButtonWidthTypes.Full}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            onPress={onProtectYourWalletPressed}
+            style={styles.accessory}
+            testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+          />
+        )
+      }
     </View>
   );
 };

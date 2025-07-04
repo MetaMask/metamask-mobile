@@ -920,11 +920,14 @@ describe('Authentication', () => {
     });
 
     it('should rehydrate with multiple seed phrases', async () => {
+      const mockMnemonic2 = 'mnemonic-2';
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSeedPhrases as jest.Mock
       ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
-      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
+      uint8ArrayToMnemonic
+        .mockReturnValueOnce(mockMnemonic1)
+        .mockReturnValueOnce(mockMnemonic2);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -952,7 +955,7 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: mockSeedPhrase2,
+        mnemonic: mockMnemonic2,
         numberOfAccounts: 1,
       });
       expect(
