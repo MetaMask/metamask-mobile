@@ -641,6 +641,14 @@ class Onboarding extends PureComponent {
                 />
               </View>
             )}
+
+            <Text>{`google ios: ${process.env.IOS_GOOGLE_CLIENT_ID}`}</Text>
+            <Text>{`apple web: ${process.env.ANDROID_APPLE_CLIENT_ID}`}</Text>
+            <Text>{`apple android: ${process.env.ANDROID_APPLE_CLIENT_ID}`}</Text>
+            <Text>{`google android: ${process.env.ANDROID_GOOGLE_CLIENT_ID}`}</Text>
+            <Text>{`google web: ${process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID}`}</Text>
+            <Text>{`google redirect uri: ${process.env.IOS_GOOGLE_REDIRECT_URI}`}</Text>
+
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
 
