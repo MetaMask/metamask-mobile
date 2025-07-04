@@ -31,22 +31,6 @@ const SolanaNewFeatureContent = () => {
 
   const styles = createStyles();
 
-  useEffect(() => {
-    const checkModalStatus = async () => {
-      const hasSeenModal = await StorageWrapper.getItem(
-        SOLANA_FEATURE_MODAL_SHOWN,
-      );
-
-      if (hasSeenModal === 'true') {
-        navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET.HOME,
-        });
-        return null;
-      }
-    };
-    checkModalStatus();
-  }, [navigate]);
-
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
 

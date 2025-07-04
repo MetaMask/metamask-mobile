@@ -74,18 +74,6 @@ describe('SolanaNewFeatureContent', () => {
     });
   });
 
-  it('navigates to home when modal has been shown before', async () => {
-    (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
-    
-    renderWithProviders(<SolanaNewFeatureContent />);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.HOME,
-      });
-    });
-  });
-
   it('handles close button press correctly', async () => {
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 

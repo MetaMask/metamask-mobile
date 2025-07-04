@@ -29,6 +29,9 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+
 import {
   ToastContext,
   ToastVariants,
@@ -338,11 +341,22 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    navigate(Routes.SOLANA_NEW_FEATURE_CONTENT, {
-      screen: Routes.SOLANA_NEW_FEATURE_CONTENT,
-    });
+    const checkAndNavigateToSolanaFeature = async () => {
+      const hasSeenModal = await StorageWrapper.getItem(
+        SOLANA_FEATURE_MODAL_SHOWN,
+      );
+
+      if (hasSeenModal !== 'true') {
+        navigate(Routes.SOLANA_NEW_FEATURE_CONTENT, {
+          screen: Routes.SOLANA_NEW_FEATURE_CONTENT,
+        });
+      }
+    };
+
+    checkAndNavigateToSolanaFeature();
   }, [navigate]);
   ///: END:ONLY_INCLUDE_IF
 
