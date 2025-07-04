@@ -114,7 +114,7 @@ describe('SmartContractWithLogo', () => {
   });
 
   it('calls onClose prop when close button is clicked', () => {
-    const { getByTestId, getByText, queryByText } = renderComponent();
+    const { getByTestId } = renderComponent();
 
     fireEvent.press(getByTestId('account_selection_close'));
 
