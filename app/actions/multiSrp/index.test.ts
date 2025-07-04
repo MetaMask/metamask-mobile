@@ -8,8 +8,6 @@ import {
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
-import ReduxService from '../../core/redux/ReduxService';
-import { RootState } from '../../reducers';
 import { TraceName, TraceOperation } from '../../util/trace';
 
 const testAddress = '0x123';
