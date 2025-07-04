@@ -16,6 +16,8 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useSupportConsent } from '../../../components/hooks/useSupportConsent';
+import SupportConsentModal from '../../../components/UI/SupportConsentModal';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
@@ -141,6 +143,16 @@ const Settings = () => {
     });
   };
 
+  const {
+    showConsentModal,
+    openSupportWebPage,
+    handleConsent,
+    handleDecline
+  } = useSupportConsent(
+    goToBrowserUrl,
+    strings('app_settings.contact_support'),
+  );
+
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
     navigation.navigate(...createSnapsSettingsListNavDetails());
@@ -160,16 +172,10 @@ const Settings = () => {
   };
 
   const showHelp = () => {
-    let supportUrl = 'https://support.metamask.io';
-
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
+    openSupportWebPage();
   };
 
   const onPressLock = async () => {
@@ -209,10 +215,11 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
-    >
+    <>
+      <ScrollView
+        style={styles.wrapper}
+        testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
+      >
       <SettingsDrawer
         description={strings('app_settings.general_desc')}
         onPress={onPressGeneral}
@@ -340,6 +347,13 @@ const Settings = () => {
         titleColor={TextColor.Primary}
       />
     </ScrollView>
+
+    <SupportConsentModal
+      isVisible={showConsentModal}
+      onConsent={handleConsent}
+      onDecline={handleDecline}
+    />
+    </>
   );
 };
 

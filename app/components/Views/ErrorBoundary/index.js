@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -41,6 +41,8 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
+import SupportConsentModal from '../../UI/SupportConsentModal';
 // eslint-disable-next-line import/no-commonjs
 const WarningIcon = require('./warning-icon.png');
 
@@ -227,18 +229,31 @@ const createStyles = (colors) =>
 export const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [feedback, setFeedback] = React.useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [feedback, setFeedback] = useState('');
   const dataCollectionForMarketing = useSelector(
-    (state) => state.security.dataCollectionForMarketing,
+    (state) => state.privacy.dataCollectionForMarketing,
   );
 
   const toggleModal = () => {
-    setModalVisible((visible) => !visible);
-    setFeedback('');
+    setModalVisible(!modalVisible);
   };
-  const handleContactSupport = () =>
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
+
+  const goToBrowserUrl = (url, title) => {
+    Linking.openURL(url);
+  };
+
+  const {
+    showConsentModal,
+    openSupportWebPage,
+    handleConsent,
+    handleDecline
+  } = useSupportConsent(
+    goToBrowserUrl,
+    strings('error_screen.contact_support'),
+  );
+
+  const handleContactSupport = () => openSupportWebPage();
   const handleTryAgain = () => DevSettings.reload();
 
   const handleSubmit = () => {
@@ -391,6 +406,12 @@ export const Fallback = (props) => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <SupportConsentModal
+        isVisible={showConsentModal}
+        onConsent={handleConsent}
+        onDecline={handleDecline}
+      />
     </View>
   );
 };
