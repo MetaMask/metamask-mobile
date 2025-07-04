@@ -94,6 +94,8 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import {
+  Caip25CaveatType,
+  Caip25CaveatValue,
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
@@ -108,10 +110,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -655,53 +654,27 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const hasPermittedChains = useMemo(() => {
     try {
-      return Engine.context.PermissionController.hasCaveat(
+      const caveat = Engine.context.PermissionController.getCaveat(
         channelIdOrHostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
       );
-    } catch {
+      if (caveat?.value) {
+        const scopes = getCaipAccountIdsFromCaip25CaveatValue(
+          caveat.value as Caip25CaveatValue,
+        );
+        return scopes.length > 0
+      }
+      return false;
+    } catch (err) {
       return false;
     }
   }, [channelIdOrHostname]);
 
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    const chainsToPermit = selectedChainIds.length > 0 ?
-      selectedChainIds :
-      [formatChainIdToCaip(chainId)];
-
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        channelIdOrHostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        chainsToPermit,
-      );
-    } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: channelIdOrHostname,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: chainsToPermit,
-              },
-            ],
-          },
-        },
-      });
-    }
-  }, [channelIdOrHostname, selectedChainIds, chainId, hasPermittedChains]);
-
   const handleConfirm = useCallback(async () => {
     hideSheet();
     await handleConnect();
-    await handleUpdateNetworkPermissions();
-
-  }, [handleUpdateNetworkPermissions, hideSheet, handleConnect]);
+  }, [hideSheet, handleConnect]);
 
   /**
    * User intent is set on AccountConnectSingle,
