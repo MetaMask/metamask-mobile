@@ -148,7 +148,6 @@ import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivat
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import DebugLogViewer from '../../UI/DebugLogViewer';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -785,9 +784,6 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  Logger.debug('🚀 App', 'Component starting to render');
-  Logger.debug('🚀 App', 'Timestamp:', new Date().toISOString());
-  
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
@@ -799,7 +795,6 @@ const App: React.FC = () => {
   const isFirstRender = useRef(true);
 
   if (isFirstRender.current) {
-    Logger.debug('🚀 App', 'First render - initializing traces');
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
@@ -810,7 +805,6 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    Logger.debug('🚀 App', 'First useEffect - ending UI startup trace');
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
@@ -819,16 +813,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      Logger.debug('🚀 App', 'appTriggeredAuth called with existingUser:', existingUser);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          Logger.debug('🚀 App', 'existingUser is true, attempting authentication');
-          Alert.alert(
-            'Debug: Authentication Flow',
-            `About to attempt authentication with existingUser: ${existingUser}`,
-            [{ text: 'OK' }]
-          );
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -840,33 +827,19 @@ const App: React.FC = () => {
             },
           );
           // we need to reset the navigator here so that the user cannot go back to the login screen
-          Logger.debug('🚀 App', 'Authentication successful, navigating to HOME_NAV');
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
-          Logger.debug('🚀 App', 'existingUser is false, navigating to ONBOARDING.ROOT_NAV');
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
         const errorMessage = (error as Error).message;
-        Logger.debug('🚀 App', 'Authentication failed with error:', errorMessage);
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        Logger.debug('🚀 App', 'Calling lockApp with locked:', locked);
-        Logger.debug('🚀 App', 'existingUser before lockApp:', existingUser);
-        
         // Only call lockApp if there is an existing user to prevent unnecessary calls
         if (existingUser) {
-          Logger.debug('🚀 App', 'Proceeding with lockApp since existingUser is true');
           await Authentication.lockApp({ reset: false, locked });
-        } else {
-          Logger.debug('🚀 App', 'Skipping lockApp since existingUser is false');
-          Alert.alert(
-            'Debug: Skipped lockApp',
-            `Skipped Authentication.lockApp() because existingUser is ${existingUser}`,
-            [{ text: 'OK' }]
-          );
         }
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -875,9 +848,7 @@ const App: React.FC = () => {
         );
       }
     };
-    Logger.debug('🚀 App', 'Starting appTriggeredAuth');
     appTriggeredAuth().catch((error) => {
-              Logger.debug('🚀 App', 'Error in appTriggeredAuth:', error);
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
     // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
@@ -1090,7 +1061,6 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
-      <DebugLogViewer visible />
     </>
   );
 };

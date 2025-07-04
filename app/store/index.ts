@@ -25,7 +25,6 @@ const pReducer = persistReducer<RootState, AnyAction>(
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor: Persistor;
 const createStoreAndPersistor = async () => {
-  Logger.debug('🏪 Store', 'Starting store creation');
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -53,7 +52,6 @@ const createStoreAndPersistor = async () => {
         ? getDefaultEnhancers.concat(devToolsEnhancer())
         : getDefaultEnhancers,
   });
-  Logger.debug('🏪 Store', 'Store created, setting in ReduxService');
   // Set the store in the Redux class
   ReduxService.store = store;
 
@@ -63,17 +61,11 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
-    Logger.debug('🏪 Store', 'Persist completed, initializing services');
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
     const currentState = store.getState();
-    Logger.debug('🏪 Store', 'Current state after persist:', {
-      existingUser: currentState.user?.existingUser,
-      userLoggedIn: currentState.user?.userLoggedIn,
-      userState: currentState.user
-    });
 
     // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(
@@ -81,7 +73,6 @@ const createStoreAndPersistor = async () => {
     );
   };
 
-  Logger.debug('🏪 Store', 'Creating persistor');
   persistor = persistStore(store, null, onPersistComplete);
 };
 
