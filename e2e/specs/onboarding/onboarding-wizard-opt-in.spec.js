@@ -18,6 +18,8 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
+import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 const PASSWORD = '12345678';
 
@@ -33,6 +35,10 @@ describe(
       await OnboardingCarouselView.tapOnGetStartedButton();
       await acceptTermOfUse();
       await OnboardingView.tapCreateWallet();
+      if (SEEDLESS_ONBOARDING_ENABLED) {
+        await Assertions.checkIfVisible(OnboardingSheet.container);
+        await OnboardingSheet.tapImportSeedButton();
+      }
     });
 
     it('should be able to create a new wallet', async () => {
