@@ -444,6 +444,7 @@ describe('captureSentryFeedback', () => {
         orders: [],
         selectedPaymentMethodAgg: null,
         selectedRegionAgg: null,
+        selectedRegionDeposit: null,
       },
       infuraAvailability: {
         isBlocked: false,
