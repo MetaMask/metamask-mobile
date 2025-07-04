@@ -14,7 +14,7 @@ import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../../helpers';
 import SendView from '../../../pages/Send/SendView';
-import QuoteView from '../../../pages/swaps/QuoteView';
+import QuoteView from '../../../pages/Bridge/QuoteView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
@@ -125,4 +125,4 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(TokenOverview.receiveButton);
     await Assertions.checkIfVisible(TokenOverview.sendButton);
   });
-}); 
+});

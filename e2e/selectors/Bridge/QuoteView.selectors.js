@@ -7,6 +7,7 @@ export const QuoteViewSelectorText = {
   CONFIRM_BRIDGE: enContent.bridge.confirm_bridge,
   CONFIRM_SWAP: enContent.bridge.confirm_swap,
   SELECT_AMOUNT: enContent.bridge.select_amount,
+  CANCEL: 'Cancel',
 };
 
 export const QuoteViewSelectorIDs = {

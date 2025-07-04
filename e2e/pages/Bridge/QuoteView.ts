@@ -30,6 +30,10 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT) as Promise<Detox.IndexableNativeElement>;
   }
 
+  get cancelButton(): DetoxElement {
+    return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
+  }
+
   get networkFeeLabel(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
@@ -82,6 +86,10 @@ class QuoteView {
 
   async tapConfirmSwap(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSwap);
+  }
+
+  async tapOnCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 
