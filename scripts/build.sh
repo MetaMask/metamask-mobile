@@ -18,8 +18,8 @@ echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
 echo "ENVIRONMENT = $ENVIRONMENT"
 
-export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-"$MODE"}
-export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-"$ENVIRONMENT"}
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 
 envFileMissing() {
 	FILE="$1"
@@ -287,6 +287,14 @@ buildAndroidFlaskLocal(){
 	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
 
+# Builds the QA APK for local development
+buildAndroidQaLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
+}
+
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
@@ -317,6 +325,9 @@ buildIosDevBuild(){
 	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		scheme="MetaMask-Flask"
 		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+  elif [ "$METAMASK_ENVIRONMENT" = "qa" ] ; then
+		scheme="MetaMask-QA"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
@@ -391,10 +402,14 @@ buildIosDeviceFlask(){
 # Generates the 
 generateIosBinary() {
 	scheme="$1"
-	configuration="${2:-Release}"
+	configuration="${2:-"Release"}"
 
 	if [ "$scheme" = "MetaMask-QA" ] ; then
-		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+		if [ "$configuration" = "Debug" ] ; then
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
+		else
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
 		if [ "$configuration" = "Debug" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
@@ -446,13 +461,22 @@ buildIosRelease(){
 	fi
 }
 
+# Builds the Flask binary for local development
 buildIosFlaskLocal() {
 	prebuild_ios
 
 	# Go to ios directory
 	cd ios
-	# Generate a Flask debug .ipa for local
 	generateIosBinary "MetaMask-Flask" "Debug"
+}
+
+# Builds the QA binary local development
+buildIosQaLocal() {
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-QA" "Debug"
 }
 
 buildIosFlaskRelease(){
@@ -627,13 +651,17 @@ buildAndroid() {
 		else
 			buildAndroidFlaskRelease
 		fi
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidQaLocal
+		else
+			buildAndroidQA
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
@@ -674,8 +702,12 @@ buildIos() {
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] ; then
-		buildIosQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosQaLocal
+		else
+			buildIosQA
+		fi
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -756,7 +788,11 @@ if [ "$MODE" == "main" ]; then
 		remapEnvVariableExperimental
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ] ]; then
+	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
+	# TODO: Map environment variables based on environment
+	remapEnvVariableQA
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
