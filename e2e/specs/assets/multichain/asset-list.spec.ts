@@ -15,7 +15,6 @@ import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal'
 import TestHelpers from '../../../helpers';
 import SendView from '../../../pages/Send/SendView';
 import QuoteView from '../../../pages/Bridge/QuoteView';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
 
