@@ -58,15 +58,7 @@ const DebugLogViewer: React.FC<DebugLogViewerProps> = ({ visible = false }) => {
     );
   }, [refreshLogs]);
 
-  const toggleLogging = useCallback(() => {
-    if (DebugLogCapture.isLoggingEnabled()) {
-      DebugLogCapture.disable();
-      Alert.alert('Debug Logging Disabled');
-    } else {
-      DebugLogCapture.enable();
-      Alert.alert('Debug Logging Enabled');
-    }
-  }, []);
+
 
   if (!visible) {
     return null;
@@ -77,14 +69,6 @@ const DebugLogViewer: React.FC<DebugLogViewerProps> = ({ visible = false }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Debug Logs ({DebugLogCapture.getLogs().length})</Text>
         <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={toggleLogging}
-          >
-            <Text style={styles.buttonText}>
-              {DebugLogCapture.isLoggingEnabled() ? 'Disable' : 'Enable'}
-            </Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={styles.button}
             onPress={refreshLogs}
@@ -142,7 +126,7 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       position: 'absolute',
-      bottom: 20,
+      top: 20,
       left: 20,
       right: 20,
       backgroundColor: colors.background.default,
@@ -151,7 +135,7 @@ const createStyles = (colors: any) =>
       borderColor: colors.border.default,
       maxHeight: '90%',
       minHeight: 200,
-      zIndex: 1000,
+      zIndex: 9999,
     },
     header: {
       flexDirection: 'row',

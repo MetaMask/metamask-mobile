@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -641,15 +642,16 @@ const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
   return (
-    <Stack.Navigator
-      initialRouteName={Routes.FOX_LOADER}
-      mode={'modal'}
-      screenOptions={{
-        headerShown: false,
-        cardStyle: { backgroundColor: importedColors.transparent },
-        animationEnabled: false,
-      }}
-    >
+    <>
+      <Stack.Navigator
+        initialRouteName={Routes.FOX_LOADER}
+        mode={'modal'}
+        screenOptions={{
+          headerShown: false,
+          cardStyle: { backgroundColor: importedColors.transparent },
+          animationEnabled: false,
+        }}
+      >
       {userLoggedIn && (
         // Render only if wallet is unlocked
         // Note: This is probably not needed but nice to ensure that wallet isn't accessible when it is locked
@@ -778,6 +780,7 @@ const AppFlow = () => {
         component={ModalSwitchAccountType}
       />
     </Stack.Navigator>
+    </>
   );
 };
 
@@ -821,6 +824,11 @@ const App: React.FC = () => {
       try {
         if (existingUser) {
           Logger.debug('🚀 App', 'existingUser is true, attempting authentication');
+          Alert.alert(
+            'Debug: Authentication Flow',
+            `About to attempt authentication with existingUser: ${existingUser}`,
+            [{ text: 'OK' }]
+          );
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -846,7 +854,20 @@ const App: React.FC = () => {
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
         Logger.debug('🚀 App', 'Calling lockApp with locked:', locked);
-        await Authentication.lockApp({ reset: false, locked });
+        Logger.debug('🚀 App', 'existingUser before lockApp:', existingUser);
+        
+        // Only call lockApp if there is an existing user to prevent unnecessary calls
+        if (existingUser) {
+          Logger.debug('🚀 App', 'Proceeding with lockApp since existingUser is true');
+          await Authentication.lockApp({ reset: false, locked });
+        } else {
+          Logger.debug('🚀 App', 'Skipping lockApp since existingUser is false');
+          Alert.alert(
+            'Debug: Skipped lockApp',
+            `Skipped Authentication.lockApp() because existingUser is ${existingUser}`,
+            [{ text: 'OK' }]
+          );
+        }
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           errorMessage,
