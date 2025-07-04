@@ -16,7 +16,11 @@ import styleSheet from './PrivacySection.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 
-function PrivacySection() {
+interface PrivacySectionProps {
+  children?: React.ReactNode;
+}
+
+function PrivacySection({ children }: Readonly<PrivacySectionProps>) {
   const { styles, theme } = useStyles(styleSheet, {});
   return (
     <ListItem
@@ -32,18 +36,22 @@ function PrivacySection() {
         />
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text
-          variant={TextVariant.BodyXS}
-          color={theme.colors.text.alternative}
-        >
-          {strings('deposit.privacy_section.transak')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyXS}
-          color={theme.colors.text.alternative}
-        >
-          {strings('deposit.privacy_section.metamask')}
-        </Text>
+        {children ?? (
+          <>
+            <Text
+              variant={TextVariant.BodyXS}
+              color={theme.colors.text.alternative}
+            >
+              {strings('deposit.privacy_section.transak')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXS}
+              color={theme.colors.text.alternative}
+            >
+              {strings('deposit.privacy_section.metamask')}
+            </Text>
+          </>
+        )}
       </ListItemColumn>
     </ListItem>
   );
