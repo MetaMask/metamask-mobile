@@ -969,7 +969,6 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeIdentity'
     after_run:
       - android_e2e_test
-
   android_e2e_build:
     envs:
       - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2344,6 +2343,46 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
+  build_ios_flask_release:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $FLASK_VERSION_NAME
+            - build_version: $FLASK_VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+          title: iOS Sourcemaps & Build
+          is_always_run: false
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask-Flask.ipa
+          title: Deploy iOS IPA
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: ios/build/MetaMask-Flask.xcarchive:BITRISE_APP_STORE_XCARCHIVE_PATH
+          title: Deploy Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
   build_ios_qa_flask:
     before_run:
       - code_setup
