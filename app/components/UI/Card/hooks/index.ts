@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useCardSDK } from '../sdk/sdk';
+import { useCardSDK } from '../sdk';
 
 /**
  * Hook to automatically check card holder status when address or card feature changes
