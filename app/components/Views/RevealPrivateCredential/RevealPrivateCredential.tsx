@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -65,7 +64,12 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { endTrace, trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -168,7 +172,9 @@ const RevealPrivateCredential = ({
 
       // This will trigger after the user hold-pressed the button, we want to trace the actual
       // keyring operation of extracting the credential
-      const traceName = isPrivateKeyReveal ? TraceName.RevealPrivateKey : TraceName.RevealSrp;
+      const traceName = isPrivateKeyReveal
+        ? TraceName.RevealPrivateKey
+        : TraceName.RevealSrp;
       trace({
         name: traceName,
         op: TraceOperation.RevealPrivateCredential,
@@ -536,7 +542,7 @@ const RevealPrivateCredential = ({
       })}
       body={
         <>
-          <Text style={[styles.normalText, styles.revealModalText]}>
+          <Text variant={TextVariant.BodyMD} style={styles.revealModalText}>
             {
               strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
@@ -544,19 +550,19 @@ const RevealPrivateCredential = ({
                   : strings('reveal_credential.srp_text'),
               })[0]
             }
-            <Text style={styles.boldText}>
+            <Text variant={TextVariant.BodyMDBold}>
               {isPrivateKeyReveal
                 ? strings('reveal_credential.reveal_credential_modal')[1]
                 : strings('reveal_credential.reveal_credential_modal')[2]}
             </Text>
             {strings('reveal_credential.reveal_credential_modal')[3]}
-            <TouchableOpacity
+            <Text
+              color={colors.primary.default}
+              variant={TextVariant.BodyMDBold}
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
-              <Text style={[styles.blueText, styles.link]}>
-                {strings('reveal_credential.reveal_credential_modal')[4]}
-              </Text>
-            </TouchableOpacity>
+              {strings('reveal_credential.reveal_credential_modal')[4]}
+            </Text>
           </Text>
           {isTest ? (
             <Button
@@ -590,26 +596,22 @@ const RevealPrivateCredential = ({
     <Text style={styles.normalText}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
       <Text
-        style={[styles.blueText, styles.link]}
+        color={colors.primary.default}
         onPress={() => Linking.openURL(SRP_GUIDE_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text style={styles.boldText}>
-        {strings('reveal_credential.seed_phrase_explanation')[3]}
-      </Text>
+      <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
       {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
       <Text
-        style={[styles.blueText, styles.link]}
+        color={colors.primary.default}
         onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
       </Text>
       {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text style={styles.boldText}>
-        {strings('reveal_credential.seed_phrase_explanation')[7]}
-      </Text>
+      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
     </Text>
   );
 

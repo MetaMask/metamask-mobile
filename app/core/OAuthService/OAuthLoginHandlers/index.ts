@@ -11,8 +11,7 @@ import {
   IosGoogleRedirectUri,
   AndroidGoogleWebGID,
   AppleWebClientId,
-  IosAppleClientId,
-  AppleServerRedirectUri,
+  web3AuthNetwork,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
@@ -34,8 +33,7 @@ export function createLoginHandler(
     !IosGID ||
     !IosGoogleRedirectUri ||
     !AndroidGoogleWebGID ||
-    !AppleWebClientId ||
-    !IosAppleClientId
+    !AppleWebClientId
   ) {
     throw new Error('Missing environment variables');
   }
@@ -46,9 +44,15 @@ export function createLoginHandler(
           return new IosGoogleLoginHandler({
             clientId: IosGID,
             redirectUri: IosGoogleRedirectUri,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
           });
         case AuthConnection.Apple:
-          return new IosAppleLoginHandler({ clientId: IosAppleClientId });
+          return new IosAppleLoginHandler({
+            clientId: AppleWebClientId,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
+          });
         default:
           throw new OAuthError(
             'Invalid provider',
@@ -60,12 +64,15 @@ export function createLoginHandler(
         case AuthConnection.Google:
           return new AndroidGoogleLoginHandler({
             clientId: AndroidGoogleWebGID,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
           });
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
-            redirectUri: AppleServerRedirectUri,
             appRedirectUri: AppRedirectUri,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
           });
         default:
           throw new OAuthError(

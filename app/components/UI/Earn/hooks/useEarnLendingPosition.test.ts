@@ -1,3 +1,4 @@
+import { act } from 'react';
 import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import {
@@ -11,13 +12,10 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
-import { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import useEarnLendingPositions from './useEarnLendingPosition';
-import { act } from 'react';
 
-// Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
   context: {
     EarnController: {
@@ -66,7 +64,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
 }));
 
 describe('useEarnLendingPositions', () => {
-  const mockAsset: TokenI = {
+  const mockAsset = {
     address: '0x123',
     chainId: '0x1',
     symbol: 'USDC',
@@ -77,7 +75,8 @@ describe('useEarnLendingPositions', () => {
     name: 'USD Coin',
     balance: '0',
     logo: '',
-  };
+    balanceMinimalUnit: '4',
+  } as unknown as EarnTokenDetails;
 
   const mockState: DeepPartial<RootState> = {
     engine: {
@@ -224,51 +223,15 @@ describe('useEarnLendingPositions', () => {
     });
   });
 
-  it('should fetch lending position history and update state', async () => {
-    const mockLendingPositionHistory = {
-      lifetimeRewards: [
-        {
-          assets: '1000000',
-          token: {
-            address: MOCK_USDC_MAINNET_ASSET.address,
-          },
-        },
-      ],
-      assets: '1000000',
-    };
-
-    (
-      Engine.context.EarnController.getLendingPositionHistory as jest.Mock
-    ).mockResolvedValue(mockLendingPositionHistory);
-
-    const { result } = renderHookWithProvider(
-      () => useEarnLendingPositions(mockAsset),
+  it('should set hasEarnLendingPositions to true when position assets are greater than 0', async () => {
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
       {
-        state: mockState,
+        outputToken: {
+          ...mockLendingOutputToken,
+          balanceMinimalUnit: '100000',
+        },
       },
     );
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(result.current).toEqual({
-      earnLendingPositions: mockLendingOutputToken.experience.market?.position,
-      exchangeRate: 1,
-      isLoadingEarnLendingPositions: true,
-      error: null,
-      hasEarnLendingPositions: true,
-      refreshEarnLendingPositions: expect.any(Function),
-      lifetimeRewards: '1000000',
-    });
-  });
-
-  it('should handle error when fetching lending position history fails', async () => {
-    const error = new Error('Failed to fetch lending position history');
-    (
-      Engine.context.EarnController.getLendingPositionHistory as jest.Mock
-    ).mockRejectedValue(error);
-
     const { result } = renderHookWithProvider(
       () => useEarnLendingPositions(mockAsset),
       {
@@ -284,7 +247,51 @@ describe('useEarnLendingPositions', () => {
       earnLendingPositions: mockLendingOutputToken.experience.market?.position,
       exchangeRate: 1,
       isLoadingEarnLendingPositions: false,
-      error: 'Failed to fetch lending position history',
+      error: null,
+      hasEarnLendingPositions: true,
+      refreshEarnLendingPositions: expect.any(Function),
+      lifetimeRewards: '0',
+    });
+  });
+
+  it('should set hasEarnLendingPositions to false when position assets are 0', async () => {
+    const mockOutputTokenWithZeroAssets = {
+      ...mockLendingOutputToken,
+      experience: {
+        ...mockLendingOutputToken.experience,
+        market: {
+          ...mockLendingOutputToken.experience.market,
+          position: {
+            ...mockLendingOutputToken.experience?.market?.position,
+            assets: '0',
+          },
+        },
+      },
+    };
+
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
+      {
+        outputToken: mockOutputTokenWithZeroAssets,
+      },
+    );
+
+    const { result } = renderHookWithProvider(
+      () => useEarnLendingPositions(mockAsset),
+      {
+        state: mockState,
+      },
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(result.current).toEqual({
+      earnLendingPositions:
+        mockOutputTokenWithZeroAssets.experience.market?.position,
+      exchangeRate: 1,
+      isLoadingEarnLendingPositions: false,
+      error: null,
       hasEarnLendingPositions: false,
       refreshEarnLendingPositions: expect.any(Function),
       lifetimeRewards: '0',
@@ -322,33 +329,15 @@ describe('useEarnLendingPositions', () => {
     expect(result.current.hasEarnLendingPositions).toBe(false);
   });
 
-  it('should refresh lending position history when refreshEarnLendingPositions is called', async () => {
-    const mockLendingPositionHistory = {
-      lifetimeRewards: [
-        {
-          assets: '2000000',
-          token: {
-            address: MOCK_USDC_MAINNET_ASSET.address,
-          },
+  it('should refresh lending position data when refreshEarnLendingPositions is called', async () => {
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
+      {
+        outputToken: {
+          ...mockLendingOutputToken,
+          balanceMinimalUnit: '100000',
         },
-      ],
-      assets: '2000000',
-    };
-
-    (Engine.context.EarnController.getLendingPositionHistory as jest.Mock)
-      .mockResolvedValueOnce({
-        lifetimeRewards: [
-          {
-            assets: '1000000',
-            token: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-          },
-        ],
-        assets: '1000000',
-      })
-      .mockResolvedValueOnce(mockLendingPositionHistory);
-
+      },
+    );
     const { result } = renderHookWithProvider(
       () => useEarnLendingPositions(mockAsset),
       {
@@ -360,12 +349,49 @@ describe('useEarnLendingPositions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(result.current.lifetimeRewards).toBe('1000000');
+    expect(result.current.hasEarnLendingPositions).toBe(true);
+
+    // Update the mock to simulate different position assets
+    const mockOutputTokenWithDifferentAssets = {
+      ...mockLendingOutputToken,
+      experience: {
+        ...mockLendingOutputToken.experience,
+        market: {
+          ...mockLendingOutputToken.experience.market,
+          position: {
+            ...mockLendingOutputToken.experience?.market?.position,
+            assets: '0',
+          },
+        },
+      },
+    };
+
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
+      {
+        outputToken: mockOutputTokenWithDifferentAssets,
+      },
+    );
 
     await act(async () => {
       await result.current.refreshEarnLendingPositions();
     });
 
-    expect(result.current.lifetimeRewards).toBe('2000000');
+    // The hook should re-evaluate based on the new position assets
+    expect(result.current.hasEarnLendingPositions).toBe(false);
+  });
+
+  it('should always return lifetimeRewards as 0 since the API call is commented out', async () => {
+    const { result } = renderHookWithProvider(
+      () => useEarnLendingPositions(mockAsset),
+      {
+        state: mockState,
+      },
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(result.current.lifetimeRewards).toBe('0');
   });
 });

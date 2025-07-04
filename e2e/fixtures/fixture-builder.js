@@ -516,6 +516,7 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
+          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
@@ -1236,6 +1237,16 @@ class FixtureBuilder {
       isArchived: false,
     });
 
+    return this;
+  }
+
+  /**
+   * Sets ETH as the primary currency for both currency rate controller and settings.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withETHAsPrimaryCurrency() {
+    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
+    this.fixture.state.settings.primaryCurrency = 'ETH';
     return this;
   }
 

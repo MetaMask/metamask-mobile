@@ -6,10 +6,17 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 import { InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { passwordRequirementsMet } from '../../../util/password';
+import { trace } from '../../../util/trace';
 import StorageWrapper from '../../../store/storage-wrapper';
+
+// Mock dependencies
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
-import { passcodeType, updateAuthTypeStorageFlags } from '../../../util/authentication';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
@@ -48,6 +55,47 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
+// Mock password requirements
+jest.mock('../../../util/password', () => ({
+  passwordRequirementsMet: jest.fn(),
+}));
+
+// Mock trace utility
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    AuthenticateUser: 'Authenticate User',
+    Login: 'Login',
+    Signature: 'Signature',
+    Middleware: 'Middleware',
+    PPOMValidation: 'PPOM Validation',
+    NotificationDisplay: 'Notification Display',
+  },
+  TraceOperation: {
+    Login: 'login',
+    BiometricAuthentication: 'biometrics.authentication',
+  },
+}));
+
+// Mock react-native with Keyboard
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Keyboard: {
+    dismiss: jest.fn(),
+  },
+}));
+
+// Mock StorageWrapper
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+}));
+
+// Mock setOnboardingWizardStep action
+jest.mock('../../../actions/wizard', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
     currentAuthType: 'device_passcode',
@@ -103,6 +151,22 @@ describe('Login', () => {
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockRoute.mockClear();
+    // Default mock implementations
+    (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
+    (Authentication.userEntryAuth as jest.Mock).mockResolvedValue(undefined);
+    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
+      {
+        currentAuthType: 'password',
+      },
+    );
+    (Authentication.getType as jest.Mock).mockResolvedValue({
+      currentAuthType: 'password',
+      availableBiometryType: null,
+    });
+    (trace as jest.Mock).mockImplementation(async (_, callback) => {
+      if (callback) await callback();
+    });
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
   });
 
   it('renders matching snapshot', () => {
@@ -132,6 +196,34 @@ describe('Login', () => {
     });
   });
 
+  describe('onLogin', () => {
+    it('login button exists and can be pressed', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'testpassword123');
+      fireEvent.press(loginButton);
+
+      // Assert
+      expect(loginButton).toBeOnTheScreen();
+    });
+
+    it('password input accepts text', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      // Act
+      fireEvent.changeText(passwordInput, 'testpassword123');
+
+      // Assert
+      expect(passwordInput).toBeTruthy();
+    });
+  });
+
   describe('Remember Me Authentication', () => {
     it('should set up remember me authentication when auth type is REMEMBER_ME', async () => {
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
@@ -143,7 +235,7 @@ describe('Login', () => {
 
       // Wait for useEffect to complete
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       expect(setAllowLoginWithRememberMe).toHaveBeenCalledWith(true);
@@ -165,7 +257,7 @@ describe('Login', () => {
 
       // Wait for useEffect to complete
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
@@ -174,7 +266,9 @@ describe('Login', () => {
 
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(new Error(VAULT_ERROR));
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        new Error(VAULT_ERROR),
+      );
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -188,12 +282,18 @@ describe('Login', () => {
     });
 
     it('should handle vault corruption successfully with valid password', async () => {
-      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({ vault: 'mock-vault' });
+      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
+        vault: 'mock-vault',
+      });
       (parseVaultValue as jest.Mock).mockResolvedValueOnce('mock-seed');
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValueOnce({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
       });
-      (Authentication.storePassword as jest.Mock).mockResolvedValueOnce(undefined);
+      (Authentication.storePassword as jest.Mock).mockResolvedValueOnce(
+        undefined,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -212,12 +312,14 @@ describe('Login', () => {
             previousScreen: Routes.ONBOARDING.LOGIN,
           },
           screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
-        })
+        }),
       );
     });
 
     it('should show error for invalid password during vault corruption', async () => {
-      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({ vault: 'mock-vault' });
+      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
+        vault: 'mock-vault',
+      });
       (parseVaultValue as jest.Mock).mockResolvedValueOnce(null);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -248,7 +350,9 @@ describe('Login', () => {
     });
 
     it('should handle vault corruption when backup has error', async () => {
-      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({ error: 'Backup error' });
+      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
+        error: 'Backup error',
+      });
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -264,12 +368,18 @@ describe('Login', () => {
     });
 
     it('should handle vault corruption when storePassword fails', async () => {
-      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({ vault: 'mock-vault' });
+      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
+        vault: 'mock-vault',
+      });
       (parseVaultValue as jest.Mock).mockResolvedValueOnce('mock-seed');
-      (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValueOnce({
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
       });
-      (Authentication.storePassword as jest.Mock).mockRejectedValueOnce(new Error('Store password failed'));
+      (Authentication.storePassword as jest.Mock).mockRejectedValueOnce(
+        new Error('Store password failed'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -285,7 +395,9 @@ describe('Login', () => {
     });
 
     it('should handle vault corruption when vault seed cannot be parsed', async () => {
-      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({ vault: 'mock-vault' });
+      (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
+        vault: 'mock-vault',
+      });
       (parseVaultValue as jest.Mock).mockResolvedValueOnce(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -310,7 +422,9 @@ describe('Login', () => {
           oauthLoginSuccess: true,
         },
       });
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(new Error('Error: Cancel'));
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        new Error('Error: Cancel'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -345,7 +459,9 @@ describe('Login', () => {
     it('should navigate back and reset OAuth state', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
 
-      const otherMethodsButton = getByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON);
+      const otherMethodsButton = getByTestId(
+        LoginViewSelectors.OTHER_METHODS_BUTTON,
+      );
 
       await act(async () => {
         fireEvent.press(otherMethodsButton);
@@ -375,9 +491,11 @@ describe('Login', () => {
     it('should handle seedless onboarding controller error with remaining time of > 0', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
-        { remainingTime: 1, numberOfAttempts: 1 }
+        { remainingTime: 1, numberOfAttempts: 1 },
       );
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(seedlessError);
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -396,15 +514,19 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Too many attempts. Please try again in 1 seconds.');
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 1 seconds.',
+      );
     });
 
     it('should handle seedless onboarding controller error without remaining time', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
-        { remainingTime: 0, numberOfAttempts: 1 }
+        { remainingTime: 0, numberOfAttempts: 1 },
       );
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(seedlessError);
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -447,7 +569,9 @@ describe('Login', () => {
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: 'TouchID',
       });
-      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(true);
+      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
+        true,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -462,7 +586,15 @@ describe('Login', () => {
       });
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.ROOT_NAV, {
+        screen: Routes.ONBOARDING.NAV,
+        params: {
+          screen: Routes.ONBOARDING.OPTIN_METRICS,
+          params: {
+            onContinue: expect.any(Function),
+          },
+        },
+      });
     });
 
     it('should handle biometric authentication failure', async () => {
@@ -472,7 +604,9 @@ describe('Login', () => {
         availableBiometryType: 'TouchID',
       });
       const biometricError = new Error('Biometric authentication failed');
-      (Authentication.appTriggeredAuth as jest.Mock).mockRejectedValueOnce(biometricError);
+      (Authentication.appTriggeredAuth as jest.Mock).mockRejectedValueOnce(
+        biometricError,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -493,4 +627,3 @@ describe('Login', () => {
     });
   });
 });
-

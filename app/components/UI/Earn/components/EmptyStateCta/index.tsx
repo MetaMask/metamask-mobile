@@ -28,6 +28,7 @@ import styleSheet from './EmptyStateCta.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -58,7 +59,21 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
-  const navigateToLendInputScreen = () => {
+  const navigateToLendInputScreen = async () => {
+    const { NetworkController } = Engine.context;
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+      );
+      return;
+    }
+
+    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED)
         .addProperties({
