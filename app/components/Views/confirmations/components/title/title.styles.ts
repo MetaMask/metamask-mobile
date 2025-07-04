@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     titleContainer: {
       marginVertical: 24,
       paddingHorizontal: 16,
@@ -14,6 +14,5 @@ const styleSheet = () => {
       textAlign: 'center',
     },
   });
-};
 
 export default styleSheet;
