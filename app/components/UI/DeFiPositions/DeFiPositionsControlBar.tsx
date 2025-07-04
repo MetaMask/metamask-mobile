@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Hex } from '@metamask/utils';
+import { Hex, parseCaipChainId } from '@metamask/utils';
 import { Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -9,6 +9,7 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectChainId,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
@@ -25,6 +26,9 @@ import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectedSelectedMultichainNetworkChainId } from '../../../selectors/multichainNetworkController';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
@@ -34,6 +38,15 @@ const DeFiPositionsControlBar: React.FC = () => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId) as Hex;
+  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
+  const currentCaipChainId = useSelector(
+    selectedSelectedMultichainNetworkChainId,
+  );
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const { namespace } = parseCaipChainId(currentCaipChainId);
 
   const showFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -47,16 +60,33 @@ const DeFiPositionsControlBar: React.FC = () => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
 
+  // TODO: Come back to refactor this logic is used in several places
+  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
+    .filter(([_key, value]) => value)
+    .map(([chainId, enabled]) => ({ chainId, enabled }));
+  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
+  const currentNetworkName = networksByCaipChainId[caipChainId].name;
+
   return (
     <View style={styles.actionBarWrapper}>
       <ButtonBase
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
         label={
-          <Text style={styles.controlButtonText} numberOfLines={1}>
-            {isAllNetworks && isPopularNetwork
-              ? strings('wallet.popular_networks')
-              : networkName ?? strings('wallet.current_network')}
-          </Text>
+          <>
+            {isRemoveGlobalNetworkSelectorEnabled() ? (
+              <Text style={styles.controlButtonText} numberOfLines={1}>
+                {enabledNetworks.length > 1
+                  ? strings('networks.enabled_networks')
+                  : currentNetworkName ?? strings('wallet.current_network')}
+              </Text>
+            ) : (
+              <Text style={styles.controlButtonText} numberOfLines={1}>
+                {isAllNetworks && isPopularNetwork
+                  ? strings('wallet.popular_networks')
+                  : networkName ?? strings('wallet.current_network')}
+              </Text>
+            )}
+          </>
         }
         isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
         onPress={showFilterControls}
@@ -70,7 +100,7 @@ const DeFiPositionsControlBar: React.FC = () => {
       />
       <ButtonIcon
         onPress={showSortControls}
-        iconName={IconName.SwapVertical}
+        iconName={IconName.Filter}
         style={styles.controlIconButton}
       />
     </View>

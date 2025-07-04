@@ -89,6 +89,7 @@ export const TokenListControlBar = ({
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+  // TODO: Come back to refactor this logic is used in several places
   const enabledNetworks = Object.entries(networksByNameSpace[namespace])
     .filter(([_key, value]) => value)
     .map(([chainId, enabled]) => ({ chainId, enabled }));

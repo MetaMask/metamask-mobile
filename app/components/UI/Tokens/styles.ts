@@ -225,7 +225,7 @@ const createStyles = (colors: Colors) =>
       borderStyle: 'solid',
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
       marginLeft: 5,
-      marginRight: 5,
+      marginRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       borderRadius: 50,
       width: isRemoveGlobalNetworkSelectorEnabled() ? 30 : 50,
       height: 40,

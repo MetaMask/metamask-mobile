@@ -27,6 +27,8 @@ import {
   isNftFetchingProgressSelector,
   multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+  multichainCollectibleContractsByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
@@ -41,6 +43,7 @@ import {
   selectIsPopularNetwork,
   selectProviderType,
   selectNetworkConfigurations,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
@@ -52,10 +55,13 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
-import { debounce, cloneDeep, isEqual } from 'lodash';
+import { debounce, cloneDeep } from 'lodash';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectedSelectedMultichainNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
   isTestNet,
@@ -68,6 +74,9 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { parseCaipChainId } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,7 +92,7 @@ const createStyles = (colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: 8,
+      paddingLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
       paddingRight: 8,
       paddingBottom: 16,
       paddingTop: 8,
@@ -114,10 +123,12 @@ const createStyles = (colors) =>
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
+        ? colors.border.default
+        : undefined,
       borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       marginRight: 5,
       maxWidth: '60%',
       borderRadius: 20,
@@ -193,6 +204,23 @@ const CollectibleContracts = ({
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const collectibleContractsByEnabledNetworks = useSelector(
+    multichainCollectibleContractsByEnabledNetworksSelector,
+  );
+
+  // TODO: Come back to refactor this logic is used in several places
+  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
+  const currentCaipChainId = useSelector(
+    selectedSelectedMultichainNetworkChainId,
+  );
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const { namespace } = parseCaipChainId(currentCaipChainId);
+  const collectiblesByEnabledNetworks = useSelector(
+    multichainCollectiblesByEnabledNetworksSelector,
+  );
 
   const allNetworkClientIds = useMemo(
     () =>
@@ -209,22 +237,38 @@ const CollectibleContracts = ({
   );
 
   const filteredCollectibleContracts = useMemo(() => {
+    let contracts = {};
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      contracts = Object.values(collectibleContractsByEnabledNetworks).flat();
+    } else {
+      contracts = isAllNetworks
+        ? Object.values(collectibleContracts).flat()
+        : collectibleContracts[chainId] || [];
+    }
     trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
-    const contracts = isAllNetworks
-      ? Object.values(collectibleContracts).flat()
-      : collectibleContracts[chainId] || [];
     endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+
     return contracts;
-  }, [collectibleContracts, chainId, isAllNetworks]);
+  }, [
+    collectibleContracts,
+    chainId,
+    isAllNetworks,
+    collectibleContractsByEnabledNetworks,
+  ]);
 
   const filteredCollectibles = useMemo(() => {
     trace({ name: TraceName.LoadCollectibles });
-    const collectibles = isAllNetworks
-      ? Object.values(allCollectibles).flat()
-      : allCollectibles[chainId] || [];
+    let collectibles = [];
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      collectibles = Object.values(collectiblesByEnabledNetworks).flat();
+    } else {
+      collectibles = isAllNetworks
+        ? Object.values(allCollectibles).flat()
+        : allCollectibles[chainId] || [];
+    }
     endTrace({ name: TraceName.LoadCollectibles });
     return collectibles;
-  }, [allCollectibles, chainId, isAllNetworks]);
+  }, [allCollectibles, chainId, isAllNetworks, collectiblesByEnabledNetworks]);
 
   const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -239,6 +283,7 @@ const CollectibleContracts = ({
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       navigation.navigate(...createNetworkManagerNavDetails({}));
@@ -562,6 +607,13 @@ const CollectibleContracts = ({
     isFirstRender.current = false;
   }, []);
 
+  // TODO: Come back to refactor this logic is used in several places
+  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
+    .filter(([_key, value]) => value)
+    .map(([chainId, enabled]) => ({ chainId, enabled }));
+  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
+  const currentNetworkName = networksByCaipChainId[caipChainId].name;
+
   return (
     <View
       style={styles.BarWrapper}
@@ -572,11 +624,21 @@ const CollectibleContracts = ({
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <Text style={styles.controlButtonText} numberOfLines={1}>
-                {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? strings('wallet.popular_networks')
-                  : networkName ?? strings('wallet.current_network')}
-              </Text>
+              <>
+                {isRemoveGlobalNetworkSelectorEnabled() ? (
+                  <Text style={styles.controlButtonText} numberOfLines={1}>
+                    {enabledNetworks.length > 1
+                      ? strings('networks.enabled_networks')
+                      : currentNetworkName ?? strings('wallet.current_network')}
+                  </Text>
+                ) : (
+                  <Text style={styles.controlButtonText} numberOfLines={1}>
+                    {isAllNetworks && isPopularNetwork && isEvmSelected
+                      ? strings('wallet.popular_networks')
+                      : networkName ?? strings('wallet.current_network')}
+                  </Text>
+                )}
+              </>
             }
             isDisabled={isTestNet(chainId) || !isPopularNetwork}
             onPress={isEvmSelected ? showFilterControls : () => null}
