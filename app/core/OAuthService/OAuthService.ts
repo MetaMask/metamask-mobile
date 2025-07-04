@@ -210,9 +210,7 @@ export class OAuthService {
           });
         }
 
-        const audience = 'metamask';
-
-        if (!data.jwt_tokens[audience]) {
+        if (!data.id_token) {
           throw new OAuthError('No token found', OAuthErrorType.LoginError);
         }
 
