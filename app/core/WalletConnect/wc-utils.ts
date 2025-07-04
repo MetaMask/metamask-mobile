@@ -335,12 +335,5 @@ export const getRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string
 ) => {
-  const {verifyContext} = request;
-  if (verifyContext) {
-    const {verified} = verifyContext;
-    if (verified) {
-      return verified.origin;
-    }
-  }
-  return defaultOrigin;
+  return request.verifyContext?.verified?.origin ?? defaultOrigin
 }
