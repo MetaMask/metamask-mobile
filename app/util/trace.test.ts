@@ -4,7 +4,17 @@ import {
   startSpanManual,
 } from '@sentry/react-native';
 import { Scope, type Span, withIsolationScope } from '@sentry/core';
-import { endTrace, trace, TraceName, TRACES_CLEANUP_INTERVAL } from './trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TRACES_CLEANUP_INTERVAL,
+  flushBufferedTraces,
+  bufferedTrace,
+  bufferedEndTrace,
+  discardBufferedTraces,
+} from './trace';
+import { AGREED, DENIED } from '../constants/storage';
 
 jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
@@ -14,6 +24,10 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
+}));
+
+jest.mock('../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
 }));
 
 const NAME_MOCK = TraceName.Middleware;
@@ -319,6 +333,64 @@ describe('Trace', () => {
       jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
       expect(spanEndMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('flushBufferedTraces', () => {
+    const StorageWrapper = jest.requireMock('../store/storage-wrapper');
+    const storageGetItemMock = jest.mocked(StorageWrapper.getItem);
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      discardBufferedTraces();
+
+      const mockSpanEnd = jest.fn();
+      const mockSpan = {
+        end: mockSpanEnd,
+      } as unknown as Span;
+
+      startSpanMock.mockImplementation((_, fn) => fn(mockSpan));
+      startSpanManualMock.mockImplementation((_, fn) =>
+        fn(mockSpan, () => undefined),
+      );
+      withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
+        fn({ setTag: setTagMock } as unknown as Scope),
+      );
+    });
+
+    it('should clear buffer and not process traces when consent is not given', async () => {
+      storageGetItemMock.mockResolvedValue(DENIED);
+
+      bufferedTrace({ name: TraceName.Middleware });
+      bufferedEndTrace({ name: TraceName.Middleware });
+
+      await flushBufferedTraces();
+
+      storageGetItemMock.mockResolvedValue(AGREED);
+      jest.clearAllMocks();
+
+      await flushBufferedTraces();
+
+      // No Sentry functions should be called in second flush since buffer was cleared
+      expect(startSpanManualMock).not.toHaveBeenCalled();
+      expect(withIsolationScopeMock).not.toHaveBeenCalled();
+    });
+
+    it('should flush buffered traces when consent is given', async () => {
+      storageGetItemMock.mockResolvedValue(DENIED);
+
+      bufferedTrace({ name: TraceName.Middleware, id: 'test1' });
+      bufferedTrace({ name: TraceName.NestedTest1, id: 'test2' });
+      bufferedEndTrace({ name: TraceName.Middleware, id: 'test1' });
+      bufferedEndTrace({ name: TraceName.NestedTest1, id: 'test2' });
+
+      storageGetItemMock.mockResolvedValue(AGREED);
+      jest.clearAllMocks();
+
+      await flushBufferedTraces();
+
+      expect(startSpanManualMock).toHaveBeenCalledTimes(2);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
     });
   });
 });

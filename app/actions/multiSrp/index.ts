@@ -16,10 +16,17 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
+import {
+  bufferedEndTrace,
+  bufferedTrace,
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+} from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
@@ -72,18 +79,45 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   const { SeedlessOnboardingController } = Engine.context;
 
+  let discoveredAccountsCount = 0;
+
   // TODO: to use loginCompleted
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
-    await SeedlessOnboardingController.addNewSeedPhraseBackup(
-      seed,
-      newKeyring.id,
-    );
-  }
+    let addSeedPhraseSuccess = false;
+    try {
+      bufferedTrace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+        seed,
+        newKeyring.id,
+      );
+      addSeedPhraseSuccess = true;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
 
-  let discoveredAccountsCount = 0;
+      bufferedTrace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      bufferedEndTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
+      throw error;
+    } finally {
+      bufferedEndTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
+    }
+  }
 
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(

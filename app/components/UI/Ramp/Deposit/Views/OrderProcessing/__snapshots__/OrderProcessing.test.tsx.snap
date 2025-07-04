@@ -1000,6 +1000,32 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 "justifyContent": "center",
                 "paddingHorizontal": 16,
               }
+            >
+              Try again
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 12,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "transparent",
+                    "borderColor": "#4459ff",
+                    "borderWidth": 1,
+                  },
+                  undefined,
+                ],
+                null,
+              ]
             }
           >
             <Text

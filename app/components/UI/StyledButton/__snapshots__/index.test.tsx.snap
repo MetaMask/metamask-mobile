@@ -91,7 +91,7 @@ exports[`StyledButton should render correctly on Android the button with type in
           "padding": 15,
         },
         {
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "transparent",
           "borderColor": "#4459ff",
           "borderWidth": 1,
         },
@@ -378,7 +378,7 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
         "padding": 15,
       },
       {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "transparent",
         "borderColor": "#4459ff",
         "borderWidth": 1,
       },
