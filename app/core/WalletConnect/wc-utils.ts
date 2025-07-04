@@ -334,6 +334,4 @@ export const hasPermissionsToSwitchChainRequest = async (
 export const getRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string
-) => {
-  return request.verifyContext?.verified?.origin ?? defaultOrigin
-}
+) => request.verifyContext?.verified?.origin ?? defaultOrigin
