@@ -99,6 +99,7 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import ProtectYourWallet from '../../Views/Settings/SecuritySettings/Sections/ProtectYourWallet/ProtectYourWallet';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
@@ -396,6 +397,11 @@ const SettingsFlow = () => (
       name="ResetPassword"
       component={ResetPassword}
       options={ResetPassword.navigationOptions}
+    />
+    <Stack.Screen
+      name="WalletRecovery"
+      component={ProtectYourWallet}
+      options={ProtectYourWallet.navigationOptions}
     />
     <Stack.Screen
       name="AccountBackupStep1B"

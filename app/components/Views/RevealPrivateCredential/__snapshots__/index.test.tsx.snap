@@ -356,7 +356,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -774,7 +774,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -1367,7 +1367,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -1960,7 +1960,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },

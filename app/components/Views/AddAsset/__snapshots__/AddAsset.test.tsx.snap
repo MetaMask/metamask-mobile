@@ -362,7 +362,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },

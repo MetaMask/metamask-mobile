@@ -8,6 +8,8 @@ import {
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+import ReduxService from '../../core/redux/ReduxService';
+import { RootState } from '../../reducers';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -41,6 +43,23 @@ const mockSnapClient = {
   addDiscoveredAccounts: mockAddDiscoveredAccounts,
 };
 
+const createMockState = (hasVault: boolean) => ({
+  engine: {
+    backgroundState: {
+      SeedlessOnboardingController: {
+        vault: hasVault ? 'encrypted-vault-data' : undefined,
+        socialBackupsMetadata: [],
+      },
+    },
+  },
+});
+
+jest.mock('../../core/redux/ReduxService', () => ({
+  store: {
+    getState: () => ({}),
+  },
+}));
+
 jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../../core/SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {
@@ -61,6 +80,9 @@ jest.mock('../../core/Engine', () => ({
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
       getAccountByAddress: () => mockGetAccountByAddress(),
     },
+    SeedlessOnboardingController: {
+      addNewSeedPhraseBackup: jest.fn().mockResolvedValue(undefined),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
@@ -75,7 +97,7 @@ const testMnemonic =
 
 describe('MultiSRP Actions', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
@@ -107,6 +129,24 @@ describe('MultiSRP Actions', () => {
       ).rejects.toThrow('This mnemonic has already been imported.');
 
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
+    });
+
+    it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+
+      jest
+        .spyOn(ReduxService.store, 'getState')
+        .mockReturnValue(createMockState(true) as unknown as RootState);
+
+      await importNewSecretRecoveryPhrase(testMnemonic);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.addNewSeedPhraseBackup,
+      ).toHaveBeenCalledWith(expect.any(Uint8Array), 'test-keyring-id');
     });
   });
 
