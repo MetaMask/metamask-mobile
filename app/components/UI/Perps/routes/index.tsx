@@ -8,7 +8,7 @@ const Stack = createStackNavigator();
 const PerpsScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name={Routes.PERPS.ROOT}
+      name={Routes.PERPS.TRADING_VIEW}
       component={PerpsView}
       options={{
         title: 'Perps Trading',
