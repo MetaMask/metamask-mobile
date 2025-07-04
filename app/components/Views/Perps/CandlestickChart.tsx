@@ -75,6 +75,72 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.muted,
       fontSize: 12,
     },
+    // Grid line styles
+    gridLine: {
+      color: colors.border.muted,
+      opacity: 0.6,
+    },
+    majorGridLine: {
+      color: colors.border.muted,
+      opacity: 0.8,
+    },
+    gridContainer: {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1,
+      pointerEvents: 'none' as const,
+    },
+    gridLineWithLabel: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+    },
+    gridLineBar: {
+      flex: 1,
+      height: 1,
+    },
+    gridPriceLabel: {
+      position: 'absolute' as const,
+      right: 4,
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderRadius: 4,
+      minWidth: 60,
+    },
+    gridPriceLabelText: {
+      fontSize: 10,
+      fontWeight: '600' as const,
+      color: colors.text.muted,
+      textAlign: 'right' as const,
+      textShadowColor: colors.background.default,
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 2,
+    },
+    // Tooltip styling
+    tooltipContainer: {
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      shadowColor: colors.shadow.default,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    tooltipText: {
+      color: colors.text.default,
+      fontSize: 12,
+      fontWeight: '600' as const,
+    },
+    tooltipDateText: {
+      color: colors.text.muted,
+      fontSize: 10,
+      marginTop: 2,
+    },
   };
 };
 
@@ -101,6 +167,38 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       close: parseFloat(candle.close),
     }));
   }, [candleData]);
+
+  // Calculate evenly spaced horizontal lines with better visibility
+  const gridLines = React.useMemo(() => {
+    if (transformedData.length === 0) return [];
+
+    const prices = transformedData.flatMap((d) => [
+      d.open,
+      d.high,
+      d.low,
+      d.close,
+    ]);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceRange = maxPrice - minPrice;
+
+    // Create 6 horizontal grid lines (including top and bottom)
+    const gridLineCount = 6;
+    const lines = [];
+
+    for (let i = 0; i < gridLineCount; i++) {
+      const price = minPrice + (priceRange * i) / (gridLineCount - 1);
+      const isEdgeLine = i === 0 || i === gridLineCount - 1;
+
+      lines.push({
+        price: price,
+        isEdge: isEdgeLine,
+        position: (i / (gridLineCount - 1)) * (height - 120), // Direct pixel positioning
+      });
+    }
+
+    return lines;
+  }, [transformedData, height]);
 
   if (isLoading) {
     return (
@@ -134,41 +232,71 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     <View style={[styles.container, { height }]}>
       <CandlestickChart.Provider data={transformedData}>
         <View style={styles.chartContainer}>
-          {/* Interactive Price Label */}
-          <View style={styles.priceLabel}>
-            <CandlestickChart.PriceText
-              style={styles.priceText}
-              format={({ value }) => `$${Number(value).toFixed(2)}`}
-            />
-          </View>
+          {/* Chart with Custom Grid Lines */}
+          <View style={{ position: 'relative' }}>
+            {/* Custom Horizontal Grid Lines */}
+            <View style={styles.gridContainer}>
+              {gridLines.map((line, index) => (
+                <View
+                  key={`grid-${index}`}
+                  style={{
+                    position: 'absolute',
+                    top: line.position,
+                    left: 0,
+                    right: 60, // Leave space for price label
+                    height: line.isEdge ? 2 : 1,
+                    backgroundColor: line.isEdge
+                      ? styles.majorGridLine.color
+                      : styles.gridLine.color,
+                    opacity: line.isEdge
+                      ? styles.majorGridLine.opacity
+                      : styles.gridLine.opacity,
+                  }}
+                />
+              ))}
 
-          {/* Main Candlestick Chart */}
-          <CandlestickChart
-            height={height - 120} // Account for labels and padding
-            width={chartWidth}
-          >
-            <CandlestickChart.Candles
-              positiveColor="#00D68F" // Green for positive candles
-              negativeColor="#FF6B6B" // Red for negative candles
-            />
-            <CandlestickChart.Crosshair>
-              <CandlestickChart.Tooltip />
-            </CandlestickChart.Crosshair>
-          </CandlestickChart>
+              {/* Price Labels */}
+              {gridLines.map((line, index) => (
+                <View
+                  key={`label-${index}`}
+                  style={{
+                    position: 'absolute',
+                    top: line.position - 8, // Center the label on the line
+                    right: 4,
+                    paddingHorizontal: 4,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    minWidth: 50,
+                  }}
+                >
+                  <Text style={styles.gridPriceLabelText}>
+                    ${Number(line.price).toFixed(2)}
+                  </Text>
+                </View>
+              ))}
+            </View>
 
-          {/* Interactive Date Label */}
-          <View style={styles.dateLabel}>
-            <CandlestickChart.DatetimeText
-              style={styles.dateText}
-              locale="en-US"
-              options={{
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              }}
-            />
+            {/* Main Candlestick Chart */}
+            <CandlestickChart
+              height={height - 120} // Account for labels and padding
+              width={chartWidth}
+            >
+              {/* Candlestick Data */}
+              <CandlestickChart.Candles
+                positiveColor="#00D68F" // Green for positive candles
+                negativeColor="#FF6B6B" // Red for negative candles
+              />
+
+              {/* Interactive Crosshair */}
+              <CandlestickChart.Crosshair>
+                <CandlestickChart.Tooltip
+                  style={styles.tooltipContainer}
+                  tooltipTextProps={{
+                    style: styles.tooltipText,
+                  }}
+                />
+              </CandlestickChart.Crosshair>
+            </CandlestickChart>
           </View>
         </View>
       </CandlestickChart.Provider>

@@ -225,53 +225,53 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
     // Fetch historical data first
     fetchHistoricalData();
 
-    // Check connection status periodically and subscribe when connected
-    let connectionStableTime = 0;
-    const statusInterval = setInterval(() => {
-      const connected = ws.getConnectionStatus();
-      setIsConnected(connected);
+    // // Check connection status periodically and subscribe when connected
+    // let connectionStableTime = 0;
+    // const statusInterval = setInterval(() => {
+    //   const connected = ws.getConnectionStatus();
+    //   setIsConnected(connected);
 
-      // Track how long the connection has been stable
-      if (connected) {
-        connectionStableTime += 1000;
-      } else {
-        connectionStableTime = 0;
-      }
+    //   // Track how long the connection has been stable
+    //   if (connected) {
+    //     connectionStableTime += 1000;
+    //   } else {
+    //     connectionStableTime = 0;
+    //   }
 
-      // Subscribe to candle data once connected and stable for 2 seconds
-      if (
-        connected &&
-        position &&
-        !candleSubscribedRef.current &&
-        connectionStableTime >= 2000
-      ) {
-        Logger.log(
-          'HyperliquidWebSocket: Connection stable, subscribing directly to candle data for',
-          position.assetSymbol,
-        );
+    //   // Subscribe to candle data once connected and stable for 2 seconds
+    //   if (
+    //     connected &&
+    //     position &&
+    //     !candleSubscribedRef.current &&
+    //     connectionStableTime >= 2000
+    //   ) {
+    //     Logger.log(
+    //       'HyperliquidWebSocket: Connection stable, subscribing directly to candle data for',
+    //       position.assetSymbol,
+    //     );
 
-        // Subscribe directly to candle data - no test needed
-        ws.subscribeToCandleData(
-          position.assetSymbol,
-          '1h',
-          (updatedCandleData) => {
-            Logger.log(
-              'HyperliquidWebSocket: Received candle update:',
-              updatedCandleData,
-            );
-            // Update the full candle data
-            setCandleData(updatedCandleData);
-          },
-        );
+    //     // Subscribe directly to candle data - no test needed
+    //     ws.subscribeToCandleData(
+    //       position.assetSymbol,
+    //       '1h',
+    //       (updatedCandleData) => {
+    //         Logger.log(
+    //           'HyperliquidWebSocket: Received candle update:',
+    //           updatedCandleData,
+    //         );
+    //         // Update the full candle data
+    //         setCandleData(updatedCandleData);
+    //       },
+    //     );
 
-        candleSubscribedRef.current = true;
-      }
-    }, 1000);
+    //     candleSubscribedRef.current = true;
+    //   }
+    // }, 1000);
 
-    return () => {
-      clearInterval(statusInterval);
-      ws.disconnect();
-    };
+    // return () => {
+    //   clearInterval(statusInterval);
+    //   ws.disconnect();
+    // };
   }, [position]);
 
   if (!position) {
