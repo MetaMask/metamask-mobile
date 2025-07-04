@@ -82,7 +82,7 @@ export const SmartAccountUpdateSplash = () => {
     selectSmartAccountOptInForAccounts,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<Hex[]>(() => {
-    if (selectSmartAccountOptInForAccounts?.length) {
+    if (smartAccountOptInForAccounts?.length) {
       return smartAccountOptInForAccounts;
     }
     return accounts.map(({ address }) => address as Hex);
