@@ -25,7 +25,7 @@ import FixtureBuilder, {
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 
 describe(
-  SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
+  SmokeIdentity('Account syncing - Accounts with Balances'),
   () => {
     let sharedUserStorageController: UserStorageMockttpController;
 

@@ -21,7 +21,7 @@ import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
 import CommonView from '../../../pages/CommonView.js';
 
 describe(
-  SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
+  SmokeIdentity('Account syncing - Setting'),
   () => {
     let sharedUserStorageController: UserStorageMockttpController;
 
