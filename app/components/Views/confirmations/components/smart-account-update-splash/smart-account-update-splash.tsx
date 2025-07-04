@@ -98,7 +98,7 @@ export const SmartAccountUpdateSplash = () => {
     if (selectedAddresses?.length === 0 && accounts?.length) {
       setSelectedAddresses(accounts.map(({ address }) => address as Hex));
     }
-  }, [accounts]);
+  }, [accounts, selectedAddresses, setSelectedAddresses]);
 
   const onUpgradeReject = useCallback(() => {
     const serializedError = serializeError(
