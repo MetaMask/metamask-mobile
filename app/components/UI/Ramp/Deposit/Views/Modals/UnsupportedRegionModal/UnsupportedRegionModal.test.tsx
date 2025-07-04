@@ -7,6 +7,10 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
+const mockPop = jest.fn();
+const mockDangerouslyGetParent = jest.fn(() => ({
+  pop: mockPop,
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -15,6 +19,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      dangerouslyGetParent: mockDangerouslyGetParent,
     }),
   };
 });
@@ -24,28 +29,6 @@ jest.mock('../../../sdk', () => ({
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-  createNavigationDetails: jest.fn((params: Record<string, unknown>) => [
-    'DepositModals',
-    'DepositUnsupportedRegionModal',
-    params,
-  ]),
-}));
-
-jest.mock('../RegionSelectorModal', () => ({
-  createRegionSelectorModalNavigationDetails: jest.fn(() => [
-    'DepositModals',
-    'DepositRegionSelectorModal',
-    {},
-  ]),
-}));
-
-jest.mock('../../../../utils/withRampAndDepositSDK', () =>
-  jest.fn((Component) => (props: Record<string, unknown>) => (
-    <Component {...props} />
-  )),
-);
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -74,7 +57,7 @@ describe('UnsupportedRegionModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to buy screen when Buy Crypto button is pressed', () => {
+  it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'BR',
@@ -97,6 +80,9 @@ describe('UnsupportedRegionModal', () => {
 
     const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
+
+    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockPop).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
   });
 
@@ -126,11 +112,9 @@ describe('UnsupportedRegionModal', () => {
     const changeRegionButton = getByText('Change region');
     fireEvent.press(changeRegionButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'DepositModals',
-      'DepositRegionSelectorModal',
-      {},
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositRegionSelectorModal',
+    });
   });
 
   it('handles missing region gracefully', () => {

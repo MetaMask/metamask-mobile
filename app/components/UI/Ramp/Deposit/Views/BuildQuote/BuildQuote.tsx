@@ -174,7 +174,7 @@ const BuildQuote = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!selectedRegion?.supported) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
             ...createUnsupportedRegionModalNavigationDetails(),
@@ -536,7 +536,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
