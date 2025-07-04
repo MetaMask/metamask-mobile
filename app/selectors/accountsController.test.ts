@@ -4,7 +4,6 @@ import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import {
   BtcAccountType,
   EthAccountType,
-  EthScope,
   BtcMethod,
   EthMethod,
   SolMethod,
@@ -27,12 +26,11 @@ import {
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid,
-  expectedUuid2,
   internalAccount1,
   MOCK_ADDRESS_2,
   createMockInternalAccount,
   createMockUuidFromAddress,
+  internalAccount2,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { AGREED } from '../constants/storage';
@@ -97,33 +95,13 @@ describe('Accounts Controller Selectors', () => {
             },
           },
         } as RootState),
-      ).toEqual({
-        address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-        id: expectedUuid2,
-        options: {},
-        scopes: [EthScope.Eoa],
-        metadata: {
-          name: 'Account 2',
-          importTime: 1684232000456,
-          keyring: {
-            type: 'HD Key Tree',
-          },
-        },
-        methods: [
-          'personal_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        type: EthAccountType.Eoa,
-      });
+      ).toEqual(internalAccount2);
     });
     it('throws an error if the selected account ID does not exist', () => {
       const invalidState: AccountsControllerState = {
         internalAccounts: {
           accounts: {
-            [expectedUuid]: internalAccount1,
+            [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
         },
