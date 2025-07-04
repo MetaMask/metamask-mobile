@@ -35,6 +35,7 @@ const Routes = {
     PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
+    BANK_DETAILS: 'BankDetails',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
@@ -91,6 +92,7 @@ const Routes = {
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
+    OPTIN_METRICS: 'OptinMetrics',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

@@ -11,8 +11,15 @@ const styleSheet = () =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    buttonContainer: {
+    bottomContainer: {
       gap: 16,
+    },
+    buttonsContainer: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    button: {
+      flex: 1,
     },
   });
 
