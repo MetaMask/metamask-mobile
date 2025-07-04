@@ -59,7 +59,7 @@ export const AppleWebClientId = 'io.metamask.appleloginclient.uat';
 
 // export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 // use app deeplink for now, wait for applink to be updated
-export const AppRedirectUri = `${PREFIXES.METAMASK}/${ACTIONS.OAUTH_REDIRECT}`;
+export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
 export enum SupportedPlatforms {

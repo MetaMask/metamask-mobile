@@ -11,10 +11,11 @@ import {
   AuthConnectionConfig,
 } from './constants';
 
+const mockAppRedirectUri = 'metamask://oauth-redirect';
 describe('OAuth Constants', () => {
   describe('AppRedirectUri', () => {
     it('should generate correct redirect URI', () => {
-      expect(AppRedirectUri).toBe('https://metamask.app.link/oauth-redirect');
+      expect(AppRedirectUri).toBe(mockAppRedirectUri);
     });
   });
 
