@@ -49,13 +49,10 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
 
-export const IosGID =
-  '387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4.apps.googleusercontent.com';
-export const IosGoogleRedirectUri =
-  'com.googleusercontent.apps.387141446914-5ja3p4dfanfkm8uq238fm1b8t1rkscv4:/oauth2redirect/google';
-export const AndroidGoogleWebGID =
-  '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com';
-export const AppleWebClientId = 'io.metamask.appleloginclient.uat';
+export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
+export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
+export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 // export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 // use app deeplink for now, wait for applink to be updated
