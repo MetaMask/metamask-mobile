@@ -161,3 +161,34 @@ index e16e91f..3168b35 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+index 718ba19..d6955cd 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+@@ -558,10 +558,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+                     asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
+                 },
+             });
+-            await this.messagingSystem.call('TokensController:addDetectedTokens', tokensWithBalance, {
+-                selectedAddress,
+-                chainId,
+-            });
++            await this.messagingSystem.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+         }
+     });
+ }, _TokenDetectionController_getSelectedAccount = function _TokenDetectionController_getSelectedAccount() {
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
+index 4acb8f6..bf4da2a 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
+@@ -39,6 +39,10 @@ export type TokensControllerAddDetectedTokensAction = {
+     type: `${typeof controllerName}:addDetectedTokens`;
+     handler: TokensController['addDetectedTokens'];
+ };
++export type TokensControllerAddTokensAction = {
++    type: `${typeof controllerName}:addTokens`;
++    handler: TokensController['addTokens'];
++};
+ /**
+  * The external actions available to the {@link TokensController}.
+  */
