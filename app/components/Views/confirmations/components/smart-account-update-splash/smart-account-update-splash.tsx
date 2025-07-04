@@ -79,12 +79,15 @@ export const SmartAccountUpdateSplash = () => {
   const [isAccountSelectionVisible, setShowAccountSelection] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
   const { ensByAccountAddress, evmAccounts: accounts } = useAccounts();
-  const [selectedAddresses, setSelectedAddresses] = useState<Hex[]>(
-    accounts.map(({ address }) => address as Hex),
-  );
   const smartAccountOptInForAccounts = useSelector(
     selectSmartAccountOptInForAccounts,
   );
+  const [selectedAddresses, setSelectedAddresses] = useState<Hex[]>(() => {
+    if (selectSmartAccountOptInForAccounts?.length) {
+      return smartAccountOptInForAccounts;
+    }
+    return accounts.map(({ address }) => address as Hex);
+  });
   const smartAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
     txParams: { from },
