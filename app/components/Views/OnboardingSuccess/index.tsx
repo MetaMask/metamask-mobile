@@ -33,6 +33,7 @@ import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { isE2E } from '../../../util/test/utils';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -93,6 +94,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                 loop
                 source={SearchingFox}
                 resizeMode="contain"
+                speed={isE2E ? 0 : 1}
               />
             </View>
             <View style={styles.descriptionWrapper}>
@@ -130,6 +132,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                 loop
                 source={SearchingFox}
                 resizeMode="contain"
+                speed={isE2E ? 0 : 1}
               />
             </View>
             <View style={styles.descriptionWrapper}>
@@ -158,6 +161,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                 loop
                 source={CelebratingFox}
                 resizeMode="contain"
+                speed={isE2E ? 0 : 1}
               />
             </View>
             <View style={styles.descriptionWrapper}>

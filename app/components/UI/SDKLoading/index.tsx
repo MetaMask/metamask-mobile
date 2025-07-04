@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
+import { isE2E } from '../../../util/test/utils';
 
 const animationSize = Device.getDeviceWidth() / 2;
 
@@ -56,6 +57,7 @@ export const SDKLoading = () => {
           autoPlay
           loop
           source={animatedLogo}
+          speed={isE2E ? 0 : 1}
         />
       </View>
     </View>

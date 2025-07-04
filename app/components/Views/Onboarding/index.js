@@ -49,6 +49,7 @@ import Button, {
 
 import fox from '../../../animations/Searching_Fox.json';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { isE2E } from '../../../util/test/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -426,6 +427,7 @@ class Onboarding extends PureComponent {
             loop
             source={fox}
             resizeMode="contain"
+            speed={isE2E ? 0 : 1}
           />
         </View>
 
@@ -521,6 +523,7 @@ class Onboarding extends PureComponent {
                   loop
                   source={fox}
                   resizeMode="contain"
+                  speed={isE2E ? 0 : 1}
                 />
               </View>
             )}

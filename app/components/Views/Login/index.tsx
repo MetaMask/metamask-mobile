@@ -90,6 +90,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../reducers';
+import { isE2E } from '../../../util/test/utils';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -454,6 +455,7 @@ const Login: React.FC = () => {
                 loop
                 source={lottieSrc}
                 resizeMode="contain"
+                speed={isE2E ? 0 : 1}
               />
             </TouchableOpacity>
 

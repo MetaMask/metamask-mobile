@@ -73,6 +73,7 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { isE2E } from '../../../util/test/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -620,6 +621,7 @@ class ChoosePassword extends PureComponent {
                 loop
                 source={fox}
                 resizeMode="contain"
+                speed={isE2E ? 0 : 1}
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
