@@ -50,7 +50,10 @@ process.browser = false;
 if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
-if (typeof global.EventTarget === 'undefined' || typeof global.Event === 'undefined') {
+if (
+  typeof global.EventTarget === 'undefined' ||
+  typeof global.Event === 'undefined'
+) {
   const { Event, EventTarget } = require('event-target-shim');
   global.EventTarget = EventTarget;
   global.Event = Event;
@@ -65,7 +68,7 @@ if (typeof global.CustomEvent === 'undefined') {
   };
 }
 
-if (typeof global.AbortSignal.timeout === 'undefined') {
+if (global.AbortSignal && typeof global.AbortSignal.timeout === 'undefined') {
   global.AbortSignal.timeout = function (delay) {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), delay);
