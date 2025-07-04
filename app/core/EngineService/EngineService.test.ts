@@ -36,13 +36,16 @@ jest.mock('../Engine', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let instance: any;
 
+  // default mock controller messenger for module loading time access
+  const mockControllerMessenger = {
+    subscribe: jest.fn(),
+    subscribeOnceIf: jest.fn(),
+  };
+
   const mockEngine = {
     init: (_: unknown, keyringState: KeyringControllerState) => {
       instance = {
-        controllerMessenger: {
-          subscribe: jest.fn(),
-          subscribeOnceIf: jest.fn(),
-        },
+        controllerMessenger: mockControllerMessenger,
         context: {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {
@@ -94,10 +97,8 @@ jest.mock('../Engine', () => {
       return instance.context;
     },
     get controllerMessenger() {
-      if (!instance) {
-        throw new Error('Engine does not exist');
-      }
-      return instance.controllerMessenger;
+      // Return default messenger for module loading time access
+      return instance ? instance.controllerMessenger : mockControllerMessenger;
     },
     destroyEngine: jest.fn(async () => {
       instance = null;
