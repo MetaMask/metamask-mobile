@@ -162,26 +162,24 @@ const CustomNetworks = {
     },
   },
   MegaTestnet: {
-    providerConfig: {
-      type: 'rpc',
-      chainId: toHex(6342),
-      rpcUrl: 'https:/carrot.megaeth.com/rpc',
-      nickname: 'MegaETH Testnet',
-      ticker: 'ETH',
-      walletName: 'Ethereum',
-      BlockExplorerUrl: 'https://testnet.megaeth.com/',
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x18c6',
+        rpcUrl: 'https://carrot.megaeth.com/rpc',
+        nickname: 'Mega Testnet',
+        ticker: 'MegaETH',
+        BlockExplorerUrl: 'https://megaexplorer.xyz/',
+      },
     },
-  },
-  MonadTestnet: {
-    providerConfig: {
-      type: 'rpc',
-      chainId: toHex(10143),
-      rpcUrl: 'https://testnet-rpc.monad.xyz/',
-      nickname: 'Monad Testnet',
-      ticker: 'ETH',
-      walletName: 'Ethereum',
-      BlockExplorerUrl: 'https://testnet.monadexplorer.com/',
+    MonadTestnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x279f',
+        rpcUrl: 'https://testnet-rpc.monad.xyz/',
+        nickname: 'Monad Testnet',
+        ticker: 'MON',
+        BlockExplorerUrl: 'https://testnet.monadexplorer.com',
+      },
     },
-  },
 };
 export { CustomNetworks, PopularNetworksList };
