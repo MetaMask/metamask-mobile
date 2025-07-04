@@ -824,18 +824,30 @@ const App: React.FC = () => {
           );
 
           if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            });
+            console.log('navigating to OptinMetrics', isMetaMetricsUISeen);
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
+                },
+              ],
+            };
+            console.log('reset params:', JSON.stringify(resetParams, null, 2));
+            navigation.reset(resetParams);
           } else {
+            console.log('navigating to HOME_NAV', isMetaMetricsUISeen);
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
             });
           }
         } else {
+          console.log('navigating to ROOT_NAV, no existing user');
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
