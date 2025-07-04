@@ -4,7 +4,6 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -26,6 +25,12 @@ import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity
 import { useDepositSDK } from '../../sdk';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
+import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
@@ -225,18 +230,18 @@ const OtpCode = () => {
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleSubmit}
-            accessibilityRole="button"
-            accessible
-            disabled={loading || value.length !== CELL_COUNT}
-          >
-            {loading
-              ? strings('deposit.otp_code.loading')
-              : strings('deposit.otp_code.submit_button')}
-          </StyledButton>
+            label={strings('deposit.otp_code.submit_button')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            loading={loading}
+            isDisabled={loading || value.length !== CELL_COUNT}
+            testID="otp-code-submit-button"
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
