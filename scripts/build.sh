@@ -402,10 +402,14 @@ buildIosDeviceFlask(){
 # Generates the 
 generateIosBinary() {
 	scheme="$1"
-	configuration="${2:-Release}"
+	configuration="${2:-"Release"}"
 
 	if [ "$scheme" = "MetaMask-QA" ] ; then
-		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+		if [ "$configuration" = "Debug" ] ; then
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
+		else
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+		fi
 	elif [ "$scheme" = "MetaMask-Flask" ] ; then
 		if [ "$configuration" = "Debug" ] ; then
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
