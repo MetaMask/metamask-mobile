@@ -20,11 +20,6 @@ import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
-  const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    };
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -85,6 +80,12 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
     it(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
+      const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
       await withFixtures(
         {
           dapp: true,
