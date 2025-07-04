@@ -67,9 +67,13 @@ export const BaseAccountDetails = ({
     });
   }, [navigation, account]);
 
-  const handleEditWalletName = useCallback(() => {
+  const handleWalletClick = useCallback(() => {
+    if (!wallet) {
+      return;
+    }
+
     navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
-      walletId: wallet?.id,
+      walletId: wallet.id,
     });
   }, [navigation, wallet]);
 
@@ -158,7 +162,7 @@ export const BaseAccountDetails = ({
           </Text>
           <TouchableOpacity
             testID={AccountDetailsIds.WALLET_NAME_LINK}
-            onPress={handleEditWalletName}
+            onPress={handleWalletClick}
           >
             <Box
               flexDirection={FlexDirection.Row}
