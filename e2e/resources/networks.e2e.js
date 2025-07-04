@@ -161,5 +161,27 @@ const CustomNetworks = {
       BlockExplorerUrl: 'https://hoodi.etherscan.io/',
     },
   },
+  MegaTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: toHex(6342),
+      rpcUrl: 'https:/carrot.megaeth.com/rpc',
+      nickname: 'MegaETH Testnet',
+      ticker: 'ETH',
+      walletName: 'Ethereum',
+      BlockExplorerUrl: 'https://testnet.megaeth.com/',
+    },
+  },
+  MonadTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: toHex(10143),
+      rpcUrl: 'https://testnet-rpc.monad.xyz/',
+      nickname: 'Monad Testnet',
+      ticker: 'ETH',
+      walletName: 'Ethereum',
+      BlockExplorerUrl: 'https://testnet.monadexplorer.com/',
+    },
+  },
 };
 export { CustomNetworks, PopularNetworksList };
