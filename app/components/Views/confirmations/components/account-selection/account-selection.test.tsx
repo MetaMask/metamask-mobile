@@ -1,27 +1,14 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 
+import { Account } from '../../../../hooks/useAccounts';
+import { AccountSelection } from './account-selection';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import {
-  getAppStateForConfirmation,
-  upgradeAccountConfirmation,
-} from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
-import * as ConfirmationReducerActions from '../../../../../actions/confirmations';
-// eslint-disable-next-line import/no-namespace
-import * as ConfirmationActions from '../../hooks/useConfirmActions';
-// eslint-disable-next-line import/no-namespace
-import * as AddressUtils from '../../../../../util/address';
-import { SmartAccountUpdateSplash } from './account-selection';
-import { useDispatch } from 'react-redux';
-
-jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
-  AssetPollingProvider: () => null,
-}));
-
-jest.mock('../../../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
-}));
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { getAllByTestId, getByRole } from '@testing-library/react';
+import { Hex } from '@metamask/utils';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -33,91 +20,139 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
-}));
+const mockAccounts = [
+  {
+    id: '94b520b3-a0c9-4cbd-a689-441a01630331',
+    name: 'Account 1',
+    address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+    type: 'HD Key Tree',
+    isSelected: false,
+    assets: { fiatBalance: '$ 0.26\n1.00003 ETH' },
+  },
+  {
+    id: '023043ce-6c62-4cab-bf91-8939553a68f2',
+    name: 'Account 2',
+    address: '0x089595380921f555d52AB6f5a49defdAaB23B444',
+    type: 'HD Key Tree',
+    isSelected: true,
+    assets: { fiatBalance: '$ 0.09\n0.00003 ETH' },
+  },
+  {
+    id: '3fb381cd-76e5-4edb-81f4-b5133b115a8e',
+    name: 'Account 3',
+    address: '0xa4A80ce0AFDfb8E6bd1221D3b18a1653EEE6d19d',
+    type: 'HD Key Tree',
+    isSelected: false,
+    assets: { fiatBalance: '$ 0.10\n0.00004 ETH' },
+  },
+];
 
-const renderComponent = (state?: Record<string, unknown>) =>
-  renderWithProvider(<SmartAccountUpdateSplash />, {
-    state:
-      state ??
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: false },
-      }),
-  });
+const createInternalAccount = (account: Account) =>
+  createMockInternalAccount(
+    account.address,
+    account.name,
+    account.type as KeyringTypes,
+  ) as InternalAccount;
+
+const mockState = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [mockAccounts[0].id]: createInternalAccount(
+              mockAccounts[0] as Account,
+            ),
+            [mockAccounts[1].id]: createInternalAccount(
+              mockAccounts[1] as Account,
+            ),
+            [mockAccounts[2].id]: createInternalAccount(
+              mockAccounts[2] as Account,
+            ),
+          },
+        },
+      },
+      KeyringController: {
+        keyrings: [],
+      },
+      MultichainNetworkController: {
+        networksWithTransactionActivity: {},
+      },
+    },
+  },
+};
+
+const mockOnClose = jest.fn();
+const mockSetSelectedAddresses = jest.fn();
+
+const renderComponent = (selectedAddresses: Hex[] = []) =>
+  renderWithProvider(
+    <AccountSelection
+      accounts={mockAccounts as Account[]}
+      ensByAccountAddress={{}}
+      onClose={mockOnClose}
+      selectedAddresses={selectedAddresses}
+      setSelectedAddresses={mockSetSelectedAddresses}
+    />,
+    {
+      state: mockState,
+    },
+  );
 
 describe('SmartContractWithLogo', () => {
-  beforeEach(() => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(false);
+  afterEach(() => {
+    mockOnClose.mockClear();
+    mockSetSelectedAddresses.mockClear();
   });
 
   it('renders correctly', () => {
     const { getByText } = renderComponent();
-    expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
+    expect(getByText('Edit Accounts')).toBeTruthy();
+    expect(getByText('Select all')).toBeTruthy();
+    expect(getByText('Account 1')).toBeTruthy();
+    expect(getByText('Account 2')).toBeTruthy();
+    expect(getByText('Account 3')).toBeTruthy();
   });
 
-  it('close after `Yes` button is clicked', () => {
-    const mockDispatch = jest.fn();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    const spyUpgradeSplashPageAcknowledgedForAccount = jest.spyOn(
-      ConfirmationReducerActions,
-      'upgradeSplashPageAcknowledgedForAccount',
-    );
+  it('calls onClose prop when close button is clicked', () => {
+    const { getByTestId, getByText, queryByText } = renderComponent();
 
-    const { getByText, queryByText } = renderComponent();
-    expect(queryByText('Request for')).toBeTruthy();
-    fireEvent.press(getByText('Yes'));
-    expect(mockDispatch).toHaveBeenCalled();
-    expect(spyUpgradeSplashPageAcknowledgedForAccount).toHaveBeenCalled();
-    expect(queryByText('Request for')).toBeNull();
+    fireEvent.press(getByTestId('account_selection_close'));
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('call reject function when `No` button is clicked', () => {
-    const mockOnReject = jest.fn();
-    jest
-      .spyOn(ConfirmationActions, 'useConfirmActions')
-      .mockReturnValue({ onConfirm: jest.fn(), onReject: mockOnReject });
-    const { getByText, queryByText } = renderComponent();
-    expect(queryByText('Request for')).toBeTruthy();
-    fireEvent.press(getByText('No'));
-    expect(mockOnReject).toHaveBeenCalledTimes(1);
+  it('calls mockSetSelectedAddresses with all account when select all is clicked', () => {
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(getByTestId('account_selection_select_all'));
+    expect(mockSetSelectedAddresses).toHaveBeenCalledTimes(1);
+    expect(mockSetSelectedAddresses).toHaveBeenCalledWith([
+      '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+      '0x089595380921f555d52AB6f5a49defdAaB23B444',
+      '0xa4A80ce0AFDfb8E6bd1221D3b18a1653EEE6d19d',
+    ]);
   });
 
-  it('renders null if splash page is already acknowledged for the account', async () => {
-    const mockState = getAppStateForConfirmation(upgradeAccountConfirmation);
-    const { queryByText } = renderComponent({
-      ...mockState,
-      confirmation: {
-        upgradeSplashPageAcknowledgedForAccounts: [
-          upgradeAccountConfirmation.txParams.from,
-        ],
-      },
-    });
+  it('calls mockSetSelectedAddresses with empty array is account were already selected and select all is clicked', () => {
+    const { getAllByTestId } = renderComponent([
+      mockAccounts[0].address as Hex,
+      mockAccounts[1].address as Hex,
+      mockAccounts[2].address as Hex,
+    ]);
 
-    expect(queryByText('Request for')).toBeNull();
+    fireEvent.press(getAllByTestId('account_selection_select_all')[0]);
+    expect(mockSetSelectedAddresses).toHaveBeenCalledTimes(1);
+    expect(mockSetSelectedAddresses).toHaveBeenCalledWith([]);
   });
 
-  it('renders null if preference smartAccountOptIn is true and account is not hardware account', async () => {
-    const { queryByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
+  it('calls mockSetSelectedAddresses single account when an account checkbox is clicked', () => {
+    const { getAllByTestId } = renderComponent();
 
-    expect(queryByText('Request for')).toBeNull();
-  });
-
-  it('does not renders null if preference smartAccountOptIn is true and but account is hardware account', async () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
-    const { getByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
-
-    expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
+    fireEvent.press(getAllByTestId('cellmultiselect')[0]);
+    expect(mockSetSelectedAddresses).toHaveBeenCalledTimes(1);
+    expect(mockSetSelectedAddresses).toHaveBeenCalledWith([
+      mockAccounts[0].address,
+    ]);
   });
 });

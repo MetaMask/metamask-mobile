@@ -1,23 +1,23 @@
 import React, { useCallback, useMemo } from 'react';
+import { Hex } from '@metamask/utils';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import Checkbox from '../../../../../component-library/components/Checkbox';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import EvmAccountSelectorList from '../../../../UI/EvmAccountSelectorList';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { Account, EnsByAccountAddress } from '../../../../hooks/useAccounts';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './account-selection.styles';
-import { Hex } from '@metamask/utils';
-import Checkbox from '../../../../../component-library/components/Checkbox';
 
 export const AccountSelection = ({
   accounts,
@@ -75,6 +75,7 @@ export const AccountSelection = ({
         onPress={onClose}
         size={ButtonIconSizes.Md}
         style={styles.edit}
+        testID="account_selection_close"
       />
       <View style={styles.selectAllWrapper}>
         <Checkbox
@@ -85,6 +86,7 @@ export const AccountSelection = ({
             selectedAddresses.length !== accounts.length
           }
           onPress={handleSelectAllChange}
+          testID="account_selection_select_all"
         />
       </View>
       <EvmAccountSelectorList

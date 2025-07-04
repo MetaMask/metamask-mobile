@@ -154,6 +154,7 @@ export const SmartAccountUpdateSplash = () => {
         onPress={showAccountSelection}
         size={ButtonIconSizes.Md}
         style={styles.edit}
+        testID="open_account_selection"
       />
       <Image source={smartAccountUpdateImage} style={styles.image} />
       <Text variant={TextVariant.HeadingLG} style={styles.title}>
