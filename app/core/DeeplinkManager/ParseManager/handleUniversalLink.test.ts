@@ -201,7 +201,9 @@ describe('handleUniversalLinks', () => {
 
         expect(handled).toHaveBeenCalled();
         expect(mockHandleSwap).toHaveBeenCalledWith(
-          `${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`,
+          {
+            swapPath:`${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`
+          },
         );
       });
     });
