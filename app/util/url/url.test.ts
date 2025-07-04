@@ -127,13 +127,8 @@ describe('URL Check Functions', () => {
 
   describe('getHostname', () => {
     it('returns hostname for standard HTTPS URLs', () => {
-      // Arrange
       const url = 'https://www.google.com';
-
-      // Act
       const result = getHostname(url);
-
-      // Assert
       expect(result).toBe('www.google.com');
     });
 
@@ -163,13 +158,8 @@ describe('URL Check Functions', () => {
     });
 
     it('returns empty string for empty input', () => {
-      // Arrange
       const emptyString = '';
-
-      // Act
       const result = getHostname(emptyString);
-
-      // Assert
       expect(result).toBe('');
     });
 
