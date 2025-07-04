@@ -1,34 +1,38 @@
 import { StyleSheet } from 'react-native';
+import { Colors } from '../../../util/theme/models';
 
-export const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.overlay.default,
       justifyContent: 'center',
       alignItems: 'center',
     },
     container: {
       backgroundColor: colors.background.default,
-      borderRadius: 12,
-      margin: 24,
+      borderRadius: 8,
+      padding: 24,
+      margin: 16,
       maxWidth: 400,
       width: '100%',
     },
     content: {
-      padding: 24,
+      alignItems: 'center',
     },
     title: {
-      textAlign: 'center',
       marginBottom: 16,
+      textAlign: 'center',
     },
     description: {
-      textAlign: 'center',
       marginBottom: 24,
+      textAlign: 'center',
       lineHeight: 20,
     },
     buttonContainer: {
       flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
       gap: 12,
     },
     declineButton: {
@@ -37,4 +41,6 @@ export const createStyles = (colors: any) =>
     consentButton: {
       flex: 1,
     },
-  }); 
+  });
+
+export { createStyles }; 

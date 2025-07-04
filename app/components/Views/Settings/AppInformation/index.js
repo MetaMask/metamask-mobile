@@ -192,14 +192,12 @@ export default class AppInformation extends PureComponent {
   handleConsent = async () => {
     try {
       const supportUrl = await getSupportUrl(true);
-      console.log('User consented - Opening support URL with parameters:', supportUrl);
       this.setState({ showConsentModal: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     } catch (error) {
       console.warn('Error getting support URL with consent:', error);
       // Fallback to base URL
       const supportUrl = await getSupportUrl(false);
-      console.log('User consented but error occurred - Opening fallback URL:', supportUrl);
       this.setState({ showConsentModal: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     }
@@ -208,14 +206,12 @@ export default class AppInformation extends PureComponent {
   handleDecline = async () => {
     try {
       const supportUrl = await getSupportUrl(false);
-      console.log('User declined - Opening support URL without parameters:', supportUrl);
       this.setState({ showConsentModal: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     } catch (error) {
       console.warn('Error getting support URL without consent:', error);
       // Fallback to base URL
       const fallbackUrl = 'https://support.metamask.io';
-      console.log('User declined but error occurred - Opening fallback URL:', fallbackUrl);
       this.setState({ showConsentModal: false });
       this.goTo(fallbackUrl, strings('drawer.metamask_support'));
     }

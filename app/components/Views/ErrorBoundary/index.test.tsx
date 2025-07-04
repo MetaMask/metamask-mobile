@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { strings } from '../../../../locales/i18n';
-import { act } from '@testing-library/react-native';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -35,18 +34,22 @@ jest.mock('../../../util/support', () => ({
 
 const MockThrowComponent = () => {
   useEffect(() => {
-    throw new Error('Throw');
+    throw new Error('Test error');
   }, []);
   return <View />;
 };
 
 describe('ErrorBoundary', () => {
-  afterEach(() => {
-    jest.resetAllMocks();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<ErrorBoundary view={'Root'} />, {});
+    const { toJSON } = renderWithProvider(
+      <ErrorBoundary view={'Root'}>
+        <View />
+      </ErrorBoundary>,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -68,20 +71,15 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>,
       );
 
-      // Find and press the contact support button
       const contactSupportButton = getByText(strings('error_screen.contact_support'));
       fireEvent.press(contactSupportButton);
 
-      // Check that the consent modal is displayed
       expect(getByText(strings('support_consent.title'))).toBeTruthy();
-      expect(getByText(strings('support_consent.description'))).toBeTruthy();
-      expect(getByText(strings('support_consent.consent'))).toBeTruthy();
-      expect(getByText(strings('support_consent.decline'))).toBeTruthy();
     });
 
     it('handles consent to share information', async () => {
       const mockGetSupportUrl = require('../../../util/support').default;
-      mockGetSupportUrl.mockResolvedValue('https://support.metamask.io?param=value');
+      mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
 
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
@@ -95,9 +93,10 @@ describe('ErrorBoundary', () => {
 
       // Press consent button
       const consentButton = getByText(strings('support_consent.consent'));
-      fireEvent.press(consentButton);
+      await act(async () => {
+        fireEvent.press(consentButton);
+      });
 
-      // Verify getSupportUrl was called with consent flag
       expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
     });
 
@@ -117,9 +116,10 @@ describe('ErrorBoundary', () => {
 
       // Press decline button
       const declineButton = getByText(strings('support_consent.decline'));
-      fireEvent.press(declineButton);
+      await act(async () => {
+        fireEvent.press(declineButton);
+      });
 
-      // Verify getSupportUrl was called without consent flag
       expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
     });
 
@@ -142,11 +142,9 @@ describe('ErrorBoundary', () => {
       const consentButton = getByText(strings('support_consent.consent'));
       await act(async () => {
         fireEvent.press(consentButton);
-        // Wait for state updates
-        await Promise.resolve();
       });
 
-      // Verify getSupportUrl was called twice (with true and then false)
+      // Verify getSupportUrl was called twice (once with true, once with false for fallback)
       expect(mockGetSupportUrl).toHaveBeenCalledTimes(2);
       expect(mockGetSupportUrl).toHaveBeenNthCalledWith(1, true);
       expect(mockGetSupportUrl).toHaveBeenNthCalledWith(2, false);

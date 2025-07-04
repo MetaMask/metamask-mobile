@@ -47,14 +47,12 @@ export const useSupportConsent = (
   const handleConsent = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(true);
-      console.log('User consented - Opening support URL with parameters:', supportUrl);
       setShowConsentModal(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     } catch (error) {
       console.warn('Error getting support URL with consent:', error);
       // Fallback to base URL
       const supportUrl = await getSupportUrl(false);
-      console.log('User consented but error occurred - Opening fallback URL:', supportUrl);
       setShowConsentModal(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     }
@@ -63,14 +61,12 @@ export const useSupportConsent = (
   const handleDecline = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(false);
-      console.log('User declined - Opening support URL without parameters:', supportUrl);
       setShowConsentModal(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     } catch (error) {
       console.warn('Error getting support URL without consent:', error);
       // Fallback to base URL
       const fallbackUrl = 'https://support.metamask.io';
-      console.log('User declined but error occurred - Opening fallback URL:', fallbackUrl);
       setShowConsentModal(false);
       onNavigateRef.current(fallbackUrl, titleRef.current);
     }
