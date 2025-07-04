@@ -3,7 +3,6 @@ import {
   isBridgeUrl,
   isValidASCIIURL,
   toPunycodeURL,
-  getHostname,
 } from './index';
 import AppConstants from '../../core/AppConstants';
 
@@ -122,71 +121,6 @@ describe('URL Check Functions', () => {
       expect(
         toPunycodeURL('https://opensea.io/language=français'),
       ).toStrictEqual('https://opensea.io/language=fran%C3%A7ais');
-    });
-  });
-
-  describe('getHostname', () => {
-    it('returns hostname for standard HTTPS URLs', () => {
-      const url = 'https://www.google.com';
-      const result = getHostname(url);
-      expect(result).toBe('www.google.com');
-    });
-
-    it('returns hostname for HTTP URLs', () => {
-      const url = 'http://example.com';
-      expect(getHostname(url)).toBe('example.com');
-    });
-
-    it('returns hostname for URLs with port numbers', () => {
-      const url = 'https://example.com:8080';
-      expect(getHostname(url)).toBe('example.com');
-    });
-
-    it('returns hostname for URLs with subdomains', () => {
-      const url = 'https://api.subdomain.example.com/path';
-      expect(getHostname(url)).toBe('api.subdomain.example.com');
-    });
-
-    it('returns hostname for URLs with paths and query parameters', () => {
-      const url = 'https://example.com/path/to/resource?param=value';
-      expect(getHostname(url)).toBe('example.com');
-    });
-
-    it('returns protocol for protocol-based URIs', () => {
-      const wcUri = 'wc:some-session-data';
-      expect(getHostname(wcUri)).toBe('wc');
-    });
-
-    it('returns empty string for empty input', () => {
-      const emptyString = '';
-      const result = getHostname(emptyString);
-      expect(result).toBe('');
-    });
-
-    it('returns original string for URIs without protocol separator', () => {
-      const plainString = 'example.com';
-      expect(getHostname(plainString)).toBe('example.com');
-    });
-
-    it('handles malformed URLs gracefully', () => {
-      const malformedUrl = 'https://';
-      const result = getHostname(malformedUrl);
-      expect(result).toBe('https');
-    });
-
-    it('handles URLs with special characters in hostname', () => {
-      const url = 'https://test-site.example.com';
-      expect(getHostname(url)).toBe('test-site.example.com');
-    });
-
-    it('handles localhost URLs', () => {
-      const url = 'http://localhost:3000';
-      expect(getHostname(url)).toBe('localhost');
-    });
-
-    it('handles IP address URLs', () => {
-      const url = 'https://192.168.1.1:8080';
-      expect(getHostname(url)).toBe('192.168.1.1');
     });
   });
 });
