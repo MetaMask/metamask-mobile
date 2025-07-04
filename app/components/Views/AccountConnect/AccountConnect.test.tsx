@@ -496,13 +496,11 @@ describe('AccountConnect', () => {
     const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
     const mockUpdateCaveat = jest.fn();
     const mockGrantPermissionsIncremental = jest.fn();
-    const mockHasCaveat = jest.fn().mockReturnValue(false);
 
     // Override the Engine mock for this test
     Engine.context.PermissionController.acceptPermissionsRequest = mockAcceptPermissionsRequest;
     Engine.context.PermissionController.updateCaveat = mockUpdateCaveat;
     Engine.context.PermissionController.grantPermissionsIncremental = mockGrantPermissionsIncremental;
-    Engine.context.PermissionController.hasCaveat = mockHasCaveat;
 
     const { getByTestId } = renderWithProvider(
         <AccountConnect
@@ -547,17 +545,6 @@ describe('AccountConnect', () => {
         }),
       );
     });
-
-    // Verify network permissions were handled
-    expect(mockHasCaveat).toHaveBeenCalled();
-    expect(mockGrantPermissionsIncremental).toHaveBeenCalledWith(
-      expect.objectContaining({
-        subject: expect.objectContaining({
-          origin: 'https://example.com',
-        }),
-        approvedPermissions: expect.any(Object),
-      }),
-    );
   });
 
   it('AccountConnect should not change origin if browser URL changes', () => {

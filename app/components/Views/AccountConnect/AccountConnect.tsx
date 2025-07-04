@@ -94,8 +94,6 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import {
-  Caip25CaveatType,
-  Caip25CaveatValue,
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
@@ -110,7 +108,6 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
