@@ -1425,9 +1425,8 @@ workflows:
                 set -ex
 
                 # Set base paths for release builds
-                           if [ "$IS_DEV_BUILD" = "true" ]; then
+                if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
-                    TEST_APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/androidTest/$APP_NAME/debug"
                 else
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                     BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
@@ -1445,7 +1444,6 @@ workflows:
                 if [ "$IS_DEV_BUILD" = "true" ]; then
                     OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
-                    OLD_TEST_APK="$TEST_APK_DIR/app-$APP_NAME-debug-androidTest.apk"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                     OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
@@ -1453,14 +1451,6 @@ workflows:
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
-
-                # Rename test APK if it exists (for dev builds only)
-                if [ "$IS_DEV_BUILD" = "true" ] && [ -f "$OLD_TEST_APK" ]; then
-                    NEW_TEST_APK="$TEST_APK_DIR/$NEW_BASE_NAME-androidTest.apk"
-                    mv "$OLD_TEST_APK" "$NEW_TEST_APK"
-                    envman add --key TEST_APK_DEPLOY_PATH --value "$NEW_TEST_APK"
-                    envman add --key RENAMED_TEST_APK_FILE --value "$NEW_BASE_NAME-androidTest.apk"
-                fi
 
                 # Rename AAB
                 if [ -n "$BUNDLE_DIR" ]; then
@@ -1478,13 +1468,6 @@ workflows:
           inputs:
             - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          run_if: '{{ne (getenv "TEST_APK_DEPLOY_PATH") ""}}'
-          inputs:
-            - deploy_path: $TEST_APK_DEPLOY_PATH
-          title: Bitrise Deploy Test APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
