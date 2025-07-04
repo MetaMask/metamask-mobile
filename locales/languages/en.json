@@ -1651,7 +1651,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "add_collectible_button": "Add",
-    "token_balances": "Token Balances",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
@@ -4548,5 +4547,37 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+  },
+  "card": {
+    "card": "Card",
+    "allowance_states": {
+      "unlimited": "Unlimited",
+      "limited": "Limit on",
+      "not_activated": "Not activated" 
+    },
+    "card_home": {
+      "spending_with": "Spending with",
+      "limit_warning": "You have {{allowance_left}} {{symbol}} left from a {{allowance_total}} {{symbol}} limit.",
+      "add_funds": "Add funds",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "change_asset": "Change asset",
+        "manage_spending_limit": "Manage spending limit",
+        "manage_spending_limit_description": "Currently on Approve card spending",
+        "advanced_card_management": "Advanced card management",
+        "advanced_card_management_description": "See detailed transactions, freeze your card, etc."
+      }
+    },
+    "spending_limit": {
+      "approve_card_spending": "Approve card spending",
+      "approve_card_spending_description": "Let your card use funds in your account whenever you spend with your card.",
+      "edit_limit": "Edit limit",
+      "recommended": "Recommended",
+      "custom_spending_limit": "Custom spending limit",
+      "custom_spending_limit_description": "You’ll have to come back to this dashboard and pay a gas fee whenever you want to raise this limit.",
+      "save": "Save"
+    },
+    "select_asset": "Select asset",
+    "changed_spending_asset_alert": "You’re now spending from {{symbol}}"
   }
 }

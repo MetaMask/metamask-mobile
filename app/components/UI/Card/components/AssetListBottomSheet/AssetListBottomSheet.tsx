@@ -9,6 +9,7 @@ import Text, {
 import { FlashListAssetKey } from '../../../Tokens/TokenList';
 import { ScrollView } from 'react-native';
 import CardAssetItem from '../CardAssetItem/CardAssetItem';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface AssetListBottomSheetProps {
   setOpenAssetListBottomSheet: (open: boolean) => void;
@@ -31,7 +32,9 @@ const AssetListBottomSheet: React.FC<AssetListBottomSheetProps> = ({
     }}
   >
     <BottomSheetHeader onClose={() => setOpenAssetListBottomSheet(false)}>
-      <Text variant={TextVariant.HeadingMD}>Select asset</Text>
+      <Text variant={TextVariant.HeadingMD}>
+        {strings('card.select_asset')}
+      </Text>
     </BottomSheetHeader>
     <ScrollView>
       {balances.map((item, index) => (

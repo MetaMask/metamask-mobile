@@ -45,6 +45,7 @@ import { CARD_URL } from '../../constants';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import AssetListBottomSheet from '../../components/AssetListBottomSheet/AssetListBottomSheet';
 import CardAssetItem from '../../components/CardAssetItem/CardAssetItem';
+import { strings } from '../../../../../../locales/i18n';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -147,7 +148,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
             variant={TextVariant.HeadingSM}
             style={styles.spendingWithTitle}
           >
-            Spending with
+            {strings('card.card_home.spending_with')}
           </Text>
           {mappedPriorityToken && (
             <View style={styles.spendingWith}>
@@ -158,7 +159,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
               />
               <Button
                 variant={ButtonVariants.Primary}
-                label="Add funds"
+                label={strings('card.card_home.add_funds')}
                 size={ButtonSize.Sm}
                 onPress={goToAddFunds}
                 disabled={!isSwapEnabled}
@@ -172,23 +173,31 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           variant={TextVariant.HeadingSM}
           testID={'card-view-balance-title'}
         >
-          Manage card
+          {strings('card.card_home.manage_card_options.manage_card')}
         </Text>
       </View>
       <ManageCardListItem
-        title="Change asset"
+        title={strings('card.card_home.manage_card_options.change_asset')}
         description={priorityToken?.symbol}
         onPress={() => {
           setOpenAssetListBottomSheet(true);
         }}
       />
       <ManageCardListItem
-        title="Manage spending limit"
-        description="Currently on Approve card spending"
+        title={strings(
+          'card.card_home.manage_card_options.manage_spending_limit',
+        )}
+        description={strings(
+          'card.card_home.manage_card_options.manage_spending_limit_description',
+        )}
       />
       <ManageCardListItem
-        title="Advanced Card Management"
-        description="See detailed transactions, freeze your card, etc."
+        title={strings(
+          'card.card_home.manage_card_options.advanced_card_management',
+        )}
+        description={strings(
+          'card.card_home.manage_card_options.advanced_card_management_description',
+        )}
         rightIcon={IconName.Export}
         onPress={() => {
           Linking.openURL(CARD_URL);
@@ -225,7 +234,7 @@ CardHome.navigationOptions = ({
       style={headerStyle.title}
       testID={'card-view-title'}
     >
-      Card
+      {strings('card.card')}
     </Text>
   ),
   headerRight: () => (

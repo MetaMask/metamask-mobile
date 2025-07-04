@@ -1,8 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { CardSDKProvider } from '../sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
+import { CardSDKProvider } from '../sdk/sdk';
 const Stack = createStackNavigator();
 
 const CardRoutes = () => (

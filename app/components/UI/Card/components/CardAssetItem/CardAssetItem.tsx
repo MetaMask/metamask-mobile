@@ -314,18 +314,11 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
         {renderNetworkAvatar()}
       </BadgeWrapper>
       <View style={styles.balances}>
-        {/*
-         * The name of the token must callback to the symbol
-         * The reason for this is that the wallet_watchAsset doesn't return the name
-         * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-         */}
         <View style={styles.assetName}>
           <Text variant={TextVariant.BodyMD} numberOfLines={1}>
             {asset.name || asset.symbol}
           </Text>
-          {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
         </View>
-
         <View style={styles.percentageChange}>
           {assetKey.tag && (
             <Tag label={assetKey.tag.label} style={assetKey.tag.style} />
