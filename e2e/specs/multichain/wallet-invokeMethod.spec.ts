@@ -477,9 +477,6 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
 
           await MultichainTestDApp.invokeMethod(chainId, method);
 
-          const yesButton = await Matchers.getElementByText('Yes');
-          await Gestures.waitAndTap(yesButton);
-
           await FooterActions.tapConfirmButton();
 
           const resultText = await MultichainTestDApp.getInvokeMethodResult(
@@ -515,9 +512,6 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           // First call wallet_sendCalls to get a batch ID
           const sendCallsMethod = 'wallet_sendCalls';
           await MultichainTestDApp.invokeMethod(chainId, sendCallsMethod);
-
-          const yesButton = await Matchers.getElementByText('Yes');
-          await Gestures.waitAndTap(yesButton);
 
           await FooterActions.tapConfirmButton();
 
