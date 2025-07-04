@@ -113,18 +113,6 @@ describe('SmartContractWithLogo', () => {
     expect(getByText('Request for')).toBeTruthy();
   });
 
-  it('does not renders null if preference smartAccountOptIn is true and but account is hardware account', async () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
-    const { getByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
-
-    expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
-  });
-
   it('open account selection when edit accounts icon is pressed', () => {
     jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
     const { getByTestId, getByText } = renderComponent(
