@@ -12,11 +12,13 @@ interface UseSupportConsentReturn {
  * Custom hook to manage support consent flow
  * @param onNavigate - Callback to navigate to the support URL with title
  * @param title - Title for the support page
+ * @param buildType - (optional) Build type, for testability. Defaults to process.env.METAMASK_BUILD_TYPE
  * @returns Object with consent modal state and handlers
  */
 export const useSupportConsent = (
   onNavigate: (url: string, title: string) => void,
   title: string,
+  buildType?: string,
 ): UseSupportConsentReturn => {
   const [showConsentModal, setShowConsentModal] = useState(false);
 
@@ -32,7 +34,8 @@ export const useSupportConsent = (
 
   const openSupportWebPage = useCallback(() => {
     // For beta builds, bypass consent flow and go directly to beta support
-    if (process.env.METAMASK_BUILD_TYPE === 'beta') {
+    const type = buildType ?? process.env.METAMASK_BUILD_TYPE;
+    if (type === 'beta') {
       onNavigateRef.current(
         'https://intercom.help/internal-beta-testing/en/',
         titleRef.current,
@@ -42,7 +45,7 @@ export const useSupportConsent = (
 
     // Default behavior for non-beta builds
     setShowConsentModal(true);
-  }, []);
+  }, [buildType]);
 
   const handleConsent = useCallback(async () => {
     try {

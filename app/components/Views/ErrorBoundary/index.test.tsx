@@ -77,7 +77,7 @@ describe('ErrorBoundary', () => {
       expect(getByText(strings('support_consent.title'))).toBeTruthy();
     });
 
-    it('handles consent to share information', async () => {
+    it('consents to share information when consent button is pressed', async () => {
       const mockGetSupportUrl = require('../../../util/support').default;
       mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
 
@@ -100,7 +100,7 @@ describe('ErrorBoundary', () => {
       expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
     });
 
-    it('handles decline to share information', async () => {
+    it('declines to share information when decline button is pressed', async () => {
       const mockGetSupportUrl = require('../../../util/support').default;
       mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
 
@@ -123,7 +123,7 @@ describe('ErrorBoundary', () => {
       expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
     });
 
-    it('handles error in getSupportUrl gracefully', async () => {
+    it('falls back to base URL when consent request fails', async () => {
       const mockGetSupportUrl = require('../../../util/support').default;
       mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
       mockGetSupportUrl.mockResolvedValueOnce('https://support.metamask.io');

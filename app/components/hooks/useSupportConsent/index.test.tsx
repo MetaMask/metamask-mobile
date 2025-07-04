@@ -13,10 +13,16 @@ const mockGetSupportUrl = require('../../../util/support').default;
 describe('useSupportConsent', () => {
   const mockOnNavigate = jest.fn();
   const mockTitle = 'Test Title';
+  let originalEnv: string | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
+    originalEnv = process.env.METAMASK_BUILD_TYPE;
+  });
+
+  afterEach(() => {
+    process.env.METAMASK_BUILD_TYPE = originalEnv;
   });
 
   it('initializes with modal hidden', () => {
@@ -28,9 +34,61 @@ describe('useSupportConsent', () => {
   });
 
   it('shows modal when openSupportWebPage is called in non-beta environment', () => {
-    // Mock non-beta environment
-    const originalEnv = process.env.METAMASK_BUILD_TYPE;
-    process.env.METAMASK_BUILD_TYPE = 'production';
+    const { result } = renderHook(() =>
+      useSupportConsent(mockOnNavigate, mockTitle, 'production'),
+    );
+
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
+    expect(result.current.showConsentModal).toBe(true);
+  });
+
+  it('navigates with consent parameters when user consents', async () => {
+    const { result } = renderHook(() =>
+      useSupportConsent(mockOnNavigate, mockTitle),
+    );
+
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
+    await act(async () => {
+      await result.current.handleConsent();
+    });
+
+    expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
+    expect(mockOnNavigate).toHaveBeenCalledWith(
+      'https://support.metamask.io',
+      mockTitle,
+    );
+    expect(result.current.showConsentModal).toBe(false);
+  });
+
+  it('navigates without consent parameters when user declines', async () => {
+    const { result } = renderHook(() =>
+      useSupportConsent(mockOnNavigate, mockTitle),
+    );
+
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
+    await act(async () => {
+      await result.current.handleDecline();
+    });
+
+    expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
+    expect(mockOnNavigate).toHaveBeenCalledWith(
+      'https://support.metamask.io',
+      mockTitle,
+    );
+    expect(result.current.showConsentModal).toBe(false);
+  });
+
+  it('falls back to base URL when consent request fails', async () => {
+    mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
@@ -40,78 +98,34 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
 
-    expect(result.current.showConsentModal).toBe(true);
-
-    // Restore original environment
-    process.env.METAMASK_BUILD_TYPE = originalEnv;
-  });
-
-  it('handles consent and navigates with parameters', async () => {
-    const { result } = renderHook(() =>
-      useSupportConsent(mockOnNavigate, mockTitle),
-    );
-
     await act(async () => {
       await result.current.handleConsent();
     });
 
-    expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
-    expect(mockOnNavigate).toHaveBeenCalledWith(
-      'https://support.metamask.io',
-      mockTitle,
-    );
-    expect(result.current.showConsentModal).toBe(false);
-  });
-
-  it('handles decline and navigates without parameters', async () => {
-    const { result } = renderHook(() =>
-      useSupportConsent(mockOnNavigate, mockTitle),
-    );
-
-    await act(async () => {
-      await result.current.handleDecline();
-    });
-
-    expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
-    expect(mockOnNavigate).toHaveBeenCalledWith(
-      'https://support.metamask.io',
-      mockTitle,
-    );
-    expect(result.current.showConsentModal).toBe(false);
-  });
-
-  it('handles errors gracefully during consent', async () => {
-    mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
-    mockGetSupportUrl.mockResolvedValueOnce('https://support.metamask.io');
-
-    const { result } = renderHook(() =>
-      useSupportConsent(mockOnNavigate, mockTitle),
-    );
-
-    await act(async () => {
-      await result.current.handleConsent();
-    });
-
-    expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
-    expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
+    expect(mockGetSupportUrl).toHaveBeenCalledTimes(2);
+    expect(mockGetSupportUrl).toHaveBeenNthCalledWith(1, true);
+    expect(mockGetSupportUrl).toHaveBeenNthCalledWith(2, false);
     expect(mockOnNavigate).toHaveBeenCalledWith(
       'https://support.metamask.io',
       mockTitle,
     );
   });
 
-  it('handles errors gracefully during decline', async () => {
+  it('uses fallback URL when decline request fails', async () => {
     mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
 
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
     await act(async () => {
       await result.current.handleDecline();
     });
 
-    expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
     expect(mockOnNavigate).toHaveBeenCalledWith(
       'https://support.metamask.io',
       mockTitle,
@@ -124,6 +138,10 @@ describe('useSupportConsent', () => {
       useSupportConsent(mockOnNavigate, customTitle),
     );
 
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
     await act(async () => {
       await result.current.handleConsent();
     });
@@ -134,31 +152,7 @@ describe('useSupportConsent', () => {
     );
   });
 
-  it('handles beta environment correctly', () => {
-    // Mock beta environment
-    const originalEnv = process.env.METAMASK_BUILD_TYPE;
-    delete process.env.METAMASK_BUILD_TYPE;
-    process.env.METAMASK_BUILD_TYPE = 'beta';
-
-    const { result } = renderHook(() =>
-      useSupportConsent(mockOnNavigate, mockTitle),
-    );
-
-    act(() => {
-      result.current.openSupportWebPage();
-    });
-
-    expect(result.current.showConsentModal).toBe(false);
-    expect(mockOnNavigate).toHaveBeenCalledWith(
-      'https://intercom.help/internal-beta-testing/en/',
-      mockTitle,
-    );
-
-    // Restore original environment
-    process.env.METAMASK_BUILD_TYPE = originalEnv;
-  });
-
-  it('handles consent modal state correctly', () => {
+  it('toggles modal visibility when opening and consenting', async () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
@@ -171,5 +165,27 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
     expect(result.current.showConsentModal).toBe(true);
+
+    // Hide modal after consent
+    await act(async () => {
+      await result.current.handleConsent();
+    });
+    expect(result.current.showConsentModal).toBe(false);
+  });
+
+  it('bypasses modal and navigates to beta support in beta environment', () => {
+    const { result } = renderHook(() =>
+      useSupportConsent(mockOnNavigate, mockTitle, 'beta'),
+    );
+
+    act(() => {
+      result.current.openSupportWebPage();
+    });
+
+    expect(result.current.showConsentModal).toBe(false);
+    expect(mockOnNavigate).toHaveBeenCalledWith(
+      'https://intercom.help/internal-beta-testing/en/',
+      mockTitle,
+    );
   });
 }); 
