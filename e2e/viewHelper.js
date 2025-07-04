@@ -175,7 +175,7 @@ export const importWalletWithRecoveryPhrase = async ({
   });
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await skipNotificationsDeviceSettings();
+  // await skipNotificationsDeviceSettings();
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.

@@ -42,7 +42,9 @@ export async function withIdentityFixtures(
   const {
     fixture = new FixtureBuilder().withIdentityTeamKeyringController().build(),
     restartDevice = true,
-    testSpecificMock = [{POST: mockEvents.POST.segmentTrack}],
+    testSpecificMock = {
+          POST: [mockEvents.POST.segmentTrack],
+    },
     mockBalancesAccounts = [],
     userStorageFeatures = [
       USER_STORAGE_FEATURE_NAMES.accounts,
