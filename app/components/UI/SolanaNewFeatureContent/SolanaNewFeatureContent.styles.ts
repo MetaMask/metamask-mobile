@@ -1,9 +1,15 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = () =>
-  StyleSheet.create({
+interface StyleSheetVars {
+  screenHeight: number;
+}
+
+const createStyles = (vars: StyleSheetVars) => {
+  const { screenHeight } = vars;
+  const isLargeDevice = screenHeight > 736;
+
+  return StyleSheet.create({
     scroll: {
       flex: 1,
     },
@@ -14,12 +20,12 @@ const createStyles = () =>
     },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 300 : 220,
+      width: isLargeDevice ? 300 : 220,
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: Device.isLargeDevice() ? 30 : 20,
-      paddingBottom: Device.isLargeDevice() ? 50 : 30,
+      paddingTop: isLargeDevice ? 30 : 20,
+      paddingBottom: isLargeDevice ? 50 : 30,
     },
     title: {
       fontSize: 60,
@@ -65,5 +71,6 @@ const createStyles = () =>
       borderColor: importedColors.transparent,
     },
   });
+};
 
 export default createStyles;

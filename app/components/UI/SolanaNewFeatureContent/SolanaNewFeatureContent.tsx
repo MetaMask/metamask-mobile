@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Linking, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Linking, useWindowDimensions, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import LottieView, { type AnimationObject } from 'lottie-react-native';
@@ -28,8 +28,9 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
+  const { height: screenHeight } = useWindowDimensions();
 
-  const styles = createStyles();
+  const styles = createStyles({ screenHeight });
 
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
