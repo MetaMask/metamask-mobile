@@ -116,7 +116,7 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!is7702transaction && (
+            {!is7702transaction && data && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
