@@ -112,9 +112,6 @@ export const SmartAccountUpdateSplash = () => {
   }, [onReject]);
 
   const onConfirm = useCallback(() => {
-    if (!from) {
-      return;
-    }
     PreferencesController.setSmartAccountOptInForAccounts(selectedAddresses);
     setAcknowledged(true);
   }, [from, selectedAddresses, setAcknowledged, smartAccountOptInForAccounts]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -124,5 +124,9 @@ describe('SmartContractWithLogo', () => {
     fireEvent.press(getByTestId('open_account_selection'));
     expect(getByText('Edit Accounts')).toBeTruthy();
     expect(getByText('Select all')).toBeTruthy();
+
+    fireEvent.press(getByTestId('account_selection_close'));
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 });
