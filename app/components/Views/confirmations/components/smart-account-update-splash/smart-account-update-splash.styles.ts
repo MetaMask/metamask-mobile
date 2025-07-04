@@ -56,6 +56,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 8,
       width: '90%',
     },
+    accountIcon: {
+      marginRight: -6,
+    },
   });
 };
 

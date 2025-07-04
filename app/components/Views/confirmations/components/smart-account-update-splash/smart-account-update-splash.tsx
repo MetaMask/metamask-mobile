@@ -29,8 +29,7 @@ import {
 } from '../../../../../selectors/preferencesController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTheme } from '../../../../../util/theme';
-import Name from '../../../../UI/Name';
-import { NameType } from '../../../../UI/Name/Name.types';
+import Identicon from '../../../../UI/Identicon';
 import { useAccounts } from '../../../../hooks/useAccounts';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -167,11 +166,13 @@ export const SmartAccountUpdateSplash = () => {
         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
           {strings('confirm.7702_functionality.splashpage.requestFor')}{' '}
         </Text>
-        <Name
-          value={transactionMetadata.txParams.from}
-          type={NameType.EthereumAddress}
-          variation={transactionMetadata.chainId}
-        />
+        {selectedAddresses.map((address) => (
+          <Identicon
+            address={address}
+            diameter={20}
+            customStyle={styles.accountIcon}
+          />
+        ))}
       </View>
       <ListItem
         iconName={IconName.Speedometer}
