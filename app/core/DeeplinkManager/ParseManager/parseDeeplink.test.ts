@@ -74,7 +74,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
-      instance,
       handled: expect.any(Function),
       urlObj,
       browserCallBack: browserCallBackMock,
@@ -98,7 +97,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
-      instance,
       handled: expect.any(Function),
       urlObj,
       browserCallBack: browserCallBackMock,
@@ -151,7 +149,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleDappProtocol).toHaveBeenCalledWith({
-      instance,
       handled: expect.any(Function),
       urlObj,
       browserCallBack: mockBrowserCallBack,
@@ -170,7 +167,6 @@ describe('parseDeeplink', () => {
     });
 
     expect(mockHandleMetaMaskProtocol).toHaveBeenCalledWith({
-      instance,
       handled: expect.any(Function),
       wcURL: url,
       origin: 'testOrigin',
