@@ -13,6 +13,7 @@ import Routes from '../../../constants/navigation/Routes';
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
+    isMetaMetricsUISeen: true,
   },
   engine: {
     backgroundState,
@@ -76,6 +77,42 @@ describe('App', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+        });
+      });
+    });
+    it('navigates to login when user exists and logs in', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
+      });
+    });
+
+    it('navigates to OptinMetrics when user exists and isMetaMetricsUISeen is false', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: { ...initialState.user, isMetaMetricsUISeen: false },
+          },
+        },
+      );
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.ROOT_NAV, {
+          screen: Routes.ONBOARDING.NAV,
+          params: {
+            screen: Routes.ONBOARDING.OPTIN_METRICS,
+            params: {
+              onContinue: expect.any(Function),
+            },
+          },
         });
       });
     });

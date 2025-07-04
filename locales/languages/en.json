@@ -493,15 +493,15 @@
       "select_a_payment_method": "Select a Payment Method"
     },
     "payment_duration": {
-      "instant":"Instant",
+      "instant": "Instant",
       "1_to_2_days": "1 to 2 days"
     },
     "unsupported_region_modal": {
       "title": "Region not supported",
-      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
-      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
-      "select_different_region": "Select a different region",
-      "exit_to_wallet_home": "Exit to wallet home"
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
       "title": "Top up your wallet with USDC",
@@ -550,7 +550,9 @@
       "last_name": "Last Name",
       "phone_number": "Phone Number",
       "date_of_birth": "Date of Birth",
-      "social_security_number": "Social Security Number"
+      "social_security_number": "Social Security Number",
+      "enter_phone_number": "Enter phone number",
+      "select_region": "Select region"
     },
     "enter_address": {
       "title": "Enter your address",
@@ -587,10 +589,12 @@
       "title": "Processing deposit",
       "button": "Close",
       "description": "Card purchases typically take a few minutes",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
       "success_title": "Deposit complete",
       "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
       "error_title": "Deposit failed",
       "error_description": "We were unable to complete your deposit",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
       "error_button": "Try again",
       "contact_support_button": "Contact support",
       "account": "Account",
@@ -601,16 +605,39 @@
       "view_order_details_in_transak": "View order details in Transak",
       "no_order_found": "No order found",
       "back_to_wallet": "Back to Wallet",
-      "cancel_order_button": "Cancel"
+      "cancel_order_button": "Cancel order"
     },
     "order_details": {
       "title": "Deposit Order"
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
-      "deposit_cancelled_description": "Verify your payment method and card support",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
       "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
@@ -669,6 +696,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Introducing backup and sync",
@@ -1336,9 +1367,9 @@
     "check_status_button": "Check Status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
     "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
-    "delete_wallet_data_title": "Delete wallet",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
-    "delete_wallet_data_button": "Delete wallet",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "Deletion Task Status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
@@ -1465,6 +1496,9 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
     "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
@@ -2169,7 +2203,8 @@
     "add_input_placeholder": "Public address (0x), or ENS",
     "between_account": "Transfer between my accounts",
     "others": "Others",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -4065,7 +4100,8 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "select_a_token": "Select a token",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
     "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
@@ -4193,8 +4229,7 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To",
-      "value": "Value"
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
@@ -4294,6 +4329,14 @@
         "upgradeBannerTitle": "Switch to smart account"
       },
       "includes_transaction": "Includes {{transactionCount}} transactions"
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Unlimited",
     "all": "All",

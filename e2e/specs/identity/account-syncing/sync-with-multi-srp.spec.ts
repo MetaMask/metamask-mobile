@@ -13,7 +13,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
@@ -29,9 +29,8 @@ import {
 import { MockttpServer } from 'mockttp';
 
 describe(
-  SmokeWalletPlatform('Account syncing - syncs after adding a second SRP'),
+  SmokeIdentity('Account syncing - syncs after adding a second SRP'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8003;
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
 
@@ -49,7 +48,7 @@ describe(
 
     beforeAll(async () => {
       jest.setTimeout(2500000);
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
@@ -67,7 +66,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
     });
@@ -143,7 +142,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
 
