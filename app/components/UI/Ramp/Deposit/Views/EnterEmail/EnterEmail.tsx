@@ -5,7 +5,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -25,6 +24,13 @@ import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import Logger from '../../../../../../util/Logger';
 
 export interface EnterEmailParams {
   quote: BuyQuote;
@@ -81,7 +87,7 @@ const EnterEmail = () => {
         setValidationError(true);
       }
     } catch (e) {
-      console.error('Error submitting email');
+      Logger.error(e as Error, 'Error submitting email');
     }
   }, [
     email,
@@ -132,18 +138,17 @@ const EnterEmail = () => {
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleSubmit}
-            accessibilityRole="button"
-            accessible
-            disabled={loading}
-          >
-            {loading
-              ? strings('deposit.enter_email.loading')
-              : strings('deposit.enter_email.submit_button')}
-          </StyledButton>
+            label={strings('deposit.enter_email.submit_button')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            loading={loading}
+            isDisabled={loading}
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

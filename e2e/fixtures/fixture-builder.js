@@ -516,6 +516,7 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
+          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
@@ -650,6 +651,7 @@ class FixtureBuilder {
             },
           ],
           selectedRegionAgg: null,
+          selectedRegionDeposit: null,
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
           getStartedSell: false,

@@ -66,12 +66,9 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
-  DepositRegion,
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
-import Routes from '../../../../../../constants/navigation/Routes';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -89,12 +86,14 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedWalletAddress } = useDepositSDK();
-  const [error, setError] = useState<string | null>();
 
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
-  );
+  const {
+    isAuthenticated,
+    selectedWalletAddress,
+    selectedRegion,
+  } = useDepositSDK();
+
+  const [error, setError] = useState<string | null>();
 
   const { routeAfterAuthentication } = useDepositRouting({
     selectedWalletAddress,
@@ -130,64 +129,30 @@ const BuildQuote = () => {
     );
   }, [navigation, theme]);
 
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
+  useEffect(() => {
+    if (selectedRegion?.currency) {
+      if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
+      } else if (selectedRegion.currency === 'EUR') {
         setFiatCurrency(EUR_CURRENCY);
       }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
+    }
+  }, [selectedRegion?.currency]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.isoCode,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
-
-  const handleExitToWalletHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
-
-  const handleSelectDifferentRegion = useCallback(() => {
-    handleRegionPress();
-  }, [handleRegionPress]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!selectedRegion?.supported) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
-              regionName: selectedRegion?.name || '',
-              onExitToWalletHome: handleExitToWalletHome,
-              onSelectDifferentRegion: handleSelectDifferentRegion,
-            }),
+            ...createUnsupportedRegionModalNavigationDetails(),
           );
         });
       }
-    }, [
-      selectedRegion,
-      navigation,
-      handleExitToWalletHome,
-      handleSelectDifferentRegion,
-    ]),
+    }, [selectedRegion, navigation]),
   );
 
   const handleOnPressContinue = useCallback(async () => {
@@ -439,7 +404,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

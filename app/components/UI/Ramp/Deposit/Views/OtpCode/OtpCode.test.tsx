@@ -207,9 +207,7 @@ describe('OtpCode Component', () => {
     ];
     render(OtpCode);
     expect(screen.toJSON()).toMatchSnapshot();
-    const loadingButton = screen.getByRole('button', {
-      name: 'Verifying code...',
-    });
+    const loadingButton = screen.getByTestId('otp-code-submit-button');
     fireEvent.press(loadingButton);
     expect(mockSdkMethod).not.toHaveBeenCalled();
   });
