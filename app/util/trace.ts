@@ -67,7 +67,7 @@ export enum TraceName {
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
   SwapViewLoaded = 'Swap View Loaded',
-  BridgeBalancesUpdated = 'Bridge Balances Updated'
+  BridgeBalancesUpdated = 'Bridge Balances Updated',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
   EarnWithdrawScreen = 'Earn Withdraw Screen',
