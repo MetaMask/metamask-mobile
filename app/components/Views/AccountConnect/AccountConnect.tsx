@@ -636,8 +636,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const {chainId} = useNetworkInfo(channelIdOrHostname);
-
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
       setSelectedChainIds(newSelectedChainIds);
@@ -651,25 +649,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       sheetRef?.current?.onCloseBottomSheet?.(callback),
     [sheetRef],
   );
-
-  const hasPermittedChains = useMemo(() => {
-    try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        channelIdOrHostname,
-        Caip25EndowmentPermissionName,
-        Caip25CaveatType,
-      );
-      if (caveat?.value) {
-        const scopes = getCaipAccountIdsFromCaip25CaveatValue(
-          caveat.value as Caip25CaveatValue,
-        );
-        return scopes.length > 0
-      }
-      return false;
-    } catch (err) {
-      return false;
-    }
-  }, [channelIdOrHostname]);
 
   const handleConfirm = useCallback(async () => {
     hideSheet();
