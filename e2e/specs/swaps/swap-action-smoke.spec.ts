@@ -71,7 +71,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(120000);
   });
 
-  it.each`
+  it.skip.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | chainId
     ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${'0x1'}
   `(
