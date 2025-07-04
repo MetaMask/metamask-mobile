@@ -147,7 +147,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 16,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -251,7 +250,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -281,7 +279,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -311,7 +308,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -337,7 +333,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#1c7e33",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 24,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 32,
                     }
@@ -352,7 +347,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#686e7d",
                       "fontFamily": "CentraNo1-Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -530,7 +524,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -545,7 +538,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#686e7d",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -587,7 +579,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -602,7 +593,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                       "color": "#686e7d",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -658,7 +648,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -698,7 +687,6 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   "color": "#ffffff",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

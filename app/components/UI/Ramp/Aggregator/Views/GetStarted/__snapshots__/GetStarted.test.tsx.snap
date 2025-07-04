@@ -146,7 +146,6 @@ exports[`GetStarted renders correctly 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -170,7 +169,6 @@ exports[`GetStarted renders correctly 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -804,7 +802,6 @@ exports[`GetStarted renders correctly 2`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -828,7 +825,6 @@ exports[`GetStarted renders correctly 2`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1462,7 +1458,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1486,7 +1481,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1896,7 +1890,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1920,7 +1913,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }

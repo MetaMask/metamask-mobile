@@ -26,7 +26,6 @@ exports[`NotificationContent render matches snapshot 1`] = `
           "flex": 1,
           "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -41,7 +40,6 @@ exports[`NotificationContent render matches snapshot 1`] = `
           "color": "#9ca1af",
           "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -68,7 +66,6 @@ exports[`NotificationContent render matches snapshot 1`] = `
           "flex": 1,
           "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -83,7 +80,6 @@ exports[`NotificationContent render matches snapshot 1`] = `
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }

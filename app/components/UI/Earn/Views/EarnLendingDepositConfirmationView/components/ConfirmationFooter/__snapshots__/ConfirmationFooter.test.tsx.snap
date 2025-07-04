@@ -131,7 +131,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                   "color": "#ffffff",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -148,7 +147,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                 "color": "#4459ff",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "textAlign": "center",
@@ -162,7 +160,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -202,7 +199,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -219,7 +215,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                 "color": "#4459ff",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "textAlign": "center",
@@ -233,7 +228,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -289,7 +283,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -330,7 +323,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#ffffff",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -364,7 +356,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -380,7 +371,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textDecorationLine": "underline",
@@ -406,7 +396,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -424,7 +413,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textDecorationLine": "underline",
@@ -441,7 +429,6 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

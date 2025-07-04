@@ -141,7 +141,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -879,7 +878,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -914,7 +912,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           "color": "#9ca1af",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -929,7 +926,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1043,7 +1039,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1059,7 +1054,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1088,7 +1082,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "textAlign": "right",
@@ -1105,7 +1098,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "textAlign": "right",
@@ -1174,7 +1166,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1237,7 +1228,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1253,7 +1243,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1427,7 +1416,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1490,7 +1478,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1506,7 +1493,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1631,7 +1617,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2100,7 +2085,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2163,7 +2147,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2179,7 +2162,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
