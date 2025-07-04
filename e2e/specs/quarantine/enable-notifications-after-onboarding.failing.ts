@@ -12,12 +12,12 @@ import { getMockServerPort } from '../../fixtures/utils';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from './utils/constants';
+} from '../notifications/utils/constants';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
   mockNotificationServices,
-} from './utils/mocks';
+} from '../notifications/utils/mocks';
 
 const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   newInstance: true,
