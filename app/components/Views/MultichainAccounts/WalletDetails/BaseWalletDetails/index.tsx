@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +13,6 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
@@ -34,6 +34,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import WalletAddAccountActions from './components/WalletAddAccountActions';
 import AccountItem from './components/AccountItem';
 import AddAccountItem from './components/AddAccountItem';
+import { FlashList } from '@shopify/flash-list';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWallet;
@@ -45,7 +46,8 @@ export const BaseWalletDetails = ({
   children,
 }: BaseWalletDetailsProps) => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+  const { styles, theme } = useStyles(styleSheet, { screenHeight });
   const { colors } = theme;
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
@@ -234,7 +236,13 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          {accounts.map((account, index) => renderAccountItem(account, index))}
+          <View style={styles.flashListContainer}>
+            <FlashList
+              estimatedItemSize={18}
+              data={accounts}
+              renderItem={({ item, index }) => renderAccountItem(item, index)}
+            />
+          </View>
           {keyringId && renderAddAccountItem()}
         </View>
 
