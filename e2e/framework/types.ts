@@ -1,4 +1,3 @@
-
 // Gestures
 
 export interface GestureOptions {
@@ -9,8 +8,7 @@ export interface GestureOptions {
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
-export interface TapOptions extends GestureOptions {
-}
+export interface TapOptions extends GestureOptions {}
 
 export interface TypeTextOptions extends GestureOptions {
   clearFirst?: boolean;
