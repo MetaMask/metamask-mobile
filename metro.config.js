@@ -25,9 +25,7 @@ const parsedArgs = parseArgs({
 
 // Apply 'ses/hermes' on Android (Hermes)
 // Apply 'ses' on iOS (RN JSC) until on Hermes
-const hermesRuntime =
-  parsedArgs.values.platform === 'android' ||
-  parsedArgs.positionals[0]?.includes('android');
+const hermesRuntime = true;
 
 const getPolyfills = () => [
   // eslint-disable-next-line import/no-extraneous-dependencies
