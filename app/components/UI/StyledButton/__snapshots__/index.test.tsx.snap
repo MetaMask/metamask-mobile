@@ -91,7 +91,7 @@ exports[`StyledButton should render correctly on Android the button with type in
           "padding": 15,
         },
         {
-          "backgroundColor": "transparent",
+          "backgroundColor": "#ffffff",
           "borderColor": "#4459ff",
           "borderWidth": 1,
         },
