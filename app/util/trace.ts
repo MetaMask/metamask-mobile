@@ -68,6 +68,12 @@ export enum TraceName {
   QRTabSwitcher = 'QR Tab Switcher',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated'
+  // Earn
+  EarnDepositScreen = 'Earn Deposit Screen',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
+  EarnEarnings = 'Earn Earnings',
+  EarnFaq = 'Earn FAQ',
+  EarnFaqApys = 'Earn FAQ APYs',
 }
 
 export enum TraceOperation {
