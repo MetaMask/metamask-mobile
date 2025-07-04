@@ -110,9 +110,6 @@ describe('App', () => {
           screen: Routes.ONBOARDING.NAV,
           params: {
             screen: Routes.ONBOARDING.OPTIN_METRICS,
-            params: {
-              onContinue: expect.any(Function),
-            },
           },
         });
       });
