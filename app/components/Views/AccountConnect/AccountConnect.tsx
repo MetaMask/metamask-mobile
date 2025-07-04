@@ -303,15 +303,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   >(undefined);
 
   const { domainTitle, hostname } = useMemo(() => {
-    let title = '';
+    let title = strings('sdk.unknown');
     let dappHostname = dappUrl || channelIdOrHostname;
-
     if (
       isOriginMMSDKRemoteConn &&
       channelIdOrHostname.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
     ) {
       title = getUrlObj(
-        channelIdOrHostname.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+        channelIdOrHostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, ''),
       ).origin;
     } else if (isOriginWalletConnect) {
       title = wc2Metadata?.lastVerifiedUrl ?? wc2Metadata?.url ?? channelIdOrHostname;
@@ -319,10 +318,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
       dappHostname = channelIdOrHostname;
-    } else {
-      title = strings('sdk.unknown');
     }
-
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
@@ -641,7 +637,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const {chainId} = useNetworkInfo(hostname);
+  const {chainId} = useNetworkInfo(channelIdOrHostname);
 
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
