@@ -169,7 +169,6 @@ export const CardSDKProvider = ({
         TokensController.state.allTokens?.[selectedChainId as `0x${string}`]?.[
           selectedAddress
         ] || [];
-      Logger.log('tokens', tokens);
       const balanceList: FlashListAssetKey[] = [];
 
       for (const balance of result.balanceList) {
