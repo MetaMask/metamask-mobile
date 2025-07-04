@@ -36,8 +36,6 @@ import { waitFor } from 'detox';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   {
