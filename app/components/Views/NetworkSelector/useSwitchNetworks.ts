@@ -39,8 +39,9 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
-import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
-
+import {
+  setTransactionSendFlowContextualChainId,
+} from '../../../actions/sendFlow';
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
   origin?: string;

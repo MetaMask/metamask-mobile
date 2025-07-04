@@ -1,4 +1,4 @@
-import { SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID } from '../../actions/transaction';
+import { SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID } from '../../actions/sendFlow';
 
 export const initialState = {
   networkOnboardedState: {},

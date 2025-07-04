@@ -18,8 +18,10 @@ import {
   setTransactionObject,
   resetTransaction,
   setMaxValueMode,
-  setTransactionSendFlowContextualChainId,
 } from '../../../../../../actions/transaction';
+import {
+  setTransactionSendFlowContextualChainId,
+} from '../../../../../../actions/sendFlow';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import PropTypes from 'prop-types';

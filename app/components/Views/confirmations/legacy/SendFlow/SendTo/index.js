@@ -67,7 +67,9 @@ import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlo
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
-import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
+import {
+  setTransactionSendFlowContextualChainId,
+} from '../../../../../../actions/sendFlow';
 import { store } from '../../../../../../store';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { toHexadecimal } from '../../../../../../util/number';

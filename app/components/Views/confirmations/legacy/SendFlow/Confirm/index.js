@@ -140,7 +140,9 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
-import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/transaction';
+import {
+  setTransactionSendFlowContextualChainId,
+} from '../../../../../../actions/sendFlow';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
