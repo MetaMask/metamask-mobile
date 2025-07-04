@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, TouchableOpacity } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import Text, {
   TextVariant,
@@ -25,6 +25,8 @@ interface CandlestickChartComponentProps {
   candleData: CandleData | null;
   isLoading?: boolean;
   height?: number;
+  selectedInterval?: string;
+  onIntervalChange?: (interval: string) => void;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -141,6 +143,39 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 10,
       marginTop: 2,
     },
+    // Interval selector styling
+    intervalSelector: {
+      flexDirection: 'row' as const,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 4,
+      marginTop: 16,
+      alignSelf: 'center' as const,
+    },
+    intervalTab: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+      marginHorizontal: 2,
+      minWidth: 40,
+      alignItems: 'center' as const,
+    },
+    intervalTabActive: {
+      backgroundColor: colors.primary.default,
+    },
+    intervalTabInactive: {
+      backgroundColor: 'transparent',
+    },
+    intervalTabText: {
+      fontSize: 12,
+      fontWeight: '600' as const,
+    },
+    intervalTabTextActive: {
+      color: colors.primary.inverse,
+    },
+    intervalTabTextInactive: {
+      color: colors.text.muted,
+    },
   };
 };
 
@@ -148,10 +183,24 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
   isLoading = false,
   height = 300,
+  selectedInterval = '1h',
+  onIntervalChange,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 48; // Account for padding
+
+  // Available intervals
+  const intervals = [
+    { label: '1M', value: '1m' },
+    { label: '5M', value: '5m' },
+    { label: '15M', value: '15m' },
+    { label: '30M', value: '30m' },
+    { label: '1H', value: '1h' },
+    { label: '2H', value: '2h' },
+    { label: '4H', value: '4h' },
+    { label: '8H', value: '8h' },
+  ];
 
   // Transform data to wagmi-charts format
   const transformedData = React.useMemo(() => {
@@ -229,7 +278,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }
 
   return (
-    <View style={[styles.container, { height }]}>
+    <View style={[styles.container, { height: height + 60 }]}>
       <CandlestickChart.Provider data={transformedData}>
         <View style={styles.chartContainer}>
           {/* Chart with Custom Grid Lines */}
@@ -297,6 +346,34 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                 />
               </CandlestickChart.Crosshair>
             </CandlestickChart>
+          </View>
+
+          {/* Interval Selector */}
+          <View style={styles.intervalSelector}>
+            {intervals.map((interval) => (
+              <TouchableOpacity
+                key={interval.value}
+                style={[
+                  styles.intervalTab,
+                  selectedInterval === interval.value
+                    ? styles.intervalTabActive
+                    : styles.intervalTabInactive,
+                ]}
+                onPress={() => onIntervalChange?.(interval.value)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.intervalTabText,
+                    selectedInterval === interval.value
+                      ? styles.intervalTabTextActive
+                      : styles.intervalTabTextInactive,
+                  ]}
+                >
+                  {interval.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </CandlestickChart.Provider>

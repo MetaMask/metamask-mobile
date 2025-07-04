@@ -183,95 +183,56 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
     }[];
   } | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState('1h');
 
   // Get the position data from route params
   const position = (route.params as { position: PositionData })?.position;
 
+  // Fetch historical data function
+  const fetchHistoricalData = async (interval: string) => {
+    if (!position) return;
+
+    setIsLoadingHistory(true);
+    Logger.log(
+      'PerpsDetailPage: Fetching historical candle data for',
+      position.assetSymbol,
+      'interval:',
+      interval,
+    );
+
+    try {
+      const ws = new HyperliquidWebSocketService();
+      const historicalData = await ws.fetchHistoricalCandles(
+        position.assetSymbol,
+        interval,
+        100,
+      );
+      if (historicalData) {
+        setCandleData(historicalData);
+        Logger.log(
+          'PerpsDetailPage: Historical data loaded:',
+          historicalData.candles.length,
+          'candles for interval:',
+          interval,
+        );
+      }
+    } catch (error) {
+      Logger.log('PerpsDetailPage: Error fetching historical data:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Handle interval change
+  const handleIntervalChange = (newInterval: string) => {
+    setSelectedInterval(newInterval);
+    fetchHistoricalData(newInterval);
+  };
+
   // Initialize WebSocket connection
   useEffect(() => {
-    const ws = new HyperliquidWebSocketService();
-
-    // First, fetch historical data
-    const fetchHistoricalData = async () => {
-      if (!position) return;
-
-      setIsLoadingHistory(true);
-      Logger.log(
-        'PerpsDetailPage: Fetching historical candle data for',
-        position.assetSymbol,
-      );
-
-      try {
-        const historicalData = await ws.fetchHistoricalCandles(
-          position.assetSymbol,
-          '1h',
-          100,
-        );
-        if (historicalData) {
-          setCandleData(historicalData);
-          Logger.log(
-            'PerpsDetailPage: Historical data loaded:',
-            historicalData.candles.length,
-            'candles',
-          );
-        }
-      } catch (error) {
-        Logger.log('PerpsDetailPage: Error fetching historical data:', error);
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
-
-    // Fetch historical data first
-    fetchHistoricalData();
-
-    // // Check connection status periodically and subscribe when connected
-    // let connectionStableTime = 0;
-    // const statusInterval = setInterval(() => {
-    //   const connected = ws.getConnectionStatus();
-    //   setIsConnected(connected);
-
-    //   // Track how long the connection has been stable
-    //   if (connected) {
-    //     connectionStableTime += 1000;
-    //   } else {
-    //     connectionStableTime = 0;
-    //   }
-
-    //   // Subscribe to candle data once connected and stable for 2 seconds
-    //   if (
-    //     connected &&
-    //     position &&
-    //     !candleSubscribedRef.current &&
-    //     connectionStableTime >= 2000
-    //   ) {
-    //     Logger.log(
-    //       'HyperliquidWebSocket: Connection stable, subscribing directly to candle data for',
-    //       position.assetSymbol,
-    //     );
-
-    //     // Subscribe directly to candle data - no test needed
-    //     ws.subscribeToCandleData(
-    //       position.assetSymbol,
-    //       '1h',
-    //       (updatedCandleData) => {
-    //         Logger.log(
-    //           'HyperliquidWebSocket: Received candle update:',
-    //           updatedCandleData,
-    //         );
-    //         // Update the full candle data
-    //         setCandleData(updatedCandleData);
-    //       },
-    //     );
-
-    //     candleSubscribedRef.current = true;
-    //   }
-    // }, 1000);
-
-    // return () => {
-    //   clearInterval(statusInterval);
-    //   ws.disconnect();
-    // };
+    // Fetch initial historical data
+    fetchHistoricalData(selectedInterval);
   }, [position]);
 
   if (!position) {
@@ -377,6 +338,8 @@ const PerpsDetailPage: React.FC<PerpsDetailPageProps> = () => {
           candleData={candleData}
           isLoading={isLoadingHistory}
           height={350}
+          selectedInterval={selectedInterval}
+          onIntervalChange={handleIntervalChange}
         />
 
         {/* Connection Status */}
