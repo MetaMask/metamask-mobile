@@ -73,8 +73,6 @@ const ManualBackupStep2 = ({
     ),
     [colors, navigation, styles.headerLeft],
   );
-  const [sortedSlots, setSortedSlots] = useState([]);
-
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(

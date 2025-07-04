@@ -219,7 +219,6 @@ export const recreateVaultWithNewPassword = async (
   // START: Restoring keyrings
 
   const { SeedlessOnboardingController } = Engine.context;
-  // TODO: Fix with latest controller isCompleted
   if (
     ReduxService.store.getState().engine.backgroundState
       .SeedlessOnboardingController.vault

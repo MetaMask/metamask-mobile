@@ -147,6 +147,12 @@ export type TraceContext = unknown;
  * A callback function that can be traced.
  */
 export type TraceCallback<T> = (context?: TraceContext) => T;
+
+/**
+ * Type alias for trace attribute values.
+ */
+export type TraceValue = number | string | boolean;
+
 /**
  * A request to create a new trace.
  */
@@ -154,7 +160,7 @@ export interface TraceRequest {
   /**
    * Custom data to associate with the trace.
    */
-  data?: Record<string, number | string | boolean>;
+  data?: Record<string, TraceValue>;
 
   /**
    * A unique identifier when not tracing a callback.
@@ -181,7 +187,7 @@ export interface TraceRequest {
   /**
    * Custom tags to associate with the trace.
    */
-  tags?: Record<string, number | string | boolean>;
+  tags?: Record<string, TraceValue>;
   /**
    * Custom operation name to associate with the trace.
    */
@@ -211,7 +217,7 @@ export interface EndTraceRequest {
    * Custom data to associate with the trace when ending it.
    * These will be set as attributes on the span.
    */
-  data?: Record<string, number | string | boolean>;
+  data?: Record<string, TraceValue>;
 }
 
 interface PreConsentCallBuffer<T = TraceRequest | EndTraceRequest> {
@@ -370,7 +376,7 @@ export async function flushBufferedTraces(): Promise<void> {
       const span = trace({
         ...call.request,
         parentContext: parentSpan,
-      }) as unknown as Span;
+      }) as Span;
 
       if (span) {
         activeSpans.set(traceName, span);
