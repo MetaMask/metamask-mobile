@@ -457,13 +457,22 @@ buildIosRelease(){
 	fi
 }
 
+# Builds the Flask binary for local development
 buildIosFlaskLocal() {
 	prebuild_ios
 
 	# Go to ios directory
 	cd ios
-	# Generate a Flask debug .ipa for local
 	generateIosBinary "MetaMask-Flask" "Debug"
+}
+
+# Builds the QA binary local development
+buildIosQaLocal() {
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-QA" "Debug"
 }
 
 buildIosFlaskRelease(){
@@ -689,8 +698,12 @@ buildIos() {
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] ; then
-		buildIosQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosQaLocal
+		else
+			buildIosQA
+		fi
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -771,8 +784,10 @@ if [ "$MODE" == "main" ]; then
 		remapEnvVariableExperimental
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ] ]; then
+	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
+	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi
 
