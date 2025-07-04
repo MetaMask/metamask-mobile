@@ -29,7 +29,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
 
 export interface EnterEmailParams {
