@@ -299,29 +299,69 @@ class FixtureBuilder {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
-                    address: DEFAULT_FIXTURE_ACCOUNT,
-                    id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
-                    metadata: {
-                      name: 'Account 1',
-                      importTime: 1684232000456,
-                      keyring: {
-                        type: 'HD Key Tree',
-                      },
+                  '66282f65-cad1-4a52-8fa9-84f3bd62d737': {
+                    id: '66282f65-cad1-4a52-8fa9-84f3bd62d737',
+                    address: '0xaa4179e7f103701e904d27df223a39aa9c27405a',
+                    options: {
+                      entropySource: '01JZ8ZE3FTZE07X6F7KX8V1EZB',
                     },
-                    options: {},
                     methods: [
                       'personal_sign',
+                      'eth_sign',
                       'eth_signTransaction',
                       'eth_signTypedData_v1',
                       'eth_signTypedData_v3',
                       'eth_signTypedData_v4',
                     ],
-                    type: 'eip155:eoa',
                     scopes: ['eip155:0'],
+                    type: 'eip155:eoa',
+                    metadata: {
+                      name: 'Account 1',
+                      importTime: 1751574318648,
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                      lastSelected: 1751574318648,
+                    },
+                  },
+                  '46e2c968-637e-4cf9-8dea-3418a6f07335': {
+                    type: 'solana:data-account',
+                    id: '46e2c968-637e-4cf9-8dea-3418a6f07335',
+                    address: '3nUFYdw4HFqLy55AxaDjuYLfPw8xqFRHaG7ivJt7o2bd',
+                    options: {
+                      scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                      entropySource: '01JZ8ZE5GABES23XFNQVPX4DYX',
+                      derivationPath: "m/44'/501'/0'/0'",
+                      index: 0,
+                    },
+                    methods: [
+                      'signAndSendTransaction',
+                      'signTransaction',
+                      'signMessage',
+                      'signIn',
+                    ],
+                    scopes: [
+                      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                      'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+                      'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+                    ],
+                    metadata: {
+                      name: 'Solana Account 1',
+                      importTime: 1751574324181,
+                      keyring: {
+                        type: 'Snap Keyring',
+                      },
+                      snap: {
+                        id: 'npm:@metamask/solana-wallet-snap',
+                        name: 'Solana',
+                        enabled: true,
+                      },
+                      lastSelected: 0,
+                      nameLastUpdatedAt: 1751574324195,
+                    },
                   },
                 },
-                selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+                selectedAccount: '66282f65-cad1-4a52-8fa9-84f3bd62d737',
               },
             },
             AccountTreeController: {
@@ -1154,10 +1194,11 @@ class FixtureBuilder {
   // Mirrors the vault contents from the extension fixture.
   withMultiSRPKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      vault: '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}'
-    })
+      vault:
+        '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}',
+    });
 
-    return this
+    return this;
   }
 
   withTokens(tokens) {
@@ -1245,8 +1286,130 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withETHAsPrimaryCurrency() {
-    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
+    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency =
+      'ETH';
     this.fixture.state.settings.primaryCurrency = 'ETH';
+    return this;
+  }
+
+  withIdentityTeamKeyringController(options = {}) {
+    const {
+      isBackupAndSyncEnabled = true,
+      isAccountSyncingEnabled = true,
+      isContactSyncingEnabled = true,
+    } = options;
+
+    // Backup and Sync Settings
+    this.fixture.state.engine.backgroundState.UserStorageController = {
+      isBackupAndSyncEnabled,
+      isAccountSyncingEnabled,
+      isContactSyncingEnabled,
+      isBackupAndSyncUpdateLoading: false,
+      isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+    };
+
+    // this.fixture.state.engine.backgroundState.KeyringController = {
+    //   keyrings: [
+    //     {
+    //       type: 'HD Key Tree',
+    //       accounts: ['0xaa4179e7f103701e904d27df223a39aa9c27405a'],
+    //       metadata: {
+    //         id: '01JZ8ZE5GABES23XFNQVPX4DYX',
+    //         name: '',
+    //       },
+    //     },
+    //     {
+    //       type: 'QR Hardware Wallet Device',
+    //       accounts: [],
+    //       metadata: {
+    //         id: '01JZ8ZE7WJ53MHSFBH9EHBMGG6',
+    //         name: '',
+    //       },
+    //     },
+    //     {
+    //       type: 'Snap Keyring',
+    //       accounts: ['3nUFYdw4HFqLy55AxaDjuYLfPw8xqFRHaG7ivJt7o2bd'],
+    //       metadata: {
+    //         id: '01JZ8ZE7WY4NSHYVWS2VTGHP74',
+    //         name: '',
+    //       },
+    //     },
+    //   ],
+    //   vault:
+    //     '{"cipher":"z/M3kmgnikSO5afQI7Ki77V88aQi80FLF/io8VIsoTrbs0IlLLHFqOEfb4n5zmfT315QYs8hpGLRnOOqOITkJflkXDrz/65kp+ivofH+9mOTl41usfQ5lhqmTmrc0L0lE5DTOsi4SeKMlAEtl0JJHgrMMBBzd1IQDxxVuThunUePyDgDKYkEDGCs4sAVVQxbtaf9Ro7hRe0w0hpXld/HWU9VOsauuueFy4j/wt3b+qk0fKf644RJReCLZHXj+/OFmErc8h9uF2/DPn4CDZrhxYaF316c0MRu2xX8AtpOCpSWo5BMqXxkSXRfUrYtkz78FJwPH0RKkbu2KsDtjHrCzScRAGUB7zQ25wKW0e3xl80Xvb8lJSOWbhfOWqc5PM75tmBNU/llL93+Y8BBkIMi75LzGqJBuqegCxbwa3yPPNhXCpklo8ikj3SjE5aJDrwRA3+GES3LPpJBNTfY54Qenm+8Z7Da4Rd+XAbLFShr0Ke1HwHsfBVb7Yq5NZMbJQzRM5NRO5mjMQ0Lb8iKcRraGsRNQprphGPaL+tr8J/IuiAUzTj7kd2Jp/s9nroHiOI7x0iWhr72lipGcRiPuTjk6CN8lumvAXAjvLSfZWRWIv/hUnlToQrPaHaRcSFb1qwmTCdNlSPjJPTo4ttj2fLY4bZrL9fzTPqYYTaZon20D+FjKmuYTQR4mwnr1u3fTkW/zw9oj/GOXGyTRc5rqF81D1nHJDHoRlL5EjH9lA5Ls3adyNc68eUJuu7egSCmVlDS+KtKPYIYtvBj9z5G3uxvZAEwU558gYMSnYPHqX1o3hs66gc667jC5ubQ5lIwvhZhdyv5tlNNYjBta5SC+tAmLXm3L6PBDoS6B02erCHWVGCQEQvV7dWwKiR+DV8IOh+74de0QUmLF2W3JLW+ySWHtOML4Uj3jXLrXtm/stQ/plPq5iVgU2oaNnRNhXILHqgdZYzdqFF9uB96HH7JR0ebi76aQ9vtdgT/hXvuwSHb7MfHkZyjKHCVj7HOFddK29FIdvzXrkt2MmSzrIeu75+CrAElw4JlYE3LLv5FLUegoXlkKG7zxK5qMhz9jJzoYP5uaZ2a1VyewXMAnsUIbzuW7ZfAYv0WA9E3zeJfAiiKsrc83qgOluDnu2Ajr5RCY8SXBYkgLoV9+6hzjv0TSgScxlQZecWXubYEEqZceYL8O0ZPudJAjk8FoLdQAMijo/ZlkLL2deiCG2x5cxLddBC35wd8g4+KaBvSIbRLXLOC1NjiklTEG91SfbQtT0cTnjmr7lAIM6KuSz/kyNhoBYfg3bELGbHrmf0eDUhZHU3isBJII5jA3JVzplFjIMhhQizZKd4Zexc6aRhTvwE+gFT4mIC0Ja3wHkr3ZCtQOMD7rVLTg7EKL2ED5kCLOYdJdiTzwbT/mntyatu8+qgDF7g+lpvxcYFVKT3f/xuqQXJpXvrY16/62wpYNMP1dMzVZsbuo2wuso34TbmUQL5/MrLeDCy3i+dnVGdkDrL79Or7CQC0hihZ0LXNaOu9cATMHVdjV/hkK0RRLd/N/l7FRbFgwUH4C8k+EVukTWarZaxcEeWgYCj8ufkkDd8gtXusEyFwd1NqovIgxNmJK8s4a7JSqYIeJLZmDCBLL5nU7irwNHTOeIuXaj5aeGIZt9yEyAE8SLwgQCt3+VCXOtb7sjz9zjmE90oH7ppr1AEIdx5CDpzymBIRhwYNaCe3QfpIf6Has3zZTPOg14Fsjje343bOb2mYsGRR1rSiNWY/udnvqdG0qIcrHt/8irEXIxqZd4KmV9xUaTNia2SVG//8DoFRH4NmlnGNmm96KpcsTxLHKnYciuNnimq5/ALdhtCY/VZZzquqe/i8Vz97D4nTAFaPZ8Q5PsNf3VyCvYaLI0kaUW3KFaOiPrMbfmXCFSWIvHl0U00TsKYiymxThhuCXP1Ep1n+Sf0tpX3V9gAHKYOgL2M5rFw2rVIAPuR1a9oCj+NY","iv":"05d7b585e55791e6cbce31d9328fe422","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"0V7lOzZxaUO/qkj385VOc/EBMUlybWqz+5kRRGRYKCc="}',
+    // };
+
+    // this.fixture.state.engine.backgroundState.AccountsController = {
+    //   internalAccounts: {
+    //     accounts: {
+    //       '66282f65-cad1-4a52-8fa9-84f3bd62d737': {
+    //         id: '66282f65-cad1-4a52-8fa9-84f3bd62d737',
+    //         address: '0xaa4179e7f103701e904d27df223a39aa9c27405a',
+    //         options: {
+    //           entropySource: '01JZ8ZE3FTZE07X6F7KX8V1EZB',
+    //         },
+    //         methods: [
+    //           'personal_sign',
+    //           'eth_sign',
+    //           'eth_signTransaction',
+    //           'eth_signTypedData_v1',
+    //           'eth_signTypedData_v3',
+    //           'eth_signTypedData_v4',
+    //         ],
+    //         scopes: ['eip155:0'],
+    //         type: 'eip155:eoa',
+    //         metadata: {
+    //           name: 'Account 1',
+    //           importTime: 1751574318648,
+    //           keyring: {
+    //             type: 'HD Key Tree',
+    //           },
+    //           lastSelected: 1751574318648,
+    //         },
+    //       },
+    //       '46e2c968-637e-4cf9-8dea-3418a6f07335': {
+    //         type: 'solana:data-account',
+    //         id: '46e2c968-637e-4cf9-8dea-3418a6f07335',
+    //         address: '3nUFYdw4HFqLy55AxaDjuYLfPw8xqFRHaG7ivJt7o2bd',
+    //         options: {
+    //           scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    //           entropySource: '01JZ8ZE5GABES23XFNQVPX4DYX',
+    //           derivationPath: "m/44'/501'/0'/0'",
+    //           index: 0,
+    //         },
+    //         methods: [
+    //           'signAndSendTransaction',
+    //           'signTransaction',
+    //           'signMessage',
+    //           'signIn',
+    //         ],
+    //         scopes: [
+    //           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    //           'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+    //           'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+    //         ],
+    //         metadata: {
+    //           name: 'Solana Account 1',
+    //           importTime: 1751574324181,
+    //           keyring: {
+    //             type: 'Snap Keyring',
+    //           },
+    //           snap: {
+    //             id: 'npm:@metamask/solana-wallet-snap',
+    //             name: 'Solana',
+    //             enabled: true,
+    //           },
+    //           lastSelected: 0,
+    //           nameLastUpdatedAt: 1751574324195,
+    //         },
+    //       },
+    //     },
+    //     selectedAccount: '66282f65-cad1-4a52-8fa9-84f3bd62d737',
+    //   },
+    // };
     return this;
   }
 

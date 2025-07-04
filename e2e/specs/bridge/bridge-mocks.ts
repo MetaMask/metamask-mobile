@@ -106,9 +106,9 @@ export const startMockServer = async (events: MockEvents, port: number) => {
       );
 
       if (matchingEvent) {
-        console.log(`Mocking ${method} request to: ${urlEndpoint}`);
-        console.log(`Response status: ${matchingEvent.responseCode}`);
-        console.log('Response:', matchingEvent.response);
+        // console.log(`Mocking ${method} request to: ${urlEndpoint}`);
+        // console.log(`Response status: ${matchingEvent.responseCode}`);
+        // console.log('Response:', matchingEvent.response);
 
         return {
           statusCode: matchingEvent.responseCode,

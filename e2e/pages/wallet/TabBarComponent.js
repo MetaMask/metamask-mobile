@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import { TabBarSelectorIDs } from '../../selectors/wallet/TabBar.selectors';
 
 class TabBarComponent {
@@ -28,7 +28,9 @@ class TabBarComponent {
   }
 
   async tapWallet() {
-    await Gestures.waitAndTap(this.tabBarWalletButton, {experimentalWaitForStability: true});
+    await Gestures.waitAndTap(this.tabBarWalletButton, {
+      elemDescription: 'Tab Bar - Wallet Button',
+    });
   }
 
   async tapActions() {
