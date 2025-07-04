@@ -25,7 +25,7 @@ const getStyles = (colors) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     button: {
       flex: 1,
@@ -69,6 +69,7 @@ export default function ActionView({
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
   contentContainerStyle,
+  buttonContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -97,13 +98,16 @@ export default function ActionView({
           {children}
         </TouchableWithoutFeedback>
 
-        <View style={styles.actionContainer}>
+        <View style={[styles.actionContainer, buttonContainerStyle]}>
           {showCancelButton && (
             <StyledButton
               testID={cancelTestID}
               type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
               onPress={onCancelPress}
-              containerStyle={[styles.button, styles.cancel]}
+              containerStyle={[
+                styles.button,
+                showConfirmButton && styles.cancel,
+              ]}
               disabled={confirmed}
             >
               {cancelText}
@@ -116,7 +120,7 @@ export default function ActionView({
               onPress={onConfirmPress}
               containerStyle={[
                 styles.button,
-                styles.confirm,
+                showCancelButton && styles.confirm,
                 confirmButtonState === ConfirmButtonState.Error
                   ? styles.confirmButtonError
                   : {},
@@ -233,4 +237,8 @@ ActionView.propTypes = {
    * Optional View styles. Applies to scroll view
    */
   contentContainerStyle: PropTypes.object,
+  /**
+   * Optional View styles. Applies to button container
+   */
+  buttonContainerStyle: PropTypes.object,
 };

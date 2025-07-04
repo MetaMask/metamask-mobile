@@ -384,9 +384,7 @@ const SearchTokenAutocomplete = ({
             >
               <Text style={styles.title}>
                 {isAllNetworksEnabled
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName}
               </Text>
             </TouchableOpacity>

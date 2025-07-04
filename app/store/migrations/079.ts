@@ -1,7 +1,11 @@
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
 import { ensureValidState } from './util';
-import { hasProperty, isObject } from '@metamask/utils';
+import {
+  hasProperty,
+  isObject,
+} from '@metamask/utils';
+
 
 // In-lined from @metamask/multichain
 const Caip25CaveatType = 'authorizedScopes';

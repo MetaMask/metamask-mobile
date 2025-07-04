@@ -106,9 +106,39 @@ await Assertions.checkIfObjectsMatch(
 4. Use appropriate assertions to verify event properties
 5. Consider testing both positive and negative cases (e.g., with and without metrics opt-in)
 
+## Important: MetaMetrics Opt-in State
+
+When testing Segment events, it's crucial to ensure the MetaMetrics opt-in state is properly set. There are two scenarios to consider:
+
+### 1. Using Onboarding Fixture
+When using `withOnboardingFixture()`, the opt-in state is automatically set during the onboarding flow **WHEN THE ACCEPT BUTTON IS TAPPED**. No additional configuration is needed.
+
+```javascript
+await withFixtures({
+  fixture: new FixtureBuilder().withOnboardingFixture().build(),
+  // ... other config
+});
+```
+
+### 2. Using Injected State (Without Onboarding)
+When using injected state without the onboarding flow, you **must** explicitly set the MetaMetrics opt-in state using `withMetaMetricsOptIn()`:
+
+```javascript
+await withFixtures({
+  fixture: new FixtureBuilder()
+    .withFoo()
+    .withMetaMetricsOptIn() // Required when not using onboarding
+    .build(),
+  // ... other config
+});
+```
+
+Without this, Segment events will not be sent even if `sendMetaMetricsinE2E: true` is set in launch arguments.
+
 ## Troubleshooting
 
 If events are not being captured:
 1. Verify `sendMetaMetricsinE2E: true` is set in `launchArgs`
 2. Check mock server setup
 3. Ensure correct event names are being used
+4. If using injected state without onboarding, verify `withMetaMetricsOptIn()` is called

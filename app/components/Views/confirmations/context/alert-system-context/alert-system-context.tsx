@@ -102,7 +102,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
     setAlertConfirmed,
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
-  } = useAlertsConfirmed(fieldAlerts);
+  } = useAlertsConfirmed([...fieldAlerts, ...generalAlerts]);
 
   const contextValue = useMemo(
     () => ({

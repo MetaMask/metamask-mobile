@@ -32,7 +32,9 @@ import fiatOrderReducer, {
   selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedDeposit,
   setFiatOrdersPaymentMethodAGG,
+  fiatOrdersGetStartedDeposit,
   setFiatOrdersRegionAGG,
   updateActivationKey,
   updateFiatCustomIdData,
@@ -382,6 +384,19 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedSell).toEqual(true);
     expect(stateWithStartedFalse.getStartedSell).toEqual(false);
+  });
+
+  it('should set get started deposit', () => {
+    const stateWithStartedTrue = fiatOrderReducer(
+      initialState,
+      setFiatOrdersGetStartedDeposit(true),
+    );
+    const stateWithStartedFalse = fiatOrderReducer(
+      stateWithStartedTrue,
+      setFiatOrdersGetStartedDeposit(false),
+    );
+    expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
+    expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -845,6 +860,18 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedSell(state)).toEqual(true);
+    });
+  });
+
+  describe('fiatOrdersGetStartedDeposit', () => {
+    it('should return the get started deposit state', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          getStartedDeposit: true,
+        },
+      });
+
+      expect(fiatOrdersGetStartedDeposit(state)).toEqual(true);
     });
   });
 

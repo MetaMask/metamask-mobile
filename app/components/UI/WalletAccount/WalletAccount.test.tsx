@@ -3,6 +3,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { Hex } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 
 // External dependencies
 import renderWithProvider, {
@@ -29,12 +30,15 @@ const MOCK_CHAIN_ID: Hex = '0x1';
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const mockAccount: Account = {
+  id: internalAccount2.id,
   name: internalAccount2.metadata.name,
   address: internalAccount2.address as Hex,
   type: internalAccount2.metadata.keyring.type as KeyringTypes,
   yOffset: 0,
   isSelected: true,
+  caipAccountId: `eip155:0:${internalAccount2.address}`,
   isLoadingAccount: false,
+  scopes: [EthScope.Eoa],
 };
 
 jest.mock('../../../core/Engine', () => {

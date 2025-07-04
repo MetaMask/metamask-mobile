@@ -52,6 +52,16 @@ export enum TraceName {
   ImportTokens = 'Import Tokens',
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
+  FetchHistoricalPrices = 'Fetch Historical Prices',
+  TransactionConfirmed = 'Transaction Confirmed',
+  LoadCollectibles = 'Load Collectibles',
+  DetectNfts = 'Detect Nfts',
+  CollectibleContractsComponent = 'Collectible Contracts Component',
+  DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
+  OnboardingCreateWallet = 'Onboarding Create Wallet',
+  QRTabSwitcher = 'QR Tab Switcher',
+  RevealPrivateKey = 'Reveal Private Key',
+  RevealSrp = 'Reveal Srp',
 }
 
 export enum TraceOperation {
@@ -71,6 +81,7 @@ export enum TraceOperation {
   Login = 'login',
   CreateSnapAccount = 'create.snap.account',
   AddSnapAccount = 'add.snap.account',
+  RevealPrivateCredential = 'reveal.private.credential',
 }
 
 const ID_DEFAULT = 'default';

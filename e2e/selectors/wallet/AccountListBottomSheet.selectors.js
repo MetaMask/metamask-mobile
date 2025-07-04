@@ -11,4 +11,5 @@ export const AccountListBottomSheetSelectorsText = {
   ACCOUNTS_LIST_TITLE: enContent.accounts.accounts_title,
   REMOVE_IMPORTED_ACCOUNT: enContent.accounts.yes_remove_it,
   ACCOUNT_TYPE_LABEL_TEXT: enContent.accounts.imported,
+  ADD_ETHEREUM_ACCOUNT: enContent.account_actions.add_new_account,
 };

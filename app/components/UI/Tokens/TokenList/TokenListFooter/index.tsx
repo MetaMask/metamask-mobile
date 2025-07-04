@@ -9,8 +9,8 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { isZero } from '../../../../../util/lodash';
-import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
-import { createBuyNavigationDetails } from '../../../Ramp/routes/utils';
+import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '../../../Ramp/Aggregator/routes/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,

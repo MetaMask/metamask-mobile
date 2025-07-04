@@ -31,6 +31,7 @@ const useNetworkInfo = (chainId?: string) => {
 
   const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
   const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? rpcUrl;
+  const networkNativeCurrency = networkConfiguration.nativeCurrency;
 
   const networkName = nickname || rpcName;
 
@@ -39,6 +40,7 @@ const useNetworkInfo = (chainId?: string) => {
   return {
     networkName,
     networkImage,
+    networkNativeCurrency,
   };
 };
 

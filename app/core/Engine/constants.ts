@@ -21,6 +21,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountsController:stateChange',
+  'AccountTreeController:stateChange',
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'AppMetadataController:stateChange',
@@ -70,6 +71,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'DeFiPositionsController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

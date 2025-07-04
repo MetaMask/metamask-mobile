@@ -5,6 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import AddNewAccount from './AddNewAccount';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
+  createMockSnapInternalAccount,
   internalAccount1,
   internalAccount2,
 } from '../../../util/test/accountsControllerTestUtils';
@@ -18,6 +19,7 @@ import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import Logger from '../../../util/Logger';
+import { SolAccountType } from '@metamask/keyring-api';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
@@ -156,11 +158,11 @@ jest.mocked(Engine);
 
 const render = (
   state: RootState,
-  route: AddNewAccountProps['route'] = {},
+  params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
   renderWithProvider(
     <SafeAreaProvider>
-      <AddNewAccount route={route} />
+      <AddNewAccount {...params} />
     </SafeAreaProvider>,
     { state },
   );
@@ -312,10 +314,8 @@ describe('AddNewAccount', () => {
       'suggested name is $expectedName for scope: $scope',
       async ({ scope, clientType, expectedName }) => {
         const { getByPlaceholderText } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         const namePlaceholder = getByPlaceholderText(expectedName);
@@ -326,10 +326,8 @@ describe('AddNewAccount', () => {
 
     it('calls create account with the MultichainWalletSnapClient', async () => {
       const { getByTestId } = render(initialState, {
-        params: {
-          scope: MultichainNetwork.Solana,
-          clientType: WalletClientType.Solana,
-        },
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
       });
 
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -363,10 +361,8 @@ describe('AddNewAccount', () => {
         );
 
         const { getByTestId } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -384,10 +380,8 @@ describe('AddNewAccount', () => {
 
     it('disables buttons while loading', async () => {
       const { getByTestId } = render(initialState, {
-        params: {
-          scope: MultichainNetwork.Solana,
-          clientType: WalletClientType.Solana,
-        },
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
       });
 
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
@@ -415,10 +409,8 @@ describe('AddNewAccount', () => {
         );
 
         const { getByText } = render(initialState, {
-          params: {
-            scope,
-            clientType,
-          },
+          scope,
+          clientType,
         });
 
         expect(
@@ -430,5 +422,42 @@ describe('AddNewAccount', () => {
         ).toBeDefined();
       },
     );
+
+    it('shows the correct number of accounts in srp item', () => {
+      const solanaAccount = createMockSnapInternalAccount(
+        '0x1234567890123456789012345678901234567890',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+        mockKeyring1.metadata.id,
+      );
+      const snapKeyring = {
+        accounts: [solanaAccount.address],
+        type: KeyringTypes.snap,
+      };
+      const stateWithSnapAccount = {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccount1.id]: mockAccount1,
+                  [mockAccount2.id]: mockAccount2,
+                  [solanaAccount.id]: solanaAccount,
+                },
+                selectedAccount: mockAccount1.id,
+              },
+            },
+            KeyringController: {
+              keyrings: [mockKeyring1, mockKeyring2, snapKeyring],
+            },
+          },
+        },
+      } as unknown as RootState;
+      const { getByText } = render(stateWithSnapAccount, {});
+
+      // 2 accounts are associated with the primary srp. 1 hd and 1 solana
+      expect(getByText('Show 2 accounts')).toBeDefined();
+    });
   });
 });

@@ -83,11 +83,9 @@ export const fetchAccountNotificationSettings = async (accounts: string[]) => {
  * - Allows us to delete notifications for accounts
  * @param accounts - accounts to disable notifications for
  */
-export const deleteNotificationsForAccount = async (accounts: string[]) => {
+export const disableAccounts = async (accounts: string[]) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.deleteOnChainTriggersByAccount(
-    accounts,
-  );
+  await Engine.context.NotificationServicesController.disableAccounts(accounts);
 };
 
 /**
@@ -95,11 +93,9 @@ export const deleteNotificationsForAccount = async (accounts: string[]) => {
  * - Allows us to enable notifications for accounts
  * @param accounts - accounts to enable notifications for
  */
-export const createNotificationsForAccount = async (accounts: string[]) => {
+export const enableAccounts = async (accounts: string[]) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.updateOnChainTriggersByAccount(
-    accounts,
-  );
+  await Engine.context.NotificationServicesController.enableAccounts(accounts);
 };
 
 /**

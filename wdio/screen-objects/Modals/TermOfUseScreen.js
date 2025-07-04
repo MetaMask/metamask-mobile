@@ -47,9 +47,6 @@ class TermOfUseScreen {
   }
 
   async tapScrollEndButton() {
-    await Gestures.swipeUp(0.5);
-    await Gestures.swipeUp(0.5);
-    await Gestures.swipeUp(0.5);
     await Gestures.waitAndTap(this.scrollEndArrowButton);
   }
 

@@ -276,12 +276,15 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
           </View>
           <View
             style={
-              {
-                "flex": 0,
-                "flexDirection": "row",
-                "paddingHorizontal": 24,
-                "paddingVertical": 16,
-              }
+              [
+                {
+                  "flex": 0,
+                  "flexDirection": "row",
+                  "paddingHorizontal": 16,
+                  "paddingVertical": 16,
+                },
+                undefined,
+              ]
             }
           >
             <TouchableOpacity
@@ -294,7 +297,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 [
                   [
                     {
-                      "borderRadius": 100,
+                      "borderRadius": 12,
                       "justifyContent": "center",
                       "padding": 15,
                     },
@@ -355,7 +358,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 [
                   [
                     {
-                      "borderRadius": 100,
+                      "borderRadius": 12,
                       "justifyContent": "center",
                       "padding": 15,
                     },
@@ -380,7 +383,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   },
                 ]
               }
-              testID=""
+              testID="add-collectible-button"
             >
               <Text
                 style={
@@ -713,7 +716,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -989,7 +992,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "center",
             "backgroundColor": "#4459ff",
-            "borderRadius": 24,
+            "borderRadius": 12,
             "color": "#4459ff",
             "flexDirection": "row",
             "fontFamily": "CentraNo1-Book",

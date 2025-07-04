@@ -19,6 +19,7 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -42,14 +43,17 @@ export default function NetworkListBottomSheet({
     <BottomSheet
       shouldNavigateBack={false}
       ref={sheetRef}
+      isInteractable={false}
       onClose={() => setOpenNetworkSelector(false)}
-      isInteractable
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-        {strings('networks.select_network')}
-      </Text>
+      <BottomSheetHeader onClose={() => setOpenNetworkSelector(false)}>
+        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
+          {strings('networks.select_network')}
+        </Text>
+      </BottomSheetHeader>
+
       <ScrollView>
         {Object.values(networkConfigurations).map((network) => (
           <View style={styles.bottomSheetWrapper} key={network.chainId}>

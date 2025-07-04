@@ -36,6 +36,12 @@ class AccountListBottomSheet {
     );
   }
 
+  get addEthereumAccountButton() {
+    return Matchers.getElementByText(
+      AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
+    );
+  }
+
   get removeAccountAlertText() {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
@@ -65,7 +71,7 @@ class AccountListBottomSheet {
 
   /**
    * Retrieves the title/name of an element using the `cellbase-avatar-title` ID.
-   * Note: The `select-with-menu` ID element seems to never receive the tap event, 
+   * Note: The `select-with-menu` ID element seems to never receive the tap event,
    * so this method fetches the title/name instead.
    *
    * @param {number} index - The index of the element to retrieve.
@@ -102,6 +108,10 @@ class AccountListBottomSheet {
 
   async tapAddAccountButton() {
     await Gestures.waitAndTap(this.addAccountButton);
+  }
+
+  async tapAddEthereumAccountButton() {
+    await Gestures.waitAndTap(this.addEthereumAccountButton);
   }
 
   async longPressImportedAccount() {

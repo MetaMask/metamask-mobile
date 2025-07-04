@@ -2,12 +2,10 @@ import React, { useCallback } from 'react';
 import { InteractionManager, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView, { WebViewNavigation } from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
-import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import {
   FiatOrder,
   getPendingOrders,
@@ -23,121 +21,17 @@ import {
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
 import processOrder from './orderProcessor';
-import processCustomOrderIdData from './orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
-import { trackEvent } from './hooks/useAnalytics';
-import { AnalyticsEvents } from './types';
+import processCustomOrderIdData from './Aggregator/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './Aggregator/orderProcessor/aggregator';
+import { trackEvent } from './Aggregator/hooks/useAnalytics';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './sdk';
-import useFetchRampNetworks from './hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './utils';
+import { callbackBaseUrl } from './Aggregator/sdk';
+import useFetchRampNetworks from './Aggregator/hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './Aggregator/utils';
 import Routes from '../../../constants/navigation/Routes';
+import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
-
-/**
- * @param {FiatOrder} fiatOrder
- */
-export const getAggregatorAnalyticsPayload = (
-  fiatOrder: FiatOrder,
-): [
-  (
-    | 'ONRAMP_PURCHASE_FAILED'
-    | 'ONRAMP_PURCHASE_CANCELLED'
-    | 'ONRAMP_PURCHASE_COMPLETED'
-    | 'OFFRAMP_PURCHASE_FAILED'
-    | 'OFFRAMP_PURCHASE_CANCELLED'
-    | 'OFFRAMP_PURCHASE_COMPLETED'
-    | null
-  ),
-  (
-    | AnalyticsEvents[
-        | 'ONRAMP_PURCHASE_FAILED'
-        | 'ONRAMP_PURCHASE_CANCELLED'
-        | 'ONRAMP_PURCHASE_COMPLETED'
-        | 'OFFRAMP_PURCHASE_FAILED'
-        | 'OFFRAMP_PURCHASE_CANCELLED'
-        | 'OFFRAMP_PURCHASE_COMPLETED']
-    | null
-  ),
-] => {
-  const isBuy = fiatOrder.orderType === OrderOrderTypeEnum.Buy;
-
-  let failedOrCancelledParams:
-    | AnalyticsEvents['ONRAMP_PURCHASE_FAILED']
-    | AnalyticsEvents['OFFRAMP_PURCHASE_FAILED']
-    | AnalyticsEvents['ONRAMP_PURCHASE_CANCELLED']
-    | AnalyticsEvents['OFFRAMP_PURCHASE_CANCELLED'];
-
-  if (isBuy) {
-    failedOrCancelledParams = {
-      amount: fiatOrder.amount as number,
-      currency_source: fiatOrder.currency,
-      currency_destination: fiatOrder.cryptocurrency,
-      order_type: fiatOrder.orderType,
-      payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
-      chain_id_destination: fiatOrder.network,
-      provider_onramp: (fiatOrder.data as Order)?.provider?.name,
-    };
-  } else {
-    failedOrCancelledParams = {
-      amount: fiatOrder.amount as number,
-      currency_source: fiatOrder.cryptocurrency,
-      currency_destination: fiatOrder.currency,
-      order_type: fiatOrder.orderType,
-      payment_method_id: (fiatOrder.data as Order)?.paymentMethod?.id,
-      chain_id_source: fiatOrder.network,
-      provider_offramp: (fiatOrder.data as Order)?.provider?.name,
-    };
-  }
-
-  const sharedCompletedPayload: Partial<
-    | AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
-    | AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED']
-  > = {
-    total_fee: Number(fiatOrder.fee),
-    exchange_rate:
-      (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
-      Number(fiatOrder.cryptoAmount),
-    amount_in_usd: (fiatOrder.data as Order)?.fiatAmountInUsd,
-  };
-
-  const sellCompletePayload: AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'] = {
-    ...failedOrCancelledParams,
-    ...sharedCompletedPayload,
-    fiat_out: fiatOrder.amount,
-  } as AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'];
-
-  const buyCompletePayload: AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED'] = {
-    ...failedOrCancelledParams,
-    ...sharedCompletedPayload,
-    crypto_out: fiatOrder.cryptoAmount,
-  } as AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED'];
-
-  switch (fiatOrder.state) {
-    case FIAT_ORDER_STATES.FAILED: {
-      return [
-        isBuy ? 'ONRAMP_PURCHASE_FAILED' : 'OFFRAMP_PURCHASE_FAILED',
-        failedOrCancelledParams,
-      ];
-    }
-    case FIAT_ORDER_STATES.CANCELLED: {
-      return [
-        isBuy ? 'ONRAMP_PURCHASE_CANCELLED' : 'OFFRAMP_PURCHASE_CANCELLED',
-        failedOrCancelledParams,
-      ];
-    }
-    case FIAT_ORDER_STATES.COMPLETED: {
-      return isBuy
-        ? ['ONRAMP_PURCHASE_COMPLETED', buyCompletePayload]
-        : ['OFFRAMP_PURCHASE_COMPLETED', sellCompletePayload];
-    }
-    case FIAT_ORDER_STATES.PENDING:
-    default: {
-      return [null, null];
-    }
-  }
-};
 
 export interface ProcessorOptions {
   forced?: boolean;
@@ -154,7 +48,7 @@ export async function processFiatOrder(
     const state = getState();
     const existingOrder = getOrderById(state, updatedOrder.id);
     if (existingOrder?.state !== updatedOrder.state) {
-      const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
+      const [event, params] = getOrderAnalyticsPayload(updatedOrder);
       if (event && params) {
         trackEvent(event, params);
       }

@@ -7,6 +7,7 @@ const initialState = {
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
+  deepLinkModalDisabled: false,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -56,13 +57,16 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
       };
-
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
         ...state,
         deviceNotificationEnabled: action.deviceNotificationEnabled,
       };
-
+    case 'SET_DEEP_LINK_MODAL_DISABLED':
+      return {
+        ...state,
+        deepLinkModalDisabled: action.deepLinkModalDisabled,
+      };
     default:
       return state;
   }

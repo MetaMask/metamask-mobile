@@ -1,7 +1,12 @@
+import { Hex } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
+import TagBase, {
+  TagSeverity,
+  TagShape,
+} from '../../../../../../../component-library/base-components/TagBase';
 import Avatar, {
   AvatarAccountType,
   AvatarVariant,
@@ -9,29 +14,25 @@ import Avatar, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
-import Text from '../../../../../../../component-library/components/Texts/Text';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../../component-library/components/Badges/BadgeWrapper';
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../../../../component-library/base-components/TagBase';
-import { getLabelTextByAddress } from '../../../../../../../util/address';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import InfoSection from '../../../UI/info-row/info-section';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { getLabelTextByAddress } from '../../../../../../../util/address';
+import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
+import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
-import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
+import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
-import { Hex } from '@metamask/utils';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 
 const AccountNetworkInfoCollapsed = () => {
   const useBlockieIcon = useSelector(
@@ -40,17 +41,22 @@ const AccountNetworkInfoCollapsed = () => {
 
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
 
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;
   if (signatureRequest) {
     chainId = signatureRequest?.chainId;
     fromAddress = signatureRequest?.messageParams?.from;
-  } else {
-    chainId = transactionMetadata?.chainId;
+  } else if (transactionMetadata) {
+    chainId = transactionMetadata?.chainId as Hex;
     fromAddress = transactionMetadata?.txParams?.from as string;
+  } else {
+    // transactionBatchesMetadata
+    chainId = transactionBatchesMetadata?.chainId as Hex;
+    fromAddress = transactionBatchesMetadata?.from as string;
   }
-  const { accountName } = useAccountInfo(fromAddress);
+  const { accountName } = useAccountInfo(fromAddress, chainId as Hex);
   const accountLabel = getLabelTextByAddress(fromAddress);
   const { styles } = useStyles(styleSheet, {
     accountNameWide: Boolean(!accountLabel),

@@ -165,6 +165,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         }
       >
         2.6%
+         APR
       </Text>
     </View>
     <View
@@ -325,7 +326,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
@@ -333,7 +334,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             "paddingHorizontal": 16,
           }
         }
-        testID="stake-earnings-history-button"
+        testID="earn-earnings-history-button"
       >
         <Text
           accessibilityRole="text"
@@ -461,6 +462,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         }
       >
         2.6%
+         APR
       </Text>
     </View>
     <View
@@ -621,7 +623,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
@@ -629,7 +631,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        testID="stake-earnings-history-button"
+        testID="earn-earnings-history-button"
       >
         <Text
           accessibilityRole="text"

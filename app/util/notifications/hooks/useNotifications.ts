@@ -18,8 +18,6 @@ import {
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
-import { isNotificationsFeatureEnabled } from '../constants';
-import ErrorMessage from '../../../components/Views/confirmations/legacy/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -43,40 +41,6 @@ export function useListNotifications() {
     isLoading: loading,
     error,
   };
-}
-
-/**
- * Effect that queries for notifications on startup if notifications are enabled.
- */
-export function useListNotificationsEffect() {
-  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
-  const notificationsControllerEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
-  const notificationsEnabled =
-    notificationsFlagEnabled && notificationsControllerEnabled;
-
-  const { listNotifications } = useListNotifications();
-
-  // App Open Effect
-  useEffect(() => {
-    const run = async () => {
-      try {
-        if (notificationsEnabled) {
-          await listNotifications();
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(ErrorMessage);
-        Logger.error(
-          new Error(`Failed to list notifications - ${errorMessage}`),
-        );
-      }
-    };
-
-    run();
-  }, [notificationsEnabled, listNotifications]);
 }
 
 /**

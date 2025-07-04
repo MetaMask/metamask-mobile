@@ -70,7 +70,7 @@ const Foo = class extends React.PureComponent {
 
 ### 9. Write Tests for Each Component/Utility
 - Write tests for the components you create as it reduces the possibilities of errors. Testing ensures that the components are behaving as you would expect. In this project Jest is used, and it provides an environment where you can execute your tests.
-- Follow the contributor docs [Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/unit-testing.md).
+- Follow the contributor docs [Unit Testing Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md).
 
 ### 10. External packages should be well maintained
 - New packages should only be integrated if the application doesn’t have the existing functionality and it cannot be added by implementing a small utility function. Use the https://snyk.io/advisor/ to assess the popularity, maintainability and security analysis. The package must be in good standing to be added to the project.

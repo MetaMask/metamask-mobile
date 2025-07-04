@@ -41,6 +41,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         },
       ]
     }
+    testID="browser-tab-123"
   >
     <View
       style={
@@ -122,6 +123,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
         onPress={[Function]}
+        testID="tab-close-button-123"
       >
         <SvgMock
           color="#121314"

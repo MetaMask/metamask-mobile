@@ -29,3 +29,9 @@ export const selectHideZeroBalanceTokens = createSelector(
   (settingsState: Record<string, unknown>) =>
     Boolean(settingsState.hideZeroBalanceTokens),
 );
+
+export const selectDeepLinkModalDisabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    Boolean(settingsState.deepLinkModalDisabled),
+);

@@ -176,6 +176,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       let transactionId: string | undefined;
 
       if (isStaking) {
+        if (!attemptDepositTransaction) return;
         const txRes = await attemptDepositTransaction(
           valueWei,
           activeAccount.address,
@@ -227,6 +228,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
             {strings('stake.cancel')}
           </Text>
         }
+        testID="cancel-button"
         style={styles.button}
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
@@ -240,6 +242,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
             {strings('stake.continue')}
           </Text>
         }
+        testID="continue-button"
         style={styles.button}
         variant={ButtonVariants.Primary}
         width={ButtonWidthTypes.Full}

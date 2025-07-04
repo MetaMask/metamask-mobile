@@ -163,19 +163,19 @@ const useInputHandler = ({
   );
 
   const handleMaxInput = useCallback(
-    (maxStakeableMinimalUnit: BN4) => {
+    (maxMinimalUnit: BN4) => {
       const tokenValue = renderFromTokenMinimalUnit(
-        maxStakeableMinimalUnit,
+        maxMinimalUnit,
         decimals,
         5,
       );
       const fiatValue = balanceToFiatNumber(
-        fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals),
+        fromTokenMinimalUnit(maxMinimalUnit, decimals),
         conversionRate,
         exchangeRate,
         2,
       ).toString();
-      setAmountTokenMinimalUnit(maxStakeableMinimalUnit);
+      setAmountTokenMinimalUnit(maxMinimalUnit);
       setAmountToken(tokenValue);
       setAmountFiatNumber(fiatValue);
     },

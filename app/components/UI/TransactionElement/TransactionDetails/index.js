@@ -13,6 +13,7 @@ import {
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
   isLineaMainnetChainId,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -20,7 +21,10 @@ import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
@@ -30,6 +34,8 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectEvmTicker,
+  selectProviderConfig,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -61,6 +67,8 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import Tag from '../../../../component-library/components/Tags/Tag';
+import TagBase from '../../../../component-library/base-components/TagBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -122,7 +130,7 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain Id
+     * Chain ID string
      */
     chainId: PropTypes.string,
     /**
@@ -216,7 +224,6 @@ class TransactionDetails extends PureComponent {
       transactionDetails,
       selectedAddress,
       ticker,
-      chainId,
       conversionRate,
       currentCurrency,
       contractExchangeRates,
@@ -226,6 +233,10 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+
+    const chainId = isPerDappSelectedNetworkEnabled()
+      ? transactionObject.chainId
+      : this.props.chainId;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -361,10 +372,16 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      chainId,
-      transactionObject: { status, time, txParams },
+      transactionObject,
+      transactionObject: { status, time, txParams, chainId: txChainId },
       shouldUseSmartTransaction,
     } = this.props;
+    const chainId = isPerDappSelectedNetworkEnabled()
+      ? txChainId
+      : this.props.chainId;
+    const hasNestedTransactions = Boolean(
+      transactionObject?.nestedTransactions?.length,
+    );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
 
@@ -375,6 +392,20 @@ class TransactionDetails extends PureComponent {
 
     return updatedTransactionDetails ? (
       <DetailsModal.Body>
+        {hasNestedTransactions && (
+          <DetailsModal.Section>
+            <DetailsModal.Column>
+              <TagBase includesBorder>
+                <Text
+                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySMBold}
+                >
+                  {strings('transactions.batched_transactions')}
+                </Text>
+              </TagBase>
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+        )}
         <DetailsModal.Section borderBottom>
           <DetailsModal.Column>
             <DetailsModal.SectionTitle>
@@ -511,10 +542,15 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = (state, ownProps) => ({
   chainId: selectChainId(state),
+  providerConfig: isPerDappSelectedNetworkEnabled()
+    ? selectProviderConfig(state)
+    : undefined,
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectEvmTicker(state),
+  ticker: isPerDappSelectedNetworkEnabled()
+    ? selectTickerByChainId(state, ownProps.transactionObject.chainId)
+    : selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),

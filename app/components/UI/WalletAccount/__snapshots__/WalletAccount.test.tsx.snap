@@ -21,6 +21,7 @@ exports[`WalletAccount renders correctly 1`] = `
     }
   >
     <TouchableOpacity
+      accountTypeLabel="SRP #1"
       onPress={[Function]}
       style={
         {

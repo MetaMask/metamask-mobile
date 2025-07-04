@@ -25,8 +25,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -69,7 +69,11 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
+import {
+  getDecimalChainId,
+  isTestNet,
+  isPerDappSelectedNetworkEnabled,
+} from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -164,6 +168,8 @@ import {
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
+  SnapControllerIsMinimumPlatformVersionAction,
+  SnapControllerHandleRequestAction,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
@@ -179,13 +185,11 @@ import {
   STATELESS_NON_CONTROLLER_NAMES,
   swapsSupportedChainIds,
 } from './constants';
-import {
-  getGlobalChainId,
-  getGlobalNetworkClientId,
-} from '../../util/networks/global-network';
+import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
+import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -193,6 +197,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
@@ -202,6 +207,24 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
+import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
+import {
+  onRpcEndpointDegraded,
+  onRpcEndpointUnavailable,
+} from './controllers/network-controller/messenger-action-handlers';
+import { INFURA_PROJECT_ID } from '../../constants/network';
+import { SECOND } from '../../constants/time';
+import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
+import {
+  MultichainRouter,
+  MultichainRouterMessenger,
+  MultichainRouterArgs,
+} from '@metamask/snaps-controllers';
+import {
+  MultichainRouterGetSupportedAccountsEvent,
+  MultichainRouterIsSupportedScopeEvent,
+} from './controllers/multichain-router/constants';
+import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -252,7 +275,7 @@ export class Engine {
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-
+  multichainRouter: MultichainRouter;
   /**
    * Creates a CoreController instance
    */
@@ -305,23 +328,136 @@ export class Engine {
       },
     });
 
-    const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
+    const errorReportingServiceMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'ErrorReportingService',
         allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      getRpcServiceOptions: () => ({
-        fetch,
-        btoa,
-      }),
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
-      captureException,
-    };
-    const networkController = new NetworkController(networkControllerOpts);
+        allowedEvents: [],
+      });
+    // We only use the ErrorReportingService through the
+    // messenger. But we need to assign a variable to make Sonar happy.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const errorReportingService = new ErrorReportingService({
+      messenger: errorReportingServiceMessenger,
+      captureException: (error) => captureException(error as Error),
+    });
 
+    const networkControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'NetworkController',
+      allowedEvents: [],
+      allowedActions: ['ErrorReportingService:captureException'],
+    });
+
+    const additionalDefaultNetworks = [
+      ChainId['megaeth-testnet'],
+      ChainId['monad-testnet'],
+    ];
+
+    let initialNetworkControllerState = initialState.NetworkController;
+    if (!initialNetworkControllerState) {
+      initialNetworkControllerState = getDefaultNetworkControllerState(
+        additionalDefaultNetworks,
+      );
+
+      // Add failovers for default Infura RPC endpoints
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('linea-mainnet');
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['base-mainnet']
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('base-mainnet');
+    }
+
+    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
+    const networkControllerOptions = {
+      infuraProjectId,
+      state: initialNetworkControllerState,
+      messenger: networkControllerMessenger,
+      getBlockTrackerOptions: () =>
+        process.env.IN_TEST
+          ? {}
+          : {
+              pollingInterval: 20 * SECOND,
+              // The retry timeout is pretty short by default, and if the endpoint is
+              // down, it will end up exhausting the max number of consecutive
+              // failures quickly.
+              retryTimeout: 20 * SECOND,
+            },
+      getRpcServiceOptions: (rpcEndpointUrl: string) => {
+        const maxRetries = 4;
+        const commonOptions = {
+          fetch: globalThis.fetch.bind(globalThis),
+          btoa: globalThis.btoa.bind(globalThis),
+        };
+
+        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
+          return {
+            ...commonOptions,
+            policyOptions: {
+              maxRetries,
+              // When we fail over to Quicknode, we expect it to be down at
+              // first while it is being automatically activated. If an endpoint
+              // is down, the failover logic enters a "cooldown period" of 30
+              // minutes. We'd really rather not enter that for Quicknode, so
+              // keep retrying longer.
+              maxConsecutiveFailures: (maxRetries + 1) * 14,
+            },
+          };
+        }
+
+        return {
+          ...commonOptions,
+          policyOptions: {
+            maxRetries,
+            // Ensure that the circuit does not break too quickly.
+            maxConsecutiveFailures: (maxRetries + 1) * 7,
+          },
+        };
+      },
+      additionalDefaultNetworks,
+    };
+    const networkController = new NetworkController(networkControllerOptions);
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointUnavailable',
+      async ({ chainId, endpointUrl, error }) => {
+        onRpcEndpointUnavailable({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          error,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        });
+      },
+    );
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointDegraded',
+      async ({ chainId, endpointUrl }) => {
+        onRpcEndpointDegraded({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+          metaMetricsId: await MetaMetrics.getInstance().getMetaMetricsId(),
+        });
+      },
+    );
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -366,12 +502,35 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const remoteFeatureFlagController = createRemoteFeatureFlagController({
-      messenger: this.controllerMessenger.getRestricted({
+    const remoteFeatureFlagControllerMessenger =
+      this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
         allowedEvents: [],
-      }),
+      });
+    remoteFeatureFlagControllerMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      (isRpcFailoverEnabled) => {
+        if (isRpcFailoverEnabled) {
+          Logger.log(
+            'isRpcFailoverEnabled = ',
+            isRpcFailoverEnabled,
+            ', enabling RPC failover',
+          );
+          networkController.enableRpcFailover();
+        } else {
+          Logger.log(
+            'isRpcFailoverEnabled = ',
+            isRpcFailoverEnabled,
+            ', disabling RPC failover',
+          );
+          networkController.disableRpcFailover();
+        }
+      },
+      (state) => state.remoteFeatureFlags.walletFrameworkRpcFailoverEnabled,
+    );
+    const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      messenger: remoteFeatureFlagControllerMessenger,
       disabled: !isBasicFunctionalityToggleEnabled(),
       getMetaMetricsId: () => metaMetricsId ?? '',
     });
@@ -442,8 +601,9 @@ export class Engine {
         'AccountsController:setAccountName',
         'AccountsController:setAccountNameAndSelectAccount',
         'AccountsController:listMultichainAccounts',
-        'SnapController:handleRequest',
+        SnapControllerHandleRequestAction,
         SnapControllerGetSnapAction,
+        SnapControllerIsMinimumPlatformVersionAction,
       ],
       allowedEvents: [],
     });
@@ -519,8 +679,6 @@ export class Engine {
     };
 
     const snapRestrictedMethods = {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       clearSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
@@ -590,14 +748,10 @@ export class Engine {
       ),
       handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
         await handleSnapRequest(this.controllerMessenger, args),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapStateAction,
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       updateSnapState: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerUpdateSnapStateAction,
@@ -664,6 +818,7 @@ export class Engine {
           useNftDetection,
           displayNftMedia,
           isMultiAccountBalancesEnabled,
+          showTestNetworks,
         } = this.getPreferences();
         const locale = I18n.locale;
         return {
@@ -677,6 +832,7 @@ export class Engine {
           displayNftMedia,
           useNftDetection,
           useExternalPricingData: true,
+          showTestnets: showTestNetworks,
         };
       },
     };
@@ -753,6 +909,14 @@ export class Engine {
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
+        isNonEvmScopeSupported: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          MultichainRouterIsSupportedScopeEvent,
+        ),
+        getNonEvmAccountAddresses: this.controllerMessenger.call.bind(
+          this.controllerMessenger,
+          MultichainRouterGetSupportedAccountsEvent,
+        ),
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),
@@ -779,11 +943,11 @@ export class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: !!process.env.MULTICHAIN_V1,
+      useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
         listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: !!process.env.MULTICHAIN_V1 }),
+      ) => listener({ useRequestQueue: isPerDappSelectedNetworkEnabled() }),
       domainProxyMap: new DomainProxyMap(),
     });
 
@@ -849,6 +1013,48 @@ export class Engine {
                 .addProperties({
                   profile_id: profileId,
                   situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
+        contactSyncing: {
+          onContactUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Updated',
+                })
+                .build(),
+            );
+          },
+          onContactDeleted: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Contact Deleted',
+                })
+                .build(),
+            );
+          },
+          onContactSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  feature_name: 'Contacts Sync',
+                  action: 'Contacts Sync Erroneous Situation',
+                  additional_description: situationMessage,
                 })
                 .build(),
             );
@@ -950,7 +1156,7 @@ export class Engine {
         chainId,
       }: {
         transactionParams: TransactionParams;
-        chainId: Hex;
+        chainId: ChainId;
       }) =>
         this.transactionController.getLayer1GasFee({
           transactionParams,
@@ -1031,16 +1237,18 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
-        SnapController: snapControllerInit,
         CronjobController: cronjobControllerInit,
+        SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
@@ -1061,6 +1269,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const accountTreeController = controllersByName.AccountTreeController;
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
@@ -1118,12 +1327,12 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
-      chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
@@ -1138,10 +1347,10 @@ export class Engine {
           'AssetsContractController:getERC1155BalanceOf',
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
           'AccountsController:selectedEvmAccountChange',
         ],
       }),
@@ -1160,6 +1369,7 @@ export class Engine {
           'NetworkController:getNetworkClientById',
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1167,6 +1377,7 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+          'KeyringController:accountRemoved',
         ],
       }),
     });
@@ -1185,10 +1396,14 @@ export class Engine {
           'NetworkController:getState',
         ],
       }),
+      addTransactionFn: transactionController.addTransaction.bind(
+        transactionController,
+      ),
     });
 
     this.context = {
       KeyringController: this.keyringController,
+      AccountTreeController: accountTreeController,
       AccountTrackerController: accountTrackerController,
       AddressBookController: new AddressBookController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1226,6 +1441,7 @@ export class Engine {
             'TokenListController:stateChange',
             'TokensController:stateChange',
             'AccountsController:selectedEvmAccountChange',
+            'TransactionController:transactionConfirmed',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1263,6 +1479,7 @@ export class Engine {
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
         }),
         disabled: false,
@@ -1282,11 +1499,13 @@ export class Engine {
             'TokensController:getState',
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
+            'AccountsController:listAccounts',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
+            'KeyringController:accountRemoved',
           ],
         }),
         // TODO: This is long, can we decrease it?
@@ -1405,6 +1624,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      DeFiPositionsController: controllersByName.DeFiPositionsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1499,6 +1719,35 @@ export class Engine {
     );
     ///: END:ONLY_INCLUDE_IF
 
+    // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
+    // That meant that if a snap requested a keyring operation (like requesting entropy) while the `KeyringController` was locked,
+    // it would cause a deadlock.
+    // This is a temporary fix until we can refactor how we handle requests to the Snaps Keyring.
+    const withSnapKeyring = async (
+      operation: ({ keyring }: { keyring: unknown }) => void,
+    ) => {
+      const keyring = await this.getSnapKeyring();
+
+      return operation({ keyring });
+    };
+
+    const multichainRouterMessenger = this.controllerMessenger.getRestricted({
+      name: 'MultichainRouter',
+      allowedActions: [
+        `SnapController:getAll`,
+        `SnapController:handleRequest`,
+        `${permissionController.name}:getPermissions`,
+        `AccountsController:listMultichainAccounts`,
+      ],
+      allowedEvents: [],
+    }) as MultichainRouterMessenger;
+
+    this.multichainRouter = new MultichainRouter({
+      messenger: multichainRouterMessenger,
+      withSnapKeyring:
+        withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
+    });
+
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
@@ -1586,95 +1835,147 @@ export class Engine {
         AccountsController.state.internalAccounts.selectedAccount,
       );
 
-    if (selectedInternalAccount) {
-      const selectedInternalAccountFormattedAddress = toFormattedAddress(
-        selectedInternalAccount.address,
-      );
-      const { currentCurrency } = CurrencyRateController.state;
-      const { chainId, ticker } = NetworkController.getNetworkClientById(
-        getGlobalNetworkClientId(NetworkController),
-      ).configuration;
-      const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    if (!selectedInternalAccount) {
+      return {
+        ethFiat: 0,
+        tokenFiat: 0,
+        ethFiat1dAgo: 0,
+        tokenFiat1dAgo: 0,
+        totalNativeTokenBalance: '0',
+        ticker: '',
+      };
+    }
+
+    const selectedInternalAccountFormattedAddress = toFormattedAddress(
+      selectedInternalAccount.address,
+    );
+    const { currentCurrency } = CurrencyRateController.state;
+    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+
+    const { accountsByChainId } = AccountTrackerController.state;
+    const { marketData } = TokenRatesController.state;
+
+    let totalEthFiat = 0;
+    let totalEthFiat1dAgo = 0;
+    let totalTokenFiat = 0;
+    let totalTokenFiat1dAgo = 0;
+    let aggregatedNativeTokenBalance = '';
+    let primaryTicker = '';
+
+    const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+
+    const networkConfigurations = Object.values(
+      NetworkController.state.networkConfigurationsByChainId || {},
+    );
+
+    networkConfigurations.forEach((networkConfig) => {
+      const { chainId } = networkConfig;
+      const chainIdHex = toHexadecimal(chainId);
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return {
-          ethFiat: 0,
-          tokenFiat: 0,
-          ethFiat1dAgo: 0,
-          tokenFiat1dAgo: 0,
-          totalNativeTokenBalance: '0',
-          ticker: '',
-        };
+        return;
+      }
+
+      let ticker = '';
+      try {
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(chainId);
+        if (networkClientId) {
+          const networkClient =
+            NetworkController.getNetworkClientById(networkClientId);
+          ticker = networkClient.configuration.ticker;
+        }
+      } catch (error) {
+        return;
       }
 
       const conversionRate =
         CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
         0;
 
-      const { accountsByChainId } = AccountTrackerController.state;
-      const chainIdHex = toHexadecimal(chainId);
-      const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
-          selectedInternalAccount.address
-        ] || [];
-      const { marketData } = TokenRatesController.state;
-      const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
+      if (conversionRate === 0) {
+        return;
+      }
 
-      let ethFiat = 0;
-      let ethFiat1dAgo = 0;
-      let tokenFiat = 0;
-      let tokenFiat1dAgo = 0;
-      let totalNativeTokenBalance = '0';
-      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      if (
-        accountsByChainId?.[toHexadecimal(chainId)]?.[
+      if (!primaryTicker) {
+        primaryTicker = ticker;
+      }
+
+      const accountData =
+        accountsByChainId?.[chainIdHex]?.[
           selectedInternalAccountFormattedAddress
-        ]
-      ) {
-        const balanceHex =
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].balance;
-
+        ];
+      if (accountData) {
+        const balanceHex = accountData.balance;
         const balanceBN = hexToBN(balanceHex);
-        totalNativeTokenBalance = renderFromWei(balanceHex);
 
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const stakedBalanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectedInternalAccountFormattedAddress
-          ].stakedBalance || '0x00',
-        );
+        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
         const totalAccountBalance = balanceBN
           .add(stakedBalanceBN)
           .toString('hex');
-        ethFiat = weiToFiatNumber(
+
+        const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
+
+        // Avoid NaN and Infinity values
+        if (isFinite(chainEthFiat)) {
+          totalEthFiat += chainEthFiat;
+        }
+
+        const tokenExchangeRates = marketData?.[chainIdHex];
+        const ethPricePercentChange1d =
+          tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
+        let chainEthFiat1dAgo = chainEthFiat;
+        if (
+          ethPricePercentChange1d !== undefined &&
+          isFinite(ethPricePercentChange1d) &&
+          ethPricePercentChange1d !== -100
+        ) {
+          chainEthFiat1dAgo =
+            chainEthFiat / (1 + ethPricePercentChange1d / 100);
+        }
+
+        if (isFinite(chainEthFiat1dAgo)) {
+          totalEthFiat1dAgo += chainEthFiat1dAgo;
+        }
+
+        const chainNativeBalance = renderFromWei(balanceHex);
+        if (chainNativeBalance && parseFloat(chainNativeBalance) > 0) {
+          const currentAggregated = parseFloat(
+            aggregatedNativeTokenBalance || '0',
+          );
+          aggregatedNativeTokenBalance = (
+            currentAggregated + parseFloat(chainNativeBalance)
+          ).toString();
+        }
       }
 
-      const ethPricePercentChange1d =
-        tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
-
-      ethFiat1dAgo =
-        ethPricePercentChange1d !== undefined
-          ? ethFiat / (1 + ethPricePercentChange1d / 100)
-          : ethFiat;
+      const tokens =
+        TokensController.state.allTokens?.[chainIdHex]?.[
+          selectedInternalAccount.address
+        ] || [];
+      const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
         const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
-
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
           ] ?? {};
+
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
               tokenExchangeRates?.[item.address as Hex]?.price;
+
+            if (!exchangeRate || !isFinite(exchangeRate)) {
+              return;
+            }
 
             const tokenBalance =
               item.balance ||
@@ -1684,46 +1985,50 @@ export class Engine {
                     item.decimals,
                   )
                 : undefined);
+
+            if (!tokenBalance) {
+              return;
+            }
+
             const tokenBalanceFiat = balanceToFiatNumber(
-              // TODO: Fix this by handling or eliminating the undefined case
-              // @ts-expect-error This variable can be `undefined`, which would break here.
               tokenBalance,
               conversionRate,
               exchangeRate,
               decimalsToShow,
             );
 
+            if (isFinite(tokenBalanceFiat)) {
+              totalTokenFiat += tokenBalanceFiat;
+            }
+
             const tokenPricePercentChange1d =
               tokenExchangeRates?.[item.address as Hex]?.pricePercentChange1d;
+            let tokenBalance1dAgo = tokenBalanceFiat;
 
-            const tokenBalance1dAgo =
-              tokenPricePercentChange1d !== undefined
-                ? tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100)
-                : tokenBalanceFiat;
+            if (
+              tokenPricePercentChange1d !== undefined &&
+              isFinite(tokenPricePercentChange1d) &&
+              tokenPricePercentChange1d !== -100
+            ) {
+              tokenBalance1dAgo =
+                tokenBalanceFiat / (1 + tokenPricePercentChange1d / 100);
+            }
 
-            tokenFiat += tokenBalanceFiat;
-            tokenFiat1dAgo += tokenBalance1dAgo;
+            if (isFinite(tokenBalance1dAgo)) {
+              totalTokenFiat1dAgo += tokenBalance1dAgo;
+            }
           },
         );
       }
+    });
 
-      return {
-        ethFiat: ethFiat ?? 0,
-        ethFiat1dAgo: ethFiat1dAgo ?? 0,
-        tokenFiat: tokenFiat ?? 0,
-        tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
-        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
-        ticker,
-      };
-    }
-    // if selectedInternalAccount is undefined, return default 0 value.
     return {
-      ethFiat: 0,
-      tokenFiat: 0,
-      ethFiat1dAgo: 0,
-      tokenFiat1dAgo: 0,
-      totalNativeTokenBalance: '0',
-      ticker: '',
+      ethFiat: totalEthFiat ?? 0,
+      ethFiat1dAgo: totalEthFiat1dAgo ?? 0,
+      tokenFiat: totalTokenFiat ?? 0,
+      tokenFiat1dAgo: totalTokenFiat1dAgo ?? 0,
+      totalNativeTokenBalance: aggregatedNativeTokenBalance ?? '0',
+      ticker: primaryTicker,
     };
   };
 
@@ -1739,6 +2044,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     } = this.context.PreferencesController.state;
 
     return {
@@ -1749,6 +2055,7 @@ export class Engine {
       useNftDetection,
       displayNftMedia,
       isMultiAccountBalancesEnabled,
+      showTestNetworks,
     };
   };
 
@@ -1838,7 +2145,7 @@ export class Engine {
     // Remove all permissions.
     PermissionController?.clearState?.();
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    SnapController.clearState();
+    await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network
@@ -1856,6 +2163,7 @@ export class Engine {
     (TransactionController as any).update(() => ({
       methodData: {},
       transactions: [],
+      transactionBatches: [],
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
@@ -2009,6 +2317,7 @@ export default {
       TokensController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
@@ -2020,6 +2329,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
@@ -2033,6 +2343,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     } = instance.datamodel.state;
 
     return {
@@ -2059,6 +2370,7 @@ export default {
       GasFeeController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
+      CronjobController,
       SubjectMetadataController,
       AuthenticationController,
       UserStorageController,
@@ -2070,6 +2382,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      AccountTreeController,
       SignatureController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
@@ -2083,6 +2396,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     };
   },
 

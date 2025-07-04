@@ -246,6 +246,7 @@ class Tabs extends PureComponent {
         style={styles.tabs}
         contentContainerStyle={styles.tabsContent}
         ref={this.scrollview}
+        testID={BrowserViewSelectorsIDs.TABS_COMPONENT}
       >
         {tabs.map((tab) => (
           // eslint-disable-next-line react/jsx-key

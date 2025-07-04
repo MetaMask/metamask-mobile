@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -81,7 +81,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-import { TraceName, TraceOperation, trace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -98,6 +103,8 @@ import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
+import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { MetaMetrics } from '../../../core/Analytics';
 
 interface infuraNetwork {
   name: string;
@@ -121,6 +128,10 @@ interface NetworkSelectorRouteParams {
 }
 
 const NetworkSelector = () => {
+  trace({
+    name: TraceName.NetworkSwitch,
+    op: TraceOperation.NetworkSwitch,
+  });
   const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
   const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -361,6 +372,10 @@ const NetworkSelector = () => {
     closeRpcModal,
     parentSpan,
   });
+
+  useEffect(() => {
+    endTrace({ name: TraceName.NetworkSwitch });
+  }, []);
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
@@ -810,6 +825,10 @@ const NetworkSelector = () => {
       const { chainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        removeItemFromChainIdList(chainId),
+      );
 
       // set tokenNetworkFilter
       if (isPortfolioViewEnabled()) {

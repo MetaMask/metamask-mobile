@@ -1,4 +1,6 @@
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -18,7 +20,7 @@ import {
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
   renderAccountName,
-  safeToChecksumAddress,
+  getTokenDetails,
   areAddressesEqual,
 } from '.';
 import {
@@ -33,7 +35,6 @@ import {
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../store', () => ({
   store: {
@@ -68,6 +69,14 @@ jest.mock('../../core/Engine', () => {
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
         state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+      },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({
+          symbol: 'USDC',
+          decimals: 6,
+          standard: 'ERC20',
+          balance: 100000,
+        }),
       },
     },
   };
@@ -601,31 +610,14 @@ describe('isHDOrFirstPartySnapAccount', () => {
   });
 });
 
-describe('safeToChecksumAddress', () => {
-  it('returns empty when address is empty or undefined', () => {
-    expect(safeToChecksumAddress('')).toBe('');
-    expect(safeToChecksumAddress(undefined as unknown as string)).toBe('');
-  });
-
-  it('returns checksummed address when valid hex string is provided', () => {
-    const lowerCaseAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
-    const checksummedAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
-    expect(safeToChecksumAddress(lowerCaseAddress)).toBe(checksummedAddress);
-  });
-
-  it('returns original address when non-hex string is provided', () => {
-    const nonHexAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
-    expect(safeToChecksumAddress(nonHexAddress)).toBe(nonHexAddress);
-  });
-
-  it('returns original address for ENS domains', () => {
-    const ensAddress = 'test.eth';
-    expect(safeToChecksumAddress(ensAddress)).toBe(ensAddress);
-  });
-
-  it('handles addresses with 0x prefix but invalid length', () => {
-    const invalidHexAddress = '0x123456'; // Too short to be a valid address
-    expect(safeToChecksumAddress(invalidHexAddress)).toBe(invalidHexAddress);
+describe('getTokenDetails,', () => {
+  it('return token details including balanec for ERC20 tokens', async () => {
+    expect(await getTokenDetails('0x123', '0x0')).toEqual({
+      symbol: 'USDC',
+      decimals: 6,
+      standard: 'ERC20',
+      balance: 100000,
+    });
   });
 });
 

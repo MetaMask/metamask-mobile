@@ -9,7 +9,7 @@ import {
   renderFromWei,
   toHexadecimal,
 } from '../../../../../../../util/number';
-import { addHexPrefix } from 'ethereumjs-util';
+import { isValidAddress, addHexPrefix } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { strings } from '../../../../../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -25,10 +25,7 @@ import {
 import { setTransactionObject } from '../../../../../../../actions/transaction';
 import Engine from '../../../../../../../core/Engine';
 import collectiblesTransferInformation from '../../../../../../../util/collectibles-transfer';
-import {
-  isValidHexAddress,
-  safeToChecksumAddress,
-} from '../../../../../../../util/address';
+import { safeToChecksumAddress } from '../../../../../../../util/address';
 import { shallowEqual } from '../../../../../../../util/general';
 import EditGasFee1559 from '../../../../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../components/EditGasFeeLegacyUpdate';
@@ -45,15 +42,12 @@ import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../../selectors/gasFeeController';
-import {
-  selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId,
-} from '../../../../../../../selectors/networkController';
+import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -244,8 +238,8 @@ class TransactionEditor extends PureComponent {
         dappSuggestedGasPrice
           ? fromWei(dappSuggestedGasPrice, 'gwei')
           : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? this.props.gasFeeEstimates[selected]
-          : this.props.gasFeeEstimates.gasPrice;
+            ? this.props.gasFeeEstimates[selected]
+            : this.props.gasFeeEstimates.gasPrice;
 
       const LegacyGasData = this.parseTransactionDataLegacy(
         {
@@ -523,9 +517,9 @@ class TransactionEditor extends PureComponent {
         const tokenAmountToSend = selectedAsset && value && value.toString(16);
         return to && tokenAmountToSend
           ? generateTransferData('transfer', {
-              toAddress: to,
-              amount: tokenAmountToSend,
-            })
+            toAddress: to,
+            amount: tokenAmountToSend,
+          })
           : undefined;
       },
       ERC721: () => {
@@ -567,12 +561,13 @@ class TransactionEditor extends PureComponent {
   validateTotal = (totalGas) => {
     let error = '';
     const {
+      chainId,
       ticker,
       transaction: { value, from, assetType },
     } = this.props;
 
     const checksummedFrom = safeToChecksumAddress(from) || '';
-    const fromAccount = this.props.accounts[checksummedFrom];
+    const fromAccount = this.props.accounts[chainId]?.[checksummedFrom] ?? {};
     const { balance } = fromAccount;
     const weiBalance = hexToBN(balance);
     const totalGasValue = hexToBN(totalGas);
@@ -609,7 +604,7 @@ class TransactionEditor extends PureComponent {
     !to && (error = strings('transaction.required'));
     !to && this.state.toFocused && (error = strings('transaction.required'));
     to &&
-      !isValidHexAddress(to) &&
+      !isValidAddress(to) &&
       (error = strings('transaction.invalid_address'));
     to && to.length !== 42 && (error = strings('transaction.invalid_address'));
     return error;
@@ -640,9 +635,9 @@ class TransactionEditor extends PureComponent {
 
     const totalError = this.validateTotal(
       EIP1559GasData?.totalMaxHex ||
-        this.state.EIP1559GasData.totalMaxHex ||
-        LegacyGasData?.totalHex ||
-        this.state.LegacyGasData.totalHex,
+      this.state.EIP1559GasData.totalMaxHex ||
+      LegacyGasData?.totalHex ||
+      this.state.LegacyGasData.totalHex,
     );
     const amountError = await validateAmount(
       assetType,
@@ -974,7 +969,7 @@ const mapStateToProps = (state) => {
   const chainId = transaction?.chainId;
 
   return {
-    accounts: selectAccounts(state),
+    accounts: selectAccountsByChainId(state),
     contractBalances: selectContractBalances(state),
     networkType: selectProviderTypeByChainId(state, chainId),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

@@ -1,4 +1,5 @@
 export const TestDappSelectorsWebIDs = {
+  CHAIN_ID_TEXT: 'chainId',
   TEST_DAPP_FOX_LOGO: 'mm-logo',
   TEST_DAPP_HEADING_TITLE: 'logo-text',
   APPROVE_ERC_20_TOKENS_BUTTON_ID: 'approveTokens',
@@ -20,4 +21,6 @@ export const TestDappSelectorsWebIDs = {
   SEND_FAILING_TRANSACTION_BUTTON_ID: 'sendFailingButton',
   BATCH_TRANSFER_ERC1155_BUTTON_ID: 'batchTransferFromButton',
   SWITCH_ETHEREUM_CHAIN: 'switchEthereumChain',
+  ERC_721_MINT_BUTTON_ID: 'mintButton',
+  SEND_EIP_1559_BUTTON_ID: 'sendEIP1559Button',
 };

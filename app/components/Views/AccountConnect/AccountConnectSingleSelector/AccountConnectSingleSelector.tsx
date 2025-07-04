@@ -5,7 +5,7 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import { strings } from '../../../../../locales/i18n';
 import { AccountConnectScreens } from '../AccountConnect.types';
 
@@ -13,6 +13,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
 import { USER_INTENT } from '../../../../constants/permissions';
+import { CaipAccountId } from '@metamask/utils';
 
 const AccountConnectSingleSelector = ({
   accounts,
@@ -29,7 +30,7 @@ const AccountConnectSingleSelector = ({
   );
 
   const onSelectAccount = useCallback(
-    (address: string) => {
+    (address: CaipAccountId) => {
       onSetScreen(AccountConnectScreens.SingleConnect);
       onSetSelectedAddresses([address]);
     },
@@ -66,7 +67,7 @@ const AccountConnectSingleSelector = ({
   return (
     <>
       <SheetHeader onBack={onBack} title={strings('accounts.accounts_title')} />
-      <AccountSelectorList
+      <CaipAccountSelectorList
         onSelectAccount={onSelectAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}

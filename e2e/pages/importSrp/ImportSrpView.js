@@ -28,7 +28,9 @@ class ImportSrpView {
   }
 
   async tapImportButton() {
-    await Gestures.waitAndTap(this.importButton);
+    await Gestures.waitAndTap(this.importButton, {
+      skipVisibilityCheck: true,
+    });
   }
 
   async enterSrpWord(srpIndex, word) {

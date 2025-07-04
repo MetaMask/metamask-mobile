@@ -24,14 +24,12 @@ const styleSheet = (params: {
   const colorObj = isDanger ? colors.error : colors.primary;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        backgroundColor: pressed ? colorObj.alternative : 'transparent',
-        borderWidth: 1,
-        borderColor: colorObj.default,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({
+      backgroundColor: pressed ? colorObj.alternative : 'transparent',
+      borderWidth: 1,
+      borderColor: colorObj.default,
+      ...StyleSheet.flatten(style),
+    } as ViewStyle) as ViewStyle,
   });
 };
 

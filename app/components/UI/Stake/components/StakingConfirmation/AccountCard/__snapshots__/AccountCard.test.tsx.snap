@@ -16,6 +16,7 @@ exports[`AccountCard render matches snapshot 1`] = `
         "padding": 16,
       }
     }
+    testID="account-card"
   >
     <View
       style={
@@ -698,7 +699,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 8,
+                    "borderRadius": 4,
                     "height": 16,
                     "justifyContent": "center",
                     "overflow": "hidden",

@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-///: END:ONLY_INCLUDE_IF
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';

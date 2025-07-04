@@ -34,10 +34,11 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         await Browser.navigateToTestDApp();
 
-        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
         // Navigate to chain permissions and add Sepolia
         await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
 
@@ -45,6 +46,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkConnectMultiSelector.tapBackButton();
 
         // Verify changes were discarded by checking chain permissions again
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Deselect Ethereum mainnet (should be the only chain selected)

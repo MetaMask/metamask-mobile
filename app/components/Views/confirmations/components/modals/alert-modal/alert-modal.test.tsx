@@ -192,6 +192,18 @@ describe('AlertModal', () => {
     expect(getByText('Mock content')).toBeDefined();
   });
 
+  it('renders message component correctly', async () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      fieldAlerts: [{
+        ...mockAlerts[0],
+        message: <Text>{'Mock message'}</Text>,
+      }]
+    });
+    const { getByText } = render(<AlertModal />);
+    expect(getByText('Mock message')).toBeDefined();
+  });
+
   it('does not render checkbox if is a blocking alert', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,

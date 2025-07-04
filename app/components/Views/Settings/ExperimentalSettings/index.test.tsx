@@ -14,14 +14,26 @@ import {
 } from 'react-native-device-info';
 
 // Mock the required dependencies
-jest.mock('react-native-blob-util', () => ({
-  fs: {
+jest.mock('react-native-blob-util', () => {
+  const fsMock = {
     dirs: {
       DocumentDir: '/mock/docs',
     },
-    writeFile: jest.fn(),
-  },
-}));
+    writeFile: jest.fn().mockResolvedValue(true),
+    readFile: jest.fn().mockResolvedValue(''),
+    exists: jest.fn().mockResolvedValue(true),
+    mkdir: jest.fn().mockResolvedValue(true),
+    unlink: jest.fn().mockResolvedValue(true),
+    stat: jest.fn().mockResolvedValue({ size: 0 }),
+    ls: jest.fn().mockResolvedValue([]),
+  };
+  return {
+    default: {
+      fs: fsMock,
+    },
+    fs: fsMock,
+  };
+});
 
 jest.mock('react-native-share', () => ({
   open: jest.fn(),

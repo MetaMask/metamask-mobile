@@ -4,6 +4,7 @@
 'use strict';
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
+import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
@@ -19,7 +20,7 @@ import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
-import { isValidAddressInputViaQRCode, isValidHexAddress } from '../../../util/address';
+import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
   failedSeedPhraseRequirements,
@@ -182,7 +183,7 @@ const QRScanner = ({
         if (
           (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidHexAddress(content))
+          (content.startsWith('0x') && isValidAddress(content))
         ) {
           const handledContent = content.startsWith('0x')
             ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
@@ -197,7 +198,7 @@ const QRScanner = ({
         }
 
         // Checking if it can be handled like deeplinks
-        const handledByDeeplink = SharedDeeplinkManager.parse(content, {
+        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
           // TODO: Replace "any" with type

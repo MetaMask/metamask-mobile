@@ -15,11 +15,11 @@ const styleSheet = (params: { theme: Theme }) => {
     badgeWrapper: {
       alignSelf: 'center',
     },
-    balances: {
+    balanceInfo: {
       flex: 1,
-      justifyContent: 'center',
-      marginLeft: 20,
-      alignSelf: 'center',
+      justifyContent: 'flex-start',
+      // marginLeft: 20,
+      alignSelf: 'flex-start',
     },
     ethLogo: {
       width: 32,
@@ -27,10 +27,23 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 16,
       overflow: 'hidden',
     },
+    percentageChange: {
+      flex: 1,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      alignContent: 'flex-start',
+      paddingLeft: 16,
+    },
     title: {
       paddingVertical: 4,
       paddingHorizontal: 15,
     } as TextStyle,
+    base: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      alignContent: 'flex-start',
+      justifyContent: 'space-between',
+    },
     text: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),

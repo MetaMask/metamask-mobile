@@ -25,7 +25,7 @@ exports[`PickerNetwork renders correctly 1`] = `
         {
           "alignItems": "center",
           "backgroundColor": "#ffffff",
-          "borderRadius": 8,
+          "borderRadius": 4,
           "height": 16,
           "justifyContent": "center",
           "overflow": "hidden",

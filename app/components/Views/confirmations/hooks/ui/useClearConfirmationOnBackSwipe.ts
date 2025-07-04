@@ -5,26 +5,26 @@ import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
 import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import { useConfirmActions } from '../useConfirmActions';
-import { useStandaloneConfirmation } from './useStandaloneConfirmation';
+import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 
 const useClearConfirmationOnBackSwipe = () => {
   const navigation =
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
 
   useEffect(() => {
-    if (isStandaloneConfirmation && Device.isIos()) {
+    if (isFullScreenConfirmation && Device.isIos()) {
       const unsubscribe = navigation.addListener('gestureEnd', () => {
         onReject();
       });
 
       return unsubscribe;
     }
-  }, [isStandaloneConfirmation, navigation, onReject]);
+  }, [isFullScreenConfirmation, navigation, onReject]);
 
   useEffect(() => {
-    if (isStandaloneConfirmation && Device.isAndroid()) {
+    if (isFullScreenConfirmation && Device.isAndroid()) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
@@ -37,7 +37,7 @@ const useClearConfirmationOnBackSwipe = () => {
         backHandlerSubscription.remove();
       };
     }
-  }, [isStandaloneConfirmation, onReject]);
+  }, [isFullScreenConfirmation, onReject]);
 };
 
 export default useClearConfirmationOnBackSwipe;

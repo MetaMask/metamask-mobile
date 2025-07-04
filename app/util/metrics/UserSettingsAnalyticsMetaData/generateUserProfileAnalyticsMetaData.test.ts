@@ -1,6 +1,7 @@
 import generateUserProfileAnalyticsMetaData from './generateUserProfileAnalyticsMetaData';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { Appearance } from 'react-native';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
@@ -16,9 +17,27 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+const mockSelectNetworkConfigurations = jest.fn();
+jest.mock('../../../selectors/networkController', () => ({
+  selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
+}));
 
 describe('generateUserProfileAnalyticsMetaData', () => {
+  beforeEach(() => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+
+    mockSelectNetworkConfigurations.mockReturnValue({
+      '0x1': {
+        chainId: '0x1',
+        name: 'Ethereum Mainnet',
+      },
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const mockState = {
     engine: {
       backgroundState: {
@@ -28,6 +47,18 @@ describe('generateUserProfileAnalyticsMetaData', () => {
           useTokenDetection: true,
           isMultiAccountBalancesEnabled: false,
           securityAlertsEnabled: true,
+        },
+        KeyringController: {
+          keyrings: [
+            {
+              type: ExtendedKeyringTypes.hd,
+              accounts: ['0x1', '0x2'],
+              metadata: {
+                id: '01JPM6NFVGW8V8KKN34053JVFT',
+                name: '',
+              },
+            },
+          ],
         },
       },
     },
@@ -48,6 +79,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
@@ -67,7 +99,16 @@ describe('generateUserProfileAnalyticsMetaData', () => {
   });
 
   it('returns default metadata when missing preferences controller', () => {
-    mockGetState.mockReturnValue({ ...mockState, engine: {} });
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            keyrings: [],
+          },
+        },
+      },
+    });
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata).toMatchObject({
@@ -76,6 +117,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.TOKEN_DETECTION]: UserProfileProperty.OFF,
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: '',
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 

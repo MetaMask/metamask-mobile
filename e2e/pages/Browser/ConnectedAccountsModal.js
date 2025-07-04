@@ -2,6 +2,7 @@ import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
+import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
@@ -55,6 +56,24 @@ class ConnectedAccountsModal {
     );
   }
 
+  get permissionsSummaryTab() {
+    return Matchers.getElementByText(
+      WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
+    );
+  }
+
+  get accountsSummaryTab() {
+    return Matchers.getElementByText(
+      WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
+    );
+  }
+
+  get accountListBottomSheet() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+    );
+  }
+
   get title() {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
@@ -97,6 +116,19 @@ class ConnectedAccountsModal {
     await Gestures.waitAndTap(this.managePermissionsButton);
   }
 
+  async tapPermissionsSummaryTab() {
+    await Gestures.waitAndTap(this.permissionsSummaryTab);
+  }
+
+  async tapAccountsSummaryTab() {
+    await TestHelpers.delay(1000);
+    await Gestures.waitAndTap(this.accountsSummaryTab);
+  }
+
+  async tapAccountListBottomSheet() {
+    await Gestures.waitAndTap(this.accountListBottomSheet);
+  }
+
   async tapDisconnectButton() {
     await Gestures.waitAndTap(this.disconnectButton);
   }
@@ -133,6 +165,12 @@ class ConnectedAccountsModal {
 
   async tapConnectMoreAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
+  }
+  async getNetworkName() {
+
+    const networkNameElement  = this.navigateToEditNetworksPermissionsButton
+    const attributes = await networkNameElement.label;
+    return attributes;
   }
 }
 

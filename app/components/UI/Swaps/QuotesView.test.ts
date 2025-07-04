@@ -15,7 +15,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import Engine from '../../../core/Engine';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
@@ -327,7 +327,7 @@ describe('QuotesView', () => {
     expect(wrapper).toMatchSnapshot();
 
     expect(
-      wrapper.findByTestId(SwapsViewSelectors.QUOTE_SUMMARY),
+      wrapper.findByTestId(SwapsViewSelectorsIDs.QUOTE_SUMMARY),
     ).toBeDefined();
   });
 
@@ -336,7 +336,7 @@ describe('QuotesView', () => {
       const wrapper = render(QuotesView, mockInitialState);
 
       const swapButton = await wrapper.findByTestId(
-        SwapsViewSelectors.SWAP_BUTTON,
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
       );
 
       fireEvent.press(swapButton);
@@ -362,7 +362,7 @@ describe('QuotesView', () => {
       const wrapper = render(QuotesView, state);
 
       const swapButton = await wrapper.findByTestId(
-        SwapsViewSelectors.SWAP_BUTTON,
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
       );
 
       fireEvent.press(swapButton);
@@ -395,7 +395,7 @@ describe('QuotesView', () => {
       const wrapper = render(QuotesView, state);
 
       const swapButton = await wrapper.findByTestId(
-        SwapsViewSelectors.SWAP_BUTTON,
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
       );
 
       fireEvent.press(swapButton);
@@ -417,7 +417,7 @@ describe('QuotesView', () => {
       const wrapper = render(QuotesView, state);
 
       const swapButton = await wrapper.findByTestId(
-        SwapsViewSelectors.SWAP_BUTTON,
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
       );
 
       fireEvent.press(swapButton);
@@ -456,7 +456,7 @@ describe('QuotesView', () => {
     const wrapper = render(QuotesView, state);
 
     const swapButton = await wrapper.findByTestId(
-      SwapsViewSelectors.SWAP_BUTTON,
+      SwapsViewSelectorsIDs.SWAP_BUTTON,
     );
 
     act(() => {

@@ -5,7 +5,13 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 
-const PercentageChange = ({ value }: { value: number | null | undefined }) => {
+const PercentageChange = ({
+  value,
+  variant = TextVariant.BodySMMedium,
+}: {
+  value: number | null | undefined;
+  variant?: TextVariant;
+}) => {
   const percentageColorText =
     value && value >= 0 ? TextColor.Success : TextColor.Error;
 
@@ -18,7 +24,7 @@ const PercentageChange = ({ value }: { value: number | null | undefined }) => {
 
   return (
     <View>
-      <Text color={percentageColorText} variant={TextVariant.BodyMDMedium}>
+      <Text color={percentageColorText} variant={variant}>
         {formattedValue}
       </Text>
     </View>

@@ -4,6 +4,7 @@ import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
@@ -11,13 +12,15 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
 import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../util/trace';
-import { isValidHexAddress } from '../../../util/address';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,6 +92,7 @@ const AddCustomCollectible = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const chainId = useSelector(selectChainId);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useEffect(() => {
     setMounted(true);
@@ -117,7 +121,7 @@ const AddCustomCollectible = ({
 
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
     let validated = true;
-    const isValidEthAddress = isValidHexAddress(address);
+    const isValidEthAddress = isValidAddress(address);
     if (address.length === 0) {
       setWarningAddress(strings('collectible.address_cant_be_empty'));
       validated = false;
@@ -200,7 +204,7 @@ const AddCustomCollectible = ({
 
     trace({ name: TraceName.ImportNfts });
 
-    await NftController.addNft(address, tokenId);
+    await NftController.addNft(address, tokenId, selectedNetworkClientId);
 
     endTrace({ name: TraceName.ImportNfts });
 
@@ -242,6 +246,7 @@ const AddCustomCollectible = ({
         onConfirmPress={addNft}
         confirmDisabled={!address || !tokenId}
         loading={loading}
+        confirmTestID={'add-collectible-button'}
       >
         <View>
           <View style={styles.rowWrapper}>

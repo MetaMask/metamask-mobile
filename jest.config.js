@@ -19,7 +19,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|expo-file-system)))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -37,7 +37,6 @@ const config = {
     '<rootDir>/app/lib/ppom/ppom.html.js',
     '<rootDir>/app/lib/ppom/blockaid-version.js',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
-    '<rootDir>/app/declarations/index.d.ts',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

@@ -31,7 +31,7 @@ const defaultState = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
-jest.mock('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery', () => {
+jest.mock('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch', () => {
   const searchTokens = jest.fn();
   const results: TokenSearchResponseItem[] = [];
   const reset = jest.fn();
@@ -55,7 +55,7 @@ const mockUseTSDReturnValue = ({
   searchTokens: () => void;
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const useTSD = require('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
+  const useTSD = require('../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch');
   useTSD.mockReturnValue({
     results,
     isLoading,
@@ -277,5 +277,47 @@ describe('UrlAutocomplete', () => {
     const swapButton = await screen.findByTestId('autocomplete-result-swap-button', {includeHiddenElements: true});
     fireEvent.press(swapButton);
     expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('should call onSelect when a bookmark is selected', async () => {
+    const onSelect = jest.fn();
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={onSelect} onDismiss={noop} />, {state: defaultState});
+
+    const result = await screen.findByText('MyBookmark', {includeHiddenElements: true});
+    fireEvent.press(result);
+    expect(onSelect).toHaveBeenCalled();
+  });
+
+  it('should call onSelect when a token is selected', async () => {
+    mockUseTSDReturnValue({
+      results: [
+        {
+          tokenAddress: '0x123',
+          chainId: '0x1',
+          name: 'Dogecoin',
+          symbol: 'DOGE',
+          usdPrice: 1,
+          usdPricePercentChange: {
+            oneDay: 1,
+          },
+        },
+      ],
+      isLoading: false,
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
+    const onSelect = jest.fn();
+    const ref = React.createRef<UrlAutocompleteRef>();
+    render(<UrlAutocomplete ref={ref} onSelect={onSelect} onDismiss={noop} />, {state: defaultState});
+
+    act(() => {
+      ref.current?.search('dog');
+      jest.runAllTimers();
+    });
+
+    const result = await screen.findByText('Dogecoin', {includeHiddenElements: true});
+    fireEvent.press(result);
+    expect(onSelect).toHaveBeenCalled();
   });
 });

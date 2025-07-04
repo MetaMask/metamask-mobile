@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getNetworkNonce, updateTransaction } from '../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 
@@ -33,25 +33,30 @@ export const useEditNonce = () => {
     getTransactionControllerNonce();
   }, [transactionMetadata, proposedNonce]);
 
-  useEffect(() => {
-    const updateTransactionControllerNonce = async () => {
+  const updateNonce = useCallback(
+    async (newNonce: number) => {
+      setUserSelectedNonce(newNonce);
+
       if (!transactionMetadata) {
         return;
       }
 
       const updatedTx = {
         ...transactionMetadata,
-        customNonceValue: String(userSelectedNonce),
+        customNonceValue: String(newNonce),
       };
 
+      // TODO: We should not update the whole transaction, instead need to create a new atomic updater method for `customNonceValue`
+      // in the transaction controller and use that instead of updateTransaction.
+      // Related issue: https://github.com/MetaMask/MetaMask-planning/issues/5076
       await updateTransaction(updatedTx, transactionMetadata.id);
-    };
-    updateTransactionControllerNonce();
-  }, [userSelectedNonce, transactionMetadata]);
+    },
+    [transactionMetadata],
+  );
 
   return {
     setShowNonceModal,
-    setUserSelectedNonce,
+    updateNonce,
     showNonceModal,
     proposedNonce,
     userSelectedNonce,

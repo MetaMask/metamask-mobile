@@ -74,3 +74,10 @@ export function setTokenSortConfig(tokenSortConfig) {
     tokenSortConfig,
   };
 }
+
+export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
+  return {
+    type: 'SET_DEEP_LINK_MODAL_DISABLED',
+    deepLinkModalDisabled,
+  };
+}

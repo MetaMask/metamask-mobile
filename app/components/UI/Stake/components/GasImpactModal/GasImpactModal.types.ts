@@ -8,6 +8,7 @@ interface GasImpactModalRouteParams {
   annualRewardRate: string;
   estimatedGasFee: string;
   estimatedGasFeePercentage: string;
+  chainId: string;
 }
 
 export interface GasImpactModalProps {

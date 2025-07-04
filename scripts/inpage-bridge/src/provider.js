@@ -8,6 +8,7 @@ const ReactNativePostMessageStream = require('./ReactNativePostMessageStream');
 const INPAGE = 'metamask-inpage';
 const CONTENT_SCRIPT = 'metamask-contentscript';
 const PROVIDER = 'metamask-provider';
+const MULTICHAIN_PROVIDER = 'metamask-multichain-provider';
 
 // Flag that tracks if the inpage provider has been notified that
 // the wallet background ready to receive requests and that the
@@ -44,7 +45,6 @@ const init = () => {
     enumerable: false,
     writable: false,
   });
-
 }
 
 // Functions
@@ -81,6 +81,7 @@ function setupProviderStreams() {
 
   // forward communication across inpage-background for these channels only
   forwardTrafficBetweenMuxes(PROVIDER, pageMux, appMux);
+  forwardTrafficBetweenMuxes(MULTICHAIN_PROVIDER, pageMux, appMux);
 
   // add web3 shim
   shimWeb3(window.ethereum);

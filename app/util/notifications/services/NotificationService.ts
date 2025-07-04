@@ -254,35 +254,39 @@ class NotificationsService {
     data?: unknown;
     id?: string;
   }): Promise<void> => {
-    await notifee.displayNotification({
-      id,
-      title,
-      body,
-      // Notifee can only store and handle data strings
-      data: { dataStr: JSON.stringify(data) },
-      android: {
-        smallIcon: 'ic_notification_small',
-        largeIcon: 'ic_notification',
-        channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
-        pressAction: {
-          id: pressActionId,
-          launchActivity: LAUNCH_ACTIVITY,
+    try {
+      await notifee.displayNotification({
+        id,
+        title,
+        body,
+        // Notifee can only store and handle data strings
+        data: { dataStr: JSON.stringify(data) },
+        android: {
+          smallIcon: 'ic_notification_small',
+          largeIcon: 'ic_notification',
+          channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+          pressAction: {
+            id: pressActionId,
+            launchActivity: LAUNCH_ACTIVITY,
+          },
+          tag: id,
         },
-        tag: id,
-      },
-      ios: {
-        launchImageName: 'Default',
-        sound: 'default',
-        interruptionLevel: 'critical',
-        foregroundPresentationOptions: {
-          alert: true,
-          sound: true,
-          badge: true,
-          banner: true,
-          list: true,
+        ios: {
+          launchImageName: 'Default',
+          sound: 'default',
+          interruptionLevel: 'critical',
+          foregroundPresentationOptions: {
+            alert: true,
+            sound: true,
+            badge: true,
+            banner: true,
+            list: true,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      Logger.log('Error displaying notification ', error);
+    }
   };
 }
 

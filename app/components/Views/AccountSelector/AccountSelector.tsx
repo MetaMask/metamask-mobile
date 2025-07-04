@@ -7,10 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, View } from 'react-native';
+import { InteractionManager, useWindowDimensions } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -19,7 +19,7 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
@@ -29,18 +29,24 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 // Internal dependencies.
+import { useStyles } from '../../../component-library/hooks';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
-import styles from './AccountSelector.styles';
+import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const { height: screenHeight } = useWindowDimensions();
+
+  const { styles } = useStyles(styleSheet, { screenHeight });
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
@@ -125,11 +131,25 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [],
   );
 
+  const addAccountButtonProps: ButtonProps[] = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        label: strings('account_actions.add_account_or_hardware_wallet'),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleAddAccount,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [handleAddAccount],
+  );
+
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={_onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}
@@ -138,18 +158,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
-        <View style={styles.sheet}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={handleAddAccount}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
-          />
-        </View>
+        <BottomSheetFooter
+          buttonPropsArray={addAccountButtonProps}
+          style={styles.sheet}
+        />
       </Fragment>
     ),
     [
@@ -159,7 +171,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
-      handleAddAccount,
+      styles.sheet,
+      addAccountButtonProps,
     ],
   );
 
@@ -179,7 +192,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
+  return (
+    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef}>
+      {renderAccountScreens()}
+    </BottomSheet>
+  );
 };
 
 export default React.memo(AccountSelector);

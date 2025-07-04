@@ -45,12 +45,18 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { isTestNet } from '../../../util/networks';
+import {
+  isTestNet,
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectEvmTicker,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
+import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -59,8 +65,12 @@ import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-
+import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork/PickerNetwork';
+import Routes from '../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { debounce } from 'lodash';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -302,6 +312,18 @@ class PaymentRequest extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
+     * Network configurations
+     */
+    networkConfigurations: PropTypes.object,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.string,
   };
 
   amountInput = React.createRef();
@@ -411,6 +433,17 @@ class PaymentRequest extends PureComponent {
     this.setState({ searchInputValue, results });
   };
 
+  debouncedHandleSearch = debounce(this.handleSearch, 300);
+
+  handleSearchTokenList = (searchInputValue) => {
+    if (typeof searchInputValue !== 'string') {
+      searchInputValue = this.state.searchInputValue;
+    }
+    this.setState({ searchInputValue });
+
+    this.debouncedHandleSearch(searchInputValue);
+  };
+
   /** Clear search input and focus */
   clearSearchInput = () => {
     this.setState({ searchInputValue: '' });
@@ -477,8 +510,8 @@ class PaymentRequest extends PureComponent {
               style={[styles.searchInput, inputWidth]}
               autoCapitalize="none"
               autoCorrect={false}
-              onChangeText={this.handleSearch}
-              onSubmitEditing={this.handleSearch}
+              onChangeText={this.handleSearchTokenList}
+              onSubmitEditing={this.handleSearchTokenList}
               placeholder={strings('payment_request.search_assets')}
               placeholderTextColor={colors.text.muted}
               returnKeyType="go"
@@ -868,13 +901,39 @@ class PaymentRequest extends PureComponent {
     );
   };
 
+  handleNetworkPickerPress = () => {
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(this.props.chainId),
+        })
+        .build(),
+    );
+  };
+
   render() {
     const { mode } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const networkName =
+      this.props.networkConfigurations?.[this.props.chainId]?.name;
+    const networkImageSource = this.props.networkImageSource;
 
     return (
       <SafeAreaView style={styles.wrapper}>
+        {isRemoveGlobalNetworkSelectorEnabled() && (
+          <View style={styles.pickerNetworkContainer}>
+            <PickerNetwork
+              onPress={this.handleNetworkPickerPress}
+              label={networkName}
+              imageSource={networkImageSource}
+            />
+          </View>
+        )}
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
@@ -901,6 +960,8 @@ const mapStateToProps = (state) => ({
   ticker: selectEvmTicker(state),
   chainId: selectChainId(state),
   tokenList: selectTokenListArray(state),
+  networkConfigurations: selectNetworkConfigurations(state),
+  networkImageSource: selectNetworkImageSource(state),
 });
 
-export default connect(mapStateToProps)(PaymentRequest);
+export default withMetricsAwareness(connect(mapStateToProps)(PaymentRequest));

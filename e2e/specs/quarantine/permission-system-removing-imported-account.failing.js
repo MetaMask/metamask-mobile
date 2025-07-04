@@ -68,7 +68,7 @@ describe(
     });
 
     it('should switch to Sepolia', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
       await ConnectedAccountsModal.tapNetworksPicker();
       await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       await NetworkListModal.tapTestNetworkSwitch();
@@ -109,7 +109,7 @@ describe(
     });
 
     it('imported account is not visible', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
       await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       //await AccountListView.accountNameNotVisible('Account 2');
     });

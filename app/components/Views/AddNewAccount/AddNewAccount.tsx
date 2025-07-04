@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { SafeAreaView, View } from 'react-native';
@@ -25,7 +24,6 @@ import Input from '../../../component-library/components/Form/TextField/foundati
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
 import { useSelector } from 'react-redux';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -35,9 +33,6 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -46,19 +41,26 @@ import {
 } from '../../../selectors/accountsController';
 import SRPListItem from '../../UI/SRPListItem';
 import { getMultichainAccountName } from '../../../core/SnapKeyring/utils/getMultichainAccountName';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 
-const AddNewAccount = ({ route }: AddNewAccountProps) => {
+const AddNewAccount = ({
+  scope,
+  clientType,
+  onActionComplete,
+  onBack,
+}: AddNewAccountProps) => {
   const { navigate } = useNavigation();
-  const { scope, clientType } = route?.params || {};
-  const sheetRef = useRef<BottomSheetRef>(null);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const hdKeyrings = useSelector(selectHDKeyrings);
-  const [primaryKeyringId] = hdKeyrings;
+  const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
+  const [primaryKeyringId] = hdKeyringsWithSnapAccounts;
   const initialKeyringIdToUse = useMemo(
     () =>
       // For HD accounts (since v29.0.1), use the entropySource if available.
@@ -69,21 +71,32 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     [selectedInternalAccount, primaryKeyringId],
   );
   const [keyringId, setKeyringId] = useState<string>(initialKeyringIdToUse);
-  const hasMultipleSRPs = hdKeyrings.length > 1;
+  const hasMultipleSRPs = hdKeyringsWithSnapAccounts.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { keyringToDisplay, keyringIndex } = useMemo(() => {
     const keyring =
-      hdKeyrings.find((kr) => kr.metadata.id === keyringId) ?? hdKeyrings[0];
+      hdKeyringsWithSnapAccounts.find((kr) => kr.metadata.id === keyringId) ??
+      hdKeyringsWithSnapAccounts[0];
     return {
       keyringToDisplay: keyring,
-      keyringIndex: hdKeyrings.indexOf(keyring) + 1,
+      keyringIndex: hdKeyringsWithSnapAccounts.indexOf(keyring) + 1,
     };
-  }, [hdKeyrings, keyringId]);
+  }, [hdKeyringsWithSnapAccounts, keyringId]);
 
-  const onBack = () => {
-    navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+  const handleOnBack = () => {
+    if (showSRPList) {
+      setShowSRPList(false);
+      return;
+    }
+
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(Routes.SHEET.ACCOUNT_SELECTOR);
+    }
   };
 
   const isDuplicateName = useMemo(
@@ -102,18 +115,23 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
 
     setIsLoading(true);
     try {
+      let account: InternalAccount;
       if (clientType && scope) {
         const multichainWalletSnapClient =
           MultichainWalletSnapFactory.createClient(clientType);
-        await multichainWalletSnapClient.createAccount({
+        account = (await multichainWalletSnapClient.createAccount({
           scope,
           accountNameSuggestion: accountName,
           entropySource: keyringId,
-        });
+        })) as InternalAccount;
       } else {
-        await addNewHdAccount(keyringId, accountName);
+        account = await addNewHdAccount(keyringId, accountName);
       }
-      navigate(Routes.WALLET.HOME);
+      if (onActionComplete) {
+        onActionComplete(account);
+      } else {
+        navigate(Routes.WALLET.HOME);
+      }
     } catch (e: unknown) {
       const errorMessage = strings(
         'accounts.error_messages.failed_to_create_account',
@@ -126,7 +144,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [clientType, scope, accountName, keyringId, navigate]);
+  }, [clientType, scope, onActionComplete, accountName, keyringId, navigate]);
 
   useEffect(() => {
     setAccountName(getMultichainAccountName(scope, clientType));
@@ -153,27 +171,21 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
-        <Fragment>
-          <SheetHeader
-            title={
-              showSRPList
-                ? strings('accounts.select_secret_recovery_phrase')
-                : addAccountTitle
-            }
-            onBack={() => {
-              if (showSRPList) {
-                setShowSRPList(false);
-                return;
-              }
-              onBack();
-            }}
-          />
-          {showSRPList ? (
-            <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
-          ) : (
-            <View style={styles.base}>
+    <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
+      <Fragment>
+        <SheetHeader
+          title={
+            showSRPList
+              ? strings('accounts.select_secret_recovery_phrase')
+              : addAccountTitle
+          }
+          onBack={handleOnBack}
+        />
+        {showSRPList ? (
+          <SRPList onKeyringSelect={(id) => onKeyringSelection(id)} />
+        ) : (
+          <View style={styles.base}>
+            <Fragment>
               <View style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
@@ -200,6 +212,15 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                         'accounts.secret_recovery_phrase',
                       )} ${keyringIndex}`}
                       onActionComplete={() => {
+                        trackEvent(
+                          createEventBuilder(
+                            MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+                          )
+                            .addProperties({
+                              button_type: 'picker',
+                            })
+                            .build(),
+                        );
                         setShowSRPList(true);
                       }}
                       testID={AddNewAccountIds.SRP_SELECTOR}
@@ -216,7 +237,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   loading={isLoading}
                   style={styles.button}
                   variant={ButtonVariants.Secondary}
-                  onPress={onBack}
+                  onPress={handleOnBack}
                   labelTextVariant={TextVariant.BodyMD}
                   label={strings('accounts.cancel')}
                 />
@@ -236,11 +257,11 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   {error}
                 </Text>
               )}
-            </View>
-          )}
-        </Fragment>
-      </SafeAreaView>
-    </BottomSheet>
+            </Fragment>
+          </View>
+        )}
+      </Fragment>
+    </SafeAreaView>
   );
 };
 

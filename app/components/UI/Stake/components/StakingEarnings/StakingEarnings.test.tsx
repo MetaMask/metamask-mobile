@@ -1,9 +1,10 @@
 import React from 'react';
-import StakingEarnings from './';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import StakingEarnings from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 const mockNavigate = jest.fn();
 
@@ -29,23 +30,47 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../selectors/earnController', () => ({
+  ...jest.requireActual('../../../../../selectors/earnController'),
+  earnSelectors: {
+    selectEarnToken: jest.fn(),
+    selectEarnTokenPair: jest.fn().mockReturnValue({
+      outputToken: {
+        symbol: 'ETH',
+        name: 'Staked Ethereum',
+        decimals: 18,
+        address: '0x0',
+        chainId: '0x1',
+        experience: {
+          type: 'POOLED_STAKING' as EARN_EXPERIENCES,
+        },
+      },
+    }),
+    selectEarnOutputToken: jest.fn(),
+  },
+}));
+
 // Mock the feature flags selector
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
 }));
 
-jest.mock('../../hooks/useStakingEarnings', () => ({
+jest.mock('../../../Earn/hooks/useEarnings', () => ({
   __esModule: true,
   default: () => ({
     annualRewardRate: '2.6%',
-    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewards: '2.5 ETH',
     lifetimeRewardsFiat: '$5000',
-    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarnings: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
-    hasStakedPositions: true,
+    hasEarnLendingPositions: false,
+    hasEarnings: true,
+    hasEarnPooledStakes: true,
   }),
 }));
 
@@ -102,7 +127,9 @@ describe('Staking Earnings', () => {
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
     expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
-    expect(getByText(strings('stake.view_earnings_history'))).toBeDefined();
+    expect(
+      getByText(strings('earn.view_earnings_history.staking')),
+    ).toBeDefined();
     expect(
       queryByText(
         strings('earn.service_interruption_banner.maintenance_message'),

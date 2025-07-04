@@ -291,6 +291,11 @@ export const initialState = {
           },
         },
       },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+      },
       SmartTransactionsController: {
         smartTransactionsState: {
           liveness: true,
@@ -298,6 +303,7 @@ export const initialState = {
       },
       TransactionController: {
         transactions: [],
+        transactionBatches: [],
       },
       GasFeeController: {
         gasFeeEstimatesByChainId: {

@@ -60,11 +60,13 @@ describe('earn controller init', () => {
       lastUpdated: 0,
       pooled_staking: {
         isEligible: true,
-        pooledStakes: MOCK_POOLED_STAKES_DATA,
-        vaultMetadata: MOCK_VAULT_DATA,
-        exchangeRate: MOCK_EXCHANGE_RATE,
-        vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
-        vaultDailyApys: [],
+        '1': {
+          pooledStakes: MOCK_POOLED_STAKES_DATA,
+          vaultMetadata: MOCK_VAULT_DATA,
+          exchangeRate: MOCK_EXCHANGE_RATE,
+          vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
+          vaultDailyApys: [],
+        },
       },
     };
 

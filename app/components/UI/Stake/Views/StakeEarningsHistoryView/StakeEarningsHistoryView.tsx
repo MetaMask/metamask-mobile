@@ -5,9 +5,9 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import StakingEarningsHistory from '../../components/StakingEarnings/StakingEarningsHistory/StakingEarningsHistory';
 import styleSheet from './StakeEarningsHistoryView.styles';
 import { StakeEarningsHistoryViewRouteParams } from './StakeEarningsHistoryView.types';
+import EarningsHistory from '../../../Earn/components/Earnings/EarningsHistory/EarningsHistory';
 
 const StakeEarningsHistoryView = () => {
   const navigation = useNavigation();
@@ -19,7 +19,7 @@ const StakeEarningsHistoryView = () => {
     navigation.setOptions(
       getStakingNavbar(
         strings('stake.earnings_history_title', {
-          ticker: asset.ticker,
+          ticker: asset.ticker || asset.symbol,
         }),
         navigation,
         theme.colors,
@@ -30,12 +30,12 @@ const StakeEarningsHistoryView = () => {
         },
       ),
     );
-  }, [navigation, theme.colors, asset.ticker]);
+  }, [navigation, theme.colors, asset.ticker, asset.symbol]);
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
       <View>
-        <StakingEarningsHistory asset={asset} />
+        <EarningsHistory asset={asset} />
       </View>
     </ScrollView>
   );

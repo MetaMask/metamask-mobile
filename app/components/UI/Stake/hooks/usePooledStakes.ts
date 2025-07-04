@@ -12,14 +12,14 @@ export enum StakeAccountStatus {
   INACTIVE_WITH_REWARDS_ONLY = 'INACTIVE_WITH_REWARDS_ONLY', // zero staked shares, no exit requests, previous lifetime rewards
 }
 
-const usePooledStakes = () => {
+const usePooledStakes = (chainId: number) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectPoolStakesForChain, selectExchangeRateForChain } =
+    pooledStakingSelectors;
 
-  const { selectPoolStakes, selectExchangeRate } = pooledStakingSelectors;
-
-  const pooledStakesData = useSelector(selectPoolStakes);
-  const exchangeRate = useSelector(selectExchangeRate);
+  const pooledStakesData = useSelector(selectPoolStakesForChain(chainId));
+  const exchangeRate = useSelector(selectExchangeRateForChain(chainId));
 
   const fetchData = async () => {
     setIsLoading(true);

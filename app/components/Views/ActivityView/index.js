@@ -10,7 +10,7 @@ import TransactionsView from '../TransactionsView';
 import MultichainTransactionsView from '../MultichainTransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
+import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -62,6 +62,7 @@ const createStyles = (params) => {
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -72,6 +73,7 @@ const createStyles = (params) => {
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     header: {
       backgroundColor: colors.background.default,
@@ -189,9 +191,7 @@ const ActivityView = () => {
             label={
               <Text numberOfLines={1} style={styles.titleText}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }

@@ -17,6 +17,10 @@ class WalletActionsBottomSheet {
     return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
   }
 
+  get bridgeButton() {
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON);
+  }
+
   get buyButton() {
     return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON);
   }
@@ -37,12 +41,20 @@ class WalletActionsBottomSheet {
     await Gestures.waitAndTap(this.swapButton);
   }
 
+  async tapBridgeButton() {
+    await Gestures.waitAndTap(this.bridgeButton);
+  }
+
   async tapBuyButton() {
     await Gestures.waitAndTap(this.buyButton);
   }
 
   async tapSellButton() {
     await Gestures.waitAndTap(this.sellButton);
+  }
+
+  async swipeDownActionsBottomSheet() {
+    await Gestures.swipe(this.sendButton, 'down', 'fast');
   }
 }
 

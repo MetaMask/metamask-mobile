@@ -14,6 +14,9 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       display: 'none',
       paddingTop: 8,
     },
+    keyboardAvoidingView: {
+      flex: 1
+    },
     contentContainer: {
       paddingVertical: 15,
     },
