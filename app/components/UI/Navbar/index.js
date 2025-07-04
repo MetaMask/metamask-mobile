@@ -604,7 +604,6 @@ export function getSendFlowTitle(
     title !== 'send.send_to' && !route?.params?.isPaymentRequest;
 
   const titleToRender = title;
-  console.log('>>> Navbar isRemoveGlobalNetworkSelectorEnabled()', isRemoveGlobalNetworkSelectorEnabled());
   return {
     headerTitle: () => (
       <NavbarTitle
