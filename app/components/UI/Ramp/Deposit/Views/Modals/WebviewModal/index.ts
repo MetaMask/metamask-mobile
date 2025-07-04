@@ -1,2 +1,2 @@
 export { default } from './WebviewModal';
-export { createProviderModalNavigationDetails } from './WebviewModal';
+export { createWebviewModalNavigationDetails } from './WebviewModal';
