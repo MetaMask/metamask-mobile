@@ -13,7 +13,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
@@ -29,7 +29,7 @@ import {
 import { MockttpServer } from 'mockttp';
 
 describe(
-  SmokeWalletPlatform('Account syncing - syncs after adding a second SRP'),
+  SmokeIdentity('Account syncing - syncs after adding a second SRP'),
   () => {
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
