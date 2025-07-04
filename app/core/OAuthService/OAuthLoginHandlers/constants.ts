@@ -1,4 +1,4 @@
-import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
