@@ -35,7 +35,7 @@ export const AccountSelection = ({
   const { styles } = useStyles(styleSheet, {});
 
   const onSelectAccount = useCallback(
-    (address: String) => {
+    (address: string) => {
       if (selectedAddresses.includes(address as Hex)) {
         setSelectedAddresses(
           selectedAddresses.filter((add) => add !== address),

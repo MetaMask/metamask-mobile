@@ -1,14 +1,13 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { Hex } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { fireEvent } from '@testing-library/react-native';
 
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { Account } from '../../../../hooks/useAccounts';
 import { AccountSelection } from './account-selection';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { getAllByTestId, getByRole } from '@testing-library/react';
-import { Hex } from '@metamask/utils';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
