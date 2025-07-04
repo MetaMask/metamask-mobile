@@ -18,7 +18,5 @@ export {
   fetchSupportedTokensBalances,
   isCardHolder,
   mapCardFeatureToSupportedTokens,
-  mapTokenBalanceToTokenKey,
-  mapTokenBalancesToTokenKeys,
   getGeoLocation,
 } from '../card.utils';

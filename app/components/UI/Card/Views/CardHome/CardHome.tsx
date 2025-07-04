@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
-import { Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Dimensions,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import Icon, {
   IconName,
@@ -14,7 +20,6 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Logger from '../../../../../util/Logger';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -30,14 +35,16 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Loader from '../../../../../component-library/components-temp/Loader';
 import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
-import { TokenListItem } from '../../../Tokens/TokenList/TokenListItem';
-import { mapTokenBalanceToTokenKey } from '../../sdk';
 import { useCardTokenBalances } from '../../hooks';
 import CardImage from '../../assets/card.svg';
 import ManageCardListItem from '../../components/ManageCardListItem/ManageCardListItem';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { isSwapsAllowed } from '../../../Swaps/utils';
 import AppConstants from '../../../../../core/AppConstants';
+import { CARD_URL } from '../../constants';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import AssetListBottomSheet from '../../components/AssetListBottomSheet/AssetListBottomSheet';
+import CardAssetItem from '../../components/CardAssetItem/CardAssetItem';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -51,17 +58,16 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
-  const { priorityToken, isLoading: isLoadingBalances } =
-    useCardTokenBalances(true);
+  const {
+    priorityToken,
+    mappedPriorityToken,
+    balances,
+    isLoading: isLoadingBalances,
+  } = useCardTokenBalances(true);
   const chainId = useSelector(selectChainId);
-
-  const selectedTokenKey = useMemo(() => {
-    if (!priorityToken) {
-      return null;
-    }
-
-    return mapTokenBalanceToTokenKey(priorityToken);
-  }, [priorityToken]);
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const [openAssetListBottomSheet, setOpenAssetListBottomSheet] =
+    useState(false);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -87,6 +93,18 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
       });
     }
   }, [navigation, chainId, priorityToken, isSwapEnabled]);
+
+  const renderAssetListBottomSheet = useCallback(
+    () => (
+      <AssetListBottomSheet
+        sheetRef={sheetRef}
+        balances={balances}
+        privacyMode={privacyMode}
+        setOpenAssetListBottomSheet={setOpenAssetListBottomSheet}
+      />
+    ),
+    [sheetRef, setOpenAssetListBottomSheet, balances, privacyMode],
+  );
 
   if (isLoadingBalances) {
     return (
@@ -131,18 +149,12 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           >
             Spending with
           </Text>
-          {selectedTokenKey && (
+          {mappedPriorityToken && (
             <View style={styles.spendingWith}>
-              <TokenListItem
-                assetKey={selectedTokenKey}
-                showRemoveMenu={() => {
-                  Logger.log('Remove menu pressed');
-                }}
-                setShowScamWarningModal={() => {
-                  Logger.log('Remove menu pressed');
-                }}
+              <CardAssetItem
+                assetKey={mappedPriorityToken}
                 privacyMode={privacyMode}
-                showPercentageChange={false}
+                disabled
               />
               <Button
                 variant={ButtonVariants.Primary}
@@ -166,6 +178,9 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
       <ManageCardListItem
         title="Change asset"
         description={priorityToken?.symbol}
+        onPress={() => {
+          setOpenAssetListBottomSheet(true);
+        }}
       />
       <ManageCardListItem
         title="Manage spending limit"
@@ -175,7 +190,11 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
         title="Advanced Card Management"
         description="See detailed transactions, freeze your card, etc."
         rightIcon={IconName.Export}
+        onPress={() => {
+          Linking.openURL(CARD_URL);
+        }}
       />
+      {openAssetListBottomSheet && renderAssetListBottomSheet()}
       <ScreenshotDeterrent
         hasNavigation={hasNavigation}
         enabled

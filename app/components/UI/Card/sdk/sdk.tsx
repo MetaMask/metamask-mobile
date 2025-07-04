@@ -9,7 +9,10 @@ import { useSelector } from 'react-redux';
 
 import Logger from '../../../../util/Logger';
 import { selectedAddressSelector } from '../../../../reducers/fiatOrders';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectSelectedNetworkClientId,
+} from '../../../../selectors/networkController';
 import { selectCardFeature } from '../../../../selectors/featureFlagController/card';
 
 import {
@@ -17,8 +20,11 @@ import {
   isCardHolder,
   getGeoLocation,
 } from '../card.utils';
-import { TokenConfig } from '../types';
 import { CACHE_EXPIRATION, POLLING_INTERVAL } from '../constants';
+import { FlashListAssetKey } from '../../Tokens/TokenList';
+import { CardToken } from '../types';
+import Engine from '../../../../core/Engine';
+import { areAddressesEqual } from '../../../../util/address';
 
 export interface CardSDKConfig {
   CACHE_EXPIRATION: number;
@@ -32,10 +38,10 @@ export interface CardSDK {
   checkCardHolderStatus: () => Promise<boolean>;
 
   // Token balances
-  tokenBalances: TokenConfig[];
-  setTokenBalances: (balances: TokenConfig[]) => void;
-  priorityToken: TokenConfig | null;
-  setPriorityToken: (token: TokenConfig | null) => void;
+  tokenBalances: FlashListAssetKey[];
+  setTokenBalances: (balances: FlashListAssetKey[]) => void;
+  priorityToken: CardToken | null;
+  setPriorityToken: (token: CardToken | null) => void;
 
   // Geolocation
   userLocation: string | null;
@@ -43,10 +49,8 @@ export interface CardSDK {
   fetchUserLocation: () => Promise<string>;
 
   // Utility functions
-  fetchBalances: () => Promise<{
-    balanceList: TokenConfig[];
-    priorityToken: TokenConfig | null;
-  }>;
+  fetchBalances: () => Promise<void>;
+  mapCardTokenToTokenKey: (cardToken: CardToken) => FlashListAssetKey;
 
   // Loading states
   isLoadingCardHolder: boolean;
@@ -78,6 +82,8 @@ export const CardSDKProvider = ({
   const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(selectChainId);
   const cardFeatureFlag = useSelector(selectCardFeature);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const { TokensController } = Engine.context;
 
   // Card holder status state
   const [isCardHolderStatus, setIsCardHolderStatus] = useState<boolean | null>(
@@ -86,8 +92,8 @@ export const CardSDKProvider = ({
   const [isLoadingCardHolder, setIsLoadingCardHolder] = useState(false);
 
   // Token balances state
-  const [tokenBalances, setTokenBalances] = useState<TokenConfig[]>([]);
-  const [priorityToken, setPriorityToken] = useState<TokenConfig | null>(null);
+  const [tokenBalances, setTokenBalances] = useState<FlashListAssetKey[]>([]);
+  const [priorityToken, setPriorityToken] = useState<CardToken | null>(null);
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
   const [balancesError, setBalancesError] = useState<Error | null>(null);
 
@@ -120,6 +126,31 @@ export const CardSDKProvider = ({
     }
   }, [selectedAddress, cardFeatureFlag, selectedChainId]);
 
+  const mapAllowanceStateToLabel = (state: string): string => {
+    switch (state) {
+      case 'delegatable':
+        return 'Not activated';
+      case 'unlimited':
+        return 'Unlimited';
+      case 'limited':
+        return 'Limited';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const mapCardTokenToTokenKey = useCallback(
+    (cardToken: CardToken): FlashListAssetKey => ({
+      address: cardToken.address,
+      chainId: selectedChainId,
+      isStaked: false,
+      tag: {
+        label: mapAllowanceStateToLabel(cardToken.allowanceState),
+      },
+    }),
+    [selectedChainId],
+  );
+
   const fetchBalances = useCallback(async () => {
     setIsLoadingBalances(true);
     setBalancesError(null);
@@ -133,9 +164,34 @@ export const CardSDKProvider = ({
         selectedAddress,
         cardFeatureFlag,
       );
-      setTokenBalances(result.balanceList);
+
+      const tokens =
+        TokensController.state.allTokens?.[selectedChainId as `0x${string}`]?.[
+          selectedAddress
+        ] || [];
+      Logger.log('tokens', tokens);
+      const balanceList: FlashListAssetKey[] = [];
+
+      for (const balance of result.balanceList) {
+        const token = tokens.find((t) =>
+          areAddressesEqual(t.address, balance.address),
+        );
+
+        if (!token) {
+          await TokensController.addToken({
+            address: balance.address,
+            symbol: balance.symbol,
+            decimals: balance.decimals,
+            name: balance.name,
+            networkClientId: selectedNetworkClientId,
+          });
+        }
+
+        balanceList.push(mapCardTokenToTokenKey(balance));
+      }
+
+      setTokenBalances(balanceList);
       setPriorityToken(result.priorityToken);
-      return result;
     } catch (error) {
       const err = error as Error;
       Logger.error(err, 'Failed to fetch token balances');
@@ -144,7 +200,14 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoadingBalances(false);
     }
-  }, [selectedAddress, cardFeatureFlag]);
+  }, [
+    selectedAddress,
+    cardFeatureFlag,
+    TokensController,
+    selectedChainId,
+    mapCardTokenToTokenKey,
+    selectedNetworkClientId,
+  ]);
 
   const fetchUserLocation = useCallback(async (): Promise<string> => {
     setIsLoadingLocation(true);
@@ -182,6 +245,7 @@ export const CardSDKProvider = ({
 
       // Utility functions
       fetchBalances,
+      mapCardTokenToTokenKey,
 
       // Loading states
       isLoadingCardHolder,
@@ -208,6 +272,7 @@ export const CardSDKProvider = ({
       userLocation,
       checkCardHolderStatus,
       fetchBalances,
+      mapCardTokenToTokenKey,
       fetchUserLocation,
       isLoadingCardHolder,
       isLoadingBalances,

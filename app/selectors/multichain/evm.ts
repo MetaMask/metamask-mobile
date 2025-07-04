@@ -45,6 +45,7 @@ import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/
 import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
 import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
+import Logger from '../../util/Logger';
 
 interface NativeTokenBalance {
   balance: string;
@@ -575,6 +576,8 @@ export const makeSelectAssetByAddressAndChainId = () =>
       }
       // Step 1: build nested map once per call
       const lookup = new Map<string, Map<string, Map<boolean, TokenI>>>();
+
+      Logger.log(tokens);
 
       for (const token of tokens) {
         if (!token.chainId || !token.address) {

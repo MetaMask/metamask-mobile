@@ -73,7 +73,6 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -413,9 +412,7 @@ export const TokenListItem = React.memo(
           </View>
 
           <View style={styles.percentageChange}>
-            {assetKey.tag ? (
-              <Tag label={assetKey.tag.label} style={assetKey.tag.style} />
-            ) : !isTestNet(chainId) && showPercentageChange ? (
+            {!isTestNet(chainId) && showPercentageChange ? (
               <PercentageChange value={pricePercentChange1d ?? 0} />
             ) : null}
             {renderEarnCta()}

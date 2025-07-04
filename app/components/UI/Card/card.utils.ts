@@ -8,13 +8,10 @@ import {
 } from '../../../selectors/featureFlagController/card';
 import { getDecimalChainId } from '../../../util/networks';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { FlashListAssetKey } from '../Tokens/TokenList';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import balanceScannerAbi from './balanceScannerAbi.json';
-import { StyleProp, ViewStyle } from 'react-native';
 import BigNumber from 'bignumber.js';
 import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
-import { AllowanceState, TokenConfig } from './types';
+import { AllowanceState, CardToken } from './types';
 /**
  * Linea Mainnet contract addresses
  */
@@ -82,7 +79,7 @@ const getAllowanceState = (allowance: string): AllowanceState => {
 
 /**
  * Scans all Approval logs for the given tokens & spenders,
- * then returns the TokenConfig whose most‐recent non-zero Approval wins.
+ * then returns the CardToken whose most‐recent non-zero Approval wins.
  */
 const getPriorityTokenAddress = async ({
   provider,
@@ -381,8 +378,8 @@ export const fetchSupportedTokensBalances = async (
   address: string,
   cardFeature: CardFeature | null,
 ): Promise<{
-  balanceList: TokenConfig[];
-  priorityToken: TokenConfig | null;
+  balanceList: CardToken[];
+  priorityToken: CardToken | null;
 }> => {
   const provider = createProvider();
   const supportedTokens = mapCardFeatureToSupportedTokens(cardFeature);
@@ -427,18 +424,21 @@ export const fetchSupportedTokensBalances = async (
       const allowanceState = ethers.BigNumber.from(usAllowance).isZero()
         ? getAllowanceState(globalAllowance)
         : getAllowanceState(usAllowance);
-      const enabled = info.enabled !== undefined ? info.enabled : true;
+      const enabled =
+        info.enabled !== undefined && info.enabled !== null
+          ? info.enabled
+          : true;
 
       return {
         address: info.address as string,
         decimals: info.decimals ?? 18,
-        enabled,
         name: info.name ?? '',
         symbol: info.symbol ?? '',
         balance: renderFromTokenMinimalUnit(
           rawBalance.toString(),
           info.decimals ?? 18,
         ),
+        enabled,
         rawBalance,
         allowanceState,
         globalAllowance,
@@ -464,14 +464,6 @@ export const fetchSupportedTokensBalances = async (
           (token) =>
             token.address.toLowerCase() === priorityTokenAddress.toLowerCase(),
         ) ?? null;
-
-      if (priorityToken) {
-        // Remove the priority token from the balance list
-        const index = balanceList.indexOf(priorityToken);
-        if (index > -1) {
-          balanceList.splice(index, 1);
-        }
-      }
     }
 
     return {
@@ -599,44 +591,6 @@ export const isCardHolder = async (
     return false;
   }
 };
-
-const renderChip = (state: AllowanceState) => {
-  const tagConfig: Record<
-    AllowanceState,
-    { label: string; style?: StyleProp<ViewStyle> }
-  > = {
-    [AllowanceState.Delegatable]: {
-      label: 'Not activated',
-    },
-    [AllowanceState.Unlimited]: {
-      label: 'Enabled',
-    },
-    [AllowanceState.Limited]: {
-      label: 'Spend Limited',
-    },
-  };
-
-  return tagConfig[state];
-};
-
-export const mapTokenBalanceToTokenKey = (
-  tokenBalance: TokenConfig,
-): FlashListAssetKey => ({
-  address: tokenBalance.address,
-  chainId: LINEA_CHAIN_ID, // Assuming LINEA_CHAIN_ID is the chain ID
-  isStaked: false,
-  tag: renderChip(tokenBalance.allowanceState),
-});
-
-/**
- *
- * @param tokenBalances - Array of token balances to map
- * @returns FlashListAssetKey[] - Array of FlashListAssetKey objects
- */
-export const mapTokenBalancesToTokenKeys = (
-  tokenBalances: TokenConfig[],
-): FlashListAssetKey[] =>
-  tokenBalances.map((token) => mapTokenBalanceToTokenKey(token));
 
 /**
  * This function retrieves the user's geolocation using the Ramps Geolocation API.

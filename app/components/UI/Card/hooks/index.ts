@@ -32,6 +32,7 @@ export const useCardTokenBalances = (autoFetch = false) => {
     tokenBalances,
     priorityToken,
     fetchBalances,
+    mapCardTokenToTokenKey,
     isLoadingBalances,
     balancesError,
   } = useCardSDK();
@@ -45,6 +46,9 @@ export const useCardTokenBalances = (autoFetch = false) => {
   return {
     balances: tokenBalances,
     priorityToken,
+    mappedPriorityToken: priorityToken
+      ? mapCardTokenToTokenKey(priorityToken)
+      : null,
     isLoading: isLoadingBalances,
     error: balancesError,
     refetch: useCallback(() => fetchBalances(), [fetchBalances]),
