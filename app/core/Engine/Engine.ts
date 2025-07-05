@@ -229,6 +229,7 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
+import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 
@@ -1267,6 +1268,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1327,6 +1329,9 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
+
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
@@ -1637,6 +1642,7 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      NetworkEnablementController: networkEnablementController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2359,6 +2365,7 @@ export default {
       EarnController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      NetworkEnablementController,
     } = instance.datamodel.state;
 
     return {
@@ -2413,6 +2420,7 @@ export default {
       EarnController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      NetworkEnablementController,
     };
   },
 

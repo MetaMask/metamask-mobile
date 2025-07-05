@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 /**
  *
@@ -15,16 +16,18 @@ const styleSheet = (params: { theme: Theme }) => {
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 8,
-      paddingBottom: 16,
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
+      paddingBottom: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
       paddingTop: 8,
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
+        ? colors.border.default
+        : undefined,
       borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       marginRight: 5,
       maxWidth: '60%',
     },
@@ -36,18 +39,20 @@ const styleSheet = (params: { theme: Theme }) => {
       borderColor: colors.border.default,
       borderStyle: 'solid',
       borderWidth: 1,
-      marginLeft: 5,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
+        ? colors.border.default
+        : undefined,
       borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
+      marginRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       borderRadius: 50,
       width: 50,
       height: 40,

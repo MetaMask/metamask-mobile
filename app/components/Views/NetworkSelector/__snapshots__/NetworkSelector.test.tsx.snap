@@ -3477,42 +3477,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
@@ -3624,42 +3598,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
@@ -3771,42 +3719,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
@@ -3918,42 +3840,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
@@ -4065,42 +3961,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
@@ -4212,42 +4082,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       }
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          [
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "color": "#4459ff",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "CentraNo1-Book",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
                                         }
                                       >
                                         Add
