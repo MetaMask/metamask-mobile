@@ -503,18 +503,35 @@ export default class Gestures {
 
   /**
    * Legacy method: Clear the text field
-   * @deprecated Use typeText() with clearFirst option instead for better error handling and retry mechanisms
+   * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
-  static async clearField(elem: DetoxElement, timeout = 2500): Promise<void> {
+  static async clearField(elem: DetoxElement, options: GestureOptions = {}): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      elemDescription,
+    } = options;
+
     return Utilities.executeWithRetry(
-      async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        await waitFor(el).toBeVisible().withTimeout(timeout);
+      async () => { 
+        const el = (await Utilities.checkElementReadyState(elem, {
+          timeout,
+          checkStability,
+          checkVisibility,
+          checkEnabled,
+        })) as Detox.IndexableNativeElement;
+
+        await new Promise((resolve) =>
+          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+        );
         await el.replaceText('');
       },
       {
         timeout,
-        description: 'Cleared field',
+        description: 'clearField()',
+        elemDescription,
       },
     );
   }

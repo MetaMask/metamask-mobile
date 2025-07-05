@@ -1250,6 +1250,27 @@ class FixtureBuilder {
     return this;
   }
 
+  withIdentityTeamKeyringController(options = {}) {
+    const {
+      isBackupAndSyncEnabled = true,
+      isAccountSyncingEnabled = true,
+      isContactSyncingEnabled = true,
+    } = options;
+
+    // Backup and Sync Settings
+    this.fixture.state.engine.backgroundState.UserStorageController = {
+      isBackupAndSyncEnabled,
+      isAccountSyncingEnabled,
+      isContactSyncingEnabled,
+      isBackupAndSyncUpdateLoading: false,
+      isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+    };
+    return this;
+  }
+
   /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.

@@ -1,6 +1,6 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class OnboardingView {
   get container() {
@@ -20,7 +20,9 @@ class OnboardingView {
   }
 
   async tapImportWalletFromSeedPhrase() {
-    await Gestures.waitAndTap(this.importSeedButton);
+    await Gestures.waitAndTap(this.importSeedButton, {
+      elemDescription: 'Onboarding Import Seed Phrase Button',
+    });
   }
 }
 
