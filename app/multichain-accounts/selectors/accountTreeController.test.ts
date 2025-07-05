@@ -1,6 +1,7 @@
 import {
   selectAccountSections,
   selectWalletById,
+  selectWalletByAccount,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 
@@ -11,6 +12,11 @@ const WALLET_ID_B = 'keyring:wallet-b';
 const WALLET_ID_NONEXISTENT = 'keyring:nonexistent';
 const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups';
 const WALLET_ID_EMPTY = 'keyring:empty-wallet';
+
+const ACCOUNT_ID_1 = 'account1';
+const ACCOUNT_ID_2 = 'account2';
+const ACCOUNT_ID_3 = 'account3';
+const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
 
 describe('AccountTreeController Selectors', () => {
   describe('selectAccountSections', () => {
@@ -484,6 +490,454 @@ describe('AccountTreeController Selectors', () => {
       expect(selector(WALLET_ID_B)).toEqual(mockWallet2);
       expect(selector(WALLET_ID_NONEXISTENT)).toBeNull();
       expect(selector(WALLET_ID_A)).toEqual(mockWallet1); // Test calling again
+    });
+  });
+
+  describe('selectWalletByAccount', () => {
+    it('returns null when accountTree is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(null);
+    });
+
+    it('returns null when multichain accounts feature is disabled', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: {
+                    id: WALLET_ID_1,
+                    metadata: { name: 'Wallet 1' },
+                    groups: {
+                      group1: {
+                        accounts: [ACCOUNT_ID_1],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: false,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(null);
+    });
+
+    it('returns null when wallets is null', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: null,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(null);
+    });
+
+    it('returns null when account ID is not found', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: {
+                    id: WALLET_ID_1,
+                    metadata: { name: 'Wallet 1' },
+                    groups: {
+                      group1: {
+                        accounts: [ACCOUNT_ID_1],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_NONEXISTENT);
+      expect(result).toEqual(null);
+    });
+
+    it('returns wallet when account is found', () => {
+      const mockWallet = {
+        id: WALLET_ID_1,
+        metadata: { name: 'Wallet 1' },
+        groups: {
+          group1: {
+            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: mockWallet,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(mockWallet);
+    });
+
+    it('returns correct wallet when account is in different groups', () => {
+      const mockWallet = {
+        id: WALLET_ID_1,
+        metadata: { name: 'Wallet 1' },
+        groups: {
+          'keyring:1:ethereum': {
+            accounts: [ACCOUNT_ID_1],
+          },
+          'snap:solana:mainnet': {
+            accounts: [ACCOUNT_ID_2],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: mockWallet,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+
+      // Test account in first group
+      const result1 = selector(ACCOUNT_ID_1);
+      expect(result1).toEqual(mockWallet);
+
+      // Test account in second group
+      const result2 = selector(ACCOUNT_ID_2);
+      expect(result2).toEqual(mockWallet);
+    });
+
+    it('returns correct wallet when multiple wallets exist', () => {
+      const mockWallet1 = {
+        id: WALLET_ID_1,
+        metadata: { name: 'First Wallet' },
+        groups: {
+          'keyring:1:ethereum': {
+            accounts: [ACCOUNT_ID_1],
+          },
+        },
+      };
+
+      const mockWallet2 = {
+        id: WALLET_ID_2,
+        metadata: { name: 'Second Wallet' },
+        groups: {
+          'snap:solana:mainnet': {
+            accounts: [ACCOUNT_ID_2],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: mockWallet1,
+                  [WALLET_ID_2]: mockWallet2,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+
+      // Test account in first wallet
+      const result1 = selector(ACCOUNT_ID_1);
+      expect(result1).toEqual(mockWallet1);
+
+      // Test account in second wallet
+      const result2 = selector(ACCOUNT_ID_2);
+      expect(result2).toEqual(mockWallet2);
+    });
+
+    it('returns null when wallet has empty groups', () => {
+      const mockWallet = {
+        id: WALLET_ID_EMPTY,
+        metadata: { name: 'Empty Wallet' },
+        groups: {},
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_EMPTY]: mockWallet,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(null);
+    });
+
+    it('returns wallet when account is in group with empty accounts array', () => {
+      const mockWallet1 = {
+        id: WALLET_ID_1,
+        metadata: { name: 'Wallet 1' },
+        groups: {
+          group1: {
+            accounts: [],
+          },
+        },
+      };
+
+      const mockWallet2 = {
+        id: WALLET_ID_2,
+        metadata: { name: 'Wallet 2' },
+        groups: {
+          group2: {
+            accounts: [ACCOUNT_ID_1],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_1]: mockWallet1,
+                  [WALLET_ID_2]: mockWallet2,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toEqual(mockWallet2);
+    });
+
+    it('selector function can be called multiple times with different account IDs', () => {
+      const mockWallet1 = {
+        id: WALLET_ID_A,
+        metadata: { name: 'Wallet A' },
+        groups: {
+          group1: {
+            accounts: [ACCOUNT_ID_1],
+          },
+        },
+      };
+
+      const mockWallet2 = {
+        id: WALLET_ID_B,
+        metadata: { name: 'Wallet B' },
+        groups: {
+          group2: {
+            accounts: [ACCOUNT_ID_2, ACCOUNT_ID_3],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_A]: mockWallet1,
+                  [WALLET_ID_B]: mockWallet2,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+
+      // Test multiple calls to the same selector function
+      expect(selector(ACCOUNT_ID_1)).toEqual(mockWallet1);
+      expect(selector(ACCOUNT_ID_2)).toEqual(mockWallet2);
+      expect(selector(ACCOUNT_ID_3)).toEqual(mockWallet2);
+      expect(selector(ACCOUNT_ID_NONEXISTENT)).toBeNull();
+      expect(selector(ACCOUNT_ID_1)).toEqual(mockWallet1); // Test calling again
+    });
+
+    it('returns wallet with complex group structure containing multiple accounts', () => {
+      const mockWallet = {
+        id: WALLET_ID_WITH_GROUPS,
+        metadata: { name: 'Complex Wallet' },
+        groups: {
+          'keyring:1:ethereum': {
+            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+          },
+          'snap:solana:mainnet': {
+            accounts: [ACCOUNT_ID_3],
+          },
+          'keyring:2:ethereum': {
+            accounts: [],
+          },
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  [WALLET_ID_WITH_GROUPS]: mockWallet,
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const selector = selectWalletByAccount(mockState);
+
+      // Test all accounts in different groups
+      expect(selector(ACCOUNT_ID_1)).toEqual(mockWallet);
+      expect(selector(ACCOUNT_ID_2)).toEqual(mockWallet);
+      expect(selector(ACCOUNT_ID_3)).toEqual(mockWallet);
     });
   });
 });
