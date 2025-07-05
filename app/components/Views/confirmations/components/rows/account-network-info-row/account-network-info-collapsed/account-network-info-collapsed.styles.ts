@@ -42,10 +42,6 @@ const styleSheet = (params: {
       marginStart: 8,
       paddingHorizontal: 12,
     },
-    networkName: {
-      color: theme.colors.text.default,
-      ...fontStyles.normal,
-    },
   });
 };
 

@@ -46,7 +46,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
   }
   swipeDirection="down"
   swipeThreshold={100}
-  useNativeDriver={false}
+  useNativeDriver={true}
 >
   <KeyboardAwareScrollView
     contentContainerStyle={

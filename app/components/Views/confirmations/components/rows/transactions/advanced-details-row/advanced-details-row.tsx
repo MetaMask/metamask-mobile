@@ -65,6 +65,7 @@ const AdvancedDetailsRow = () => {
   const data = transactionMetadata?.txParams?.data;
   const to = transactionMetadata?.txParams?.to;
   const hasDataNeedsScroll = data && data.length > MAX_DATA_LENGTH_FOR_SCROLL;
+  const shouldShowData = !is7702transaction && data && data !== '0x';
 
   return (
     <>
@@ -116,7 +117,7 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!is7702transaction && (
+            {shouldShowData && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}

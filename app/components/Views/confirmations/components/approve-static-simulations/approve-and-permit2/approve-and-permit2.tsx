@@ -16,6 +16,31 @@ import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button';
 import styleSheet from '../shared-styles';
 
+interface PillAndAddressProps {
+  amount?: string;
+  isERC20: boolean;
+  tokenId?: string;
+  transactionMetadata: TransactionMeta;
+}
+
+const PillAndAddress: React.FC<PillAndAddressProps> = ({
+  amount,
+  isERC20,
+  tokenId,
+  transactionMetadata,
+}) => (
+  <>
+    <Pill
+      testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+      text={isERC20 ? amount ?? '' : `#${tokenId}`}
+    />
+    <Address
+      address={transactionMetadata?.txParams?.to as string}
+      chainId={transactionMetadata.chainId}
+    />
+  </>
+);
+
 export const ApproveAndPermit2 = () => {
   const { styles } = useStyles(styleSheet, {});
   const {
@@ -87,16 +112,22 @@ export const ApproveAndPermit2 = () => {
                 spendingCap: rawAmount ?? '',
                 onSpendingCapUpdate,
               }}
+            >
+              <PillAndAddress
+                amount={amount}
+                isERC20
+                tokenId={tokenId}
+                transactionMetadata={transactionMetadata}
+              />
+            </EditSpendingCapButton>
+          )}
+          {!isERC20 && (
+            <PillAndAddress
+              isERC20={isERC20}
+              tokenId={tokenId}
+              transactionMetadata={transactionMetadata}
             />
           )}
-          <Pill
-            testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
-            text={isERC20 ? amount ?? '' : `#${tokenId}`}
-          />
-          <Address
-            address={transactionMetadata?.txParams?.to as string}
-            chainId={transactionMetadata.chainId}
-          />
         </View>
       </InfoRow>
       <InfoRow label={strings('confirm.spender')}>
