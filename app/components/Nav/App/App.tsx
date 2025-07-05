@@ -898,18 +898,32 @@ const App: React.FC = () => {
       dispatch,
     });
 
+    // Common function to get and process Branch deeplink
+    const getBranchDeeplink = async (uri?: string) => {
+      try {
+        const latestParams = await branch.getLatestReferringParams();
+        if (uri || latestParams?.['+non_branch_link']) {
+          const deeplink = uri || (latestParams['+non_branch_link'] as string);
+          if (deeplink) {
+            handleDeeplink({ uri: deeplink });
+          }
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error getting Branch deeplink');
+      }
+    };
+
+    // Check for cold start deeplink immediately
+    getBranchDeeplink();
+
+    // Set up the subscription for future deeplinks (original code)
     branch.subscribe((opts) => {
       const { error } = opts;
-
-      // Log error for analytics and continue handling deeplink
       if (error) {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
+      getBranchDeeplink(opts.uri);
     });
   }, [dispatch, handleDeeplink, navigation]);
 
