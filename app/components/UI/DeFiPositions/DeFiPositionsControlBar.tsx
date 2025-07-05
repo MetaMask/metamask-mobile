@@ -4,7 +4,9 @@ import { Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
@@ -64,6 +66,7 @@ const DeFiPositionsControlBar: React.FC = () => {
         onPress={showSortControls}
         iconName={IconName.SwapVertical}
         style={styles.controlIconButton}
+        size={ButtonIconSizes.Lg}
       />
     </View>
   );
