@@ -15,6 +15,9 @@ ignores:
   - 'react-compiler-runtime'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
+  # These are used in metro.config.js to setup Hardened JavaScript via @lavamoat/react-native-lockdown
+  - '@react-native/js-polyfills'
+  - 'reflect-metadata'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used

@@ -8,6 +8,33 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+
+// eslint-disable-next-line import/no-nodejs-modules
+const { parseArgs } = require('node:util');
+
+const parsedArgs = parseArgs({
+  options: {
+    platform: {
+      type: 'string',
+    },
+  },
+  allowPositionals: true,
+  strict: false,
+});
+
+// Apply 'ses/hermes' on Android (Hermes)
+// Apply 'ses' on iOS (RN JSC) until on Hermes
+const hermesRuntime =
+  parsedArgs.values.platform === 'android' ||
+  parsedArgs.positionals[0]?.includes('android');
+
+const getPolyfills = () => [
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  ...require('@react-native/js-polyfills')(),
+  require.resolve('reflect-metadata'),
+];
+
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
@@ -65,6 +92,14 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      // Note: 'expo start' not supported since we cannot detect android/ios
+      // Unfortunately it does not 'run:android' or 'run:ios' which would be detectable
+      serializer: lockdownSerializer(
+        { hermesRuntime },
+        {
+          getPolyfills,
+        },
+      ),
       resetCache: true,
     }),
   );
