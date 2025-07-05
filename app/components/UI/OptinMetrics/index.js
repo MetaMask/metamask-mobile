@@ -502,14 +502,9 @@ class OptinMetrics extends PureComponent {
   renderActionButtons = () => {
     const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -519,6 +514,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -528,6 +524,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
       </View>
     );
