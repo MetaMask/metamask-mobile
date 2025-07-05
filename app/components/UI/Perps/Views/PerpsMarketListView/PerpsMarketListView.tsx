@@ -27,9 +27,8 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
 
   const navigation = useNavigation();
 
-  // Fetch live market data
   const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
-    enablePolling: false, // Enable live updates every minute
+    enablePolling: false,
   });
 
   useEffect(() => {
@@ -58,9 +57,6 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
     }
   };
 
-  const renderMarketItem = ({ item }: { item: PerpsMarketData }) => (
-    <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
-  );
 
   const renderListHeader = () => (
     <View style={styles.listHeader}>
@@ -160,7 +156,9 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
                 <FlashList
                   style={styles.animatedListContainer}
                   data={markets}
-                  renderItem={renderMarketItem}
+                  renderItem={({ item }) => (
+                    <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
+                  )}
                   keyExtractor={(item) => item.symbol}
                   contentContainerStyle={styles.flashListContent}
                   estimatedItemSize={80}

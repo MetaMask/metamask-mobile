@@ -45,14 +45,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'flex-end',
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    loadingText: {
-      marginTop: 16,
-    },
     errorContainer: {
       flex: 1,
       justifyContent: 'center',

@@ -13,30 +13,23 @@ import {
  */
 const formatPrice = (price: string): string => {
   const num = parseFloat(price);
-  if (num >= 1000) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    })
-      .format(num)
-      .replace('$', '$');
-  } else if (num >= 1) {
+  if (num >= 0.01) {
+    // For prices >= $0.01, use exactly 2 decimal places
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 4,
+      maximumFractionDigits: 2,
     })
       .format(num)
       .replace('$', '$');
   } else {
+    // For very small prices < $0.01, keep more precision
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 4,
-      maximumFractionDigits: 8,
+      maximumFractionDigits: 6,
     })
       .format(num)
       .replace('$', '$');
@@ -92,19 +85,20 @@ export const transformMarketData = (
   const { universe, assetCtxs, allMids } = data;
 
   return universe
-    .filter((asset) => !asset.isDelisted) // Filter out delisted assets
-    .map((asset, index) => {
-      const assetCtx = assetCtxs[index];
-      const currentPrice = allMids[asset.name] || assetCtx?.markPx || '0';
-      const prevDayPrice = assetCtx?.prevDayPx || '0';
-      const volume = assetCtx?.dayNtlVlm || '0';
+    .reduce((accumulator, asset, originalIndex) => {
+      if (asset.isDelisted) return accumulator; // Skip delisted assets
+      
+      const assetContext = assetCtxs[originalIndex];
+      const currentPrice = allMids[asset.name] || assetContext?.markPx || '0';
+      const prevDayPrice = assetContext?.prevDayPx || '0';
+      const volume = assetContext?.dayNtlVlm || '0';
 
       const { change24h, change24hPercent } = calculatePriceChange(
         currentPrice,
         prevDayPrice,
       );
 
-      return {
+      accumulator.push({
         symbol: asset.name,
         name: asset.name,
         maxLeverage: `${asset.maxLeverage}x`,
@@ -112,8 +106,10 @@ export const transformMarketData = (
         change24h,
         change24hPercent,
         volume: formatVolume(volume),
-      };
-    })
+      });
+      
+      return accumulator;
+    }, [] as PerpsMarketData[])
     .sort((a, b) => {
       // Sort by 24h trading volume (descending) - largest to smallest
       const getVolumeNumber = (volumeStr: string): number => {
