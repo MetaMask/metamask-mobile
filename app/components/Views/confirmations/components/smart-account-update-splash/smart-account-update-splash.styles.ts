@@ -15,9 +15,16 @@ const styleSheet = (params: { theme: Theme }) => {
       left: 0,
       height: '100%',
       width: '100%',
-      padding: 8,
+      paddingInline: 8,
+      paddingVertical: 20,
+    },
+    edit: {
+      position: 'absolute',
+      right: 10,
+      top: 8,
     },
     image: {
+      marginTop: 28,
       height: '28%',
       width: '100%',
     },
@@ -48,6 +55,9 @@ const styleSheet = (params: { theme: Theme }) => {
     textSection: {
       marginLeft: 8,
       width: '90%',
+    },
+    accountIcon: {
+      marginRight: -6,
     },
   });
 };

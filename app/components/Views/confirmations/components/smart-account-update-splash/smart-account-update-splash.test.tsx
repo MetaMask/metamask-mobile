@@ -112,4 +112,21 @@ describe('SmartContractWithLogo', () => {
     expect(getByText('Use smart account?')).toBeTruthy();
     expect(getByText('Request for')).toBeTruthy();
   });
+
+  it('open account selection when edit accounts icon is pressed', () => {
+    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+    const { getByTestId, getByText } = renderComponent(
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: true },
+      }),
+    );
+
+    fireEvent.press(getByTestId('open_account_selection'));
+    expect(getByText('Edit Accounts')).toBeTruthy();
+    expect(getByText('Select all')).toBeTruthy();
+
+    fireEvent.press(getByTestId('account_selection_close'));
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
+  });
 });
