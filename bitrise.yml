@@ -2476,7 +2476,7 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_SECURITY_ALERTS_API_ENABLED: true
+      MM_STABLECOIN_LENDING_UI_ENABLED: false
     - opts:
         is_expand: false
       BRIDGE_USE_DEV_APIS: false
