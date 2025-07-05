@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 
@@ -32,31 +32,45 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
     stxEstimatedDeadlineSec,
   );
 
+  const calculateRemainingTime = useCallback(() => {
+    if (!creationTime) return;
+    const now = Date.now();
+    const secondsAfterStxSubmission = Math.round(
+      (now - creationTime) / 1000,
+    );
+    
+    // Check if we're past the estimated deadline
+    if (secondsAfterStxSubmission > stxEstimatedDeadlineSec && !isStxPastEstimatedDeadline) {
+      setIsStxPastEstimatedDeadline(true);
+    }
+    
+    // Determine which deadline to use for countdown
+    const currentDeadline = (secondsAfterStxSubmission > stxEstimatedDeadlineSec)
+      ? stxMaxDeadlineSec
+      : stxEstimatedDeadlineSec;
+      
+    if (secondsAfterStxSubmission > stxMaxDeadlineSec) {
+      setTimeLeftForPendingStxInSec(0);
+      return;
+    }
+    
+    setTimeLeftForPendingStxInSec(
+      currentDeadline - secondsAfterStxSubmission,
+    );
+  }, [creationTime, stxEstimatedDeadlineSec, stxMaxDeadlineSec, isStxPastEstimatedDeadline]);
+
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     if (isStxPending && creationTime) {
-      const calculateRemainingTime = () => {
-        const secondsAfterStxSubmission = Math.round(
-          (Date.now() - creationTime) / 1000,
-        );
-        if (secondsAfterStxSubmission > stxDeadlineSec) {
-          if (isStxPastEstimatedDeadline) {
-            setTimeLeftForPendingStxInSec(0);
-            clearInterval(intervalId);
-            return;
-          }
-          setIsStxPastEstimatedDeadline(true);
-        }
-        setTimeLeftForPendingStxInSec(
-          stxDeadlineSec - secondsAfterStxSubmission,
-        );
-      };
       intervalId = setInterval(calculateRemainingTime, 1000);
       calculateRemainingTime();
     }
-
-    return () => clearInterval(intervalId);
-  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isStxPending, calculateRemainingTime, creationTime]);
 
   return {
     timeLeftForPendingStxInSec,

@@ -109,27 +109,26 @@ class SmartTransactionHook {
       transactionMeta,
       signedTransactionInHex,
       smartTransactionsController,
-      controllerMessenger,
       transactionController,
+      controllerMessenger,
       shouldUseSmartTransaction,
       approvalController,
       featureFlags,
       transactions,
     } = request;
-    this.#approvalId = undefined;
+
     this.#approvalEnded = false;
-    this.#transactionMeta = transactionMeta;
-    this.#signedTransactionInHex = signedTransactionInHex;
+    this.#approvalId = undefined;
+    this.#chainId = transactionMeta.chainId;
+    this.#featureFlags = featureFlags;
+    this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#smartTransactionsController = smartTransactionsController;
     this.#transactionController = transactionController;
     this.#approvalController = approvalController;
-    this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
-    this.#featureFlags = featureFlags;
-    this.#chainId = transactionMeta.chainId;
+    this.#transactionMeta = transactionMeta;
+    this.#signedTransactionInHex = signedTransactionInHex;
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
-    this.#mobileReturnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
     this.#transactions = transactions;
 
     const {
@@ -139,7 +138,8 @@ class SmartTransactionHook {
       isSwapApproveTx,
       isSwapTransaction,
       isNativeTokenTransferred,
-    } = getTransactionType(this.#transactionMeta, this.#chainId);
+    } = getTransactionType(transactionMeta, this.#chainId);
+
     this.#isDapp = isDapp;
     this.#isSend = isSend;
     this.#isInSwapFlow = isInSwapFlow;
@@ -147,23 +147,21 @@ class SmartTransactionHook {
     this.#isSwapTransaction = isSwapTransaction;
     this.#isNativeTokenTransferred = isNativeTokenTransferred;
 
-    const approvalIdForPendingSwapApproveTx =
-      this.#getApprovalIdForPendingSwapApproveTx();
-    if (approvalIdForPendingSwapApproveTx) {
-      this.#approvalId = approvalIdForPendingSwapApproveTx;
-    }
+    this.#mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
 
     this.#shouldStartApprovalRequest = getShouldStartApprovalRequest(
-      this.#isDapp,
-      this.#isSend,
-      this.#isSwapApproveTx,
-      Boolean(approvalIdForPendingSwapApproveTx),
+      isDapp,
+      isSend,
+      isSwapApproveTx,
+      false, // hasPendingApprovalForSwapApproveTx
       this.#mobileReturnTxHashAsap,
     );
+
     this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
-      this.#isDapp,
-      this.#isSend,
-      this.#isSwapTransaction,
+      isDapp,
+      isSend,
+      isSwapTransaction,
       this.#mobileReturnTxHashAsap,
     );
   }
@@ -505,6 +503,7 @@ class SmartTransactionHook {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           smartTransaction: smartTransaction as any,
           isDapp: this.#isDapp,
+          isSend: this.#isSend,
           isInSwapFlow: this.#isInSwapFlow,
           isSwapApproveTx: this.#isSwapApproveTx,
           isSwapTransaction: this.#isSwapTransaction,

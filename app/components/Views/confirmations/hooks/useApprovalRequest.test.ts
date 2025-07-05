@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import useApprovalRequest from './useApprovalRequest';
 import Engine from '../../../../core/Engine';
 import { providerErrors } from '@metamask/rpc-errors';
+import { renderHook } from '@testing-library/react-hooks';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -70,7 +71,8 @@ describe('useApprovalRequest', () => {
   describe('approvalRequest', () => {
     it('set to approval request if one exists', () => {
       mockSelector({ [APPROVAL_REQUEST.id]: APPROVAL_REQUEST });
-      expect(useApprovalRequest().approvalRequest).toEqual(APPROVAL_REQUEST);
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.approvalRequest).toEqual(APPROVAL_REQUEST);
     });
 
     it('set to first approval request if multiple exist', () => {
@@ -78,12 +80,14 @@ describe('useApprovalRequest', () => {
         [APPROVAL_REQUEST.id]: APPROVAL_REQUEST,
         [APPROVAL_REQUEST_2.id]: APPROVAL_REQUEST_2,
       });
-      expect(useApprovalRequest().approvalRequest).toEqual(APPROVAL_REQUEST);
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.approvalRequest).toEqual(APPROVAL_REQUEST);
     });
 
     it('set to undefined if no approval requests exist', () => {
       mockSelector({});
-      expect(useApprovalRequest().approvalRequest).toBeUndefined();
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.approvalRequest).toBeUndefined();
     });
   });
 
@@ -95,8 +99,8 @@ describe('useApprovalRequest', () => {
           requestData: { pageMeta: PAGE_META_MOCK },
         },
       });
-
-      expect(useApprovalRequest().pageMeta).toEqual(PAGE_META_MOCK);
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.pageMeta).toEqual(PAGE_META_MOCK);
     });
 
     it('set to empty object if no request data', () => {
@@ -105,24 +109,24 @@ describe('useApprovalRequest', () => {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
-
-      expect(useApprovalRequest().pageMeta).toEqual({});
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.pageMeta).toEqual({});
     });
 
     it('set to empty object if no approval request', () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
-      expect(useApprovalRequest().pageMeta).toEqual({});
+      const { result } = renderHook(() => useApprovalRequest());
+      expect(result.current.pageMeta).toEqual({});
     });
   });
 
   describe('onConfirm', () => {
     it('invokes accept on approval controller for current approval request', () => {
       mockSelector({ [APPROVAL_REQUEST.id]: APPROVAL_REQUEST });
-
-      useApprovalRequest().onConfirm();
-
+      const { result } = renderHook(() => useApprovalRequest());
+      result.current.onConfirm();
       expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
       expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
         APPROVAL_REQUEST.id,
@@ -135,8 +139,8 @@ describe('useApprovalRequest', () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
-      useApprovalRequest().onConfirm();
-
+      const { result } = renderHook(() => useApprovalRequest());
+      result.current.onConfirm();
       expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
     });
   });
@@ -144,9 +148,8 @@ describe('useApprovalRequest', () => {
   describe('onReject', () => {
     it('invokes reject on approval controller for current approval request', () => {
       mockSelector({ [APPROVAL_REQUEST.id]: APPROVAL_REQUEST });
-
-      useApprovalRequest().onReject();
-
+      const { result } = renderHook(() => useApprovalRequest());
+      result.current.onReject();
       expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
       expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
         APPROVAL_REQUEST.id,
@@ -158,8 +161,8 @@ describe('useApprovalRequest', () => {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSelector({} as any);
-      useApprovalRequest().onReject();
-
+      const { result } = renderHook(() => useApprovalRequest());
+      result.current.onReject();
       expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
     });
   });
