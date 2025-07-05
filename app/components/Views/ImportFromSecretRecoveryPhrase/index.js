@@ -143,7 +143,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState(0);
+  const [textareaContent, setTextareaContent] = useState('');
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -176,7 +176,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
     setHasStartedTyping(false);
-    setCursorPosition(0);
+    setTextareaContent('');
   }, []);
 
   const handleSeedPhraseChangeAtIndex = useCallback(
@@ -239,33 +239,16 @@ const ImportFromSecretRecoveryPhrase = ({
         .split(' ')
         .filter((word) => word !== '');
 
+      // Always update seed phrase when textarea content changes
+      const wordsArray = text.split(' ').filter((word) => word.trim() !== '');
+      setSeedPhrase(wordsArray);
+
       // Set hasStartedTyping to true when user starts typing
       if (text.length > 0 && !hasStartedTyping) {
         setHasStartedTyping(true);
 
-        // Calculate the correct focus index based on cursor position
-        const words = text.split(' ');
-        const lastWord = words[words.length - 1];
-
-        // Calculate which word the cursor is currently in based on cursor position
-        let currentWordIndex = 0;
-        let charCount = 0;
-
-        for (let i = 0; i < words.length; i++) {
-          charCount += words[i].length + 1; // +1 for space
-          if (cursorPosition <= charCount) {
-            currentWordIndex = i;
-            break;
-          }
-        }
-
-        // If cursor is at the end of the text, focus on the next available input
-        if (cursorPosition >= text.length) {
-          setNextSeedPhraseInputFocusedIndex(words.length);
-        } else {
-          // Focus on the word where the cursor currently is
-          setNextSeedPhraseInputFocusedIndex(currentWordIndex);
-        }
+        // Focus on the first input field
+        setNextSeedPhraseInputFocusedIndex(0);
       }
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
@@ -283,12 +266,7 @@ const ImportFromSecretRecoveryPhrase = ({
         seedPhraseInputRefs.current[lastRef]?.blur();
       }
     },
-    [
-      handleSeedPhraseChangeAtIndex,
-      setSeedPhrase,
-      hasStartedTyping,
-      cursorPosition,
-    ],
+    [handleSeedPhraseChangeAtIndex, setSeedPhrase, hasStartedTyping],
   );
 
   const checkForWordErrors = useCallback(
@@ -322,6 +300,7 @@ const ImportFromSecretRecoveryPhrase = ({
     const allEmpty = seedPhrase.every((word) => !word.trim());
     if (allEmpty && hasStartedTyping) {
       setHasStartedTyping(false);
+      setTextareaContent(''); // Clear textarea content when switching back
     }
   }, [seedPhrase, hasStartedTyping]);
 
@@ -338,9 +317,9 @@ const ImportFromSecretRecoveryPhrase = ({
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           handleClear();
+          setTextareaContent(seed);
           setHasStartedTyping(true);
           setNextSeedPhraseInputFocusedIndex(0);
-          setCursorPosition(seed.length); // Set cursor to end of scanned text
           handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
@@ -525,9 +504,9 @@ const ImportFromSecretRecoveryPhrase = ({
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
+      setTextareaContent(text);
       setHasStartedTyping(true);
       setNextSeedPhraseInputFocusedIndex(0);
-      setCursorPosition(text.length); // Set cursor to end of pasted text
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
@@ -786,7 +765,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 color={TextColor.Default}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
-                {strings('import_from_seed.title')}
+                {strings('import_from_seed.title')} + 'Hello'
               </Text>
               <View style={styles.importSrpContainer}>
                 <View style={styles.description}>
@@ -823,12 +802,10 @@ const ImportFromSecretRecoveryPhrase = ({
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
                           )}
-                          value={seedPhrase.join(' ')}
-                          onChangeText={(text) => handleSeedPhraseChange(text)}
-                          onSelectionChange={(event) => {
-                            setCursorPosition(
-                              event.nativeEvent.selection.start,
-                            );
+                          value={textareaContent}
+                          onChangeText={(text) => {
+                            setTextareaContent(text);
+                            handleSeedPhraseChange(text);
                           }}
                           style={styles.seedPhraseDefaultInput}
                           placeholderTextColor={colors.text.alternative}
