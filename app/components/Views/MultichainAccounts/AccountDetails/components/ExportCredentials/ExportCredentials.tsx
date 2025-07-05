@@ -72,18 +72,17 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
 
   const onExportMnemonic = useCallback(() => {
-    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL, {
-      account,
+    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL,
+      params: { account },
     });
   }, [navigate, account]);
 
   const onExportPrivateKey = useCallback(() => {
-    navigate(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-      {
-        account,
-      },
-    );
+    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      params: { account },
+    });
   }, [navigate, account]);
 
   return (

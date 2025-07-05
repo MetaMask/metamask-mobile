@@ -1,8 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { addressContainerStyle?: ViewStyle };
+}) => {
+  const { theme, vars } = params;
+  const { addressContainerStyle } = vars;
+
   return StyleSheet.create({
     wrapper: {
       backgroundColor: theme.colors.background.default,
@@ -15,6 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
     addressContainer: {
       width: 185,
       textAlign: 'center',
+      ...(addressContainerStyle ?? {}),
     },
     copyButton: {
       alignSelf: 'center',

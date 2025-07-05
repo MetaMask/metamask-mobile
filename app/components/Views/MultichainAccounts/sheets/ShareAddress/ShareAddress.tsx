@@ -101,7 +101,10 @@ export const ShareAddress = () => {
           logo={PNG_MM_LOGO_PATH}
           logoSize={40}
         />
-        <QRAccountDisplay accountAddress={formattedAddress} />
+        <QRAccountDisplay
+          accountAddress={formattedAddress}
+          addressContainerStyle={styles.addressContainer}
+        />
       </Box>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
