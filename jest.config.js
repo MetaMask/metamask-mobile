@@ -14,7 +14,7 @@ process.env.LAUNCH_DARKLY_URL =
 
 process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
 
-process.env.ANDROID_APPLE_CLIENT_ID = 'androidAppleClientId';
+process.env.ANDROID_APPLE_CLIENT_ID = 'AppleClientId';
 process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 
 process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
@@ -26,6 +26,7 @@ const config = {
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|expo-file-system)))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|expo(nent)?|@expo(nent)?/.*)))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
