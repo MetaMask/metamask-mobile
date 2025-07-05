@@ -1,5 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, SafeAreaView, Animated } from 'react-native';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  SafeAreaView,
+  Animated,
+  TextInput,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -24,6 +30,7 @@ import { useNavigation } from '@react-navigation/native';
 const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const [searchQuery, setSearchQuery] = useState('');
 
   const navigation = useNavigation();
 
@@ -57,6 +64,17 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
     }
   };
 
+  const filteredMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return markets;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return markets.filter(
+      (market) =>
+        market.symbol.toLowerCase().includes(query) ||
+        market.name.toLowerCase().includes(query),
+    );
+  }, [markets, searchQuery]);
 
   const renderListHeader = () => (
     <View style={styles.listHeader}>
@@ -122,11 +140,39 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
           </TouchableOpacity>
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Lg}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={strings('perps.search')}
+              placeholderTextColor={theme.colors.text.muted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}
+              >
+                <Icon name={IconName.Close} size={IconSize.Sm} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
         {/* Market List */}
         <View style={styles.listContainer}>
-          {markets.length === 0 && isLoading ? (
+          {filteredMarkets.length === 0 && isLoading ? (
             renderSkeletonList()
-          ) : error && markets.length === 0 ? (
+          ) : error && filteredMarkets.length === 0 ? (
             <View style={styles.errorContainer}>
               <Text
                 variant={TextVariant.BodyMD}
@@ -155,9 +201,12 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
               >
                 <FlashList
                   style={styles.animatedListContainer}
-                  data={markets}
+                  data={filteredMarkets}
                   renderItem={({ item }) => (
-                    <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
+                    <PerpsMarketRowItem
+                      market={item}
+                      onPress={handleMarketPress}
+                    />
                   )}
                   keyExtractor={(item) => item.symbol}
                   contentContainerStyle={styles.flashListContent}

@@ -21,6 +21,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
 
   const isPositiveChange = !market.change24h.startsWith('-');
 
+  // TODO: Fix price change 24h not showing enough precision for small numbers.
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
       <View style={styles.leftSection}>

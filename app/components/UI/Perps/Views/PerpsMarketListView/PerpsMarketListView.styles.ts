@@ -15,7 +15,8 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 8,
+      marginVertical: 16,
     },
     headerSpacer: {
       width: 24,
@@ -35,8 +36,8 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      paddingTop: 12,
       marginBottom: 8,
+      marginTop: 30,
     },
     listHeaderLeft: {
       flex: 1,
@@ -119,6 +120,30 @@ const styleSheet = (params: { theme: Theme }) => {
     animatedListContainer: {
       flex: 1,
       paddingHorizontal: 16,
+    },
+    searchContainer: {
+      paddingHorizontal: 16,
+    },
+    searchInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    searchIcon: {
+      marginRight: 10,
+      color: colors.icon.muted,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text.default,
+    },
+    clearButton: {
+      padding: 4,
+      marginLeft: 8,
     },
   });
 };
