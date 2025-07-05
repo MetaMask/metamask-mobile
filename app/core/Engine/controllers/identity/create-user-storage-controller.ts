@@ -3,6 +3,7 @@ import {
   UserStorageControllerState,
   Controller as UserStorageController,
 } from '@metamask/profile-sync-controller/user-storage';
+import type { TraceCallback } from '@metamask/controller-utils';
 
 export const createUserStorageController = (props: {
   messenger: UserStorageControllerMessenger;
@@ -12,6 +13,7 @@ export const createUserStorageController = (props: {
   >['0']['nativeScryptCrypto'];
   config?: ConstructorParameters<typeof UserStorageController>['0']['config'];
   env?: ConstructorParameters<typeof UserStorageController>['0']['env'];
+  trace?: TraceCallback;
 }): UserStorageController => {
   const userStorageController = new UserStorageController({
     messenger: props.messenger,
@@ -19,6 +21,7 @@ export const createUserStorageController = (props: {
     nativeScryptCrypto: props.nativeScryptCrypto,
     config: props.config,
     env: props.env,
-  });
+    ...(props.trace && { trace: props.trace }),
+  } as ConstructorParameters<typeof UserStorageController>[0]);
   return userStorageController;
 };
