@@ -823,6 +823,7 @@ export class Engine {
         const locale = I18n.locale;
         return {
           locale,
+          showTestnets: showTestNetworks,
           currency: this.context.CurrencyRateController.state.currentCurrency,
           hideBalances: privacyMode,
           useSecurityAlerts: securityAlertsEnabled,
