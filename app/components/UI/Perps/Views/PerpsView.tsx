@@ -21,6 +21,8 @@ import {
   SubscriptionClient,
 } from '@deeeed/hyperliquid-node20';
 import { PERPS_CONSTANTS } from '../constants';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 
 interface PerpsViewProps {}
 
@@ -37,9 +39,7 @@ const styleSheet = () => ({
   },
   buttonContainer: {
     marginBottom: 32,
-  },
-  button: {
-    marginBottom: 16,
+    gap: 16,
   },
   resultContainer: {
     padding: 16,
@@ -56,6 +56,8 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
   const [testResult, setTestResult] = useState<string>('');
+
+  const navigation = useNavigation();
 
   const testSDKConnection = async () => {
     setIsLoading(true);
@@ -195,6 +197,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     }
   };
 
+  const openPerpsMarketList = () => {
+    navigation.navigate(Routes.PERPS.MARKETS_LIST);
+  };
+
   return (
     <ScreenView>
       <View style={styles.content}>
@@ -215,7 +221,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             label="Test SDK Connection"
             onPress={testSDKConnection}
             loading={isLoading}
-            style={styles.button}
           />
 
           <Button
@@ -225,7 +230,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             label="Test Asset Listing"
             onPress={testAssetListing}
             loading={isLoading}
-            style={styles.button}
           />
 
           <Button
@@ -234,6 +238,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             width={ButtonWidthTypes.Full}
             label="Test WebSocket Connection"
             onPress={testWebSocketConnection}
+            loading={isLoading}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Open Perps Market List"
+            onPress={openPerpsMarketList}
             loading={isLoading}
           />
         </View>

@@ -199,6 +199,7 @@ const Routes = {
   PERPS: {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
+    MARKETS_LIST: 'PerpsMarketsList',
     MODALS: {
       ROOT: 'PerpsModals',
       PERP_MARKETS_MODAL: 'PerpsMarketsModal',

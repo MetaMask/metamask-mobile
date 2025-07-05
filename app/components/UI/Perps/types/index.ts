@@ -6,7 +6,12 @@ export interface PerpsViewProps {}
 /**
  * Test result states for SDK validation
  */
-export type TestResultStatus = 'idle' | 'loading' | 'success' | 'warning' | 'error';
+export type TestResultStatus =
+  | 'idle'
+  | 'loading'
+  | 'success'
+  | 'warning'
+  | 'error';
 
 /**
  * Test result data structure
@@ -28,4 +33,22 @@ export type SDKTestType = 'connection' | 'asset-listing' | 'websocket';
 export interface HyperliquidAsset {
   name: string;
   [key: string]: unknown;
+}
+
+// Icons are sourced from CoinGecko
+export interface PerpsMarketIconData {
+  symbol: string;
+  iconUrl: string;
+  fallbackUrl?: string;
+  coinGeckoId?: string;
+  category:
+    | 'major'
+    | 'defi'
+    | 'meme'
+    | 'ai'
+    | 'gaming'
+    | 'layer1'
+    | 'layer2'
+    | 'stablecoin'
+    | 'other';
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import PerpsView from '../Views/PerpsView';
-import PerpsMarketsList from '../Views/PerpMarketsList';
+import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 
 const Stack = createStackNavigator();
 
@@ -17,34 +17,14 @@ const PerpsScreenStack = () => (
       }}
     />
     <Stack.Screen
-      name={Routes.PERPS.MODALS.PERP_MARKETS_MODAL}
-      component={PerpsView}
+      name={Routes.PERPS.MARKETS_LIST}
+      component={PerpsMarketListView}
       options={{
-        title: 'Perps Trading',
-        headerShown: true,
+        title: 'Perps Markets',
+        headerShown: false, // Component has its own header
       }}
     />
   </Stack.Navigator>
 );
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
-const ModalStack = createStackNavigator();
-
-const PerpsModalStack = () => (
-  <ModalStack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.PERP_MARKETS_MODAL}
-      component={PerpsMarketsList}
-      options={{ headerShown: false }}
-    />
-  </ModalStack.Navigator>
-);
-
-export { PerpsScreenStack, PerpsModalStack };
+export { PerpsScreenStack };
