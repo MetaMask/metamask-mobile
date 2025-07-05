@@ -62,7 +62,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
       },
     });
     await loginToApp();
-    await prepareSwapsTestEnvironment(wallet);
+    await prepareSwapsTestEnvironment();
   });
 
   afterAll(async () => {
