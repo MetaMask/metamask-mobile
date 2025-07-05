@@ -25,6 +25,7 @@ export enum UserActionType {
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
+  SET_EXISTING_USER = 'SET_EXISTING_USER',
   SET_META_METRICS_UI_SEEN = 'SET_META_METRICS_UI_SEEN',
 }
 
@@ -93,10 +94,13 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
-export type SetMetaMetricsUISeenAction =
-  Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
-    payload: { isMetaMetricsUISeen: boolean };
-  };
+export type SetExistingUserAction = Action<UserActionType.SET_EXISTING_USER> & {
+  payload: { existingUser: boolean };
+};
+
+export type SetMetaMetricsUISeenAction = Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
+  payload: { isMetaMetricsUISeen: boolean };
+};
 
 /**
  * User actions union type
@@ -124,4 +128,5 @@ export type UserAction =
   | SetAppThemeAction
   | CheckedAuthAction
   | SetAppServicesReadyAction
+  | SetExistingUserAction
   | SetMetaMetricsUISeenAction;

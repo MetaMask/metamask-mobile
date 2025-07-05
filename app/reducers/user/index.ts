@@ -23,6 +23,7 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
+  existingUser: false,
   isMetaMetricsUISeen: false,
 };
 
@@ -115,6 +116,11 @@ const userReducer = (
       return {
         ...state,
         appServicesReady: true,
+      };
+    case UserActionType.SET_EXISTING_USER:
+      return {
+        ...state,
+        existingUser: action.payload.existingUser,
       };
     case UserActionType.SET_META_METRICS_UI_SEEN:
       return {
