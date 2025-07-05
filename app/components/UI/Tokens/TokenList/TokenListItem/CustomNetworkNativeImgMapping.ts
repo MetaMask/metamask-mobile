@@ -22,6 +22,7 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: KaiaImg,
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: ethImg,
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: ethImg,
+  [NETWORK_CHAIN_ID.XRPLEVM]: XrpLevmImg,
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: XrpLevmImg,
   [NETWORK_CHAIN_ID.SOPHON]: SophonImg,
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: SophonTestnetImg,
