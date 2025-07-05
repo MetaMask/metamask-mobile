@@ -8,7 +8,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
-import { Authentication } from '../../../core/Authentication';
+import { Authentication } from '../../../core/Authentication/Authentication';
 
 const initialState: DeepPartial<RootState> = {
   user: {
