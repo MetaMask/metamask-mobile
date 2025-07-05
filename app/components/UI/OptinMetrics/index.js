@@ -248,7 +248,6 @@ class OptinMetrics extends PureComponent {
       this.props.setOnboardingWizardStep(1);
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
-    this.props.setMetaMetricsUISeen(true);
   };
 
   /**
@@ -317,6 +316,11 @@ class OptinMetrics extends PureComponent {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
     } = this.props;
+
+    // Set the state immediately to prevent race condition
+    // This ensures the state is updated before navigation happens
+    this.props.setMetaMetricsUISeen(true);
+
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
@@ -346,7 +350,7 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-
+    this.props.setMetaMetricsUISeen(true);
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -395,7 +399,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -499,14 +502,9 @@ class OptinMetrics extends PureComponent {
   renderActionButtons = () => {
     const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -516,6 +514,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -525,6 +524,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
       </View>
     );

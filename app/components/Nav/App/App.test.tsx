@@ -106,14 +106,18 @@ describe('App', () => {
         },
       );
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.ROOT_NAV, {
-          screen: Routes.ONBOARDING.NAV,
-          params: {
-            screen: Routes.ONBOARDING.OPTIN_METRICS,
-            params: {
-              onContinue: expect.any(Function),
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
+              params: {
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.OPTIN_METRICS,
+                },
+              },
             },
-          },
+          ],
         });
       });
     });

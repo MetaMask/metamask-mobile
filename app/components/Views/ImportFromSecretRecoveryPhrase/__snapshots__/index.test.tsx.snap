@@ -557,6 +557,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         multiline={true}
                                         onChangeText={[Function]}
                                         onKeyPress={[Function]}
+                                        onSelectionChange={[Function]}
                                         placeholder="Add a space between each word and make sure no one is watching 👀"
                                         placeholderStyle={
                                           {

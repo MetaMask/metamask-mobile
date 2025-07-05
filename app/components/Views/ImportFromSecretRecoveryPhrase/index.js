@@ -143,6 +143,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [textareaContent, setTextareaContent] = useState('');
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -175,6 +176,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
     setHasStartedTyping(false);
+    setTextareaContent('');
   }, []);
 
   const handleSeedPhraseChangeAtIndex = useCallback(
@@ -237,22 +239,16 @@ const ImportFromSecretRecoveryPhrase = ({
         .split(' ')
         .filter((word) => word !== '');
 
+      // Always update seed phrase when textarea content changes
+      const wordsArray = text.split(' ').filter((word) => word.trim() !== '');
+      setSeedPhrase(wordsArray);
+
       // Set hasStartedTyping to true when user starts typing
       if (text.length > 0 && !hasStartedTyping) {
         setHasStartedTyping(true);
 
-        // Handle the case where user is typing a partial word
-        const words = text.split(' ');
-        const lastWord = words[words.length - 1];
-
-        // If the text doesn't end with a space, focus on the last input field
-        // This means the user is still typing the current word
-        if (!text.endsWith(' ') && lastWord.length > 0) {
-          setNextSeedPhraseInputFocusedIndex(Math.max(0, words.length - 1));
-        } else {
-          // If it ends with a space, focus on the next input field
-          setNextSeedPhraseInputFocusedIndex(words.length);
-        }
+        // Focus on the first input field
+        setNextSeedPhraseInputFocusedIndex(0);
       }
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
@@ -304,6 +300,7 @@ const ImportFromSecretRecoveryPhrase = ({
     const allEmpty = seedPhrase.every((word) => !word.trim());
     if (allEmpty && hasStartedTyping) {
       setHasStartedTyping(false);
+      setTextareaContent(''); // Clear textarea content when switching back
     }
   }, [seedPhrase, hasStartedTyping]);
 
@@ -320,6 +317,7 @@ const ImportFromSecretRecoveryPhrase = ({
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           handleClear();
+          setTextareaContent(seed);
           setHasStartedTyping(true);
           setNextSeedPhraseInputFocusedIndex(0);
           handleSeedPhraseChange(seed);
@@ -506,6 +504,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
+      setTextareaContent(text);
       setHasStartedTyping(true);
       setNextSeedPhraseInputFocusedIndex(0);
       handleSeedPhraseChange(text);
@@ -766,7 +765,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 color={TextColor.Default}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
-                {strings('import_from_seed.title')}
+                {strings('import_from_seed.title')} + 'Hello'
               </Text>
               <View style={styles.importSrpContainer}>
                 <View style={styles.description}>
@@ -803,8 +802,11 @@ const ImportFromSecretRecoveryPhrase = ({
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
                           )}
-                          value={seedPhrase.join(' ')}
-                          onChangeText={(text) => handleSeedPhraseChange(text)}
+                          value={textareaContent}
+                          onChangeText={(text) => {
+                            setTextareaContent(text);
+                            handleSeedPhraseChange(text);
+                          }}
                           style={styles.seedPhraseDefaultInput}
                           placeholderTextColor={colors.text.alternative}
                           placeholderStyle={
