@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  ScrollView,
   TextStyle,
   Linking,
 } from 'react-native';
@@ -807,9 +808,9 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow}>
+      <ScrollView style={baseStyles.flexGrow}>
         {selectedInternalAccount ? renderContent() : renderLoader()}
-      </View>
+      </ScrollView>
     </ErrorBoundary>
   );
 };
