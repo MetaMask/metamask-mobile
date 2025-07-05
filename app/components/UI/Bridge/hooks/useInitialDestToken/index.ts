@@ -13,7 +13,7 @@ export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
   const destToken  = useSelector(selectDestToken);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
 
-  const isSwap = bridgeViewMode === BridgeViewMode.Swap;
+  const isSwap = bridgeViewMode === BridgeViewMode.Swap || bridgeViewMode === BridgeViewMode.Unified;
 
   if (destToken) return;
 
