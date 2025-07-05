@@ -23,6 +23,7 @@ import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/Acc
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -133,6 +134,7 @@ jest.mock('../../../core/Engine', () => {
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
+        getCaveat: jest.fn(),
       },
       AccountsController: {
         state: mockAccountsState,
@@ -255,7 +257,16 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
 }));
 
 describe('AccountConnect', () => {
+  beforeEach(() => jest.clearAllMocks());
   it('renders correctly with base request', () => {
+    (
+      Engine.context.PermissionController.getCaveat as jest.Mock
+    ).mockImplementation(() => {
+      throw new PermissionDoesNotExistError(
+        'Permission does not exist',
+        Caip25EndowmentPermissionName,
+      );
+    });
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{

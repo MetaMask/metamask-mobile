@@ -3,19 +3,24 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getAllScopesFromCaip25CaveatValue,
+  getCaipAccountIdsFromCaip25CaveatValue,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
+import { getCaip25Caveat } from '../../../core/Permissions';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
  *
  * @param permissions - The value to extract Caip25CaveatValue from, expected to be a {@link PermissionsRequest}
+ * @param origin - The origin of the connection.
  * @returns The {@link Caip25CaveatValue}.
  */
 export function getRequestedCaip25CaveatValue(
   permissions: unknown,
+  origin: string
 ): Caip25CaveatValue {
   const defaultValue: Caip25CaveatValue = {
     optionalScopes: {},
@@ -75,7 +80,62 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-  return caveatValue as Caip25CaveatValue;
+  const existingCaveat = getCaip25Caveat(origin);
+  if (!existingCaveat) {
+    return caveatValue as Caip25CaveatValue;
+  }
+
+  const mergedCaveatValue = mergeCaip25Values(existingCaveat.value, caveatValue);
+
+  return mergedCaveatValue;
+}
+
+/**
+ * TODO: Isolate the merger function from @metamask/chain-agnostic-permissions and reuse it here
+ * See https://github.com/MetaMask/MetaMask-planning/issues/5113
+ *
+ * Merges two Caip25CaveatValue objects
+ *
+ * @param first - The first Caip25CaveatValue to merge
+ * @param second - The second Caip25CaveatValue to merge
+ * @returns A new Caip25CaveatValue with merged data
+ */
+function mergeCaip25Values(first: Caip25CaveatValue, second: Caip25CaveatValue,): Caip25CaveatValue {
+  const firstAccounts = getCaipAccountIdsFromCaip25CaveatValue(first);
+  const secondAccounts = getCaipAccountIdsFromCaip25CaveatValue(second);
+
+  const mergedAccounts = Array.from(
+    new Set([...firstAccounts, ...secondAccounts]),
+  );
+
+  const firstChainIds = getAllScopesFromCaip25CaveatValue(first);
+  const secondChainIds = getAllScopesFromCaip25CaveatValue(second);
+
+  const mergedChainIds = Array.from(
+    new Set([...firstChainIds, ...secondChainIds]),
+  );
+
+  let mergedCaveatValue = { ...first };
+
+  mergedCaveatValue.sessionProperties = {
+    ...first.sessionProperties,
+    ...second.sessionProperties,
+  };
+
+  mergedCaveatValue.isMultichainOrigin =
+    first.isMultichainOrigin || second.isMultichainOrigin;
+
+  mergedCaveatValue = setChainIdsInCaip25CaveatValue(
+    mergedCaveatValue,
+    mergedChainIds,
+  );
+
+  mergedCaveatValue = setNonSCACaipAccountIdsInCaip25CaveatValue(
+    mergedCaveatValue,
+    mergedAccounts,
+  );
+
+  return mergedCaveatValue;
 }
 
 /**
