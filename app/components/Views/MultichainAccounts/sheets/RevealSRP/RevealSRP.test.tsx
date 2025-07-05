@@ -95,9 +95,12 @@ describe('RevealSRP', () => {
       strings('multichain_accounts.reveal_srp.get_started'),
     );
     fireEvent.press(getStartedButton);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.SRP_REVEAL_QUIZ, {
-      keyringId: 'test-keyring-id',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ,
+      {
+        keyringId: 'test-keyring-id',
+      },
+    );
   });
 
   it('navigates to webview when learn more button is pressed', () => {
