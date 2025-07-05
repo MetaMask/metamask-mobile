@@ -3,7 +3,6 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,6 +15,8 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -75,4 +76,64 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
       },
     );
   });
+
+// Table-driven tests for all networks
+  for (const networkConfig of NETWORK_TEST_CONFIGS) {
+    it(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
+      const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
+
+      await withFixtures(
+        {
+          dapp: true,
+          fixture: new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: networkConfig.providerConfig,
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(networkConfig.permissions)
+            )
+            .build(),
+          restartDevice: true,
+          smartContract: NFT_CONTRACT,
+          ganacheOptions: networkConfig.ganacheOptions,
+          testSpecificMock: networkConfig.testSpecificMock,
+        },
+        // Remove any once withFixtures is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async ({ contractRegistry }: { contractRegistry: any }) => {
+          const nftsAddress = await contractRegistry.getContractAddress(
+            NFT_CONTRACT,
+          );
+
+          await loginToApp();
+
+          // Navigate to the browser screen
+          await TabBarComponent.tapBrowser();
+          await TestDApp.navigateToTestDappWithContract({
+            contractAddress: nftsAddress,
+          });
+
+          // Transfer NFT
+          await TestDApp.tapNFTTransferButton();
+          await TestHelpers.delay(3000);
+
+          // Accept confirmation
+          await FooterActions.tapConfirmButton();
+          await TestHelpers.delay(3000);
+
+          // Check activity tab
+          await TabBarComponent.tapActivity();
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
+          await Assertions.checkIfTextIsDisplayed(
+            ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
+          );
+        },
+      );
+    });
+  }
+
 });

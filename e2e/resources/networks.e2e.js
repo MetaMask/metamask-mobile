@@ -161,5 +161,25 @@ const CustomNetworks = {
       BlockExplorerUrl: 'https://hoodi.etherscan.io/',
     },
   },
+  MegaTestnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x18c6',
+        rpcUrl: 'https://carrot.megaeth.com/rpc',
+        nickname: 'Mega Testnet',
+        ticker: 'MegaETH',
+        BlockExplorerUrl: 'https://megaexplorer.xyz/',
+      },
+    },
+    MonadTestnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x279f',
+        rpcUrl: 'https://testnet-rpc.monad.xyz/',
+        nickname: 'Monad Testnet',
+        ticker: 'MON',
+        BlockExplorerUrl: 'https://testnet.monadexplorer.com',
+      },
+    },
 };
 export { CustomNetworks, PopularNetworksList };
