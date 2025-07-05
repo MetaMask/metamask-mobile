@@ -1,12 +1,11 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
-import { Hex } from '@metamask/utils';
+import { Hex, getChecksumAddress } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 
@@ -32,7 +31,7 @@ const MOCK_ACCOUNTS = Object.values(
 const MOCK_ACCOUNT_1: Account = {
   id: MOCK_ACCOUNTS[0].id,
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNTS[0].address) as Hex,
+  address: getChecksumAddress(MOCK_ACCOUNTS[0].address as Hex),
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -47,7 +46,7 @@ const MOCK_ACCOUNT_1: Account = {
 const MOCK_ACCOUNT_2: Account = {
   id: MOCK_ACCOUNTS[1].id,
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNTS[1].address) as Hex,
+  address: getChecksumAddress(MOCK_ACCOUNTS[1].address as Hex),
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,

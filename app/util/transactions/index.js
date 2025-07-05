@@ -1,4 +1,4 @@
-import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress, add0x } from '@metamask/utils';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
@@ -227,7 +227,7 @@ export function generateTransferData(type = undefined, opts = {}) {
           .call(
             rawEncode(
               ['address', 'uint256'],
-              [opts.toAddress, addHexPrefix(opts.amount)],
+              [opts.toAddress, add0x(opts.amount)],
             ),
             (x) => ('00' + x.toString(16)).slice(-2),
           )
@@ -240,7 +240,7 @@ export function generateTransferData(type = undefined, opts = {}) {
           .call(
             rawEncode(
               ['address', 'address', 'uint256'],
-              [opts.fromAddress, opts.toAddress, addHexPrefix(opts.tokenId)],
+              [opts.fromAddress, opts.toAddress, add0x(opts.tokenId)],
             ),
             (x) => ('00' + x.toString(16)).slice(-2),
           )
@@ -296,9 +296,8 @@ export function generateApprovalData(opts) {
   return (
     functionSignature +
     Array.prototype.map
-      .call(
-        rawEncode(['address', 'uint256'], [spender, addHexPrefix(value)]),
-        (x) => ('00' + x.toString(16)).slice(-2),
+      .call(rawEncode(['address', 'uint256'], [spender, add0x(value)]), (x) =>
+        ('00' + x.toString(16)).slice(-2),
       )
       .join('')
   );
@@ -306,7 +305,7 @@ export function generateApprovalData(opts) {
 
 export function decodeApproveData(data) {
   return {
-    spenderAddress: addHexPrefix(data.substr(34, 40)),
+    spenderAddress: add0x(data.substr(34, 40)),
     encodedAmount: data.substr(74, 138),
   };
 }
@@ -327,10 +326,10 @@ export function decodeTransferData(type, data) {
       const encodedAmount = data.substring(74, BASE + 74);
       const bufferEncodedAddress = rawEncode(
         ['address'],
-        [addHexPrefix(encodedAddress)],
+        [add0x(encodedAddress)],
       );
       return [
-        addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
+        add0x(rawDecode(['address'], bufferEncodedAddress)[0]),
         parseInt(encodedAmount, 16).toString(),
         encodedAmount,
       ];
@@ -341,15 +340,15 @@ export function decodeTransferData(type, data) {
       const encodedTokenId = data.substring(138, BASE + 138);
       const bufferEncodedFromAddress = rawEncode(
         ['address'],
-        [addHexPrefix(encodedFromAddress)],
+        [add0x(encodedFromAddress)],
       );
       const bufferEncodedToAddress = rawEncode(
         ['address'],
-        [addHexPrefix(encodedToAddress)],
+        [add0x(encodedToAddress)],
       );
       return [
-        addHexPrefix(rawDecode(['address'], bufferEncodedFromAddress)[0]),
-        addHexPrefix(rawDecode(['address'], bufferEncodedToAddress)[0]),
+        add0x(rawDecode(['address'], bufferEncodedFromAddress)[0]),
+        add0x(rawDecode(['address'], bufferEncodedToAddress)[0]),
         parseInt(encodedTokenId, 16).toString(),
       ];
     }
@@ -413,7 +412,7 @@ export async function isSmartContractAddress(
 ) {
   if (!address) return false;
 
-  address = toChecksumAddress(address);
+  address = getChecksumAddress(address);
 
   // If in contract map we don't need to cache it
   if (
@@ -645,11 +644,11 @@ export function getTransactionToName({
   }
 
   const networkAddressBook = addressBook[chainId];
-  const checksummedToAddress = toChecksumAddress(toAddress);
+  const checksummedToAddress = getChecksumAddress(toAddress);
 
   // Convert internalAccounts array to a map for quick lookup
   const internalAccountsMap = internalAccounts.reduce((acc, account) => {
-    acc[toChecksumAddress(account.address)] = account;
+    acc[getChecksumAddress(account.address)] = account;
     return acc;
   }, {});
 

@@ -2,7 +2,7 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { getChecksumAddress } from '@metamask/utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -490,7 +490,7 @@ class SendFlow extends PureComponent {
 
   safeChecksumAddress = (address) => {
     try {
-      return toChecksumAddress(address);
+      return getChecksumAddress(address);
     } catch (error) {
       return address;
     }
