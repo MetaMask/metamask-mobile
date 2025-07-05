@@ -15,15 +15,9 @@ const styleSheet = (params: { theme: Theme }) => {
     badgeWrapper: {
       alignSelf: 'center',
     },
-    balanceInfo: {
-      flex: 1,
-      justifyContent: 'flex-start',
-      // marginLeft: 20,
-      alignSelf: 'flex-start',
-    },
     ethLogo: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
       borderRadius: 16,
       overflow: 'hidden',
     },
