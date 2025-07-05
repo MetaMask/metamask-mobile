@@ -12,6 +12,7 @@ const newOverrides = [
   {
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/core/Engine/controllers/remote-feature-flag-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/store/migrations/**',
