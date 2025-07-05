@@ -68,6 +68,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
     await SolanaNewFeatureSheet.tapNotNowButton();
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
