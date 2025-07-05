@@ -13,6 +13,9 @@ const styleSheet = () =>
     separatorWrapper: {
       paddingHorizontal: 16,
     },
+    protocolPositionDetailsWrapper: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;
