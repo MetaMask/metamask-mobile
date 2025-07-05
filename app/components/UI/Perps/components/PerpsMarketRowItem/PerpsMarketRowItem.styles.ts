@@ -42,12 +42,6 @@ const styleSheet = (params: { theme: Theme }) => {
     priceChange: {
       marginTop: 2,
     },
-    priceChangePositive: {
-      color: colors.success.default,
-    },
-    priceChangeNegative: {
-      color: colors.error.default,
-    },
     leverageContainer: {
       backgroundColor: colors.background.muted,
       paddingVertical: 2,
@@ -56,9 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     networkAvatar: {
       marginRight: 16,
-    },
-    avatarNetwork: {
-      marginRight: 0,
     },
   });
 };

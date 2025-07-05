@@ -20,9 +20,6 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   };
 
   const isPositiveChange = !market.change24h.startsWith('-');
-  const changeColor = isPositiveChange
-    ? 'priceChangePositive'
-    : 'priceChangeNegative';
 
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
@@ -68,7 +65,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
           <Text
             variant={TextVariant.BodySM}
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
-            style={[styles.priceChange, styles[changeColor]]}
+            style={styles.priceChange}
           >
             {market.change24h} ({market.change24hPercent})
           </Text>
