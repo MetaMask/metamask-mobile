@@ -16,8 +16,8 @@ class StakeView {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.CONTINUE);
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
   async selectAmount(amount: string) {
@@ -27,17 +27,17 @@ class StakeView {
 
  async enterAmount(amount: string) {
   for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+    const button = await Matchers.getElementByText(digit);
+    await Gestures.waitAndTap(button, { delayBeforeTap: 500 });
   }
 }
 
   async tapReview() {
-    await Gestures.waitAndTap(this.reviewButton);
+    await Gestures.waitAndTap(this.reviewButton, { delayBeforeTap: 1000});
   }
 
-  async tapContinue() {
-    await Gestures.waitAndTap(this.continueButton);
+  async tapConfirm() {
+    await Gestures.waitAndTap(this.confirmButton, { delayBeforeTap: 1000});
   }
 }
 
