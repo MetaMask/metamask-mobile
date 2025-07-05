@@ -143,6 +143,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -175,6 +176,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
     setHasStartedTyping(false);
+    setCursorPosition(0);
   }, []);
 
   const handleSeedPhraseChangeAtIndex = useCallback(
@@ -241,17 +243,28 @@ const ImportFromSecretRecoveryPhrase = ({
       if (text.length > 0 && !hasStartedTyping) {
         setHasStartedTyping(true);
 
-        // Handle the case where user is typing a partial word
+        // Calculate the correct focus index based on cursor position
         const words = text.split(' ');
         const lastWord = words[words.length - 1];
 
-        // If the text doesn't end with a space, focus on the last input field
-        // This means the user is still typing the current word
-        if (!text.endsWith(' ') && lastWord.length > 0) {
-          setNextSeedPhraseInputFocusedIndex(Math.max(0, words.length - 1));
-        } else {
-          // If it ends with a space, focus on the next input field
+        // Calculate which word the cursor is currently in based on cursor position
+        let currentWordIndex = 0;
+        let charCount = 0;
+
+        for (let i = 0; i < words.length; i++) {
+          charCount += words[i].length + 1; // +1 for space
+          if (cursorPosition <= charCount) {
+            currentWordIndex = i;
+            break;
+          }
+        }
+
+        // If cursor is at the end of the text, focus on the next available input
+        if (cursorPosition >= text.length) {
           setNextSeedPhraseInputFocusedIndex(words.length);
+        } else {
+          // Focus on the word where the cursor currently is
+          setNextSeedPhraseInputFocusedIndex(currentWordIndex);
         }
       }
 
@@ -270,7 +283,12 @@ const ImportFromSecretRecoveryPhrase = ({
         seedPhraseInputRefs.current[lastRef]?.blur();
       }
     },
-    [handleSeedPhraseChangeAtIndex, setSeedPhrase, hasStartedTyping],
+    [
+      handleSeedPhraseChangeAtIndex,
+      setSeedPhrase,
+      hasStartedTyping,
+      cursorPosition,
+    ],
   );
 
   const checkForWordErrors = useCallback(
@@ -322,6 +340,7 @@ const ImportFromSecretRecoveryPhrase = ({
           handleClear();
           setHasStartedTyping(true);
           setNextSeedPhraseInputFocusedIndex(0);
+          setCursorPosition(seed.length); // Set cursor to end of scanned text
           handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
@@ -508,6 +527,7 @@ const ImportFromSecretRecoveryPhrase = ({
     if (text.trim() !== '') {
       setHasStartedTyping(true);
       setNextSeedPhraseInputFocusedIndex(0);
+      setCursorPosition(text.length); // Set cursor to end of pasted text
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
@@ -805,6 +825,11 @@ const ImportFromSecretRecoveryPhrase = ({
                           )}
                           value={seedPhrase.join(' ')}
                           onChangeText={(text) => handleSeedPhraseChange(text)}
+                          onSelectionChange={(event) => {
+                            setCursorPosition(
+                              event.nativeEvent.selection.start,
+                            );
+                          }}
                           style={styles.seedPhraseDefaultInput}
                           placeholderTextColor={colors.text.alternative}
                           placeholderStyle={
