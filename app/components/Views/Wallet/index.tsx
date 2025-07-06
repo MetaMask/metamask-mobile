@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useContext,
   useMemo,
-  useState,
 } from 'react';
 import {
   ActivityIndicator,
@@ -125,8 +124,6 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { selectCardFeature } from '../../../selectors/featureFlagController/card';
-import { isCardHolder } from '../../UI/Card/card.utils';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -529,30 +526,6 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  // Card Logic
-  const cardFeature = useSelector(selectCardFeature);
-  const [cardholder, setCardholder] = useState(false);
-  useEffect(() => {
-    const checkCardHolder = async () => {
-      setCardholder(false);
-      if (selectedAddress && cardFeature) {
-        try {
-          const isHolder = await isCardHolder(
-            selectedAddress,
-            cardFeature,
-            chainId,
-          );
-          setCardholder(isHolder);
-        } catch (error) {
-          Logger.error(error as Error, 'Error checking card holder status');
-        }
-      }
-    };
-
-    checkCardHolder();
-  }, [selectedAddress, chainId, cardFeature]);
-  // End Card Logic
-
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -570,7 +543,6 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        cardholder,
       ),
     );
   }, [
@@ -586,7 +558,6 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    cardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

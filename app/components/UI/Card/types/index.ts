@@ -2,7 +2,7 @@
  * Enum for asset delegation status
  */
 export enum AllowanceState {
-  Delegatable = 'delegatable',
+  NotActivated = 'not_activated',
   Unlimited = 'unlimited',
   Limited = 'limited',
 }

@@ -61,14 +61,4 @@ export const useCardSDK = () => {
   return contextValue;
 };
 
-// HOC wrapper similar to withRampSDK
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const withCardSDK = (Component: React.FC) => (props: any) =>
-  (
-    <CardSDKProvider>
-      <Component {...props} />
-    </CardSDKProvider>
-  );
-
 export default CardSDKContext;

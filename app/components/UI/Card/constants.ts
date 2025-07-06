@@ -3,7 +3,6 @@ import balanceScannerAbi from './balanceScannerAbi.json';
 
 export const CACHE_EXPIRATION = 15 * 60 * 1000; // 15 minutes
 export const POLLING_INTERVAL = 30000; // 30 seconds
-export const CARD_URL = 'https://card.metamask.io';
 export const BALANCE_SCANNER_CONTRACT_ADDRESS =
   '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a'; // Linea Mainnet
 export const BALANCE_SCANNER_ABI =

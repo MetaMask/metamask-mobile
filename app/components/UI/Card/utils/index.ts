@@ -1,14 +1,15 @@
+import { strings } from '../../../../../locales/i18n';
 import { FlashListAssetKey } from '../../Tokens/TokenList';
 import { AllowanceState, CardToken } from '../types';
 
 export const mapAllowanceStateToLabel = (state: AllowanceState): string => {
   switch (state) {
-    case AllowanceState.Delegatable:
-      return 'Not activated';
+    case AllowanceState.NotActivated:
+      return strings('card.allowance_states.not_activated');
     case AllowanceState.Unlimited:
-      return 'Unlimited';
+      return strings('card.allowance_states.unlimited');
     case AllowanceState.Limited:
-      return 'Limited';
+      return strings('card.allowance_states.limited');
   }
 };
 
