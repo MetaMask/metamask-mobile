@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import Button, {
@@ -13,6 +14,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../Base/ScreenView';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Import PerpsController hooks
 import {
@@ -62,6 +64,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
@@ -183,22 +186,31 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
         <View style={styles.buttonContainer}>
           <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Deposit Funds"
+            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT as never)}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Get Account Balance"
+            onPress={getAccountBalance}
+            loading={isLoading}
+            style={styles.button}
+          />
+
+          <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={`Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'}`}
             onPress={handleToggleTestnet}
             loading={isToggling}
-            style={styles.button}
-          />
-
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Get Account Balance"
-            onPress={getAccountBalance}
-            loading={isLoading}
             style={styles.button}
           />
         </View>

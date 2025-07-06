@@ -7,10 +7,13 @@ import Text, {
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 
-interface AmountDisplayProps {
+interface PerpsAmountDisplayProps {
   amount: string;
   currency: string;
   testID?: string;
+  showCursor?: boolean;
+  fiatEquivalent?: string;
+  showFiatEquivalent?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -33,21 +36,30 @@ const createStyles = (colors: Colors) =>
     cursor: {
       width: 2,
       height: 48,
-      backgroundColor: colors.border.default,
+      backgroundColor: colors.primary.default,
       marginHorizontal: 4,
+    },
+    fiatText: {
+      marginTop: 8,
+      opacity: 0.7,
     },
   });
 
-const AmountDisplay: React.FC<AmountDisplayProps> = ({
+const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
   currency,
-  testID = 'amount-display',
+  testID = 'perps-amount-display',
+  showCursor = true,
+  fiatEquivalent,
+  showFiatEquivalent = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    if (!showCursor) return;
+
     const blinkAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(cursorOpacity, {
@@ -70,9 +82,20 @@ const AmountDisplay: React.FC<AmountDisplayProps> = ({
     return () => {
       blinkAnimation.stop();
     };
-  }, [cursorOpacity]);
+  }, [cursorOpacity, showCursor]);
 
-  const displayAmount = amount === '0' ? '' : amount;
+  // Format amount with thousand separators
+  const formatAmount = (value: string) => {
+    if (!value || value === '0') return '0';
+    const numericValue = parseFloat(value);
+    return numericValue.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const displayAmount = amount === '0' ? '0' : formatAmount(amount);
+  const shouldShowCursor = showCursor && amount === '0';
 
   return (
     <View style={styles.container} testID={testID}>
@@ -81,24 +104,39 @@ const AmountDisplay: React.FC<AmountDisplayProps> = ({
           variant={TextVariant.DisplayMD}
           color={TextColor.Default}
           style={styles.amountText}
+          testID={`${testID}-amount`}
         >
           {displayAmount}
         </Text>
-        {displayAmount === '' && (
+        {shouldShowCursor && (
           <Animated.View
             style={[styles.cursor, { opacity: cursorOpacity }]}
+            testID={`${testID}-cursor`}
           />
         )}
-        <Text
-          variant={TextVariant.DisplayMD}
-          color={TextColor.Muted}
-          style={styles.amountText}
-        >
-          {currency}
-        </Text>
       </View>
+
+      <Text
+        variant={TextVariant.BodyLGMedium}
+        color={TextColor.Muted}
+        style={styles.fiatText}
+        testID={`${testID}-currency`}
+      >
+        {currency}
+      </Text>
+
+      {showFiatEquivalent && fiatEquivalent && (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.fiatText}
+          testID={`${testID}-fiat`}
+        >
+          ≈ ${fiatEquivalent}
+        </Text>
+      )}
     </View>
   );
 };
 
-export default AmountDisplay;
+export default PerpsAmountDisplay;

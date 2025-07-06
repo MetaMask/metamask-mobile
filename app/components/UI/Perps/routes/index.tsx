@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import PerpsView from '../Views/PerpsView';
-import DepositAmountView from '../Views/DepositAmountView';
-import DepositPreviewView from '../Views/DepositPreviewView';
-import DepositProcessingView from '../Views/DepositProcessingView';
+import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
+import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
+import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
 import Routes from '../../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
@@ -20,7 +20,7 @@ const PerpsScreenStack = () => (
     />
     <Stack.Screen
       name={Routes.PERPS.DEPOSIT}
-      component={DepositAmountView}
+      component={PerpsDepositAmountView}
       options={{
         title: 'Deposit',
         headerShown: false,
@@ -28,7 +28,7 @@ const PerpsScreenStack = () => (
     />
     <Stack.Screen
       name={Routes.PERPS.DEPOSIT_PREVIEW}
-      component={DepositPreviewView}
+      component={PerpsDepositPreviewView}
       options={{
         title: 'Deposit Preview',
         headerShown: false,
@@ -36,7 +36,7 @@ const PerpsScreenStack = () => (
     />
     <Stack.Screen
       name={Routes.PERPS.DEPOSIT_SUCCESS}
-      component={DepositProcessingView}
+      component={PerpsDepositProcessingView}
       options={{
         title: 'Deposit Status',
         headerShown: false,
