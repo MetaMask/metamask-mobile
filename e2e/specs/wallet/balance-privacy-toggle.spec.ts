@@ -33,8 +33,12 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
         await Assertions.checkIfVisible(WalletView.container);
         await Assertions.checkIfVisible(WalletView.totalBalance);
         const actualBalance: string = await WalletView.getBalanceText();
-        expect(actualBalance).toContain('ETH');
-        expect(actualBalance).not.toContain('••••');
+        if (!actualBalance.includes('ETH')) {
+          throw new Error(`Expected balance to contain 'ETH', but got: ${actualBalance}`);
+        }
+        if (actualBalance.includes('••••')) {
+          throw new Error(`Expected balance to not be hidden, but got: ${actualBalance}`);
+        }
         await WalletView.hideBalance();
         await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
         await TabBarComponent.tapSettings();
