@@ -3,9 +3,7 @@
 
 import type { CaipAccountId, CaipChainId, CaipAssetId, Hex } from '@metamask/utils';
 
-// Import real HyperLiquid SDK types
-
-// Human-readable order parameters for PerpsController API
+// MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string;                    // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean;                  // true = BUY order, false = SELL order
@@ -230,7 +228,4 @@ export interface IPerpsProvider {
   disconnect(): Promise<DisconnectResult>;
 }
 
-// Re-export real HyperLiquid SDK types for convenience
-export type { AssetPosition as HLAssetPosition } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
-export type { PerpsUniverse as HLMarketInfo } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 
