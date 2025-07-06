@@ -26,6 +26,8 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 
+// This hook retrieves the asset balance and related information for a given token and account.
+// Validate if it's necessary or if it can be simplified further.
 const useAssetBalance = (
   token: FlashListAssetKey | null | undefined,
   account: string,

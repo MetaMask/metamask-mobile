@@ -16,6 +16,9 @@ import {
 import Logger from '../../../../util/Logger';
 import { CardToken } from '../types';
 
+// The CardholderSDK class provides methods to interact with the Card feature
+// and check if an address is a card holder, get supported tokens, and more.
+// This implements a mimic of the Ramps SDK, but for the Card feature.
 export class CardholderSDK {
   private cardFeatureFlag: CardFeature;
   private chainId: string | number;
