@@ -64,7 +64,7 @@ const createProvider = () =>
  */
 const getAllowanceState = (allowance: string): AllowanceState => {
   if (allowance === '0') {
-    return AllowanceState.Delegatable;
+    return AllowanceState.NotActivated;
   }
   // set arbitrary threshold for unlimited allowance
   const amount = BigInt(allowance);

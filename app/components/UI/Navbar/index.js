@@ -1117,6 +1117,11 @@ export function getWalletNavbarOptions(
             iconColor={IconColor.Default}
             onPress={() => {
               navigation.navigate(Routes.CARD.ROOT);
+              trackEvent(
+                MetricsEventBuilder.createEventBuilder(
+                  MetaMetricsEvents.CARD_HOME_CLICKED,
+                ).build(),
+              );
             }}
             iconName={IconName.Card}
             size={IconSize.Xl}
@@ -2095,7 +2100,7 @@ export function getStakingNavbar(
       backgroundColor:
         navBarOptions?.backgroundColor ?? themeColors.background.default,
       shadowColor: importedColors.transparent,
-      shadowOffset: null
+      shadowOffset: null,
     },
     headerLeft: {
       marginHorizontal: 16,

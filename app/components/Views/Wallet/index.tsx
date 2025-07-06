@@ -543,6 +543,7 @@ const Wallet = ({
             chainId,
           );
           setCardholder(isHolder);
+          trackEvent(createEventBuilder(MetaMetricsEvents.CARD_VIEWED).build());
         } catch (error) {
           Logger.error(error as Error, 'Error checking card holder status');
         }
@@ -550,7 +551,7 @@ const Wallet = ({
     };
 
     checkCardHolder();
-  }, [selectedAddress, chainId, cardFeature]);
+  }, [selectedAddress, chainId, cardFeature, trackEvent, createEventBuilder]);
   // End Card Logic
 
   useEffect(() => {

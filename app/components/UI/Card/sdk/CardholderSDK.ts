@@ -157,10 +157,20 @@ export class CardholderSDK {
 
   getPriorityToken = async (
     address: string,
-    nonZeroBalanceTokens?: string[],
+    nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
     if (!this.isCardEnabled) {
       throw new Error('Card feature is not enabled for this chain');
+    }
+
+    if (nonZeroBalanceTokens.length === 1) {
+      const tokenAddress = nonZeroBalanceTokens[0];
+      const match = this.supportedTokens.find(
+        (supportedToken) =>
+          supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
+      );
+
+      return match ? this.mapSupportedTokenToCardToken(match) : null;
     }
 
     const approvalInterface = new ethers.utils.Interface([
@@ -195,7 +205,15 @@ export class CardholderSDK {
     );
 
     const allLogs = logsPerToken.flat();
-    if (allLogs.length === 0) return null;
+    // If there are no logs, return first supported token or null
+    // This might need to change if we want to handle cases where no logs are found
+    if (allLogs.length === 0) {
+      if (this.supportedTokens.length > 0) {
+        return this.mapSupportedTokenToCardToken(this.supportedTokens[0]);
+      }
+
+      return null;
+    }
 
     // sort chronologically
     allLogs.sort((a, b) =>

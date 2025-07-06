@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Dimensions,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
@@ -46,11 +40,9 @@ import ManageCardListItem from '../../components/ManageCardListItem/ManageCardLi
 import { selectChainId } from '../../../../../selectors/networkController';
 import { isSwapsAllowed } from '../../../Swaps/utils';
 import AppConstants from '../../../../../core/AppConstants';
-import { CARD_URL } from '../../constants';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import AssetListBottomSheet from '../../components/AssetListBottomSheet/AssetListBottomSheet';
 import CardAssetItem from '../../components/CardAssetItem/CardAssetItem';
-import { strings } from '../../../../../../locales/i18n';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { useGetAllowances } from '../../hooks/useGetAllowances';
@@ -58,7 +50,14 @@ import { mapCardTokenToAssetKey } from '../../utils';
 import { AllowanceState, CardToken } from '../../types';
 import { FlashListAssetKey } from '../../../Tokens/TokenList';
 import Logger from '../../../../../util/Logger';
-import useAssetBalance from '../../hooks/useAssetBalance';
+import { Hex } from 'viem';
+import { hexToDecimal } from '../../../../../util/conversions';
+import { useGetSupportedTokens } from '../../hooks/useGetSupportedAssets';
+import { strings } from '../../../../../../locales/i18n';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { BrowserTab } from '../../../Tokens/types';
+import { isCardUrl } from '../../../../../util/url';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -69,12 +68,14 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const currentAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { PreferencesController } = Engine.context;
+  const { PreferencesController, TokenBalancesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
   const theme = useTheme();
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { allowances, isLoading: isLoadingAllowances } = useGetAllowances(
     currentAddress,
     true,
@@ -88,14 +89,13 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
         })
     | null
   >(null);
+  const { supportedTokens } = useGetSupportedTokens();
   const chainId = useSelector(selectChainId);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [openAssetListBottomSheet, setOpenAssetListBottomSheet] =
     useState(false);
-  const { balanceFiat, mainBalance, secondaryBalance } = useAssetBalance(
-    priorityToken,
-    currentAddress as string,
-  );
+  const [balance, setBalance] = useState<string>();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -119,19 +119,52 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           sourcePage: 'CardHome',
         },
       });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
+      );
     }
-  }, [navigation, chainId, priorityToken, isSwapEnabled]);
+  }, [
+    isSwapEnabled,
+    priorityToken,
+    trackEvent,
+    createEventBuilder,
+    navigation,
+    chainId,
+  ]);
+
+  const mappedSupportedTokens = useMemo(
+    () =>
+      supportedTokens.map((token) => {
+        const allowance = allowances?.find(
+          (item) => item.address.toLowerCase() === token.address?.toLowerCase(),
+        );
+        return {
+          ...token,
+          ...mapCardTokenToAssetKey(
+            {
+              address: token.address as `0x${string}`,
+              symbol: token.symbol as string,
+              decimals: token.decimals as number,
+              name: token.name as string,
+            },
+            chainId,
+            allowance?.allowance,
+          ),
+        };
+      }),
+    [supportedTokens, allowances, chainId],
+  );
 
   const renderAssetListBottomSheet = useCallback(
     () => (
       <AssetListBottomSheet
         sheetRef={sheetRef}
-        balances={[]}
+        balances={mappedSupportedTokens}
         privacyMode={privacyMode}
         setOpenAssetListBottomSheet={setOpenAssetListBottomSheet}
       />
     ),
-    [sheetRef, setOpenAssetListBottomSheet, privacyMode],
+    [sheetRef, setOpenAssetListBottomSheet, privacyMode, mappedSupportedTokens],
   );
 
   useEffect(() => {
@@ -142,14 +175,14 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           currentAddress,
         );
         // Fetch the priority token when allowances are available
-        const nonZeroBalanceTokens = allowances
+        const nonZeroAllowanceTokens = allowances
           .filter((item) => item.amount.gt(0))
           .map((item) => item.address);
         Logger.log(
-          'Non-zero balance tokens for priority token fetch:',
-          nonZeroBalanceTokens,
+          'Non-zero allowance tokens for priority token fetch:',
+          nonZeroAllowanceTokens,
         );
-        const token = await fetchPriorityToken(nonZeroBalanceTokens);
+        const token = await fetchPriorityToken(nonZeroAllowanceTokens);
 
         if (token) {
           const allowance = allowances.find(
@@ -177,10 +210,72 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     }
   }, [allowances, chainId, currentAddress, fetchPriorityToken, priorityToken]);
 
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (priorityToken && currentAddress) {
+        try {
+          const priorityTokenBalance =
+            await TokenBalancesController.getErc20Balances({
+              chainId: chainId as Hex,
+              accountAddress: currentAddress as Hex,
+              tokenAddresses: [priorityToken.address as Hex],
+            });
+          const tokenBalance =
+            priorityTokenBalance[priorityToken.address as Hex];
+          const formattedTokenBalance = renderFromTokenMinimalUnit(
+            hexToDecimal(tokenBalance).toString(),
+            priorityToken.decimals,
+          );
+
+          setBalance(formattedTokenBalance ?? '0');
+        } catch (error) {
+          Logger.error(error as Error, 'Error fetching balance');
+        }
+      }
+    };
+
+    fetchBalance();
+  }, [priorityToken, currentAddress, TokenBalancesController, chainId]);
+
   const isLoading = useMemo(
     () => isLoadingAllowances || isLoadingPriorityToken || !priorityToken,
     [isLoadingAllowances, isLoadingPriorityToken, priorityToken],
   );
+
+  const handleAdvancedCardManagementPress = useCallback(() => {
+    const existingCardTab = browserTabs.find(({ url }: BrowserTab) =>
+      isCardUrl(url),
+    );
+
+    let existingTabId;
+    let newTabUrl;
+
+    if (existingCardTab) {
+      existingTabId = existingCardTab.id;
+    } else {
+      const cardUrl = new URL(AppConstants.CARD.URL);
+
+      newTabUrl = cardUrl.href;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation?.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+      )
+        .addProperties({
+          portfolioUrl: AppConstants.CARD.URL,
+        })
+        .build(),
+    );
+  }, [browserTabs, createEventBuilder, navigation, trackEvent]);
 
   if (isLoading) {
     return (
@@ -200,9 +295,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
               length={SensitiveTextLength.Long}
               variant={TextVariant.HeadingLG}
             >
-              {priorityToken
-                ? `${mainBalance} ${secondaryBalance} ${balanceFiat} ${priorityToken.symbol}`
-                : '0'}
+              {priorityToken ? `${balance} ${priorityToken.symbol}` : '0'}
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
@@ -274,9 +367,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           'card.card_home.manage_card_options.advanced_card_management_description',
         )}
         rightIcon={IconName.Export}
-        onPress={() => {
-          Linking.openURL(CARD_URL);
-        }}
+        onPress={handleAdvancedCardManagementPress}
       />
       {openAssetListBottomSheet && renderAssetListBottomSheet()}
       <ScreenshotDeterrent

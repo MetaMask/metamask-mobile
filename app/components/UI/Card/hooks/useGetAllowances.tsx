@@ -33,7 +33,7 @@ export const useGetAllowances = (address?: string, autoFetch = false) => {
           let allowanceState;
 
           if (allowance.isZero()) {
-            allowanceState = AllowanceState.Delegatable;
+            allowanceState = AllowanceState.NotActivated;
           } else if (allowance.lt(ARBITRARY_ALLOWANCE)) {
             allowanceState = AllowanceState.Limited;
           } else {

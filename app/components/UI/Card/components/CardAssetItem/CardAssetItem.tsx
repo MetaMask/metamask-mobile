@@ -139,7 +139,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
     );
   }, [asset, styles.ethLogo, chainId]);
 
-  if (!asset || !chainId) {
+  if (!chainId || !asset) {
     return null;
   }
 
