@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   Linking,
@@ -35,7 +41,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Loader from '../../../../../component-library/components-temp/Loader';
 import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
-import { useCardTokenBalances } from '../../hooks';
 import CardImage from '../../assets/card.svg';
 import ManageCardListItem from '../../components/ManageCardListItem/ManageCardListItem';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -46,6 +51,14 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AssetListBottomSheet from '../../components/AssetListBottomSheet/AssetListBottomSheet';
 import CardAssetItem from '../../components/CardAssetItem/CardAssetItem';
 import { strings } from '../../../../../../locales/i18n';
+import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { useGetAllowances } from '../../hooks/useGetAllowances';
+import { mapCardTokenToAssetKey } from '../../utils';
+import { AllowanceState, CardToken } from '../../types';
+import { FlashListAssetKey } from '../../../Tokens/TokenList';
+import Logger from '../../../../../util/Logger';
+import useAssetBalance from '../../hooks/useAssetBalance';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -53,22 +66,36 @@ interface ICardHomeProps {
 
 const CardHome = ({ navigation }: ICardHomeProps) => {
   const hasNavigation = Boolean(navigation);
+  const currentAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
   const theme = useTheme();
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
-  const {
-    priorityToken,
-    mappedPriorityToken,
-    balances,
-    isLoading: isLoadingBalances,
-  } = useCardTokenBalances(true);
+  const { allowances, isLoading: isLoadingAllowances } = useGetAllowances(
+    currentAddress,
+    true,
+  );
+  const { fetchPriorityToken, isLoading: isLoadingPriorityToken } =
+    useGetPriorityCardToken(currentAddress);
+  const [priorityToken, setPriorityToken] = useState<
+    | (CardToken &
+        FlashListAssetKey & {
+          tag?: AllowanceState;
+        })
+    | null
+  >(null);
   const chainId = useSelector(selectChainId);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [openAssetListBottomSheet, setOpenAssetListBottomSheet] =
     useState(false);
+  const { balanceFiat, mainBalance, secondaryBalance } = useAssetBalance(
+    priorityToken,
+    currentAddress as string,
+  );
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -99,15 +126,63 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     () => (
       <AssetListBottomSheet
         sheetRef={sheetRef}
-        balances={balances}
+        balances={[]}
         privacyMode={privacyMode}
         setOpenAssetListBottomSheet={setOpenAssetListBottomSheet}
       />
     ),
-    [sheetRef, setOpenAssetListBottomSheet, balances, privacyMode],
+    [sheetRef, setOpenAssetListBottomSheet, privacyMode],
   );
 
-  if (isLoadingBalances) {
+  useEffect(() => {
+    const getPriorityToken = async () => {
+      if (currentAddress && allowances) {
+        Logger.log(
+          'Fetching priority token for current address:',
+          currentAddress,
+        );
+        // Fetch the priority token when allowances are available
+        const nonZeroBalanceTokens = allowances
+          .filter((item) => item.amount.gt(0))
+          .map((item) => item.address);
+        Logger.log(
+          'Non-zero balance tokens for priority token fetch:',
+          nonZeroBalanceTokens,
+        );
+        const token = await fetchPriorityToken(nonZeroBalanceTokens);
+
+        if (token) {
+          const allowance = allowances.find(
+            (item) =>
+              item.address.toLowerCase() === token.address.toLowerCase(),
+          );
+
+          if (allowance) {
+            setPriorityToken({
+              ...token,
+              ...mapCardTokenToAssetKey(token, chainId, allowance.allowance),
+            });
+          }
+        }
+      }
+    };
+
+    if (!priorityToken) {
+      Logger.log(
+        'Priority token not set, fetching priority token for current address:',
+        currentAddress,
+      );
+      // Fetch the priority token if it is not already set
+      getPriorityToken();
+    }
+  }, [allowances, chainId, currentAddress, fetchPriorityToken, priorityToken]);
+
+  const isLoading = useMemo(
+    () => isLoadingAllowances || isLoadingPriorityToken || !priorityToken,
+    [isLoadingAllowances, isLoadingPriorityToken, priorityToken],
+  );
+
+  if (isLoading) {
     return (
       <View style={styles.wrapper}>
         <Loader />
@@ -126,7 +201,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
               variant={TextVariant.HeadingLG}
             >
               {priorityToken
-                ? `${priorityToken.balance} ${priorityToken.symbol}`
+                ? `${mainBalance} ${secondaryBalance} ${balanceFiat} ${priorityToken.symbol}`
                 : '0'}
             </SensitiveText>
             <TouchableOpacity
@@ -150,10 +225,10 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
           >
             {strings('card.card_home.spending_with')}
           </Text>
-          {mappedPriorityToken && (
+          {priorityToken && (
             <View style={styles.spendingWith}>
               <CardAssetItem
-                assetKey={mappedPriorityToken}
+                assetKey={priorityToken}
                 privacyMode={privacyMode}
                 disabled
               />

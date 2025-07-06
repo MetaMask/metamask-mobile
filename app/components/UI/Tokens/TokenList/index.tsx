@@ -1,11 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import {
-  View,
-  RefreshControl,
-  Dimensions,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { View, RefreshControl, Dimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -29,10 +23,6 @@ export interface FlashListAssetKey {
   address: string;
   chainId: string | undefined;
   isStaked: boolean | undefined;
-  tag?: {
-    label: string;
-    style?: StyleProp<ViewStyle>;
-  };
 }
 
 interface TokenListProps {

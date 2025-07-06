@@ -1,71 +1,19 @@
 import React, {
   useState,
-  useCallback,
   createContext,
   useContext,
   useMemo,
+  useEffect,
 } from 'react';
 import { useSelector } from 'react-redux';
 
-import Logger from '../../../../util/Logger';
-import { selectedAddressSelector } from '../../../../reducers/fiatOrders';
-import {
-  selectChainId,
-  selectSelectedNetworkClientId,
-} from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { selectCardFeature } from '../../../../selectors/featureFlagController/card';
 
-import {
-  fetchSupportedTokensBalances,
-  isCardHolder,
-  getGeoLocation,
-} from '../card.utils';
-import { CACHE_EXPIRATION, POLLING_INTERVAL } from '../constants';
-import { FlashListAssetKey } from '../../Tokens/TokenList';
-import { CardToken } from '../types';
-import Engine from '../../../../core/Engine';
-import { areAddressesEqual } from '../../../../util/address';
-
-export interface CardSDKConfig {
-  CACHE_EXPIRATION: number;
-  POLLING_INTERVAL: number;
-}
+import { CardholderSDK } from './CardholderSDK';
 
 export interface CardSDK {
-  // Card holder status
-  isCardHolderStatus: boolean | null;
-  setIsCardHolderStatus: (status: boolean | null) => void;
-  checkCardHolderStatus: () => Promise<boolean>;
-
-  // Token balances
-  tokenBalances: FlashListAssetKey[];
-  setTokenBalances: (balances: FlashListAssetKey[]) => void;
-  priorityToken: CardToken | null;
-  setPriorityToken: (token: CardToken | null) => void;
-
-  // Geolocation
-  userLocation: string | null;
-  setUserLocation: (location: string | null) => void;
-  fetchUserLocation: () => Promise<string>;
-
-  // Utility functions
-  fetchBalances: () => Promise<void>;
-  mapCardTokenToTokenKey: (cardToken: CardToken) => FlashListAssetKey;
-
-  // Loading states
-  isLoadingCardHolder: boolean;
-  setIsLoadingCardHolder: (loading: boolean) => void;
-  isLoadingBalances: boolean;
-  setIsLoadingBalances: (loading: boolean) => void;
-  isLoadingLocation: boolean;
-  setIsLoadingLocation: (loading: boolean) => void;
-
-  // Error states
-  balancesError: Error | null;
-  setBalancesError: (error: Error | null) => void;
-
-  // Configuration
-  config: CardSDKConfig;
+  sdk: CardholderSDK | null;
 }
 
 interface ProviderProps<T> {
@@ -79,205 +27,27 @@ export const CardSDKProvider = ({
   value,
   ...props
 }: ProviderProps<CardSDK>) => {
-  const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(selectChainId);
   const cardFeatureFlag = useSelector(selectCardFeature);
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
-  const { TokensController } = Engine.context;
 
-  // Card holder status state
-  const [isCardHolderStatus, setIsCardHolderStatus] = useState<boolean | null>(
-    null,
-  );
-  const [isLoadingCardHolder, setIsLoadingCardHolder] = useState(false);
+  const [sdk, setSdk] = useState<CardholderSDK | null>(null);
 
-  // Token balances state
-  const [tokenBalances, setTokenBalances] = useState<FlashListAssetKey[]>([]);
-  const [priorityToken, setPriorityToken] = useState<CardToken | null>(null);
-  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-  const [balancesError, setBalancesError] = useState<Error | null>(null);
-
-  // Geolocation state
-  const [userLocation, setUserLocation] = useState<string | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-
-  // Utility functions
-  const checkCardHolderStatus = useCallback(async (): Promise<boolean> => {
-    setIsLoadingCardHolder(true);
-
-    if (!selectedAddress || !cardFeatureFlag) {
-      return false;
-    }
-
-    try {
-      const status = await isCardHolder(
-        selectedAddress,
+  // Initialize CardholderSDK if card feature flag is enabled and chain ID is selected
+  useEffect(() => {
+    if (cardFeatureFlag && selectedChainId) {
+      const cardholderSDK = new CardholderSDK({
         cardFeatureFlag,
-        selectedChainId,
-      );
-      setIsCardHolderStatus(status);
-      return status;
-    } catch (error) {
-      const err = error as Error;
-      Logger.error(err, 'Failed to check card holder status');
-      return false;
-    } finally {
-      setIsLoadingCardHolder(false);
+        rawChainId: selectedChainId,
+      });
+      setSdk(cardholderSDK);
     }
-  }, [selectedAddress, cardFeatureFlag, selectedChainId]);
-
-  const mapAllowanceStateToLabel = (state: string): string => {
-    switch (state) {
-      case 'delegatable':
-        return 'Not activated';
-      case 'unlimited':
-        return 'Unlimited';
-      case 'limited':
-        return 'Limited';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const mapCardTokenToTokenKey = useCallback(
-    (cardToken: CardToken): FlashListAssetKey => ({
-      address: cardToken.address,
-      chainId: selectedChainId,
-      isStaked: false,
-      tag: {
-        label: mapAllowanceStateToLabel(cardToken.allowanceState),
-      },
-    }),
-    [selectedChainId],
-  );
-
-  const fetchBalances = useCallback(async () => {
-    setIsLoadingBalances(true);
-    setBalancesError(null);
-
-    if (!selectedAddress || !cardFeatureFlag) {
-      throw new Error('Selected address or card feature flag is not set');
-    }
-
-    try {
-      const result = await fetchSupportedTokensBalances(
-        selectedAddress,
-        cardFeatureFlag,
-      );
-
-      const tokens =
-        TokensController.state.allTokens?.[selectedChainId as `0x${string}`]?.[
-          selectedAddress
-        ] || [];
-      const balanceList: FlashListAssetKey[] = [];
-
-      for (const balance of result.balanceList) {
-        const token = tokens.find((t) =>
-          areAddressesEqual(t.address, balance.address),
-        );
-
-        if (!token) {
-          await TokensController.addToken({
-            address: balance.address,
-            symbol: balance.symbol,
-            decimals: balance.decimals,
-            name: balance.name,
-            networkClientId: selectedNetworkClientId,
-          });
-        }
-
-        balanceList.push(mapCardTokenToTokenKey(balance));
-      }
-
-      setTokenBalances(balanceList);
-      setPriorityToken(result.priorityToken);
-    } catch (error) {
-      const err = error as Error;
-      Logger.error(err, 'Failed to fetch token balances');
-      setBalancesError(err);
-      throw err;
-    } finally {
-      setIsLoadingBalances(false);
-    }
-  }, [
-    selectedAddress,
-    cardFeatureFlag,
-    TokensController,
-    selectedChainId,
-    mapCardTokenToTokenKey,
-    selectedNetworkClientId,
-  ]);
-
-  const fetchUserLocation = useCallback(async (): Promise<string> => {
-    setIsLoadingLocation(true);
-
-    try {
-      const location = await getGeoLocation();
-      setUserLocation(location);
-      return location;
-    } catch (error) {
-      const err = error as Error;
-      Logger.error(err, 'Failed to fetch user location');
-      return '';
-    } finally {
-      setIsLoadingLocation(false);
-    }
-  }, []);
+  }, [cardFeatureFlag, selectedChainId]);
 
   const contextValue = useMemo(
     (): CardSDK => ({
-      // Card holder status
-      isCardHolderStatus,
-      setIsCardHolderStatus,
-      checkCardHolderStatus,
-
-      // Token balances
-      tokenBalances,
-      setTokenBalances,
-      priorityToken,
-      setPriorityToken,
-
-      // Geolocation
-      userLocation,
-      setUserLocation,
-      fetchUserLocation,
-
-      // Utility functions
-      fetchBalances,
-      mapCardTokenToTokenKey,
-
-      // Loading states
-      isLoadingCardHolder,
-      setIsLoadingCardHolder,
-      isLoadingBalances,
-      setIsLoadingBalances,
-      isLoadingLocation,
-      setIsLoadingLocation,
-
-      // Error states
-      balancesError,
-      setBalancesError,
-
-      // Configuration
-      config: {
-        CACHE_EXPIRATION,
-        POLLING_INTERVAL,
-      },
+      sdk,
     }),
-    [
-      isCardHolderStatus,
-      tokenBalances,
-      priorityToken,
-      userLocation,
-      checkCardHolderStatus,
-      fetchBalances,
-      mapCardTokenToTokenKey,
-      fetchUserLocation,
-      isLoadingCardHolder,
-      isLoadingBalances,
-      isLoadingLocation,
-      balancesError,
-    ],
+    [sdk],
   );
 
   return <CardSDKContext.Provider value={value || contextValue} {...props} />;
