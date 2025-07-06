@@ -505,12 +505,11 @@ const ManualBackupStep2 = ({
 
 ManualBackupStep2.propTypes = {
   /**
-  /* navigation object required to push and pop other views
-  */
+   * navigation object required to push and pop other views
+   */
   navigation: PropTypes.object,
   /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
+   * Action to mark seed phrase as backed up
    */
   seedphraseBackedUp: PropTypes.func,
   /**

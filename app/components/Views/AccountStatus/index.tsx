@@ -1,5 +1,7 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -27,7 +29,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { IMetaMetricsEvent, ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import {
   bufferedEndTrace,
   bufferedTrace,
@@ -36,11 +38,13 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import { OnboardingActionTypes, saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
 
 import AccountStatusImg from '../../../images/already_exist.png';
 
 interface AccountStatusProps {
   type?: 'found' | 'not_exist';
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
 interface AccountRouteParams {
@@ -49,7 +53,7 @@ interface AccountRouteParams {
   onboardingTraceCtx?: string;
 }
 
-const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
+const AccountStatus = ({ type = 'not_exist', saveOnboardingEvent }: AccountStatusProps) => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
@@ -89,7 +93,10 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   }, [navigation, colors, route]);
 
   const track = (event: IMetaMetricsEvent) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event).build(),
+      saveOnboardingEvent,
+    );
   };
 
   useEffect(() => {
@@ -197,4 +204,12 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   );
 };
 
-export default AccountStatus;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(SaveEvent(eventArgs)),
+});
+
+export default connect(
+  null,
+  mapDispatchToProps,
+)(AccountStatus);
