@@ -3,19 +3,23 @@ import type {
   Position,
   MarketInfo,
   AccountState,
-  HLAssetPosition,
-  HLMarketInfo,
 } from '../controllers/types';
 import type {
   OrderParams as SDKOrderParams
 } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import type { PerpsClearinghouseState, AssetPosition, SpotClearinghouseState } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
+import type {
+  PerpsClearinghouseState,
+  AssetPosition,
+  SpotClearinghouseState
+} from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
+import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 
 /**
  * HyperLiquid SDK Adapter Utilities
  *
- * These functions transform between human-readable API types and HyperLiquid SDK types.
- * The SDK uses cryptic property names for efficiency, but our API uses descriptive names.
+ * These functions transform between MetaMask Perps API types and HyperLiquid SDK types.
+ * The SDK uses cryptic property names for efficiency, but our API uses descriptive names
+ * to provide a consistent interface across different perps protocols.
  */
 
 /**
@@ -26,10 +30,10 @@ function isValidHexString(value: string): value is `0x${string}` {
 }
 
 /**
- * Transform human-readable OrderParams to SDK format
- * @param order - Human-readable order parameters
+ * Transform MetaMask Perps API OrderParams to HyperLiquid SDK format
+ * @param order - MetaMask Perps order parameters
  * @param coinToAssetId - Mapping from coin symbols to asset IDs
- * @returns SDK-compatible order parameters
+ * @returns HyperLiquid SDK-compatible order parameters
  */
 export function adaptOrderToSDK(
   order: PerpsOrderParams,
@@ -56,11 +60,11 @@ export function adaptOrderToSDK(
 }
 
 /**
- * Transform SDK AssetPosition to human-readable format
+ * Transform SDK AssetPosition to MetaMask Perps API format
  * @param assetPosition - AssetPosition data from HyperLiquid SDK
- * @returns Human-readable position object
+ * @returns MetaMask Perps API position object
  */
-export function adaptPositionFromSDK(assetPosition: HLAssetPosition): Position {
+export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
   const pos = assetPosition.position;
   return {
     coin: pos.coin,
@@ -78,11 +82,11 @@ export function adaptPositionFromSDK(assetPosition: HLAssetPosition): Position {
 }
 
 /**
- * Transform SDK market info to human-readable format
+ * Transform SDK market info to MetaMask Perps API format
  * @param sdkMarket - Market metadata from HyperLiquid SDK
- * @returns Human-readable market info object
+ * @returns MetaMask Perps API market info object
  */
-export function adaptMarketFromSDK(sdkMarket: HLMarketInfo): MarketInfo {
+export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
   return {
     name: sdkMarket.name,
     szDecimals: sdkMarket.szDecimals,
@@ -94,10 +98,10 @@ export function adaptMarketFromSDK(sdkMarket: HLMarketInfo): MarketInfo {
 }
 
 /**
- * Transform SDK clearinghouse state to human-readable AccountState
+ * Transform SDK clearinghouse state to MetaMask Perps API AccountState
  * @param perpsState - PerpsClearinghouseState from HyperLiquid SDK
  * @param spotState - SpotClearinghouseState from HyperLiquid SDK (optional)
- * @returns Human-readable account state object
+ * @returns MetaMask Perps API account state object
  */
 export function adaptAccountStateFromSDK(
   perpsState: PerpsClearinghouseState,
@@ -157,7 +161,7 @@ export function adaptAccountStateFromSDK(
  * @param metaUniverse - Array of asset metadata from HyperLiquid
  * @returns Maps for bidirectional symbol/ID lookup
  */
-export function buildAssetMapping(metaUniverse: HLMarketInfo[]): {
+export function buildAssetMapping(metaUniverse: PerpsUniverse[]): {
   coinToAssetId: Map<string, number>;
   assetIdToCoin: Map<number, string>;
 } {
