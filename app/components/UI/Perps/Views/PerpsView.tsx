@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
+import type { Theme } from '../../../../util/theme/models';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -11,14 +12,25 @@ import Text, {
   TextColor
 } from '../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../Base/ScreenView';
-import Logger from '../../../../util/Logger';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
-// Import Hyperliquid SDK components
-import { HttpTransport, InfoClient, WebSocketTransport, SubscriptionClient } from '@deeeed/hyperliquid-node20';
+// Import PerpsController hooks
+import {
+  usePerpsController,
+  usePerpsAccountState,
+  usePerpsNetwork
+} from '../hooks/usePerpsController';
+
+// Import preview market data component
+import PreviewMarketData from '../components/PreviewMarketData';
 
 interface PerpsViewProps { }
 
-const styleSheet = () => ({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return {
   content: {
     flex: 1,
     paddingHorizontal: 24,
@@ -30,7 +42,7 @@ const styleSheet = () => ({
     marginBottom: 32,
   },
   buttonContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   button: {
     marginBottom: 16,
@@ -38,137 +50,104 @@ const styleSheet = () => ({
   resultContainer: {
     padding: 16,
     borderRadius: 8,
+    backgroundColor: colors.background.alternative,
     marginTop: 16,
   },
   resultText: {
     marginTop: 8,
     lineHeight: 20,
   },
-});
+  };
+};
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
-  const [testResult, setTestResult] = useState<string>('');
+  const [isToggling, setIsToggling] = useState(false);
+  const [result, setResult] = useState<string>('');
 
-  const testSDKConnection = async () => {
+  // Use PerpsController hooks
+  const {
+    getAccountState,
+    toggleTestnet,
+  } = usePerpsController();
+
+  // Use Redux-based hooks for cached data
+  const cachedAccountState = usePerpsAccountState();
+  const currentNetwork = usePerpsNetwork();
+
+  const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
-    setTestResult('');
+    setResult('');
 
     try {
-      Logger.log('Perps: Testing SDK connection...');
-      // Create HTTP transport and InfoClient
-      const transport = new HttpTransport();
-      const infoClient = new InfoClient({ transport });
+      DevLogger.log('Perps: Getting account balance...');
 
-      // Test basic functionality - get all mids (prices)
-      const allMids = await infoClient.allMids();
+      const accountState = await getAccountState();
 
-      if (allMids) {
-        const successMessage = '✅ SDK connection successful!\nRetrieved market data from Hyperliquid';
-        setTestResult(successMessage);
-        Logger.log('Perps: SDK test successful', { dataCount: Object.keys(allMids).length });
-      } else {
-        const warningMessage = '❌ SDK connected but no data received';
-        setTestResult(warningMessage);
-        Logger.log('Perps: SDK connected but no data received');
-      }
+      const resultLines = [
+        '✅ Account Balance Retrieved Successfully!',
+        '',
+        `💰 Total Balance: $${accountState.totalBalance}`,
+        `💳 Available Balance: $${accountState.availableBalance}`,
+        `📊 Margin Used: $${accountState.marginUsed}`,
+        `📈 Unrealized PnL: $${accountState.unrealizedPnl}`,
+        '',
+        `🌐 Network: ${currentNetwork.toUpperCase()}`,
+      ];
+
+      setResult(resultLines.join('\n'));
+      DevLogger.log('Perps: Account balance retrieved successfully', accountState);
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const fullErrorMessage = `❌ SDK test failed: ${errorMessage}`;
-      setTestResult(fullErrorMessage);
-      Logger.log('Perps: SDK test failed', error);
+      const fullErrorMessage = `❌ Failed to get account balance: ${errorMessage}`;
+      setResult(fullErrorMessage);
+      DevLogger.log('Perps: Failed to get account balance', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getAccountState, currentNetwork]);
 
-  const testAssetListing = async () => {
-    setIsLoading(true);
-    setTestResult('');
+  // Automatically load balance on mount and when network changes
+  useEffect(() => {
+    DevLogger.log('PerpsView: Component mounted or network changed, auto-loading balance', { currentNetwork });
+    // Clear any previous results
+    setResult('');
+    // Automatically fetch fresh balance
+    getAccountBalance();
+  }, [currentNetwork, getAccountBalance]);
 
-    try {
-      Logger.log('Perps: Testing asset listing...');
-      const transport = new HttpTransport();
-      const infoClient = new InfoClient({ transport });
-
-      // Test asset listing functionality - get perps meta data
-      const perpsMeta = await infoClient.meta();
-
-      if (perpsMeta?.universe && perpsMeta.universe.length > 0) {
-        const assets = perpsMeta.universe;
-        const successMessage = `✅ Found ${assets.length} tradeable assets:\n${assets.slice(0, 5).map((asset: { name: string }) => asset.name).join(', ')}${assets.length > 5 ? '...' : ''}`;
-        setTestResult(successMessage);
-        Logger.log('Perps: Asset listing successful', { count: assets.length });
-      } else {
-        const warningMessage = '❌ No assets found';
-        setTestResult(warningMessage);
-        Logger.log('Perps: No assets found');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const fullErrorMessage = `❌ Asset listing failed: ${errorMessage}`;
-      setTestResult(fullErrorMessage);
-      Logger.log('Perps: Asset listing failed', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const testWebSocketConnection = async () => {
-    setIsLoading(true);
-    setTestResult('');
-    let hasReceivedData = false;
+  const handleToggleTestnet = async () => {
+    setIsToggling(true);
+    setResult('');
 
     try {
-      Logger.log('Perps: Testing WebSocket connection...');
-      const transport = new WebSocketTransport();
-      const subsClient = new SubscriptionClient({ transport });
-
-      // Test WebSocket connection with a simple subscription
-      const subscription = await subsClient.allMids((data) => {
-        if (!hasReceivedData) {
-          hasReceivedData = true;
-          Logger.log('Perps: WebSocket data received', { dataKeys: Object.keys(data).length });
-
-          const successMessage = `✅ WebSocket connection successful!\nReceived real-time market data with ${Object.keys(data).length} assets`;
-          setTestResult(successMessage);
-
-          // Unsubscribe after receiving first data
-          setTimeout(async () => {
-            try {
-              await subscription.unsubscribe();
-              Logger.log('Perps: WebSocket subscription cleaned up');
-              setIsLoading(false);
-            } catch (error) {
-              Logger.log('Perps: Error unsubscribing', error);
-              setIsLoading(false);
-            }
-          }, 1000);
-        }
+      DevLogger.log('Perps: Toggling testnet...', {
+        currentNetworkBefore: currentNetwork,
+        buttonLabel: `Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'}`
       });
 
-      // Reduce timeout to 5 seconds and check connection status
-      setTimeout(async () => {
-        if (!hasReceivedData) {
-          try {
-            await subscription.unsubscribe();
-            const timeoutMessage = '⚠️ WebSocket connection timeout - no data received within 5 seconds\nThis might be normal if the market is closed';
-            setTestResult(timeoutMessage);
-            Logger.log('Perps: WebSocket connection timeout - may be market hours related');
-          } catch (error) {
-            Logger.log('Perps: Error during timeout cleanup', error);
-          }
-          setIsLoading(false);
-        }
-      }, 5000);
+      const toggleResult = await toggleTestnet();
 
+      if (toggleResult.success) {
+        const newNetwork = toggleResult.isTestnet ? 'TESTNET' : 'MAINNET';
+        setResult(`✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`);
+        DevLogger.log('Perps: Network toggled successfully', {
+          toggledTo: toggleResult.isTestnet,
+          uiStillShows: currentNetwork,
+          shouldShowDifferent: toggleResult.isTestnet ? 'testnet' : 'mainnet'
+        });
+      } else {
+        setResult(`❌ Failed to toggle network: ${toggleResult.error}`);
+        DevLogger.log('Perps: Failed to toggle network', toggleResult.error);
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const fullErrorMessage = `❌ WebSocket test failed: ${errorMessage}`;
-      setTestResult(fullErrorMessage);
-      Logger.log('Perps: WebSocket test failed', error);
-      setIsLoading(false);
+      setResult(`❌ Failed to toggle network: ${errorMessage}`);
+      DevLogger.log('Perps: Failed to toggle network', error);
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -177,51 +156,60 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       <View style={styles.content}>
         <View style={styles.headerContainer}>
           <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Perps Trading (Development)
+            Perps Trading
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            Test @deeeed/hyperliquid-node20 SDK
+            Step-by-Step Feature Testing
           </Text>
+          <Text variant={TextVariant.BodySM} color={currentNetwork === 'testnet' ? TextColor.Warning : TextColor.Success}>
+            Network: {currentNetwork.toUpperCase()}
+          </Text>
+          {cachedAccountState ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+              Cached Balance: ${cachedAccountState.totalBalance}
+            </Text>
+          ) : isLoading ? (
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+              Loading balance...
+            </Text>
+          ) : (
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+              Balance will load automatically
+            </Text>
+          )}
         </View>
 
+        <PreviewMarketData />
+
         <View style={styles.buttonContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={`Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'}`}
+            onPress={handleToggleTestnet}
+            loading={isToggling}
+            style={styles.button}
+          />
+
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="Test SDK Connection"
-            onPress={testSDKConnection}
+            label="Get Account Balance"
+            onPress={getAccountBalance}
             loading={isLoading}
             style={styles.button}
-          />
-
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Test Asset Listing"
-            onPress={testAssetListing}
-            loading={isLoading}
-            style={styles.button}
-          />
-
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Test WebSocket Connection"
-            onPress={testWebSocketConnection}
-            loading={isLoading}
           />
         </View>
 
-        {testResult ? (
+        {result ? (
           <View style={styles.resultContainer}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              Test Result:
+              Result:
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted} style={styles.resultText}>
-              {testResult}
+              {result}
             </Text>
           </View>
         ) : null}

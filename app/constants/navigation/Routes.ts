@@ -199,6 +199,10 @@ const Routes = {
   PERPS: {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
+    DEPOSIT: 'PerpsDeposit',
+    DEPOSIT_PREVIEW: 'PerpsDepositPreview',
+    DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
+    DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',

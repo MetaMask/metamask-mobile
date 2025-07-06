@@ -263,6 +263,12 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+import { 
+  PerpsController,
+  PerpsControllerState,
+  PerpsControllerActions,
+  PerpsControllerEvents,
+} from '../../components/UI/Perps/controllers/PerpsController';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -372,6 +378,7 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | PerpsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -427,6 +434,7 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | PerpsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -507,6 +515,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  PerpsController: PerpsController;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
@@ -573,6 +582,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  PerpsController: PerpsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
