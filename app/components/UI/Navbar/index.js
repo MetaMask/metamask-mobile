@@ -1914,11 +1914,10 @@ export function getDepositNavbarOptions(
             <ButtonIcon
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
-              onPress={
-                onClose
-                  ? () => onClose()
-                  : () => navigation.navigate(Routes.WALLET.HOME)
-              }
+              onPress={() => {
+                navigation.dangerouslyGetParent()?.pop();
+                onClose?.();
+              }}
             />
           </TouchableOpacity>
         )
