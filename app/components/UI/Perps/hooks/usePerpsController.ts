@@ -191,13 +191,6 @@ export function usePerpsPrices(symbols: string[]): Record<string, PriceUpdate> {
     const unsubscribe = subscribeToPrices({
       symbols,
       callback: (newPrices: PriceUpdate[]) => {
-        // Log price data for debugging
-        DevLogger.log('usePerpsPrices: Received price updates', {
-          symbols: newPrices.map(p => p.coin),
-          prices: newPrices.map(p => ({ coin: p.coin, price: p.price })),
-          timestamp: new Date().toISOString()
-        });
-
         // Direct UI update, bypasses Redux for maximum performance
         setPrices(prev => {
           const updated = { ...prev };

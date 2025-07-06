@@ -18,7 +18,6 @@ import Text, {
   TextColor,
   TextVariant
 } from '../../../../component-library/components/Texts/Text';
-// import Routes from '../../../../constants/navigation/Routes'; // TODO: Use for navigation constants
 import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
 import { selectCurrencyRates, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
