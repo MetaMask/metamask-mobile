@@ -101,6 +101,9 @@ const SolanaNewFeatureContent = () => {
             <Text
               variant={TextVariant.BodyXS}
               style={styles.learnMoreButton}
+              testID={
+                SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON
+              }
               onPress={navigateToLearnMoreAboutSolanaAccounts}
             >
               {strings('solana_new_feature_content.learn_more')}

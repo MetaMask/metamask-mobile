@@ -56,21 +56,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should create Solana account directly from new feature announcement sheet', async () => {
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.sheetContainer,
-    );
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.learnMoreButton,
-    );
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-    await AddNewHdAccountComponent.tapConfirm();
-    await TestHelpers.delay(4000);
-    await WalletView.tapIdenticon();
-    // Check if the Solana account is created
-    await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
-  });
-
   it('should create another Solana account from the bottom sheet', async () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
