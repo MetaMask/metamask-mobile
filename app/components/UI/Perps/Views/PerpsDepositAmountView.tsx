@@ -1,8 +1,10 @@
-import type { CaipAssetId, Hex } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
+import { parseCaipChainId, type Hex } from '@metamask/utils';
+import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -16,11 +18,13 @@ import {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type { RootState } from '../../../../reducers';
 import { swapsTokensWithBalanceSelector } from '../../../../reducers/swaps';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectConversionRate, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectGasFeeEstimatesByChainId } from '../../../../selectors/gasFeeController';
 import { selectEvmChainId, selectSelectedNetworkClientId } from '../../../../selectors/networkController';
 import { selectContractBalances, selectContractBalancesPerChainId } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
@@ -37,13 +41,17 @@ import {
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import Keypad from '../../../Base/Keypad';
+import { useGasFeeEstimates } from '../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { isSwapsNativeAsset } from '../../Swaps/utils';
 import PerpsAmountDisplay from '../components/PerpsAmountDisplay';
 import PerpsDepositPreviewModal from '../components/PerpsDepositPreviewModal';
 import PerpsPayWithRow from '../components/PerpsPayWithRow';
 import PerpsTokenSelector, { type PerpsToken } from '../components/PerpsTokenSelector';
 import type { DepositParams } from '../controllers/types';
-import { usePerpsController } from '../hooks/usePerpsController';
+import {
+  usePerpsController,
+  usePerpsDepositState,
+} from '../hooks/usePerpsController';
 
 interface PerpsDepositAmountViewProps { }
 
@@ -123,23 +131,75 @@ const createStyles = (colors: Colors) =>
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  // Selectors (moved up to avoid use-before-define)
+  const chainId = useSelector(selectEvmChainId);
+
+  // Get PerpsController instance and destructure for cleaner code
+  const {
+    getSupportedDepositPaths: getSupportedDepositPathsHook,
+    deposit,
+    resetDepositState,
+    controller,
+  } = usePerpsController();
+  // Memoize the getSupportedDepositPaths call to prevent infinite re-renders
+  const getSupportedDepositPaths = useCallback(() => getSupportedDepositPathsHook(), [getSupportedDepositPathsHook]);
+
+  // Consolidated reactive deposit state
+  const {
+    status: depositStatus,
+    flowType: depositFlowType,
+    currentTxHash: currentDepositTxHash,
+    error: depositError,
+    requiresModalDismissal,
+  } = usePerpsDepositState();
+
+  // Get default token from PerpsController supported paths or fall back to native token
+  const getDefaultToken = useMemo((): SelectedToken => {
+    try {
+      const supportedPaths = getSupportedDepositPaths();
+
+      if (supportedPaths.length > 0) {
+        // Parse first supported deposit path manually since it doesn't have /default suffix
+        const firstAsset = supportedPaths[0]; // "eip155:42161/erc20:0xaf88..."
+        const [chainPart, assetPart] = firstAsset.split('/');
+        const assetChainId = chainPart.split(':')[1]; // "42161"
+        const tokenAddress = assetPart.split(':')[1]; // "0xaf88..."
+
+        return {
+          symbol: 'USDC',
+          address: tokenAddress,
+          decimals: 6,
+          name: 'USD Coin',
+          chainId: `0x${parseInt(assetChainId, 10).toString(16)}`, // Convert to hex
+        };
+      }
+    } catch (error) {
+      // If parsing fails, fall through to native token fallback
+    }
+
+    // Fallback to current network native token
+    return {
+      symbol: 'ETH',
+      address: '', // Empty for native token
+      decimals: 18,
+      name: 'Ethereum',
+      chainId,
+    };
+  }, [getSupportedDepositPaths, chainId]);
 
   // State
   const [amount, setAmount] = useState('0');
-  const [selectedToken, setSelectedToken] = useState<SelectedToken>({
-    symbol: 'USDC',
-    address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // Official USDC on Arbitrum
-    decimals: 6,
-    name: 'USD Coin',
-    chainId: '0xa4b1', // Arbitrum chain ID
-  });
+  const [selectedToken, setSelectedToken] = useState<SelectedToken>(getDefaultToken);
   const [isTokenSelectorVisible, setTokenSelectorVisible] = useState(false);
   const [isPreviewModalVisible, setPreviewModalVisible] = useState(false);
   const [isDepositing, setIsDepositing] = useState(false);
-  const [depositError, setDepositError] = useState<string | null>(null);
+  const [localDepositError, setLocalDepositError] = useState<string | null>(null);
+  const [estimatedTime, setEstimatedTime] = useState<string>('');
+  const [hasResetState, setHasResetState] = useState(false);
 
-  // Selectors
+  // Remaining selectors
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -147,9 +207,61 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const balances = useSelector(selectContractBalances);
   const balancesPerChain = useSelector(selectContractBalancesPerChainId);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const chainId = useSelector(selectEvmChainId);
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokensWithBalance = useSelector(swapsTokensWithBalanceSelector);
+
+  // Get real gas fee estimates for time calculation
+  const gasFeeEstimates = useSelector((state: RootState) =>
+    selectGasFeeEstimatesByChainId(state, chainId)
+  );
+
+  // Helper function to get estimated time using real network data
+  const getEstimatedTime = useCallback((token: PerpsToken): string => {
+    // Use gas fee estimates to get real network-based time estimates
+    if (!gasFeeEstimates) {
+      return '';
+    }
+
+    try {
+      // For direct deposits on Arbitrum (no bridging needed)
+      // Get bridge info from PerpsController
+      const bridgeInfo = controller.getActiveProvider().getBridgeInfo();
+
+      if (bridgeInfo?.chainId && token.chainId && token.symbol === 'USDC') {
+        // Use MetaMask's CAIP utilities to parse chain ID
+        const parsedChain = parseCaipChainId(bridgeInfo.chainId);
+        const targetChainHex = `0x${parseInt(parsedChain.reference, 10).toString(16)}`;
+
+        if (token.chainId === targetChainHex) {
+          // Use medium gas level time estimates
+          if (gasFeeEstimates && typeof gasFeeEstimates === 'object' && 'medium' in gasFeeEstimates) {
+            const medium = gasFeeEstimates.medium;
+            if (medium && typeof medium === 'object' &&
+              'minWaitTimeEstimate' in medium && 'maxWaitTimeEstimate' in medium) {
+              const minWait = Math.ceil((medium.minWaitTimeEstimate as number) / 1000); // Convert ms to seconds
+              const maxWait = Math.ceil((medium.maxWaitTimeEstimate as number) / 1000);
+
+              if (minWait < 60 && maxWait < 60) {
+                return `${minWait}-${maxWait} seconds`;
+              }
+              const minMin = Math.ceil(minWait / 60);
+              const maxMin = Math.ceil(maxWait / 60);
+              return `${minMin}-${maxMin} minutes`;
+            }
+          }
+          // Fallback for direct deposits if no gas estimates
+          return '';
+        }
+      }
+
+      // For cross-chain deposits that require bridging
+      // TODO: Integrate with Bridge API for real bridge time estimates
+      return ''; // Don't show estimate until we have real data
+    } catch (error) {
+      return '';
+    }
+  }, [gasFeeEstimates, controller]);
+
 
   // Convert tokens from swaps format to PerpsToken format
   const perpsTokens = useMemo(() => {
@@ -166,26 +278,21 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }));
   }, [tokensWithBalance]);
 
-  // Fetch tokens on mount and when network changes
+
+  // Reset deposit state immediately when starting a new deposit flow
   useEffect(() => {
-    const fetchTokens = async () => {
-      try {
-        const { SwapsController } = Engine.context;
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-        Logger.log('Perps: Tokens fetched successfully');
-      } catch (error) {
-        Logger.error(error as Error, 'Failed to fetch tokens for deposit');
-      }
-    };
+    resetDepositState();
+    setHasResetState(true);
+  }, [resetDepositState]);
 
-    // Always fetch tokens to ensure we have the latest data
-    fetchTokens();
-  }, [selectedNetworkClientId, chainId]);
+  // Update estimated time when token changes
+  useEffect(() => {
+    if (!selectedToken) return;
 
-  // Get PerpsController instance
-  const perpsController = usePerpsController();
+    // Update estimated time
+    const newEstimatedTime = getEstimatedTime(selectedToken);
+    setEstimatedTime(newEstimatedTime);
+  }, [selectedToken, getEstimatedTime]);
 
   // Calculate token balance following MetaMask patterns
   const balance = useMemo(() => {
@@ -281,14 +388,84 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       return tokenAmount.toFixed(6);
     }
 
-    // Fallback for ETH
-    if (selectedToken.symbol === 'ETH') {
-      const ethPrice = conversionRate || 2000; // Fallback price
-      return (depositAmount / ethPrice).toFixed(6);
+    // For ETH, use the current conversion rate (no hardcoded fallback)
+    if (selectedToken.symbol === 'ETH' && conversionRate) {
+      return (depositAmount / conversionRate).toFixed(6);
     }
 
     return '0';
   }, [amount, selectedToken, tokenExchangeRates, conversionRate]);
+
+  // Start gas polling using MetaMask's standard pattern
+  useGasFeeEstimates(selectedNetworkClientId);
+
+  // Calculate gas fees using MetaMask's standard approach with proper unit conversion
+  const estimatedGasFeeFiat = useMemo(() => {
+    if (!gasFeeEstimates || !conversionRate) return '-';
+
+    try {
+      // Use standard ERC20 gas limit
+      const gasLimitForERC20 = 120000;
+      let gasPrice = 0;
+
+      // Get actual gas price from estimates (following MetaMask patterns)
+      if (gasFeeEstimates && typeof gasFeeEstimates === 'object') {
+        if ('medium' in gasFeeEstimates && gasFeeEstimates.medium) {
+          // EIP-1559 networks - gas price is in GWEI
+          if (typeof gasFeeEstimates.medium === 'object' && 'suggestedMaxFeePerGas' in gasFeeEstimates.medium) {
+            const rawGasPrice = gasFeeEstimates.medium.suggestedMaxFeePerGas;
+            gasPrice = parseFloat(rawGasPrice);
+
+            DevLogger.log('PerpsDeposit: Gas price extraction', {
+              rawGasPrice,
+              parsedGasPrice: gasPrice,
+              gasFeeEstimatesType: typeof gasFeeEstimates,
+              mediumType: typeof gasFeeEstimates.medium,
+              chainId
+            });
+          }
+        } else if ('gasPrice' in gasFeeEstimates) {
+          // Legacy networks - gas price is in GWEI
+          const rawGasPrice = gasFeeEstimates.gasPrice as string;
+          gasPrice = parseFloat(rawGasPrice);
+
+          DevLogger.log('PerpsDeposit: Legacy gas price extraction', {
+            rawGasPrice,
+            parsedGasPrice: gasPrice,
+            chainId
+          });
+        }
+      }
+
+      if (gasPrice === 0) return '-';
+
+      // CRITICAL FIX: Proper unit conversion following MetaMask patterns
+      // 1. Gas price is in GWEI, multiply by gas limit to get total cost in GWEI
+      // 2. Convert GWEI to ETH by dividing by 1e9 (1 GWEI = 1e-9 ETH)
+      // 3. Convert ETH to fiat using conversion rate
+      const totalFeeGwei = gasPrice * gasLimitForERC20;
+      const totalFeeEth = totalFeeGwei / 1e9; // Convert GWEI to ETH
+      const totalFeeFiat = totalFeeEth * conversionRate;
+
+      DevLogger.log('PerpsDeposit: Final gas fee calculation', {
+        gasPrice,
+        gasLimitForERC20,
+        conversionRate,
+        totalFeeGwei,
+        totalFeeEth,
+        totalFeeFiat,
+        formattedFee: `$${totalFeeFiat.toFixed(2)}`,
+        chainId
+      });
+
+      return `$${totalFeeFiat.toFixed(2)}`;
+    } catch (error) {
+      return '-';
+    }
+  }, [gasFeeEstimates, conversionRate, chainId]);
+
+  // Use the calculated gas fee directly (MetaMask's utilities handle fallbacks)
+  const networkFee = estimatedGasFeeFiat;
 
   // Format balance display
   const balanceDisplay = useMemo(() => {
@@ -315,55 +492,101 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     setTokenSelectorVisible(true);
   }, []);
 
-  const handleTokenSelect = useCallback((token: PerpsToken) => {
+  const handleTokenSelect = useCallback(async (token: PerpsToken) => {
     setSelectedToken(token);
     setTokenSelectorVisible(false);
-  }, []);
+
+    // Update estimated time based on selected token
+    const newEstimatedTime = getEstimatedTime(token);
+    setEstimatedTime(newEstimatedTime);
+  }, [getEstimatedTime]);
 
   const handleContinue = useCallback(() => {
     setPreviewModalVisible(true);
   }, []);
 
   const handleConfirmDeposit = useCallback(async () => {
-    if (!perpsController || !selectedAddress) {
-      setDepositError('Controller or account not available');
+    if (!controller || !selectedAddress) {
+      setLocalDepositError('Controller or account not available');
       return;
     }
 
     setIsDepositing(true);
-    setDepositError(null);
+    setLocalDepositError(null);
 
     try {
-      // Prepare deposit parameters
+      // Find the exact matching supported asset ID from PerpsController
+      const supportedAssets = getSupportedDepositPaths();
+      const selectedTokenAddress = selectedToken.address.toLowerCase();
+
+      // Find exact match from supported paths
+      const assetId = supportedAssets.find(path =>
+        path.toLowerCase().includes(selectedTokenAddress)
+      );
+
+      if (!assetId) {
+        setLocalDepositError(`Token ${selectedToken.symbol} not supported for deposits`);
+        return;
+      }
+
+      // Prepare deposit parameters using exact supported asset ID
       const depositParams: DepositParams = {
         amount,
-        assetId: `eip155:1/erc20:${selectedToken.address}` as CaipAssetId,
+        assetId,
       };
 
-      const result = await perpsController.deposit(depositParams);
-      if (result.success) {
-        setPreviewModalVisible(false);
-        // Navigate to processing/success view
-        navigation.navigate('PerpsDepositProcessing' as never, {
-          amount,
-          selectedToken: selectedToken.symbol,
-          txHash: result.txHash,
-        });
-      } else {
-        setDepositError(result.error || 'Deposit failed');
-      }
+      DevLogger.log('PerpsDeposit: Calling deposit with reactive pattern', {
+        depositParams,
+        selectedToken,
+        amount,
+        selectedAddress,
+        reactivePattern: 'Controller will handle flow, UI will react to state changes'
+      });
+
+      // Single call to controller - it handles the complete flow internally
+      // Reactive useEffect hooks will handle modal dismissal and navigation
+      await deposit(depositParams);
+
     } catch (error) {
-      setDepositError(error instanceof Error ? error.message : 'Unknown error occurred');
+      DevLogger.log('PerpsDeposit: Deposit error caught', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        selectedToken,
+        supportedAssets: getSupportedDepositPaths()
+      });
+      setLocalDepositError(error instanceof Error ? error.message : 'Unknown error occurred');
       Logger.error(error as Error, 'Failed to execute deposit');
     } finally {
       setIsDepositing(false);
     }
-  }, [perpsController, selectedAddress, amount, selectedToken, navigation]);
+  }, [deposit, getSupportedDepositPaths, selectedAddress, amount, selectedToken, controller]);
 
   const handleClosePreview = useCallback(() => {
     setPreviewModalVisible(false);
-    setDepositError(null);
+    setLocalDepositError(null);
   }, []);
+
+  // Reactive navigation effects based on deposit state
+  useEffect(() => {
+    // Auto-dismiss modal when controller signals it's required
+    if (requiresModalDismissal) {
+      setPreviewModalVisible(false);
+    }
+  }, [requiresModalDismissal]);
+
+  useEffect(() => {
+    // Only auto-navigate for legitimate deposits (not persisted old state)
+    // hasResetState ensures we've cleared old state, and we need both success + txHash
+    if (hasResetState && depositStatus === 'success' && currentDepositTxHash && amount !== '0') {
+      const isDirectDeposit = depositFlowType === 'direct';
+
+      navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
+        amount,
+        selectedToken: selectedToken.symbol,
+        txHash: currentDepositTxHash,
+        isDirectDeposit,
+      });
+    }
+  }, [hasResetState, depositStatus, currentDepositTxHash, navigation, amount, selectedToken, depositFlowType]);
 
   const isValidAmount = useMemo(() => {
     const numericAmount = parseFloat(amount);
@@ -385,7 +608,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           testID="buttonicon-arrowleft"
         />
         <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-          Amount to deposit
+          {strings('perps.deposit.title')}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -397,7 +620,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           <View style={styles.amountContainer}>
             <PerpsAmountDisplay
               amount={amount}
-              currency="USDC"
+              currency={selectedToken.symbol}
               showCursor
             />
           </View>
@@ -413,7 +636,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             {/* Available Balance */}
             <View style={styles.availableBalance}>
               <Text style={styles.availableLabel}>
-                Available
+                {strings('perps.deposit.available')}
               </Text>
               <Text style={styles.availableValue}>
                 {balanceDisplay} ≈ {fiatBalanceDisplay}
@@ -438,7 +661,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="Continue"
+            label={strings('perps.deposit.continue')}
             onPress={handleContinue}
             disabled={!isValidAmount}
             testID="continue-button"
@@ -453,7 +676,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         onTokenSelect={handleTokenSelect}
         tokens={perpsTokens}
         selectedTokenAddress={selectedToken?.address}
-        title="Select token to pay with"
+        title={strings('perps.deposit.selectToken')}
       />
 
       {/* Deposit Preview Modal */}
@@ -464,10 +687,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         amount={amount}
         selectedToken={selectedToken}
         tokenAmount={tokenAmountNeeded}
-        networkFee="$4.83"
-        estimatedTime="2 minutes"
+        networkFee={networkFee}
+        estimatedTime={estimatedTime}
         isLoading={isDepositing}
-        error={depositError}
+        error={localDepositError || depositError}
       />
     </SafeAreaView>
   );

@@ -18,6 +18,7 @@ import Button, {
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
+import { strings } from '../../../../../locales/i18n';
 import type { PerpsToken } from './PerpsTokenSelector';
 
 interface PerpsDepositPreviewModalProps {
@@ -159,14 +160,14 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
               color={TextColor.Muted}
               style={styles.depositingLabel}
             >
-              DEPOSITING
+              {strings('perps.deposit.title').toUpperCase()}
             </Text>
 
             <Text
               variant={TextVariant.HeadingLG}
               style={styles.amountText}
             >
-              {amount} USDC
+              {amount} {selectedToken.symbol}
             </Text>
           </View>
           <ButtonIcon
@@ -192,7 +193,7 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
                 variant={TextVariant.BodyMD}
                 style={styles.detailLabel}
               >
-                Pay with
+                {strings('perps.deposit.payWith')}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -207,7 +208,7 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
                 variant={TextVariant.BodyMD}
                 style={styles.detailLabel}
               >
-                Network fee
+                {strings('perps.deposit.networkFee')}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -222,7 +223,7 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
                 variant={TextVariant.BodyMD}
                 style={styles.detailLabel}
               >
-                Estimated time
+                {strings('perps.deposit.estimatedTime')}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -240,7 +241,7 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={isLoading ? 'Confirming...' : 'Confirm deposit'}
+            label={isLoading ? strings('perps.deposit.confirming') : strings('perps.deposit.confirmDeposit')}
             onPress={handleConfirm}
             disabled={isLoading}
           />

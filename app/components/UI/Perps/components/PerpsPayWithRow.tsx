@@ -1,16 +1,25 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor
-} from '../../../../component-library/components/Texts/Text';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Icon, {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import { AvatarVariant, AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant
+} from '../../../../component-library/components/Texts/Text';
+import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../util/networks';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import type { PerpsToken } from './PerpsTokenSelector';
@@ -27,53 +36,16 @@ interface PerpsPayWithRowProps {
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
-      width: '100%',
-      marginVertical: 8,
-    },
-    payWithContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
       backgroundColor: colors.background.alternative,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.muted,
-    },
-    leftSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: colors.text.muted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    rightSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    amountText: {
-      fontSize: 16,
-      fontWeight: '600',
+      marginVertical: 8,
     },
     tokenSelector: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      backgroundColor: colors.primary.muted,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-    },
-    tokenSymbol: {
-      fontSize: 14,
-      fontWeight: '600',
+      gap: 8,
     },
   });
 
@@ -88,66 +60,77 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  return (
-    <View style={styles.container} testID={testID}>
-      <TouchableOpacity
-        style={styles.payWithContainer}
-        onPress={onPress}
-        testID={`${testID}-selector`}
-      >
-        <View style={styles.leftSection}>
-          <Text
-            style={styles.label}
-            testID={`${testID}-label`}
-          >
-            PAY WITH
-          </Text>
-        </View>
+  // Get network information
+  const networkImageSource = getNetworkImageSource({
+    chainId: selectedToken.chainId || '0x1',
+  });
 
-        <View style={styles.rightSection}>
+  // Get network name using MetaMask's network utilities
+  const getNetworkName = (chainId: string): string =>
+    BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId] || 'Unknown Network';
+
+  const networkName = getNetworkName(selectedToken.chainId || '0x1');
+
+  return (
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      testID={testID}
+    >
+      <ListItem gap={8}>
+        <ListItemColumn widthType={WidthType.Fill}>
+          <Text variant={TextVariant.BodyMD}>
+            {strings('perps.deposit.payWith')}
+          </Text>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            style={styles.amountText}
-            testID={`${testID}-amount`}
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
           >
             {tokenAmount} {selectedToken.symbol}
           </Text>
+          {showUsdEquivalent && usdEquivalent && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Muted}
+              testID={`${testID}-usd-equivalent`}
+            >
+              ≈ {usdEquivalent}
+            </Text>
+          )}
+        </ListItemColumn>
 
+        <ListItemColumn>
           <View style={styles.tokenSelector}>
-            <AvatarGroup
-              avatarPropsList={[
-                {
-                  variant: AvatarVariant.Network,
-                  name: 'Arbitrum',
-                  imageSource: { uri: 'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg' },
-                },
-                {
-                  variant: AvatarVariant.Token,
-                  name: selectedToken.symbol,
-                  imageSource: selectedToken.iconUrl ? { uri: selectedToken.iconUrl } : undefined,
-                },
-              ]}
-              size={AvatarSize.Sm}
-            />
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Xs}
-              color={IconColor.Primary}
-            />
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <BadgeNetwork
+                  name={networkName}
+                  imageSource={networkImageSource}
+                />
+              }
+            >
+              <AvatarToken
+                name={selectedToken.name || selectedToken.symbol}
+                imageSource={selectedToken.iconUrl ? { uri: selectedToken.iconUrl } : undefined}
+                size={AvatarSize.Md}
+              />
+            </BadgeWrapper>
+            <Text variant={TextVariant.BodyMD}>
+              {selectedToken.symbol}
+            </Text>
           </View>
-        </View>
-      </TouchableOpacity>
+        </ListItemColumn>
 
-      {showUsdEquivalent && usdEquivalent && (
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Muted}
-          testID={`${testID}-usd-equivalent`}
-        >
-          ≈ ${usdEquivalent}
-        </Text>
-      )}
-    </View>
+        <ListItemColumn>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Md}
+            color={colors.icon.alternative}
+          />
+        </ListItemColumn>
+      </ListItem>
+    </TouchableOpacity>
   );
 };
 

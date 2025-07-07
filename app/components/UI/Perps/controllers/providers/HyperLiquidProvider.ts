@@ -24,7 +24,7 @@ import type {
   PriceUpdate,
   OrderFill,
 } from '../types';
-import { parseCaipAccountId, type CaipAssetId, type CaipAccountId, type Hex, isValidHexAddress } from '@metamask/utils';
+import { parseCaipAccountId, type CaipAssetId, type CaipAccountId, type CaipChainId, type Hex, isValidHexAddress } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   ExchangeClient,
@@ -42,6 +42,12 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import Engine from '../../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 
+// Network constants
+const ARBITRUM_MAINNET_CHAIN_ID = '42161';
+const ARBITRUM_TESTNET_CHAIN_ID = '421614';
+const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;
+const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_ID}`;
+
 /**
  * HyperLiquid provider implementation
  *
@@ -53,10 +59,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   private readonly assetConfigs = {
     'USDC': {
-      mainnet: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
-      testnet: 'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId
+      mainnet: `${ARBITRUM_MAINNET_CAIP_CHAIN_ID}/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default`,
+      testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`
     }
-  };
+  } as const;
+
+  // HyperLiquid bridge contract addresses for direct USDC deposits
+  // These are the official bridge contracts where USDC must be sent to credit user's HyperLiquid account
+  // Format: CAIP chain ID + contract address for multichain abstraction
+  private readonly bridgeContracts = {
+    mainnet: {
+      chainId: ARBITRUM_MAINNET_CAIP_CHAIN_ID,
+      contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7'
+    },
+    testnet: {
+      chainId: ARBITRUM_TESTNET_CAIP_CHAIN_ID,
+      contractAddress: '0x08cfc1B6b2dCF36A1480b99353A354AA8AC56f89'
+    }
+  } as const;
 
   private exchangeClient?: ExchangeClient;
   private infoClient?: InfoClient;
@@ -255,7 +275,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get supported deposit paths
+   * Get supported deposit paths - returns CAIP asset IDs for multichain abstraction
    */
   getSupportedDepositPaths(params?: GetSupportedPathsParams): CaipAssetId[] {
     const isTestnet = params?.isTestnet ?? this.isTestnet;
@@ -263,7 +283,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
       isTestnet ? config.testnet : config.mainnet
     );
 
-    return this.applyPathFilters(assets, params);
+    const filteredAssets = this.applyPathFilters(assets, params);
+
+    DevLogger.log('HyperLiquid: getSupportedDepositPaths', {
+      isTestnet,
+      requestedParams: params,
+      assetConfigs: this.assetConfigs,
+      allAssets: assets,
+      filteredAssets,
+      currentInstanceTestnet: this.isTestnet,
+      returnType: 'CaipAssetId[]',
+      example: filteredAssets[0]
+    });
+
+    return filteredAssets;
   }
 
   /**
@@ -274,26 +307,77 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get the HyperLiquid bridge information for deposits
+   * Returns both the CAIP chain ID and contract address where USDC must be sent
+   */
+  getBridgeInfo(): { chainId: CaipChainId; contractAddress: Hex } {
+    const bridgeConfig = this.isTestnet ? this.bridgeContracts.testnet : this.bridgeContracts.mainnet;
+    return {
+      chainId: bridgeConfig.chainId,
+      contractAddress: bridgeConfig.contractAddress,
+    };
+  }
+
+  /**
    * Apply filters to asset paths
    */
   private applyPathFilters(assets: CaipAssetId[], params?: GetSupportedPathsParams): CaipAssetId[] {
-    if (!params) return assets;
+    if (!params) {
+      DevLogger.log('HyperLiquid: applyPathFilters - no params, returning all assets', { assets });
+      return assets;
+    }
 
     let filtered = assets;
 
+    DevLogger.log('HyperLiquid: applyPathFilters - starting filter', {
+      initialAssets: assets,
+      filterParams: params
+    });
+
     if (params.chainId) {
+      const before = filtered;
       filtered = filtered.filter(asset => asset.startsWith(params.chainId as string));
+      DevLogger.log('HyperLiquid: applyPathFilters - chainId filter', {
+        chainId: params.chainId,
+        before,
+        after: filtered
+      });
     }
 
     if (params.symbol && params.symbol in this.assetConfigs) {
       const config = this.assetConfigs[params.symbol as keyof typeof this.assetConfigs];
       const isTestnet = params.isTestnet ?? this.isTestnet;
-      filtered = [isTestnet ? config.testnet : config.mainnet];
+      const selectedAsset = isTestnet ? config.testnet : config.mainnet;
+      const before = filtered;
+      filtered = [selectedAsset];
+      DevLogger.log('HyperLiquid: applyPathFilters - symbol filter', {
+        symbol: params.symbol,
+        isTestnet,
+        config,
+        selectedAsset,
+        before,
+        after: filtered
+      });
     }
 
     if (params.assetId) {
-      filtered = filtered.filter(asset => asset === params.assetId);
+      const before = filtered;
+      // Use case-insensitive comparison for asset ID matching to handle address case differences
+      filtered = filtered.filter(asset => asset.toLowerCase() === params.assetId?.toLowerCase());
+      DevLogger.log('HyperLiquid: applyPathFilters - assetId filter', {
+        assetId: params.assetId,
+        before,
+        after: filtered,
+        exactMatch: before.includes(params.assetId),
+        caseInsensitiveMatch: before.some(asset => asset.toLowerCase() === params.assetId?.toLowerCase())
+      });
     }
+
+    DevLogger.log('HyperLiquid: applyPathFilters - final result', {
+      initialAssets: assets,
+      finalFiltered: filtered,
+      filterParams: params
+    });
 
     return filtered;
   }
@@ -793,7 +877,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       this.initializeClients();
       return {
         success: true,
-        chainId: this.isTestnet ? '421614' : '42161',
+        chainId: this.isTestnet ? ARBITRUM_TESTNET_CHAIN_ID : ARBITRUM_MAINNET_CHAIN_ID,
       };
     } catch (error) {
       return this.createErrorResult(error, { success: false });
@@ -890,17 +974,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       throw new Error('No account selected. Please ensure MetaMask has an active account.');
     }
 
-    const chainId = this.isTestnet ? '421614' : '42161';
-    const caipAccountId = `eip155:${chainId}:${selectedAddress}` as CaipAccountId;
+    const chainId = this.isTestnet ? ARBITRUM_TESTNET_CHAIN_ID : ARBITRUM_MAINNET_CHAIN_ID;
+    const caipAccountId: CaipAccountId = `eip155:${chainId}:${selectedAddress}`;
 
     return caipAccountId;
-  }
-
-  /**
-   * Type guard to validate if string is proper Hex format
-   */
-  private isHexString(value: string): value is `0x${string}` {
-    return /^0x[a-fA-F0-9]{40}$/.test(value);
   }
 
   /**
@@ -908,16 +985,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   private getUserAddress(accountId: CaipAccountId): Hex {
     const parsed = parseCaipAccountId(accountId);
-    const address = parsed.address;
+    const address = parsed.address as Hex;
 
-    if (!this.isHexString(address)) {
-      throw new Error(`Address does not match hex pattern: ${address}`);
-    }
-
-    if (!isValidHexAddress(address as Hex)) {
+    if (!isValidHexAddress(address)) {
       throw new Error(`Invalid address format: ${address}`);
     }
 
-    return address as Hex;
+    return address;
   }
 }

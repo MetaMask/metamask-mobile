@@ -4,6 +4,7 @@ import PerpsView from '../Views/PerpsView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
 import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
+import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
 import Routes from '../../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
@@ -35,10 +36,18 @@ const PerpsScreenStack = () => (
       }}
     />
     <Stack.Screen
-      name={Routes.PERPS.DEPOSIT_SUCCESS}
+      name={Routes.PERPS.DEPOSIT_PROCESSING}
       component={PerpsDepositProcessingView}
       options={{
-        title: 'Deposit Status',
+        title: 'Processing Deposit',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.DEPOSIT_SUCCESS}
+      component={PerpsDepositSuccessView}
+      options={{
+        title: 'Deposit Success',
         headerShown: false,
       }}
     />

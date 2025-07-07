@@ -669,6 +669,53 @@
       "deposit_pending_description": "This should only take a few minutes..."
     }
   },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Amount to deposit",
+      "payWith": "Pay with",
+      "available": "Available",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "continue": "Continue",
+      "confirmDeposit": "Confirm deposit",
+      "confirming": "Confirming...",
+      "processingTitle": "Processing deposit",
+      "depositCompleted": "Deposit completed successfully!",
+      "depositFailed": "Deposit Failed",
+      "retryDeposit": "Retry Deposit",
+      "goBack": "Go Back",
+      "viewBalance": "View Balance",
+      "selectToken": "Select token to pay with",
+      "steps": {
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositingDirect": "Transferring USDC directly to your HyperLiquid account..."
+      },
+      "stepDescriptions": {
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account"
+      },
+      "processing": "Processing...",
+      "completed": "Transaction completed",
+      "confirming": "Confirming on blockchain",
+      "transactionHash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
+      "success": {
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processingTime": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "viewBalance": "View Balance",
+        "viewTransaction": "View Transaction"
+      }
+    }
+  },
   "receive": {
     "title": "Receive"
   },

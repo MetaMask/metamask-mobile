@@ -1,29 +1,33 @@
-import { useCallback, useEffect, useState } from 'react';
+import { CaipAssetId } from '@metamask/utils';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { RootState } from '../../../../reducers';
 import type {
-  OrderParams,
-  OrderResult,
-  Position,
   AccountState,
-  MarketInfo,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
+  DepositFlowType,
   DepositParams,
   DepositResult,
+  DepositStatus,
+  DepositStepInfo,
+  GetAccountStateParams,
+  GetPositionsParams,
+  LiveDataConfig,
+  MarketInfo,
+  OrderFill,
+  OrderParams,
+  OrderResult,
+  Position,
+  PriceUpdate,
+  SubscribeOrderFillsParams,
+  SubscribePositionsParams,
+  SubscribePricesParams,
   WithdrawParams,
   WithdrawResult,
-  GetPositionsParams,
-  GetAccountStateParams,
-  PriceUpdate,
-  OrderFill,
-  LiveDataConfig,
-  SubscribePricesParams,
-  SubscribePositionsParams,
-  SubscribeOrderFillsParams,
 } from '../controllers/types';
 
 /**
@@ -57,6 +61,7 @@ export function usePerpsController() {
     [controller]
   );
 
+
   const withdraw = useCallback(
     (params: WithdrawParams): Promise<WithdrawResult> =>
       controller.withdraw(params),
@@ -78,6 +83,16 @@ export function usePerpsController() {
   const getMarkets = useCallback(
     (params?: { symbols?: string[] }): Promise<MarketInfo[]> =>
       controller.getMarkets(params),
+    [controller]
+  );
+
+  const getSupportedDepositPaths = useCallback(
+    (): CaipAssetId[] => controller.getSupportedDepositPaths(),
+    [controller]
+  );
+
+  const resetDepositState = useCallback(
+    () => controller.resetDepositState(),
     [controller]
   );
 
@@ -131,6 +146,8 @@ export function usePerpsController() {
     getPositions,
     getAccountState,
     getMarkets,
+    getSupportedDepositPaths,
+    resetDepositState,
     toggleTestnet,
     getCurrentNetwork,
     disconnect,
@@ -396,4 +413,47 @@ export function useOrderManagement() {
     orderErrors,
     clearOrderError,
   };
+}
+
+/**
+ * Consolidated hook for deposit state
+ * Returns all deposit-related state in a single object to minimize re-renders
+ * Reusable pattern for withdrawal and other operation flows
+ */
+export function usePerpsDepositState() {
+  const perpsState = useSelector((state: RootState) =>
+    state.engine.backgroundState.PerpsController
+  );
+
+  return useMemo(() => {
+    if (!perpsState) {
+      return {
+        status: 'idle' as DepositStatus,
+        flowType: null as DepositFlowType | null,
+        currentTxHash: null as string | null,
+        error: null as string | null,
+        requiresModalDismissal: false,
+        steps: {
+          totalSteps: 0,
+          currentStep: 0,
+          stepNames: [],
+          stepTxHashes: [],
+        } as DepositStepInfo,
+      };
+    }
+
+    return {
+      status: perpsState.depositStatus || 'idle',
+      flowType: perpsState.depositFlowType || null,
+      currentTxHash: perpsState.currentDepositTxHash || null,
+      error: perpsState.depositError || null,
+      requiresModalDismissal: perpsState.requiresModalDismissal || false,
+      steps: perpsState.depositSteps || {
+        totalSteps: 0,
+        currentStep: 0,
+        stepNames: [],
+        stepTxHashes: [],
+      },
+    };
+  }, [perpsState]);
 }
