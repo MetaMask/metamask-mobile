@@ -38,7 +38,7 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import { OnboardingActionTypes, saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
+import { OnboardingActionTypes, saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 
 import AccountStatusImg from '../../../images/already_exist.png';
 
@@ -206,7 +206,7 @@ const AccountStatus = ({ type = 'not_exist', saveOnboardingEvent }: AccountStatu
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
+    dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(

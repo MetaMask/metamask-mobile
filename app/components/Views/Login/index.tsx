@@ -23,7 +23,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { OnboardingActionTypes, saveOnboardingEvent as SaveEvent } from '../../../actions/onboarding';
+import { OnboardingActionTypes, saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { connect, useDispatch } from 'react-redux';
@@ -743,7 +743,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(SaveEvent(eventArgs)),
+    dispatch(saveEvent(eventArgs)),
 });
 
 export default connect(null, mapDispatchToProps)(Login);

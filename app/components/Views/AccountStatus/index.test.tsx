@@ -179,4 +179,24 @@ describe('AccountStatus', () => {
       });
     });
   });
+
+  describe('Event Tracking', () => {
+    it('calls trackOnboarding when primary button is pressed for existing account', () => {
+      const { getByText } = renderWithProvider(<AccountStatus type="found" />);
+
+      const primaryButton = getByText(strings('account_status.log_in'));
+      fireEvent.press(primaryButton);
+
+      expect(trackOnboarding).toHaveBeenCalled();
+    });
+
+    it('calls trackOnboarding when primary button is pressed for new account', () => {
+      const { getByText } = renderWithProvider(<AccountStatus type="not_exist" />);
+
+      const primaryButton = getByText(strings('account_status.create_new_wallet'));
+      fireEvent.press(primaryButton);
+
+      expect(trackOnboarding).toHaveBeenCalled();
+    });
+  });
 });
