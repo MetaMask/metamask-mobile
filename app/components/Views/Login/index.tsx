@@ -330,173 +330,193 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
+  const handleOAuthLoginSuccess = async (onboardingWizard: string | null) => {
+    track(MetaMetricsEvents.REHYDRATION_PASSWORD_COMPLETED, {
+      account_type: 'social',
+      biometrics: biometryChoice,
+      failed_attempts: rehydrationFailedAttempts,
+    });
+
+    if (onboardingWizard) {
+      setOnboardingWizardStep(1);
+    }
+    if (passwordLoginAttemptTraceCtxRef.current) {
+      bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+      passwordLoginAttemptTraceCtxRef.current = null;
+    }
+    bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
+    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+
+    if (isMetricsEnabled()) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    } else {
+      navigation.navigate('OnboardingRootNav', {
+        screen: 'OnboardingNav',
+        params: {
+          screen: 'OptinMetrics',
+          params: {
+            onContinue: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+              });
+            },
+          },
+        },
+      });
+    }
+  };
+
+  const handleRegularLogin = async (onboardingWizard: string | null) => {
+    if (onboardingWizard) {
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    } else {
+      setOnboardingWizardStep(1);
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    }
+  };
+
+  const handlePasswordError = (loginErrorMessage: string, newFailedAttempts: number) => {
+    if (oauthLoginSuccess) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: newFailedAttempts,
+      });
+    }
+
+    setLoading(false);
+    setError(strings('login.invalid_password'));
+    trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
+  };
+
+  const handleLoginError = async (loginErr: unknown) => {
+    const loginError = loginErr as Error;
+    const loginErrorMessage = loginError.toString();
+    const newFailedAttempts = rehydrationFailedAttempts + 1;
+    setRehydrationFailedAttempts(newFailedAttempts);
+
+    const isPasswordError = 
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
+      loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
+
+    if (isPasswordError) {
+      handlePasswordError(loginErrorMessage, newFailedAttempts);
+      return;
+    }
+
+    if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      Alert.alert(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+      setLoading(false);
+      return;
+    }
+
+    if (
+      containsErrorMessage(loginError, VAULT_ERROR) ||
+      containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+    ) {
+      try {
+        await handleVaultCorruption();
+      } catch (vaultCorruptionErr: unknown) {
+        const vaultCorruptionError = vaultCorruptionErr as Error;
+        // we only want to display this error to the user IF we fail to handle vault corruption
+        Logger.error(vaultCorruptionError, 'Failed to handle vault corruption');
+        setLoading(false);
+        setError(strings('login.clean_vault_error'));
+      }
+      return;
+    }
+
+    if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      setLoading(false);
+      updateBiometryChoice(false);
+      return;
+    }
+
+    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
+      setLoading(false);
+      handleSeedlessOnboardingControllerError(
+        loginError as SeedlessOnboardingControllerRecoveryError,
+      );
+      return;
+    }
+
+    setLoading(false);
+    setError(loginErrorMessage);
+  };
+
+  const performAuthentication = async () => {
+    const authType = await Authentication.componentAuthenticationType(
+      biometryChoice,
+      rememberMe,
+    );
+
+    if (oauthLoginSuccess) {
+      await Authentication.rehydrateSeedPhrase(password, authType);
+    } else {
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
+    }
+  };
+
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
-
-    // Track wallet rehydration attempted only for social login flows
     if (oauthLoginSuccess) {
-      track(
-        MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
-          account_type: 'social',
-          biometrics: biometryChoice,
-        },
-      );
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: 'social',
+        biometrics: biometryChoice,
+      });
     }
 
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
-        // This will be caught by the catch block below
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
       if (loading || locked) return;
 
       setLoading(true);
       setError(null);
-      const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        rememberMe,
-      );
 
-      if (oauthLoginSuccess) {
-        await Authentication.rehydrateSeedPhrase(password, authType);
-      } else {
-        await trace(
-          {
-            name: TraceName.AuthenticateUser,
-            op: TraceOperation.Login,
-          },
-          async () => {
-            await Authentication.userEntryAuth(password, authType);
-          },
-        );
-      }
-
+      await performAuthentication();
       Keyboard.dismiss();
 
-      // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
 
       if (oauthLoginSuccess) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_COMPLETED, {
-          account_type: 'social',
-          biometrics: biometryChoice,
-          failed_attempts: rehydrationFailedAttempts,
-        });
-
-        if (onboardingWizard) {
-          setOnboardingWizardStep(1);
-        }
-        if (passwordLoginAttemptTraceCtxRef.current) {
-          bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-          passwordLoginAttemptTraceCtxRef.current = null;
-        }
-        bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
-        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
-
-        if (isMetricsEnabled()) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
-        } else {
-          navigation.navigate('OnboardingRootNav', {
-            screen: 'OnboardingNav',
-            params: {
-              screen: 'OptinMetrics',
-              params: {
-                onContinue: () => {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                  });
-                },
-              },
-            },
-          });
-        }
+        await handleOAuthLoginSuccess(onboardingWizard);
       } else {
-        // eslint-disable-next-line no-lonely-if
-        if (onboardingWizard) {
-          navigation.replace(Routes.ONBOARDING.HOME_NAV);
-        } else {
-          setOnboardingWizardStep(1);
-          navigation.replace(Routes.ONBOARDING.HOME_NAV);
-        }
+        await handleRegularLogin(onboardingWizard);
       }
 
-      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+      // Reset form state
       setPassword('');
       setLoading(false);
       setHasBiometricCredentials(false);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
-      const loginError = loginErr as Error;
-      const loginErrorMessage = loginError.toString();
+      await handleLoginError(loginErr);
+      Logger.error(loginErr as Error, 'Failed to unlock');
 
-      const newFailedAttempts = rehydrationFailedAttempts + 1;
-      setRehydrationFailedAttempts(newFailedAttempts);
-
-      if (
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
-        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
-      ) {
-        // Track failed rehydration attempt only for social login flows
-        if (oauthLoginSuccess) {
-          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-            account_type: 'social',
-            failed_attempts: newFailedAttempts,
-          });
-        }
-
-        setLoading(false);
-        setError(strings('login.invalid_password'));
-        trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-        return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('login.security_alert_title'),
-          strings('login.security_alert_desc'),
-        );
-        setLoading(false);
-      } else if (
-        containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        try {
-          await handleVaultCorruption();
-        } catch (vaultCorruptionErr: unknown) {
-          const vaultCorruptionError = vaultCorruptionErr as Error;
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(
-            vaultCorruptionError,
-            'Failed to handle vault corruption',
-          );
-          setLoading(false);
-          setError(strings('login.clean_vault_error'));
-        }
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
-        setLoading(false);
-        updateBiometryChoice(false);
-      } else if (
-        loginErr instanceof SeedlessOnboardingControllerRecoveryError
-      ) {
-        setLoading(false);
-        handleSeedlessOnboardingControllerError(
-          loginError as SeedlessOnboardingControllerRecoveryError,
-        );
-      } else {
-        setLoading(false);
-        setError(loginErrorMessage);
-      }
-      Logger.error(loginError, 'Failed to unlock');
-
-      // Check if we are in the onboarding flow
+      // Handle onboarding trace for errors
       const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
       if (onboardingTraceCtxFromRoute) {
+        const loginErrorMessage = (loginErr as Error).toString();
         bufferedTrace({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
