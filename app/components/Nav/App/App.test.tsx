@@ -126,7 +126,7 @@ describe('App', () => {
       });
     });
 
-    it('navigates to OptinMetrics when user exists and isMetaMetricsUISeen is false', async () => {
+    it('navigates to OptinMetrics when user exists and OptinMetaMetricsUISeen is false', async () => {
       // Mock StorageWrapper.getItem to return different values based on the key
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {

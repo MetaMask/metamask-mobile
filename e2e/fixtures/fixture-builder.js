@@ -516,7 +516,6 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
-          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
@@ -690,6 +689,7 @@ class FixtureBuilder {
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
+        '@MetaMask:OptinMetaMetricsUISeen': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
