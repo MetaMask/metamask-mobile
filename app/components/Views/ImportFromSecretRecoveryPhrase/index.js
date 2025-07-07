@@ -765,7 +765,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 color={TextColor.Default}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
-                {strings('import_from_seed.title')} + 'Hello'
+                {strings('import_from_seed.title')}
               </Text>
               <View style={styles.importSrpContainer}>
                 <View style={styles.description}>
