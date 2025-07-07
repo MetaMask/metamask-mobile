@@ -1,17 +1,18 @@
 // Third party dependencies.
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  memo,
+  startTransition,
+  useEffect,
+} from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { parseCaipChainId } from '@metamask/utils';
+import { parseCaipChainId, CaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-
-// Constants for main chains that should not show edit option
-const MAIN_CHAIN_IDS = new Set([
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-] as string[]);
+import { debounce } from 'lodash';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -35,6 +36,23 @@ import {
   NetworkListItemType,
 } from './NetworkMultiSelectorList.types.ts';
 import styleSheet from './NetworkMultiSelectorList.styles';
+import {
+  MAIN_CHAIN_IDS,
+  ESTIMATED_ITEM_SIZE,
+  DEVICE_HEIGHT_MULTIPLIER,
+  ADDITIONAL_NETWORK_SECTION_ID,
+  ITEM_TYPE_ADDITIONAL_SECTION,
+  ITEM_TYPE_NETWORK,
+} from './NetworkMultiSelectorList.constants';
+
+const SELECTION_DEBOUNCE_DELAY = 150;
+
+interface ProcessedNetwork extends Network {
+  chainId: string;
+  namespace: string;
+  isMainChain: boolean;
+  isTestNetwork: boolean;
+}
 
 const NetworkMultiSelectList = ({
   onSelectNetwork,
@@ -55,39 +73,131 @@ const NetworkMultiSelectList = ({
 
   const { styles } = useStyles(styleSheet, {});
 
+  const processedNetworks = useMemo(
+    (): ProcessedNetwork[] =>
+      networks.map((network) => {
+        const parsedCaipChainId = parseCaipChainId(network.caipChainId);
+        const chainId =
+          parsedCaipChainId.namespace !== 'solana'
+            ? toHex(parsedCaipChainId.reference)
+            : '';
+
+        return {
+          ...network,
+          chainId,
+          namespace: parsedCaipChainId.namespace,
+          isMainChain: MAIN_CHAIN_IDS.has(chainId),
+          isTestNetwork: Boolean(chainId && isTestNet(chainId)),
+        };
+      }),
+    [networks],
+  );
+
   const combinedData: NetworkListItem[] = useMemo(() => {
     const data: NetworkListItem[] = [];
+    const filteredNetworks = processedNetworks.filter(
+      (network) => !network.isTestNetwork,
+    );
 
-    if (networks.length > 0) {
-      data.push(...networks);
+    if (filteredNetworks.length > 0) {
+      data.push(...filteredNetworks);
     }
 
     if (additionalNetworksComponent) {
       data.push({
-        id: 'additional-network-section',
+        id: ADDITIONAL_NETWORK_SECTION_ID,
         type: NetworkListItemType.AdditionalNetworkSection,
         component: additionalNetworksComponent,
       } as AdditionalNetworkSection);
     }
 
     return data;
-  }, [networks, additionalNetworksComponent]);
+  }, [processedNetworks, additionalNetworksComponent]);
 
-  const getKeyExtractor = (item: NetworkListItem) => {
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingBottom:
+        safeAreaInsets.bottom +
+        Device.getDeviceHeight() * DEVICE_HEIGHT_MULTIPLIER,
+    }),
+    [safeAreaInsets.bottom],
+  );
+
+  const debouncedSelectNetwork = useMemo(
+    () =>
+      debounce(
+        (caipChainId: CaipChainId) => {
+          if (!onSelectNetwork) return;
+
+          startTransition(() => {
+            onSelectNetwork(caipChainId);
+          });
+        },
+        SELECTION_DEBOUNCE_DELAY,
+        {
+          leading: true,
+          trailing: false,
+        },
+      ),
+    [onSelectNetwork],
+  );
+
+  useEffect(
+    () => () => debouncedSelectNetwork.cancel(),
+    [debouncedSelectNetwork],
+  );
+
+  const getKeyExtractor = useCallback((item: NetworkListItem) => {
     if (
       'type' in item &&
       item.type === NetworkListItemType.AdditionalNetworkSection
     ) {
-      return item.id;
+      return ADDITIONAL_NETWORK_SECTION_ID;
     }
-    return (item as Network).id;
-  };
+    return (item as ProcessedNetwork).id;
+  }, []);
 
-  const isAdditionalNetworkSection = (
-    item: NetworkListItem,
-  ): item is AdditionalNetworkSection =>
-    'type' in item &&
-    item.type === NetworkListItemType.AdditionalNetworkSection;
+  const getItemType = useCallback((item: NetworkListItem) => {
+    if (
+      'type' in item &&
+      item.type === NetworkListItemType.AdditionalNetworkSection
+    ) {
+      return ITEM_TYPE_ADDITIONAL_SECTION;
+    }
+    return ITEM_TYPE_NETWORK;
+  }, []);
+
+  const isAdditionalNetworkSection = useCallback(
+    (item: NetworkListItem): item is AdditionalNetworkSection =>
+      'type' in item &&
+      item.type === NetworkListItemType.AdditionalNetworkSection,
+    [],
+  );
+
+  const createAvatarProps = useCallback(
+    (network: ProcessedNetwork) => ({
+      variant: AvatarVariant.Network as const,
+      name: network.name,
+      imageSource: network.imageSource as ImageSourcePropType,
+      size: AvatarSize.Sm,
+    }),
+    [],
+  );
+
+  const createButtonProps = useCallback(
+    (network: ProcessedNetwork) => ({
+      onButtonClick: () => {
+        openModal({
+          isVisible: true,
+          caipChainId: network.caipChainId,
+          displayEdit: !network.isMainChain,
+          networkTypeOrRpcUrl: network.networkTypeOrRpcUrl || '',
+          isReadOnly: false,
+        });
+      },
+    }),
+    [openModal],
+  );
 
   const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(
     ({ item }) => {
@@ -95,20 +205,11 @@ const NetworkMultiSelectList = ({
         return <View>{item.component}</View>;
       }
 
-      const {
-        caipChainId,
-        name,
-        isSelected,
-        imageSource,
-        networkTypeOrRpcUrl,
-      } = item as Network;
-      const isDisabled = isLoading || isSelectionDisabled;
-      const parsedCaipChainId = parseCaipChainId(caipChainId);
-      const namespace = parsedCaipChainId.namespace;
+      const network = item as ProcessedNetwork;
+      const { caipChainId, name, isSelected, networkTypeOrRpcUrl } = network;
 
-      const chainId =
-        namespace !== 'solana' ? toHex(parsedCaipChainId.reference) : '';
-      if (chainId && isTestNet(chainId)) return null;
+      const isDisabled = isLoading || isSelectionDisabled;
+      const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
@@ -116,30 +217,12 @@ const NetworkMultiSelectList = ({
             variant={CellVariant.MultiSelectWithMenu}
             isSelected={isSelected}
             title={name}
-            onPress={() => onSelectNetwork?.(caipChainId)}
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource: imageSource as ImageSourcePropType,
-              size: AvatarSize.Sm,
-            }}
+            onPress={() => debouncedSelectNetwork(caipChainId)}
+            avatarProps={createAvatarProps(network)}
             buttonIcon={IconName.MoreVertical}
             disabled={isDisabled}
-            showButtonIcon={!!networkTypeOrRpcUrl}
-            buttonProps={{
-              onButtonClick: () => {
-                const rawChainId = parseCaipChainId(caipChainId).reference;
-                const currentChainId = toHex(rawChainId);
-                const isMainChain = MAIN_CHAIN_IDS.has(currentChainId);
-                openModal({
-                  isVisible: true,
-                  caipChainId,
-                  displayEdit: !isMainChain,
-                  networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
-                  isReadOnly: false,
-                });
-              },
-            }}
+            showButtonIcon={showButtonIcon}
+            buttonProps={createButtonProps(network)}
           >
             {renderRightAccessory?.(caipChainId, name)}
           </Cell>
@@ -147,11 +230,13 @@ const NetworkMultiSelectList = ({
       );
     },
     [
+      isAdditionalNetworkSection,
       isLoading,
-      renderRightAccessory,
       isSelectionDisabled,
-      onSelectNetwork,
-      openModal,
+      debouncedSelectNetwork,
+      renderRightAccessory,
+      createAvatarProps,
+      createButtonProps,
     ],
   );
 
@@ -175,14 +260,20 @@ const NetworkMultiSelectList = ({
       data={combinedData}
       keyExtractor={getKeyExtractor}
       renderItem={renderNetworkItem}
-      estimatedItemSize={56}
+      getItemType={getItemType}
+      estimatedItemSize={ESTIMATED_ITEM_SIZE}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-        paddingBottom: safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
+      contentContainerStyle={contentContainerStyle}
+      disableAutoLayout
+      removeClippedSubviews
+      viewabilityConfig={{
+        waitForInteraction: true,
+        itemVisiblePercentThreshold: 50,
+        minimumViewTime: 100,
       }}
       {...props}
     />
   );
 };
 
-export default NetworkMultiSelectList;
+export default memo(NetworkMultiSelectList);

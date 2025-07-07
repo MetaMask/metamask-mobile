@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { selectChainId } from '../../selectors/networkController';
 import {
   selectAllNftContracts,
@@ -36,14 +35,24 @@ export const multichainCollectibleContractsByEnabledNetworksSelector =
     selectAllNftContracts,
     selectEnabledNetworksByNamespace,
     (address, allNftContracts, enabledNetworks) => {
-      const enabledChainIds = Object.keys(
-        enabledNetworks[KnownCaipNamespace.Eip155],
-      ).filter(
-        (chainId) => enabledNetworks[KnownCaipNamespace.Eip155][chainId],
+      const addressContracts = allNftContracts[address];
+
+      if (!addressContracts || Object.keys(addressContracts).length === 0) {
+        return {};
+      }
+
+      const enabledNetworksForEip155 =
+        enabledNetworks[KnownCaipNamespace.Eip155];
+      const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
+        (chainId) => enabledNetworksForEip155[chainId],
       );
 
+      if (enabledChainIds.length === 0) {
+        return {};
+      }
+
       return enabledChainIds.reduce((acc, chainId) => {
-        acc[chainId] = allNftContracts[address]?.[chainId] || [];
+        acc[chainId] = addressContracts[chainId] || [];
         return acc;
       }, {});
     },
@@ -68,20 +77,30 @@ export const multichainCollectiblesByEnabledNetworksSelector =
     selectAllNfts,
     selectEnabledNetworksByNamespace,
     (address, allNfts, enabledNetworks) => {
-      const enabledChainIds = Object.keys(
-        enabledNetworks[KnownCaipNamespace.Eip155],
-      ).filter(
-        (chainId) => enabledNetworks[KnownCaipNamespace.Eip155][chainId],
+      const addressNfts = allNfts[address];
+
+      if (!addressNfts || Object.keys(addressNfts).length === 0) {
+        return {};
+      }
+
+      const enabledNetworksForEip155 =
+        enabledNetworks[KnownCaipNamespace.Eip155];
+      const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
+        (chainId) => enabledNetworksForEip155[chainId],
       );
 
-      const filteredNfts = Object.keys(allNfts[address] || {}).filter(
-        (chainId) => enabledChainIds.includes(chainId),
-      );
+      if (enabledChainIds.length === 0) {
+        return {};
+      }
 
-      return filteredNfts.reduce((acc, chainId) => {
-        acc[chainId] = allNfts[address][chainId];
-        return acc;
-      }, {});
+      const enabledChainIdsSet = new Set(enabledChainIds);
+
+      return Object.keys(addressNfts)
+        .filter((chainId) => enabledChainIdsSet.has(chainId))
+        .reduce((acc, chainId) => {
+          acc[chainId] = addressNfts[chainId];
+          return acc;
+        }, {});
     },
   );
 

@@ -5,23 +5,45 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 
+const NOTCH_WIDTH = 48;
+const NOTCH_HEIGHT = 5;
+const NOTCH_BORDER_RADIUS = 4;
+const NOTCH_MARGIN_TOP = 8;
+const SHEET_BORDER_RADIUS = 20;
+const TITLE_PADDING_TOP = 16;
+const TITLE_MARGIN_TOP = 4;
+const UNDERLINE_HEIGHT = 2;
+const TAB_PADDING_BOTTOM = 8;
+const TAB_PADDING_VERTICAL = 8;
+const TAB_MARGIN_BOTTOM = 8;
+const DELETE_CONTAINER_PADDING_LEFT = 16;
+const DELETE_CONTAINER_PADDING_RIGHT = 8;
+
+const BODY_MD_FONT_FAMILY = getFontFamily(TextVariant.BodyMD);
+
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors, typography } = theme;
 
+  const backgroundDefault = colors.background.default;
+  const borderDefault = colors.border.default;
+  const borderMuted = colors.border.muted;
+  const textDefault = colors.text.default;
+  const textAlternative = colors.text.alternative;
+
   return StyleSheet.create({
     // reusable modal
     sheet: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      backgroundColor: backgroundDefault,
+      borderTopLeftRadius: SHEET_BORDER_RADIUS,
+      borderTopRightRadius: SHEET_BORDER_RADIUS,
     },
     notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: colors.border.default,
-      marginTop: 8,
+      width: NOTCH_WIDTH,
+      height: NOTCH_HEIGHT,
+      borderRadius: NOTCH_BORDER_RADIUS,
+      backgroundColor: borderDefault,
+      marginTop: NOTCH_MARGIN_TOP,
       alignSelf: 'center',
     },
     // network tabs selectors
@@ -30,30 +52,30 @@ const createStyles = (params: { theme: Theme }) => {
     },
     networkTabsSelectorTitle: {
       alignSelf: 'center',
-      paddingTop: 16,
-      marginTop: 4,
+      paddingTop: TITLE_PADDING_TOP,
+      marginTop: TITLE_MARGIN_TOP,
     },
     // tab
     tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.text.default,
+      height: UNDERLINE_HEIGHT,
+      backgroundColor: textDefault,
     },
     inactiveUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.text.alternative,
+      height: UNDERLINE_HEIGHT,
+      backgroundColor: textAlternative,
     },
     tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
+      paddingBottom: TAB_PADDING_BOTTOM,
+      paddingVertical: TAB_PADDING_VERTICAL,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      fontFamily: BODY_MD_FONT_FAMILY,
       fontWeight: '500',
     },
     tabBar: {
-      borderColor: colors.border.muted,
-      marginBottom: 8,
+      borderColor: borderMuted,
+      marginBottom: TAB_MARGIN_BOTTOM,
     },
     // edit network menu
     editNetworkMenu: {
@@ -61,8 +83,8 @@ const createStyles = (params: { theme: Theme }) => {
     },
     // custom network styles
     containerDeleteText: {
-      paddingLeft: 16,
-      paddingRight: 8,
+      paddingLeft: DELETE_CONTAINER_PADDING_LEFT,
+      paddingRight: DELETE_CONTAINER_PADDING_RIGHT,
       alignItems: 'center',
     },
     textCentred: {

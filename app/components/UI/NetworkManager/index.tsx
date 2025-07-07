@@ -10,7 +10,6 @@ import ScrollableTabView, {
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // external dependencies
 import Engine from '../../../core/Engine';
@@ -49,7 +48,6 @@ import createStyles from './index.styles';
 import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
-  ShowMultiRpcSelectModalState,
 } from './index.types';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
@@ -71,15 +69,8 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
   caipChainId: 'eip155:1',
 };
 
-const initialShowMultiRpcSelectModal: ShowMultiRpcSelectModalState = {
-  isVisible: false,
-  chainId: CHAIN_IDS.MAINNET,
-  networkName: '',
-};
-
 const NetworkManager = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
-  const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<ReusableModalRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
@@ -93,26 +84,63 @@ const NetworkManager = () => {
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
-  const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] =
-    useState<ShowMultiRpcSelectModalState>(initialShowMultiRpcSelectModal);
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
 
+  const containerStyle = useMemo(
+    () => [
+      {
+        paddingTop: safeAreaInsets.top + Device.getDeviceHeight() * 0.02,
+        paddingBottom: safeAreaInsets.bottom,
+      },
+    ],
+    [safeAreaInsets.top, safeAreaInsets.bottom],
+  );
+
+  const defaultTabProps = useMemo(
+    () => ({
+      key: 'default-tab',
+      tabLabel: strings('wallet.default'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const customTabProps = useMemo(
+    () => ({
+      key: 'custom-tab',
+      tabLabel: strings('wallet.custom'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const buttonConfigs = useMemo(
+    () => ({
+      cancel: {
+        variant: ButtonVariants.Secondary,
+        label: strings('accountApproval.cancel'),
+        size: ButtonSize.Lg,
+      } as const,
+      delete: {
+        variant: ButtonVariants.Primary,
+        label: strings('app_settings.delete'),
+        size: ButtonSize.Lg,
+      } as const,
+    }),
+    [],
+  );
+
   const onChangeTab = useCallback(
-    async (obj: ChangeTabProperties) => {
-      if (obj.ref.props.tabLabel === strings('wallet.default')) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.ASSET_FILTER_SELECTED).build(),
-        );
-      } else {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.ASSET_FILTER_CUSTOM_SELECTED,
-          ).build(),
-        );
-      }
+    (obj: ChangeTabProperties) => {
+      const isDefaultTab = obj.ref.props.tabLabel === strings('wallet.default');
+      const eventType = isDefaultTab
+        ? MetaMetricsEvents.ASSET_FILTER_SELECTED
+        : MetaMetricsEvents.ASSET_FILTER_CUSTOM_SELECTED;
+
+      trackEvent(createEventBuilder(eventType).build());
     },
     [trackEvent, createEventBuilder],
   );
@@ -134,29 +162,12 @@ const NetworkManager = () => {
     [styles, colors],
   );
 
-  const defaultTabProps = useMemo(
-    () => ({
-      key: 'default-tab',
-      tabLabel: strings('wallet.default'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const customTabProps = useMemo(
-    () => ({
-      key: 'custom-tab',
-      tabLabel: strings('wallet.custom'),
-      navigation,
-    }),
-    [navigation],
-  );
-
   const openModal = useCallback((networkMenuModal: NetworkMenuModalState) => {
-    setNetworkMenuModal({
+    setNetworkMenuModal((prev) => ({
+      ...prev,
       ...networkMenuModal,
       isVisible: true,
-    });
+    }));
     networkMenuSheetRef.current?.onOpenBottomSheet();
   }, []);
 
@@ -165,33 +176,41 @@ const NetworkManager = () => {
     networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const closeRpcModal = useCallback(() => {
-    setShowMultiRpcSelectModal({
-      isVisible: false,
-      chainId: CHAIN_IDS.MAINNET,
-      networkName: '',
-    });
-    rpcMenuSheetRef.current?.onCloseBottomSheet();
+  const closeDeleteModal = useCallback(() => {
+    setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
+    networkMenuSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const removeRpcUrl = (chainId: CaipChainId) => {
-    const networkConfiguration = networkConfigurations[chainId];
-
-    if (!networkConfiguration) {
-      throw new Error(`Unable to find network with chain id ${chainId}`);
-    }
-
-    closeModal();
-    closeRpcModal();
-
-    setShowConfirmDeleteModal({
-      isVisible: true,
-      networkName: networkConfiguration.name ?? '',
-      caipChainId: networkConfiguration.caipChainId,
+  const handleEditNetwork = useCallback(() => {
+    sheetRef.current?.dismissModal(() => {
+      navigation.navigate(Routes.ADD_NETWORK, {
+        shouldNetworkSwitchPopToWallet: false,
+        shouldShowPopularNetworks: false,
+        network: showNetworkMenuModal.networkTypeOrRpcUrl,
+      });
     });
-  };
+  }, [navigation, showNetworkMenuModal.networkTypeOrRpcUrl]);
 
-  const confirmRemoveRpc = () => {
+  const removeRpcUrl = useCallback(
+    (chainId: CaipChainId) => {
+      const networkConfiguration = networkConfigurations[chainId];
+
+      if (!networkConfiguration) {
+        throw new Error(`Unable to find network with chain id ${chainId}`);
+      }
+
+      closeModal();
+
+      setShowConfirmDeleteModal({
+        isVisible: true,
+        networkName: networkConfiguration.name ?? '',
+        caipChainId: networkConfiguration.caipChainId,
+      });
+    },
+    [networkConfigurations, closeModal],
+  );
+
+  const confirmRemoveRpc = useCallback(() => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
@@ -204,46 +223,28 @@ const NetworkManager = () => {
         removeItemFromChainIdList(chainId),
       );
 
-      setShowConfirmDeleteModal({
-        isVisible: false,
-        networkName: '',
-      });
+      setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  };
+  }, [showConfirmDeleteModal]);
 
-  const closeDeleteModal = useCallback(() => {
-    setShowConfirmDeleteModal(() => ({
-      networkName: '',
-      isVisible: false,
-      entry: undefined,
-    }));
-    networkMenuSheetRef.current?.onCloseBottomSheet();
-  }, []);
+  const cancelButtonProps: ButtonProps = useMemo(
+    () => ({
+      ...buttonConfigs.cancel,
+      onPress: closeDeleteModal,
+    }),
+    [buttonConfigs.cancel, closeDeleteModal],
+  );
 
-  const cancelButtonProps: ButtonProps = {
-    variant: ButtonVariants.Secondary,
-    label: strings('accountApproval.cancel'),
-    size: ButtonSize.Lg,
-    onPress: () => closeDeleteModal(),
-  };
-
-  const deleteButtonProps: ButtonProps = {
-    variant: ButtonVariants.Primary,
-    label: strings('app_settings.delete'),
-    size: ButtonSize.Lg,
-    onPress: () => confirmRemoveRpc(),
-  };
+  const deleteButtonProps: ButtonProps = useMemo(
+    () => ({
+      ...buttonConfigs.delete,
+      onPress: confirmRemoveRpc,
+    }),
+    [buttonConfigs.delete, confirmRemoveRpc],
+  );
 
   return (
-    <ReusableModal
-      ref={sheetRef}
-      style={[
-        {
-          paddingTop: safeAreaInsets.top + Device.getDeviceHeight() * 0.02,
-          paddingBottom: safeAreaInsets.bottom,
-        },
-      ]}
-    >
+    <ReusableModal ref={sheetRef} style={containerStyle}>
       <View style={styles.sheet}>
         <View style={styles.notch} />
         <Text
@@ -263,6 +264,7 @@ const NetworkManager = () => {
           </ScrollableTabView>
         </View>
       </View>
+
       {showNetworkMenuModal.isVisible && (
         <BottomSheet
           ref={networkMenuSheetRef}
@@ -273,29 +275,20 @@ const NetworkManager = () => {
             <AccountAction
               actionTitle={strings('transaction.edit')}
               iconName={IconName.Edit}
-              onPress={() => {
-                sheetRef.current?.dismissModal(() => {
-                  navigation.navigate(Routes.ADD_NETWORK, {
-                    shouldNetworkSwitchPopToWallet: false,
-                    shouldShowPopularNetworks: false,
-                    network: showNetworkMenuModal.networkTypeOrRpcUrl,
-                  });
-                });
-              }}
+              onPress={handleEditNetwork}
             />
-            {showNetworkMenuModal.displayEdit ? (
+            {showNetworkMenuModal.displayEdit && (
               <AccountAction
                 actionTitle={strings('app_settings.delete')}
                 iconName={IconName.Trash}
                 onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
-                // testID={NetworkListModalSelectorsIDs.DELETE_NETWORK}
               />
-            ) : null}
+            )}
           </View>
         </BottomSheet>
       )}
 
-      {showConfirmDeleteModal.isVisible ? (
+      {showConfirmDeleteModal.isVisible && (
         <BottomSheet
           ref={deleteModalSheetRef}
           onClose={closeDeleteModal}
@@ -318,7 +311,7 @@ const NetworkManager = () => {
             />
           </View>
         </BottomSheet>
-      ) : null}
+      )}
     </ReusableModal>
   );
 };

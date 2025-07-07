@@ -1,5 +1,5 @@
 // third party dependencies
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo, memo } from 'react';
 import { View } from 'react-native';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
 
@@ -17,68 +17,147 @@ import Text, {
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement';
 import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import {
+  useNetworkSelection,
+  SelectionMode,
+  ResetNetworkType,
+} from '../../hooks/useNetworkSelection';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
 import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
+interface ModalState {
+  showPopularNetworkModal: boolean;
+  popularNetwork?: ExtendedNetwork;
+  showWarningModal: boolean;
+}
+
+const initialModalState: ModalState = {
+  showPopularNetworkModal: false,
+  popularNetwork: undefined,
+  showWarningModal: false,
+};
+
+const SELECT_ALL_STRINGS = {
+  select: strings('networks.select_all'),
+  deselect: strings('networks.deselect_all'),
+} as const;
+
+const CUSTOM_NETWORK_PROPS = {
+  switchTab: undefined,
+  shouldNetworkSwitchPopToWallet: false,
+  showCompletionMessage: false,
+  showPopularNetworkModal: true,
+  allowNetworkSwitch: false,
+  hideWarningIcons: true,
+  listHeader: strings('networks.additional_networks'),
+  compactMode: true,
+} as const;
 
 const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, { colors });
 
-  const [showPopularNetworkModal, setShowPopularNetworkModal] = useState(false);
-  const [popularNetwork, setPopularNetwork] = useState<ExtendedNetwork>();
-  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
-  // Use custom hooks for network management
   const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: 'popular',
   });
   const { selectNetwork, toggleAll } = useNetworkSelection({
-    mode: 'multi',
+    mode: SelectionMode.Multi,
     networks,
-    resetNetworkType: 'custom',
+    resetNetworkType: ResetNetworkType.Custom,
   });
+
+  const selectedChainIds = useMemo(
+    () => Object.keys(enabledNetworksByNamespace[namespace]) as CaipChainId[],
+    [enabledNetworksByNamespace, namespace],
+  );
+
+  const selectAllText = useMemo(
+    () =>
+      areAllNetworksSelected
+        ? SELECT_ALL_STRINGS.deselect
+        : SELECT_ALL_STRINGS.select,
+    [areAllNetworksSelected],
+  );
 
   const showNetworkModal = useCallback(
     (networkConfiguration: ExtendedNetwork) => {
-      setShowPopularNetworkModal(true);
-      setPopularNetwork({
+      const formattedNetwork: ExtendedNetwork = {
         ...networkConfiguration,
         formattedRpcUrl: networkConfiguration.warning
           ? null
           : hideKeyFromUrl(networkConfiguration.rpcUrl),
-      });
+      };
+
+      setModalState((prev) => ({
+        ...prev,
+        showPopularNetworkModal: true,
+        popularNetwork: formattedNetwork,
+      }));
     },
-    [setShowPopularNetworkModal, setPopularNetwork],
+    [],
   );
 
   const onCancel = useCallback(() => {
-    setShowPopularNetworkModal(false);
-    setPopularNetwork(undefined);
+    setModalState((prev) => ({
+      ...prev,
+      showPopularNetworkModal: false,
+      popularNetwork: undefined,
+    }));
   }, []);
 
   const toggleWarningModal = useCallback(() => {
-    setShowWarningModal(!showWarningModal);
-  }, [setShowWarningModal, showWarningModal]);
+    setModalState((prev) => ({
+      ...prev,
+      showWarningModal: !prev.showWarningModal,
+    }));
+  }, []);
+
+  const customNetworkProps = useMemo(
+    () => ({
+      ...CUSTOM_NETWORK_PROPS,
+      isNetworkModalVisible: modalState.showPopularNetworkModal,
+      closeNetworkModal: onCancel,
+      selectedNetwork: modalState.popularNetwork,
+      toggleWarningModal,
+      showNetworkModal,
+      customNetworksList: PopularList,
+    }),
+    [
+      modalState.showPopularNetworkModal,
+      modalState.popularNetwork,
+      onCancel,
+      toggleWarningModal,
+      showNetworkModal,
+    ],
+  );
 
   const renderSelectAllCheckbox = useCallback(
-    (): React.JSX.Element | null => (
+    (): React.JSX.Element => (
       <View>
         <Text
           style={styles.selectAllText}
           onPress={toggleAll}
           variant={TextVariant.BodyMD}
         >
-          {areAllNetworksSelected
-            ? strings('networks.deselect_all')
-            : strings('networks.select_all')}
+          {selectAllText}
         </Text>
       </View>
     ),
-    [styles.selectAllText, areAllNetworksSelected, toggleAll],
+    [styles.selectAllText, selectAllText, toggleAll],
+  );
+
+  const additionalNetworksComponent = useMemo(
+    () =>
+      namespace === KnownCaipNamespace.Eip155 ? (
+        <View style={styles.customNetworkContainer}>
+          <CustomNetwork {...customNetworkProps} />
+        </View>
+      ) : null,
+    [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
   return (
@@ -87,37 +166,12 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
       <NetworkMultiSelectorList
         openModal={openModal}
         networks={networks}
-        selectedChainIds={
-          Object.keys(enabledNetworksByNamespace[namespace]) as CaipChainId[]
-        }
+        selectedChainIds={selectedChainIds}
         onSelectNetwork={selectNetwork}
-        additionalNetworksComponent={
-          <>
-            {namespace === KnownCaipNamespace.Eip155 && (
-              <View style={styles.customNetworkContainer}>
-                <CustomNetwork
-                  isNetworkModalVisible={showPopularNetworkModal}
-                  closeNetworkModal={onCancel}
-                  selectedNetwork={popularNetwork}
-                  toggleWarningModal={toggleWarningModal}
-                  showNetworkModal={showNetworkModal}
-                  switchTab={undefined}
-                  shouldNetworkSwitchPopToWallet={false}
-                  customNetworksList={PopularList}
-                  showCompletionMessage={false}
-                  showPopularNetworkModal
-                  allowNetworkSwitch={false}
-                  hideWarningIcons
-                  listHeader={strings('networks.additional_networks')}
-                  compactMode
-                />
-              </View>
-            )}
-          </>
-        }
+        additionalNetworksComponent={additionalNetworksComponent}
       />
     </View>
   );
 };
 
-export default NetworkMultiSelector;
+export default memo(NetworkMultiSelector);

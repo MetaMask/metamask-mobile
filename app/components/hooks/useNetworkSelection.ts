@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -6,7 +6,15 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../selectors
 import { useNetworkEnablement } from './useNetworkEnablement';
 import { ProcessedNetwork } from './useNetworksByNamespace';
 
-export type SelectionMode = 'single' | 'multi';
+export enum SelectionMode {
+  Single = 'single',
+  Multi = 'multi',
+}
+
+export enum ResetNetworkType {
+  Popular = 'popular',
+  Custom = 'custom',
+}
 
 interface UseNetworkSelectionOptions {
   mode: SelectionMode;
@@ -15,7 +23,7 @@ interface UseNetworkSelectionOptions {
    * For single mode: which networks to reset to when selecting
    * For multi mode: which networks to clear when selecting from this set
    */
-  resetNetworkType?: 'popular' | 'custom';
+  resetNetworkType?: ResetNetworkType;
 }
 
 /**
@@ -32,17 +40,42 @@ export const useNetworkSelection = ({
     disableNetwork,
     toggleNetwork,
     enabledNetworksByNamespace,
+    networkEnablementController,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
   );
 
+  const popularNetworkChainIds = useMemo(
+    () =>
+      new Set(
+        popularNetworkConfigurations.map((network) => network.caipChainId),
+      ),
+    [popularNetworkConfigurations],
+  );
+
+  const currentEnabledNetworks = useMemo(
+    () =>
+      Object.keys(enabledNetworksByNamespace[namespace] || {})
+        .filter((key) => enabledNetworksByNamespace[namespace][key])
+        .map((key) => formatChainIdToCaip(key)),
+    [enabledNetworksByNamespace, namespace],
+  );
+
+  const customNetworksToReset = useMemo(
+    () =>
+      currentEnabledNetworks.filter(
+        (chainId) => !popularNetworkChainIds.has(chainId),
+      ),
+    [currentEnabledNetworks, popularNetworkChainIds],
+  );
+
   const resetToPopularNetworks = useCallback(() => {
-    const currentEnabledNetworks = enabledNetworksByNamespace[namespace];
+    const enabledNetworksForNamespace = enabledNetworksByNamespace[namespace];
     if (
-      !currentEnabledNetworks ||
-      Object.keys(currentEnabledNetworks).length === 0
+      !enabledNetworksForNamespace ||
+      Object.keys(enabledNetworksForNamespace).length === 0
     ) {
       return;
     }
@@ -58,48 +91,31 @@ export const useNetworkSelection = ({
   ]);
 
   const resetCustomNetworks = useCallback(() => {
-    const currentNetworksByNamespace = enabledNetworksByNamespace[namespace];
-
-    const currentEnabledNetworks = Object.keys(currentNetworksByNamespace)
-      .filter((key) => currentNetworksByNamespace[key])
-      .map((key) => formatChainIdToCaip(key));
-
-    const popularNetworks = popularNetworkConfigurations.map(
-      (network) => network.caipChainId,
-    );
-
-    const networksToReset = currentEnabledNetworks.filter(
-      (chainId) => !popularNetworks.includes(chainId),
-    );
-
-    if (networksToReset.length === 0) {
+    if (customNetworksToReset.length === 0) {
       return;
     }
 
-    networksToReset.forEach((chainId) => {
+    customNetworksToReset.forEach((chainId) => {
       disableNetwork(chainId as CaipChainId);
     });
-  }, [
-    enabledNetworksByNamespace,
-    namespace,
-    popularNetworkConfigurations,
-    disableNetwork,
-  ]);
+  }, [customNetworksToReset, disableNetwork]);
 
   const selectNetwork = useCallback(
     (chainId: CaipChainId) => {
-      if (mode === 'single') {
-        // Reset logic for single selection
-        if (resetNetworkType === 'popular') {
+      if (mode === SelectionMode.Single) {
+        if (resetNetworkType === ResetNetworkType.Popular) {
           resetToPopularNetworks();
-        } else if (resetNetworkType === 'custom') {
+        } else if (resetNetworkType === ResetNetworkType.Custom) {
           resetCustomNetworks();
         }
         enableNetwork(chainId);
       } else {
-        // Multi-selection mode - toggle the network
-        if (resetNetworkType === 'custom') {
-          resetCustomNetworks();
+        if (resetNetworkType === ResetNetworkType.Custom) {
+          const isCurrentlyEnabled =
+            networkEnablementController.isNetworkEnabled(chainId);
+          if (!isCurrentlyEnabled) {
+            resetCustomNetworks();
+          }
         }
         toggleNetwork(chainId);
       }
@@ -111,57 +127,37 @@ export const useNetworkSelection = ({
       resetCustomNetworks,
       enableNetwork,
       toggleNetwork,
+      networkEnablementController,
     ],
   );
 
   const selectAll = useCallback(() => {
-    if (mode !== 'multi') return;
-
-    networks.forEach(({ caipChainId }) => {
-      enableNetwork(caipChainId);
+    if (mode !== SelectionMode.Multi) return;
+    networks.forEach(({ caipChainId, isSelected }) => {
+      if (!isSelected) {
+        enableNetwork(caipChainId);
+      }
     });
   }, [mode, networks, enableNetwork]);
 
   const deselectAll = useCallback(() => {
-    if (mode !== 'multi') return;
+    if (mode !== SelectionMode.Multi) return;
+
     networks.forEach(({ caipChainId }) => {
       disableNetwork(caipChainId);
     });
   }, [mode, networks, disableNetwork]);
 
   const toggleAll = useCallback(() => {
-    if (mode !== 'multi') return;
+    if (mode !== SelectionMode.Multi) return;
 
     const areAllSelected = networks.every(({ isSelected }) => isSelected);
     if (areAllSelected) {
       deselectAll();
     } else {
-      // First disable ALL networks, then enable only the ones we want
-      const allEnabledNetworks = Object.keys(
-        enabledNetworksByNamespace[namespace],
-      )
-        .filter((key) => enabledNetworksByNamespace[namespace][key])
-        .map((key) => formatChainIdToCaip(key));
-
-      // Disable all currently enabled networks
-      allEnabledNetworks.forEach((chainId) => {
-        disableNetwork(chainId as CaipChainId);
-      });
-
-      // Then enable only the networks we want
-      networks.forEach(({ caipChainId }) => {
-        enableNetwork(caipChainId);
-      });
+      selectAll();
     }
-  }, [
-    mode,
-    networks,
-    deselectAll,
-    enabledNetworksByNamespace,
-    namespace,
-    disableNetwork,
-    enableNetwork,
-  ]);
+  }, [mode, networks, deselectAll, selectAll]);
 
   return {
     selectNetwork,

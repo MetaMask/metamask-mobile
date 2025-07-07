@@ -29,7 +29,11 @@ import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import {
+  ResetNetworkType,
+  useNetworkSelection,
+  SelectionMode,
+} from '../../hooks/useNetworkSelection';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -49,9 +53,9 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
     networkType: 'custom',
   });
   const { selectNetwork } = useNetworkSelection({
-    mode: 'single',
+    mode: SelectionMode.Single,
     networks,
-    resetNetworkType: 'popular',
+    resetNetworkType: ResetNetworkType.Popular,
   });
 
   const goToNetworkSettings = useCallback(() => {

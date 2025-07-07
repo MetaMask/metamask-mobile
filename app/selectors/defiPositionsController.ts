@@ -19,8 +19,6 @@ export const selectDeFiPositionsByAddress = createDeepEqualSelector(
     defiPositionsControllerState?.allDeFiPositions[selectedAddress as Hex],
 );
 
-// TODO: Come back to clean up this selector and fix type issues due to the
-// actual network enable controller not being installed correctly. Its being installed locally
 export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   selectDeFiPositionsControllerState,
   selectSelectedInternalAccountAddress,
@@ -28,24 +26,43 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
     selectedAddress: string,
-    enabledNetworks: NetworkEnablementControllerState[],
+    enabledNetworks: NetworkEnablementControllerState['enabledNetworkMap'],
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
     const defiPositionByAddress =
       defiPositionsControllerState.allDeFiPositions[selectedAddress as Hex] ??
       {};
+
+    if (Object.keys(defiPositionByAddress).length === 0) {
+      return {};
+    }
+
     const defiPositionByEnabledNetworks =
       enabledNetworks[KnownCaipNamespace.Eip155];
 
-    const enabledChainIds = Object.keys(defiPositionByEnabledNetworks).filter(
-      (chainId) => defiPositionByEnabledNetworks[chainId],
+    const enabledChainIdsSet = new Set(
+      Object.keys(defiPositionByEnabledNetworks).filter(
+        (chainId) => defiPositionByEnabledNetworks[chainId],
+      ),
     );
 
+    if (enabledChainIdsSet.size === 0) {
+      return {};
+    }
+
     const filteredDefiPositionByAddress = Object.keys(defiPositionByAddress)
-      .filter((chainId) => enabledChainIds.includes(chainId))
-      .reduce((acc, chainId) => {
-        acc[chainId] = defiPositionByAddress[chainId];
-        return acc;
-      }, {});
+      .filter((chainId) => enabledChainIdsSet.has(chainId))
+      .reduce(
+        (
+          acc: DeFiPositionsControllerState['allDeFiPositions'][Hex],
+          chainId,
+        ) => {
+          if (acc) {
+            acc[chainId as Hex] = defiPositionByAddress[chainId as Hex];
+          }
+          return acc;
+        },
+        {} as DeFiPositionsControllerState['allDeFiPositions'][Hex],
+      );
 
     return filteredDefiPositionByAddress;
   },

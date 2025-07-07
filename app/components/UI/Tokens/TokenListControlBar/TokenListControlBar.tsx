@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectIsAllNetworks,
-  selectIsAllPopularNetworks,
   selectIsPopularNetwork,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
@@ -52,7 +51,6 @@ export const TokenListControlBar = ({
 
   const currentChainId = useSelector(selectChainId);
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
-  const isAllPopularNetworks = useSelector(selectIsAllPopularNetworks);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
@@ -71,10 +69,7 @@ export const TokenListControlBar = ({
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
 
-  const isPopularNetwork = isRemoveGlobalNetworkSelectorEnabled()
-    ? isAllPopularNetworks
-    : isAllPopularEVMNetworks;
-  const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
+  const isDisabled = isTestNet(currentChainId) || !isAllPopularEVMNetworks;
 
   const handleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -111,7 +106,7 @@ export const TokenListControlBar = ({
                 </Text>
               ) : (
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks && isPopularNetwork && isEvmSelected
+                  {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                     ? strings('wallet.popular_networks')
                     : networkName ?? strings('wallet.current_network')}
                 </Text>
@@ -119,7 +114,7 @@ export const TokenListControlBar = ({
             </>
           }
           isDisabled={isDisabled}
-          onPress={handleFilterControls}
+          onPress={isEvmSelected ? handleFilterControls : () => null}
           endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
           style={
             isDisabled ? styles.controlButtonDisabled : styles.controlButton
