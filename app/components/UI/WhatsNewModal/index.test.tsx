@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react-native';
 import WhatsNewModal from './';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../../util/theme';
-import { lightTheme } from '@metamask/design-tokens';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -12,7 +11,6 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockTheme = {
   colors: {
-    ...lightTheme.colors,
     icon: { default: 'red' },
     background: { default: 'white' },
     primary: { default: 'blue' },
