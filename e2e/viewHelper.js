@@ -67,6 +67,7 @@ have to have all these workarounds in the tests
   }
 
   // Handle Solana New feature sheet
+  await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
   await SolanaNewFeatureSheet.tapNotNowButton();
 };
 
