@@ -16,7 +16,10 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -47,7 +50,6 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { setMetaMetricsUISeen } from '../../../actions/user';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -142,10 +144,6 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Action to set meta metrics UI seen
-     */
-    setMetaMetricsUISeen: PropTypes.func,
   };
 
   state = {
@@ -235,6 +233,7 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, true);
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -317,10 +316,6 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing,
     } = this.props;
 
-    // Set the state immediately to prevent race condition
-    // This ensures the state is updated before navigation happens
-    this.props.setMetaMetricsUISeen(true);
-
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
@@ -350,7 +345,6 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-    this.props.setMetaMetricsUISeen(true);
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -678,8 +672,6 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),
-  setMetaMetricsUISeen: (isMetaMetricsUISeen) =>
-    dispatch(setMetaMetricsUISeen(isMetaMetricsUISeen)),
 });
 
 export default connect(
