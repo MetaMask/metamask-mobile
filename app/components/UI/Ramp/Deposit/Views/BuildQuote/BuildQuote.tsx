@@ -86,13 +86,8 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-
-  const {
-    isAuthenticated,
-    selectedWalletAddress,
-    selectedRegion,
-  } = useDepositSDK();
-
+  const { isAuthenticated, selectedWalletAddress, selectedRegion } =
+    useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const { routeAfterAuthentication } = useDepositRouting({

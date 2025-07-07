@@ -25,7 +25,7 @@ import { useDepositSDK } from '../../sdk';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
   ButtonVariants,
