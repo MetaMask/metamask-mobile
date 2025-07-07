@@ -127,6 +127,30 @@ export interface DepositResult {
   error?: string;
 }
 
+// Enhanced deposit flow state types for multi-step deposits
+export type DepositStatus =
+  | 'idle'          // No deposit in progress
+  | 'preparing'     // Analyzing route & preparing transactions
+  | 'swapping'      // Converting token (e.g., ETH → USDC)
+  | 'bridging'      // Cross-chain transfer
+  | 'depositing'    // Final deposit to HyperLiquid
+  | 'success'       // Deposit completed successfully
+  | 'error';        // Deposit failed at any step
+
+export type DepositFlowType =
+  | 'direct'        // Same chain, same token (USDC on Arbitrum)
+  | 'swap'          // Same chain, different token (ETH → USDC)
+  | 'bridge'        // Different chain, same token (USDC on Ethereum → Arbitrum)
+  | 'swap_bridge';  // Different chain, different token (ETH on Ethereum → USDC on Arbitrum)
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type DepositStepInfo = {
+  totalSteps: number;           // Total number of steps in this flow
+  currentStep: number;          // Current step (0-based index)
+  stepNames: string[];          // Human-readable step names
+  stepTxHashes?: string[];      // Transaction hashes for each completed step
+}
+
 export interface WithdrawParams {
   amount: string;           // Amount to withdraw
   destination?: Hex;        // Destination address (optional, defaults to current account)
@@ -202,6 +226,7 @@ export interface IPerpsProvider {
   // Dynamic path resolution based on testnet state
   getSupportedDepositPaths(params?: GetSupportedPathsParams): CaipAssetId[];  // Assets you can deposit
   getSupportedWithdrawalPaths(params?: GetSupportedPathsParams): CaipAssetId[];  // Assets you can withdraw
+  getBridgeInfo(): { chainId: CaipChainId; contractAddress: Hex };  // Get bridge chain ID and contract address
 
   // Trading operations → Redux (persisted, optimistic updates)
   placeOrder(params: OrderParams): Promise<OrderResult>;

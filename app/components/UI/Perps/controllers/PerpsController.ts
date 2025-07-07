@@ -2,7 +2,7 @@ import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accou
 import { BaseController, type RestrictedMessenger } from '@metamask/base-controller';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import { parseCaipAssetId, type CaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
@@ -14,6 +14,9 @@ import type {
   ClosePositionParams,
   DepositParams,
   DepositResult,
+  DepositStatus,
+  DepositFlowType,
+  DepositStepInfo,
   GetAccountStateParams,
   GetPositionsParams,
   IPerpsProvider,
@@ -49,6 +52,14 @@ export type PerpsControllerState = {
   pendingOrders: OrderParams[];
   orderHistory: OrderResult[];
 
+  // Deposit flow state (for reactive UI)
+  depositStatus: DepositStatus;
+  depositFlowType: DepositFlowType | null;
+  currentDepositTxHash: string | null;
+  depositError: string | null;
+  requiresModalDismissal: boolean;
+  depositSteps: DepositStepInfo;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -65,6 +76,18 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   accountState: null,
   pendingOrders: [],
   orderHistory: [],
+  // Deposit flow state defaults
+  depositStatus: 'idle',
+  depositFlowType: null,
+  currentDepositTxHash: null,
+  depositError: null,
+  requiresModalDismissal: false,
+  depositSteps: {
+    totalSteps: 0,
+    currentStep: 0,
+    stepNames: [],
+    stepTxHashes: [],
+  },
   lastError: null,
   lastUpdateTimestamp: 0,
 });
@@ -80,6 +103,13 @@ const metadata = {
   activeProvider: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
+  // Deposit flow state - transient, no need to persist across app restarts
+  depositStatus: { persist: false, anonymous: false },
+  depositFlowType: { persist: false, anonymous: false },
+  currentDepositTxHash: { persist: false, anonymous: false },
+  depositError: { persist: false, anonymous: false },
+  requiresModalDismissal: { persist: false, anonymous: false },
+  depositSteps: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
 };
@@ -110,6 +140,9 @@ export type PerpsControllerActions = {
 } | {
   type: 'PerpsController:deposit';
   handler: PerpsController['deposit'];
+} | {
+  type: 'PerpsController:submitDirectDepositTransaction';
+  handler: PerpsController['submitDirectDepositTransaction'];
 } | {
   type: 'PerpsController:withdraw';
   handler: PerpsController['withdraw'];
@@ -302,59 +335,222 @@ export class PerpsController extends BaseController<
    * - Same chain (Arbitrum): Direct ERC20 transfer to HyperLiquid contract
    * - Cross chain: Bridge transfer via BridgeController
    */
+  /**
+   * Helper method to update deposit progress and state
+   */
+  private updateDepositProgress(
+    status: DepositStatus,
+    step: number,
+    txHash?: string,
+    error?: string
+  ): void {
+    this.update(state => {
+      state.depositStatus = status;
+      state.depositSteps.currentStep = step;
+
+      if (txHash) {
+        state.currentDepositTxHash = txHash;
+        // Add to step transaction hashes
+        if (!state.depositSteps.stepTxHashes) {
+          state.depositSteps.stepTxHashes = [];
+        }
+        state.depositSteps.stepTxHashes[step - 1] = txHash;
+      }
+
+      if (error) {
+        state.depositError = error;
+      } else {
+        state.depositError = null;
+      }
+
+      // Signal UI to dismiss modal when we start depositing (final step)
+      if (status === 'depositing') {
+        state.requiresModalDismissal = true;
+      }
+    });
+  }
+
+  /**
+   * Analyze deposit route and determine flow type
+   */
+  private analyzeDepositRoute(params: DepositParams): {
+    type: DepositFlowType;
+    stepNames: string[];
+    parsedAsset: ReturnType<typeof parseCaipAssetId>;
+    assetChainId: CaipChainId;
+    bridgeChainId: CaipChainId;
+    bridgeContractAddress: Hex;
+  } {
+    // Extract chain ID from the asset ID using MetaMask CAIP utilities
+    const parsedAsset = parseCaipAssetId(params.assetId);
+    const assetChainId = parsedAsset.chainId;
+
+    // Get the HyperLiquid bridge info (chain + contract address)
+    const provider = this.getActiveProvider();
+    const { chainId: bridgeChainId, contractAddress: bridgeContractAddress } = provider.getBridgeInfo();
+
+    if (!bridgeContractAddress) {
+      throw new Error('Unable to get HyperLiquid bridge contract address');
+    }
+
+    // For now, we only support direct deposits (same chain, same token)
+    // TODO: Implement swap, bridge, and swap+bridge flows
+    if (assetChainId === bridgeChainId && parsedAsset.assetReference) {
+      return {
+        type: 'direct',
+        stepNames: ['Depositing to HyperLiquid'],
+        parsedAsset,
+        assetChainId,
+        bridgeChainId,
+        bridgeContractAddress,
+      };
+    }
+
+    // TODO: Add other flow types
+    throw new Error('Only direct deposits are currently supported');
+  }
+
   async deposit(params: DepositParams): Promise<DepositResult> {
     try {
+      // Step 1: Reset state and validate parameters
+      this.update(state => {
+        state.depositStatus = 'preparing';
+        state.depositError = null;
+        state.requiresModalDismissal = false;
+        state.currentDepositTxHash = null;
+      });
+
       // Validate required parameters
       if (!params.amount || params.amount === '0') {
-        return { success: false, error: 'Amount is required and must be greater than 0' };
+        const error = 'Amount is required and must be greater than 0';
+        this.updateDepositProgress('error', 0, undefined, error);
+        return { success: false, error };
       }
 
       if (!params.assetId) {
-        return { success: false, error: 'AssetId is required for deposit validation' };
+        const error = 'AssetId is required for deposit validation';
+        this.updateDepositProgress('error', 0, undefined, error);
+        return { success: false, error };
       }
 
-      // Get current account and network info
-      const { AccountsController, NetworkController } = Engine.context;
+      // Get current account
+      const { AccountsController } = Engine.context;
       const selectedAccount = AccountsController.getSelectedAccount();
-      const networkState = NetworkController.state;
 
-      // Set defaults for missing parameters
-      const fromChainId = params.fromChainId || `eip155:${networkState.selectedNetworkClientId}`;
-      const toChainId = params.toChainId || 'eip155:42161'; // HyperLiquid on Arbitrum
-      const recipient = params.recipient || selectedAccount.address as Hex;
+      // Step 2: Analyze deposit route
+      const route = this.analyzeDepositRoute(params);
 
-      // Check if asset is supported for deposits
+      this.update(state => {
+        state.depositFlowType = route.type;
+        state.depositSteps = {
+          totalSteps: route.stepNames.length,
+          currentStep: 0,
+          stepNames: route.stepNames,
+          stepTxHashes: [],
+        };
+      });
+
+      DevLogger.log('PerpsController: Deposit route analysis', {
+        assetId: params.assetId,
+        assetChainId: route.assetChainId,
+        bridgeChainId: route.bridgeChainId,
+        amount: params.amount,
+        userAddress: selectedAccount.address,
+        bridgeContractAddress: route.bridgeContractAddress,
+        flowType: route.type,
+        stepNames: route.stepNames,
+        isTestnet: this.state.isTestnet,
+      });
+
+      // Step 3: Check if asset is supported
       const provider = this.getActiveProvider();
       const supportedPaths = provider.getSupportedDepositPaths({ assetId: params.assetId });
+      const isAssetSupported = supportedPaths.some(path => path.toLowerCase() === params.assetId.toLowerCase());
 
-      if (!supportedPaths.includes(params.assetId)) {
-        return {
-          success: false,
-          error: `Asset ${params.assetId} not supported for deposits. Supported: ${supportedPaths.join(', ')}`
-        };
+      if (!isAssetSupported) {
+        const error = `Asset ${params.assetId} not supported for deposits. Supported: ${supportedPaths.join(', ')}`;
+        this.updateDepositProgress('error', 0, undefined, error);
+        return { success: false, error };
       }
 
-      // Route based on chain compatibility
-      if (fromChainId === toChainId || fromChainId === 'eip155:42161') {
-        // Same chain or Arbitrum -> Direct ERC20 transfer
-        return this.executeDirectDeposit({
-          ...params,
-          fromChainId,
-          recipient,
-          accountAddress: selectedAccount.address as Hex
-        });
-      }
+      // Step 4: Execute deposit based on flow type
+      switch (route.type) {
+        case 'direct':
+          return this.executeDirectDepositFlow(params, route, selectedAccount.address as Hex);
 
-      // Cross-chain -> Bridge transfer (TODO: implement BridgeController integration)
-      return {
-        success: false,
-        error: 'Cross-chain deposits will be implemented via BridgeController integration'
-      };
+        case 'swap':
+        case 'bridge':
+        case 'swap_bridge': {
+          const error = `${route.type} deposits will be implemented in future versions`;
+          this.updateDepositProgress('error', 0, undefined, error);
+          return { success: false, error };
+        }
+
+        default: {
+          const unknownError = `Unknown deposit flow type: ${route.type}`;
+          this.updateDepositProgress('error', 0, undefined, unknownError);
+          return { success: false, error: unknownError };
+        }
+      }
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown deposit error'
-      };
+      const errorMessage = error instanceof Error ? error.message : 'Unknown deposit error';
+      this.updateDepositProgress('error', 0, undefined, errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Execute direct deposit flow (same chain, same token)
+   */
+  private async executeDirectDepositFlow(
+    params: DepositParams,
+    route: ReturnType<typeof this.analyzeDepositRoute>,
+    accountAddress: Hex
+  ): Promise<DepositResult> {
+    try {
+      DevLogger.log('🎯 PerpsController: Starting direct deposit flow', {
+        reason: 'Token is on same chain as HyperLiquid',
+        assetChainId: route.assetChainId,
+        bridgeChainId: route.bridgeChainId,
+        bridgeContractAddress: route.bridgeContractAddress,
+        userAddress: accountAddress,
+        transferFlow: `User → USDC Transfer → Bridge(${route.bridgeContractAddress}) → HyperLiquid Account Credit`
+      });
+
+      // Step 1: Prepare transaction
+      this.updateDepositProgress('depositing', 1);
+
+      const directDepositResult = await this.executeDirectDeposit({
+        ...params,
+        fromChainId: route.assetChainId,
+        recipient: route.bridgeContractAddress,
+        accountAddress,
+        tokenAddress: route.parsedAsset.assetReference as Hex
+      });
+
+      if (!directDepositResult.success) {
+        this.updateDepositProgress('error', 1, undefined, directDepositResult.error);
+        return directDepositResult;
+      }
+
+      // Step 2: Submit transaction if modal dismissal is required
+      if (directDepositResult.success) {
+        DevLogger.log('PerpsController: Direct deposit completed successfully', {
+          txHash: directDepositResult.txHash
+        });
+
+        this.updateDepositProgress('success', 1, directDepositResult.txHash);
+        return directDepositResult;
+      }
+
+      // For failed deposits
+      this.updateDepositProgress('error', 1, undefined, directDepositResult.error);
+      return directDepositResult;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Direct deposit flow failed';
+      this.updateDepositProgress('error', 1, undefined, errorMessage);
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -413,6 +609,14 @@ export class PerpsController extends BaseController<
     }
 
     return allMarkets;
+  }
+
+  /**
+   * Get supported deposit asset paths - returns CAIP asset IDs for multichain abstraction
+   */
+  getSupportedDepositPaths(): CaipAssetId[] {
+    const provider = this.getActiveProvider();
+    return provider.getSupportedDepositPaths();
   }
 
   /**
@@ -483,28 +687,55 @@ export class PerpsController extends BaseController<
 
   /**
    * Execute direct ERC20 transfer on same chain
+   * Returns transaction details for UI to handle confirmation flow
    */
   private async executeDirectDeposit(params: {
     amount: string;
     assetId: string;
     recipient: Hex;
     accountAddress: Hex;
-    fromChainId: string;
+    fromChainId: CaipChainId;
+    tokenAddress: Hex;
   }): Promise<DepositResult> {
     try {
-      // Parse token address from CAIP asset ID (eip155:1/erc20:0x123... -> 0x123...)
-      const tokenAddress = params.assetId.split(':')[2];
-      if (!tokenAddress) {
-        return { success: false, error: 'Invalid asset ID format' };
-      }
-
-      // Generate ERC20 transfer data
-      const transferData = generateTransferData('transfer', {
-        toAddress: params.recipient,
+      DevLogger.log('🚀 PerpsController: PREPARING DIRECT DEPOSIT TRANSACTION', {
         amount: params.amount,
+        tokenAddress: params.tokenAddress,
+        fromUser: params.accountAddress,
+        toBridge: params.recipient,
+        criticalFix: 'Sending to HyperLiquid bridge contract (NOT user address)',
+        transferSummary: `${params.accountAddress} → ${params.recipient} (${params.amount} USDC)`,
+        modalFlow: 'Will return transaction params for UI to handle modal dismissal + confirmation'
       });
 
-      // Prepare transaction
+      // Use the already parsed token address from CAIP utilities
+      const tokenAddress = params.tokenAddress;
+
+      // Convert amount to token's smallest units (e.g., 6 USDC -> 6,000,000 units for 6 decimals)
+      // Extract decimals from asset - for USDC it's 6 decimals
+      const decimals = 6; // USDC has 6 decimals
+      const amountInUnits = (parseFloat(params.amount) * Math.pow(10, decimals)).toString();
+
+      // Convert to hex for generateTransferData (it expects hex string)
+      const amountInHex = `0x${parseInt(amountInUnits, 10).toString(16)}`;
+
+      DevLogger.log('🔢 PerpsController: Amount conversion', {
+        userInput: params.amount,
+        decimals,
+        amountInUnits,
+        amountInHex,
+        calculation: `${params.amount} * 10^${decimals} = ${amountInUnits} = ${amountInHex}`
+      });
+
+      // Generate ERC20 transfer data
+      // CRITICAL: params.recipient should be HyperLiquid bridge contract, NOT user address
+      // This transfers USDC from user -> HyperLiquid bridge -> credits user's HL account
+      const transferData = generateTransferData('transfer', {
+        toAddress: params.recipient, // HyperLiquid bridge contract address
+        amount: amountInHex, // Amount in token's smallest units as hex
+      });
+
+      // Prepare transaction parameters
       const transaction: TransactionParams = {
         from: params.accountAddress,
         to: tokenAddress,
@@ -512,25 +743,96 @@ export class PerpsController extends BaseController<
         data: transferData,
       };
 
-      // Submit via TransactionController using Engine.context
-      const { TransactionController, NetworkController } = Engine.context;
+      DevLogger.log('✅ PerpsController: TRANSACTION PREPARED - READY FOR UI MODAL FLOW', {
+        transaction,
+        amount: params.amount,
+        tokenAddress,
+        bridgeContract: params.recipient,
+        userAddress: params.accountAddress,
+        flowSteps: [
+          '1. UI dismisses deposit modal',
+          '2. UI calls submitDirectDepositTransaction()',
+          '3. TransactionController shows confirmation UI',
+          '4. User confirms/rejects',
+          '5. UI navigates to success/error screen'
+        ]
+      });
 
-      // Get current network client ID from state
+      // Submit the transaction directly via TransactionController
+      const { NetworkController } = Engine.context;
       const selectedNetworkClientId = NetworkController.state.selectedNetworkClientId;
 
-      const result = await TransactionController.addTransaction(transaction, {
-        origin: 'PerpsController',
-        networkClientId: selectedNetworkClientId,
+      DevLogger.log('🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION', {
+        transaction,
+        selectedNetworkClientId,
+        timestamp: new Date().toISOString()
+      });
+
+      // Use lower-level transaction submission to bypass UI confirmation
+      const result = await this.submitTransactionDirectly(transaction, selectedNetworkClientId);
+      const txHash = result.txHash;
+
+      DevLogger.log('✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED', {
+        txHash,
+        transaction,
+        success: true,
       });
 
       return {
         success: true,
-        txHash: await result.result, // TransactionController returns Promise<string>
+        txHash,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Direct deposit failed'
+        error: error instanceof Error ? error.message : 'Direct deposit preparation failed'
+      };
+    }
+  }
+
+  /**
+   * Submit the prepared transaction after modal dismissal
+   * This method is called by the UI after dismissing the deposit modal
+   */
+  async submitDirectDepositTransaction(transaction: TransactionParams): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    try {
+      DevLogger.log('🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION', {
+        transaction,
+        modalStatus: 'Should be dismissed by UI before this call',
+        timestamp: new Date().toISOString()
+      });
+
+      // Submit via TransactionController using Engine.context
+      const { NetworkController } = Engine.context;
+
+      // Get current network client ID from state
+      const selectedNetworkClientId = NetworkController.state.selectedNetworkClientId;
+
+      // Use lower-level transaction submission to bypass UI confirmation
+      const result = await this.submitTransactionDirectly(transaction, selectedNetworkClientId);
+      const txHash = result.txHash;
+
+      DevLogger.log('✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED', {
+        txHash,
+        transaction,
+        success: true,
+        nextSteps: 'HyperLiquid will detect deposit and credit user account'
+      });
+
+      return {
+        success: true,
+        txHash,
+      };
+    } catch (error) {
+      DevLogger.log('❌ PerpsController: DIRECT DEPOSIT TRANSACTION FAILED', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        transaction,
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Direct deposit transaction failed'
       };
     }
   }
@@ -570,6 +872,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Reset deposit state for a fresh deposit flow
+   * Call this when starting a new deposit to clear previous state
+   */
+  resetDepositState(): void {
+    DevLogger.log('PerpsController: Resetting deposit state for new deposit flow');
+    this.update(state => {
+      state.depositStatus = 'idle';
+      state.depositFlowType = null;
+      state.depositSteps = {
+        totalSteps: 0,
+        currentStep: 0,
+        stepNames: [],
+        stepTxHashes: [],
+      };
+      state.depositError = null;
+      state.currentDepositTxHash = null;
+      state.requiresModalDismissal = false;
+    });
+  }
+
+  /**
    * Disconnect provider and cleanup subscriptions
    * Call this when navigating away from Perps screens to prevent battery drain
    */
@@ -580,5 +903,35 @@ export class PerpsController extends BaseController<
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
+  }
+
+  /**
+   * Submit transaction with proper gas estimation and nonce management
+   */
+  private async submitTransactionDirectly(
+    transaction: TransactionParams,
+    networkClientId: string
+  ): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    try {
+      const { TransactionController } = Engine.context;
+
+      const result = await TransactionController.addTransaction(transaction, {
+        origin: 'metamask',
+        requireApproval: false,
+        networkClientId,
+      });
+
+      const txHash = await result.result;
+
+      return {
+        success: true,
+        txHash,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Transaction submission failed'
+      };
+    }
   }
 }

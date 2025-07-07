@@ -1,32 +1,37 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, SafeAreaView, StyleSheet, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type ParamListBase } from '@react-navigation/native';
+import React, { useCallback, useEffect } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes
 } from '../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-  TextColor
-} from '../../../../component-library/components/Texts/Text';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant
+} from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import Routes from '../../../../constants/navigation/Routes';
+import {
+  usePerpsDepositState,
+} from '../hooks/usePerpsController';
 
 interface DepositProcessingParams {
   amount: string;
   selectedToken: string;
+  txHash?: string;
+  isDirectDeposit?: boolean; // true for USDC on Arbitrum, false for complex routes
 }
 
-interface DepositProcessingViewProps {}
-
-type ProcessingStatus = 'swapping' | 'bridging' | 'depositing' | 'success' | 'error';
+interface DepositProcessingViewProps { }
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -118,86 +123,96 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
+const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route = useRoute();
+  // No PerpsController needed - balance refresh handled by PerpsView
 
-  const { amount, selectedToken } = (route.params as DepositProcessingParams) || {};
-  const [status, setStatus] = useState<ProcessingStatus>('swapping');
+  // Get reactive state from PerpsController
+  const {
+    status: depositStatus,
+    steps: depositSteps,
+    error: depositError,
+    currentTxHash,
+  } = usePerpsDepositState();
 
-  // Simulate processing flow with sequential steps
+  const { amount, selectedToken, txHash, isDirectDeposit = false } = (route.params as DepositProcessingParams) || {};
+
+  // Use the actual transaction hash from controller if available, otherwise fallback to route param
+  const actualTxHash = currentTxHash || txHash;
+
+  // No manual balance refresh needed - PerpsView automatically refreshes
+  // HyperLiquid account state when navigated to via useEffect
+
+  // Navigate to success screen when deposit completes successfully
   useEffect(() => {
-    let currentTimer: NodeJS.Timeout;
+    if (depositStatus === 'success' && actualTxHash) {
+      DevLogger.log('PerpsDepositProcessing: Navigating to success screen', {
+        depositStatus,
+        actualTxHash,
+        amount,
+        selectedToken
+      });
 
-    const runProcessingSteps = async () => {
-      // Step 1: Wait 3 seconds then go to bridging
-      currentTimer = setTimeout(() => {
-        setStatus('bridging');
+      // Navigate to success after short delay to show success state
+      const timer = setTimeout(() => {
+        navigation.navigate(Routes.PERPS.DEPOSIT_SUCCESS, {
+          amount,
+          selectedToken,
+          txHash: actualTxHash,
+        });
+      }, 2000); // 2 second delay to show success state
 
-        // Step 2: Wait another 3 seconds then go to depositing
-        currentTimer = setTimeout(() => {
-          setStatus('depositing');
-
-          // Step 3: Wait another 3 seconds then go to success
-          currentTimer = setTimeout(() => {
-            setStatus('success');
-
-            // Step 4: Wait 1 more second then navigate
-            currentTimer = setTimeout(() => {
-              navigation.navigate(Routes.PERPS.DEPOSIT_SUCCESS as never, {
-                amount,
-                selectedToken,
-              });
-            }, 1000);
-          }, 3000);
-        }, 3000);
-      }, 3000);
-    };
-
-    runProcessingSteps();
-
-    // Cleanup function
-    return () => {
-      if (currentTimer) {
-        clearTimeout(currentTimer);
-      }
-    };
-  }, [navigation, amount, selectedToken]);
+      return () => clearTimeout(timer);
+    }
+  }, [depositStatus, actualTxHash, navigation, amount, selectedToken]);
 
   const handleClose = useCallback(() => {
-    navigation.navigate('Perps' as never);
+    navigation.navigate(Routes.PERPS.ROOT);
   }, [navigation]);
 
   const handleRetry = useCallback(() => {
-    setStatus('swapping');
-    // Restart the processing simulation
-  }, []);
+    // For now, just navigate back to deposit screen
+    navigation.goBack();
+  }, [navigation]);
 
   const handleViewBalance = useCallback(() => {
-    navigation.navigate('Perps' as never);
+    navigation.navigate(Routes.PERPS.ROOT);
   }, [navigation]);
 
   const getStatusContent = () => {
-    switch (status) {
+    // Use controller state if available, otherwise fall back to local logic
+    const currentStep = depositSteps.currentStep;
+    const stepName = depositSteps.stepNames[currentStep - 1];
+
+    switch (depositStatus) {
+      case 'preparing':
+        return {
+          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          title: strings('perps.deposit.steps.preparing'),
+          description: strings('perps.deposit.stepDescriptions.preparing'),
+        };
       case 'swapping':
         return {
           icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: `Swapping ${selectedToken || 'token'} to USDC`,
-          description: 'Converting your tokens to USDC for deposit...',
+          title: strings('perps.deposit.steps.swapping', { token: selectedToken || 'token' }),
+          description: strings('perps.deposit.stepDescriptions.swapping'),
         };
       case 'bridging':
         return {
           icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: 'Bridging to Hyperliquid',
-          description: 'Moving USDC to Arbitrum network...',
+          title: strings('perps.deposit.steps.bridging'),
+          description: strings('perps.deposit.stepDescriptions.bridging'),
         };
       case 'depositing':
         return {
           icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: 'Depositing into perps account',
-          description: 'Transferring USDC to your HyperLiquid account...',
+          title: stepName || strings('perps.deposit.steps.depositing'),
+          description: isDirectDeposit
+            ? strings('perps.deposit.steps.depositingDirect')
+            : strings('perps.deposit.stepDescriptions.depositing'),
         };
       case 'success':
         return {
@@ -210,8 +225,8 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               />
             </View>
           ),
-          title: 'Deposit completed successfully!',
-          description: `Successfully deposited ${amount} USDC to your HyperLiquid account`,
+          title: strings('perps.deposit.depositCompleted'),
+          description: strings('perps.deposit.stepDescriptions.success', { amount }),
         };
       case 'error':
         return {
@@ -224,11 +239,17 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               />
             </View>
           ),
-          title: 'Deposit Failed',
-          description: 'There was an error processing your deposit. Please try again.',
+          title: strings('perps.deposit.depositFailed'),
+          description: depositError || strings('perps.deposit.stepDescriptions.error'),
         };
+      case 'idle':
       default:
-        return null;
+        // Fallback for when controller state is not yet set
+        return {
+          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          title: isDirectDeposit ? strings('perps.deposit.steps.depositing') : strings('perps.deposit.steps.preparing'),
+          description: strings('perps.deposit.stepDescriptions.preparing'),
+        };
     }
   };
 
@@ -240,7 +261,7 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
       <View style={styles.header}>
         <View style={styles.placeholder} />
         <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
-          Processing deposit
+          {strings('perps.deposit.processingTitle')}
         </Text>
         <ButtonIcon
           iconName={IconName.Close}
@@ -269,24 +290,24 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
         {/* Action Buttons */}
         <View style={styles.actionButton}>
-          {status === 'success' && (
+          {depositStatus === 'success' && (
             <Button
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
-              label="View Balance"
+              label={strings('perps.deposit.viewBalance')}
               onPress={handleViewBalance}
               testID="view-balance-button"
             />
           )}
 
-          {status === 'error' && (
+          {depositStatus === 'error' && (
             <>
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label="Retry Deposit"
+                label={strings('perps.deposit.retryDeposit')}
                 onPress={handleRetry}
                 style={styles.retryButton}
                 testID="retry-button"
@@ -295,7 +316,7 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label="Go Back"
+                label={strings('perps.deposit.goBack')}
                 onPress={handleClose}
                 testID="go-back-button"
               />
@@ -307,4 +328,4 @@ const DepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   );
 };
 
-export default DepositProcessingView;
+export default PerpsDepositProcessingView;
