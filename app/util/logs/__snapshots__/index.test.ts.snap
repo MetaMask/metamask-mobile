@@ -367,6 +367,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "showMultiRpcModal": false,
         "showTestNetworks": false,
+        "smartAccountOptIn": true,
+        "smartAccountOptInForAccounts": [],
         "smartTransactionsOptInStatus": true,
         "tokenNetworkFilter": {},
         "tokenSortConfig": {
