@@ -4,6 +4,17 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { SEPA_PAYMENT_METHOD } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 
+// Mock React Navigation at the module level to allow navigation detail creators to be imported
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
+
 const mockUseDepositSdkMethodInitialState = {
   data: null,
   error: null as string | null,
@@ -24,6 +35,8 @@ let mockCreateOrder = jest
   .fn()
   .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
 let mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
+
+const mockNavigate = jest.fn();
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -58,28 +71,8 @@ jest.mock('../sdk', () => ({
 jest.mock('./useHandleNewOrder');
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
-}));
-
-jest.mock('../Views/KycProcessing/KycProcessing', () => ({
-  createKycProcessingNavDetails: jest.fn(() => ['KycProcessing', {}]),
-}));
-
-jest.mock('../Views/ProviderWebview/ProviderWebview', () => ({
-  createProviderWebviewNavDetails: jest.fn(() => ['ProviderWebview', {}]),
-}));
-
-jest.mock('../Views/BasicInfo/BasicInfo', () => ({
-  createBasicInfoNavDetails: jest.fn(() => ['BasicInfo', {}]),
-}));
-
-jest.mock('../Views/KycWebview/KycWebview', () => ({
-  createKycWebviewNavDetails: jest.fn(() => ['KycWebview', {}]),
-}));
-
-jest.mock('../Views/BankDetails/BankDetails', () => ({
-  createBankDetailsNavDetails: jest.fn(() => ['BankDetails', {}]),
 }));
 
 jest.mock('../orderProcessor', () => ({
@@ -130,7 +123,7 @@ describe('useDepositRouting', () => {
   });
 
   describe('SEPA payment method routing', () => {
-    it('should handle SEPA payment method routing correctly when KYC is approved', async () => {
+    it('should navigate to BankDetails when SEPA payment method is used and KYC is approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         selectedWalletAddress: '0x123',
@@ -148,6 +141,10 @@ describe('useDepositRouting', () => {
       expect(mockFetchUserDetails).toHaveBeenCalled();
       expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
       expect(mockCreateOrder).toHaveBeenCalledWith({ id: 'reservation-id' });
+      expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
+        orderId: 'order-id',
+        shouldUpdate: false,
+      });
     });
 
     it('should throw error when SEPA reservation fails', async () => {
@@ -191,6 +188,10 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+      expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
+      });
     });
 
     it('should navigate to BasicInfo when address form is required', async () => {
@@ -215,6 +216,10 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+      expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
+      });
     });
 
     it('should navigate to BasicInfo when SSN form is required for US user', async () => {
@@ -236,6 +241,10 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
+        quote: mockQuote,
+        kycUrl: undefined,
+      });
     });
 
     it('should auto-submit purpose of usage form when it is the only remaining form', async () => {
@@ -246,7 +255,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn()
+      mockFetchKycForms = jest
+        .fn()
         .mockResolvedValueOnce({
           forms: [{ id: 'purposeOfUsage' }],
         })
@@ -260,8 +270,13 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledWith(['Buying/selling crypto for investments']);
+      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledWith([
+        'Buying/selling crypto for investments',
+      ]);
       expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
+        quote: mockQuote,
+      });
     });
 
     it('should navigate to KycWebview when only idProof form is required', async () => {
@@ -285,6 +300,10 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith('KycWebview', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
       });
     });
 
@@ -326,6 +345,9 @@ describe('useDepositRouting', () => {
 
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
       expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
+        quote: mockQuote,
+      });
     });
 
     it('should navigate to KycProcessing when user is authenticated, no forms required, but KYC is not approved', async () => {
@@ -348,6 +370,9 @@ describe('useDepositRouting', () => {
 
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
       expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
+        quote: mockQuote,
+      });
     });
   });
 
