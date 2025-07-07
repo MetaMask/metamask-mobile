@@ -19,6 +19,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
+import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
@@ -56,6 +57,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should create another Solana account from the bottom sheet', async () => {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();
@@ -65,6 +68,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should be able to switch between solana accounts', async () => {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+
     //Switch back to first solana account
     await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
@@ -81,6 +86,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should be able to rename Solana account', async () => {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+
     await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
