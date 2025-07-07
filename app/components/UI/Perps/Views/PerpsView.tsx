@@ -21,7 +21,7 @@ import {
   usePerpsController,
   usePerpsAccountState,
   usePerpsNetwork
-} from '../hooks/usePerpsController';
+} from '../hooks';
 
 // Import preview market data component
 import PreviewMarketData from '../components/PreviewMarketData';
@@ -187,6 +187,24 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
         <View style={styles.buttonContainer}>
           <Button
             variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Long BTC"
+            onPress={() => navigation.navigate(Routes.PERPS.ORDER as never, { direction: 'long', asset: 'BTC' })}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Short BTC"
+            onPress={() => navigation.navigate(Routes.PERPS.ORDER as never, { direction: 'short', asset: 'BTC' })}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Deposit Funds"

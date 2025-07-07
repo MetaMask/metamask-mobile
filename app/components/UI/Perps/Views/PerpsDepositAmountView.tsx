@@ -1,4 +1,4 @@
-import { parseCaipChainId, type Hex } from '@metamask/utils';
+import { parseCaipAssetId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
@@ -51,7 +51,7 @@ import type { DepositParams } from '../controllers/types';
 import {
   usePerpsController,
   usePerpsDepositState,
-} from '../hooks/usePerpsController';
+} from '../hooks';
 
 interface PerpsDepositAmountViewProps { }
 
@@ -138,13 +138,13 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
   // Get PerpsController instance and destructure for cleaner code
   const {
-    getSupportedDepositPaths: getSupportedDepositPathsHook,
+    getDepositRoutes: getDepositRoutesHook,
     deposit,
     resetDepositState,
     controller,
   } = usePerpsController();
-  // Memoize the getSupportedDepositPaths call to prevent infinite re-renders
-  const getSupportedDepositPaths = useCallback(() => getSupportedDepositPathsHook(), [getSupportedDepositPathsHook]);
+  // Memoize the getDepositRoutes call to prevent infinite re-renders
+  const getDepositRoutes = useCallback(() => getDepositRoutesHook(), [getDepositRoutesHook]);
 
   // Consolidated reactive deposit state
   const {
@@ -155,24 +155,21 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     requiresModalDismissal,
   } = usePerpsDepositState();
 
-  // Get default token from PerpsController supported paths or fall back to native token
+  // Get default token from PerpsController supported routes or fall back to native token
   const getDefaultToken = useMemo((): SelectedToken => {
     try {
-      const supportedPaths = getSupportedDepositPaths();
+      const supportedRoutes = getDepositRoutes();
 
-      if (supportedPaths.length > 0) {
-        // Parse first supported deposit path manually since it doesn't have /default suffix
-        const firstAsset = supportedPaths[0]; // "eip155:42161/erc20:0xaf88..."
-        const [chainPart, assetPart] = firstAsset.split('/');
-        const assetChainId = chainPart.split(':')[1]; // "42161"
-        const tokenAddress = assetPart.split(':')[1]; // "0xaf88..."
-
+      if (supportedRoutes.length > 0) {
+        // Parse first supported deposit route using MetaMask CAIP utilities
+        const firstRoute = supportedRoutes[0];
+        const parsedAsset = parseCaipAssetId(firstRoute.assetId);
         return {
           symbol: 'USDC',
-          address: tokenAddress,
+          address: parsedAsset.assetReference, // Token contract address
           decimals: 6,
           name: 'USD Coin',
-          chainId: `0x${parseInt(assetChainId, 10).toString(16)}`, // Convert to hex
+          chainId: `0x${parseInt(parsedAsset.chainId.split(':')[1], 10).toString(16)}`, // Convert to hex
         };
       }
     } catch (error) {
@@ -187,7 +184,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       name: 'Ethereum',
       chainId,
     };
-  }, [getSupportedDepositPaths, chainId]);
+  }, [getDepositRoutes, chainId]);
 
   // State
   const [amount, setAmount] = useState('0');
@@ -224,12 +221,19 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
     try {
       // For direct deposits on Arbitrum (no bridging needed)
-      // Get bridge info from PerpsController
-      const bridgeInfo = controller.getActiveProvider().getBridgeInfo();
+      // Get deposit routes from PerpsController
+      const depositRoutes = controller.getDepositRoutes();
+      const matchingRoute = depositRoutes.find(route => {
+        // Parse token asset ID using MetaMask CAIP utilities
+        const parsedAsset = parseCaipAssetId(route.assetId);
+        const chainHex = `0x${parseInt(parsedAsset.chainId.split(':')[1], 10).toString(16)}`;
 
-      if (bridgeInfo?.chainId && token.chainId && token.symbol === 'USDC') {
+        return chainHex === token.chainId && parsedAsset.assetReference.toLowerCase() === token.address.toLowerCase();
+      });
+
+      if (matchingRoute && token.chainId && token.symbol === 'USDC') {
         // Use MetaMask's CAIP utilities to parse chain ID
-        const parsedChain = parseCaipChainId(bridgeInfo.chainId);
+        const parsedChain = parseCaipChainId(matchingRoute.chainId);
         const targetChainHex = `0x${parseInt(parsedChain.reference, 10).toString(16)}`;
 
         if (token.chainId === targetChainHex) {
@@ -516,7 +520,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
     try {
       // Find the exact matching supported asset ID from PerpsController
-      const supportedAssets = getSupportedDepositPaths();
+      const supportedRoutes = getDepositRoutes();
+      const supportedAssets = supportedRoutes.map(route => route.assetId);
       const selectedTokenAddress = selectedToken.address.toLowerCase();
 
       // Find exact match from supported paths
@@ -551,14 +556,14 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       DevLogger.log('PerpsDeposit: Deposit error caught', {
         error: error instanceof Error ? error.message : 'Unknown error',
         selectedToken,
-        supportedAssets: getSupportedDepositPaths()
+        supportedAssets: getDepositRoutes().map(route => route.assetId)
       });
       setLocalDepositError(error instanceof Error ? error.message : 'Unknown error occurred');
       Logger.error(error as Error, 'Failed to execute deposit');
     } finally {
       setIsDepositing(false);
     }
-  }, [deposit, getSupportedDepositPaths, selectedAddress, amount, selectedToken, controller]);
+  }, [deposit, getDepositRoutes, selectedAddress, amount, selectedToken, controller]);
 
   const handleClosePreview = useCallback(() => {
     setPreviewModalVisible(false);

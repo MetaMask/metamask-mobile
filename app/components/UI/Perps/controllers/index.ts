@@ -98,4 +98,6 @@ export {
   usePositionPnL,
   usePerpsReadiness,
   useOrderManagement,
-} from '../hooks/usePerpsController';
+  usePerpsDepositState,
+  useStableArray,
+} from '../hooks';

@@ -1,6 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import PerpsView from '../Views/PerpsView';
+import PerpsOrderView from '../Views/PerpsOrderView';
+import PerpsOrderSuccessView from '../Views/PerpsOrderSuccessView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
 import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
@@ -17,6 +19,22 @@ const PerpsScreenStack = () => (
       options={{
         title: 'Perps Trading',
         headerShown: true,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.ORDER}
+      component={PerpsOrderView}
+      options={{
+        title: 'New Order',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.ORDER_SUCCESS}
+      component={PerpsOrderSuccessView}
+      options={{
+        title: 'Order Success',
+        headerShown: false,
       }}
     />
     <Stack.Screen
