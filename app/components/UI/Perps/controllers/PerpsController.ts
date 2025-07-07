@@ -2,13 +2,14 @@ import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accou
 import { BaseController, type RestrictedMessenger } from '@metamask/base-controller';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import { parseCaipAssetId, type CaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
+import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
+  AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
@@ -387,7 +388,15 @@ export class PerpsController extends BaseController<
 
     // Get the HyperLiquid bridge info (chain + contract address)
     const provider = this.getActiveProvider();
-    const { chainId: bridgeChainId, contractAddress: bridgeContractAddress } = provider.getBridgeInfo();
+    const depositRoutes = provider.getDepositRoutes({ assetId: params.assetId });
+
+    if (depositRoutes.length === 0) {
+      throw new Error(`No deposit routes available for asset ${params.assetId}`);
+    }
+
+    // Use the first route (HyperLiquid currently has only one route per asset)
+    const route = depositRoutes[0];
+    const { chainId: bridgeChainId, contractAddress: bridgeContractAddress } = route;
 
     if (!bridgeContractAddress) {
       throw new Error('Unable to get HyperLiquid bridge contract address');
@@ -464,11 +473,12 @@ export class PerpsController extends BaseController<
 
       // Step 3: Check if asset is supported
       const provider = this.getActiveProvider();
-      const supportedPaths = provider.getSupportedDepositPaths({ assetId: params.assetId });
-      const isAssetSupported = supportedPaths.some(path => path.toLowerCase() === params.assetId.toLowerCase());
+      const supportedRoutes = provider.getDepositRoutes({ assetId: params.assetId });
+      const isAssetSupported = supportedRoutes.some(supportedRoute => supportedRoute.assetId.toLowerCase() === params.assetId.toLowerCase());
 
       if (!isAssetSupported) {
-        const error = `Asset ${params.assetId} not supported for deposits. Supported: ${supportedPaths.join(', ')}`;
+        const supportedAssets = supportedRoutes.map(supportedRoute => supportedRoute.assetId);
+        const error = `Asset ${params.assetId} not supported for deposits. Supported: ${supportedAssets.join(', ')}`;
         this.updateDepositProgress('error', 0, undefined, error);
         return { success: false, error };
       }
@@ -612,11 +622,19 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get supported deposit asset paths - returns CAIP asset IDs for multichain abstraction
+   * Get supported deposit routes - returns complete asset and routing information
    */
-  getSupportedDepositPaths(): CaipAssetId[] {
+  getDepositRoutes(): AssetRoute[] {
     const provider = this.getActiveProvider();
-    return provider.getSupportedDepositPaths();
+    return provider.getDepositRoutes();
+  }
+
+  /**
+   * Get supported withdrawal routes - returns complete asset and routing information
+   */
+  getWithdrawalRoutes(): AssetRoute[] {
+    const provider = this.getActiveProvider();
+    return provider.getWithdrawalRoutes();
   }
 
   /**

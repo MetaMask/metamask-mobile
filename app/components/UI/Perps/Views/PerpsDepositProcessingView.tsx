@@ -22,7 +22,7 @@ import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import {
   usePerpsDepositState,
-} from '../hooks/usePerpsController';
+} from '../hooks';
 
 interface DepositProcessingParams {
   amount: string;

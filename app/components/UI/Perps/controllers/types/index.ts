@@ -96,6 +96,18 @@ export interface ToggleTestnetResult {
   error?: string;
 }
 
+export interface AssetRoute {
+  assetId: CaipAssetId;       // CAIP asset ID (e.g., "eip155:42161/erc20:0xaf88.../default")
+  chainId: CaipChainId;       // CAIP-2 chain ID where the bridge contract is located
+  contractAddress: Hex;       // Bridge contract address for deposits/withdrawals
+  constraints?: {
+    minAmount?: string;       // Minimum deposit/withdrawal amount
+    maxAmount?: string;       // Maximum deposit/withdrawal amount
+    estimatedTime?: string;   // Estimated processing time
+    fees?: string;           // Associated fees
+  };
+}
+
 export interface SwitchProviderResult {
   success: boolean;
   providerId: string;
@@ -173,6 +185,7 @@ export interface PriceUpdate {
   coin: string;                    // Asset symbol
   price: string;                   // Current price
   timestamp: number;               // Update timestamp
+  percentChange24h?: string;       // 24h price change percentage
 }
 
 export interface OrderFill {
@@ -223,10 +236,9 @@ export interface SubscribeOrderFillsParams {
 export interface IPerpsProvider {
   readonly protocolId: string;
 
-  // Dynamic path resolution based on testnet state
-  getSupportedDepositPaths(params?: GetSupportedPathsParams): CaipAssetId[];  // Assets you can deposit
-  getSupportedWithdrawalPaths(params?: GetSupportedPathsParams): CaipAssetId[];  // Assets you can withdraw
-  getBridgeInfo(): { chainId: CaipChainId; contractAddress: Hex };  // Get bridge chain ID and contract address
+  // Unified asset and route information
+  getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[];     // Assets and their deposit routes
+  getWithdrawalRoutes(params?: GetSupportedPathsParams): AssetRoute[];  // Assets and their withdrawal routes
 
   // Trading operations → Redux (persisted, optimistic updates)
   placeOrder(params: OrderParams): Promise<OrderResult>;

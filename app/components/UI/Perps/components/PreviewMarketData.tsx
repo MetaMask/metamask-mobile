@@ -6,7 +6,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
-import { usePerpsNetwork, usePerpsPrices } from '../hooks/usePerpsController';
+import { usePerpsNetwork, usePerpsPrices } from '../hooks';
 
 interface PreviewMarketDataProps {
   testID?: string;
