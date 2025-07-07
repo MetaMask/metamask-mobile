@@ -10,6 +10,7 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
+import { DepositRegion } from '../../constants';
 
 const EMAIL = 'test@email.com';
 
@@ -141,6 +142,10 @@ describe('OtpCode Component', () => {
       clearAuthToken: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
+      setSelectedRegion: jest.fn(),
+      selectedRegion: {
+        isoCode: 'US',
+      } as DepositRegion,
     });
 
     const { getByTestId } = render(OtpCode);
@@ -188,9 +193,7 @@ describe('OtpCode Component', () => {
     ];
     render(OtpCode);
     expect(screen.toJSON()).toMatchSnapshot();
-    const loadingButton = screen.getByRole('button', {
-      name: 'Verifying code...',
-    });
+    const loadingButton = screen.getByTestId('otp-code-submit-button');
     fireEvent.press(loadingButton);
     expect(mockSdkMethod).not.toHaveBeenCalled();
   });
