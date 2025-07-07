@@ -504,7 +504,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         await handleRegularLogin(onboardingWizard);
       }
 
-      // Reset form state
+      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
       setHasBiometricCredentials(false);
