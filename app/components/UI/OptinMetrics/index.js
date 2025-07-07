@@ -19,6 +19,7 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import {
   ONBOARDING_WIZARD,
   OPTIN_META_METRICS_UI_SEEN,
+  TRUE,
 } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -233,7 +234,8 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
-    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, true);
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -319,7 +321,6 @@ class OptinMetrics extends PureComponent {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
     } = this.props;
-
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
       if (
