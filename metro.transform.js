@@ -35,6 +35,7 @@ const betaFeatureSet = new Set([
   'keyring-snaps',
   'multi-srp',
   'solana',
+  'bitcoin',
 ]);
 const flaskFeatureSet = new Set([
   'flask',
