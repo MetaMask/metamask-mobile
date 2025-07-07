@@ -473,57 +473,37 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressContinueWithApple = async (createWallet) => {
+  onPressContinueWithSocialLogin = async (createWallet, provider) => {
     this.props.navigation.navigate('Onboarding');
     this.socialLoginTraceCtx = bufferedTrace({
       name: TraceName.OnboardingSocialLoginAttempt,
       op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'apple' },
+      tags: { ...getTraceTags(store.getState()), provider },
       parentContext: this.onboardingTraceCtx,
     });
 
     this.track(MetaMetricsEvents.WALLET_REHYDRATION_SELECTED, {
-      account_type: 'apple',
+      account_type: provider,
     });
 
     const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'apple');
-      const result = await OAuthLoginService.handleOAuthLogin(
-        loginHandler,
-      ).catch((e) => {
-        this.handleLoginError(e, 'apple');
-        return { type: 'error', error: e, existingUser: false };
-      });
-      this.handlePostSocialLogin(result, createWallet, 'apple');
-    };
-    this.handleExistingUser(action);
-  };
-
-  onPressContinueWithGoogle = async (createWallet) => {
-    this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = bufferedTrace({
-      name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'google' },
-      parentContext: this.onboardingTraceCtx,
-    });
-
-    this.track(MetaMetricsEvents.WALLET_REHYDRATION_SELECTED, {
-      account_type: 'google',
-    });
-
-    const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error, 'google');
+        this.handleLoginError(error, provider);
         return { type: 'error', error, existingUser: false };
       });
-      this.handlePostSocialLogin(result, createWallet, 'google');
+      this.handlePostSocialLogin(result, createWallet, provider);
     };
     this.handleExistingUser(action);
   };
+
+  onPressContinueWithApple = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+
+  onPressContinueWithGoogle = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = (error, socialConnectionType) => {
     let errorMessage;
