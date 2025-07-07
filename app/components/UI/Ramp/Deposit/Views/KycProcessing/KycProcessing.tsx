@@ -75,12 +75,9 @@ const KycProcessing = () => {
     if (kycForms?.forms.length === 0) {
       startPolling();
     }
-  }, [kycForms, startPolling]);
 
-  const handleBrowseTokens = useCallback(() => {
-    stopPolling();
-    navigation.navigate(Routes.BROWSER_TAB_HOME);
-  }, [navigation, stopPolling]);
+    return () => stopPolling();
+  }, [kycForms, startPolling, stopPolling]);
 
   const handleRetryVerification = useCallback(() => {
     navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
@@ -107,7 +104,7 @@ const KycProcessing = () => {
                 color={IconColor.Error}
               />
 
-              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+              <Text variant={TextVariant.BodyMD} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
               <Text variant={TextVariant.BodyMD} style={styles.description}>
@@ -197,13 +194,6 @@ const KycProcessing = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
-          <Button
-            size={ButtonSize.Lg}
-            onPress={handleBrowseTokens}
-            label={strings('deposit.kyc_processing.button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
