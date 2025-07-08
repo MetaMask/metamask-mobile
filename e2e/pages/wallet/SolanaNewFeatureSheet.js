@@ -1,10 +1,9 @@
 'use strict';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
-import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
+import Gestures from '../../framework/Gestures.ts';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers.ts';
 
 class SolanaNewFeatureSheet {
   // Sheet container
@@ -52,7 +51,9 @@ class SolanaNewFeatureSheet {
 
 
   async tapNotNowButton() {
-    await Gestures.waitAndTap(this.notNowButton);
+    await Gestures.waitAndTap(this.notNowButton, {
+      elemDescription: 'Solana New Feature Sheet Not Now Button',
+    });
   }
 
   async swipeWithCarouselLogo() {
