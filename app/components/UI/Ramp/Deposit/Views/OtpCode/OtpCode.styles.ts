@@ -48,6 +48,9 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.info.default,
       marginLeft: 4,
     },
+    footerContent: {
+      gap: 8,
+    },
   });
 };
 
