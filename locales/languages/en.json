@@ -4456,10 +4456,10 @@
   },
   "account_status": {
     "account_already_exists": "Account already exists",
-    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "account_already_exists_description": "A wallet using {{accountName}} already exists. Do you want to try logging in instead?",
     "log_in": "Log in",
     "account_not_found": "Account not found",
-    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "account_not_found_description": "We couldn’t find a wallet for {{accountName}}. Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method"
   },
