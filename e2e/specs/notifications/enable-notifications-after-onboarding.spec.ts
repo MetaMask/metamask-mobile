@@ -5,19 +5,19 @@ import EnableNotificationsModal from '../../pages/Notifications/EnableNotificati
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { SmokeNotifications } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import { getMockServerPort } from '../../fixtures/utils';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from '../notifications/utils/constants';
+} from './utils/constants';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
   mockNotificationServices,
-} from '../notifications/utils/mocks';
+} from './utils/mocks';
 
 const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   newInstance: true,
@@ -28,7 +28,7 @@ const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   launchArgs: { mockServerPort: port },
 });
 
-describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+describe(SmokeNotifications('Notification Onboarding'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
