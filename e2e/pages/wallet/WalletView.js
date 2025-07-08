@@ -206,7 +206,7 @@ class WalletView {
 
   async scrollToToken(tokenName, direction = 'down') {
     await Gestures.scrollToElement(
-      WalletView.tokenInWallet(tokenName),
+      this.tokenInWallet(tokenName),
       Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
