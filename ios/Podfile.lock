@@ -347,7 +347,7 @@ PODS:
     - GoogleUtilities/Privacy
   - GZIP (1.3.2)
   - GzipSwift (5.1.1)
-  - lottie-ios (4.3.3)
+  - lottie-ios (4.3.4)
   - lottie-react-native (6.5.1):
     - DoubleConversion
     - glog
@@ -2746,7 +2746,6 @@ DEPENDENCIES:
   - "GoogleAcm (from `../node_modules/@metamask/react-native-acm`)"
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
-  - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OpenSSL-Universal
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
@@ -2883,6 +2882,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GZIP
     - GzipSwift
+    - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
     - OpenSSL-Universal
@@ -2946,8 +2946,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   GoogleAcm:
     :path: "../node_modules/@metamask/react-native-acm"
-  lottie-ios:
-    :path: "../node_modules/lottie-ios"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   Permission-BluetoothPeripheral:
@@ -3221,7 +3219,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
+  lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: 70f3b35856543afc04f006f8c269543e3d64af6b
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
