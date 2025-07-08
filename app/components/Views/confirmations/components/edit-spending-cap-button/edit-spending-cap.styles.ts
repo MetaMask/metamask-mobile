@@ -1,18 +1,12 @@
 import { StyleSheet } from 'react-native';
 
-/**
- *
- * @param params Style sheet params.
- * @returns StyleSheet object.
- */
 const styleSheet = () =>
   StyleSheet.create({
-    emptyView: {
+    container: {
+      flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 180,
-    },
-    wrapper: {
-      flex: 1,
+      justifyContent: 'center',
+      gap: 4,
     },
   });
 
