@@ -16,6 +16,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { TraceName } from '../../../../../util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -23,6 +25,8 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
+
+  useEndTraceOnMount(TraceName.EarnDepositConfirmationScreen);
 
   useEffect(() => {
     navigation.setOptions(

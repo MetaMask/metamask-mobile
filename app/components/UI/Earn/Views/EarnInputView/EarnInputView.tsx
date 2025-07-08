@@ -244,6 +244,8 @@ const EarnInputView = () => {
   );
 
   const handleLendingFlow = useCallback(async () => {
+    trace({ name: TraceName.EarnDepositReviewScreen });
+
     if (
       !activeAccount?.address ||
       !earnToken?.experience?.market?.underlying?.address ||
@@ -468,6 +470,8 @@ const EarnInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      trace({ name: TraceName.EarnDepositConfirmationScreen, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+
       // this prevents the user from adding the transaction deposit into the
       // controller state multiple times
       setIsSubmittingStakeDepositTransaction(true);
@@ -500,6 +504,8 @@ const EarnInputView = () => {
       );
       return;
     }
+
+    trace({ name: TraceName.EarnDepositReviewScreen });
 
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,

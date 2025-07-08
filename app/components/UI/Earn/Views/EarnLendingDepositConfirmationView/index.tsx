@@ -39,6 +39,8 @@ import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
+import { TraceName } from 'app/util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -191,6 +193,8 @@ const EarnLendingDepositConfirmationView = () => {
       activeStep,
     ],
   );
+
+  useEndTraceOnMount(TraceName.EarnDepositReviewScreen);
 
   useEffect(() => {
     trackEvent(
