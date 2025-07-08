@@ -1021,8 +1021,19 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying Android build from cache..."
-                mkdir -p android/app/build/outputs
-                echo "Android build artifacts restored from cache"
+                
+                if [ -d "/tmp/android-cache/build/outputs" ]; then
+                    echo "Restoring Android build outputs from cache..."
+                    mkdir -p android/app/build/outputs
+                    cp -r /tmp/android-cache/build/outputs/* android/app/build/outputs/
+                    echo "✅ Android build artifacts restored from cache"
+                    
+                    echo "Restored files:"
+                    find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" | head -5
+                else
+                    echo "❌ Cache directory /tmp/android-cache/build/outputs not found"
+                    echo "Cache may not have been restored properly"
+                fi
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -1203,9 +1214,9 @@ workflows:
                     # Generate app code hash
                     APP_CODE_HASH=$(find app/ ios/ android/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" \) -exec md5sum {} \; 2>/dev/null | sort | md5sum | cut -d' ' -f1)
                     
-                    # Generate cache keys (v2 format to invalidate old corrupted cache)
-                    IOS_CACHE_KEY="e2e-build-ios-pr-v2-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
-                    ANDROID_CACHE_KEY="e2e-build-android-pr-v2-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    # Generate cache keys (v3 format with fixed Android path handling)
+                    IOS_CACHE_KEY="e2e-build-ios-pr-v3-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    ANDROID_CACHE_KEY="e2e-build-android-pr-v3-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
                     
                     echo "Cache keys generated:"
                     echo "  iOS: $IOS_CACHE_KEY"
@@ -1705,12 +1716,34 @@ workflows:
                 echo "Current working directory: $(pwd)"
                 echo "Listing android/app/build directory:"
                 ls -la android/app/build/ 2>/dev/null || echo "android/app/build does not exist"
+      - script@1:
+          title: Prepare Android build outputs for caching
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== Preparing Android cache with proper paths ==="
+                echo "Current working directory: $(pwd)"
+                
+                # Create a clean cache directory structure
+                mkdir -p /tmp/android-cache/build/outputs
+                
+                if [ -d "android/app/build/outputs" ]; then
+                    echo "Copying Android build outputs to cache staging area..."
+                    cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
+                    echo "Cache staging completed"
+                    
+                    echo "Cache contents:"
+                    find /tmp/android-cache -type f | head -10
+                    echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
+                else
+                    echo "Warning: android/app/build/outputs not found!"
+                fi
       - save-cache@1:
           title: Save Android PR Build Cache
           inputs:
             - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
             - paths: |-
-                android/app/build/outputs
+                /tmp/android-cache
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
