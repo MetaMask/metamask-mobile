@@ -51,18 +51,6 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
     (_state: unknown) => mockSelectedRegion,
   ),
   setFiatOrdersRegionDeposit: jest.fn(),
-  getActivationKeys: jest.fn((_state: unknown) => []),
-  fiatOrdersRegionSelectorAgg: jest.fn((_state: unknown) => null),
-  fiatOrdersGetStartedAgg: jest.fn((_state: unknown) => false),
-  fiatOrdersGetStartedSell: jest.fn((_state: unknown) => false),
-  fiatOrdersPaymentMethodSelectorAgg: jest.fn((_state: unknown) => null),
-  networkShortNameSelector: jest.fn((_state: unknown) => 'ethereum'),
-  selectedAddressSelector: jest.fn((_state: unknown) => '0x123'),
-  chainIdSelector: jest.fn((_state: unknown) => '1'),
-  setFiatOrdersGetStartedAGG: jest.fn(),
-  setFiatOrdersRegionAGG: jest.fn(),
-  setFiatOrdersPaymentMethodAGG: jest.fn(),
-  setFiatOrdersGetStartedSell: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {
