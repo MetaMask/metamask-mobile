@@ -775,8 +775,6 @@ class ResetPassword extends PureComponent {
                 {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
-              {this.renderSwitch()}
-
               <View style={styles.ctaWrapper}>
                 <StyledButton
                   type={'blue'}
