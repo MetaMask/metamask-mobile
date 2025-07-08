@@ -239,10 +239,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
-    if (!passwordRequirementsMet(password)) {
-      setError(strings('login.invalid_password'));
-      return;
-    }
+    // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
@@ -398,7 +395,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const newFailedAttempts = rehydrationFailedAttempts + 1;
     setRehydrationFailedAttempts(newFailedAttempts);
 
-    const isPasswordError = 
+    const isPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
@@ -422,15 +419,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
-      try {
-        await handleVaultCorruption();
-      } catch (vaultCorruptionErr: unknown) {
-        const vaultCorruptionError = vaultCorruptionErr as Error;
-        // we only want to display this error to the user IF we fail to handle vault corruption
-        Logger.error(vaultCorruptionError, 'Failed to handle vault corruption');
-        setLoading(false);
-        setError(strings('login.clean_vault_error'));
-      }
+      await handleVaultCorruption();
       return;
     }
 
