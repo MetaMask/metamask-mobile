@@ -138,29 +138,25 @@ const styleSheet = (params: { theme: Theme }) => {
     // Interval selector styling
     intervalSelector: {
       flexDirection: 'row' as const,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 4,
-      marginTop: 16,
+      //   backgroundColor: 'red',
       alignSelf: 'center' as const,
+      //   paddingRight: 16,
+      marginTop: 24,
     },
     intervalTab: {
-      paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 6,
-      marginHorizontal: 2,
-      minWidth: 40,
+      padding: 10,
       alignItems: 'center' as const,
     },
     intervalTabActive: {
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.primary.muted,
     },
     intervalTabInactive: {
       backgroundColor: 'transparent',
     },
     intervalTabText: {
       fontSize: 12,
-      fontWeight: '600' as const,
     },
     intervalTabTextActive: {
       color: colors.primary.inverse,
@@ -280,6 +276,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               activeOpacity={0.7}
             >
               <Text
+                variant={TextVariant.BodySM}
+                color={
+                  selectedInterval === interval.value
+                    ? TextColor.Default
+                    : TextColor.Muted
+                }
                 style={[
                   styles.intervalTabText,
                   selectedInterval === interval.value
@@ -335,6 +337,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               activeOpacity={0.7}
             >
               <Text
+                variant={TextVariant.BodySM}
+                color={
+                  selectedInterval === interval.value
+                    ? TextColor.Default
+                    : TextColor.Muted
+                }
                 style={[
                   styles.intervalTabText,
                   selectedInterval === interval.value
@@ -365,7 +373,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                   position: 'absolute',
                   top: line.position,
                   left: 0,
-                  right: 60, // Leave space for price label
+                  right: 0, // Leave space for price label
                   height: line.isEdge ? 2 : 1,
                   backgroundColor: line.isEdge
                     ? styles.majorGridLine.color
@@ -373,28 +381,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                   opacity: line.isEdge
                     ? styles.majorGridLine.opacity
                     : styles.gridLine.opacity,
+                  zIndex: 10,
                 }}
               />
-            ))}
-
-            {/* Price Labels */}
-            {gridLines.map((line, index) => (
-              <View
-                key={`label-${index}`}
-                style={{
-                  position: 'absolute',
-                  top: line.position - 8, // Center the label on the line
-                  right: 4,
-                  paddingHorizontal: 4,
-                  paddingVertical: 2,
-                  borderRadius: 4,
-                  minWidth: 50,
-                }}
-              >
-                <Text style={styles.gridPriceLabelText}>
-                  ${Number(line.price).toFixed(2)}
-                </Text>
-              </View>
             ))}
           </View>
 
@@ -436,6 +425,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               activeOpacity={0.7}
             >
               <Text
+                variant={TextVariant.BodySM}
+                color={
+                  selectedInterval === interval.value
+                    ? TextColor.Default
+                    : TextColor.Muted
+                }
                 style={[
                   styles.intervalTabText,
                   selectedInterval === interval.value
