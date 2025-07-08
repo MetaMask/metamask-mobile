@@ -1683,6 +1683,28 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
+      - script@1:
+          title: Debug Android build outputs before caching
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== Android Build Output Debug ==="
+                echo "Checking for Android build outputs to cache..."
+                
+                if [ -d "android/app/build/outputs" ]; then
+                    echo "✅ android/app/build/outputs directory exists"
+                    echo "Directory size: $(du -sh android/app/build/outputs 2>/dev/null || echo 'Could not calculate')"
+                    echo "Contents:"
+                    find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" | head -10
+                    echo "Total files: $(find android/app/build/outputs -type f | wc -l)"
+                else
+                    echo "❌ android/app/build/outputs directory does not exist!"
+                    echo "This means the Android build failed or output path is incorrect"
+                fi
+                
+                echo "Current working directory: $(pwd)"
+                echo "Listing android/app/build directory:"
+                ls -la android/app/build/ 2>/dev/null || echo "android/app/build does not exist"
       - save-cache@1:
           title: Save Android PR Build Cache
           inputs:
