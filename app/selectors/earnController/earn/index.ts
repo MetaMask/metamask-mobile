@@ -3,7 +3,7 @@ import {
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
-import { Hex, getChecksumAddress } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
 import { createSelector } from 'reselect';
@@ -33,7 +33,6 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 
@@ -157,7 +156,6 @@ const selectEarnTokens = createDeepEqualSelector(
       selectLendingMarketsByChainIdAndTokenAddress(earnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
       selectLendingMarketsByChainIdAndOutputTokenAddress(earnState);
-    const isEvmAddress = !isNonEvmAddress(selectedAddress || '');
 
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
