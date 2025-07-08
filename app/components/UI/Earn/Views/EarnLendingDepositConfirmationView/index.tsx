@@ -197,7 +197,9 @@ const EarnLendingDepositConfirmationView = () => {
     if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
       endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
     }
-    endTrace({ name: TraceName.EarnDepositReviewScreen });
+    else {
+      endTrace({ name: TraceName.EarnDepositReviewScreen });
+    }
   }, []);
 
   useEffect(() => {

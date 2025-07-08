@@ -37,6 +37,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
@@ -184,6 +185,11 @@ jest.mock('../../../../hooks/useMetrics', () => {
   };
 });
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
 
@@ -198,6 +204,8 @@ describe('EarnLendingDepositConfirmationView', () => {
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
+
+  const mockEndTrace = jest.mocked(endTrace);
 
   const mockInitialState = {
     engine: {
@@ -1344,5 +1352,41 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Tracing', () => {
+    it('calls endTrace for EarnDepositReviewScreen when action is DEPOSIT', () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls endTrace for EarnDepositSpendingCapScreen when action is ALLOWANCE_INCREASE', () => {
+      const routeParamsWithAllowanceIncrease = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+        },
+      };
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithAllowanceIncrease);
+
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositSpendingCapScreen,
+      });
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
   });
 });
