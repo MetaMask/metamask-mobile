@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
-import EvmAccountSelectorList from '../../../EvmAccountSelectorList';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
