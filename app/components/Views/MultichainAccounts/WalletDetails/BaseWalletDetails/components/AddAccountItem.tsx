@@ -62,7 +62,7 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
             style={{ color: colors.primary.default }}
             variant={TextVariant.BodyMDMedium}
           >
-            {strings('multichain_accounts.wallet_details.add_account')}
+            {strings('multichain_accounts.wallet_details.create_account')}
           </Text>
         </Box>
       </Box>
