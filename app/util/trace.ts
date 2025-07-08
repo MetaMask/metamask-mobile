@@ -74,6 +74,7 @@ export enum TraceName {
   EarnEarnings = 'Earn Earnings',
   EarnFaq = 'Earn FAQ',
   EarnFaqApys = 'Earn FAQ APYs',
+  EarnTokenList = 'Earn Token List',
 }
 
 export enum TraceOperation {
