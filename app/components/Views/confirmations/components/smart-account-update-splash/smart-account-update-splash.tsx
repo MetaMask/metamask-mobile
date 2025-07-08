@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { Hex } from '@metamask/utils';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -12,10 +11,7 @@ import Button, {
 import Engine from '../../../../../core/Engine';
 import { EIP5792ErrorCode } from '../../../../../constants/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
-import {
-  selectSmartAccountOptIn,
-  selectSmartAccountOptInForAccounts,
-} from '../../../../../selectors/preferencesController';
+import { selectSmartAccountOptIn } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -26,9 +22,6 @@ export const SmartAccountUpdateSplash = () => {
   const { PreferencesController } = Engine.context;
   const [acknowledged, setAcknowledged] = useState(false);
   const transactionMetadata = useTransactionMetadataRequest();
-  const smartAccountOptInForAccounts = useSelector(
-    selectSmartAccountOptInForAccounts,
-  );
   const smartAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
     txParams: { from },
@@ -48,27 +41,21 @@ export const SmartAccountUpdateSplash = () => {
   }, [onReject]);
 
   const onConfirm = useCallback(() => {
-    if (!smartAccountOptInForAccounts.includes(from as Hex)) {
-      PreferencesController.setSmartAccountOptInForAccounts([
-        ...smartAccountOptInForAccounts,
-        from as Hex,
-      ]);
-    }
+    PreferencesController.setSmartAccountOptIn(true);
     setAcknowledged(true);
-  }, [from, setAcknowledged, smartAccountOptInForAccounts]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [setAcknowledged]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (
     !transactionMetadata ||
     acknowledged ||
-    (smartAccountOptIn && from && !isHardwareAccount(from)) ||
-    smartAccountOptInForAccounts.includes(from as Hex)
+    (smartAccountOptIn && from && !isHardwareAccount(from))
   ) {
     return null;
   }
 
   return (
     <View style={styles.wrapper}>
-      <SmartAccountUpdateContent selectedAddresses={[from as Hex]} />
+      <SmartAccountUpdateContent />
       <View style={styles.buttonSection}>
         <Button
           variant={ButtonVariants.Secondary}

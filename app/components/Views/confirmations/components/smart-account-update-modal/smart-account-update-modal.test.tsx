@@ -8,10 +8,22 @@ import {
   upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
-import * as ConfirmationActions from '../../hooks/useConfirmActions';
-// eslint-disable-next-line import/no-namespace
 import * as AddressUtils from '../../../../../util/address';
 import { SmartAccountUpdateModal } from './smart-account-update-modal';
+
+jest.mock('react-native-safe-area-context', () => {
+  // using disting digits for mock rects to make sure they are not mixed up
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -21,7 +33,7 @@ jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     PreferencesController: {
-      setSmartAccountOptInForAccounts: jest.fn(),
+      setSmartAccountOptIn: jest.fn(),
     },
   },
 }));
@@ -53,80 +65,16 @@ describe('SmartContractWithLogo', () => {
   it('renders correctly', () => {
     const { getByText } = renderComponent();
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
-  it('close after `Yes` button is clicked', () => {
+  it('show success after `Yes` button is clicked', () => {
     const { getByText, queryByText } = renderComponent();
-    expect(queryByText('Request for')).toBeTruthy();
-    fireEvent.press(getByText('Yes'));
+    expect(getByText('Use smart account?')).toBeTruthy();
+    fireEvent.press(getByText('Use smart account'));
     expect(
-      Engine.context.PreferencesController.setSmartAccountOptInForAccounts,
+      Engine.context.PreferencesController.setSmartAccountOptIn,
     ).toHaveBeenCalled();
-    expect(queryByText('Request for')).toBeNull();
-  });
-
-  it('call reject function when `No` button is clicked', () => {
-    const mockOnReject = jest.fn();
-    jest
-      .spyOn(ConfirmationActions, 'useConfirmActions')
-      .mockReturnValue({ onConfirm: jest.fn(), onReject: mockOnReject });
-    const { getByText, queryByText } = renderComponent();
-    expect(queryByText('Request for')).toBeTruthy();
-    fireEvent.press(getByText('No'));
-    expect(mockOnReject).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders null if user has already opted-in for the account', async () => {
-    const { queryByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: {
-          smartAccountOptInForAccounts: [
-            upgradeAccountConfirmation.txParams.from,
-          ],
-        },
-      }),
-    );
-
-    expect(queryByText('Request for')).toBeNull();
-  });
-
-  it('renders null if preference smartAccountOptIn is true and account is not hardware account', async () => {
-    const { queryByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
-
-    expect(queryByText('Request for')).toBeNull();
-  });
-
-  it('does not renders null if preference smartAccountOptIn is true and but account is hardware account', async () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
-    const { getByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
-
-    expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
-  });
-
-  it('open account selection when edit accounts icon is pressed', () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
-    const { getByTestId, getByText } = renderComponent(
-      getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: true },
-      }),
-    );
-
-    fireEvent.press(getByTestId('open_account_selection'));
-    expect(getByText('Edit Accounts')).toBeTruthy();
-    expect(getByText('Select all')).toBeTruthy();
-
-    fireEvent.press(getByTestId('account_selection_close'));
-    expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
+    expect(queryByText('Use smart account?')).toBeNull();
+    expect(getByText('Successful!')).toBeTruthy();
   });
 });

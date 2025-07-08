@@ -4,6 +4,7 @@ import { CarouselSlide, SlideId } from './types';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
+  createSmartAccountNavigationDetails,
 } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import cardImage from '../../../images/banners/banner_image_card.png';
@@ -48,7 +49,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     undismissable: false,
     navigation: {
       type: 'function',
-      navigate: () => [Routes.SMART_ACCOUNT_OPT_IN],
+      navigate: createSmartAccountNavigationDetails,
     },
   },
   {
