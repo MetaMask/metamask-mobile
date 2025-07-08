@@ -24,7 +24,6 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Button, {
@@ -33,6 +32,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
@@ -45,6 +47,16 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
+
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+
+  const { handleApprovedKycFlow } = useDepositRouting({
+    selectedWalletAddress: selectedAddress,
+    cryptoCurrencyChainId: quote.cryptoCurrency,
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
     {
@@ -83,9 +95,13 @@ const KycProcessing = () => {
     navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
   }, [navigation, quote]);
 
-  const handleContinue = useCallback(() => {
-    navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-  }, [navigation, quote]);
+  const handleContinue = useCallback(async () => {
+    try {
+      await handleApprovedKycFlow(quote);
+    } catch (error) {
+      console.error('Error handling approved KYC flow:', error);
+    }
+  }, [handleApprovedKycFlow, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;

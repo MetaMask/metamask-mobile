@@ -252,6 +252,20 @@ export const useDepositRouting = ({
     ],
   );
 
+  const navigateToKycWebview = useCallback(
+    (quote: BuyQuote, kycUrl: string) => {
+      quoteRef.current = quote;
+      startPolling();
+
+      navigation.navigate(
+        ...createWebviewModalNavigationDetails({
+          sourceUrl: kycUrl,
+        }),
+      );
+    },
+    [startPolling, navigation],
+  );
+
   const routeAfterAuthentication = useCallback(
     async (quote: BuyQuote) => {
       try {
@@ -304,14 +318,7 @@ export const useDepositRouting = ({
           );
           return;
         } else if (idProofData?.data?.kycUrl) {
-          quoteRef.current = quote;
-          startPolling();
-
-          navigation.navigate(
-            ...createWebviewModalNavigationDetails({
-              sourceUrl: idProofData.data.kycUrl,
-            }),
-          );
+          navigateToKycWebview(quote, idProofData.data.kycUrl);
           return;
         }
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
@@ -340,11 +347,13 @@ export const useDepositRouting = ({
       clearAuthToken,
       paymentMethodId,
       cryptoCurrencyChainId,
-      startPolling,
+      navigateToKycWebview,
     ],
   );
 
   return {
     routeAfterAuthentication,
+    navigateToKycWebview,
+    handleApprovedKycFlow,
   };
 };

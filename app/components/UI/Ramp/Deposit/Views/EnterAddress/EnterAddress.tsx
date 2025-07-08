@@ -18,7 +18,6 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
@@ -27,6 +26,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../components/PrivacySection';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -54,6 +56,16 @@ const EnterAddress = (): JSX.Element => {
     quote,
     kycUrl,
   } = useParams<EnterAddressParams>();
+
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+
+  const { navigateToKycWebview } = useDepositRouting({
+    selectedWalletAddress: selectedAddress,
+    cryptoCurrencyChainId: quote.cryptoCurrency,
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -165,7 +177,7 @@ const EnterAddress = (): JSX.Element => {
       }
 
       if (kycUrl) {
-        navigation.navigate(...createKycWebviewNavDetails({ quote, kycUrl }));
+        navigateToKycWebview(quote, kycUrl);
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
@@ -180,9 +192,10 @@ const EnterAddress = (): JSX.Element => {
     kycError,
     submitPurpose,
     purposeError,
-    navigation,
-    quote,
     kycUrl,
+    navigateToKycWebview,
+    quote,
+    navigation,
     submitSsnDetails,
     ssnError,
   ]);
