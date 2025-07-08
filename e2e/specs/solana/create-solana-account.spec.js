@@ -19,6 +19,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
+import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
