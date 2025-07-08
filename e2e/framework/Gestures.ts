@@ -419,7 +419,7 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = await scrollableContainer; // This is only working when it's awaited
+        const scrollable = await scrollableContainer;
         await waitFor(target)
           .toBeVisible()
           .whileElement(scrollable)

@@ -204,6 +204,16 @@ class WalletView {
     await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
   }
 
+  async scrollToToken(tokenName, direction = 'down') {
+    await Gestures.scrollToElement(
+      WalletView.tokenInWallet(tokenName),
+      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        direction,
+      },
+    );
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
@@ -362,7 +372,7 @@ class WalletView {
   async getBalanceText() {
     const balanceElement = this.totalBalance;
     await Assertions.checkIfVisible(balanceElement);
-    
+
     const balanceAttributes = await (await balanceElement).getAttributes();
     return balanceAttributes.text || balanceAttributes.label;
   }
