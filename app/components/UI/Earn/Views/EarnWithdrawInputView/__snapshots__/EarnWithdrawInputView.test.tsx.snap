@@ -509,6 +509,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                       "flexDirection": "row",
                                       "height": 32,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }

@@ -648,13 +648,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-<<<<<<< HEAD
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
-=======
-                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
->>>>>>> af0c0b1d8522744605e887af05994584edad3951
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

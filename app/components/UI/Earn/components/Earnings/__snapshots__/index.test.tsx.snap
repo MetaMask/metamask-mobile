@@ -342,7 +342,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -700,13 +700,8 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
           accessibilityRole="text"
           style={
             {
-<<<<<<< HEAD
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
-=======
-              "color": "#4459ff",
               "fontFamily": "Geist Medium",
->>>>>>> af0c0b1d8522744605e887af05994584edad3951
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -1004,13 +999,8 @@ exports[`Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-<<<<<<< HEAD
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
-=======
-              "color": "#4459ff",
               "fontFamily": "Geist Medium",
->>>>>>> af0c0b1d8522744605e887af05994584edad3951
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,

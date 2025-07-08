@@ -447,7 +447,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -487,7 +487,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -779,7 +779,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1244,7 +1244,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1284,7 +1284,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1576,7 +1576,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

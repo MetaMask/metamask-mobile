@@ -175,7 +175,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -407,7 +407,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,

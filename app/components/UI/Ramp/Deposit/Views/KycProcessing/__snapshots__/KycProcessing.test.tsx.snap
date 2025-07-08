@@ -520,11 +520,12 @@ We’re verifying your identity now.
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1111,11 +1112,12 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1688,11 +1690,12 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2258,11 +2261,12 @@ We’re verifying your identity now.
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2835,11 +2839,12 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3412,11 +3417,12 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

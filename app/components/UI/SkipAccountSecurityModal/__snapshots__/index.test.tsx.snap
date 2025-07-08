@@ -150,7 +150,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -357,7 +357,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,

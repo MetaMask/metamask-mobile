@@ -769,12 +769,13 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1609,12 +1610,13 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2439,12 +2441,13 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3260,12 +3263,13 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3791,7 +3795,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3825,7 +3829,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3859,7 +3863,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3893,7 +3897,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3927,7 +3931,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3961,7 +3965,7 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4114,12 +4118,13 @@ exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -4954,12 +4959,13 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -5765,12 +5771,13 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

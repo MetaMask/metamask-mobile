@@ -7819,7 +7819,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -8947,11 +8947,12 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -9608,7 +9609,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -10736,11 +10737,12 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

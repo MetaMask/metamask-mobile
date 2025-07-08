@@ -632,11 +632,12 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1006,7 +1007,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1277,6 +1278,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1307,11 +1309,12 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

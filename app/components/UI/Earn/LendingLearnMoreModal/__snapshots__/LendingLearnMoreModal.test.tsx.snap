@@ -249,7 +249,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
+                        "backgroundColor": "#3c4d9d1a",
                         "borderRadius": 32,
                         "height": 36,
                         "justifyContent": "center",
@@ -661,7 +661,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

@@ -325,7 +325,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
