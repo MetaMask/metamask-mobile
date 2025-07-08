@@ -1,4 +1,3 @@
-
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
@@ -48,7 +47,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
   let mockServer: Mockttp;
   let localNode: Ganache;
-  let eventsToAssert: { event: string, properties: Record<string, unknown> }[] = [];
+  let eventsToAssert: { event: string; properties: Record<string, unknown> }[] =
+    [];
 
   beforeAll(async () => {
     jest.setTimeout(120000);
@@ -145,42 +145,62 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
   it('should check the Segment events from one bridge', async () => {
     const softAssert = new SoftAssert();
-    await softAssert.checkAndCollect(
+
+    // Define all assertion calls as variables
+    const checkEventCount = softAssert.checkAndCollect(
       () => Assertions.checkIfArrayHasLength(eventsToAssert, 9),
       'Should have 9 events',
     );
 
     // Bridge Button Clicked
-    const bridgeButtonClicked = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_BUTTON_CLICKED);
-    await softAssert.checkAndCollect(
+    const bridgeButtonClicked = eventsToAssert.find(
+      (event) => event.event === eventsToCheck.BRIDGE_BUTTON_CLICKED,
+    );
+
+    const checkBridgeButtonClickedDefined = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfValueIsDefined(bridgeButtonClicked);
-      }, 'Bridge Button Clicked: Should be defined',
+      },
+      'Bridge Button Clicked: Should be defined',
     );
-    await softAssert.checkAndCollect(
-      async () => Assertions.checkIfObjectContains(bridgeButtonClicked?.properties as Record<string, unknown>, {
-        chain_id_source: '1',
-        token_address_source: '0x0000000000000000000000000000000000000000',
-        token_symbol_source: 'ETH',
-      }),
+
+    const checkBridgeButtonClickedProperties = softAssert.checkAndCollect(
+      async () =>
+        Assertions.checkIfObjectContains(
+          bridgeButtonClicked?.properties as Record<string, unknown>,
+          {
+            chain_id_source: '1',
+            token_address_source: '0x0000000000000000000000000000000000000000',
+            token_symbol_source: 'ETH',
+          },
+        ),
       'Bridge Button Clicked: Should have the correct properties',
     );
 
     // Bridge Page Viewed
-    const bridgePageViewed = eventsToAssert.find((event) => event.event === eventsToCheck.BRIDGE_PAGE_VIEWED);
-    await softAssert.checkAndCollect(
+    const bridgePageViewed = eventsToAssert.find(
+      (event) => event.event === eventsToCheck.BRIDGE_PAGE_VIEWED,
+    );
+
+    const checkBridgePageViewedDefined = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfValueIsDefined(bridgePageViewed);
-      }, 'Bridge Page Viewed: Should be defined',
+      },
+      'Bridge Page Viewed: Should be defined',
     );
-    await softAssert.checkAndCollect(
+
+    const checkBridgePageViewedProperties = softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfObjectContains(bridgePageViewed?.properties as Record<string, unknown>, {
-          chain_id_source: '1',
-          token_address_source: '0x0000000000000000000000000000000000000000',
-          token_symbol_source: 'ETH',
-        });
-      }, 'Bridge Page Viewed: Should have the correct properties',
+        await Assertions.checkIfObjectContains(
+          bridgePageViewed?.properties as Record<string, unknown>,
+          {
+            chain_id_source: '1',
+            token_address_source: '0x0000000000000000000000000000000000000000',
+            token_symbol_source: 'ETH',
+          },
+        );
+      },
+      'Bridge Page Viewed: Should have the correct properties',
     );
 
     // Unified Swap Bridge Input Changed
@@ -190,17 +210,25 @@ describe(SmokeTrade('Bridge functionality'), () => {
       'chain_destination',
       'slippage',
     ];
-    const unifiedSwapBridgeInputChanged = eventsToAssert.filter((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_INPUT_CHANGED);
-    await softAssert.checkAndCollect(
-      async () => {
+    const unifiedSwapBridgeInputChanged = eventsToAssert.filter(
+      (event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_INPUT_CHANGED,
+    );
+
+    const checkUnifiedSwapBridgeInputChangedDefined =
+      softAssert.checkAndCollect(async () => {
         await Assertions.checkIfValueIsDefined(unifiedSwapBridgeInputChanged);
-      }, 'Unified SwapBridge Input Changed: Should be defined',
-    );
-    await softAssert.checkAndCollect(
+      }, 'Unified SwapBridge Input Changed: Should be defined');
+
+    const checkUnifiedSwapBridgeInputChangedLength = softAssert.checkAndCollect(
       async () => {
-        await Assertions.checkIfArrayHasLength(unifiedSwapBridgeInputChanged, 4);
-      }, 'Unified SwapBridge Input Changed: Should have 4 events',
+        await Assertions.checkIfArrayHasLength(
+          unifiedSwapBridgeInputChanged,
+          4,
+        );
+      },
+      'Unified SwapBridge Input Changed: Should have 4 events',
     );
+
     const hasAllInputs = inputTypes.every((inputType) =>
       unifiedSwapBridgeInputChanged.some(
         (event) =>
@@ -208,78 +236,127 @@ describe(SmokeTrade('Bridge functionality'), () => {
           event.properties.input === inputType,
       ),
     );
-    await softAssert.checkAndCollect(
-      async () => {
+
+    const checkUnifiedSwapBridgeInputChangedAllInputs =
+      softAssert.checkAndCollect(async () => {
         await Assertions.checkIfValueIsDefined(hasAllInputs);
-      }, 'Unified SwapBridge Input Changed: Should have all inputs',
-    );
+      }, 'Unified SwapBridge Input Changed: Should have all inputs');
 
     // Unified Swap Bridge Quotes Requested
-    const unifiedSwapBridgeQuotesRequested = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED);
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeQuotesRequested);
-      }, 'Unified SwapBridge Quotes Requested: Should be defined',
+    const unifiedSwapBridgeQuotesRequested = eventsToAssert.find(
+      (event) =>
+        event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED,
     );
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfObjectContains(unifiedSwapBridgeQuotesRequested?.properties as Record<string, unknown>, {
-          chain_id_source: 'eip155:1',
-          chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          token_address_source: 'eip155:1/slip44:60',
-          token_address_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          token_symbol_source: 'ETH',
-          token_symbol_destination: 'SOL',
-        });
-      }, 'Unified SwapBridge Quotes Requested: Should have the correct properties',
-    );
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeQuotesRequested?.properties.slippage_limit);
-      }, 'Unified SwapBridge Quotes Requested: Should have a slippage',
-    );
+
+    const checkUnifiedSwapBridgeQuotesRequestedDefined =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeQuotesRequested,
+        );
+      }, 'Unified SwapBridge Quotes Requested: Should be defined');
+
+    const checkUnifiedSwapBridgeQuotesRequestedProperties =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectContains(
+          unifiedSwapBridgeQuotesRequested?.properties as Record<
+            string,
+            unknown
+          >,
+          {
+            chain_id_source: 'eip155:1',
+            chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            token_address_source: 'eip155:1/slip44:60',
+            token_address_destination:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'SOL',
+          },
+        );
+      }, 'Unified SwapBridge Quotes Requested: Should have the correct properties');
+
+    const checkUnifiedSwapBridgeQuotesRequestedSlippage =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfValueIsDefined(
+          unifiedSwapBridgeQuotesRequested?.properties.slippage_limit,
+        );
+      }, 'Unified SwapBridge Quotes Requested: Should have a slippage');
 
     // Unified Swap Bridge Submitted
-    const unifiedSwapBridgeSubmitted = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_SUBMITTED);
-    await softAssert.checkAndCollect(
+    const unifiedSwapBridgeSubmitted = eventsToAssert.find(
+      (event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_SUBMITTED,
+    );
+
+    const checkUnifiedSwapBridgeSubmittedDefined = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfValueIsDefined(unifiedSwapBridgeSubmitted);
-      }, 'Unified SwapBridge Submitted: Should be defined',
+      },
+      'Unified SwapBridge Submitted: Should be defined',
     );
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfObjectContains(unifiedSwapBridgeSubmitted?.properties as Record<string, unknown>, {
-          chain_id_source: 'eip155:1',
-          chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          token_address_source: 'eip155:1/slip44:60',
-          token_address_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          token_symbol_source: 'ETH',
-          token_symbol_destination: 'SOL',
-        });
-      }, 'Unified SwapBridge Submitted: Should have the correct properties',
-    );
+
+    const checkUnifiedSwapBridgeSubmittedProperties =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectContains(
+          unifiedSwapBridgeSubmitted?.properties as Record<string, unknown>,
+          {
+            chain_id_source: 'eip155:1',
+            chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            token_address_source: 'eip155:1/slip44:60',
+            token_address_destination:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'SOL',
+          },
+        );
+      }, 'Unified SwapBridge Submitted: Should have the correct properties');
 
     // Unified Swap Bridge Completed
-    const unifiedSwapBridgeCompleted = eventsToAssert.find((event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_COMPLETED);
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeCompleted);
-      }, 'Unified SwapBridge Completed: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfObjectContains(unifiedSwapBridgeCompleted?.properties as Record<string, unknown>, {
-          chain_id_source: 'eip155:1',
-          chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          token_address_source: 'eip155:1/slip44:60',
-          token_address_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-          token_symbol_source: 'ETH',
-          token_symbol_destination: 'SOL',
-        });
-      }, 'Unified SwapBridge Completed: Should have the correct properties',
+    const unifiedSwapBridgeCompleted = eventsToAssert.find(
+      (event) => event.event === eventsToCheck.UNIFIED_SWAPBRIDGE_COMPLETED,
     );
 
-    await softAssert.throwIfErrors();
+    const checkUnifiedSwapBridgeCompletedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(unifiedSwapBridgeCompleted);
+      },
+      'Unified SwapBridge Completed: Should be defined',
+    );
+
+    const checkUnifiedSwapBridgeCompletedProperties =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectContains(
+          unifiedSwapBridgeCompleted?.properties as Record<string, unknown>,
+          {
+            chain_id_source: 'eip155:1',
+            chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            token_address_source: 'eip155:1/slip44:60',
+            token_address_destination:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'SOL',
+          },
+        );
+      }, 'Unified SwapBridge Completed: Should have the correct properties');
+
+
+    await Promise.all([
+      checkEventCount,
+      checkBridgeButtonClickedDefined,
+      checkBridgeButtonClickedProperties,
+      checkBridgePageViewedDefined,
+      checkBridgePageViewedProperties,
+      checkUnifiedSwapBridgeInputChangedDefined,
+      checkUnifiedSwapBridgeInputChangedLength,
+      checkUnifiedSwapBridgeInputChangedAllInputs,
+      checkUnifiedSwapBridgeQuotesRequestedDefined,
+      checkUnifiedSwapBridgeQuotesRequestedProperties,
+      checkUnifiedSwapBridgeQuotesRequestedSlippage,
+      checkUnifiedSwapBridgeSubmittedDefined,
+      checkUnifiedSwapBridgeSubmittedProperties,
+      checkUnifiedSwapBridgeCompletedDefined,
+      checkUnifiedSwapBridgeCompletedProperties,
+    ]);
+
+    softAssert.throwIfErrors();
   });
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
