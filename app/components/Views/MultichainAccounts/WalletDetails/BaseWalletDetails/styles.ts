@@ -1,17 +1,10 @@
 import { Theme } from '@metamask/design-tokens';
 import { Platform, StatusBar, StyleSheet, ViewStyle } from 'react-native';
 
-interface BaseWalletDetailsStyleSheetVars {
-  screenHeight: number;
-}
-
-const styleSheet = (params: {
-  theme: Theme;
-  vars: BaseWalletDetailsStyleSheetVars;
-}) => {
-  const { vars, theme } = params;
-  const { colors } = theme;
-  const { screenHeight } = vars;
+const styleSheet = (params: { theme: Theme }) => {
+  const {
+    theme: { colors },
+  } = params;
 
   const baseRowStyle = {
     display: 'flex',
@@ -30,11 +23,12 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     safeArea: {
+      flex: 1,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
 
     container: {
-      // flex: 1,
+      flex: 1,
       padding: 16,
     },
 
@@ -69,11 +63,13 @@ const styleSheet = (params: {
       flex: 1,
     },
     accountsList: {
+      flex: 1,
       marginTop: 16,
       flexDirection: 'column',
     },
-    flashListContainer: {
-      maxHeight: screenHeight * 0.5,
+    listContainer: {
+      flexGrow: 1,
+      flexShrink: 1,
       flexDirection: 'row',
     },
     accountBox: {

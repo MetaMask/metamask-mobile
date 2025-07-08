@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,8 +47,7 @@ export const BaseWalletDetails = ({
   children,
 }: BaseWalletDetailsProps) => {
   const navigation = useNavigation();
-  const { height: screenHeight } = useWindowDimensions();
-  const { styles, theme } = useStyles(styleSheet, { screenHeight });
+  const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
@@ -98,7 +98,13 @@ export const BaseWalletDetails = ({
     setShowAddAccountModal(false);
   }, []);
 
-  const renderAccountItem = (account: InternalAccount, index: number) => {
+  const renderAccountItem = ({
+    item: account,
+    index,
+  }: {
+    item: InternalAccount;
+    index: number;
+  }) => {
     const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
     const balanceData = multichainBalancesForAllAccounts[account.id];
     const isAccountBalanceLoading =
@@ -107,7 +113,6 @@ export const BaseWalletDetails = ({
 
     return (
       <AccountItem
-        key={account.id}
         account={account}
         index={index}
         totalItemsCount={totalItemsCount}
@@ -236,11 +241,12 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          <View style={styles.flashListContainer}>
+          <View style={styles.listContainer}>
             <FlashList
               estimatedItemSize={18}
               data={accounts}
-              renderItem={({ item, index }) => renderAccountItem(item, index)}
+              keyExtractor={(item) => item.id}
+              renderItem={renderAccountItem}
             />
           </View>
           {keyringId && renderAddAccountItem()}
