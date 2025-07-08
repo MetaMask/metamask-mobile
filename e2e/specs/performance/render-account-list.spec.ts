@@ -10,6 +10,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { CASUAL_USER_STATE, CORE_USER_STATE, POWER_USER_STATE } from '../../fixtures/constants';
 
 describe(SmokePerformance('Account List Load Testing'), () => {
   beforeAll(async () => {
@@ -308,9 +309,9 @@ describe(SmokePerformance('Account List Load Testing'), () => {
       {
         fixture: new FixtureBuilder()
           .withPopularNetworks()
-          .withCoreUserKeyRing()
-          .withCoreUSERSnapUnencryptedState()
-          .withCoreUserSnapPermissions()
+          .withUserProfileKeyRing(POWER_USER_STATE)
+          .withUserProfileSnapUnencryptedState(POWER_USER_STATE)
+          .withUserProfileSnapPermissions(POWER_USER_STATE)
           .build(),
         restartDevice: true,
       },
