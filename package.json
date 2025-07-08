@@ -16,7 +16,7 @@
     "clean:node": "rm -rf node_modules && yarn --frozen-lockfile",
     "clean": "yarn clean:ios && yarn clean:android && yarn clean:node && yarn clean:ppom",
     "clean-android": "yarn clean:android && yarn clean:node",
-    "lint": "eslint '**/*.{js,ts,tsx}'",
+    "lint": "eslint '**/*.{js,ts,tsx}' --format './scripts/warnings-first-formatter.js'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
@@ -109,7 +109,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint '**/*.{js,ts,tsx}'"
+      "yarn lint"
     ]
   },
   "resolutions": {
