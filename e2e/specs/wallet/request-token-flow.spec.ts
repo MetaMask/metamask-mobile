@@ -47,8 +47,6 @@ describe(
       await stopFixtureServer(fixtureServer);
     });
 
-    // App is crashing on Android CI
-
     it('should request asset from Action button', async (): Promise<void> => {
       await loginToApp();
       await Assertions.checkIfVisible(WalletView.container);
