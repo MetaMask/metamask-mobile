@@ -14,7 +14,7 @@ function getAlertTextColors(severity?: Severity): TextColor {
     case Severity.Warning:
       return TextColor.Warning;
     default:
-      return TextColor.Default;
+      return TextColor.Alternative;
   }
 }
 
