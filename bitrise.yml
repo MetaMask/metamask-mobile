@@ -1167,6 +1167,10 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script-runner@0.9.3:
+          title: Check for existing PR builds
+          inputs:
+            - file_path: ./scripts/check-existing-pr-builds.sh
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -1202,6 +1206,11 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore PR Build Cache
+          run_if: '{{getenv "SKIP_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -1213,6 +1222,7 @@ workflows:
           title: Run detox build
           timeout: 1200
           is_always_run: true
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1229,6 +1239,14 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
+      - save-cache@1:
+          title: Save PR Build Cache
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
+          inputs:
+            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                ios/build/Build/Products/Release-iphonesimulator
+                ../Library/Detox/ios
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
@@ -1237,6 +1255,7 @@ workflows:
           title: Save iOS build
       - save-cache@1:
           title: Save node_modules
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
@@ -1494,6 +1513,10 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script-runner@0.9.3:
+          title: Check for existing PR builds
+          inputs:
+            - file_path: ./scripts/check-existing-pr-builds.sh
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -1521,6 +1544,11 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore PR Build Cache
+          run_if: '{{getenv "SKIP_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -1532,6 +1560,7 @@ workflows:
           title: Run detox build
           timeout: 1200
           is_always_run: true
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1548,12 +1577,20 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
+      - save-cache@1:
+          title: Save PR Build Cache
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
+          inputs:
+            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                android/app/build/outputs
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
           title: Save Android build
       - save-cache@1:
           title: Save node_modules
+          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
