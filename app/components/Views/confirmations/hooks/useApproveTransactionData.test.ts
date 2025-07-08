@@ -18,9 +18,14 @@ import { ApproveMethod } from '../types/approve';
 import { ZERO_ADDRESS } from '../constants/address';
 import { useApproveTransactionData } from './useApproveTransactionData';
 import { useGetTokenStandardAndDetails } from './useGetTokenStandardAndDetails';
+import { useERC20TokenBalance } from './useERC20TokenBalance';
 
 jest.mock('./useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
+}));
+
+jest.mock('./useERC20TokenBalance', () => ({
+  useERC20TokenBalance: jest.fn(),
 }));
 
 const mockedSpender = '0x9876543210987654321098765432109876543210';
@@ -29,16 +34,22 @@ describe('useApproveTransactionData', () => {
   const mockUseGetTokenStandardAndDetails = jest.mocked(
     useGetTokenStandardAndDetails,
   );
+  const mockUseERC20TokenBalance = jest.mocked(useERC20TokenBalance);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseGetTokenStandardAndDetails.mockReturnValue({
       details: {
         standard: TokenStandard.ERC20,
-        decimalsNumber: 18,
+        decimalsNumber: 0,
       },
       isPending: false,
     } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+    mockUseERC20TokenBalance.mockReturnValue({
+      tokenBalance: '100',
+      loading: false,
+      error: false,
+    } as unknown as ReturnType<typeof useERC20TokenBalance>);
   });
 
   describe('approve method', () => {
@@ -58,6 +69,7 @@ describe('useApproveTransactionData', () => {
           approveMethod,
           spender,
           amount,
+          tokenBalance,
         } = result.current;
 
         expect(isLoading).toBe(false);
@@ -66,6 +78,7 @@ describe('useApproveTransactionData', () => {
         expect(approveMethod).toBe(ApproveMethod.APPROVE);
         expect(spender).toBe(mockedSpender);
         expect(amount).toBe('100');
+        expect(tokenBalance).toBe('100');
       });
 
       it('returns correct data revoking ERC20 token', () => {
@@ -264,6 +277,7 @@ describe('useApproveTransactionData', () => {
       mockUseGetTokenStandardAndDetails.mockReturnValue({
         details: {
           standard: TokenStandard.ERC20,
+          decimalsNumber: 0,
         },
         isPending: false,
       } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);

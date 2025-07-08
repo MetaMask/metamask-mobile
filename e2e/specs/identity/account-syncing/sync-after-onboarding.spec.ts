@@ -15,7 +15,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { getEventsPayloads } from '../../analytics/helpers';
@@ -23,9 +23,8 @@ import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
 import { MockttpServer } from 'mockttp';
 
 describe(
-  SmokeWalletPlatform('Account syncing - syncs previously synced accounts'),
+  SmokeIdentity('Account syncing - syncs previously synced accounts'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer: MockttpServer;
 
     beforeAll(async () => {
@@ -33,10 +32,7 @@ describe(
         POST: [mockEvents.POST.segmentTrack],
       };
 
-      mockServer = await startMockServer(
-        segmentMock,
-        TEST_SPECIFIC_MOCK_SERVER_PORT,
-      );
+      mockServer = await startMockServer(segmentMock);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -57,7 +53,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
         },
       });
     });

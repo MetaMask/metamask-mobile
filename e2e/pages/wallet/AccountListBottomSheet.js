@@ -136,6 +136,9 @@ class AccountListBottomSheet {
     );
   }
 
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'fast');
+  }
 }
 
 export default new AccountListBottomSheet();
