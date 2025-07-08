@@ -34,6 +34,10 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  PERPS: {
+    ACTIVE: true,
+    URL: `${PORTFOLIO_URL}/perps`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
