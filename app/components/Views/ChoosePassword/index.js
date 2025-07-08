@@ -246,6 +246,7 @@ class ChoosePassword extends PureComponent {
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
+  oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
 
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -385,8 +386,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
-      authType.oauth2Login = oauth2LoginSuccess;
+      authType.oauth2Login = this.oauth2LoginSuccess;
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -695,12 +695,12 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+             {!this.oauth2LoginSuccess && <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('choose_password.steps', {
                   currentStep: 1,
                   totalSteps: 3,
                 })}
-              </Text>
+              </Text>}
 
               <View
                 style={styles.passwordContainer}
@@ -857,7 +857,7 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {this.oauth2LoginSuccess ? strings('import_from_seed.learn_more_social_login') : strings('import_from_seed.learn_more')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
