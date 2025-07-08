@@ -145,7 +145,7 @@ export const PortfolioBalance = React.memo(() => {
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Long}
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayLG}
               >
                 {selectedAccountMultichainBalance.displayBalance}
               </SensitiveText>

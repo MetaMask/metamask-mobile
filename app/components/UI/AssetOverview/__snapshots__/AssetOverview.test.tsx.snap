@@ -29,10 +29,7 @@ exports[`AssetOverview should render correctly 1`] = `
           }
         }
       >
-        Ethereum
-         (
-        ETH
-        )
+        Asset
       </Text>
       <Text
         accessibilityRole="text"
@@ -1188,10 +1185,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           }
         }
       >
-        Ethereum
-         (
-        ETH
-        )
+        Asset
       </Text>
       <Text
         accessibilityRole="text"
@@ -2383,10 +2377,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           }
         }
       >
-        Ethereum
-         (
-        ETH
-        )
+        Asset
       </Text>
       <Text
         accessibilityRole="text"
