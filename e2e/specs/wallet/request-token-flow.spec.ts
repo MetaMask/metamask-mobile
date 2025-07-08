@@ -24,15 +24,12 @@ const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const fixtureServer: FixtureServer = new FixtureServer();
 
+  const itif = (condition: boolean) => (condition ? it : it.skip);
+
 describe(
   SmokeWalletPlatform('Request Token Flow with Unprotected Wallet'),
   (): void => {
     beforeAll(async (): Promise<void> => {
-      if (device.getPlatform() === 'android') {
-        // This test is timing out on Android CI
-        // It is skipped for Android until the issue is resolved
-        return;
-      }
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder().withKeyringController().build();
       // TypeScript workaround: FixtureBuilder doesn't expose state.user types
@@ -45,11 +42,6 @@ describe(
       });
     });
     beforeEach((): void => {
-      if (device.getPlatform() === 'android') {
-        // This test is timing out on Android CI
-        // It is skipped for Android until the issue is resolved
-        return;
-      }
       jest.setTimeout(200000);
     });
 
@@ -57,7 +49,11 @@ describe(
       await stopFixtureServer(fixtureServer);
     });
 
-    it('should request asset from Action button', async (): Promise<void> => {
+    const isIOS = device.getPlatform() === 'ios';
+
+    // App is crashing on Android CI
+
+    itif(isIOS)('should request asset from Action button', async (): Promise<void> => {
       await loginToApp();
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
@@ -68,12 +64,12 @@ describe(
       );
     });
 
-    it('should search for SAI by contract', async (): Promise<void> => {
+    itif(isIOS)('should search for SAI by contract', async (): Promise<void> => {
       await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
       await Assertions.checkIfTextIsDisplayed('SAI');
     });
 
-    it('should search DAI', async (): Promise<void> => {
+    itif(isIOS)('should search DAI', async (): Promise<void> => {
       // This should be 'DAI' instead of 'D', RequestPayment component is very slow
       // We need to refactor it to be more performance and a functional component
       //TODO: Refactor RequestPayment component to be more performance and a functional component
@@ -81,22 +77,22 @@ describe(
       await RequestPaymentView.tapOnToken('DAI');
     });
 
-    it('should request DAI amount', async (): Promise<void> => {
+    itif(isIOS)('should request DAI amount', async (): Promise<void> => {
       await RequestPaymentView.typeInTokenAmount(5.5);
       await Assertions.checkIfVisible(SendLinkView.container);
     });
 
-    it('should see DAI request QR code', async (): Promise<void> => {
+    itif(isIOS)('should see DAI request QR code', async (): Promise<void> => {
       await SendLinkView.tapQRCodeButton();
       await Assertions.checkIfVisible(PaymentRequestQrBottomSheet.container);
     });
 
-    it('should close request', async (): Promise<void> => {
+    itif(isIOS)('should close request', async (): Promise<void> => {
       await PaymentRequestQrBottomSheet.tapCloseButton();
       await SendLinkView.tapCloseSendLinkButton();
     });
 
-    it('should see protect your wallet modal', async (): Promise<void> => {
+    itif(isIOS)('should see protect your wallet modal', async (): Promise<void> => {
       await Assertions.checkIfVisible(ProtectYourWalletModal.container);
     });
   },

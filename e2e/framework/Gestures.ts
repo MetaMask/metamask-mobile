@@ -398,9 +398,8 @@ export default class Gestures {
       },
     );
   }
-
   /**
-   * Scroll to element with dynamic retry
+   * Scroll to element with dynamic retry and platform-specific adjustments
    * @returns A Promise that resolves when the scroll is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -420,10 +419,22 @@ export default class Gestures {
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
         const scrollable = await scrollableContainer;
-        await waitFor(target)
-          .toBeVisible()
-          .whileElement(scrollable)
-          .scroll(scrollAmount, direction);
+
+        if (device.getPlatform() === 'android') {
+          const scrollableElement = element(scrollable);
+          try {
+            await waitFor(target).toBeVisible().withTimeout(100);
+            return;
+          } catch {
+            await scrollableElement.scroll(scrollAmount / 3, direction); // Scroll a third of the amount to avoid overshooting
+            await waitFor(target).toBeVisible().withTimeout(100);
+          }
+        } else {
+          await waitFor(target)
+            .toBeVisible()
+            .whileElement(scrollable)
+            .scroll(scrollAmount, direction);
+        }
       },
       {
         timeout,
@@ -505,7 +516,10 @@ export default class Gestures {
    * Legacy method: Clear the text field
    * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
-  static async clearField(elem: DetoxElement, options: GestureOptions = {}): Promise<void> {
+  static async clearField(
+    elem: DetoxElement,
+    options: GestureOptions = {},
+  ): Promise<void> {
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -515,7 +529,7 @@ export default class Gestures {
     } = options;
 
     return Utilities.executeWithRetry(
-      async () => { 
+      async () => {
         const el = (await Utilities.checkElementReadyState(elem, {
           timeout,
           checkStability,
