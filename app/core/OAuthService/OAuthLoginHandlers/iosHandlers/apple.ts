@@ -11,6 +11,8 @@ import {
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 import Logger from '../../../../util/Logger';
+import { isE2E } from '../../../../util/test/utils';
+import { getMockedOAuthLoginResponse } from '../../../../../e2e/specs/onboarding/SeedlessOnboardingTestUtil';
 
 /**
  * IosAppleLoginHandler is the login handler for the Apple login on ios.
@@ -55,6 +57,12 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerIdTokenResult
    */
   async login(): Promise<LoginHandlerIdTokenResult | undefined> {
+    // Setup mock response for oauth login in e2e tests
+    if (isE2E) {
+      const response = await getMockedOAuthLoginResponse();
+      return response as LoginHandlerIdTokenResult;
+    }
+
     try {
       const credential = await signInAsync({
         requestedScopes: this.#scope,

@@ -8,6 +8,8 @@ import {
 } from '../../OAuthInterface';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
+import { isE2E } from '../../../../util/test/utils';
+import { getMockedOAuthLoginResponse } from '../../../../../e2e/specs/onboarding/SeedlessOnboardingTestUtil';
 
 export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
@@ -68,6 +70,12 @@ export class AndroidAppleLoginHandler
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+    // Setup mock response for oauth login in e2e tests
+    if (isE2E) {
+      const response = await getMockedOAuthLoginResponse();
+      return response as LoginHandlerCodeResult;
+    }
+    
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
 
     const state = JSON.stringify({

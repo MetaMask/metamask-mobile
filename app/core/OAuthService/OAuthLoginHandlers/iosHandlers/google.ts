@@ -3,6 +3,7 @@ import {
   AuthConnection,
   AuthRequestParams,
   HandleFlowParams,
+  LoginHandlerIdTokenResult,
 } from '../../OAuthInterface';
 import {
   AuthRequest,
@@ -11,6 +12,8 @@ import {
 } from 'expo-auth-session';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
+import { getMockedOAuthLoginResponse } from '../../../../../e2e/specs/onboarding/SeedlessOnboardingTestUtil';
+import { isE2E } from '../../../../util/test/utils';
 
 /**
  * IosGoogleLoginHandlerParams is the params for the Google login handler
@@ -66,6 +69,11 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+    // Setup mock response for oauth login in e2e tests
+    if (isE2E) {
+      const response = await getMockedOAuthLoginResponse();
+      return response as LoginHandlerCodeResult;
+    }
     const state = JSON.stringify({
       nonce: this.nonce,
     });
