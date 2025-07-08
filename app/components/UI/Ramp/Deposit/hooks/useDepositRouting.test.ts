@@ -161,7 +161,7 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('An unexpected error occurred.');
+      ).rejects.toThrow('Missing reservation');
     });
   });
 
