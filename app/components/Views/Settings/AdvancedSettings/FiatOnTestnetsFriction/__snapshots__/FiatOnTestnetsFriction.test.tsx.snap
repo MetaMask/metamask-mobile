@@ -174,7 +174,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -352,10 +352,9 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -392,9 +391,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

@@ -116,9 +116,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -135,9 +134,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -175,9 +173,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -203,9 +200,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -228,9 +224,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -264,9 +259,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -291,9 +285,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -316,9 +309,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -367,9 +359,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -382,9 +373,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -408,9 +398,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -423,9 +412,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -451,9 +439,8 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -595,9 +582,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -614,9 +600,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -654,9 +639,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -682,9 +666,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -707,9 +690,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -743,9 +725,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -770,9 +751,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -795,9 +775,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -846,9 +825,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -861,9 +839,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -887,9 +864,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -902,9 +878,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -930,9 +905,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1147,9 +1121,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -1166,9 +1139,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -1206,9 +1178,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1234,9 +1205,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1259,9 +1229,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1295,9 +1264,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1322,9 +1290,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1347,9 +1314,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1398,9 +1364,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1413,9 +1378,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1439,9 +1403,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1454,9 +1417,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1482,9 +1444,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1626,9 +1587,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -1645,9 +1605,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -1685,9 +1644,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1713,9 +1671,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1738,9 +1695,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1774,9 +1730,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1801,9 +1756,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1826,9 +1780,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1877,9 +1830,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1892,9 +1844,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1918,9 +1869,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1933,9 +1883,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1961,9 +1910,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

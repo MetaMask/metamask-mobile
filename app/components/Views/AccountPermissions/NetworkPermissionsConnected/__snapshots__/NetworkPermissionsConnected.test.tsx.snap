@@ -59,9 +59,8 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginBottom": 16,
@@ -248,9 +247,8 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -299,10 +297,9 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
+          "color": "#4459ff",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }

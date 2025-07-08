@@ -1,11 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  DefaultSectionT,
-  SectionList,
-  SectionListData,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -21,24 +16,16 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
-import ListItem from '../../../../../../../components/Base/ListItem';
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useDepositSDK } from '../../../sdk';
 
 const MAX_REGION_RESULTS = 20;
-
-interface RegionSelectorModalNavigationDetails {
-  selectedRegionCode?: string;
-  handleSelectRegion?: (region: DepositRegion) => void;
-}
 
 export const createRegionSelectorModalNavigationDetails =
   createNavigationDetails(
@@ -48,10 +35,9 @@ export const createRegionSelectorModalNavigationDetails =
 
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const list = useRef<SectionList<DepositRegion>>(null);
+  const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegionCode, handleSelectRegion } =
-    useParams<RegionSelectorModalNavigationDetails>();
+  const { selectedRegion, setSelectedRegion } = useDepositSDK();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -77,67 +63,39 @@ function RegionSelectorModal() {
       const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
-
-      if (results?.length) {
-        return [
-          {
-            title: null,
-            data: results,
-          },
-        ];
-      }
-      return [];
+      return results || [];
     }
 
-    const popularRegions = DEPOSIT_REGIONS.filter(
-      (region) => region.recommended,
-    );
-
-    if (popularRegions.length) {
-      return [
-        {
-          title: strings('fiat_on_ramp_aggregator.region.popular_regions'),
-          data: popularRegions,
-        },
-        {
-          title: strings('fiat_on_ramp_aggregator.region.regions'),
-          data: DEPOSIT_REGIONS.filter((region) => !region.recommended),
-        },
-      ];
-    }
-
-    return [
-      {
-        title: null,
-        data: DEPOSIT_REGIONS,
-      },
-    ];
+    return [...DEPOSIT_REGIONS].sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1;
+      if (!a.recommended && b.recommended) return 1;
+      return 0;
+    });
   }, [searchString, fuseData]);
 
   const scrollToTop = useCallback(() => {
-    if (list?.current && dataSearchResults?.length) {
-      list.current?.scrollToLocation({
+    if (listRef?.current) {
+      listRef.current.scrollToOffset({
         animated: false,
-        itemIndex: 0,
-        sectionIndex: 0,
+        offset: 0,
       });
     }
-  }, [dataSearchResults?.length]);
+  }, []);
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported && handleSelectRegion) {
-        handleSelectRegion(region);
+      if (region.supported && setSelectedRegion) {
+        setSelectedRegion(region);
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [handleSelectRegion],
+    [setSelectedRegion],
   );
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegionCode === region.code}
+        isSelected={selectedRegion?.isoCode === region.isoCode}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -173,15 +131,10 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [
-      handleOnRegionPressCallback,
-      selectedRegionCode,
-      styles.region,
-      styles.emoji,
-    ],
+    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
   );
 
-  const renderEmptyList = useMemo(
+  const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
@@ -193,19 +146,6 @@ function RegionSelectorModal() {
     ),
     [searchString, styles.emptyList],
   );
-
-  const renderSectionHeader = ({
-    section: { title: sectionTitle },
-  }: {
-    section: SectionListData<DepositRegion, DefaultSectionT>;
-  }) => {
-    if (!sectionTitle) return null;
-    return (
-      <ListItem style={styles.listItem}>
-        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
-      </ListItem>
-    );
-  };
 
   const handleSearchTextChange = useCallback(
     (text: string) => {
@@ -237,18 +177,16 @@ function RegionSelectorModal() {
           placeholder={strings('deposit.region_modal.search_by_country')}
         />
       </View>
-      <SectionList
-        ref={list}
+      <FlatList
+        ref={listRef}
         style={styles.list}
+        data={dataSearchResults}
+        renderItem={renderRegionItem}
+        extraData={selectedRegion?.isoCode}
+        keyExtractor={(item) => item.isoCode}
+        ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
-        nestedScrollEnabled
-        sections={dataSearchResults}
-        renderItem={renderRegionItem}
-        renderSectionHeader={renderSectionHeader}
-        keyExtractor={(item) => item.code}
-        ListEmptyComponent={renderEmptyList}
-        stickySectionHeadersEnabled={false}
       />
     </BottomSheet>
   );

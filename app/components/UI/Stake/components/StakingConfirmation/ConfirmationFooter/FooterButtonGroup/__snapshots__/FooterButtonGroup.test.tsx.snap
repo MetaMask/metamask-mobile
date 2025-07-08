@@ -44,9 +44,8 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -134,9 +133,8 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -224,9 +222,8 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -267,9 +264,8 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -325,9 +321,8 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -368,9 +363,8 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 16,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
