@@ -551,32 +551,6 @@ class Onboarding extends PureComponent {
       </View>
     );
   }
-
-  /**
-   * Fallback check for existing user flag
-   * Checks MMKV storage if Redux state indicates no existing user
-   * This handles edge cases where migration might have failed
-   */
-  async checkIfExistingUser() {
-    // If Redux already shows existing user, no need to check storage
-    if (this.props.existingUser) {
-      return;
-    }
-
-    try {
-      // Fallback: check MMKV storage for existing user flag
-      const existingUserInStorage = await StorageWrapper.getItem(EXISTING_USER);
-      if (existingUserInStorage === 'true') {
-        // Update Redux state to match storage
-        this.props.setExistingUser(true);
-        // Clean up storage since Redux is now the source of truth
-        await StorageWrapper.removeItem(EXISTING_USER);
-      }
-    } catch (error) {
-      // If storage check fails, continue with Redux state as truth
-      console.warn('Failed to check existing user from storage:', error);
-    }
-  }
 }
 
 Onboarding.contextType = ThemeContext;

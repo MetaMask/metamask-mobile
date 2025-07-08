@@ -856,9 +856,7 @@ const App: React.FC = () => {
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
         // Only call lockApp if there is an existing user to prevent unnecessary calls
-        if (existingUser) {
-          await Authentication.lockApp({ reset: false, locked });
-        }
+        await Authentication.lockApp({ reset: false, locked });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
           errorMessage,
