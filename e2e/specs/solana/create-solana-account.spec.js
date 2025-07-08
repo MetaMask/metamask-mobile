@@ -59,6 +59,9 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   it('should create another Solana account from the bottom sheet', async () => {
     await SolanaNewFeatureSheet.tapNotNowButton();
 
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();
@@ -68,8 +71,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should be able to switch between solana accounts', async () => {
-    await SolanaNewFeatureSheet.tapNotNowButton();
-
     //Switch back to first solana account
     await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
@@ -86,8 +87,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should be able to rename Solana account', async () => {
-    await SolanaNewFeatureSheet.tapNotNowButton();
-
     await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
