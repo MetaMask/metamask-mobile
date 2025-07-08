@@ -43,6 +43,32 @@ export const HYPERLIQUID_TRANSPORT_CONFIG = {
   }
 } as const;
 
+// Trading configuration constants
+export const TRADING_DEFAULTS = {
+  leverage: 3, // JIRA requirement: 3x default leverage
+  marginPercent: 10, // JIRA requirement: 10% fixed margin default
+  takeProfitPercent: 0.30, // JIRA requirement: 30% take profit
+  stopLossPercent: 0.10, // JIRA requirement: 10% stop loss
+  slippage: 0.05, // 5% max slippage protection
+  amount: {
+    mainnet: 5, // JIRA requirement: $5 minimum order size
+    testnet: 11, // Default USD amount for testnet
+  },
+} as const;
+
+// Fee configuration
+export const FEE_RATES = {
+  market: 0.0002, // 0.02% market order fee
+  limit: 0.0001, // 0.01% limit order fee
+} as const;
+
+// Risk management constants
+export const RISK_MANAGEMENT = {
+  maintenanceMargin: 0.05, // 5% maintenance margin for liquidation
+  fallbackMaxLeverage: 20, // Fallback when market data unavailable
+  fallbackBalancePercent: 0.1, // Default balance percentage if no balance
+} as const;
+
 // Type helpers
 export type HyperLiquidNetwork = 'mainnet' | 'testnet';
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;

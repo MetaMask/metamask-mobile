@@ -176,3 +176,83 @@ export function buildAssetMapping(metaUniverse: PerpsUniverse[]): {
   return { coinToAssetId, assetIdToCoin };
 }
 
+/**
+ * Format price according to HyperLiquid validation rules
+ * - Max 5 significant figures
+ * - Max (6 - szDecimals) decimal places for perps
+ * - Integer prices always allowed
+ * @param params - Price formatting parameters
+ * @returns Properly formatted price string
+ */
+export function formatHyperLiquidPrice(params: {
+  price: string | number;
+  szDecimals: number;
+}): string {
+  const { price, szDecimals } = params;
+  const priceNum = typeof price === 'string' ? parseFloat(price) : price;
+
+  // Integer prices are always allowed
+  if (Number.isInteger(priceNum)) {
+    return priceNum.toString();
+  }
+
+  // Calculate max decimal places allowed
+  const maxDecimalPlaces = 6 - szDecimals;
+
+  // Format with proper decimal places
+  let formattedPrice = priceNum.toFixed(maxDecimalPlaces);
+
+  // Remove trailing zeros
+  formattedPrice = parseFloat(formattedPrice).toString();
+
+  // Check significant figures (max 5)
+  const [integerPart, decimalPart = ''] = formattedPrice.split('.');
+  const significantDigits = integerPart.replace(/^0+/, '').length + decimalPart.length;
+
+  if (significantDigits > 5) {
+    // Need to reduce precision to maintain max 5 significant figures
+    const totalDigits = integerPart.length + decimalPart.length;
+    const digitsToRemove = totalDigits - 5;
+
+    if (digitsToRemove > 0 && decimalPart.length > 0) {
+      const newDecimalPlaces = Math.max(0, decimalPart.length - digitsToRemove);
+      formattedPrice = priceNum.toFixed(newDecimalPlaces);
+      formattedPrice = parseFloat(formattedPrice).toString();
+    }
+  }
+
+  return formattedPrice;
+}
+
+/**
+ * Format order size with asset-specific decimal precision
+ * @param params - Size formatting parameters
+ * @returns Properly formatted size string with trailing zeros removed
+ */
+export function formatHyperLiquidSize(params: {
+  size: string | number;
+  szDecimals: number;
+}): string {
+  const { size, szDecimals } = params;
+  const num = typeof size === 'string' ? parseFloat(size) : size;
+
+  if (isNaN(num)) return '0';
+
+  // Use asset-specific decimal precision and remove trailing zeros
+  return num.toFixed(szDecimals).replace(/\.?0+$/, '');
+}
+
+/**
+ * Calculate position size for a given USD value and leverage
+ * @param params - Position size calculation parameters
+ * @returns Raw position size (before formatting)
+ */
+export function calculatePositionSize(params: {
+  usdValue: number;
+  leverage: number;
+  assetPrice: number;
+}): number {
+  const { usdValue, leverage, assetPrice } = params;
+  return (usdValue * leverage) / assetPrice;
+}
+

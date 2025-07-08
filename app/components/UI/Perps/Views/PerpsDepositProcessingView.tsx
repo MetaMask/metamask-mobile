@@ -1,4 +1,5 @@
-import { useNavigation, useRoute, type NavigationProp, type ParamListBase } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp } from '@react-navigation/native';
+import type { PerpsNavigationParamList } from '../controllers/types';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -16,7 +17,6 @@ import Text, {
   TextColor,
   TextVariant
 } from '../../../../component-library/components/Texts/Text';
-import Routes from '../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
@@ -126,7 +126,7 @@ const createStyles = (colors: Colors) =>
 const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute();
   // No PerpsController needed - balance refresh handled by PerpsView
 
@@ -158,10 +158,10 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
       // Navigate to success after short delay to show success state
       const timer = setTimeout(() => {
-        navigation.navigate(Routes.PERPS.DEPOSIT_SUCCESS, {
+        navigation.navigate('PerpsDepositSuccess', {
           amount,
-          selectedToken,
-          txHash: actualTxHash,
+          fromToken: selectedToken,
+          transactionHash: actualTxHash,
         });
       }, 2000); // 2 second delay to show success state
 
@@ -170,7 +170,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [depositStatus, actualTxHash, navigation, amount, selectedToken]);
 
   const handleClose = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT);
+    navigation.navigate('Perps');
   }, [navigation]);
 
   const handleRetry = useCallback(() => {
@@ -179,7 +179,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [navigation]);
 
   const handleViewBalance = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT);
+    navigation.navigate('Perps');
   }, [navigation]);
 
   const getStatusContent = () => {

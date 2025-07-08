@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type ParamListBase, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import type { PerpsNavigationParamList } from '../controllers/types';
 import Text, {
   TextVariant,
   TextColor
@@ -12,7 +13,6 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 
 interface OrderSuccessParams {
@@ -88,7 +88,7 @@ const createStyles = (colors: Colors) =>
 const PerpsOrderSuccessView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<OrderSuccessRoute>();
 
   const { asset, direction, amount, orderId } = route.params || {
@@ -99,11 +99,11 @@ const PerpsOrderSuccessView: React.FC = () => {
   };
 
   const handleViewPositions = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT);
+    navigation.navigate('Perps');
   }, [navigation]);
 
   const handlePlaceAnother = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ORDER);
+    navigation.navigate('PerpsOrder', { direction: 'long', asset: 'BTC' });
   }, [navigation]);
 
   return (

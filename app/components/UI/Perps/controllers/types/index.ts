@@ -3,6 +3,9 @@
 
 import type { CaipAccountId, CaipChainId, CaipAssetId, Hex } from '@metamask/utils';
 
+// Export navigation types
+export * from '../../types/navigation';
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string;                    // Asset symbol (e.g., 'ETH', 'BTC')
@@ -17,6 +20,9 @@ export type OrderParams = {
   takeProfitPrice?: string;        // Take profit price
   stopLossPrice?: string;          // Stop loss price
   clientOrderId?: string;          // Optional client-provided order ID
+  slippage?: number;               // Slippage tolerance for market orders (e.g., 0.01 = 1%)
+  grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
+  currentPrice?: number;           // Current market price (avoids extra API call if provided)
 };
 
 export type OrderResult = {
@@ -123,6 +129,11 @@ export interface CancelOrderResult {
   success: boolean;
   orderId?: string;                // Cancelled order ID
   error?: string;
+}
+
+export interface EditOrderParams {
+  orderId: string | number;        // Order ID or client order ID to modify
+  newOrder: OrderParams;           // New order parameters
 }
 
 export interface DepositParams {
@@ -242,6 +253,7 @@ export interface IPerpsProvider {
 
   // Trading operations → Redux (persisted, optimistic updates)
   placeOrder(params: OrderParams): Promise<OrderResult>;
+  editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
@@ -264,5 +276,3 @@ export interface IPerpsProvider {
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
 }
-
-

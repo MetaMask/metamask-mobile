@@ -18,6 +18,7 @@ import type {
   DepositStatus,
   DepositFlowType,
   DepositStepInfo,
+  EditOrderParams,
   GetAccountStateParams,
   GetPositionsParams,
   IPerpsProvider,
@@ -132,6 +133,9 @@ export type PerpsControllerActions = {
 } | {
   type: 'PerpsController:placeOrder';
   handler: PerpsController['placeOrder'];
+} | {
+  type: 'PerpsController:editOrder';
+  handler: PerpsController['editOrder'];
 } | {
   type: 'PerpsController:cancelOrder';
   handler: PerpsController['cancelOrder'];
@@ -294,6 +298,22 @@ export class PerpsController extends BaseController<
       state.orderHistory.push(result);
       state.lastUpdateTimestamp = Date.now();
     });
+
+    return result;
+  }
+
+  /**
+   * Edit an existing order
+   */
+  async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const result = await provider.editOrder(params);
+
+    if (result.success) {
+      this.update(state => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
 
     return result;
   }

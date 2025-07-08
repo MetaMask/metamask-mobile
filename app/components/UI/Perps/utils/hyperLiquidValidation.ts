@@ -55,7 +55,7 @@ export function validateAssetSupport(
   supportedRoutes: { assetId: CaipAssetId }[]
 ): { isValid: boolean; error?: string } {
   const supportedAssetIds = supportedRoutes.map(route => route.assetId);
-  
+
   if (!supportedAssetIds.includes(assetId)) {
     const supportedAssets = supportedAssetIds.map(path => {
       // Extract symbol from CAIP asset ID

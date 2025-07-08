@@ -6,6 +6,8 @@ export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsAccountState } from './usePerpsAccountState';
 export { usePerpsDepositState } from './usePerpsDepositState';
+export { usePerpsOrderHistory } from './usePerpsOrderHistory';
+export { usePerpsPendingOrders } from './usePerpsPendingOrders';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPrices } from './usePerpsPrices';
