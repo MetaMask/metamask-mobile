@@ -83,6 +83,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
@@ -211,11 +212,17 @@ stages:
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
+  pr_cache_check_stage:
+    abort_on_fail: true
+    workflows:
+      - pr_check_build_cache: {}
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
+      - ios_e2e_build:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | ne "true"}}'
+      - android_e2e_build:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | ne "true"}}'
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -1002,6 +1009,20 @@ workflows:
       - notify_failure
     steps:
       - restore-gradle-cache@2: {}
+      - restore-cache@2:
+          title: Restore Android PR Build Cache (if build was skipped)
+          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "false"}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy Android build from cache (if build was skipped)
+          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying Android build from cache..."
+                mkdir -p android/app/build/outputs
+                echo "Android build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -1159,6 +1180,98 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
+
+  pr_check_build_cache:
+    steps:
+      - script@1:
+          title: Generate cache keys and check both iOS and Android builds
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== PR Build Cache Check ==="
+                
+                # Default to building both platforms
+                SKIP_IOS_BUILD="false"
+                SKIP_ANDROID_BUILD="false"
+                NEED_IOS_BUILD="true"
+                NEED_ANDROID_BUILD="true"
+                
+                # Check if we have PR number
+                if [[ -z "$GITHUB_PR_NUMBER" ]]; then
+                    echo "No PR number found, proceeding with both builds"
+                else
+                    # Generate app code hash
+                    APP_CODE_HASH=$(find app/ ios/ android/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" \) -exec md5sum {} \; 2>/dev/null | sort | md5sum | cut -d' ' -f1)
+                    
+                    # Generate cache keys (v2 format to invalidate old corrupted cache)
+                    IOS_CACHE_KEY="e2e-build-ios-pr-v2-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    ANDROID_CACHE_KEY="e2e-build-android-pr-v2-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    
+                    echo "Cache keys generated:"
+                    echo "  iOS: $IOS_CACHE_KEY"
+                    echo "  Android: $ANDROID_CACHE_KEY"
+                    
+                    # Store cache keys
+                    envman add --key IOS_PR_BUILD_CACHE_KEY --value "$IOS_CACHE_KEY"
+                    envman add --key ANDROID_PR_BUILD_CACHE_KEY --value "$ANDROID_CACHE_KEY"
+                fi
+                
+                # Set initial values
+                envman add --key SKIP_IOS_BUILD --value "$SKIP_IOS_BUILD"
+                envman add --key SKIP_ANDROID_BUILD --value "$SKIP_ANDROID_BUILD"
+                envman add --key NEED_IOS_BUILD --value "$NEED_IOS_BUILD"
+                envman add --key NEED_ANDROID_BUILD --value "$NEED_ANDROID_BUILD"
+      - restore-cache@2:
+          title: Check iOS cache
+          is_skippable: true
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Process iOS cache result
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
+                    echo "✅ iOS cache found - build will be skipped"
+                    envman add --key SKIP_IOS_BUILD --value "true"
+                    envman add --key NEED_IOS_BUILD --value "false"
+                else
+                    echo "❌ iOS cache not found - build will proceed"
+                fi
+                envman add --key BITRISE_CACHE_HIT --value ""  # Reset for next check
+      - restore-cache@2:
+          title: Check Android cache
+          is_skippable: true
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Process Android cache result and finalize decisions
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
+                    echo "✅ Android cache found - build will be skipped"
+                    envman add --key SKIP_ANDROID_BUILD --value "true"
+                    envman add --key NEED_ANDROID_BUILD --value "false"
+                else
+                    echo "❌ Android cache not found - build will proceed"
+                fi
+                
+                echo ""
+                echo "=== Final Build Decisions ==="
+                echo "iOS build:     $([ "$SKIP_IOS_BUILD" == "true" ] && echo "SKIP" || echo "BUILD")"
+                echo "Android build: $([ "$SKIP_ANDROID_BUILD" == "true" ] && echo "SKIP" || echo "BUILD")"
+      - share-pipeline-variable@1:
+          title: Share variables across pipeline stages
+          inputs:
+            - variables: |-
+                SKIP_IOS_BUILD
+                SKIP_ANDROID_BUILD
+                NEED_IOS_BUILD
+                NEED_ANDROID_BUILD
+                IOS_PR_BUILD_CACHE_KEY
+                ANDROID_PR_BUILD_CACHE_KEY
+
   ios_e2e_build:
     before_run:
       - install_applesimutils
@@ -1167,10 +1280,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - script-runner@0.9.3:
-          title: Check for existing PR builds
-          inputs:
-            - file_path: ./scripts/check-existing-pr-builds.sh
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -1206,11 +1315,6 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@2:
-          title: Restore PR Build Cache
-          run_if: '{{getenv "SKIP_BUILD" | eq "true"}}'
-          inputs:
-            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -1222,7 +1326,6 @@ workflows:
           title: Run detox build
           timeout: 1200
           is_always_run: true
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1240,10 +1343,9 @@ workflows:
             - paths: |-
                 ccache
       - save-cache@1:
-          title: Save PR Build Cache
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
+          title: Save iOS PR Build Cache
           inputs:
-            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
             - paths: |-
                 ios/build/Build/Products/Release-iphonesimulator
                 ../Library/Detox/ios
@@ -1255,7 +1357,6 @@ workflows:
           title: Save iOS build
       - save-cache@1:
           title: Save node_modules
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
@@ -1267,6 +1368,21 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy iOS build from cache (if build was skipped)
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying iOS build from cache..."
+                mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                mkdir -p ../Library/Detox/ios
+                echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -1506,6 +1622,7 @@ workflows:
           title: Bitrise Deploy AAB
 
   # Template for E2E Android builds
+
   _android_e2e_build_template:
     before_run:
       - code_setup
@@ -1513,10 +1630,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - script-runner@0.9.3:
-          title: Check for existing PR builds
-          inputs:
-            - file_path: ./scripts/check-existing-pr-builds.sh
       - script@1:
           title: Generating ccache key using native folder checksum
           inputs:
@@ -1532,7 +1645,6 @@ workflows:
           inputs:
             - source: $KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -1544,11 +1656,6 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@2:
-          title: Restore PR Build Cache
-          run_if: '{{getenv "SKIP_BUILD" | eq "true"}}'
-          inputs:
-            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -1560,7 +1667,6 @@ workflows:
           title: Run detox build
           timeout: 1200
           is_always_run: true
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1578,10 +1684,9 @@ workflows:
             - paths: |-
                 ccache
       - save-cache@1:
-          title: Save PR Build Cache
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
+          title: Save Android PR Build Cache
           inputs:
-            - key: '{{ getenv "PR_BUILD_CACHE_KEY" }}'
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
             - paths: |-
                 android/app/build/outputs
       - deploy-to-bitrise-io@2.2.3:
@@ -1590,7 +1695,6 @@ workflows:
           title: Save Android build
       - save-cache@1:
           title: Save node_modules
-          run_if: '{{getenv "SKIP_BUILD" | ne "true"}}'
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
@@ -2490,6 +2594,8 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
+
+
 app:
   envs:
     - opts:
