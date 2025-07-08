@@ -1,16 +1,12 @@
 import React from 'react';
-import { Hex } from '@metamask/utils';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { SmartAccountUpdateContent } from './smart-account-update-content';
 
-const renderComponent = (
-  state?: Record<string, unknown>,
-  selectedAddresses: Hex[] = [],
-) =>
+const renderComponent = () =>
   renderWithProvider(<SmartAccountUpdateContent />, {
-    state: state ?? {
+    state: {
       engine: { backgroundState },
     },
   });
