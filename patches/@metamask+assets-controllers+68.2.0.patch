@@ -162,10 +162,23 @@ index e16e91f..3168b35 100644
      address?: string;
      attributes?: Attributes[];
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
-index 718ba19..d6955cd 100644
+index 718ba19..804bae3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
-@@ -558,10 +558,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+@@ -488,10 +488,8 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+                         asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
+                     },
+                 });
+-                await this.messagingSystem.call('TokensController:addDetectedTokens', tokensWithBalance, {
+-                    selectedAddress,
+-                    chainId,
+-                });
++                const networkClientId = this.messagingSystem.call('NetworkController:findNetworkClientIdByChainId', chainId);
++                await this.messagingSystem.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+             }
+         }
+         return { result: 'success' };
+@@ -558,10 +556,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
                      asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
                  },
              });
@@ -178,7 +191,7 @@ index 718ba19..d6955cd 100644
      });
  }, _TokenDetectionController_getSelectedAccount = function _TokenDetectionController_getSelectedAccount() {
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-index 4acb8f6..bf4da2a 100644
+index 4acb8f6..00bee10 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
 @@ -39,6 +39,10 @@ export type TokensControllerAddDetectedTokensAction = {
