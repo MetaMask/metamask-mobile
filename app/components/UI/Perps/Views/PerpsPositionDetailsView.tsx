@@ -299,41 +299,6 @@ const PerpsPositionDetailsView: React.FC = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState('1h');
 
-  // // Fetch historical data function
-  // const fetchHistoricalData = async (interval: string) => {
-  //   if (!position) return;
-
-  //   setIsLoadingHistory(true);
-  //   DevLogger.log(
-  //     'PerpsDetailPage: Fetching historical candle data for',
-  //     position.coin,
-  //     'interval:',
-  //     interval,
-  //   );
-
-  //   try {
-  //     const ws = new HyperLiquidSubscriptionService();
-  //     const historicalData = await ws.fetchHistoricalCandles(
-  //       position.coin,
-  //       interval,
-  //       100,
-  //     );
-  //     if (historicalData) {
-  //       setCandleData(historicalData);
-  //       DevLogger.log(
-  //         'PerpsDetailPage: Historical data loaded:',
-  //         historicalData.candles.length,
-  //         'candles for interval:',
-  //         interval,
-  //       );
-  //     }
-  //   } catch (err) {
-  //     DevLogger.log('PerpsDetailPage: Error fetching historical data:', err);
-  //   } finally {
-  //     setIsLoadingHistory(false);
-  //   }
-  // };
-
   const fetchHistoricalCandles = useCallback(async () => {
     const historicalData =
       await HyperLiquidSubscriptionService.fetchHistoricalCandles(

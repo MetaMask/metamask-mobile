@@ -34,12 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return {
-    container: {
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-    },
     chartContainer: {
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
@@ -249,56 +243,54 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { height: height + 60 }]}>
-        <View style={styles.chartContainer}>
-          {/* Chart placeholder with same height */}
-          <View style={{ position: 'relative' }}>
-            <View
-              style={{
-                height: height - 120,
-                width: chartWidth,
-                backgroundColor: 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+      <View style={styles.chartContainer}>
+        {/* Chart placeholder with same height */}
+        <View style={{ position: 'relative' }}>
+          <View
+            style={{
+              height: height - 120,
+              width: chartWidth,
+              backgroundColor: 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Muted}
+              style={styles.loadingText}
+            >
+              Loading chart data...
+            </Text>
+          </View>
+        </View>
+
+        {/* Interval Selector - same as non-loading state */}
+        <View style={styles.intervalSelector}>
+          {intervals.map((interval) => (
+            <TouchableOpacity
+              key={interval.value}
+              style={[
+                styles.intervalTab,
+                selectedInterval === interval.value
+                  ? styles.intervalTabActive
+                  : styles.intervalTabInactive,
+              ]}
+              onPress={() => onIntervalChange?.(interval.value)}
+              activeOpacity={0.7}
             >
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Muted}
-                style={styles.loadingText}
-              >
-                Loading chart data...
-              </Text>
-            </View>
-          </View>
-
-          {/* Interval Selector - same as non-loading state */}
-          <View style={styles.intervalSelector}>
-            {intervals.map((interval) => (
-              <TouchableOpacity
-                key={interval.value}
                 style={[
-                  styles.intervalTab,
+                  styles.intervalTabText,
                   selectedInterval === interval.value
-                    ? styles.intervalTabActive
-                    : styles.intervalTabInactive,
+                    ? styles.intervalTabTextActive
+                    : styles.intervalTabTextInactive,
                 ]}
-                onPress={() => onIntervalChange?.(interval.value)}
-                activeOpacity={0.7}
               >
-                <Text
-                  style={[
-                    styles.intervalTabText,
-                    selectedInterval === interval.value
-                      ? styles.intervalTabTextActive
-                      : styles.intervalTabTextInactive,
-                  ]}
-                >
-                  {interval.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                {interval.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     );
@@ -306,162 +298,158 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   if (!candleData || transformedData.length === 0) {
     return (
-      <View style={[styles.container, { height: height + 60 }]}>
-        <View style={styles.chartContainer}>
-          {/* Chart placeholder with same height */}
-          <View style={{ position: 'relative' }}>
-            <View
-              style={{
-                height: height - 120,
-                width: chartWidth,
-                backgroundColor: 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+      <View style={styles.chartContainer}>
+        {/* Chart placeholder with same height */}
+        <View style={{ position: 'relative' }}>
+          <View
+            style={{
+              height: height - 120,
+              width: chartWidth,
+              backgroundColor: 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Muted}
+              style={styles.noDataText}
+            >
+              No chart data available
+            </Text>
+          </View>
+        </View>
+
+        {/* Interval Selector - same as non-loading state */}
+        <View style={styles.intervalSelector}>
+          {intervals.map((interval) => (
+            <TouchableOpacity
+              key={interval.value}
+              style={[
+                styles.intervalTab,
+                selectedInterval === interval.value
+                  ? styles.intervalTabActive
+                  : styles.intervalTabInactive,
+              ]}
+              onPress={() => onIntervalChange?.(interval.value)}
+              activeOpacity={0.7}
             >
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Muted}
-                style={styles.noDataText}
-              >
-                No chart data available
-              </Text>
-            </View>
-          </View>
-
-          {/* Interval Selector - same as non-loading state */}
-          <View style={styles.intervalSelector}>
-            {intervals.map((interval) => (
-              <TouchableOpacity
-                key={interval.value}
                 style={[
-                  styles.intervalTab,
+                  styles.intervalTabText,
                   selectedInterval === interval.value
-                    ? styles.intervalTabActive
-                    : styles.intervalTabInactive,
+                    ? styles.intervalTabTextActive
+                    : styles.intervalTabTextInactive,
                 ]}
-                onPress={() => onIntervalChange?.(interval.value)}
-                activeOpacity={0.7}
               >
-                <Text
-                  style={[
-                    styles.intervalTabText,
-                    selectedInterval === interval.value
-                      ? styles.intervalTabTextActive
-                      : styles.intervalTabTextInactive,
-                  ]}
-                >
-                  {interval.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+                {interval.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { height: height + 60 }]}>
-      <CandlestickChart.Provider data={transformedData}>
-        <View style={styles.chartContainer}>
-          {/* Chart with Custom Grid Lines */}
-          <View style={{ position: 'relative' }}>
-            {/* Custom Horizontal Grid Lines */}
-            <View style={styles.gridContainer}>
-              {gridLines.map((line, index) => (
-                <View
-                  key={`grid-${index}`}
-                  style={{
-                    position: 'absolute',
-                    top: line.position,
-                    left: 0,
-                    right: 60, // Leave space for price label
-                    height: line.isEdge ? 2 : 1,
-                    backgroundColor: line.isEdge
-                      ? styles.majorGridLine.color
-                      : styles.gridLine.color,
-                    opacity: line.isEdge
-                      ? styles.majorGridLine.opacity
-                      : styles.gridLine.opacity,
-                  }}
-                />
-              ))}
-
-              {/* Price Labels */}
-              {gridLines.map((line, index) => (
-                <View
-                  key={`label-${index}`}
-                  style={{
-                    position: 'absolute',
-                    top: line.position - 8, // Center the label on the line
-                    right: 4,
-                    paddingHorizontal: 4,
-                    paddingVertical: 2,
-                    borderRadius: 4,
-                    minWidth: 50,
-                  }}
-                >
-                  <Text style={styles.gridPriceLabelText}>
-                    ${Number(line.price).toFixed(2)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Main Candlestick Chart */}
-            <CandlestickChart
-              height={height - 120} // Account for labels and padding
-              width={chartWidth}
-            >
-              {/* Candlestick Data */}
-              <CandlestickChart.Candles
-                positiveColor="#00D68F" // Green for positive candles
-                negativeColor="#FF6B6B" // Red for negative candles
+    <CandlestickChart.Provider data={transformedData}>
+      <View style={styles.chartContainer}>
+        {/* Chart with Custom Grid Lines */}
+        <View style={{ position: 'relative' }}>
+          {/* Custom Horizontal Grid Lines */}
+          <View style={styles.gridContainer}>
+            {gridLines.map((line, index) => (
+              <View
+                key={`grid-${index}`}
+                style={{
+                  position: 'absolute',
+                  top: line.position,
+                  left: 0,
+                  right: 60, // Leave space for price label
+                  height: line.isEdge ? 2 : 1,
+                  backgroundColor: line.isEdge
+                    ? styles.majorGridLine.color
+                    : styles.gridLine.color,
+                  opacity: line.isEdge
+                    ? styles.majorGridLine.opacity
+                    : styles.gridLine.opacity,
+                }}
               />
+            ))}
 
-              {/* Interactive Crosshair */}
-              <CandlestickChart.Crosshair>
-                <CandlestickChart.Tooltip
-                  style={styles.tooltipContainer}
-                  tooltipTextProps={{
-                    style: styles.tooltipText,
-                  }}
-                />
-              </CandlestickChart.Crosshair>
-            </CandlestickChart>
-          </View>
-
-          {/* Interval Selector */}
-          <View style={styles.intervalSelector}>
-            {intervals.map((interval) => (
-              <TouchableOpacity
-                key={interval.value}
-                style={[
-                  styles.intervalTab,
-                  selectedInterval === interval.value
-                    ? styles.intervalTabActive
-                    : styles.intervalTabInactive,
-                ]}
-                onPress={() => onIntervalChange?.(interval.value)}
-                activeOpacity={0.7}
+            {/* Price Labels */}
+            {gridLines.map((line, index) => (
+              <View
+                key={`label-${index}`}
+                style={{
+                  position: 'absolute',
+                  top: line.position - 8, // Center the label on the line
+                  right: 4,
+                  paddingHorizontal: 4,
+                  paddingVertical: 2,
+                  borderRadius: 4,
+                  minWidth: 50,
+                }}
               >
-                <Text
-                  style={[
-                    styles.intervalTabText,
-                    selectedInterval === interval.value
-                      ? styles.intervalTabTextActive
-                      : styles.intervalTabTextInactive,
-                  ]}
-                >
-                  {interval.label}
+                <Text style={styles.gridPriceLabelText}>
+                  ${Number(line.price).toFixed(2)}
                 </Text>
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
+
+          {/* Main Candlestick Chart */}
+          <CandlestickChart
+            height={height - 120} // Account for labels and padding
+            width={chartWidth}
+          >
+            {/* Candlestick Data */}
+            <CandlestickChart.Candles
+              positiveColor="#00D68F" // Green for positive candles
+              negativeColor="#FF6B6B" // Red for negative candles
+            />
+
+            {/* Interactive Crosshair */}
+            <CandlestickChart.Crosshair>
+              <CandlestickChart.Tooltip
+                style={styles.tooltipContainer}
+                tooltipTextProps={{
+                  style: styles.tooltipText,
+                }}
+              />
+            </CandlestickChart.Crosshair>
+          </CandlestickChart>
         </View>
-      </CandlestickChart.Provider>
-    </View>
+
+        {/* Interval Selector */}
+        <View style={styles.intervalSelector}>
+          {intervals.map((interval) => (
+            <TouchableOpacity
+              key={interval.value}
+              style={[
+                styles.intervalTab,
+                selectedInterval === interval.value
+                  ? styles.intervalTabActive
+                  : styles.intervalTabInactive,
+              ]}
+              onPress={() => onIntervalChange?.(interval.value)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.intervalTabText,
+                  selectedInterval === interval.value
+                    ? styles.intervalTabTextActive
+                    : styles.intervalTabTextInactive,
+                ]}
+              >
+                {interval.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </CandlestickChart.Provider>
   );
 };
 
