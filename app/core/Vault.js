@@ -300,12 +300,6 @@ export const recreateVaultWithNewPassword = async (
       return;
     }
   }
-
-  // If seedless change password failed, throw the error message
-  // note the vault is recreated successfully, but the password is not changed
-  if (seedlessChangePasswordError) {
-    throw seedlessChangePasswordError;
-  }
 };
 
 /**
