@@ -4326,11 +4326,8 @@
         "payToken": "Pay with any token, any time",
         "payTokenDescription": "Use the tokens you already have to cover network fees.",
         "reject": "No",
-        "requestFor": "Request for",
         "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?",
-        "upgradeBannerDescription": "Same address. Smarter features.",
-        "upgradeBannerTitle": "Switch to smart account"
+        "splashTitle": "Use smart account?"
       },
       "includes_transaction": "Includes {{transactionCount}} transactions",
       "useSmartAccount": "Use smart account",
