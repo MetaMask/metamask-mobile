@@ -16,6 +16,8 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { TraceName } from '../../../../../util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -23,6 +25,8 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const chainId = useSelector(selectEvmChainId);
   const navigation = useNavigation();
+
+  useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
   useEffect(() => {
     navigation.setOptions(

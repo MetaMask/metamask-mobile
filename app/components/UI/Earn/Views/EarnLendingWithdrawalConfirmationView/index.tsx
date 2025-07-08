@@ -44,6 +44,8 @@ import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLend
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
+import { endTrace, trace, TraceName } from 'app/util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -87,6 +89,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
+
+  useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
   useEffect(() => {
     navigation.setOptions(
