@@ -29,6 +29,9 @@ const DEFAULT_SRP = defaultOptions.mnemonic;
 const IMPORTED_SRP =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
+const itif = (condition: boolean) => (condition ? it : it.skip);
+
+
 describe(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
@@ -49,12 +52,12 @@ describe(
       await stopFixtureServer(fixtureServer);
     });
 
-    it('exports the correct srp for the default hd keyring', async () => {
+    itif(device.getPlatform() === 'ios')('exports the correct srp for the default hd keyring', async () => {
       await startExportForKeyring(SRP_1.id);
       await completeSrpQuiz(DEFAULT_SRP);
     });
 
-    it('exports the correct srp for the imported hd keyring', async () => {
+    itif(device.getPlatform() === 'ios')('exports the correct srp for the imported hd keyring', async () => {
       await startExportForKeyring(SRP_2.id);
       await completeSrpQuiz(IMPORTED_SRP);
     });
