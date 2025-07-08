@@ -9,6 +9,7 @@ import {
   InteractionManager,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -46,9 +47,13 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-
 import fox from '../../../animations/Searching_Fox.json';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -60,20 +65,20 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 30,
     },
-    foxWrapper: {
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
-      marginVertical: 20,
-    },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 280 : 220,
-      height: Device.isLargeDevice() ? 280 : 220,
+      width: 240,
+      height: 240,
     },
     largeFoxWrapper: {
+      width: 240,
+      height: 240,
+      display: 'flex',
       alignItems: 'center',
-      paddingTop: 40,
-      paddingBottom: Device.isLargeDevice() ? 80 : 40,
+      justifyContent: 'center',
+      marginHorizontal: 'auto',
+      padding: 40,
+      marginTop: 16,
     },
     foxImage: {
       width: 145,
@@ -83,17 +88,21 @@ const createStyles = (colors) =>
     title: {
       fontSize: 40,
       lineHeight: 40,
-      justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
       fontFamily: 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
+      width: '100%',
+      marginVertical: 16,
     },
     ctas: {
       flex: 1,
-      position: 'relative',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
+      rowGap: 24,
     },
     footer: {
       marginBottom: 40,
@@ -113,10 +122,9 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
-      marginTop: 'auto',
+      width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -247,7 +255,6 @@ class Onboarding extends PureComponent {
     existingUser: false,
     createWallet: false,
     existingWallet: false,
-    bottomSheetVisible: false,
     errorSheetVisible: false,
   };
 
@@ -345,6 +352,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
@@ -360,6 +370,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -374,6 +387,93 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+  handlePostSocialLogin = (result, createWallet) => {
+    if (result.type === 'success') {
+      if (createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        } else {
+          this.props.navigation.navigate('ChoosePassword', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+        }
+      } else if (!createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('Rehydrate', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+        } else {
+          this.props.navigation.navigate('AccountNotFound', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        }
+      }
+    } else {
+      // handle error: show error message in the UI
+    }
+  };
+
+  onPressContinueWithApple = async (createWallet) => {
+    this.props.navigation.navigate('Onboarding');
+    const action = async () => {
+      const loginHandler = createLoginHandler(Platform.OS, 'apple');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((e) => {
+        this.handleLoginError(e);
+        return { type: 'error', error: e, existingUser: false };
+      });
+      this.handlePostSocialLogin(result, createWallet);
+    };
+    this.handleExistingUser(action);
+  };
+
+  onPressContinueWithGoogle = async (createWallet) => {
+    this.props.navigation.navigate('Onboarding');
+    const action = async () => {
+      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((error) => {
+        this.handleLoginError(error);
+        return { type: 'error', error, existingUser: false };
+      });
+      this.handlePostSocialLogin(result, createWallet);
+    };
+    this.handleExistingUser(action);
+  };
+
+  handleLoginError = (error) => {
+    let errorMessage;
+    if (error instanceof OAuthError) {
+      if (error.code === OAuthErrorType.UserCancelled) {
+        errorMessage = 'user_cancelled';
+      } else {
+        errorMessage = 'oauth_error';
+      }
+    } else {
+      errorMessage = 'oauth_error';
+    }
+
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
+        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        type: 'error',
+      },
+    });
+  };
   track = (event, properties) => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)
@@ -394,6 +494,26 @@ class Onboarding extends PureComponent {
   toggleWarningModal = () => {
     const warningModalVisible = this.state.warningModalVisible;
     this.setState({ warningModalVisible: !warningModalVisible });
+  };
+
+  handleCtaActions = (actionType) => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ONBOARDING_SHEET,
+        params: {
+          onPressCreate: this.onPressCreate,
+          onPressImport: this.onPressImport,
+          onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+          onPressContinueWithApple: this.onPressContinueWithApple,
+          createWallet: actionType === 'create',
+        },
+      });
+      // else
+    } else if (actionType === 'create') {
+      this.onPressCreate();
+    } else {
+      this.onPressImport();
+    }
   };
 
   renderLoader = () => {
@@ -427,7 +547,7 @@ class Onboarding extends PureComponent {
         </View>
 
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.BodyMD}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
@@ -437,7 +557,7 @@ class Onboarding extends PureComponent {
         <View style={styles.createWrapper}>
           <Button
             variant={ButtonVariants.Primary}
-            onPress={() => this.onPressCreate()}
+            onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
@@ -446,7 +566,7 @@ class Onboarding extends PureComponent {
           />
           <Button
             variant={ButtonVariants.Secondary}
-            onPress={this.onPressImport}
+            onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}

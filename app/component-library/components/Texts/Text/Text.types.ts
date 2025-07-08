@@ -10,7 +10,6 @@ export enum TextVariant {
   DisplayMD = 'sDisplayMD',
   HeadingLG = 'sHeadingLG',
   HeadingMD = 'sHeadingMD',
-  HeadingSMRegular = 'sHeadingSMRegular',
   HeadingSM = 'sHeadingSM',
   BodyLGMedium = 'sBodyLGMedium',
   BodyMD = 'sBodyMD',
