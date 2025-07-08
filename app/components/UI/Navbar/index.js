@@ -938,6 +938,7 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -1110,14 +1111,33 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy account={selectedInternalAccount} />
         </View>
+        {isNotificationsFeatureEnabled() && (
+          <View>
+            {/* Icon */}
+            <ButtonIcon
+              iconColor={IconColor.Default}
+              onPress={handleNotificationOnPress}
+              iconName={IconName.Notification}
+              size={IconSize.Xl}
+              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+              style={styles.notificationButton}
+            />
 
-        <ButtonIcon
-          iconColor={IconColor.Default}
-          onPress={() => navigation.navigate(Routes.CARD.ROOT)}
-          iconName={IconName.Card}
-          size={IconSize.Xl}
-          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-        />
+            {/* Badge Dot */}
+            {isNotificationEnabled && (
+              <View
+                style={[
+                  styles.notificationsBadge,
+                  {
+                    backgroundColor: unreadNotificationCount
+                      ? themeColors.error.default
+                      : themeColors.background.transparent,
+                  },
+                ]}
+              />
+            )}
+          </View>
+        )}
 
         <ButtonIcon
           iconColor={IconColor.Default}
