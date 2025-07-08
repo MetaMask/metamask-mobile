@@ -64,13 +64,6 @@ export const INFURA_CHAINS_WITH_FAILOVERS: Map<
       getFailoverUrl: () => process.env.QUICKNODE_BASE_URL,
     },
   ],
-  [
-    '0x38',
-    {
-      subdomain: 'bsc',
-      getFailoverUrl: () => process.env.QUICKNODE_BSC_URL,
-    },
-  ],
 ]);
 
 export default function migrate(state: unknown) {
