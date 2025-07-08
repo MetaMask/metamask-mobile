@@ -46,11 +46,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     loadingText: {
       textAlign: 'center' as const,
-      marginVertical: 32,
     },
     noDataText: {
       textAlign: 'center' as const,
-      marginVertical: 32,
     },
     priceLabel: {
       backgroundColor: colors.background.alternative,
@@ -251,28 +249,114 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { height }]}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Muted}
-          style={styles.loadingText}
-        >
-          Loading chart data...
-        </Text>
+      <View style={[styles.container, { height: height + 60 }]}>
+        <View style={styles.chartContainer}>
+          {/* Chart placeholder with same height */}
+          <View style={{ position: 'relative' }}>
+            <View
+              style={{
+                height: height - 120,
+                width: chartWidth,
+                backgroundColor: 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Muted}
+                style={styles.loadingText}
+              >
+                Loading chart data...
+              </Text>
+            </View>
+          </View>
+
+          {/* Interval Selector - same as non-loading state */}
+          <View style={styles.intervalSelector}>
+            {intervals.map((interval) => (
+              <TouchableOpacity
+                key={interval.value}
+                style={[
+                  styles.intervalTab,
+                  selectedInterval === interval.value
+                    ? styles.intervalTabActive
+                    : styles.intervalTabInactive,
+                ]}
+                onPress={() => onIntervalChange?.(interval.value)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.intervalTabText,
+                    selectedInterval === interval.value
+                      ? styles.intervalTabTextActive
+                      : styles.intervalTabTextInactive,
+                  ]}
+                >
+                  {interval.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
     );
   }
 
   if (!candleData || transformedData.length === 0) {
     return (
-      <View style={[styles.container, { height }]}>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Muted}
-          style={styles.noDataText}
-        >
-          No chart data available
-        </Text>
+      <View style={[styles.container, { height: height + 60 }]}>
+        <View style={styles.chartContainer}>
+          {/* Chart placeholder with same height */}
+          <View style={{ position: 'relative' }}>
+            <View
+              style={{
+                height: height - 120,
+                width: chartWidth,
+                backgroundColor: 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Muted}
+                style={styles.noDataText}
+              >
+                No chart data available
+              </Text>
+            </View>
+          </View>
+
+          {/* Interval Selector - same as non-loading state */}
+          <View style={styles.intervalSelector}>
+            {intervals.map((interval) => (
+              <TouchableOpacity
+                key={interval.value}
+                style={[
+                  styles.intervalTab,
+                  selectedInterval === interval.value
+                    ? styles.intervalTabActive
+                    : styles.intervalTabInactive,
+                ]}
+                onPress={() => onIntervalChange?.(interval.value)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.intervalTabText,
+                    selectedInterval === interval.value
+                      ? styles.intervalTabTextActive
+                      : styles.intervalTabTextInactive,
+                  ]}
+                >
+                  {interval.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </View>
     );
   }

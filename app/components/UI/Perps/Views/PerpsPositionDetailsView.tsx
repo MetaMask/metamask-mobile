@@ -338,11 +338,15 @@ const PerpsPositionDetailsView: React.FC = () => {
     const historicalData =
       await HyperLiquidSubscriptionService.fetchHistoricalCandles(
         position.coin,
-        '1h',
+        selectedInterval,
         100,
       );
     return historicalData;
-  }, [position.coin]);
+  }, [position.coin, selectedInterval]);
+
+  const handleIntervalChange = useCallback((newInterval: string) => {
+    setSelectedInterval(newInterval);
+  }, []);
 
   useEffect(() => {
     setIsLoadingHistory(true);
@@ -352,10 +356,12 @@ const PerpsPositionDetailsView: React.FC = () => {
         setCandleData(historicalData);
       } catch (err) {
         console.error('Error loading historical candles:', err);
+      } finally {
+        setIsLoadingHistory(false);
       }
     };
+
     loadHistoricalData();
-    setIsLoadingHistory(false);
   }, [fetchHistoricalCandles]);
 
   // Format currency values
@@ -625,9 +631,7 @@ const PerpsPositionDetailsView: React.FC = () => {
               isLoading={isLoadingHistory}
               height={350}
               selectedInterval={selectedInterval}
-              onIntervalChange={() => {
-                // No-op: interval change not implemented yet
-              }}
+              onIntervalChange={handleIntervalChange}
             />
           </View>
         </View>
