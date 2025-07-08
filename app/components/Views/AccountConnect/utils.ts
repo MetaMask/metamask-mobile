@@ -1,4 +1,9 @@
-import { CaipAccountId, CaipChainId, CaipNamespace, parseCaipAccountId } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  CaipNamespace,
+  parseCaipAccountId,
+} from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
@@ -20,7 +25,7 @@ import { getCaip25Caveat } from '../../../core/Permissions';
  */
 export function getRequestedCaip25CaveatValue(
   permissions: unknown,
-  origin: string
+  origin: string,
 ): Caip25CaveatValue {
   const defaultValue: Caip25CaveatValue = {
     optionalScopes: {},
@@ -80,14 +85,18 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-  const existingCaveat = getCaip25Caveat(origin);
-  if (!existingCaveat) {
+  try {
+    const existingCaveat = getCaip25Caveat(origin);
+
+    const mergedCaveatValue = mergeCaip25Values(
+      existingCaveat.value,
+      caveatValue,
+    );
+
+    return mergedCaveatValue;
+  } catch (e) {
     return caveatValue as Caip25CaveatValue;
   }
-
-  const mergedCaveatValue = mergeCaip25Values(existingCaveat.value, caveatValue);
-
-  return mergedCaveatValue;
 }
 
 /**
@@ -100,7 +109,10 @@ export function getRequestedCaip25CaveatValue(
  * @param second - The second Caip25CaveatValue to merge
  * @returns A new Caip25CaveatValue with merged data
  */
-function mergeCaip25Values(first: Caip25CaveatValue, second: Caip25CaveatValue,): Caip25CaveatValue {
+function mergeCaip25Values(
+  first: Caip25CaveatValue,
+  second: Caip25CaveatValue,
+): Caip25CaveatValue {
   const firstAccounts = getCaipAccountIdsFromCaip25CaveatValue(first);
   const secondAccounts = getCaipAccountIdsFromCaip25CaveatValue(second);
 
@@ -183,15 +195,16 @@ export function getCaip25PermissionsResponse(
  * @param internalAccounts - The list of InternalAccounts.
  * @returns the sorted list of InternalAccounts.
  */
-export function sortSelectedInternalAccounts(internalAccounts: InternalAccountWithCaipAccountId[]) {
+export function sortSelectedInternalAccounts(
+  internalAccounts: InternalAccountWithCaipAccountId[],
+) {
   // This logic comes from the `AccountsController`:
   // TODO: Expose a free function from this controller and use it here
-  return [...internalAccounts].sort((accountA, accountB) =>
-    // Sort by `.lastSelected` in descending order
-     (
+  return [...internalAccounts].sort(
+    (accountA, accountB) =>
+      // Sort by `.lastSelected` in descending order
       (accountB.metadata.lastSelected ?? 0) -
-      (accountA.metadata.lastSelected ?? 0)
-    )
+      (accountA.metadata.lastSelected ?? 0),
   );
 }
 
