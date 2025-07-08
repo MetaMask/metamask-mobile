@@ -106,3 +106,6 @@ ignores:
   - 'react-native-pager-view'
   # this dependency can probably be removed, needs investigation
   - '@types/react-test-renderer'
+
+  ## lottie-ios used by lottie-react-native
+  - 'lottie-ios'
