@@ -651,6 +651,7 @@ class FixtureBuilder {
             },
           ],
           selectedRegionAgg: null,
+          selectedRegionDeposit: null,
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
           getStartedSell: false,
@@ -1247,6 +1248,27 @@ class FixtureBuilder {
   withETHAsPrimaryCurrency() {
     this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
     this.fixture.state.settings.primaryCurrency = 'ETH';
+    return this;
+  }
+
+  withBackupAndSyncSettings(options = {}) {
+    const {
+      isBackupAndSyncEnabled = true,
+      isAccountSyncingEnabled = true,
+      isContactSyncingEnabled = true,
+    } = options;
+
+    // Backup and Sync Settings
+    this.fixture.state.engine.backgroundState.UserStorageController = {
+      isBackupAndSyncEnabled,
+      isAccountSyncingEnabled,
+      isContactSyncingEnabled,
+      isBackupAndSyncUpdateLoading: false,
+      isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+    };
     return this;
   }
 
