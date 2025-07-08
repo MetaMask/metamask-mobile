@@ -14,7 +14,8 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 
-describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

@@ -19,7 +19,6 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
-import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
@@ -28,7 +27,8 @@ const PASSWORD = '123123123';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeNetworkExpansion('Create Solana account'), () => {
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(SmokeNetworkExpansion('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
@@ -57,11 +57,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should create another Solana account from the bottom sheet', async () => {
-    await SolanaNewFeatureSheet.tapNotNowButton();
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();

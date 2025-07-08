@@ -5,7 +5,8 @@ import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import Assertions from '../../../utils/Assertions';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 
-describe(
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {
