@@ -221,12 +221,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "0.36.0",
     "@metamask/preferences-controller": "^18.4.0",
-<<<<<<< HEAD
-    "@metamask/profile-sync-controller": "^18.0.0",
-    "@metamask/react-native-acm": "git+https://github.com/MetaMask/react-native-google-acm.git#7a9c4ce54c97b786a5f2cd869b3b3c99f5079bdd",
-=======
     "@metamask/profile-sync-controller": "^20.0.0",
->>>>>>> 0b1cba501892ccfc716b72b9408b0777ef1a3e24
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
