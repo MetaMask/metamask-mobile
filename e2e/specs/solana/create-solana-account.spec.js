@@ -27,8 +27,7 @@ const PASSWORD = '123123123';
 
 const fixtureServer = new FixtureServer();
 
-// TODO: Enable when we come back after the new feature view is released
-describe.skip(SmokeNetworkExpansion('Create Solana account'), () => {
+describe(SmokeNetworkExpansion('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
@@ -56,7 +55,24 @@ describe.skip(SmokeNetworkExpansion('Create Solana account'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
+  it('should create a Solana account from the bottom sheet', async () => {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+  
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  
+    await AccountListBottomSheet.tapAddAccountButton();
+    await TestHelpers.delay(4000);
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
+    await TestHelpers.delay(4000);
+    await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
+  });
+
   it('should create another Solana account from the bottom sheet', async () => {
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();
