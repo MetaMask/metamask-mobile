@@ -91,8 +91,8 @@ The PerpsController provides a protocol-agnostic abstraction layer for perpetual
 - `utils/hyperLiquidAdapter.ts` - Transforms between MetaMask Perps API and protocol-specific SDK formats
 
 ### UI Components
-- `Views/` - Trading interfaces and deposit flows
-- `components/` - Reusable trading components
+- `Views/` - 11 trading interfaces covering deposit flows, order management, and position details
+- `components/` - Reusable trading components (modals, cards, form elements)
 
 ## Critical Implementation Details
 
@@ -155,20 +155,27 @@ yarn test app/components/UI/Perps/
 
 ## Testing
 
-**Comprehensive testing page**: `Views/PerpsView.tsx`
-- SDK connection testing
-- Trading operations validation
-- Live data subscription testing
-- Network switching verification
+**Comprehensive testing capabilities**:
+- **Main testing interface**: `Views/PerpsView.tsx` for SDK and balance validation
+- **Advanced order testing**: `Views/PerpsOrderView.tsx` with debug panel for direct SDK calls
+- **Deposit flow testing**: Complete deposit simulation with real token/gas integration
+- **Position management**: Live position tracking and P&L calculations
 
 ## Current Status
 
-✅ **Production Ready** with:
+✅ **Core Features Production Ready**:
 - Complete HyperLiquid integration
 - Battery-optimized WebSocket management
 - Performance-optimized React hooks
 - Full TypeScript coverage
 - MetaMask Engine integration
+- Trading and deposit flows (5/11 views fully complete)
+
+⚠️ **In Development**:
+- Order editing functionality
+- Take Profit/Stop Loss management
+- Real-time bridge estimates for cross-chain deposits
+- Advanced order management features
 
 ## Future Extensions
 
