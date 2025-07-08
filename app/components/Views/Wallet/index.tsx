@@ -357,7 +357,8 @@ const Wallet = ({
     };
 
     checkAndNavigateToSolanaFeature();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
