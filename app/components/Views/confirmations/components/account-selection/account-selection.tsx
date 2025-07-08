@@ -18,6 +18,10 @@ import Text, {
 import { Account, EnsByAccountAddress } from '../../../../hooks/useAccounts';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './account-selection.styles';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 export const AccountSelection = ({
   accounts,
@@ -25,12 +29,14 @@ export const AccountSelection = ({
   onClose,
   selectedAddresses,
   setSelectedAddresses,
+  onUpdate,
 }: {
   accounts: Account[];
   ensByAccountAddress: EnsByAccountAddress;
   onClose: () => void;
   selectedAddresses: Hex[];
   setSelectedAddresses: (addresses: Hex[]) => void;
+  onUpdate: () => void;
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -94,6 +100,13 @@ export const AccountSelection = ({
         accounts={accountList}
         ensByAccountAddress={ensByAccountAddress}
         isMultiSelect
+      />
+      <Button
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
+        style={styles.button}
+        label={strings('confirm.7702_functionality.useSmartAccount')}
+        onPress={onUpdate}
       />
     </View>
   );

@@ -48,7 +48,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     undismissable: false,
     navigation: {
       type: 'function',
-      navigate: () => [Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE],
+      navigate: () => [Routes.SMART_ACCOUNT_OPT_IN],
     },
   },
   {

@@ -4330,7 +4330,8 @@
       },
       "includes_transaction": "Includes {{transactionCount}} transactions",
       "selectAll": "Select all",
-      "editAccounts": "Edit Accounts"
+      "editAccounts": "Edit Accounts",
+      "useSmartAccount": "Use smart account"
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",

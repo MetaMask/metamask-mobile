@@ -11,7 +11,7 @@ import {
 import * as ConfirmationActions from '../../hooks/useConfirmActions';
 // eslint-disable-next-line import/no-namespace
 import * as AddressUtils from '../../../../../util/address';
-import { SmartAccountUpdateSplash } from './smart-account-update-splash';
+import { SmartAccountUpdateModal } from './smart-account-update-modal';
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const renderComponent = (state?: Record<string, unknown>) =>
-  renderWithProvider(<SmartAccountUpdateSplash />, {
+  renderWithProvider(<SmartAccountUpdateModal />, {
     state:
       state ??
       getAppStateForConfirmation(upgradeAccountConfirmation, {
@@ -109,6 +109,23 @@ describe('SmartContractWithLogo', () => {
       }),
     );
 
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
+  });
+
+  it('open account selection when edit accounts icon is pressed', () => {
+    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+    const { getByTestId, getByText } = renderComponent(
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: true },
+      }),
+    );
+
+    fireEvent.press(getByTestId('open_account_selection'));
+    expect(getByText('Edit Accounts')).toBeTruthy();
+    expect(getByText('Select all')).toBeTruthy();
+
+    fireEvent.press(getByTestId('account_selection_close'));
     expect(getByText('Use smart account?')).toBeTruthy();
     expect(getByText('Request for')).toBeTruthy();
   });

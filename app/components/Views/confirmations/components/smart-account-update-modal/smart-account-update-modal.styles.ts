@@ -5,6 +5,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    bottomSheet: {
+      backgroundColor: theme.colors.background.alternative,
+    },
     wrapper: {
       backgroundColor: theme.colors.background.alternative,
       flexDirection: 'column',
@@ -12,22 +15,13 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       height: 640,
       width: '100%',
-      padding: 8,
+      paddingInline: 8,
+      paddingTop: 20,
     },
     edit: {
-      left: 10,
-      top: 10,
       position: 'absolute',
-    },
-    title: {
-      marginBottom: 20,
-    },
-    selectAllWrapper: {
-      display: 'flex',
-      justifyContent: 'flex-start',
-      marginBottom: 10,
-      marginLeft: 32,
-      width: '100%',
+      right: 10,
+      top: 8,
     },
     button: {
       alignSelf: 'center',
