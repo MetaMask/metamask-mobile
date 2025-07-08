@@ -1,10 +1,33 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View, Alert, TextInput, Modal } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type ParamListBase, type RouteProp } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  Alert,
+  TextInput,
+  Modal,
+} from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import Button, { ButtonVariants, ButtonSize, ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import { usePerpsController } from '../hooks';
@@ -12,6 +35,8 @@ import type { Position, ClosePositionParams } from '../controllers/types';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
+import CandlestickChartComponent from '../components/CandlestickChart';
+import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -236,14 +261,15 @@ const PerpsPositionDetailsView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
-  const route = useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
 
   const { position } = route.params || {};
   const { closePosition, getPositions } = usePerpsController();
 
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // TP/SL editing state
   const [isEditingTPSL, setIsEditingTPSL] = useState(false);
   const [takeProfitPrice, setTakeProfitPrice] = useState('');
@@ -258,6 +284,80 @@ const PerpsPositionDetailsView: React.FC = () => {
   const entryValue = parseFloat(position.entryPrice) * absoluteSize;
   const pnlPercentage = entryValue > 0 ? (pnlNum / entryValue) * 100 : 0;
 
+  const [candleData, setCandleData] = useState<{
+    coin: string;
+    interval: string;
+    candles: {
+      time: number;
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      volume: string;
+    }[];
+  } | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState('1h');
+
+  // // Fetch historical data function
+  // const fetchHistoricalData = async (interval: string) => {
+  //   if (!position) return;
+
+  //   setIsLoadingHistory(true);
+  //   DevLogger.log(
+  //     'PerpsDetailPage: Fetching historical candle data for',
+  //     position.coin,
+  //     'interval:',
+  //     interval,
+  //   );
+
+  //   try {
+  //     const ws = new HyperLiquidSubscriptionService();
+  //     const historicalData = await ws.fetchHistoricalCandles(
+  //       position.coin,
+  //       interval,
+  //       100,
+  //     );
+  //     if (historicalData) {
+  //       setCandleData(historicalData);
+  //       DevLogger.log(
+  //         'PerpsDetailPage: Historical data loaded:',
+  //         historicalData.candles.length,
+  //         'candles for interval:',
+  //         interval,
+  //       );
+  //     }
+  //   } catch (err) {
+  //     DevLogger.log('PerpsDetailPage: Error fetching historical data:', err);
+  //   } finally {
+  //     setIsLoadingHistory(false);
+  //   }
+  // };
+
+  const fetchHistoricalCandles = useCallback(async () => {
+    const historicalData =
+      await HyperLiquidSubscriptionService.fetchHistoricalCandles(
+        position.coin,
+        '1h',
+        100,
+      );
+    return historicalData;
+  }, [position.coin]);
+
+  useEffect(() => {
+    setIsLoadingHistory(true);
+    const loadHistoricalData = async () => {
+      try {
+        const historicalData = await fetchHistoricalCandles();
+        setCandleData(historicalData);
+      } catch (err) {
+        console.error('Error loading historical candles:', err);
+      }
+    };
+    loadHistoricalData();
+    setIsLoadingHistory(false);
+  }, [fetchHistoricalCandles]);
+
   // Format currency values
   const formatCurrency = useCallback((value: string | number) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -269,18 +369,26 @@ const PerpsPositionDetailsView: React.FC = () => {
     }).format(num);
   }, []);
 
-  const formatPnl = useCallback((pnl: number) => {
-    const formatted = formatCurrency(Math.abs(pnl));
-    return pnl >= 0 ? `+${formatted}` : `-${formatted}`;
-  }, [formatCurrency]);
+  const formatPnl = useCallback(
+    (pnl: number) => {
+      const formatted = formatCurrency(Math.abs(pnl));
+      return pnl >= 0 ? `+${formatted}` : `-${formatted}`;
+    },
+    [formatCurrency],
+  );
 
-  const formatPercentage = useCallback((value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`, []);
+  const formatPercentage = useCallback(
+    (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`,
+    [],
+  );
 
   // Handle position close
   const handleClosePosition = useCallback(async () => {
     Alert.alert(
       'Close Position',
-      `Are you sure you want to close your ${direction.toUpperCase()} ${position.coin} position?\n\nThis action cannot be undone.`,
+      `Are you sure you want to close your ${direction.toUpperCase()} ${
+        position.coin
+      } position?\n\nThis action cannot be undone.`,
       [
         {
           text: 'Cancel',
@@ -311,43 +419,64 @@ const PerpsPositionDetailsView: React.FC = () => {
               const result = await closePosition(closeParams);
 
               if (result.success) {
-                DevLogger.log('PerpsPositionDetails: Position closed successfully', result);
+                DevLogger.log(
+                  'PerpsPositionDetails: Position closed successfully',
+                  result,
+                );
                 await triggerSuccessHaptic();
 
                 // Refresh positions to update the store
                 try {
                   await getPositions();
-                  DevLogger.log('PerpsPositionDetails: Positions refreshed after closure');
+                  DevLogger.log(
+                    'PerpsPositionDetails: Positions refreshed after closure',
+                  );
                 } catch (refreshErr) {
-                  DevLogger.log('PerpsPositionDetails: Warning - Failed to refresh positions', refreshErr);
+                  DevLogger.log(
+                    'PerpsPositionDetails: Warning - Failed to refresh positions',
+                    refreshErr,
+                  );
                 }
 
                 Alert.alert(
                   'Position Closed',
-                  `Your ${direction.toUpperCase()} ${position.coin} position has been closed successfully.`,
+                  `Your ${direction.toUpperCase()} ${
+                    position.coin
+                  } position has been closed successfully.`,
                   [
                     {
                       text: 'OK',
                       onPress: () => navigation.goBack(),
                     },
-                  ]
+                  ],
                 );
               } else {
                 throw new Error(result.error || 'Failed to close position');
               }
             } catch (err) {
-              const errorMessage = err instanceof Error ? err.message : 'Failed to close position';
+              const errorMessage =
+                err instanceof Error ? err.message : 'Failed to close position';
               setError(errorMessage);
-              DevLogger.log('PerpsPositionDetails: Error closing position', err);
+              DevLogger.log(
+                'PerpsPositionDetails: Error closing position',
+                err,
+              );
               await triggerErrorHaptic();
             } finally {
               setIsClosing(false);
             }
           },
         },
-      ]
+      ],
     );
-  }, [position, direction, absoluteSize, closePosition, navigation]);
+  }, [
+    position,
+    direction,
+    absoluteSize,
+    closePosition,
+    navigation,
+    getPositions,
+  ]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -388,16 +517,16 @@ const PerpsPositionDetailsView: React.FC = () => {
 
       await triggerErrorHaptic();
       setError('TP/SL updates are not yet implemented');
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update TP/SL';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to update TP/SL';
       setError(errorMessage);
       DevLogger.log('PerpsPositionDetails: Error updating TP/SL', err);
       await triggerErrorHaptic();
     } finally {
       setIsUpdatingTPSL(false);
     }
-  }, [position.coin, takeProfitPrice, stopLossPrice, getPositions]);
+  }, [position.coin, takeProfitPrice, stopLossPrice]);
 
   const handleEditTPSL = () => {
     setIsEditingTPSL(true);
@@ -412,19 +541,36 @@ const PerpsPositionDetailsView: React.FC = () => {
   };
 
   // Position details data
-  const positionDetails = useMemo(() => [
-    { label: 'Size', value: `${absoluteSize.toFixed(6)} ${position.coin}` },
-    { label: 'Entry Price', value: formatCurrency(position.entryPrice) },
-    { label: 'Mark Price', value: formatCurrency(position.liquidationPrice || position.entryPrice) },
-    { label: 'Position Value', value: formatCurrency(position.positionValue) },
-    { label: 'Margin Used', value: formatCurrency(position.marginUsed) },
-    { label: 'Leverage', value: `${position.leverage.value}x` },
-    { label: 'Liquidation Price', value: position.liquidationPrice ? formatCurrency(position.liquidationPrice) : 'N/A' },
-    { label: 'ROE', value: formatPercentage(parseFloat(position.returnOnEquity || '0')) },
-    // TODO: Add actual TP/SL fields when available in Position type
-    { label: 'Take Profit', value: 'Not Set' },
-    { label: 'Stop Loss', value: 'Not Set' },
-  ], [position, absoluteSize, formatCurrency, formatPercentage]);
+  const positionDetails = useMemo(
+    () => [
+      { label: 'Size', value: `${absoluteSize.toFixed(6)} ${position.coin}` },
+      { label: 'Entry Price', value: formatCurrency(position.entryPrice) },
+      {
+        label: 'Mark Price',
+        value: formatCurrency(position.liquidationPrice || position.entryPrice),
+      },
+      {
+        label: 'Position Value',
+        value: formatCurrency(position.positionValue),
+      },
+      { label: 'Margin Used', value: formatCurrency(position.marginUsed) },
+      { label: 'Leverage', value: `${position.leverage.value}x` },
+      {
+        label: 'Liquidation Price',
+        value: position.liquidationPrice
+          ? formatCurrency(position.liquidationPrice)
+          : 'N/A',
+      },
+      {
+        label: 'ROE',
+        value: formatPercentage(parseFloat(position.returnOnEquity || '0')),
+      },
+      // TODO: Add actual TP/SL fields when available in Position type
+      { label: 'Take Profit', value: 'Not Set' },
+      { label: 'Stop Loss', value: 'Not Set' },
+    ],
+    [position, absoluteSize, formatCurrency, formatPercentage],
+  );
 
   if (!position) {
     return (
@@ -456,32 +602,33 @@ const PerpsPositionDetailsView: React.FC = () => {
         <View style={styles.positionHeader}>
           <View style={styles.assetInfo}>
             <Text style={styles.assetName}>{position.coin}</Text>
-            <View style={[
-              styles.directionBadge,
-              isLong ? styles.longBadge : styles.shortBadge
-            ]}>
-              <Text style={[
-                styles.directionText,
-                isLong ? styles.longText : styles.shortText
-              ]}>
+            <View
+              style={[
+                styles.directionBadge,
+                isLong ? styles.longBadge : styles.shortBadge,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.directionText,
+                  isLong ? styles.longText : styles.shortText,
+                ]}
+              >
                 {direction}
               </Text>
             </View>
           </View>
 
           <View style={styles.pnlContainer}>
-            <Text style={[
-              styles.pnlValue,
-              pnlNum >= 0 ? styles.positivePnl : styles.negativePnl
-            ]}>
-              {formatPnl(pnlNum)}
-            </Text>
-            <Text style={[
-              styles.pnlPercentage,
-              pnlPercentage >= 0 ? styles.positivePnl : styles.negativePnl
-            ]}>
-              {formatPercentage(pnlPercentage)}
-            </Text>
+            <CandlestickChartComponent
+              candleData={candleData}
+              isLoading={isLoadingHistory}
+              height={350}
+              selectedInterval={selectedInterval}
+              onIntervalChange={() => {
+                // No-op: interval change not implemented yet
+              }}
+            />
           </View>
         </View>
 
@@ -502,7 +649,9 @@ const PerpsPositionDetailsView: React.FC = () => {
           <View style={styles.closeSection}>
             <View style={styles.closeWarning}>
               <Text style={styles.warningText}>
-                ⚠️ Closing this position will execute a market order to exit your entire {direction.toUpperCase()} position in {position.coin}.
+                ⚠️ Closing this position will execute a market order to exit
+                your entire {direction.toUpperCase()} position in{' '}
+                {position.coin}.
               </Text>
             </View>
 
@@ -522,7 +671,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 loading={isUpdatingTPSL}
                 style={styles.editButton}
               />
-              
+
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
@@ -547,7 +696,7 @@ const PerpsPositionDetailsView: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Take Profit & Stop Loss</Text>
-            
+
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -555,12 +704,16 @@ const PerpsPositionDetailsView: React.FC = () => {
             )}
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Take Profit Price (Optional)</Text>
+              <Text style={styles.inputLabel}>
+                Take Profit Price (Optional)
+              </Text>
               <TextInput
                 style={styles.textInput}
                 value={takeProfitPrice}
                 onChangeText={setTakeProfitPrice}
-                placeholder={`Enter TP price (Current: ${formatCurrency(position.entryPrice)})`}
+                placeholder={`Enter TP price (Current: ${formatCurrency(
+                  position.entryPrice,
+                )})`}
                 keyboardType="numeric"
                 placeholderTextColor={colors.text.muted}
               />
@@ -572,7 +725,9 @@ const PerpsPositionDetailsView: React.FC = () => {
                 style={styles.textInput}
                 value={stopLossPrice}
                 onChangeText={setStopLossPrice}
-                placeholder={`Enter SL price (Current: ${formatCurrency(position.entryPrice)})`}
+                placeholder={`Enter SL price (Current: ${formatCurrency(
+                  position.entryPrice,
+                )})`}
                 keyboardType="numeric"
                 placeholderTextColor={colors.text.muted}
               />
