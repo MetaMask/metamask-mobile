@@ -50,14 +50,13 @@ import { mapCardTokenToAssetKey } from '../../utils';
 import { AllowanceState, CardToken } from '../../types';
 import { FlashListAssetKey } from '../../../Tokens/TokenList';
 import Logger from '../../../../../util/Logger';
-import { Hex } from 'viem';
-import { hexToDecimal } from '../../../../../util/conversions';
 import { useGetSupportedTokens } from '../../hooks/useGetSupportedAssets';
 import { strings } from '../../../../../../locales/i18n';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { BrowserTab } from '../../../Tokens/types';
 import { isCardUrl } from '../../../../../util/url';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import useAssetBalance from '../../hooks/useAssetBalance';
+import { RootState } from '../../../../../reducers';
 
 interface ICardHomeProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -68,14 +67,13 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const currentAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { PreferencesController, TokenBalancesController } = Engine.context;
+  const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
   const theme = useTheme();
   const itemHeight = 130;
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { allowances, isLoading: isLoadingAllowances } = useGetAllowances(
     currentAddress,
     true,
@@ -94,7 +92,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [openAssetListBottomSheet, setOpenAssetListBottomSheet] =
     useState(false);
-  const [balance, setBalance] = useState<string>();
+  const { mainBalance, secondaryBalance } = useAssetBalance(priorityToken);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
@@ -210,38 +208,6 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     }
   }, [allowances, chainId, currentAddress, fetchPriorityToken, priorityToken]);
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (priorityToken && currentAddress) {
-        try {
-          const priorityTokenBalance =
-            await TokenBalancesController.getErc20Balances({
-              chainId: chainId as Hex,
-              accountAddress: currentAddress as Hex,
-              tokenAddresses: [priorityToken.address as Hex],
-            });
-          const tokenBalance =
-            priorityTokenBalance[priorityToken.address as Hex];
-          const formattedTokenBalance = renderFromTokenMinimalUnit(
-            hexToDecimal(tokenBalance).toString(),
-            priorityToken.decimals,
-          );
-
-          setBalance(formattedTokenBalance ?? '0');
-        } catch (error) {
-          Logger.error(error as Error, 'Error fetching balance');
-        }
-      }
-    };
-
-    fetchBalance();
-  }, [priorityToken, currentAddress, TokenBalancesController, chainId]);
-
-  const isLoading = useMemo(
-    () => isLoadingAllowances || isLoadingPriorityToken || !priorityToken,
-    [isLoadingAllowances, isLoadingPriorityToken, priorityToken],
-  );
-
   const handleAdvancedCardManagementPress = useCallback(() => {
     const existingCardTab = browserTabs.find(({ url }: BrowserTab) =>
       isCardUrl(url),
@@ -277,7 +243,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
     );
   }, [browserTabs, createEventBuilder, navigation, trackEvent]);
 
-  if (isLoading) {
+  if (isLoadingAllowances || isLoadingPriorityToken) {
     return (
       <View style={styles.wrapper}>
         <Loader />
@@ -290,24 +256,34 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
       <View style={styles.defaultPadding}>
         <View style={styles.balanceContainer}>
           <View style={styles.balanceTextContainer}>
+            <View style={styles.mainBalanceContainer}>
+              <SensitiveText
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Long}
+                variant={TextVariant.HeadingLG}
+              >
+                {mainBalance ?? 0}
+              </SensitiveText>
+              <TouchableOpacity
+                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+                testID="balance-container"
+              >
+                <Icon
+                  style={styles.privacyIcon}
+                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                  size={IconSize.Md}
+                  color={theme.colors.text.muted}
+                />
+              </TouchableOpacity>
+            </View>
             <SensitiveText
               isHidden={privacyMode}
               length={SensitiveTextLength.Long}
-              variant={TextVariant.HeadingLG}
+              variant={TextVariant.BodyMD}
+              color={theme.colors.text.muted}
             >
-              {priorityToken ? `${balance} ${priorityToken.symbol}` : '0'}
+              {secondaryBalance ?? 0}
             </SensitiveText>
-            <TouchableOpacity
-              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID="balance-container"
-            >
-              <Icon
-                style={styles.privacyIcon}
-                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-                color={theme.colors.text.muted}
-              />
-            </TouchableOpacity>
           </View>
           <CardImage name="CardImage" />
         </View>

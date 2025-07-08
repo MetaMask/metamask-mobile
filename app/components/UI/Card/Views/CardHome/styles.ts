@@ -20,6 +20,9 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
       gap: 16,
     },
     balanceTextContainer: {
+      alignItems: 'center',
+    },
+    mainBalanceContainer: {
       flexDirection: 'row',
       alignItems: 'center',
     },

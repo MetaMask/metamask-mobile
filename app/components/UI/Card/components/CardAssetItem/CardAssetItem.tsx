@@ -9,7 +9,6 @@ import styleSheet from './styles';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { useSelector } from 'react-redux';
 import { Hex, isCaipChainId } from '@metamask/utils';
 import {
   getDefaultNetworkByChainId,
@@ -21,7 +20,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { FlashListAssetKey } from '../../../Tokens/TokenList';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import {
   CustomNetworkImgMapping,
   getNonEvmNetworkImageSourceByChainId,
@@ -54,14 +52,8 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const chainId = assetKey.chainId as Hex;
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
 
-  const { asset, mainBalance, secondaryBalance } = useAssetBalance(
-    assetKey,
-    selectedInternalAccountAddress as string,
-  );
+  const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {

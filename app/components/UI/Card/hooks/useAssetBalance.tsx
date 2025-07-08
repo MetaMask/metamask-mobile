@@ -8,7 +8,10 @@ import {
 } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
+} from '../../../../selectors/accountsController';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import {
   selectCurrencyRateForChainId,
@@ -30,13 +33,16 @@ import { TokenI } from '../../Tokens/types';
 // Validate if it's necessary or if it can be simplified further.
 const useAssetBalance = (
   token: FlashListAssetKey | null | undefined,
-  account: string,
 ): {
   asset: TokenI | undefined;
   balanceFiat: string | undefined;
   mainBalance: string;
   secondaryBalance: string;
 } => {
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectEvmAsset = useMemo(
     () => makeSelectAssetByAddressAndChainId(),
@@ -88,10 +94,10 @@ const useAssetBalance = (
 
   // Token balance selectors
   const tokenBalances = useSelector((state: RootState) =>
-    account && asset?.chainId && asset?.address
+    selectedInternalAccountAddress && asset?.chainId && asset?.address
       ? selectSingleTokenBalance(
           state,
-          account as Hex,
+          selectedInternalAccountAddress as Hex,
           asset.chainId as Hex,
           asset.address as Hex,
         )
@@ -108,7 +114,7 @@ const useAssetBalance = (
   const oneHundredThousandths = 0.00001;
 
   const { balanceFiat, balanceValueFormatted } = useMemo(() => {
-    if (!token || !account) {
+    if (!token || !selectedInternalAccountAddress) {
       return {
         balanceFiat: undefined,
         balanceValueFormatted: '',
@@ -143,7 +149,7 @@ const useAssetBalance = (
         };
   }, [
     token,
-    account,
+    selectedInternalAccountAddress,
     isEvmNetworkSelected,
     asset,
     exchangeRates,
