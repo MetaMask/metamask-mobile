@@ -108,8 +108,8 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { SwapsViewSelectorsIDs } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -2142,6 +2142,7 @@ function SwapsQuotesView({
                 <TouchableOpacity
                   onPress={handleOpenQuotesModal}
                   disabled={isInFetch}
+                  testID={SwapsViewSelectorsIDs.VIEW_ALL_QUOTES}
                 >
                   <QuotesSummary.HeaderText small>
                     {strings('swaps.view_details')} →
@@ -2153,7 +2154,7 @@ function SwapsQuotesView({
               {canUseGasIncludedSwap && (
                 <View
                   style={styles.quotesRow}
-                  testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                  testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                 >
                   <View style={styles.quotesDescription}>
                     <View style={styles.quotesLegend}>
@@ -2161,7 +2162,7 @@ function SwapsQuotesView({
                         {strings('swaps.gas_fee')}
                       </Text>
                       <TouchableOpacity
-                        testID={SwapsViewSelectors.GAS_FEE}
+                        testID={SwapsViewSelectorsIDs.GAS_FEE}
                         style={styles.gasInfoContainer}
                         onPress={showGasIncludedTooltip}
                         hitSlop={styles.hitSlop}
@@ -2212,7 +2213,7 @@ function SwapsQuotesView({
                 <>
                   <View
                     style={styles.quotesRow}
-                    testID={SwapsViewSelectors.QUOTE_SUMMARY}
+                    testID={SwapsViewSelectorsIDs.QUOTE_SUMMARY}
                   >
                     <View style={styles.quotesDescription}>
                       <View style={styles.quotesLegend}>
@@ -2220,7 +2221,7 @@ function SwapsQuotesView({
                           {strings('swaps.estimated_gas_fee')}
                         </Text>
                         <TouchableOpacity
-                          testID={SwapsViewSelectors.GAS_FEE}
+                          testID={SwapsViewSelectorsIDs.GAS_FEE}
                           style={styles.gasInfoContainer}
                           onPress={showGasTooltip}
                           hitSlop={styles.hitSlop}
@@ -2432,7 +2433,7 @@ function SwapsQuotesView({
           type="confirm"
           onPress={handleCompleteSwap}
           disabled={unableToSwap || isHandlingSwap || isAnimating}
-          testID={SwapsViewSelectors.SWAP_BUTTON}
+          testID={SwapsViewSelectorsIDs.SWAP_BUTTON}
         >
           {strings('swaps.swap')}
         </StyledButton>

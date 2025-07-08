@@ -4,16 +4,15 @@ import { CarouselSlide, SlideId } from './types';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
+} from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import cardImage from '../../../images/banners/banner_image_card.png';
+import smartAccount from '../../../images/banners/smart-account-upgrade.png';
 import fundImage from '../../../images/banners/banner_image_fund.png';
 import cashoutImage from '../../../images/banners/banner_image_cashout.png';
 import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
 import backupAndSyncImage from '../../../images/banners/banner_image_backup_and_sync.png';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import solanaImage from '../../../images/banners/banner_image_solana.png';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -42,6 +41,16 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     },
   },
   ///: END:ONLY_INCLUDE_IF
+  {
+    id: 'smartAccount',
+    title: strings('banner.smartAccount.title'),
+    description: strings('banner.smartAccount.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'function',
+      navigate: () => [Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE],
+    },
+  },
   {
     id: 'card',
     title: strings('banner.card.title'),
@@ -80,7 +89,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       navigationStack: Routes.SETTINGS_VIEW,
     },
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   {
     id: 'multisrp',
     title: strings('banner.multisrp.title'),
@@ -92,7 +100,6 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
       navigationStack: Routes.SHEET.ACCOUNT_ACTIONS,
     },
   },
-  ///: END:ONLY_INCLUDE_IF
   {
     id: 'backupAndSync',
     title: strings('banner.backupAndSync.title'),
@@ -105,16 +112,19 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
   },
 ];
 
-export const BANNER_IMAGES: Record<SlideId, ImageSourcePropType> = {
+export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   card: cardImage,
   fund: fundImage,
   cashout: cashoutImage,
   aggregated: aggregatedImage,
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   multisrp: multiSrpImage,
-  ///: END:ONLY_INCLUDE_IF
   backupAndSync: backupAndSyncImage,
+  smartAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF
 };
+
+export const SPACE_ID = () => process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID;
+export const ACCESS_TOKEN = () =>
+  process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN;

@@ -101,6 +101,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('BridgeStatusController');
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -158,7 +159,7 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-    
+
     // Get the current app version and migration version
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
@@ -170,10 +171,10 @@ describe('Engine', () => {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
         previousMigrationVersion: 0, // This will be managed by the controller
-        currentMigrationVersion
-      }
+        currentMigrationVersion,
+      },
     };
-    
+
     expect(initialBackgroundState).toStrictEqual(expectedState);
   });
 

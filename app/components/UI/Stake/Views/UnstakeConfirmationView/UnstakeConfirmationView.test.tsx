@@ -5,7 +5,7 @@ import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
-import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -71,6 +71,17 @@ jest.mock('../../hooks/useStakeContext', () => ({
   __esModule: true,
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
+
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val &&
+    typeof val === 'object' &&
+    (val.props?.source?.uri === '' ||
+      val.props?.onLayout ||
+      val.props?.onError ||
+      val.props?.onLoadEnd),
+  print: () => 'IGNORED_RANDOM_ELEMENT',
+});
 
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {

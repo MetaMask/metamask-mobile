@@ -16,15 +16,34 @@ jest.mock('../../../../../core/Engine', () => {
         state: {
           internalAccounts: {
             accounts: {
-              '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+              'mock-account-id-1': {
+                id: 'mock-account-id-1',
                 address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                name: 'Account 1',
+                metadata: {
+                  name: 'Account 1',
+                  keyring: {
+                    type: KeyringTypes.hd,
+                  },
+                },
+                options: {
+                  entropySource: '01JNG71B7GTWH0J1TSJY9891S0',
+                },
               },
-              '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+              'mock-account-id-2': {
+                id: 'mock-account-id-2',
                 address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                name: 'Account 2',
+                metadata: {
+                  name: 'Account 2',
+                  keyring: {
+                    type: KeyringTypes.hd,
+                  },
+                },
+                options: {
+                  entropySource: '01JNG71B7GTWH0J1TSJY9891S0',
+                },
               },
             },
+            selectAccount: 'mock-account-id-1',
           },
         },
       },
@@ -61,11 +80,15 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   useAccounts: () => ({
     accounts: [
       {
+        id: 'mock-account-id-1',
         address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId: 'eip155:1:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 1',
       },
       {
+        id: 'mock-account-id-2',
         address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId: 'eip155:1:0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 2',
       },
     ],
@@ -99,10 +122,13 @@ const mockStore = configureStore([]);
 
 describe('DestinationAccountSelector', () => {
   const renderComponent = (storeState = {}) => {
+    const mockEngine = jest.requireMock('../../../../../core/Engine');
     const store = mockStore({
       engine: {
         backgroundState: {
           ...backgroundState,
+          KeyringController: mockEngine.context.KeyringController.state,
+          AccountsController: mockEngine.context.AccountsController.state,
           PreferencesController: {
             privacyMode: false,
           },
@@ -203,7 +229,7 @@ describe('DestinationAccountSelector', () => {
     const actions = store.getActions();
     expect(actions).toContainEqual({
       type: 'bridge/setDestAddress',
-      payload: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+      payload: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
     });
   });
 

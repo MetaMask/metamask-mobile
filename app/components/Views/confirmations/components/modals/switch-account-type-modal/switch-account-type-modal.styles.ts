@@ -3,8 +3,12 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     wrapper: {
-      marginBottom: 16,
-      marginTop: 24,
+      paddingTop: 8,
+    },
+    spinner: {
+      marginVertical: 32,
+      flexDirection: 'row',
+      justifyContent: 'center',
     },
     account_info: {
       flexDirection: 'column',
@@ -13,7 +17,13 @@ const styleSheet = () =>
       marginBottom: 24,
     },
     account_name: {
+      marginBottom: -8,
       marginTop: 8,
+    },
+    backIcon: {
+      left: 28,
+      position: 'absolute',
+      top: 18,
     },
   });
 

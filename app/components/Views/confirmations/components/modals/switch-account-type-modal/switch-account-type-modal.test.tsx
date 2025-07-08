@@ -1,14 +1,16 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { RootState } from '../../../../../../reducers';
-// eslint-disable-next-line import/no-namespace
-import * as Networks7702 from '../../../hooks/useEIP7702Networks';
 import {
   MOCK_ACCOUNT_CONTROLLER_STATE,
   MOCK_KEYRING_CONTROLLER_STATE,
-} from '../../../mock-data';
-import { EIP7702NetworkConfiguration } from '../../../hooks/useEIP7702Networks';
+  mockTransaction,
+} from '../../../../../../util/test/confirm-data-helpers';
+import { RootState } from '../../../../../../reducers';
+// eslint-disable-next-line import/no-namespace
+import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
+import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
 const MOCK_NETWORK = {
@@ -30,6 +32,7 @@ const MOCK_NETWORK = {
   ],
 } as unknown as EIP7702NetworkConfiguration;
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useRoute: jest.fn().mockReturnValue({
@@ -37,6 +40,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useNavigation: () => ({
     navigate: jest.fn(),
+    goBack: mockGoBack,
   }),
 }));
 
@@ -60,6 +64,7 @@ const MOCK_STATE = {
     backgroundState: {
       AccountsController: MOCK_ACCOUNT_CONTROLLER_STATE,
       KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
+      TransactionController: { transactions: [mockTransaction] },
     },
   },
 } as unknown as RootState;
@@ -78,7 +83,7 @@ describe('Switch Account Type Modal', () => {
     expect(getByText('Account 1')).toBeTruthy();
     expect(getByText('Sepolia')).toBeTruthy();
     expect(getByText('Smart Account')).toBeTruthy();
-    expect(getByText('Switch')).toBeTruthy();
+    expect(getByText('Switch back')).toBeTruthy();
   });
 
   it('displays spinner when network list is loading', () => {
@@ -97,5 +102,19 @@ describe('Switch Account Type Modal', () => {
     expect(queryByText('Smart Account')).toBeNull();
     expect(queryByText('Switch')).toBeNull();
     expect(getByTestId('network-data-loader')).toBeTruthy();
+  });
+
+  it('navigates back when back button is clicked', () => {
+    jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
+      pending: false,
+      network7702List: [MOCK_NETWORK],
+      networkSupporting7702Present: true,
+    });
+
+    const { getByTestId } = renderWithProvider(<SwitchAccountTypeModal />, {
+      state: MOCK_STATE,
+    });
+    fireEvent.press(getByTestId('switch-account-goback'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

@@ -8,10 +8,6 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import {
-  selectContractExchangeRates,
-  selectTokenMarketData,
-} from '../../../selectors/tokenRatesController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
@@ -25,10 +21,6 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
-  // Selectors returning state updated by the polling
-  const contractExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenMarketData = useSelector(selectTokenMarketData);
-
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
     isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
@@ -37,27 +29,31 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         )
       : [currentChainId];
 
-  const chainIdsToPoll = chainIds ?? filteredChainIds;
+  const chainIdsToPoll = isEvmSelected
+    ? [
+        {
+          chainIds: filteredChainIds as Hex[],
+        },
+      ]
+    : [];
 
   const { TokenRatesController } = Engine.context;
+
+  let providedChainIds;
+  if (chainIds) {
+    providedChainIds = chainIds.map((chainId) => ({
+      chainIds: [chainId],
+    }));
+  }
+
+  const input = providedChainIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
-    input: isEvmSelected
-      ? [
-          {
-            chainIds: chainIdsToPoll as Hex[],
-          },
-        ]
-      : [],
+    input,
   });
-
-  return {
-    contractExchangeRates,
-    tokenMarketData,
-  };
 };
 
 export default useTokenRatesPolling;

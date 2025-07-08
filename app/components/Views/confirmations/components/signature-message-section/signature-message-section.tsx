@@ -1,14 +1,17 @@
 import React, { ReactNode } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationRowComponentIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import CopyButton from '../UI/copy-button';
 import Expandable from '../UI/expandable';
@@ -36,7 +39,9 @@ const SignatureMessageSection = ({
         <InfoSection>
           <View style={styles.container}>
             <View>
-              <Text style={styles.title}>{strings('confirm.message')}</Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('confirm.message')}
+              </Text>
               {messageCollapsed && (
                 <View style={styles.message}>
                   {typeof messageCollapsed === 'string' ? (
@@ -76,7 +81,7 @@ const SignatureMessageSection = ({
         </View>
       }
       expandedContentTitle={strings('confirm.message')}
-      testID={ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION}
+      testID={ConfirmationRowComponentIDs.MESSAGE}
     />
   );
 };

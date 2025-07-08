@@ -19,11 +19,15 @@ import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
+import { createPreinstalledSnapsMiddleware } from '@metamask/snaps-rpc-methods';
+import { isSnapPreinstalled } from '../SnapKeyring/utils/snaps';
 
 import ObjectMultiplex from '@metamask/object-multiplex';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
+import { createOriginMiddleware } from '../../util/middlewares';
+import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
 const pump = require('pump');
 
 interface ISnapBridgeProps {
@@ -152,12 +156,35 @@ export default class SnapBridge {
       engine.emit('notification', message),
     );
 
+    engine.push(createOriginMiddleware({ origin: this.snapId }));
+    engine.push(createSelectedNetworkMiddleware(Engine.controllerMessenger));
+
     // Filter and subscription polyfills
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
     const { context, controllerMessenger } = Engine;
     const { PermissionController } = context;
+
+    if (isSnapPreinstalled(this.snapId)) {
+      engine.push(
+        createPreinstalledSnapsMiddleware({
+          getPermissions: PermissionController.getPermissions.bind(
+            PermissionController,
+            this.snapId,
+          ),
+          getAllEvmAccounts: () =>
+            controllerMessenger
+              .call('AccountsController:listAccounts')
+              .map((account) => account.address),
+          grantPermissions: (approvedPermissions) =>
+            controllerMessenger.call('PermissionController:grantPermissions', {
+              approvedPermissions,
+              subject: { origin: this.snapId },
+            }),
+        }),
+      );
+    }
 
     engine.push(
       PermissionController.createPermissionMiddleware({

@@ -17,6 +17,8 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 
 import Logger from '../util/Logger';
 import { TransactionStatus } from '@metamask/transaction-controller';
+import { endTrace, trace, TraceName } from '../util/trace';
+
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -145,7 +147,7 @@ class NotificationManager {
   _showNotification = async (data) => {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
-      const id = data?.transaction?.id || '';
+      const id = data?.transaction?.id;
       if (id) {
         this._transactionToView.push(id);
       }
@@ -217,17 +219,29 @@ class NotificationManager {
         // Clean up
         this._removeListeners(transactionMeta.id);
 
+        trace({
+          name: TraceName.TransactionConfirmed,
+          data: {
+            chainId: transactionMeta.chainId,
+            assetType: originalTransaction.assetType,
+          },
+        });
         const {
           TokenBalancesController,
           TokenDetectionController,
           AccountTrackerController,
+          NetworkController,
         } = Engine.context;
+
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(
+          transactionMeta.chainId,
+        );
         // account balances for ETH txs
         // Detect assets and tokens for ERC20 txs
         // Detect assets for ERC721 txs
         // right after a transaction was confirmed
         const pollPromises = [
-          AccountTrackerController.refresh(),
+          AccountTrackerController.refresh([networkClientId]),
           TokenBalancesController.updateBalancesByChainId({
             chainId: transactionMeta.chainId,
           }),
@@ -245,6 +259,13 @@ class NotificationManager {
           }
         }
         Promise.all(pollPromises);
+        endTrace({
+          name: TraceName.TransactionConfirmed,
+          data: {
+            chainId: transactionMeta.chainId,
+            assetType: originalTransaction.assetType,
+          },
+        });
 
         // Prompt review
         ReviewManager.promptReview();
@@ -424,7 +445,11 @@ class NotificationManager {
    */
   gotIncomingTransaction = async (incomingTransactions) => {
     try {
-      const { AccountTrackerController, AccountsController } = Engine.context;
+      const {
+        AccountTrackerController,
+        AccountsController,
+        NetworkController,
+      } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
 
@@ -471,8 +496,14 @@ class NotificationManager {
         duration: 7000,
       });
 
-      // Update balance upon detecting a new incoming transaction
-      AccountTrackerController.refresh();
+      const txChainId = filteredTransactions[0]?.chainId;
+      if (txChainId) {
+        const networkClientId =
+          NetworkController.findNetworkClientIdByChainId(txChainId);
+
+        // Update balance upon detecting a new incoming transaction
+        AccountTrackerController.refresh([networkClientId]);
+      }
     } catch (error) {
       Logger.log(
         'Notifications',

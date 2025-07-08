@@ -32,12 +32,12 @@ class ChangePasswordView {
 
   get iosUnderstandCheck() {
     return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
   get submitButton() {
-    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+    return Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT);
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -53,15 +53,12 @@ class ChangePasswordView {
       await Gestures.waitAndTap(this.iosUnderstandCheck);
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
       await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
   }
 
   async tapSubmitButton() {
-    if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.submitButton);
-    }
+    await Gestures.waitAndTap(this.submitButton, {delayBeforeTap: 1000});
   }
 }
 

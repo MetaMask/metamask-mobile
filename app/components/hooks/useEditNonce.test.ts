@@ -45,7 +45,7 @@ describe('useEditNonce', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(mockTransactionMetadata);
   });
 
-  it('should initialize with default values', () => {
+  it('initializes with default values', () => {
     const { result } = renderHook(() => useEditNonce());
 
     expect(result.current.showNonceModal).toBe(false);
@@ -53,7 +53,7 @@ describe('useEditNonce', () => {
     expect(result.current.userSelectedNonce).toBe(0);
   });
 
-  it('should not fetch nonce when transaction metadata is undefined', async () => {
+  it('does not fetch nonce when transaction metadata is undefined', async () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
 
     renderHook(() => useEditNonce());
@@ -62,14 +62,13 @@ describe('useEditNonce', () => {
     expect(mockUpdateTransaction).not.toHaveBeenCalled();
   });
 
-  it('should fetch network nonce when transaction metadata is available', async () => {
-    // Use a resolved promise to ensure the getNetworkNonce completes
-    mockGetNetworkNonce.mockImplementation(async () => Promise.resolve(42));
-
-    const { result, waitForNextUpdate } = renderHook(() => useEditNonce());
+  it('fetches network nonce when transaction metadata is available', async () => {
+    const { result } = renderHook(() => useEditNonce());
 
     // Wait for the effect to run
-    await waitForNextUpdate();
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(mockGetNetworkNonce).toHaveBeenCalledWith(
       { from: mockTransactionMetadata.txParams.from },
@@ -79,7 +78,7 @@ describe('useEditNonce', () => {
     expect(result.current.userSelectedNonce).toBe(42);
   });
 
-  it('should not update proposedNonce if it has already been set', async () => {
+  it('does not update proposedNonce if it has already been set', async () => {
     let resolveFn1: (value: number) => void;
     const promise1 = new Promise<number>((resolve) => {
       resolveFn1 = resolve;
@@ -127,28 +126,17 @@ describe('useEditNonce', () => {
       await Promise.resolve();
     });
 
-    // The proposedNonce should not have changed
+    // The proposedNonce not have changed
     expect(result.current.proposedNonce).toBe(42);
 
     // Ensure getNetworkNonce was called twice
     expect(mockGetNetworkNonce).toHaveBeenCalledTimes(2);
   });
 
-  it('should update transaction with userSelectedNonce when it changes', async () => {
-    let resolveFn: (value: number) => void;
-    const promise = new Promise<number>((resolve) => {
-      resolveFn = resolve;
-    });
-    mockGetNetworkNonce.mockReturnValueOnce(promise);
-
+  it('updates transaction with userSelectedNonce when updateNonce is called', async () => {
     const { result } = renderHook(() => useEditNonce());
 
-    // Resolve the getNetworkNonce promise
-    act(() => {
-      resolveFn(42);
-    });
-
-    // Wait for the state to update
+    // Wait for initial effect to run
     await act(async () => {
       await Promise.resolve();
     });
@@ -157,21 +145,9 @@ describe('useEditNonce', () => {
     expect(result.current.proposedNonce).toBe(42);
     expect(result.current.userSelectedNonce).toBe(42);
 
-    // Set up a mock implementation for updateTransaction
-    let updateTransactionResolveFn: () => void;
-    const updateTransactionPromise = new Promise<void>((resolve) => {
-      updateTransactionResolveFn = resolve;
-    });
-    mockUpdateTransaction.mockReturnValueOnce(updateTransactionPromise);
-
-    // Change the user selected nonce
-    act(() => {
-      result.current.setUserSelectedNonce(100);
-    });
-
-    // Wait for the updateTransaction to be called
+    // Call updateNonce with a new value
     await act(async () => {
-      await Promise.resolve();
+      await result.current.updateNonce(100);
     });
 
     // Verify updateTransaction was called with correct parameters
@@ -183,33 +159,23 @@ describe('useEditNonce', () => {
       mockTransactionMetadata.id
     );
 
-    // Resolve the updateTransaction promise
-    act(() => {
-      updateTransactionResolveFn();
-    });
-
     // Final state check
     expect(result.current.userSelectedNonce).toBe(100);
   });
 
-  it('should not update transaction when transaction metadata is undefined', async () => {
+  it('does not update transaction when transaction metadata is undefined', async () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
 
     const { result } = renderHook(() => useEditNonce());
 
-    act(() => {
-      result.current.setUserSelectedNonce(100);
-    });
-
-    // Wait for any potential updates
     await act(async () => {
-      await Promise.resolve();
+      await result.current.updateNonce(100);
     });
 
     expect(mockUpdateTransaction).not.toHaveBeenCalled();
   });
 
-  it('should correctly toggle the nonce modal', () => {
+  it('correctly toggles the nonce modal', () => {
     const { result } = renderHook(() => useEditNonce());
 
     expect(result.current.showNonceModal).toBe(false);

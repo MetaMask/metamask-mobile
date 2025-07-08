@@ -18,7 +18,6 @@ import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
 import {
-  getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../Permissions';
 import {
@@ -49,22 +48,22 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
-import {
-  processOriginThrottlingRejection,
-  validateOriginThrottling,
-} from './spam';
-import {
-  NUMBER_OF_REJECTIONS_THRESHOLD,
-  OriginThrottlingState,
-} from '../redux/slices/originThrottling';
 import { ProviderConfig } from '../../selectors/networkController';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import { getCaip25PermissionFromLegacyPermissions, rejectOriginPendingApprovals, requestPermittedChainsPermissionIncremental } from '../../util/permissions';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  rejectOriginPendingApprovals,
+  requestPermittedChainsPermissionIncremental,
+} from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
+
+jest.mock('../../util/metrics', () => ({
+  trackDappViewedEvent: jest.fn(),
+}));
 
 jest.mock('../../util/permissions', () => ({
   __esModule: true,
@@ -110,6 +109,9 @@ jest.mock('../Engine', () => ({
         },
       }),
     },
+    KeyringController: {
+      isUnlocked: jest.fn().mockReturnValue(true)
+    }
   },
 }));
 const MockEngine = jest.mocked(Engine);
@@ -137,10 +139,6 @@ jest.mock('../Permissions', () => ({
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
-
-const mockProcessOriginThrottlingRejection =
-  processOriginThrottlingRejection as jest.Mock;
-const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -287,7 +285,6 @@ function setupGlobalState({
   networksMetadata,
   networkConfigurationsByChainId,
   selectedAddress,
-  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
@@ -297,7 +294,6 @@ function setupGlobalState({
   networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
-  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -307,8 +303,8 @@ function setupGlobalState({
     .mockImplementation(() => ({
       browser: activeTab
         ? {
-          activeTab,
-        }
+            activeTab,
+          }
         : {},
       engine: {
         backgroundState: {
@@ -324,9 +320,6 @@ function setupGlobalState({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
-      originThrottling: originThrottling || {
-        origins: {},
-      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
@@ -450,6 +443,8 @@ describe('getRpcMethodMiddleware', () => {
       caveatSpecifications: getCaveatSpecifications({
         listAccounts: mockListAccounts,
         findNetworkClientIdByChainId: jest.fn(),
+        isNonEvmScopeSupported: jest.fn(),
+        getNonEvmAccountAddresses: jest.fn(),
       }),
       permissionSpecifications: {
         ...getPermissionSpecifications(),
@@ -927,6 +922,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'eth_requestAccounts',
         params: [],
+        origin: 'example.metamask.io'
       };
 
       const response = await callMiddleware({ middleware, request });
@@ -946,6 +942,33 @@ describe('getRpcMethodMiddleware', () => {
         .mockReturnValueOnce([])
         .mockReturnValue([addressMock]);
 
+        const mockPermission = {
+          [Caip25EndowmentPermissionName]: {
+            parentCapability: PermissionKeys.eth_accounts,
+            id: 'id',
+            date: 1,
+            invoker: 'example.metamask.io',
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: {
+                  requiredScopes: {},
+                  optionalScopes: {
+                    'wallet:eip155': {
+                      accounts: [],
+                    },
+                  },
+                  sessionProperties: {},
+                  isMultichainOrigin: false,
+                },
+              },
+            ],
+          },
+        };
+        (getCaip25PermissionFromLegacyPermissions as jest.Mock).mockReturnValue(
+          mockPermission,
+        );
+
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -956,6 +979,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'eth_requestAccounts',
         params: [],
+        origin: 'example.metamask.io'
       };
 
       const response = await callMiddleware({ middleware, request });
@@ -965,16 +989,12 @@ describe('getRpcMethodMiddleware', () => {
       ).toEqual([addressMock]);
       expect(requestPermissionsSpy).toHaveBeenCalledWith(
         { origin: 'example.metamask.io' },
+        mockPermission,
         {
-          [Caip25EndowmentPermissionName]: {
-            caveats: [
-              {
-                type: Caip25CaveatType,
-                value: getDefaultCaip25CaveatValue(),
-              },
-            ],
-          },
-        },
+          metadata: {
+            isEip1193Request: true
+          }
+        }
       );
     });
   });
@@ -1701,88 +1721,6 @@ describe('getRpcMethodMiddleware', () => {
       expect(spy).toBeCalledTimes(1);
     });
   });
-
-  describe('originThrottling', () => {
-    const assumedBlockableRPCMethod = 'eth_sendTransaction';
-    const mockBlockedOrigin = 'blocked.origin';
-
-    it('blocks the request when the origin has an active spam filter for origin', async () => {
-      // Restore mock for this test
-      mockValidateOriginThrottling.mockImplementationOnce(
-        jest.requireActual('./spam').validateOriginThrottling,
-      );
-
-      setupGlobalState({
-        originThrottling: {
-          origins: {
-            [mockBlockedOrigin]: {
-              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
-              lastRejection: Date.now() - 1,
-            },
-          },
-        },
-        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
-      });
-
-      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: assumedBlockableRPCMethod,
-        params: [],
-        origin: mockBlockedOrigin,
-      };
-
-      const response = await callMiddleware({ middleware, request });
-
-      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
-      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      expect((response as JsonRpcFailure).error.message).toBe(
-        expectedError.message,
-      );
-    });
-
-    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
-      jest.doMock('./eth_sendTransaction', () => ({
-        __esModule: true,
-        default: jest.fn(() =>
-          Promise.reject(providerErrors.userRejectedRequest()),
-        ),
-      }));
-
-      mockProcessOriginThrottlingRejection.mockClear();
-
-      setupGlobalState({
-        originThrottling: {
-          origins: {
-            [mockBlockedOrigin]: {
-              rejections: 1,
-              lastRejection: Date.now() - 1,
-            },
-          },
-        },
-        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
-      });
-
-      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: assumedBlockableRPCMethod,
-        params: [],
-        origin: mockBlockedOrigin,
-      };
-
-      await callMiddleware({ middleware, request });
-
-      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
-      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: providerErrors.userRejectedRequest(),
-        }),
-      );
-    });
-  });
 });
 
 describe('getRpcMethodMiddlewareHooks', () => {
@@ -1859,7 +1797,8 @@ describe('getRpcMethodMiddlewareHooks', () => {
         autoApprove: true,
       };
 
-      const mockRequestPermittedChainsPermissionIncremental = requestPermittedChainsPermissionIncremental as jest.Mock;
+      const mockRequestPermittedChainsPermissionIncremental =
+        requestPermittedChainsPermissionIncremental as jest.Mock;
       hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
 
       expect(
@@ -1926,9 +1865,7 @@ describe('getRpcMethodMiddlewareHooks', () => {
     it('should call "rejectOriginPendingApprovals" with correct origin', () => {
       hooks.rejectApprovalRequestsForOrigin();
 
-      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(
-        testOrigin,
-      );
+      expect(rejectOriginPendingApprovals).toHaveBeenCalledWith(testOrigin);
     });
   });
 });

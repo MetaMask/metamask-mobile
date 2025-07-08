@@ -4,6 +4,7 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
@@ -14,9 +15,10 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 ///: END:ONLY_INCLUDE_IF
 
 export async function fetchAtomicTokenBalance(
@@ -90,18 +92,33 @@ export const useLatestBalance = (
       chainId && !isCaipChainId(chainId) &&
       selectedAddress
     ) {
-      const web3Provider = getProviderByChainId(chainId);
-      const atomicBalance = await fetchEvmAtomicBalance(
-        web3Provider,
-        selectedAddress,
-        token.address,
-        chainId,
-      );
-      if (atomicBalance && token.decimals) {
-        setBalance({
-          displayBalance: formatUnits(atomicBalance, token.decimals),
-          atomicBalance,
+      // Create a unique UUID for this trace to prevent collisions
+      const traceId = uuidv4();
+      try {
+        trace({
+          name: TraceName.BridgeBalancesUpdated,
+          id: traceId,
+          data: {
+            srcChainId: chainId,
+            isNative: isNativeAddress(token?.address),
+          },
+          startTime: Date.now(),
         });
+        const web3Provider = getProviderByChainId(chainId);
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          token.address,
+          chainId,
+        );
+        if (atomicBalance && token.decimals) {
+          setBalance({
+            displayBalance: formatUnits(atomicBalance, token.decimals),
+            atomicBalance,
+          });
+        }
+      } finally {
+        endTrace({ name: TraceName.BridgeBalancesUpdated, id: traceId, timestamp: Date.now() });
       }
     }
   }, [token.address, token.decimals, chainId, selectedAddress]);

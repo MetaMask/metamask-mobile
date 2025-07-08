@@ -1,6 +1,14 @@
-import { cloneDeep } from 'lodash';
 import React from 'react';
-import { generateContractInteractionState } from '../../../../../../../util/test/confirm-data-helpers';
+import { cloneDeep, merge } from 'lodash';
+import { fireEvent } from '@testing-library/react-native';
+
+import {
+  downgradeAccountConfirmation,
+  generateContractInteractionState,
+  getAppStateForConfirmation,
+  upgradeAccountConfirmation,
+  upgradeOnlyAccountConfirmation,
+} from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import AdvancedDetailsRow from './advanced-details-row';
@@ -13,24 +21,13 @@ jest.mock('../../../../../../UI/Name', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock('../../../../legacy/SendFlow/components/CustomNonceModal', () => 'CustomNonceModal');
-jest.mock('../../../UI/expandable', () => 'Expandable');
-jest.mock('../../../../../../../component-library/components/Texts/Text', () => ({
-  TextColor: { Primary: 'primary' },
-  TextVariant: { BodyMD: 'bodyMD' },
-  default: 'Text',
-}));
+jest.mock(
+  '../../../../legacy/SendFlow/components/CustomNonceModal',
+  () => 'CustomNonceModal',
+);
 
 jest.mock('../../../../../../hooks/useEditNonce', () => ({
   useEditNonce: jest.fn(),
-}));
-
-jest.mock('../../../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
 }));
 
 describe('AdvancedDetailsRow', () => {
@@ -50,25 +47,13 @@ describe('AdvancedDetailsRow', () => {
   it('does not render when transaction metadata is missing', () => {
     // Create state without transaction to ensure metadata is missing
     const stateWithoutTransaction = cloneDeep(generateContractInteractionState);
-    stateWithoutTransaction.engine.backgroundState.TransactionController.transactions = [];
+    stateWithoutTransaction.engine.backgroundState.TransactionController.transactions =
+      [];
 
     const { toJSON } = renderWithProvider(
       <AdvancedDetailsRow />,
       { state: stateWithoutTransaction },
-      false
-    );
-    expect(toJSON()).toBeNull();
-  });
-
-  it('does not render when txParams.to is missing', () => {
-    // Create a state with a transaction that has no 'to' field
-    const stateWithoutTo = cloneDeep(generateContractInteractionState);
-    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to = undefined;
-
-    const { toJSON } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: stateWithoutTo },
-      false
+      false,
     );
     expect(toJSON()).toBeNull();
   });
@@ -84,10 +69,115 @@ describe('AdvancedDetailsRow', () => {
     renderWithProvider(
       <AdvancedDetailsRow />,
       { state: generateContractInteractionState },
-      false
+      false,
     );
 
     // Verify the hook was called
     expect(useEditNonce).toHaveBeenCalled();
+  });
+
+  it('renders data scroll view when data is too long', () => {
+    const state = cloneDeep(generateContractInteractionState);
+    state.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+      '0x' + 'a'.repeat(1000);
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      { state },
+      false,
+    );
+    fireEvent.press(getByText('Advanced details'));
+    expect(getByTestId('scroll-view-data')).toBeTruthy();
+  });
+
+  describe('Nonce editing', () => {
+    const mockSetShowNonceModal = jest.fn();
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (useEditNonce as jest.Mock).mockReturnValue({
+        ...mockUseEditNonce,
+        setShowNonceModal: mockSetShowNonceModal,
+      });
+    });
+
+    it('nonce is not editable if STX is enabled', () => {
+      const swapsEnabledState = merge({}, generateContractInteractionState, {
+        swaps: {
+          featureFlags: {
+            smartTransactions: {
+              mobileActive: true,
+            },
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: swapsEnabledState },
+        false,
+      );
+
+      fireEvent.press(getByText('Advanced details'));
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
+    });
+
+    it('nonce is editable if STX is not enabled', () => {
+      const { getByText } = renderWithProvider(
+        <AdvancedDetailsRow />,
+        { state: generateContractInteractionState },
+        false,
+      );
+      fireEvent.press(getByText('Advanced details'));
+
+      fireEvent.press(getByText('42'));
+      expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
+      expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('display correct information for downgrade confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(downgradeAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(queryByText('Data')).toBeNull();
+    expect(queryByText('Interacting with')).toBeNull();
+  });
+
+  it('display correct information for upgrade confirmation', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <AdvancedDetailsRow />,
+      {
+        state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+      },
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('Smart contract')).toBeTruthy();
+    expect(queryByText('Data')).toBeNull();
+  });
+
+  it('display correct information for upgrade+batch confirmation', () => {
+    const { getByText } = renderWithProvider(<AdvancedDetailsRow />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(getByText('Nonce')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('Smart contract')).toBeTruthy();
+    expect(getByText('Transaction 1')).toBeTruthy();
+    expect(getByText('Transaction 2')).toBeTruthy();
   });
 });

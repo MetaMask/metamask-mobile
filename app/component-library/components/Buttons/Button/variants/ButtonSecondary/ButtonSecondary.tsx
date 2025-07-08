@@ -7,31 +7,28 @@ import { ActivityIndicator, GestureResponderEvent } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Button from '../../foundation/ButtonBase';
-import Text from '../../../../Texts/Text/Text';
+import { default as TextComponent } from '../../../../Texts/Text/Text';
+import { TextColor } from '../../../../Texts/Text';
 
 // Internal dependencies.
 import { ButtonSecondaryProps } from './ButtonSecondary.types';
 import styleSheet from './ButtonSecondary.styles';
-import {
-  DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT,
-  DEFAULT_BUTTONSECONDARY_LABEL_COLOR,
-  DEFAULT_BUTTONSECONDARY_LABEL_COLOR_PRESSED,
-  DEFAULT_BUTTONSECONDARY_LABEL_COLOR_ERROR,
-  DEFAULT_BUTTONSECONDARY_LABEL_COLOR_ERROR_PRESSED,
-} from './ButtonSecondary.constants';
+import { DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT } from './ButtonSecondary.constants';
 
 const ButtonSecondary = ({
   style,
   onPressIn,
   onPressOut,
   isDanger = false,
+  isInverse = false,
   label,
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     style,
     isDanger,
+    isInverse,
     pressed,
   });
 
@@ -51,36 +48,61 @@ const ButtonSecondary = ({
     [setPressed, onPressOut],
   );
 
-  const getLabelColor = () =>
-    isDanger
-      ? pressed
-        ? DEFAULT_BUTTONSECONDARY_LABEL_COLOR_ERROR_PRESSED
-        : DEFAULT_BUTTONSECONDARY_LABEL_COLOR_ERROR
-      : pressed
-      ? DEFAULT_BUTTONSECONDARY_LABEL_COLOR_PRESSED
-      : DEFAULT_BUTTONSECONDARY_LABEL_COLOR;
+  // Determine text color based on state combinations
+  const getTextColor = () => {
+    if (isInverse && isDanger) {
+      // Inverse + Danger: colors.error.default → colors.error.defaultPressed
+      return pressed ? TextColor.ErrorAlternative : TextColor.Error;
+    } else if (isInverse) {
+      // Inverse: colors.primary.inverse
+      return TextColor.Inverse;
+    } else if (isDanger) {
+      // Danger: colors.error.default → colors.error.defaultPressed
+      return pressed ? TextColor.ErrorAlternative : TextColor.Error;
+    }
+    // Default: colors.text.default
+    return TextColor.Default;
+  };
+
+  // Get the actual color value for ActivityIndicator
+  const getActivityIndicatorColor = () => {
+    if (isInverse && isDanger) {
+      return pressed
+        ? theme.colors.error.defaultPressed
+        : theme.colors.error.default;
+    } else if (isInverse) {
+      return theme.colors.primary.inverse;
+    } else if (isDanger) {
+      return pressed
+        ? theme.colors.error.defaultPressed
+        : theme.colors.error.default;
+    }
+    return theme.colors.text.default;
+  };
+
+  const textColor = getTextColor();
 
   const renderLabel = () =>
     typeof label === 'string' ? (
-      <Text
+      <TextComponent
         variant={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
-        color={getLabelColor()}
+        color={textColor}
       >
         {label}
-      </Text>
+      </TextComponent>
     ) : (
       label
     );
 
-    const renderLoading = () => (
-      <ActivityIndicator size="small" color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT} />
-    );
+  const renderLoading = () => (
+    <ActivityIndicator size="small" color={getActivityIndicatorColor()} />
+  );
 
   return (
     <Button
       style={styles.base}
       label={!props.loading ? renderLabel() : renderLoading()}
-      labelColor={getLabelColor()}
+      labelColor={textColor}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
       {...props}

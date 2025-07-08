@@ -5,8 +5,8 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
 
 class AccountListBottomSheet {
@@ -33,6 +33,12 @@ class AccountListBottomSheet {
   get addAccountButton() {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
+  }
+
+  get addEthereumAccountButton() {
+    return Matchers.getElementByText(
+      AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
     );
   }
 
@@ -65,7 +71,7 @@ class AccountListBottomSheet {
 
   /**
    * Retrieves the title/name of an element using the `cellbase-avatar-title` ID.
-   * Note: The `select-with-menu` ID element seems to never receive the tap event, 
+   * Note: The `select-with-menu` ID element seems to never receive the tap event,
    * so this method fetches the title/name instead.
    *
    * @param {number} index - The index of the element to retrieve.
@@ -79,10 +85,7 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    const accountActionsButton = Matchers.getElementByID(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-    );
-    await Gestures.waitAndTap(accountActionsButton);
+    await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
   }
 
   async accountNameInList(accountName) {
@@ -93,7 +96,9 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElementName(index));
+    await Gestures.tap(this.getSelectWithMenuElementName(index), {
+      checkEnabled: false
+    });
   }
 
   async longPressAccountAtIndex(index) {
@@ -102,6 +107,10 @@ class AccountListBottomSheet {
 
   async tapAddAccountButton() {
     await Gestures.waitAndTap(this.addAccountButton);
+  }
+
+  async tapAddEthereumAccountButton() {
+    await Gestures.waitAndTap(this.addEthereumAccountButton);
   }
 
   async longPressImportedAccount() {
@@ -119,6 +128,17 @@ class AccountListBottomSheet {
 
   async tapConnectAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
+  }
+
+  async scrollToAccount(index) {
+    await Gestures.scrollToElement(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
+      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+    );
+  }
+
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'fast');
   }
 }
 

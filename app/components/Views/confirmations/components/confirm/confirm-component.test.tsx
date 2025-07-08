@@ -3,27 +3,38 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
+  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   securityAlertResponse,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
+  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as EditNonceHook from '../../../../../components/hooks/useEditNonce';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 
-jest.mock('../../../../../selectors/featureFlagController/confirmations', () => ({
-  selectConfirmationRedesignFlags: () => ({
-    signatures: true,
-    staking_confirmations: true,
-    contract_interaction: true,
-  }),
+jest.mock('../../../../../components/hooks/useEditNonce', () => ({
+  useEditNonce: jest.fn().mockReturnValue({}),
 }));
+
+jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/confirmations',
+  () => ({
+    selectConfirmationRedesignFlags: () => ({
+      signatures: true,
+      staking_confirmations: true,
+      contract_interaction: true,
+    }),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -65,12 +76,22 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [],
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+            metadata: {
+              id: '01JNG7170V9X27V5NFDTY04PJ4',
+              name: '',
+            },
+          }
+        ],
       },
       getOrAddQRKeyring: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
@@ -81,17 +102,29 @@ jest.mock('../../../../../core/Engine', () => ({
         internalAccounts: {
           accounts: {
             '1': {
+              id: '1',
+              type: 'eip155:eoa',
               address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              options: {
+                entropySource: '01JNG7170V9X27V5NFDTY04PJ4',
+              },
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              scopes: ['eip155:0'],
             },
           },
+          selectedAccount: '1',
         },
       },
     },
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
     TransactionController: {
       getTransactions: jest.fn().mockReturnValue([]),
+      getNonceLock: jest.fn().mockReturnValue({ releaseLock: jest.fn() }),
+      updateTransaction: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -197,7 +230,6 @@ describe('Confirm', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingClaimConfirmationState,
     });
-    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Pooled Staking')).toBeDefined();
@@ -207,24 +239,18 @@ describe('Confirm', () => {
   });
 
   it('renders information for contract interaction', async () => {
-    jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
-
-    jest.spyOn(EditNonceHook, 'useEditNonce')
-      .mockReturnValue({
-        setShowNonceModal: jest.fn(),
-        setUserSelectedNonce: jest.fn(),
-        showNonceModal: false,
-        proposedNonce: 10,
-        userSelectedNonce: 10,
-      });
 
     const { getByText } = renderWithProvider(<Confirm />, {
       state: generateContractInteractionState,
     });
 
     expect(getByText('Transaction request')).toBeDefined();
-    expect(getByText('Review request details before you confirm.')).toBeDefined();
+    expect(
+      getByText('Review request details before you confirm.'),
+    ).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
   });
@@ -243,6 +269,25 @@ describe('Confirm', () => {
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('renders splash page if present', async () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: true });
+
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {

@@ -17,6 +17,12 @@ class PermissionSummaryBottomSheet {
     );
   }
 
+  get backButton() {
+    return Matchers.getElementByID(
+      PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON,
+    );
+  }
+
   get connectedAccountsText() {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
@@ -37,6 +43,10 @@ class PermissionSummaryBottomSheet {
 
   async swipeToDismissModal() {
     await Gestures.swipe(this.container, 'down', 'fast');
+  }
+
+  async tapBackButton() {
+    await Gestures.waitAndTap(this.backButton);
   }
 }
 

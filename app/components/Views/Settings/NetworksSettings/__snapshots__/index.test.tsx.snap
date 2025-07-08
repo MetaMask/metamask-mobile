@@ -180,9 +180,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -306,6 +305,9 @@ exports[`NetworksSettings should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -694,6 +696,65 @@ exports[`NetworksSettings should render correctly 1`] = `
                             >
                               Custom networks
                             </Text>
+                            <View>
+                              <TouchableOpacity
+                                onLongPress={[Function]}
+                                onPress={[Function]}
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "flexDirection": "row",
+                                      "paddingVertical": 12,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 10,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "marginRight": 16,
+                                        "marginTop": 2,
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                      }
+                                    }
+                                    variant="Network"
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={1}
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Base Mainnet
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                           <Text
                             style={
@@ -903,6 +964,71 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </View>
                             </TouchableOpacity>
                           </View>
+                          <View>
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "paddingVertical": 12,
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                    }
+                                  }
+                                >
+                                  Monad Testnet
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                       </RCTScrollView>
                       <TouchableOpacity
@@ -914,7 +1040,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           [
                             [
                               {
-                                "borderRadius": 100,
+                                "borderRadius": 12,
                                 "justifyContent": "center",
                                 "padding": 15,
                               },

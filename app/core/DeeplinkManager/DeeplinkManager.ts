@@ -10,6 +10,8 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
+import Routes from '../../constants/navigation/Routes';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -88,7 +90,23 @@ class DeeplinkManager {
     });
   }
 
-  parse(
+  // NOTE: open the home screen for new subdomain
+  _handleOpenHome() {
+    this.navigation.navigate(Routes.WALLET.HOME);
+  }
+
+  // NOTE: this will be used for new deeplink subdomain
+  _handleSwap(swapPath: string) {
+    handleSwapUrl({
+      swapPath,
+    });
+  }
+  // NOTE: keeping this for backwards compatibility
+  _handleOpenSwap() {
+    this.navigation.navigate(Routes.SWAPS);
+  }
+
+  async parse(
     url: string,
     {
       browserCallBack,
@@ -100,7 +118,7 @@ class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
-    return parseDeeplink({
+    return await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,

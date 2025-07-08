@@ -25,8 +25,14 @@ jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
   context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x0000000000000000000000000000000000000000'],
+          },
+        ],
+      },
     },
   },
 }));
