@@ -87,6 +87,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await WalletView.scrollToToken('AVAX', 'up');
     const avax = WalletView.tokenInWallet('AVAX');
     await Assertions.checkIfVisible(avax);
     await WalletView.tapOnToken('AVAX');
