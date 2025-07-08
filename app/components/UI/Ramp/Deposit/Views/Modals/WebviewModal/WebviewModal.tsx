@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Dimensions } from 'react-native';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -33,8 +34,13 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
+  const screenHeight = Dimensions.get('window').height;
+  const customSheetStyle = {
+    height: screenHeight * 0.93,
+  };
+
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isFullscreen>
+    <BottomSheet ref={sheetRef} shouldNavigateBack style={customSheetStyle}>
       <BottomSheetHeader
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
