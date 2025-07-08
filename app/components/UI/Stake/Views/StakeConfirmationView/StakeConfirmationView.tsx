@@ -26,7 +26,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  useEndTraceOnMount(TraceName.EarnDepositConfirmationScreen);
+  useEndTraceOnMount(TraceName.EarnDepositReviewScreen);
 
   useEffect(() => {
     navigation.setOptions(
