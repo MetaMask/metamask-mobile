@@ -40,7 +40,7 @@ export async function withIdentityFixtures(
   testFn: (context: IdentityTestContext) => Promise<void>,
 ): Promise<void> {
   const {
-    fixture = new FixtureBuilder().withIdentityTeamKeyringController().build(),
+    fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
     restartDevice = true,
     testSpecificMock = {
           POST: [mockEvents.POST.segmentTrack],

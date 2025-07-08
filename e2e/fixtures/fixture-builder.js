@@ -1250,7 +1250,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withIdentityTeamKeyringController(options = {}) {
+  withBackupAndSyncSettings(options = {}) {
     const {
       isBackupAndSyncEnabled = true,
       isAccountSyncingEnabled = true,
