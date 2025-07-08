@@ -96,7 +96,6 @@ exports[`Login renders matching snapshot 1`] = `
             cacheComposition={true}
             colorFilters={[]}
             enableMergePathsAndroidForKitKatAndAbove={false}
-            height={175}
             loop={true}
             onAnimationFailure={[Function]}
             onAnimationFinish={[Function]}
@@ -108,12 +107,13 @@ exports[`Login renders matching snapshot 1`] = `
             style={
               {
                 "alignSelf": "center",
+                "height": 175,
+                "width": 175,
               }
             }
             textFiltersAndroid={[]}
             textFiltersIOS={[]}
             useNativeLooping={false}
-            width={175}
           />
         </TouchableOpacity>
         <Text
@@ -446,7 +446,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             cacheComposition={true}
             colorFilters={[]}
             enableMergePathsAndroidForKitKatAndAbove={false}
-            height={175}
             loop={true}
             onAnimationFailure={[Function]}
             onAnimationFinish={[Function]}
@@ -458,12 +457,13 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             style={
               {
                 "alignSelf": "center",
+                "height": 175,
+                "width": 175,
               }
             }
             textFiltersAndroid={[]}
             textFiltersIOS={[]}
             useNativeLooping={false}
-            width={175}
           />
         </TouchableOpacity>
         <Text
