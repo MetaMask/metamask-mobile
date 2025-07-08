@@ -565,6 +565,10 @@
       "postal_code": "Postal/Zip Code",
       "country": "Country"
     },
+    "privacy_section":{
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
+    },
     "kyc_processing": {
       "title": "Verifying your identity",
       "heading": "Hang tight!\nWe’re verifying your identity now.",
