@@ -63,9 +63,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     accountsList: {
-      flex: 1,
       marginTop: 16,
       flexDirection: 'column',
+      flexShrink: 1,
     },
     listContainer: {
       flexGrow: 1,

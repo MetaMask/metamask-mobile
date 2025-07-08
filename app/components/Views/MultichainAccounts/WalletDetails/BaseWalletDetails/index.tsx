@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View, ScrollViewProps } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
