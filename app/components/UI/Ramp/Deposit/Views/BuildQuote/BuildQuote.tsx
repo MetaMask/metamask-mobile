@@ -64,17 +64,18 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
-  DepositRegion,
+  SEPA_PAYMENT_METHOD,
+  DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
+import { depositOrderToFiatOrder } from '../../orderProcessor';
+import useHandleNewOrder from '../../hooks/useHandleNewOrder';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -92,12 +93,11 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated } = useDepositSDK();
+  const { isAuthenticated, selectedWalletAddress, selectedRegion } =
+    useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
-  );
+  const handleNewOrder = useHandleNewOrder();
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -126,6 +126,16 @@ const BuildQuote = () => {
       onMount: false,
     });
 
+  const [{ error: reservationError }, createReservation] = useDepositSdkMethod({
+    method: 'walletReserve',
+    onMount: false,
+  });
+
+  const [{ error: orderError }, createOrder] = useDepositSdkMethod({
+    method: 'createOrder',
+    onMount: false,
+  });
+
   const {
     tokenAmount,
     isLoading: isLoadingTokenAmount,
@@ -143,64 +153,30 @@ const BuildQuote = () => {
     );
   }, [navigation, theme]);
 
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
+  useEffect(() => {
+    if (selectedRegion?.currency) {
+      if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
+      } else if (selectedRegion.currency === 'EUR') {
         setFiatCurrency(EUR_CURRENCY);
       }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
+    }
+  }, [selectedRegion?.currency]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.isoCode,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
-
-  const handleExitToWalletHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
-
-  const handleSelectDifferentRegion = useCallback(() => {
-    handleRegionPress();
-  }, [handleRegionPress]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!selectedRegion?.supported) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
-              regionName: selectedRegion?.name || '',
-              onExitToWalletHome: handleExitToWalletHome,
-              onSelectDifferentRegion: handleSelectDifferentRegion,
-            }),
+            ...createUnsupportedRegionModalNavigationDetails(),
           );
         });
       }
-    }, [
-      selectedRegion,
-      navigation,
-      handleExitToWalletHome,
-      handleSelectDifferentRegion,
-    ]),
+    }, [selectedRegion, navigation]),
   );
 
   const handleOnPressContinue = useCallback(async () => {
@@ -239,7 +215,41 @@ const BuildQuote = () => {
         }
 
         if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          if (paymentMethod.id === SEPA_PAYMENT_METHOD.id) {
+            const reservation = await createReservation(
+              quote,
+              selectedWalletAddress,
+            );
+
+            if (reservationError || !reservation) {
+              setError(strings('deposit.buildQuote.unexpectedError'));
+              return;
+            }
+
+            const order = await createOrder(reservation);
+
+            if (orderError || !order) {
+              setError(strings('deposit.buildQuote.unexpectedError'));
+              return;
+            }
+
+            const processedOrder = {
+              ...depositOrderToFiatOrder(order),
+              account: selectedWalletAddress || order.walletAddress,
+              network: cryptoCurrency.chainId,
+            };
+
+            await handleNewOrder(processedOrder);
+
+            navigation.navigate(
+              ...createBankDetailsNavDetails({
+                orderId: order.id,
+                shouldUpdate: false,
+              }),
+            );
+          } else {
+            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
+          }
           return;
         }
 
@@ -306,6 +316,12 @@ const BuildQuote = () => {
     navigation,
     fetchUserDetails,
     userDetailsFetchError,
+    createReservation,
+    reservationError,
+    createOrder,
+    orderError,
+    selectedWalletAddress,
+    handleNewOrder,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -384,7 +400,9 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.isoCode}</Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {selectedRegion?.isoCode}
+                </Text>
                 <Icon
                   name={IconName.ArrowDown}
                   size={IconSize.Sm}
@@ -513,7 +531,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
