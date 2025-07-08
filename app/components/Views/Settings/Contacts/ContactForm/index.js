@@ -335,7 +335,7 @@ class ContactForm extends PureComponent {
     if (wasChainIdChanged) {
       AddressBookController.delete(
         originalContactChainId,
-        toChecksumAddress(address),
+        getChecksumAddress(address),
       );
     }
 
