@@ -252,7 +252,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   get origin() {
-    return this.isMMSDK ? this.channelId : this.hostname;
+    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.hostname;
   }
 
   onUnlock() {
@@ -356,11 +356,8 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(
         `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
-      if (this.isWalletConnect) {
-        approvedAccounts = getPermittedAccounts(this.url);
-      } else {
-        approvedAccounts = getPermittedAccounts(this.channelId);
-      }
+      approvedAccounts = getPermittedAccounts(this.origin);
+
       // Check if selectedAddress is approved
       const found = approvedAccounts.some((addr) =>
         areAddressesEqual(addr, selectedAddress),

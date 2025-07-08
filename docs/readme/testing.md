@@ -403,6 +403,8 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
   - **Faster Feedback**: Running a subset of tests on PRs provides quicker feedback, ensuring critical functionalities are validated without the overhead of executing all tests.
   - **Efficient Resource Use**: Limits resource consumption and test execution time, optimizing CI/CD pipeline performance.
 
-### Best Practices
+### Framework Documentation
 
-For more guidelines and best practices, refer to our [Best Practices Document](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md).
+For detailed E2E framework documentation, patterns, and best practices, see:
+- **[E2E Framework Guide](../../e2e/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines
