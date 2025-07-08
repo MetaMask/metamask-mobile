@@ -10,6 +10,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { ImportTokenViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { FlashList } from '@shopify/flash-list';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,6 +115,28 @@ const AssetList = ({
     [tokenList, styles],
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: { symbol: string; name: string } }) => {
+      const { symbol, name } = item || {};
+      return (
+        <StyledButton
+          type={'normal'}
+          containerStyle={styles.item}
+          onPress={() => handleSelectAsset(item)}
+        >
+          <View style={styles.assetListElement}>
+            <View style={styles.assetIcon}>{renderLogo(item)}</View>
+            <View style={styles.assetInfo}>
+              <Text style={styles.textSymbol}>{symbol}</Text>
+              {!!name && <Text style={styles.text}>{name}</Text>}
+            </View>
+          </View>
+        </StyledButton>
+      );
+    },
+    [styles, handleSelectAsset, renderLogo],
+  );
+
   if (searchResults.length === 0) {
     return <Text style={styles.text}>{emptyMessage}</Text>;
   }
@@ -123,26 +146,12 @@ const AssetList = ({
       testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
       style={styles.listContainer}
     >
-      {/* Use simple rendering like token import for better performance */}
-      {searchResults.slice(0, 6).map((item: any, index: number) => {
-        const { symbol, name } = item || {};
-        return (
-          <StyledButton
-            key={index}
-            type={'normal'}
-            containerStyle={styles.item}
-            onPress={() => handleSelectAsset(item)}
-          >
-            <View style={styles.assetListElement}>
-              <View style={styles.assetIcon}>{renderLogo(item)}</View>
-              <View style={styles.assetInfo}>
-                <Text style={styles.textSymbol}>{symbol}</Text>
-                {!!name && <Text style={styles.text}>{name}</Text>}
-              </View>
-            </View>
-          </StyledButton>
-        );
-      })}
+      <FlashList
+        data={searchResults}
+        renderItem={renderItem}
+        estimatedItemSize={80}
+        keyExtractor={(_, index) => index.toString()}
+      />
     </View>
   );
 };
