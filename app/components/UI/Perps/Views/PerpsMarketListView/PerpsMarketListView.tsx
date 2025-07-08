@@ -27,6 +27,50 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
 import { useNavigation } from '@react-navigation/native';
 
+const PerpsMarketRowItemSkeleton = () => {
+  const { styles, theme } = useStyles(styleSheet, {});
+
+  return (
+    <SkeletonPlaceholder backgroundColor={theme.colors.background.alternative}>
+      <View style={styles.skeletonContainer}>
+        <View style={styles.skeletonLeftSection}>
+          <View style={styles.skeletonAvatar} />
+          <View style={styles.skeletonTokenInfo}>
+            <View style={styles.skeletonTokenHeader}>
+              <View style={styles.skeletonTokenSymbol} />
+              <View style={styles.skeletonLeverage} />
+            </View>
+            <View style={styles.skeletonVolume} />
+          </View>
+        </View>
+        <View style={styles.skeletonRightSection}>
+          <View style={styles.skeletonPrice} />
+          <View style={styles.skeletonChange} />
+        </View>
+      </View>
+    </SkeletonPlaceholder>
+  );
+};
+
+const PerpsMarketListHeader = () => {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View style={styles.listHeader}>
+      <View style={styles.listHeaderLeft}>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          {strings('perps.token_volume')}
+        </Text>
+      </View>
+      <View style={styles.listHeaderRight}>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          {strings('perps.last_price_24h_change')}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
 const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -76,57 +120,24 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
     );
   }, [markets, searchQuery]);
 
-  const renderListHeader = () => (
-    <View style={styles.listHeader}>
-      <View style={styles.listHeaderLeft}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-          {strings('perps.token_volume')}
-        </Text>
-      </View>
-      <View style={styles.listHeaderRight}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-          {strings('perps.last_price_24h_change')}
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderSkeletonItem = () => (
-    <SkeletonPlaceholder backgroundColor={theme.colors.background.alternative}>
-      <View style={styles.skeletonContainer}>
-        <View style={styles.skeletonLeftSection}>
-          <View style={styles.skeletonAvatar} />
-          <View style={styles.skeletonTokenInfo}>
-            <View style={styles.skeletonTokenHeader}>
-              <View style={styles.skeletonTokenSymbol} />
-              <View style={styles.skeletonLeverage} />
-            </View>
-            <View style={styles.skeletonVolume} />
-          </View>
-        </View>
-        <View style={styles.skeletonRightSection}>
-          <View style={styles.skeletonPrice} />
-          <View style={styles.skeletonChange} />
-        </View>
-      </View>
-    </SkeletonPlaceholder>
-  );
-
-  const renderSkeletonList = () => (
-    <View>
-      {renderListHeader()}
-      {Array.from({ length: 8 }).map((_, index) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <View key={index}>{renderSkeletonItem()}</View>
-      ))}
-    </View>
-  );
-
   const renderMarketList = () => {
+    // Skeleton List
     if (filteredMarkets.length === 0 && isLoading) {
-      return renderSkeletonList();
+      return (
+        <View>
+          <PerpsMarketListHeader />
+          {Array.from({ length: 8 }).map((_, index) => (
+            //Using index as key is fine here because the list is static
+            // eslint-disable-next-line react/no-array-index-key
+            <View key={index}>
+              <PerpsMarketRowItemSkeleton />
+            </View>
+          ))}
+        </View>
+      );
     }
 
+    // Error (Failed to load markets)
     if (error && filteredMarkets.length === 0) {
       return (
         <View style={styles.errorContainer}>
@@ -148,7 +159,7 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
 
     return (
       <>
-        {renderListHeader()}
+        <PerpsMarketListHeader />
         <Animated.View
           style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
         >
