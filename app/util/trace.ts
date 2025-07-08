@@ -70,6 +70,7 @@ export enum TraceName {
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
+  EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
   EarnDepositReviewScreen = 'Earn Deposit Review Screen',
   EarnDepositConfirmationScreen = 'Earn Deposit Confirmation Screen',
   EarnWithdrawScreen = 'Earn Withdraw Screen',

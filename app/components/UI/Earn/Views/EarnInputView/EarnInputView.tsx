@@ -244,8 +244,6 @@ const EarnInputView = () => {
   );
 
   const handleLendingFlow = useCallback(async () => {
-    trace({ name: TraceName.EarnDepositReviewScreen });
-
     if (
       !activeAccount?.address ||
       !earnToken?.experience?.market?.underlying?.address ||
@@ -303,6 +301,12 @@ const EarnInputView = () => {
 
       return isExistingAllowanceLowerThanNeeded;
     })();
+
+    if (needsAllowanceIncrease) {
+      trace({ name: TraceName.EarnDepositSpendingCapScreen });
+    } else {
+      trace({ name: TraceName.EarnDepositReviewScreen });
+    }
 
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
