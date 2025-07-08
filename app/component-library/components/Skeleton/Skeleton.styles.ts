@@ -7,6 +7,15 @@ import { Theme } from '../../../util/theme/models';
 // Internal dependencies.
 import { SkeletonStyleSheetVars } from './Skeleton.types';
 
+interface LocalTheme {
+  colors: {
+    icon: {
+      default: string;
+      alternative: string;
+    };
+  };
+}
+
 /**
  * Style sheet function for Skeleton component.
  *
@@ -15,7 +24,7 @@ import { SkeletonStyleSheetVars } from './Skeleton.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: SkeletonStyleSheetVars }) => {
+const styleSheet = (params: { theme: LocalTheme; vars: SkeletonStyleSheetVars }) => {
   const { vars, theme } = params;
   const { height, width, style } = vars;
 
