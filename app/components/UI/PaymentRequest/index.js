@@ -439,7 +439,6 @@ class PaymentRequest extends PureComponent {
     }
     this.setState({ searchInputValue });
 
-    // Remove debouncing for faster search like token import
     this.handleSearch(searchInputValue);
   };
 
