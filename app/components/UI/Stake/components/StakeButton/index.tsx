@@ -33,6 +33,7 @@ import useStakingChain from '../../hooks/useStakingChain';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -71,6 +72,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       );
     }
     if (isEligible) {
+      trace({ name: TraceName.EarnDepositScreen });
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
@@ -129,8 +131,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       return;
     }
 
+    trace({ name: TraceName.EarnDepositScreen });
     await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-
+    
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
         .addProperties({

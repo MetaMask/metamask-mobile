@@ -4,6 +4,7 @@ import { type Action } from 'redux';
 // Action type enum
 export enum UserActionType {
   LOCKED_APP = 'LOCKED_APP',
+  CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   AUTH_SUCCESS = 'AUTH_SUCCESS',
   AUTH_ERROR = 'AUTH_ERROR',
   INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS',
@@ -29,6 +30,8 @@ export enum UserActionType {
 
 // User actions
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
+
+export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
   payload: { bioStateMachineId?: string };
@@ -90,16 +93,12 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
-export type SetMetaMetricsUISeenAction =
-  Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
-    payload: { isMetaMetricsUISeen: boolean };
-  };
-
 /**
  * User actions union type
  */
 export type UserAction =
   | LockAppAction
+  | CheckForDeeplinkAction
   | AuthSuccessAction
   | AuthErrorAction
   | InterruptBiometricsAction
@@ -119,5 +118,4 @@ export type UserAction =
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
   | CheckedAuthAction
-  | SetAppServicesReadyAction
-  | SetMetaMetricsUISeenAction;
+  | SetAppServicesReadyAction;
