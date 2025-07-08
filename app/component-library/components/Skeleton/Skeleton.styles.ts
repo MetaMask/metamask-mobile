@@ -1,3 +1,4 @@
+/// <reference types="react-native" />
 // Third party dependencies.
 import { ViewStyle, StyleSheet } from 'react-native';
 
