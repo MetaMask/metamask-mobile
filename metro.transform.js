@@ -22,7 +22,6 @@ const availableFeatures = new Set([
   'bitcoin',
   'solana',
   'experimental',
-  'seedless-onboarding',
 ]);
 
 const mainFeatureSet = new Set([
@@ -46,7 +45,6 @@ const flaskFeatureSet = new Set([
   'multi-srp',
   'bitcoin',
   'solana',
-  'seedless-onboarding',
 ]);
 // Experimental feature set includes all main features plus experimental
 const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
