@@ -32,7 +32,7 @@ const styleSheet = (params: { theme: Theme; vars: SkeletonStyleSheetVars }) => {
     ) as ViewStyle,
     background: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: theme.colors.icon.alternative,
+      backgroundColor: theme.colors.icon.default,
       borderRadius: 4,
     } as ViewStyle,
     hideChildren: {
