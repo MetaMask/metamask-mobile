@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styleSheet } from './styles';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
@@ -36,6 +35,10 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon/';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const MAX_CAROUSEL_SLIDES = 15;
 
@@ -244,13 +247,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             </View>
           </View>
           {!slide.undismissable && (
-            <TouchableOpacity
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Md}
+              onPress={() => handleClose(slide.id)}
               testID={`carousel-slide-${slide.id}-close-button`}
               style={styles.closeButton}
-              onPress={() => handleClose(slide.id)}
-            >
-              <Icon name="close" size={18} color={colors.icon.default} />
-            </TouchableOpacity>
+            />
           )}
         </View>
       </Pressable>
