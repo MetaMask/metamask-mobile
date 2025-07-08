@@ -3,10 +3,16 @@ import { useGetAllowances } from './useGetAllowances';
 import { useCardSDK } from '../sdk';
 import { AllowanceState } from '../types';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import { useSelector } from 'react-redux';
 
 // Mock the useCardSDK hook
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 // Mock console.error to suppress error logs in tests
@@ -14,11 +20,51 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
 describe('useGetAllowances', () => {
   const mockGetSupportedTokensAllowances = jest.fn();
+  const mockSupportedTokens = [
+    {
+      address: '0xToken1',
+      symbol: 'TKN1',
+      name: 'Token 1',
+      decimals: 18,
+    },
+    {
+      address: '0xToken2',
+      symbol: 'TKN2',
+      name: 'Token 2',
+      decimals: 6,
+    },
+    {
+      address: '0xToken3',
+      symbol: 'TKN3',
+      name: 'Token 3',
+      decimals: 18,
+    },
+    {
+      address: '0xToken4',
+      symbol: 'TKN4',
+      name: 'Token 4',
+      decimals: 8,
+    },
+    {
+      address: '0xToken5',
+      symbol: 'TKN5',
+      name: 'Token 5',
+      decimals: 18,
+    },
+    {
+      address: '0xToken6',
+      symbol: 'TKN6',
+      name: 'Token 6',
+      decimals: 18,
+    },
+  ];
   const mockSDK = {
     getSupportedTokensAllowances: mockGetSupportedTokensAllowances,
+    supportedTokens: mockSupportedTokens,
   };
 
   const mockAddress = '0x1234567890123456789012345678901234567890';
+  const mockChainId = '0x1'; // Ethereum mainnet
 
   const createMockToken = (
     address: string,
@@ -37,11 +83,13 @@ describe('useGetAllowances', () => {
       toString: () => globalAllowance,
     },
   });
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockConsoleError.mockClear();
     mockGetSupportedTokensAllowances.mockReset();
+
+    // Set up default useSelector mock to return chainId
+    (useSelector as jest.Mock).mockImplementation(() => mockChainId);
   });
 
   afterAll(() => {
@@ -91,21 +139,46 @@ describe('useGetAllowances', () => {
 
     const allowances = result.current.allowances;
     expect(allowances).not.toBeNull();
+
+    // Check first token (uses globalAllowance since usAllowance is zero)
     expect(allowances?.[0]).toEqual({
+      allowanceState: AllowanceState.Unlimited,
       address: '0xToken1',
-      allowance: AllowanceState.Unlimited,
-      amount: mockTokens[0].globalAllowance,
+      tag: AllowanceState.Unlimited,
+      isStaked: false,
+      decimals: 18,
+      name: 'Token 1',
+      symbol: 'TKN1',
+      allowance: mockTokens[0].globalAllowance,
+      chainId: mockChainId,
     });
+
+    // Check second token (uses usAllowance since it's non-zero)
     expect(allowances?.[1]).toEqual({
+      allowanceState: AllowanceState.Limited,
       address: '0xToken2',
-      allowance: AllowanceState.Limited,
-      amount: mockTokens[1].usAllowance,
+      tag: AllowanceState.Limited,
+      isStaked: false,
+      decimals: 6,
+      name: 'Token 2',
+      symbol: 'TKN2',
+      allowance: mockTokens[1].usAllowance,
+      chainId: mockChainId,
     });
+
+    // Check third token (uses globalAllowance since usAllowance is zero)
     expect(allowances?.[2]).toEqual({
+      allowanceState: AllowanceState.NotActivated,
       address: '0xToken3',
-      allowance: AllowanceState.NotActivated,
-      amount: mockTokens[2].globalAllowance,
+      tag: AllowanceState.NotActivated,
+      isStaked: false,
+      decimals: 18,
+      name: 'Token 3',
+      symbol: 'TKN3',
+      allowance: mockTokens[2].globalAllowance,
+      chainId: mockChainId,
     });
+
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledTimes(1);
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledWith(mockAddress);
   });
@@ -149,9 +222,15 @@ describe('useGetAllowances', () => {
     const allowances = result.current.allowances;
     expect(allowances).not.toBeNull();
     expect(allowances?.[0]).toEqual({
+      allowanceState: AllowanceState.Limited,
       address: '0xToken1',
-      allowance: AllowanceState.Limited,
-      amount: mockTokens[0].usAllowance,
+      tag: AllowanceState.Limited,
+      isStaked: false,
+      decimals: 18,
+      name: 'Token 1',
+      symbol: 'TKN1',
+      allowance: mockTokens[0].usAllowance,
+      chainId: mockChainId,
     });
     expect(result.current.isLoading).toBe(false);
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledTimes(1);
@@ -236,12 +315,12 @@ describe('useGetAllowances', () => {
     expect(allowances).not.toBeNull();
     expect(allowances).toHaveLength(6);
 
-    expect(allowances?.[0].allowance).toBe(AllowanceState.NotActivated);
-    expect(allowances?.[1].allowance).toBe(AllowanceState.Limited);
-    expect(allowances?.[2].allowance).toBe(AllowanceState.Unlimited);
-    expect(allowances?.[3].allowance).toBe(AllowanceState.Unlimited);
-    expect(allowances?.[4].allowance).toBe(AllowanceState.Limited);
-    expect(allowances?.[5].allowance).toBe(AllowanceState.Unlimited);
+    expect(allowances?.[0].allowanceState).toBe(AllowanceState.NotActivated);
+    expect(allowances?.[1].allowanceState).toBe(AllowanceState.Limited);
+    expect(allowances?.[2].allowanceState).toBe(AllowanceState.Unlimited);
+    expect(allowances?.[3].allowanceState).toBe(AllowanceState.Unlimited);
+    expect(allowances?.[4].allowanceState).toBe(AllowanceState.Limited);
+    expect(allowances?.[5].allowanceState).toBe(AllowanceState.Unlimited);
   });
 
   it('should refetch allowances when SDK becomes available', async () => {
@@ -287,7 +366,7 @@ describe('useGetAllowances', () => {
       await result.current.fetchAllowances();
     });
     expect(result.current.allowances).toHaveLength(1);
-    expect(result.current.allowances?.[0].allowance).toBe(
+    expect(result.current.allowances?.[0].allowanceState).toBe(
       AllowanceState.Limited,
     );
 
@@ -297,7 +376,7 @@ describe('useGetAllowances', () => {
       await result.current.fetchAllowances();
     });
     expect(result.current.allowances).toHaveLength(1);
-    expect(result.current.allowances?.[0].allowance).toBe(
+    expect(result.current.allowances?.[0].allowanceState).toBe(
       AllowanceState.NotActivated,
     );
 
@@ -307,7 +386,7 @@ describe('useGetAllowances', () => {
       await result.current.fetchAllowances();
     });
     expect(result.current.allowances).toHaveLength(1);
-    expect(result.current.allowances?.[0].allowance).toBe(
+    expect(result.current.allowances?.[0].allowanceState).toBe(
       AllowanceState.Unlimited,
     );
 
@@ -352,7 +431,7 @@ describe('useGetAllowances', () => {
     await waitForNextUpdate();
 
     expect(result.current.allowances).toHaveLength(1);
-    expect(result.current.allowances?.[0].allowance).toBe(
+    expect(result.current.allowances?.[0].allowanceState).toBe(
       AllowanceState.Limited,
     );
     expect(result.current.isLoading).toBe(false);
@@ -397,5 +476,26 @@ describe('useGetAllowances', () => {
     expect(result.current.allowances?.[0].address).toBe('0xToken2');
     expect(mockGetSupportedTokensAllowances).toHaveBeenLastCalledWith(address2);
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledTimes(2);
+  });
+
+  it('should filter out tokens not found in supportedTokens', async () => {
+    const mockTokens = [
+      createMockToken('0xToken1', '1000000', '0'), // This exists in supportedTokens
+      createMockToken('0xUnknownToken', '1000000', '0'), // This doesn't exist in supportedTokens
+    ];
+
+    mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokens);
+    (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
+
+    const { result } = renderHook(() => useGetAllowances(mockAddress));
+
+    await act(async () => {
+      await result.current.fetchAllowances();
+    });
+
+    // Should only have the token that exists in supportedTokens
+    expect(result.current.allowances).toHaveLength(1);
+    expect(result.current.allowances?.[0].address).toBe('0xToken1');
+    expect(result.current.allowances?.[0].symbol).toBe('TKN1');
   });
 });

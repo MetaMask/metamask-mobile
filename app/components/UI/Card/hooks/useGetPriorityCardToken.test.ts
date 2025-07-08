@@ -1,17 +1,11 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useCardSDK } from '../sdk';
-import { CardToken } from '../types';
-import Logger from '../../../../util/Logger';
+import { CardToken, CardTokenAllowance, AllowanceState } from '../types';
 
 // Mock the useCardSDK hook
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
-}));
-
-// Mock Logger
-jest.mock('../../../../util/Logger', () => ({
-  log: jest.fn(),
 }));
 
 // Mock console.error to suppress error logs in tests
@@ -24,20 +18,44 @@ describe('useGetPriorityCardToken', () => {
   };
 
   const mockAddress = '0x1234567890123456789012345678901234567890';
-  const mockNonZeroBalanceTokens = ['0xToken1', '0xToken2', '0xToken3'];
+
+  const createMockAllowance = (
+    address: string,
+    allowanceAmount: string,
+    symbol = 'TEST',
+    name = 'Test Token',
+  ): CardTokenAllowance => ({
+    allowanceState: AllowanceState.Limited,
+    address: address as `0x${string}`,
+    isStaked: false,
+    decimals: 18,
+    name,
+    symbol,
+    allowance: {
+      gt: (other: number) => Number(allowanceAmount) > other,
+      toString: () => allowanceAmount,
+      isZero: () => allowanceAmount === '0',
+    } as unknown as CardTokenAllowance['allowance'],
+    chainId: '0x1',
+  });
+
+  const mockCardTokenAllowances = [
+    createMockAllowance('0xToken1', '1000000', 'TKN1', 'Token 1'),
+    createMockAllowance('0xToken2', '500000', 'TKN2', 'Token 2'),
+    createMockAllowance('0xToken3', '0', 'TKN3', 'Token 3'),
+  ];
 
   const mockCardToken: CardToken = {
     address: '0xToken1',
     decimals: 18,
-    symbol: 'TEST',
-    name: 'Test Token',
+    symbol: 'TKN1',
+    name: 'Token 1',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockConsoleError.mockClear();
     mockGetPriorityToken.mockReset();
-    (Logger.log as jest.Mock).mockClear();
   });
 
   afterAll(() => {
@@ -61,26 +79,19 @@ describe('useGetPriorityCardToken', () => {
 
     expect(result.current.isLoading).toBe(false);
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken).toEqual(mockCardToken);
+    expect(priorityToken).toEqual(mockCardTokenAllowances[0]);
     expect(result.current.isLoading).toBe(false);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
     expect(mockGetPriorityToken).toHaveBeenCalledWith(
       mockAddress,
-      mockNonZeroBalanceTokens,
-    );
-    expect(Logger.log).toHaveBeenCalledWith(
-      `Fetching retrievedPriorityToken for address: ${mockAddress}`,
-    );
-    expect(Logger.log).toHaveBeenCalledWith(
-      'retrievedPriorityToken',
-      mockCardToken,
+      ['0xToken1', '0xToken2'], // Only non-zero allowances
     );
   });
 
@@ -90,17 +101,16 @@ describe('useGetPriorityCardToken', () => {
 
     const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken).toBeNull();
+    expect(priorityToken).toEqual(mockCardTokenAllowances[0]); // Fallback to first allowance
     expect(result.current.isLoading).toBe(false);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
-    expect(Logger.log).toHaveBeenCalledWith('retrievedPriorityToken', null);
   });
 
   it('should handle API errors gracefully', async () => {
@@ -110,22 +120,19 @@ describe('useGetPriorityCardToken', () => {
 
     const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken).toBeUndefined();
+    expect(priorityToken).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
     expect(mockConsoleError).toHaveBeenCalledWith(
       'Error fetching priority token:',
       mockError,
-    );
-    expect(Logger.log).toHaveBeenCalledWith(
-      `Fetching retrievedPriorityToken for address: ${mockAddress}`,
     );
   });
 
@@ -134,17 +141,16 @@ describe('useGetPriorityCardToken', () => {
 
     const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken).toBeUndefined();
+    expect(priorityToken).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
-    expect(Logger.log).not.toHaveBeenCalled();
   });
 
   it('should not fetch when address is not provided', async () => {
@@ -152,26 +158,25 @@ describe('useGetPriorityCardToken', () => {
 
     const { result } = renderHook(() => useGetPriorityCardToken(undefined));
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken).toBeUndefined();
+    expect(priorityToken).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
-    expect(Logger.log).not.toHaveBeenCalled();
   });
 
-  it('should handle empty nonZeroBalanceTokens array', async () => {
+  it('should handle empty allowances array', async () => {
     mockGetPriorityToken.mockResolvedValueOnce(null);
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
 
     const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
 
-    let priorityToken: CardToken | null | undefined;
+    let priorityToken: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken = await result.current.fetchPriorityToken([]);
     });
@@ -183,9 +188,15 @@ describe('useGetPriorityCardToken', () => {
   });
 
   it('should handle multiple consecutive fetch calls', async () => {
+    const mockAllowanceSets = [
+      [createMockAllowance('0xToken1', '1000000', 'TKN1', 'Token 1')],
+      [createMockAllowance('0xToken2', '500000', 'TKN2', 'Token 2')],
+      [createMockAllowance('0xToken3', '0', 'TKN3', 'Token 3')],
+    ];
+
     const mockTokens = [
-      { ...mockCardToken, address: '0xToken1', symbol: 'TEST1' },
-      { ...mockCardToken, address: '0xToken2', symbol: 'TEST2' },
+      { address: '0xToken1', symbol: 'TKN1', name: 'Token 1', decimals: 18 },
+      { address: '0xToken2', symbol: 'TKN2', name: 'Token 2', decimals: 18 },
       null,
     ];
 
@@ -195,27 +206,33 @@ describe('useGetPriorityCardToken', () => {
 
     // First fetch
     mockGetPriorityToken.mockResolvedValueOnce(mockTokens[0]);
-    let priorityToken1: CardToken | null | undefined;
+    let priorityToken1: CardTokenAllowance | null | undefined;
     await act(async () => {
-      priorityToken1 = await result.current.fetchPriorityToken(['0xToken1']);
+      priorityToken1 = await result.current.fetchPriorityToken(
+        mockAllowanceSets[0],
+      );
     });
-    expect(priorityToken1).toEqual(mockTokens[0]);
+    expect(priorityToken1).toEqual(mockAllowanceSets[0][0]);
 
     // Second fetch
     mockGetPriorityToken.mockResolvedValueOnce(mockTokens[1]);
-    let priorityToken2: CardToken | null | undefined;
+    let priorityToken2: CardTokenAllowance | null | undefined;
     await act(async () => {
-      priorityToken2 = await result.current.fetchPriorityToken(['0xToken2']);
+      priorityToken2 = await result.current.fetchPriorityToken(
+        mockAllowanceSets[1],
+      );
     });
-    expect(priorityToken2).toEqual(mockTokens[1]);
+    expect(priorityToken2).toEqual(mockAllowanceSets[1][0]);
 
-    // Third fetch
+    // Third fetch (null response, should return first allowance)
     mockGetPriorityToken.mockResolvedValueOnce(mockTokens[2]);
-    let priorityToken3: CardToken | null | undefined;
+    let priorityToken3: CardTokenAllowance | null | undefined;
     await act(async () => {
-      priorityToken3 = await result.current.fetchPriorityToken(['0xToken3']);
+      priorityToken3 = await result.current.fetchPriorityToken(
+        mockAllowanceSets[2],
+      );
     });
-    expect(priorityToken3).toBeNull();
+    expect(priorityToken3).toEqual(mockAllowanceSets[2][0]);
 
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(3);
     expect(result.current.isLoading).toBe(false);
@@ -236,7 +253,7 @@ describe('useGetPriorityCardToken', () => {
 
     // Start the fetch
     act(() => {
-      result.current.fetchPriorityToken(mockNonZeroBalanceTokens);
+      result.current.fetchPriorityToken(mockCardTokenAllowances);
     });
 
     // Check loading state is true during fetch
@@ -261,14 +278,14 @@ describe('useGetPriorityCardToken', () => {
     );
 
     // Try to fetch with no SDK
-    let priorityToken1: CardToken | null | undefined;
+    let priorityToken1: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken1 = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken1).toBeUndefined();
+    expect(priorityToken1).toBeNull();
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
 
     // SDK becomes available
@@ -276,22 +293,44 @@ describe('useGetPriorityCardToken', () => {
     rerender();
 
     // Now fetch should work
-    let priorityToken2: CardToken | null | undefined;
+    let priorityToken2: CardTokenAllowance | null | undefined;
     await act(async () => {
       priorityToken2 = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
+        mockCardTokenAllowances,
       );
     });
 
-    expect(priorityToken2).toEqual(mockCardToken);
+    expect(priorityToken2).toEqual(mockCardTokenAllowances[0]);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
   });
 
   it('should handle address change and refetch', async () => {
     const address1 = '0x1111111111111111111111111111111111111111';
     const address2 = '0x2222222222222222222222222222222222222222';
-    const mockToken1 = { ...mockCardToken, address: '0xToken1' };
-    const mockToken2 = { ...mockCardToken, address: '0xToken2' };
+    const mockAllowance1 = createMockAllowance(
+      '0xToken1',
+      '1000000',
+      'TKN1',
+      'Token 1',
+    );
+    const mockAllowance2 = createMockAllowance(
+      '0xToken2',
+      '500000',
+      'TKN2',
+      'Token 2',
+    );
+    const mockToken1 = {
+      address: '0xToken1',
+      symbol: 'TKN1',
+      name: 'Token 1',
+      decimals: 18,
+    };
+    const mockToken2 = {
+      address: '0xToken2',
+      symbol: 'TKN2',
+      name: 'Token 2',
+      decimals: 18,
+    };
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
 
@@ -304,36 +343,32 @@ describe('useGetPriorityCardToken', () => {
 
     // First fetch with address1
     mockGetPriorityToken.mockResolvedValueOnce(mockToken1);
-    let priorityToken1: CardToken | null | undefined;
+    let priorityToken1: CardTokenAllowance | null | undefined;
     await act(async () => {
-      priorityToken1 = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
-      );
+      priorityToken1 = await result.current.fetchPriorityToken([
+        mockAllowance1,
+      ]);
     });
 
-    expect(priorityToken1).toEqual(mockToken1);
-    expect(mockGetPriorityToken).toHaveBeenCalledWith(
-      address1,
-      mockNonZeroBalanceTokens,
-    );
+    expect(priorityToken1).toEqual(mockAllowance1);
+    expect(mockGetPriorityToken).toHaveBeenCalledWith(address1, ['0xToken1']);
 
     // Change address
     rerender({ address: address2 });
 
     // Fetch with address2
     mockGetPriorityToken.mockResolvedValueOnce(mockToken2);
-    let priorityToken2: CardToken | null | undefined;
+    let priorityToken2: CardTokenAllowance | null | undefined;
     await act(async () => {
-      priorityToken2 = await result.current.fetchPriorityToken(
-        mockNonZeroBalanceTokens,
-      );
+      priorityToken2 = await result.current.fetchPriorityToken([
+        mockAllowance2,
+      ]);
     });
 
-    expect(priorityToken2).toEqual(mockToken2);
-    expect(mockGetPriorityToken).toHaveBeenLastCalledWith(
-      address2,
-      mockNonZeroBalanceTokens,
-    );
+    expect(priorityToken2).toEqual(mockAllowance2);
+    expect(mockGetPriorityToken).toHaveBeenLastCalledWith(address2, [
+      '0xToken2',
+    ]);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(2);
   });
 
@@ -348,8 +383,30 @@ describe('useGetPriorityCardToken', () => {
       resolvePromise2 = resolve;
     });
 
-    const mockToken1 = { ...mockCardToken, symbol: 'TEST1' };
-    const mockToken2 = { ...mockCardToken, symbol: 'TEST2' };
+    const mockToken1 = {
+      address: '0xToken1',
+      symbol: 'TKN1',
+      name: 'Token 1',
+      decimals: 18,
+    };
+    const mockToken2 = {
+      address: '0xToken2',
+      symbol: 'TKN2',
+      name: 'Token 2',
+      decimals: 18,
+    };
+    const mockAllowance1 = createMockAllowance(
+      '0xToken1',
+      '1000000',
+      'TKN1',
+      'Token 1',
+    );
+    const mockAllowance2 = createMockAllowance(
+      '0xToken2',
+      '500000',
+      'TKN2',
+      'Token 2',
+    );
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
 
@@ -359,15 +416,19 @@ describe('useGetPriorityCardToken', () => {
     mockGetPriorityToken.mockReturnValueOnce(mockPromise1);
     mockGetPriorityToken.mockReturnValueOnce(mockPromise2);
 
-    let priorityToken1: CardToken | null | undefined;
-    let priorityToken2: CardToken | null | undefined;
+    let priorityToken1: CardTokenAllowance | null | undefined;
+    let priorityToken2: CardTokenAllowance | null | undefined;
 
     const fetch1Promise = act(async () => {
-      priorityToken1 = await result.current.fetchPriorityToken(['0xToken1']);
+      priorityToken1 = await result.current.fetchPriorityToken([
+        mockAllowance1,
+      ]);
     });
 
     const fetch2Promise = act(async () => {
-      priorityToken2 = await result.current.fetchPriorityToken(['0xToken2']);
+      priorityToken2 = await result.current.fetchPriorityToken([
+        mockAllowance2,
+      ]);
     });
 
     // Resolve both promises
@@ -378,8 +439,8 @@ describe('useGetPriorityCardToken', () => {
 
     await Promise.all([fetch1Promise, fetch2Promise]);
 
-    expect(priorityToken1).toEqual(mockToken1);
-    expect(priorityToken2).toEqual(mockToken2);
+    expect(priorityToken1).toEqual(mockAllowance1);
+    expect(priorityToken2).toEqual(mockAllowance2);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
   });

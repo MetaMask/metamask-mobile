@@ -6,15 +6,15 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { FlashListAssetKey } from '../../../Tokens/TokenList';
 import { ScrollView } from 'react-native';
 import CardAssetItem from '../CardAssetItem/CardAssetItem';
 import { strings } from '../../../../../../locales/i18n';
+import { CardTokenAllowance } from '../../types';
 
 export interface AssetListBottomSheetProps {
   setOpenAssetListBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
-  balances: FlashListAssetKey[];
+  balances: CardTokenAllowance[];
   privacyMode: boolean;
 }
 

@@ -1110,33 +1110,14 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy account={selectedInternalAccount} />
         </View>
-        {isNotificationsFeatureEnabled() && (
-          <View>
-            {/* Icon */}
-            <ButtonIcon
-              iconColor={IconColor.Default}
-              onPress={handleNotificationOnPress}
-              iconName={IconName.Notification}
-              size={IconSize.Xl}
-              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-              style={styles.notificationButton}
-            />
 
-            {/* Badge Dot */}
-            {isNotificationEnabled && (
-              <View
-                style={[
-                  styles.notificationsBadge,
-                  {
-                    backgroundColor: unreadNotificationCount
-                      ? themeColors.error.default
-                      : themeColors.background.transparent,
-                  },
-                ]}
-              />
-            )}
-          </View>
-        )}
+        <ButtonIcon
+          iconColor={IconColor.Default}
+          onPress={() => navigation.navigate(Routes.CARD.ROOT)}
+          iconName={IconName.Card}
+          size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+        />
 
         <ButtonIcon
           iconColor={IconColor.Default}

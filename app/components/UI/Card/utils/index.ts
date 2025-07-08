@@ -16,12 +16,10 @@ export const mapAllowanceStateToLabel = (state: AllowanceState): string => {
 export const mapCardTokenToAssetKey = (
   token: CardToken,
   chainId: string,
-  tag?: AllowanceState,
 ): FlashListAssetKey & {
   tag?: AllowanceState;
 } => ({
   address: token.address,
   isStaked: false,
   chainId,
-  tag,
 });

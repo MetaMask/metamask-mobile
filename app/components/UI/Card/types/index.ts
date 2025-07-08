@@ -1,3 +1,6 @@
+import { ethers } from 'ethers';
+import { FlashListAssetKey } from '../../Tokens/TokenList';
+
 /**
  * Enum for asset delegation status
  */
@@ -14,3 +17,9 @@ export interface CardToken {
   symbol: string;
   name: string;
 }
+
+export type CardTokenAllowance = {
+  allowanceState: AllowanceState;
+  allowance: ethers.BigNumber;
+} & FlashListAssetKey &
+  CardToken;
