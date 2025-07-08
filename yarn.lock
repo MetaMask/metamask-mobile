@@ -17449,11 +17449,6 @@ decompress-response@^6.0.0:
   dependencies:
     mimic-response "^3.1.0"
 
-dedent@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.6.0.tgz#0e6da8f0ce52838ef5cec5c8f9396b0c1b64a3cb"
-  integrity sha512-cSfRWjXJtZQeRuZGVvDrJroCR5V2UvBNUMHsPCdNYzuAG8b9V8aAy3KUcdQrGQPXs17Y+ojbPh1aOCplg9YR9g==
-
 dedent@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.7.0.tgz#2495ddbaf6eb874abb0e1be9df22d2e5a544326c"
@@ -21824,7 +21819,7 @@ interpret@^3.1.1:
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-3.1.1.tgz#5be0ceed67ca79c6c4bc5cf0d7ee843dcea110c4"
   integrity sha512-6xwYfHbajpoF0xLW+iwLkhwgvLoZDfjYfoFNu8ftMoXINzwuymNLd9u/KmwtdT2GbR+/Cz66otEGEVVUHX9QLQ==
 
-invariant@*, invariant@2.2.4, invariant@^2.2.2, invariant@^2.2.4:
+invariant@*, invariant@2.2.4, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   integrity sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==
@@ -24055,18 +24050,15 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.3.1, loose-envify@^1.4
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lottie-ios@3.4.1:
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-3.4.1.tgz#1c264066d1df04644f970cce4c2f82e27086c660"
-  integrity sha512-oZh9BcCMicLFeKC0KO5cfJ6Pzb+qfB7qZ4vqh5R+buXcCRZKnFhHkt9TZfd62ZJi2XC3kirXYVYyU7c+jqpo9g==
+lottie-ios@4.3.3:
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-4.3.3.tgz#7d03ad201783e84593582631df5f2e1ad02843d7"
+  integrity sha512-MNZHaz0pyTZagIypCbkRfRJBtJemAJsu3Vf/A1k2at2F1ychZFpy9Zj+CO6YkCLtNIs6WeVHaal+Z4r54bWmkQ==
 
-lottie-react-native@5.1.6:
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-5.1.6.tgz#6ae72829c3c0b95952dddd3d78c043f4dfbcb487"
-  integrity sha512-vhdeZstXMfuVKwnddYWjJgQ/1whGL58IJEJu/iSf0XQ5gAb4pp/+vy91mdYQLezlb8Aw4Vu3fKnqErJL2hwchg==
-  dependencies:
-    invariant "^2.2.2"
-    react-native-safe-modules "^1.0.3"
+lottie-react-native@6.5.1:
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-6.5.1.tgz#7986078648d1ff274a704ae3bd979a4c3aa235c6"
+  integrity sha512-pjih71P6qX6Ax5ucUBA+YJO7+fnveI581Bd8LmYeARm3spq3AnoGzEkrWaieM8odnK6WI4d5dwEJsxge/QjFPw==
 
 lower-case@^2.0.2:
   version "2.0.2"
@@ -27642,13 +27634,6 @@ react-native-safe-area-context@^5.4.0:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-5.4.0.tgz#04b51940408c114f75628a12a93569d30c525454"
   integrity sha512-JaEThVyJcLhA+vU0NU8bZ0a1ih6GiF4faZ+ArZLqpYbL6j7R3caRqj+mE3lEtKCuHgwjLg3bCxLL1GPUJZVqUA==
-
-react-native-safe-modules@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/react-native-safe-modules/-/react-native-safe-modules-1.0.3.tgz#f5f29bb9d09d17581193843d4173ad3054f74890"
-  integrity sha512-DUxti4Z+AgJ/ZsO5U7p3uSCUBko8JT8GvFlCeOXk9bMd+4qjpoDvMYpfbixXKgL88M+HwmU/KI1YFN6gsQZyBA==
-  dependencies:
-    dedent "^0.6.0"
 
 react-native-screens@3.37.0:
   version "3.37.0"
