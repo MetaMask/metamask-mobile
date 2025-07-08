@@ -3,9 +3,7 @@ import { View, TextInput, Keyboard } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
@@ -23,6 +21,13 @@ import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -228,16 +233,17 @@ const BasicInfo = (): JSX.Element => {
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row>
-            <StyledButton
-              type="confirm"
-              onPress={handleOnPressContinue}
-              testID="continue-button"
-            >
-              {strings('deposit.basic_info.continue')}
-            </StyledButton>
-          </Row>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection />
+          <Button
+            size={ButtonSize.Lg}
+            onPress={handleOnPressContinue}
+            label={strings('deposit.basic_info.continue')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            testID="continue-button"
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
