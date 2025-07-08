@@ -7,6 +7,10 @@ import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
 import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
 import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
+import PerpsPositionsView from '../Views/PerpsPositionsView';
+import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
+import PerpsOrderHistoryView from '../Views/PerpsOrderHistoryView';
+import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import Routes from '../../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
@@ -66,6 +70,38 @@ const PerpsScreenStack = () => (
       component={PerpsDepositSuccessView}
       options={{
         title: 'Deposit Success',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.POSITIONS}
+      component={PerpsPositionsView}
+      options={{
+        title: 'Positions',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.POSITION_DETAILS}
+      component={PerpsPositionDetailsView}
+      options={{
+        title: 'Position Details',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.ORDER_HISTORY}
+      component={PerpsOrderHistoryView}
+      options={{
+        title: 'Order History',
+        headerShown: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.PERPS.ORDER_DETAILS}
+      component={PerpsOrderDetailsView}
+      options={{
+        title: 'Order Details',
         headerShown: false,
       }}
     />

@@ -1,27 +1,29 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../../component-library/hooks';
-import type { Theme } from '../../../../util/theme/models';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes
 } from '../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariant,
-  TextColor
+  TextColor,
+  TextVariant
 } from '../../../../component-library/components/Texts/Text';
-import ScreenView from '../../../Base/ScreenView';
+import { useStyles } from '../../../../component-library/hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Routes from '../../../../constants/navigation/Routes';
+import type { Theme } from '../../../../util/theme/models';
+import ScreenView from '../../../Base/ScreenView';
 
 // Import PerpsController hooks
 import {
-  usePerpsController,
   usePerpsAccountState,
+  usePerpsController,
   usePerpsNetwork
 } from '../hooks';
+
+// Import navigation types
+import type { PerpsNavigationParamList } from '../types/navigation';
 
 // Import preview market data component
 import PreviewMarketData from '../components/PreviewMarketData';
@@ -33,38 +35,38 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return {
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 32,
-  },
-  headerContainer: {
-    alignItems: 'center' as const,
-    marginBottom: 32,
-  },
-  buttonContainer: {
-    marginBottom: 24,
-  },
-  button: {
-    marginBottom: 16,
-  },
-  resultContainer: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: colors.background.alternative,
-    marginTop: 16,
-  },
-  resultText: {
-    marginTop: 8,
-    lineHeight: 20,
-  },
+    content: {
+      flex: 1,
+      paddingHorizontal: 24,
+      paddingTop: 24,
+      paddingBottom: 32,
+    },
+    headerContainer: {
+      alignItems: 'center' as const,
+      marginBottom: 32,
+    },
+    buttonContainer: {
+      marginBottom: 24,
+    },
+    button: {
+      marginBottom: 16,
+    },
+    resultContainer: {
+      padding: 16,
+      borderRadius: 8,
+      backgroundColor: colors.background.alternative,
+      marginTop: 16,
+    },
+    resultText: {
+      marginTop: 8,
+      lineHeight: 20,
+    },
   };
 };
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
@@ -190,7 +192,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Long BTC"
-            onPress={() => navigation.navigate(Routes.PERPS.ORDER as never, { direction: 'long', asset: 'BTC' })}
+            onPress={() => navigation.navigate('PerpsOrder', { direction: 'long', asset: 'BTC' })}
             style={styles.button}
           />
 
@@ -199,7 +201,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Short BTC"
-            onPress={() => navigation.navigate(Routes.PERPS.ORDER as never, { direction: 'short', asset: 'BTC' })}
+            onPress={() => navigation.navigate('PerpsOrder', { direction: 'short', asset: 'BTC' })}
             style={styles.button}
           />
 
@@ -208,7 +210,25 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Deposit Funds"
-            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT as never)}
+            onPress={() => navigation.navigate('PerpsDeposit')}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="View Positions"
+            onPress={() => navigation.navigate('PerpsPositions')}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Order History"
+            onPress={() => navigation.navigate('PerpsOrderHistory')}
             style={styles.button}
           />
 

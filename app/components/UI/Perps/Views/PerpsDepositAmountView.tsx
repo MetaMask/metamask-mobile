@@ -1,10 +1,9 @@
 import { parseCaipAssetId, parseCaipChainId, type Hex } from '@metamask/utils';
-import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -47,7 +46,7 @@ import PerpsAmountDisplay from '../components/PerpsAmountDisplay';
 import PerpsDepositPreviewModal from '../components/PerpsDepositPreviewModal';
 import PerpsPayWithRow from '../components/PerpsPayWithRow';
 import PerpsTokenSelector, { type PerpsToken } from '../components/PerpsTokenSelector';
-import type { DepositParams } from '../controllers/types';
+import type { DepositParams, PerpsNavigationParamList } from '../controllers/types';
 import {
   usePerpsController,
   usePerpsDepositState,
@@ -131,7 +130,7 @@ const createStyles = (colors: Colors) =>
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Selectors (moved up to avoid use-before-define)
   const chainId = useSelector(selectEvmChainId);
@@ -584,11 +583,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     if (hasResetState && depositStatus === 'success' && currentDepositTxHash && amount !== '0') {
       const isDirectDeposit = depositFlowType === 'direct';
 
-      navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
+      navigation.navigate('PerpsDepositProcessing', {
         amount,
-        selectedToken: selectedToken.symbol,
-        txHash: currentDepositTxHash,
-        isDirectDeposit,
+        fromToken: selectedToken.symbol,
+        transactionHash: currentDepositTxHash,
       });
     }
   }, [hasResetState, depositStatus, currentDepositTxHash, navigation, amount, selectedToken, depositFlowType]);

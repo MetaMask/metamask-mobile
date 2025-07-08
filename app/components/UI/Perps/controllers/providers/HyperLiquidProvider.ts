@@ -1,47 +1,49 @@
-import type {
-  IPerpsProvider,
-  OrderParams as PerpsOrderParams,
-  OrderResult,
-  Position,
-  AccountState,
-  MarketInfo,
-  CancelOrderParams,
-  CancelOrderResult,
-  ClosePositionParams,
-  WithdrawParams,
-  WithdrawResult,
-  ToggleTestnetResult,
-  InitializeResult,
-  ReadyToTradeResult,
-  DisconnectResult,
-  GetPositionsParams,
-  GetAccountStateParams,
-  GetSupportedPathsParams,
-  SubscribePricesParams,
-  SubscribePositionsParams,
-  SubscribeOrderFillsParams,
-  LiveDataConfig,
-  AssetRoute,
-} from '../types';
+import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type { Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { adaptOrderToSDK, adaptPositionFromSDK, adaptAccountStateFromSDK, adaptMarketFromSDK, buildAssetMapping } from '../../utils/hyperLiquidAdapter';
-import {
-  createErrorResult,
-  validateWithdrawalParams,
-  validateAssetSupport,
-  validateBalance,
-  getSupportedPaths,
-  validateOrderParams,
-  validateCoinExists,
-} from '../../utils/hyperLiquidValidation';
 import {
   getBridgeInfo,
   getChainId,
 } from '../../constants/hyperLiquidConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
-import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
+import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+import { adaptAccountStateFromSDK, adaptMarketFromSDK, adaptPositionFromSDK, buildAssetMapping, formatHyperLiquidPrice, formatHyperLiquidSize } from '../../utils/hyperLiquidAdapter';
+import {
+  createErrorResult,
+  getSupportedPaths,
+  validateAssetSupport,
+  validateBalance,
+  validateCoinExists,
+  validateOrderParams,
+  validateWithdrawalParams,
+} from '../../utils/hyperLiquidValidation';
+import type {
+  AccountState,
+  AssetRoute,
+  CancelOrderParams,
+  CancelOrderResult,
+  ClosePositionParams,
+  DisconnectResult,
+  EditOrderParams,
+  GetAccountStateParams,
+  GetPositionsParams,
+  GetSupportedPathsParams,
+  InitializeResult,
+  IPerpsProvider,
+  LiveDataConfig,
+  MarketInfo,
+  OrderResult,
+  OrderParams as PerpsOrderParams,
+  Position,
+  ReadyToTradeResult,
+  SubscribeOrderFillsParams,
+  SubscribePositionsParams,
+  SubscribePricesParams,
+  ToggleTestnetResult,
+  WithdrawParams,
+  WithdrawResult,
+} from '../types';
 
 /**
  * HyperLiquid provider implementation
@@ -144,7 +146,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
 
   /**
-   * Place an order using HyperLiquid SDK
+   * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: PerpsOrderParams): Promise<OrderResult> {
     try {
@@ -158,12 +160,124 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      // Get asset info - use provided current price to avoid extra API call
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta();
+
+      const assetInfo = meta.universe.find(asset => asset.name === params.coin);
+      if (!assetInfo) {
+        throw new Error(`Asset ${params.coin} not found`);
+      }
+
+      // Use provided current price or fetch if not provided
+      let currentPrice: number;
+      if (params.currentPrice && params.currentPrice > 0) {
+        currentPrice = params.currentPrice;
+        DevLogger.log('Using provided current price:', {
+          coin: params.coin,
+          providedPrice: currentPrice,
+          source: 'UI price feed'
+        });
+      } else {
+        DevLogger.log('Fetching current price via API (fallback)');
+        const mids = await infoClient.allMids();
+        currentPrice = parseFloat(mids[params.coin] || '0');
+        if (currentPrice === 0) {
+          throw new Error(`No price available for ${params.coin}`);
+        }
+      }
+
+      // Calculate order parameters using the same logic as debug test
+      let orderPrice: number;
+      let formattedSize: string;
+
+      if (params.orderType === 'market') {
+        // For market orders, calculate position size and add slippage
+        const positionSize = parseFloat(params.size);
+        const slippage = params.slippage ?? 0.01; // Default to 1% slippage if not specified
+        orderPrice = params.isBuy
+          ? currentPrice * (1 + slippage) // Buy above market
+          : currentPrice * (1 - slippage); // Sell below market
+        formattedSize = formatHyperLiquidSize({ size: positionSize, szDecimals: assetInfo.szDecimals });
+      } else {
+        // For limit orders, use provided price and size
+        orderPrice = parseFloat(params.price || '0');
+        formattedSize = formatHyperLiquidSize({ size: parseFloat(params.size), szDecimals: assetInfo.szDecimals });
+      }
+
+      const formattedPrice = formatHyperLiquidPrice({ price: orderPrice, szDecimals: assetInfo.szDecimals });
+      const assetId = this.coinToAssetId.get(params.coin);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${params.coin}`);
+      }
+
+      // Build orders array - main order plus optional TP/SL orders
+      const orders: SDKOrderParams[] = [];
+
+      // 1. Main order (always present)
+      const mainOrder: SDKOrderParams = {
+        a: assetId,
+        b: params.isBuy,
+        p: formattedPrice,
+        s: formattedSize,
+        r: params.reduceOnly || false,
+        t: params.orderType === 'limit' ? { limit: { tif: 'Gtc' } } : { limit: { tif: 'Ioc' } },
+        c: params.clientOrderId ? params.clientOrderId as `0x${string}` : undefined
+      };
+      orders.push(mainOrder);
+
+      // 2. Take Profit order (if specified)
+      if (params.takeProfitPrice) {
+        const tpOrder: SDKOrderParams = {
+          a: assetId,
+          b: !params.isBuy, // Opposite side to close position
+          p: formatHyperLiquidPrice({ price: parseFloat(params.takeProfitPrice), szDecimals: assetInfo.szDecimals }),
+          s: formattedSize, // Same size as main order
+          r: true, // Always reduce-only for TP
+          t: {
+            trigger: {
+              isMarket: false, // Limit order when triggered
+              triggerPx: formatHyperLiquidPrice({ price: parseFloat(params.takeProfitPrice), szDecimals: assetInfo.szDecimals }),
+              tpsl: 'tp'
+            }
+          }
+        };
+        orders.push(tpOrder);
+      }
+
+      // 3. Stop Loss order (if specified)
+      if (params.stopLossPrice) {
+        const slOrder: SDKOrderParams = {
+          a: assetId,
+          b: !params.isBuy, // Opposite side to close position
+          p: formatHyperLiquidPrice({ price: parseFloat(params.stopLossPrice), szDecimals: assetInfo.szDecimals }),
+          s: formattedSize, // Same size as main order
+          r: true, // Always reduce-only for SL
+          t: {
+            trigger: {
+              isMarket: true, // Market order when triggered for faster execution
+              triggerPx: formatHyperLiquidPrice({ price: parseFloat(params.stopLossPrice), szDecimals: assetInfo.szDecimals }),
+              tpsl: 'sl'
+            }
+          }
+        };
+        orders.push(slOrder);
+      }
+
+      // 4. Determine grouping - use explicit override or smart defaults
+      const grouping = params.grouping ||
+        ((params.takeProfitPrice || params.stopLossPrice) ? 'normalTpsl' : 'na');
+
+      // 5. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
-      const sdkOrderParams = adaptOrderToSDK(params, this.coinToAssetId);
       const result = await exchangeClient.order({
-        orders: [sdkOrderParams],
-        grouping: 'na'
+        orders,
+        grouping
       });
+
+      if (result.status !== 'ok') {
+        throw new Error(`Order failed: ${JSON.stringify(result)}`);
+      }
 
       const status = result.response?.data?.statuses?.[0];
       const restingOrder = status && 'resting' in status ? status.resting : null;
@@ -177,6 +291,84 @@ export class HyperLiquidProvider implements IPerpsProvider {
       };
     } catch (error) {
       DevLogger.log('Order placement failed:', error);
+      return createErrorResult(error, { success: false });
+    }
+  }
+
+  /**
+   * Edit an existing order
+   */
+  async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    try {
+      DevLogger.log('Editing order:', params);
+
+      await this.ensureReady();
+
+      // Get asset info for proper formatting
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta();
+      const mids = await infoClient.allMids(); // Default to perps data (same as subscription service)
+
+      const assetInfo = meta.universe.find(asset => asset.name === params.newOrder.coin);
+      if (!assetInfo) {
+        throw new Error(`Asset ${params.newOrder.coin} not found`);
+      }
+
+      const currentPrice = parseFloat(mids[params.newOrder.coin] || '0');
+      if (currentPrice === 0) {
+        throw new Error(`No price available for ${params.newOrder.coin}`);
+      }
+
+      // Calculate order parameters using the same logic as placeOrder
+      let orderPrice: number;
+      let formattedSize: string;
+
+      if (params.newOrder.orderType === 'market') {
+        const positionSize = parseFloat(params.newOrder.size);
+        const slippage = params.newOrder.slippage ?? 0.01; // Default to 1% slippage if not specified
+        orderPrice = params.newOrder.isBuy
+          ? currentPrice * (1 + slippage)
+          : currentPrice * (1 - slippage);
+        formattedSize = formatHyperLiquidSize({ size: positionSize, szDecimals: assetInfo.szDecimals });
+      } else {
+        orderPrice = parseFloat(params.newOrder.price || '0');
+        formattedSize = formatHyperLiquidSize({ size: parseFloat(params.newOrder.size), szDecimals: assetInfo.szDecimals });
+      }
+
+      const formattedPrice = formatHyperLiquidPrice({ price: orderPrice, szDecimals: assetInfo.szDecimals });
+      const assetId = this.coinToAssetId.get(params.newOrder.coin);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${params.newOrder.coin}`);
+      }
+
+      // Build new order parameters
+      const newOrder: SDKOrderParams = {
+        a: assetId,
+        b: params.newOrder.isBuy,
+        p: formattedPrice,
+        s: formattedSize,
+        r: params.newOrder.reduceOnly || false,
+        t: params.newOrder.orderType === 'limit' ? { limit: { tif: 'Gtc' } } : { limit: { tif: 'Ioc' } },
+        c: params.newOrder.clientOrderId ? params.newOrder.clientOrderId as `0x${string}` : undefined
+      };
+
+      // Submit modification via SDK
+      const exchangeClient = this.clientService.getExchangeClient();
+      const result = await exchangeClient.modify({
+        oid: typeof params.orderId === 'string' ? params.orderId as `0x${string}` : params.orderId,
+        order: newOrder
+      });
+
+      if (result.status !== 'ok') {
+        throw new Error(`Order modification failed: ${JSON.stringify(result)}`);
+      }
+
+      return {
+        success: true,
+        orderId: params.orderId.toString(),
+      };
+    } catch (error) {
+      DevLogger.log('Order modification failed:', error);
       return createErrorResult(error, { success: false });
     }
   }

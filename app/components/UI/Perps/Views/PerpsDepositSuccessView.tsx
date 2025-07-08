@@ -1,4 +1,5 @@
-import { useNavigation, useRoute, type NavigationProp, type ParamListBase } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp } from '@react-navigation/native';
+import type { PerpsNavigationParamList } from '../controllers/types';
 import React, { useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -16,7 +17,6 @@ import Text, {
   TextColor,
   TextVariant
 } from '../../../../component-library/components/Texts/Text';
-import Routes from '../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
@@ -102,7 +102,7 @@ const createStyles = (colors: Colors) =>
 const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute();
   // No PerpsController needed - balance refresh handled by PerpsView
 
@@ -121,7 +121,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
     });
 
     // Navigate back to main Perps view - it will auto-refresh HyperLiquid balance
-    navigation.navigate(Routes.PERPS.ROOT);
+    navigation.navigate('Perps');
   }, [navigation, amount, selectedToken, txHash]);
 
   const handleViewTransaction = useCallback(() => {
