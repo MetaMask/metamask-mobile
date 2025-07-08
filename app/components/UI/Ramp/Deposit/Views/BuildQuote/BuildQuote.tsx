@@ -126,7 +126,7 @@ const BuildQuote = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.build_quote.title') },
+        { title: strings('deposit.buildQuote.title') },
         theme,
       ),
     );
