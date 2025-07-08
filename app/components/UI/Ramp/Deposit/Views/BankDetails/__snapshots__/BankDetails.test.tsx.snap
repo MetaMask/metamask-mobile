@@ -167,9 +167,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -497,9 +496,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 18,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -512,9 +510,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -527,9 +524,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -561,9 +557,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -590,9 +585,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -634,9 +628,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -663,9 +656,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -707,9 +699,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -736,9 +727,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -783,9 +773,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -832,48 +821,81 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                               }
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   {
-                                    "alignItems": "flex-start",
                                     "backgroundColor": "#f3f5f9",
                                     "borderRadius": 8,
-                                    "flexDirection": "row",
-                                    "gap": 12,
-                                    "paddingHorizontal": 16,
+                                    "marginVertical": 8,
+                                    "padding": 16,
                                     "paddingVertical": 8,
                                   }
                                 }
                               >
-                                <SvgMock
-                                  color="#686e7d"
-                                  fill="currentColor"
-                                  height={24}
-                                  name="SecurityKey"
+                                <View
                                   style={
                                     {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  width={24}
-                                />
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "flex": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "alignItems": "flex-start",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  You should see 'John Doe' as the account holder. This helps your bank process the transfer.
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="SecurityKey"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 8,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 12,
+                                          "letterSpacing": 0.25,
+                                          "lineHeight": 20,
+                                        }
+                                      }
+                                    >
+                                      You should see 'John Doe' as the account holder. This helps your bank process the transfer.
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -911,9 +933,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -949,9 +970,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1145,9 +1165,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1475,9 +1494,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 18,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1490,9 +1508,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1505,9 +1522,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1539,9 +1555,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1568,9 +1583,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -1612,9 +1626,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1641,9 +1654,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -1685,9 +1697,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1714,9 +1725,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -1758,9 +1768,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1787,9 +1796,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -1831,9 +1839,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1860,9 +1867,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                             "color": "#686e7d",
                                             "flex": 1,
                                             "flexWrap": "wrap",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "right",
@@ -1907,9 +1913,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       style={
                                         {
                                           "color": "#4459ff",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1956,48 +1961,81 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                               }
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   {
-                                    "alignItems": "flex-start",
                                     "backgroundColor": "#f3f5f9",
                                     "borderRadius": 8,
-                                    "flexDirection": "row",
-                                    "gap": 12,
-                                    "paddingHorizontal": 16,
+                                    "marginVertical": 8,
+                                    "padding": 16,
                                     "paddingVertical": 8,
                                   }
                                 }
                               >
-                                <SvgMock
-                                  color="#686e7d"
-                                  fill="currentColor"
-                                  height={24}
-                                  name="SecurityKey"
+                                <View
                                   style={
                                     {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  width={24}
-                                />
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "flex": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "alignItems": "flex-start",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  You should see 'John Doe' as the account holder. This helps your bank process the transfer.
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="SecurityKey"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 8,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 12,
+                                          "letterSpacing": 0.25,
+                                          "lineHeight": 20,
+                                        }
+                                      }
+                                    >
+                                      You should see 'John Doe' as the account holder. This helps your bank process the transfer.
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -2035,9 +2073,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2073,9 +2110,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
