@@ -1181,6 +1181,7 @@ export class Engine {
           .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
+      traceFn: trace as TraceCallback,
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1219,6 +1220,7 @@ export class Engine {
         this.userOperationController?.addUserOperationFromTransaction?.(
           ...args,
         ),
+      traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
