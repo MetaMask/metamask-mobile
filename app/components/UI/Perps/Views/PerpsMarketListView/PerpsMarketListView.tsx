@@ -122,6 +122,53 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
     </View>
   );
 
+  const renderMarketList = () => {
+    if (filteredMarkets.length === 0 && isLoading) {
+      return renderSkeletonList();
+    }
+
+    if (error && filteredMarkets.length === 0) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Error}
+            style={styles.errorText}
+          >
+            {strings('perps.failed_to_load_market_data')}
+          </Text>
+          <TouchableOpacity onPress={handleRefresh}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+              {strings('perps.tap_to_retry')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        {renderListHeader()}
+        <Animated.View
+          style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
+        >
+          <FlashList
+            style={styles.animatedListContainer}
+            data={filteredMarkets}
+            renderItem={({ item }) => (
+              <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
+            )}
+            keyExtractor={(item) => item.symbol}
+            contentContainerStyle={styles.flashListContent}
+            estimatedItemSize={80}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+        </Animated.View>
+      </>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
@@ -139,7 +186,6 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
             <Icon name={IconName.Close} size={IconSize.Md} />
           </TouchableOpacity>
         </View>
-
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
@@ -167,57 +213,7 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
             )}
           </View>
         </View>
-
-        {/* Market List */}
-        <View style={styles.listContainer}>
-          {filteredMarkets.length === 0 && isLoading ? (
-            renderSkeletonList()
-          ) : error && filteredMarkets.length === 0 ? (
-            <View style={styles.errorContainer}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Error}
-                style={styles.errorText}
-              >
-                {strings('perps.failed_to_load_market_data')}
-              </Text>
-              <TouchableOpacity onPress={handleRefresh}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Primary}
-                >
-                  {strings('perps.tap_to_retry')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <>
-              {renderListHeader()}
-              <Animated.View
-                style={[
-                  styles.animatedListContainer,
-                  { opacity: fadeAnimation },
-                ]}
-              >
-                <FlashList
-                  style={styles.animatedListContainer}
-                  data={filteredMarkets}
-                  renderItem={({ item }) => (
-                    <PerpsMarketRowItem
-                      market={item}
-                      onPress={handleMarketPress}
-                    />
-                  )}
-                  keyExtractor={(item) => item.symbol}
-                  contentContainerStyle={styles.flashListContent}
-                  estimatedItemSize={80}
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                />
-              </Animated.View>
-            </>
-          )}
-        </View>
+        <View style={styles.listContainer}>{renderMarketList()}</View>
       </View>
     </SafeAreaView>
   );
