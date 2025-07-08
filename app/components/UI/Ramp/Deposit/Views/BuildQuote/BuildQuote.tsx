@@ -124,7 +124,11 @@ const BuildQuote = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.build_quote.title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 

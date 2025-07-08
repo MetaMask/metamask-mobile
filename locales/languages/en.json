@@ -499,7 +499,8 @@
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "kycFormsFetchError": "Failed to fetch KYC forms.",
+      "title": "Deposit"
     },
     "token_modal": {
       "select_a_token": "Select a Token",
