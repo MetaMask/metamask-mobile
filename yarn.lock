@@ -5699,10 +5699,10 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@20.0.0-preview-988fbb56":
-  version "20.0.0-preview-988fbb56"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-20.0.0-preview-988fbb56.tgz#cdfbdbedc2fd73f9ffa4c3d3fca52427c84f6bc9"
-  integrity sha512-vmyGKSQohHz7ikDaw6OeDgjKflzfBrRQQzbvDJW2i2CLhTV15rP+MlJ18p00F1uajHz/0AQ2WRyR2+A8JSGivg==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@20.0.0-preview-92a09963":
+  version "20.0.0-preview-92a09963"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-20.0.0-preview-92a09963.tgz#b0bed6b8a4ca2e1b21c493dac4973af742a7b6ab"
+  integrity sha512-BvaP93zpp3VbAqOEokmHfmp2fNmXET3Nz+oSn1PD1RRck7lBxY6GnGlsnm5R7AVduANgpCyrInhGm09XEoNJvg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^9.0.0"
