@@ -36,6 +36,7 @@ import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
 import CandlestickChartComponent from '../components/CandlestickChart';
+import PerpsPositionCard from '../components/PerpsPositionCard';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 
 interface PositionDetailsRouteParams {
@@ -589,17 +590,23 @@ const PerpsPositionDetailsView: React.FC = () => {
               </Text>
             </View>
           </View>
-
-          <View style={styles.pnlContainer}>
-            <CandlestickChartComponent
-              candleData={candleData}
-              isLoading={isLoadingHistory}
-              height={350}
-              selectedInterval={selectedInterval}
-              onIntervalChange={handleIntervalChange}
-            />
-          </View>
         </View>
+        <View style={styles.pnlContainer}>
+          <CandlestickChartComponent
+            candleData={candleData}
+            isLoading={isLoadingHistory}
+            height={350}
+            selectedInterval={selectedInterval}
+            onIntervalChange={handleIntervalChange}
+          />
+        </View>
+
+        {/* Position Card */}
+        <PerpsPositionCard
+          position={position}
+          onClose={handleClosePosition}
+          onEdit={handleEditTPSL}
+        />
 
         {/* Position Details Grid */}
         <View style={styles.detailsGrid}>
