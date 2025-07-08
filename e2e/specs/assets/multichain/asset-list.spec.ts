@@ -46,7 +46,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(eth);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
-    await WalletView.scrollDownOnTokensTab();
+    await WalletView.scrollToToken(BNB_NAME);
     const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(bnb);
   });
@@ -68,7 +68,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.scrollDownOnTokensTab();
+    await WalletView.scrollToToken('BNB');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
@@ -87,6 +87,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    await WalletView.scrollToToken('AVAX', 'up');
     const avax = WalletView.tokenInWallet('AVAX');
     await Assertions.checkIfVisible(avax);
     await WalletView.tapOnToken('AVAX');
