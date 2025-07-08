@@ -16,8 +16,8 @@ import {
   NOTIFICATION_WALLET_ACCOUNT_1,
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from '../notifications/utils/constants';
-import { mockNotificationServices } from '../notifications/utils/mocks';
+} from './utils/constants';
+import { mockNotificationServices } from './utils/mocks';
 
 const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
   newInstance: true,
