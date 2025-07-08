@@ -2,7 +2,7 @@ import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
@@ -16,10 +16,10 @@ const PASSWORD = '123123123';
 
 export const goToImportSrp = async () => {
   await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapImportSrp();
-  await Assertions.checkIfVisible(ImportSrpView.container);
+  await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
 
 export const inputSrp = async (mnemonic: string) => {
@@ -45,7 +45,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
     PASSWORD,
   );
   await RevealSecretRecoveryPhrase.tapToReveal();
-  await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
+  await Assertions.expectElementToBeVisible(RevealSecretRecoveryPhrase.container);
   await Assertions.checkIfTextIsDisplayed(
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );
@@ -55,7 +55,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 
 export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
   await AccountActionsBottomSheet.tapShowSRP();
 };
