@@ -34,9 +34,6 @@ interface TokenListProps {
   goToAddToken: () => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
-
-  // Card props, align with teams if this can live here
-  showAddToken?: boolean;
 }
 
 const TokenListComponent = ({
@@ -48,7 +45,6 @@ const TokenListComponent = ({
   goToAddToken,
   showPercentageChange = true,
   setShowScamWarningModal,
-  showAddToken = true,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -117,12 +113,10 @@ const TokenListComponent = ({
         return `${item.address}-${item.chainId}-${staked}`;
       }}
       ListFooterComponent={
-        showAddToken ? (
-          <TokenListFooter
-            goToAddToken={goToAddToken}
-            isAddTokenEnabled={isAddTokenEnabled}
-          />
-        ) : null
+        <TokenListFooter
+          goToAddToken={goToAddToken}
+          isAddTokenEnabled={isAddTokenEnabled}
+        />
       }
       refreshControl={
         <RefreshControl
