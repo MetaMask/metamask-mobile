@@ -121,8 +121,16 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
       const url = getDecodedProxiedURL(request.url);
       return url.includes(String(response.url));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: response.response,
-    }));
+    .thenCallback((request) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+          request.url,
+        )}`,
+      );
+      return {
+        statusCode: 200,
+        json: response.response,
+      };
+    });
 }
