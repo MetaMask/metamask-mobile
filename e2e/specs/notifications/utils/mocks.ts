@@ -121,6 +121,7 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
       const url = getDecodedProxiedURL(request.url);
       return url.includes(String(response.url));
     })
+    .asPriority(999)
     .thenCallback((request) => {
       // eslint-disable-next-line no-console
       console.log(

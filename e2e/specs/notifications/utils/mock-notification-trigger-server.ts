@@ -64,6 +64,7 @@ export class MockttpNotificationTriggerServer {
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(GET_CONFIG_URL),
       )
+      .asPriority(999)
       .thenCallback((request) => {
         // eslint-disable-next-line no-console
         console.log(
@@ -79,6 +80,7 @@ export class MockttpNotificationTriggerServer {
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(UPDATE_CONFIG_URL),
       )
+      .asPriority(999)
       .thenCallback((request) => {
         // eslint-disable-next-line no-console
         console.log(
