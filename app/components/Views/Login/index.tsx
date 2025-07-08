@@ -301,12 +301,20 @@ const Login: React.FC = () => {
     setDisabledInput(true);
     for (let i = remainingTime; i > 0; i--) {
       if (!isMountedRef.current) {
+        setError(null);
+        setDisabledInput(false);
         return; // Exit early if component unmounted
       }
-      setError(strings('login.too_many_attempts', { remainingTime: i }));
+
+      setError(
+        strings('login.too_many_attempts', {
+          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+        }),
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     if (isMountedRef.current) {
+      setError(null);
       setDisabledInput(false);
     }
   };

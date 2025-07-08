@@ -515,7 +515,7 @@ describe('Login', () => {
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 1 seconds.',
+        'Too many attempts. Please try again in 0m:1s',
       );
     });
 

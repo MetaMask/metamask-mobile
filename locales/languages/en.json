@@ -315,7 +315,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     
-    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}} seconds.",
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use another method",
@@ -520,10 +520,10 @@
     },
     "unsupported_region_modal": {
       "title": "Region not supported",
-      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
-      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
-      "select_different_region": "Select a different region",
-      "exit_to_wallet_home": "Exit to wallet home"
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
       "title": "Top up your wallet with USDC",
@@ -586,6 +586,10 @@
       "city": "City",
       "postal_code": "Postal/Zip Code",
       "country": "Country"
+    },
+    "privacy_section":{
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
       "title": "Verifying your identity",
@@ -4452,10 +4456,10 @@
   },
   "account_status": {
     "account_already_exists": "Account already exists",
-    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "account_already_exists_description": "A wallet using {{accountName}} already exists. Do you want to try logging in instead?",
     "log_in": "Log in",
     "account_not_found": "Account not found",
-    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "account_not_found_description": "We couldn’t find a wallet for {{accountName}}. Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method"
   },
