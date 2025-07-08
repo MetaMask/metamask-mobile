@@ -17,77 +17,7 @@ module.exports = {
   overrides: [
     {
       files: ['e2e/**/*.{js,ts}'],
-      rules: {
-        // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
-        'no-console': 'off',
-        'no-restricted-syntax': [
-          'warn',
-          {
-            selector: "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message: 'Avoid TestHelpers.delay(). Use proper waiting (from `e2e/framework/index.ts`) with Assertions.expectVisible() or similar framework methods instead.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfVisible']",
-            message: 'Deprecated: "checkIfVisible" is deprecated. Use "expectVisible" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfTextIsDisplayed']",
-            message: 'Deprecated: "checkIfTextIsDisplayed" is deprecated. Use "expectTextDisplayed" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='tapAndLongPress']",
-            message: 'Deprecated: "tapAndLongPress" is deprecated. Use "longPress" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='clearField']",
-            message: 'Deprecated: "clearField" is deprecated. Use "typeText" with clearFirst option (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-        ],
-      },
-    },
-    {
-      files: ['e2e/specs/**/*.{js,ts}'],
-      rules: {
-        'no-restricted-syntax': [
-          'warn',
-          {
-            selector: "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message: 'Avoid TestHelpers.delay(). Use proper waiting (from `e2e/framework/index.ts`) with Assertions.expectVisible() or similar framework methods instead.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfVisible']",
-            message: 'Deprecated: "checkIfVisible" is deprecated. Use "expectVisible" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Assertions'][callee.property.name='checkIfTextIsDisplayed']",
-            message: 'Deprecated: "checkIfTextIsDisplayed" is deprecated. Use "expectTextDisplayed" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='tapAndLongPress']",
-            message: 'Deprecated: "tapAndLongPress" is deprecated. Use "longPress" (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='Gestures'][callee.property.name='clearField']",
-            message: 'Deprecated: "clearField" is deprecated. Use "typeText" with clearFirst option (from `e2e/framework/index.ts`) instead for better error handling and retry mechanisms.',
-          },
-          {
-            selector: "CallExpression[callee.name='element']",
-            message: 'Avoid direct element() calls in test specs. Use Page Object methods or Matchers utility instead to follow POM patterns.',
-          },
-          {
-            selector: "CallExpression[callee.object.name='by'][callee.property.name=/^(id|text|label|type|accessibilityLabel)$/]",
-            message: 'Avoid direct by.* selectors in test specs. Move element selectors to Page Objects or selector files to follow POM patterns.',
-          },
-          {
-            selector: "CallExpression[callee.name='waitFor']",
-            message: 'Avoid direct waitFor() calls in test specs. Use Assertions utility methods (expectVisible, expectTextDisplayed) for better error handling.',
-          },
-          {
-            selector: "CallExpression[callee.object.callee.name='waitFor'][callee.property.name=/^(toBeVisible|toExist|toHaveText|withTimeout)$/]",
-            message: 'Avoid direct waitFor() chains in test specs. Use Assertions utility methods (expectVisible, expectTextDisplayed) for better error handling.',
-          },
-        ],
-      },
+      extends: ['./e2e/framework/.eslintrc.js'],
     },
     {
       files: ['*.{ts,tsx}'],
