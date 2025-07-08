@@ -230,10 +230,7 @@ const Login: React.FC = () => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
-    if (!passwordRequirementsMet(password)) {
-      setError(strings('login.invalid_password'));
-      return;
-    }
+    // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
@@ -429,18 +426,7 @@ const Login: React.FC = () => {
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
-        try {
-          await handleVaultCorruption();
-        } catch (vaultCorruptionErr: unknown) {
-          const vaultCorruptionError = vaultCorruptionErr as Error;
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(
-            vaultCorruptionError,
-            'Failed to handle vault corruption',
-          );
-          setLoading(false);
-          setError(strings('login.clean_vault_error'));
-        }
+        await handleVaultCorruption();
       } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
