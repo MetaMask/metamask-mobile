@@ -1,10 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
 
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import {
   createNavigationDetails,
   useParams,
@@ -17,6 +24,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
+
 interface WebviewModalParams {
   sourceUrl: string;
   handleNavigationStateChange?: (navState: { url: string }) => void;
@@ -27,6 +35,12 @@ export const createWebviewModalNavigationDetails = createNavigationDetails(
   Routes.DEPOSIT.MODALS.WEBVIEW,
 );
 
+const styles = StyleSheet.create({
+  headerWithoutPadding: {
+    paddingVertical: 0,
+  },
+});
+
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { sourceUrl, handleNavigationStateChange } =
@@ -36,13 +50,25 @@ function WebviewModal() {
 
   const screenHeight = Dimensions.get('window').height;
   const customSheetStyle = {
-    height: screenHeight * 0.93,
+    height: screenHeight * 0.92,
   };
+
+  const customCloseButton = (
+    <TouchableOpacity>
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Lg}
+        iconColor={IconColor.Alternative}
+        onPress={() => sheetRef.current?.onCloseBottomSheet()}
+      />
+    </TouchableOpacity>
+  );
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack style={customSheetStyle}>
       <BottomSheetHeader
-        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        endAccessory={customCloseButton}
+        style={styles.headerWithoutPadding}
       />
 
       <ScreenLayout>
