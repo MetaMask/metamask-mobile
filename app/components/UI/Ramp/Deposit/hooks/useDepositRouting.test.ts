@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
@@ -62,9 +63,12 @@ jest.mock('./useDepositSdkMethod', () => ({
   }),
 }));
 
+const mockClearAuthToken = jest.fn();
+
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
     selectedRegion: { isoCode: 'US' },
+    clearAuthToken: mockClearAuthToken,
   })),
 }));
 
@@ -435,6 +439,38 @@ describe('useDepositRouting', () => {
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('User details fetch failed');
+    });
+  });
+
+  describe('401 Unauthorized handling', () => {
+    it('navigates to Login when user is unauthorized', async () => {
+      const mockQuote = {} as BuyQuote;
+
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+      mockFetchKycForms = jest.fn().mockImplementation(() => {
+        const error = new Error('Unauthorized');
+        (error as AxiosError).status = 401;
+        throw error;
+      });
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+      await result.current.routeAfterAuthentication(mockQuote);
+      expect(mockClearAuthToken).toHaveBeenCalled();
+      expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            "EnterEmail",
+            {
+              "cryptoCurrencyChainId": "eip155:1",
+              "paymentMethodId": "credit_debit_card",
+              "quote": {},
+            },
+          ],
+        ]
+      `);
     });
   });
 });
