@@ -1231,6 +1231,9 @@ workflows:
 
   pr_check_build_cache:
     steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: {}
       - script@1:
           title: Generate cache keys and check both iOS and Android builds
           inputs:
