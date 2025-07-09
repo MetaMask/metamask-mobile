@@ -4347,13 +4347,13 @@
         "payToken": "Pay with any token, any time",
         "payTokenDescription": "Use the tokens you already have to cover network fees.",
         "reject": "No",
-        "requestFor": "Request for",
         "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?",
-        "upgradeBannerDescription": "Same address. Smarter features.",
-        "upgradeBannerTitle": "Switch to smart account"
+        "splashTitle": "Use smart account?"
       },
-      "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",
