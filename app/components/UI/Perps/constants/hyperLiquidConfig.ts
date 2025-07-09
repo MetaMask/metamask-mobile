@@ -25,10 +25,10 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
 
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
-  'USDC': {
+  USDC: {
     mainnet: `${ARBITRUM_MAINNET_CAIP_CHAIN_ID}/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default`,
-    testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`
-  }
+    testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`,
+  },
 };
 
 // HyperLiquid bridge contract addresses for direct USDC deposits
@@ -36,12 +36,12 @@ export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
 export const HYPERLIQUID_BRIDGE_CONTRACTS: HyperLiquidBridgeContracts = {
   mainnet: {
     chainId: ARBITRUM_MAINNET_CAIP_CHAIN_ID,
-    contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7'
+    contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
   },
   testnet: {
     chainId: ARBITRUM_TESTNET_CAIP_CHAIN_ID,
-    contractAddress: '0x08cfc1B6b2dCF36A1480b99353A354AA8AC56f89'
-  }
+    contractAddress: '0x08cfc1B6b2dCF36A1480b99353A354AA8AC56f89',
+  },
 };
 
 // SDK transport configuration
@@ -50,16 +50,16 @@ export const HYPERLIQUID_TRANSPORT_CONFIG: HyperLiquidTransportConfig = {
   keepAlive: { interval: 30_000 },
   reconnect: {
     maxRetries: 5,
-    connectionTimeout: 10_000
-  }
+    connectionTimeout: 10_000,
+  },
 };
 
 // Trading configuration constants
 export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   leverage: 3, // 3x default leverage
   marginPercent: 10, // 10% fixed margin default
-  takeProfitPercent: 0.30, // 30% take profit
-  stopLossPercent: 0.10, // 10% stop loss
+  takeProfitPercent: 0.3, // 30% take profit
+  stopLossPercent: 0.1, // 10% stop loss
   slippage: 0.05, // 5% max slippage protection
   amount: {
     mainnet: 5, // $5 minimum order size
@@ -85,7 +85,9 @@ export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
 
 // Configuration helpers
 export function getWebSocketEndpoint(isTestnet: boolean): string {
-  return isTestnet ? HYPERLIQUID_ENDPOINTS.testnet : HYPERLIQUID_ENDPOINTS.mainnet;
+  return isTestnet
+    ? HYPERLIQUID_ENDPOINTS.testnet
+    : HYPERLIQUID_ENDPOINTS.mainnet;
 }
 
 export function getChainId(isTestnet: boolean): string {
@@ -104,5 +106,7 @@ export function getBridgeInfo(isTestnet: boolean): BridgeContractConfig {
 
 export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
   const network = isTestnet ? 'testnet' : 'mainnet';
-  return Object.values(HYPERLIQUID_ASSET_CONFIGS).map(config => config[network]);
+  return Object.values(HYPERLIQUID_ASSET_CONFIGS).map(
+    (config) => config[network],
+  );
 }

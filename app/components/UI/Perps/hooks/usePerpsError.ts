@@ -4,16 +4,20 @@ import type { RootState } from '../../../../reducers';
 
 const selectPerpsError = createSelector(
   (state: RootState) => state.engine.backgroundState.PerpsController?.lastError,
-  (state: RootState) => state.engine.backgroundState.PerpsController?.lastUpdateTimestamp,
-  (lastError, lastUpdateTimestamp): {
+  (state: RootState) =>
+    state.engine.backgroundState.PerpsController?.lastUpdateTimestamp,
+  (
+    lastError,
+    lastUpdateTimestamp,
+  ): {
     error: string | null;
     timestamp: number;
     hasError: boolean;
   } => ({
     error: lastError || null,
     timestamp: lastUpdateTimestamp || 0,
-    hasError: Boolean(lastError)
-  })
+    hasError: Boolean(lastError),
+  }),
 );
 
 /**

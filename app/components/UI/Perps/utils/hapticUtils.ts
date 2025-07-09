@@ -1,4 +1,10 @@
-import { impactAsync, ImpactFeedbackStyle, selectionAsync, notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  impactAsync,
+  ImpactFeedbackStyle,
+  selectionAsync,
+  notificationAsync,
+  NotificationFeedbackType,
+} from 'expo-haptics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
@@ -128,9 +134,11 @@ export class DebouncedHaptic {
 /**
  * Create a debounced haptic feedback handler for leverage changes (every 1%)
  */
-export const createLeverageHapticHandler = (): DebouncedHaptic => new DebouncedHaptic(1, triggerLeverageHaptic);
+export const createLeverageHapticHandler = (): DebouncedHaptic =>
+  new DebouncedHaptic(1, triggerLeverageHaptic);
 
 /**
  * Create a debounced haptic feedback handler for margin changes (every 5%)
  */
-export const createMarginHapticHandler = (): DebouncedHaptic => new DebouncedHaptic(5, triggerMarginHaptic);
+export const createMarginHapticHandler = (): DebouncedHaptic =>
+  new DebouncedHaptic(5, triggerMarginHaptic);

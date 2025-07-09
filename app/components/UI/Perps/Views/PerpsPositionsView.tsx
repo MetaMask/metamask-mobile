@@ -1,9 +1,25 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, RefreshControl, View } from 'react-native';
-import { useNavigation, useFocusEffect, type NavigationProp, type ParamListBase } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  View,
+} from 'react-native';
+import {
+  useNavigation,
+  useFocusEffect,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import { usePerpsAccount, usePerpsTrading } from '../hooks';
@@ -161,33 +177,40 @@ const PerpsPositionsView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Load positions data
-  const loadPositions = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
+  const loadPositions = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setIsRefreshing(true);
+        } else {
+          setIsLoading(true);
+        }
+        setError(null);
+
+        // Get positions from controller
+        const positionsData = await getPositions();
+        setPositions(positionsData || []);
+
+        DevLogger.log('PerpsPositionsView: Loaded positions', {
+          count: positionsData?.length || 0,
+          positions: positionsData?.map((p) => ({
+            coin: p.coin,
+            size: p.size,
+            pnl: p.unrealizedPnl,
+          })),
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to load positions';
+        setError(errorMessage);
+        DevLogger.log('PerpsPositionsView: Error loading positions', err);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-      setError(null);
-
-      // Get positions from controller
-      const positionsData = await getPositions();
-      setPositions(positionsData || []);
-
-      DevLogger.log('PerpsPositionsView: Loaded positions', {
-        count: positionsData?.length || 0,
-        positions: positionsData?.map(p => ({ coin: p.coin, size: p.size, pnl: p.unrealizedPnl }))
-      });
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load positions';
-      setError(errorMessage);
-      DevLogger.log('PerpsPositionsView: Error loading positions', err);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [getPositions]);
+    },
+    [getPositions],
+  );
 
   // Load positions on mount
   useEffect(() => {
@@ -199,7 +222,7 @@ const PerpsPositionsView: React.FC = () => {
     useCallback(() => {
       // Refresh positions data when returning to this screen
       loadPositions(true); // Use refresh mode to avoid showing loading spinner
-    }, [loadPositions])
+    }, [loadPositions]),
   );
 
   // Calculate total unrealized PnL using utility function
@@ -311,10 +334,14 @@ const PerpsPositionsView: React.FC = () => {
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Unrealized P&L</Text>
-            <Text style={[
-              styles.totalPnlValue,
-              totalUnrealizedPnl >= 0 ? styles.positivePnl : styles.negativePnl
-            ]}>
+            <Text
+              style={[
+                styles.totalPnlValue,
+                totalUnrealizedPnl >= 0
+                  ? styles.positivePnl
+                  : styles.negativePnl,
+              ]}
+            >
               {formatPnl(totalUnrealizedPnl)}
             </Text>
           </View>

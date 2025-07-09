@@ -9,12 +9,15 @@ export function usePerpsOrderFills(maxFills: number = 100): OrderFill[] {
   const { subscribeToOrderFills } = usePerpsTrading();
   const [orderFills, setOrderFills] = useState<OrderFill[]>([]);
 
-  const memoizedCallback = useCallback((fills: OrderFill[]) => {
-    setOrderFills(prev => {
-      const updated = [...prev, ...fills];
-      return updated.slice(-maxFills);
-    });
-  }, [maxFills]);
+  const memoizedCallback = useCallback(
+    (fills: OrderFill[]) => {
+      setOrderFills((prev) => {
+        const updated = [...prev, ...fills];
+        return updated.slice(-maxFills);
+      });
+    },
+    [maxFills],
+  );
 
   useEffect(() => {
     const unsubscribe = subscribeToOrderFills({

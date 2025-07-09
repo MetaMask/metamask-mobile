@@ -1,5 +1,8 @@
 import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
-import { BaseController, type RestrictedMessenger } from '@metamask/base-controller';
+import {
+  BaseController,
+  type RestrictedMessenger,
+} from '@metamask/base-controller';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
@@ -43,7 +46,7 @@ import type {
 export type PerpsControllerState = {
   // Active provider
   activeProvider: string;
-  isTestnet: boolean;     // Dev toggle for testnet
+  isTestnet: boolean; // Dev toggle for testnet
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Account data (persisted) - using HyperLiquid property names
@@ -124,46 +127,59 @@ export interface PerpsControllerEvents {
 /**
  * PerpsController actions
  */
-export type PerpsControllerActions = {
-  type: 'PerpsController:getState';
-  handler: () => PerpsControllerState;
-} | {
-  type: 'PerpsController:placeOrder';
-  handler: PerpsController['placeOrder'];
-} | {
-  type: 'PerpsController:editOrder';
-  handler: PerpsController['editOrder'];
-} | {
-  type: 'PerpsController:cancelOrder';
-  handler: PerpsController['cancelOrder'];
-} | {
-  type: 'PerpsController:closePosition';
-  handler: PerpsController['closePosition'];
-} | {
-  type: 'PerpsController:deposit';
-  handler: PerpsController['deposit'];
-} | {
-  type: 'PerpsController:submitDirectDepositTransaction';
-  handler: PerpsController['submitDirectDepositTransaction'];
-} | {
-  type: 'PerpsController:withdraw';
-  handler: PerpsController['withdraw'];
-} | {
-  type: 'PerpsController:getPositions';
-  handler: PerpsController['getPositions'];
-} | {
-  type: 'PerpsController:getAccountState';
-  handler: PerpsController['getAccountState'];
-} | {
-  type: 'PerpsController:getMarkets';
-  handler: PerpsController['getMarkets'];
-} | {
-  type: 'PerpsController:toggleTestnet';
-  handler: PerpsController['toggleTestnet'];
-} | {
-  type: 'PerpsController:disconnect';
-  handler: PerpsController['disconnect'];
-};
+export type PerpsControllerActions =
+  | {
+      type: 'PerpsController:getState';
+      handler: () => PerpsControllerState;
+    }
+  | {
+      type: 'PerpsController:placeOrder';
+      handler: PerpsController['placeOrder'];
+    }
+  | {
+      type: 'PerpsController:editOrder';
+      handler: PerpsController['editOrder'];
+    }
+  | {
+      type: 'PerpsController:cancelOrder';
+      handler: PerpsController['cancelOrder'];
+    }
+  | {
+      type: 'PerpsController:closePosition';
+      handler: PerpsController['closePosition'];
+    }
+  | {
+      type: 'PerpsController:deposit';
+      handler: PerpsController['deposit'];
+    }
+  | {
+      type: 'PerpsController:submitDirectDepositTransaction';
+      handler: PerpsController['submitDirectDepositTransaction'];
+    }
+  | {
+      type: 'PerpsController:withdraw';
+      handler: PerpsController['withdraw'];
+    }
+  | {
+      type: 'PerpsController:getPositions';
+      handler: PerpsController['getPositions'];
+    }
+  | {
+      type: 'PerpsController:getAccountState';
+      handler: PerpsController['getAccountState'];
+    }
+  | {
+      type: 'PerpsController:getMarkets';
+      handler: PerpsController['getMarkets'];
+    }
+  | {
+      type: 'PerpsController:toggleTestnet';
+      handler: PerpsController['toggleTestnet'];
+    }
+  | {
+      type: 'PerpsController:disconnect';
+      handler: PerpsController['disconnect'];
+    };
 
 /**
  * External actions the PerpsController can call
@@ -224,10 +240,10 @@ export class PerpsController extends BaseController<
     });
 
     this.providers = new Map();
-    this.initializeProviders().catch(error => {
+    this.initializeProviders().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
   }
@@ -257,7 +273,7 @@ export class PerpsController extends BaseController<
     DevLogger.log('PerpsController: Initializing providers', {
       currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Disconnect existing providers to close WebSocket connections
@@ -265,14 +281,17 @@ export class PerpsController extends BaseController<
     if (existingProviders.length > 0) {
       DevLogger.log('PerpsController: Disconnecting existing providers', {
         count: existingProviders.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      await Promise.all(existingProviders.map(provider => provider.disconnect()));
+      await Promise.all(
+        existingProviders.map((provider) => provider.disconnect()),
+      );
     }
     this.providers.clear();
-    this.providers.set('hyperliquid', new HyperLiquidProvider(
-      { isTestnet: this.state.isTestnet }
-    ));
+    this.providers.set(
+      'hyperliquid',
+      new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
+    );
 
     // Future providers can be added here with their own authentication patterns:
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
@@ -283,7 +302,7 @@ export class PerpsController extends BaseController<
     DevLogger.log('PerpsController: Providers initialized successfully', {
       providerCount: this.providers.size,
       activeProvider: this.state.activeProvider,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -293,7 +312,7 @@ export class PerpsController extends BaseController<
   getActiveProvider(): IPerpsProvider {
     if (!this.isInitialized) {
       const error = 'PerpsController not initialized. Call initialize() first.';
-      this.update(state => {
+      this.update((state) => {
         state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
       });
@@ -303,7 +322,7 @@ export class PerpsController extends BaseController<
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
       const error = `Provider ${this.state.activeProvider} not found`;
-      this.update(state => {
+      this.update((state) => {
         state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
       });
@@ -320,7 +339,7 @@ export class PerpsController extends BaseController<
     const provider = this.getActiveProvider();
 
     // Optimistic update
-    this.update(state => {
+    this.update((state) => {
       state.pendingOrders.push(params);
     });
 
@@ -328,14 +347,14 @@ export class PerpsController extends BaseController<
 
     // Update state only on success
     if (result.success) {
-      this.update(state => {
-        state.pendingOrders = state.pendingOrders.filter(o => o !== params);
+      this.update((state) => {
+        state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
         state.lastUpdateTimestamp = Date.now();
       });
     } else {
       // Remove from pending orders even on failure since the attempt is complete
-      this.update(state => {
-        state.pendingOrders = state.pendingOrders.filter(o => o !== params);
+      this.update((state) => {
+        state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
       });
     }
 
@@ -350,7 +369,7 @@ export class PerpsController extends BaseController<
     const result = await provider.editOrder(params);
 
     if (result.success) {
-      this.update(state => {
+      this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
     }
@@ -366,7 +385,7 @@ export class PerpsController extends BaseController<
     const result = await provider.cancelOrder(params);
 
     if (result.success) {
-      this.update(state => {
+      this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
     }
@@ -382,7 +401,7 @@ export class PerpsController extends BaseController<
     const result = await provider.closePosition(params);
 
     if (result.success) {
-      this.update(state => {
+      this.update((state) => {
         state.lastUpdateTimestamp = Date.now();
       });
     }
@@ -403,9 +422,9 @@ export class PerpsController extends BaseController<
     status: DepositStatus,
     step: number,
     txHash?: string,
-    error?: string
+    error?: string,
   ): void {
-    this.update(state => {
+    this.update((state) => {
       state.depositStatus = status;
       state.depositSteps.currentStep = step;
 
@@ -448,15 +467,20 @@ export class PerpsController extends BaseController<
 
     // Get the HyperLiquid bridge info (chain + contract address)
     const provider = this.getActiveProvider();
-    const depositRoutes = provider.getDepositRoutes({ assetId: params.assetId });
+    const depositRoutes = provider.getDepositRoutes({
+      assetId: params.assetId,
+    });
 
     if (depositRoutes.length === 0) {
-      throw new Error(`No deposit routes available for asset ${params.assetId}`);
+      throw new Error(
+        `No deposit routes available for asset ${params.assetId}`,
+      );
     }
 
     // Use the first route (HyperLiquid currently has only one route per asset)
     const route = depositRoutes[0];
-    const { chainId: bridgeChainId, contractAddress: bridgeContractAddress } = route;
+    const { chainId: bridgeChainId, contractAddress: bridgeContractAddress } =
+      route;
 
     if (!bridgeContractAddress) {
       throw new Error('Unable to get HyperLiquid bridge contract address');
@@ -482,7 +506,7 @@ export class PerpsController extends BaseController<
   async deposit(params: DepositParams): Promise<DepositResult> {
     try {
       // Step 1: Reset state and validate parameters
-      this.update(state => {
+      this.update((state) => {
         state.depositStatus = 'preparing';
         state.depositError = null;
         state.requiresModalDismissal = false;
@@ -509,7 +533,7 @@ export class PerpsController extends BaseController<
       // Step 2: Analyze deposit route
       const route = this.analyzeDepositRoute(params);
 
-      this.update(state => {
+      this.update((state) => {
         state.depositFlowType = route.type;
         state.depositSteps = {
           totalSteps: route.stepNames.length,
@@ -533,12 +557,21 @@ export class PerpsController extends BaseController<
 
       // Step 3: Check if asset is supported
       const provider = this.getActiveProvider();
-      const supportedRoutes = provider.getDepositRoutes({ assetId: params.assetId });
-      const isAssetSupported = supportedRoutes.some(supportedRoute => supportedRoute.assetId.toLowerCase() === params.assetId.toLowerCase());
+      const supportedRoutes = provider.getDepositRoutes({
+        assetId: params.assetId,
+      });
+      const isAssetSupported = supportedRoutes.some(
+        (supportedRoute) =>
+          supportedRoute.assetId.toLowerCase() === params.assetId.toLowerCase(),
+      );
 
       if (!isAssetSupported) {
-        const supportedAssets = supportedRoutes.map(supportedRoute => supportedRoute.assetId);
-        const error = `Asset ${params.assetId} not supported for deposits. Supported: ${supportedAssets.join(', ')}`;
+        const supportedAssets = supportedRoutes.map(
+          (supportedRoute) => supportedRoute.assetId,
+        );
+        const error = `Asset ${
+          params.assetId
+        } not supported for deposits. Supported: ${supportedAssets.join(', ')}`;
         this.updateDepositProgress('error', 0, undefined, error);
         return { success: false, error };
       }
@@ -546,7 +579,11 @@ export class PerpsController extends BaseController<
       // Step 4: Execute deposit based on flow type
       switch (route.type) {
         case 'direct':
-          return this.executeDirectDepositFlow(params, route, selectedAccount.address as Hex);
+          return this.executeDirectDepositFlow(
+            params,
+            route,
+            selectedAccount.address as Hex,
+          );
 
         case 'swap':
         case 'bridge':
@@ -563,7 +600,8 @@ export class PerpsController extends BaseController<
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown deposit error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown deposit error';
       this.updateDepositProgress('error', 0, undefined, errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -575,7 +613,7 @@ export class PerpsController extends BaseController<
   private async executeDirectDepositFlow(
     params: DepositParams,
     route: ReturnType<typeof this.analyzeDepositRoute>,
-    accountAddress: Hex
+    accountAddress: Hex,
   ): Promise<DepositResult> {
     try {
       DevLogger.log('🎯 PerpsController: Starting direct deposit flow', {
@@ -584,7 +622,7 @@ export class PerpsController extends BaseController<
         bridgeChainId: route.bridgeChainId,
         bridgeContractAddress: route.bridgeContractAddress,
         userAddress: accountAddress,
-        transferFlow: `User → USDC Transfer → Bridge(${route.bridgeContractAddress}) → HyperLiquid Account Credit`
+        transferFlow: `User → USDC Transfer → Bridge(${route.bridgeContractAddress}) → HyperLiquid Account Credit`,
       });
 
       // Step 1: Prepare transaction
@@ -595,30 +633,43 @@ export class PerpsController extends BaseController<
         fromChainId: route.assetChainId,
         recipient: route.bridgeContractAddress,
         accountAddress,
-        tokenAddress: route.parsedAsset.assetReference as Hex
+        tokenAddress: route.parsedAsset.assetReference as Hex,
       });
 
       if (!directDepositResult.success) {
-        this.updateDepositProgress('error', 1, undefined, directDepositResult.error);
+        this.updateDepositProgress(
+          'error',
+          1,
+          undefined,
+          directDepositResult.error,
+        );
         return directDepositResult;
       }
 
       // Step 2: Submit transaction if modal dismissal is required
       if (directDepositResult.success) {
-        DevLogger.log('PerpsController: Direct deposit completed successfully', {
-          txHash: directDepositResult.txHash
-        });
+        DevLogger.log(
+          'PerpsController: Direct deposit completed successfully',
+          {
+            txHash: directDepositResult.txHash,
+          },
+        );
 
         this.updateDepositProgress('success', 1, directDepositResult.txHash);
         return directDepositResult;
       }
 
       // For failed deposits
-      this.updateDepositProgress('error', 1, undefined, directDepositResult.error);
+      this.updateDepositProgress(
+        'error',
+        1,
+        undefined,
+        directDepositResult.error,
+      );
       return directDepositResult;
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Direct deposit flow failed';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Direct deposit flow failed';
       this.updateDepositProgress('error', 1, undefined, errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -642,7 +693,7 @@ export class PerpsController extends BaseController<
       const positions = await provider.getPositions(params);
 
       // Only update state if the provider call succeeded
-      this.update(state => {
+      this.update((state) => {
         state.positions = positions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
@@ -650,10 +701,11 @@ export class PerpsController extends BaseController<
 
       return positions;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to get positions';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to get positions';
 
       // Update error state but don't modify positions (keep existing data)
-      this.update(state => {
+      this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
@@ -672,8 +724,11 @@ export class PerpsController extends BaseController<
       const accountState = await provider.getAccountState(params);
 
       // Only update state if the provider call succeeded
-      DevLogger.log('PerpsController: Updating Redux store with accountState:', accountState);
-      this.update(state => {
+      DevLogger.log(
+        'PerpsController: Updating Redux store with accountState:',
+        accountState,
+      );
+      this.update((state) => {
         state.accountState = accountState;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
@@ -682,10 +737,11 @@ export class PerpsController extends BaseController<
 
       return accountState;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to get account state';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to get account state';
 
       // Update error state but don't modify accountState (keep existing data)
-      this.update(state => {
+      this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
@@ -704,26 +760,27 @@ export class PerpsController extends BaseController<
       const allMarkets = await provider.getMarkets();
 
       // Clear any previous errors on successful call
-      this.update(state => {
+      this.update((state) => {
         state.lastError = null;
         state.lastUpdateTimestamp = Date.now();
       });
 
       // Filter by symbols if provided
       if (params?.symbols && params.symbols.length > 0) {
-        return allMarkets.filter(market =>
-          params.symbols?.some(symbol =>
-            market.name.toLowerCase() === symbol.toLowerCase()
-          )
+        return allMarkets.filter((market) =>
+          params.symbols?.some(
+            (symbol) => market.name.toLowerCase() === symbol.toLowerCase(),
+          ),
         );
       }
 
       return allMarkets;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to get markets';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to get markets';
 
       // Update error state
-      this.update(state => {
+      this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
       });
@@ -756,7 +813,7 @@ export class PerpsController extends BaseController<
     try {
       const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
-      this.update(state => {
+      this.update((state) => {
         state.isTestnet = !state.isTestnet;
         state.connectionStatus = 'disconnected';
       });
@@ -766,7 +823,7 @@ export class PerpsController extends BaseController<
       DevLogger.log('PerpsController: Network toggle initiated', {
         from: previousNetwork,
         to: newNetwork,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Reset initialization state and reinitialize provider with new testnet setting
@@ -777,7 +834,7 @@ export class PerpsController extends BaseController<
       DevLogger.log('PerpsController: Network toggle completed', {
         newNetwork,
         isTestnet: this.state.isTestnet,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       return { success: true, isTestnet: this.state.isTestnet };
@@ -785,7 +842,7 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -798,11 +855,11 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         providerId: this.state.activeProvider,
-        error: `Provider ${providerId} not available`
+        error: `Provider ${providerId} not available`,
       };
     }
 
-    this.update(state => {
+    this.update((state) => {
       state.activeProvider = providerId;
       state.connectionStatus = 'disconnected';
     });
@@ -830,15 +887,20 @@ export class PerpsController extends BaseController<
     tokenAddress: Hex;
   }): Promise<DepositResult> {
     try {
-      DevLogger.log('🚀 PerpsController: PREPARING DIRECT DEPOSIT TRANSACTION', {
-        amount: params.amount,
-        tokenAddress: params.tokenAddress,
-        fromUser: params.accountAddress,
-        toBridge: params.recipient,
-        criticalFix: 'Sending to HyperLiquid bridge contract (NOT user address)',
-        transferSummary: `${params.accountAddress} → ${params.recipient} (${params.amount} USDC)`,
-        modalFlow: 'Will return transaction params for UI to handle modal dismissal + confirmation'
-      });
+      DevLogger.log(
+        '🚀 PerpsController: PREPARING DIRECT DEPOSIT TRANSACTION',
+        {
+          amount: params.amount,
+          tokenAddress: params.tokenAddress,
+          fromUser: params.accountAddress,
+          toBridge: params.recipient,
+          criticalFix:
+            'Sending to HyperLiquid bridge contract (NOT user address)',
+          transferSummary: `${params.accountAddress} → ${params.recipient} (${params.amount} USDC)`,
+          modalFlow:
+            'Will return transaction params for UI to handle modal dismissal + confirmation',
+        },
+      );
 
       // Use the already parsed token address from CAIP utilities
       const tokenAddress = params.tokenAddress;
@@ -846,7 +908,9 @@ export class PerpsController extends BaseController<
       // Convert amount to token's smallest units (e.g., 6 USDC -> 6,000,000 units for 6 decimals)
       // Extract decimals from asset - for USDC it's 6 decimals
       const decimals = 6; // USDC has 6 decimals
-      const amountInUnits = (parseFloat(params.amount) * Math.pow(10, decimals)).toString();
+      const amountInUnits = (
+        parseFloat(params.amount) * Math.pow(10, decimals)
+      ).toString();
 
       // Convert to hex for generateTransferData (it expects hex string)
       const amountInHex = `0x${parseInt(amountInUnits, 10).toString(16)}`;
@@ -856,7 +920,7 @@ export class PerpsController extends BaseController<
         decimals,
         amountInUnits,
         amountInHex,
-        calculation: `${params.amount} * 10^${decimals} = ${amountInUnits} = ${amountInHex}`
+        calculation: `${params.amount} * 10^${decimals} = ${amountInUnits} = ${amountInHex}`,
       });
 
       // Generate ERC20 transfer data
@@ -875,41 +939,54 @@ export class PerpsController extends BaseController<
         data: transferData,
       };
 
-      DevLogger.log('✅ PerpsController: TRANSACTION PREPARED - READY FOR UI MODAL FLOW', {
-        transaction,
-        amount: params.amount,
-        tokenAddress,
-        bridgeContract: params.recipient,
-        userAddress: params.accountAddress,
-        flowSteps: [
-          '1. UI dismisses deposit modal',
-          '2. UI calls submitDirectDepositTransaction()',
-          '3. TransactionController shows confirmation UI',
-          '4. User confirms/rejects',
-          '5. UI navigates to success/error screen'
-        ]
-      });
+      DevLogger.log(
+        '✅ PerpsController: TRANSACTION PREPARED - READY FOR UI MODAL FLOW',
+        {
+          transaction,
+          amount: params.amount,
+          tokenAddress,
+          bridgeContract: params.recipient,
+          userAddress: params.accountAddress,
+          flowSteps: [
+            '1. UI dismisses deposit modal',
+            '2. UI calls submitDirectDepositTransaction()',
+            '3. TransactionController shows confirmation UI',
+            '4. User confirms/rejects',
+            '5. UI navigates to success/error screen',
+          ],
+        },
+      );
 
       // TODO: ⚠️ Flagging: We'll need to keep an eye out for breaking changes regarding the global network selector (GNS) removal initiative. Assuming it's still happening, we won't be able to rely on a single user-selected "active" network and instead will need to rely on contextual data.
       // Submit the transaction directly via TransactionController
       const { NetworkController } = Engine.context;
-      const selectedNetworkClientId = NetworkController.state.selectedNetworkClientId;
+      const selectedNetworkClientId =
+        NetworkController.state.selectedNetworkClientId;
 
-      DevLogger.log('🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION', {
-        transaction,
-        selectedNetworkClientId,
-        timestamp: new Date().toISOString()
-      });
+      DevLogger.log(
+        '🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION',
+        {
+          transaction,
+          selectedNetworkClientId,
+          timestamp: new Date().toISOString(),
+        },
+      );
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(transaction, selectedNetworkClientId);
+      const result = await this.submitTransactionDirectly(
+        transaction,
+        selectedNetworkClientId,
+      );
       const txHash = result.txHash;
 
-      DevLogger.log('✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED', {
-        txHash,
-        transaction,
-        success: true,
-      });
+      DevLogger.log(
+        '✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED',
+        {
+          txHash,
+          transaction,
+          success: true,
+        },
+      );
 
       return {
         success: true,
@@ -918,7 +995,10 @@ export class PerpsController extends BaseController<
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Direct deposit preparation failed'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Direct deposit preparation failed',
       };
     }
   }
@@ -927,30 +1007,42 @@ export class PerpsController extends BaseController<
    * Submit the prepared transaction after modal dismissal
    * This method is called by the UI after dismissing the deposit modal
    */
-  async submitDirectDepositTransaction(transaction: TransactionParams): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  async submitDirectDepositTransaction(
+    transaction: TransactionParams,
+  ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
-      DevLogger.log('🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION', {
-        transaction,
-        modalStatus: 'Should be dismissed by UI before this call',
-        timestamp: new Date().toISOString()
-      });
+      DevLogger.log(
+        '🎯 PerpsController: SUBMITTING DIRECT DEPOSIT TRANSACTION',
+        {
+          transaction,
+          modalStatus: 'Should be dismissed by UI before this call',
+          timestamp: new Date().toISOString(),
+        },
+      );
 
       // Submit via TransactionController using Engine.context
       const { NetworkController } = Engine.context;
 
       // Get current network client ID from state
-      const selectedNetworkClientId = NetworkController.state.selectedNetworkClientId;
+      const selectedNetworkClientId =
+        NetworkController.state.selectedNetworkClientId;
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(transaction, selectedNetworkClientId);
+      const result = await this.submitTransactionDirectly(
+        transaction,
+        selectedNetworkClientId,
+      );
       const txHash = result.txHash;
 
-      DevLogger.log('✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED', {
-        txHash,
-        transaction,
-        success: true,
-        nextSteps: 'HyperLiquid will detect deposit and credit user account'
-      });
+      DevLogger.log(
+        '✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED',
+        {
+          txHash,
+          transaction,
+          success: true,
+          nextSteps: 'HyperLiquid will detect deposit and credit user account',
+        },
+      );
 
       return {
         success: true,
@@ -960,12 +1052,15 @@ export class PerpsController extends BaseController<
       DevLogger.log('❌ PerpsController: DIRECT DEPOSIT TRANSACTION FAILED', {
         error: error instanceof Error ? error.message : 'Unknown error',
         transaction,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Direct deposit transaction failed'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Direct deposit transaction failed',
       };
     }
   }
@@ -1009,8 +1104,10 @@ export class PerpsController extends BaseController<
    * Call this when starting a new deposit to clear previous state
    */
   resetDepositState(): void {
-    DevLogger.log('PerpsController: Resetting deposit state for new deposit flow');
-    this.update(state => {
+    DevLogger.log(
+      'PerpsController: Resetting deposit state for new deposit flow',
+    );
+    this.update((state) => {
       state.depositStatus = 'idle';
       state.depositFlowType = null;
       state.depositSteps = {
@@ -1030,9 +1127,12 @@ export class PerpsController extends BaseController<
    * Call this when navigating away from Perps screens to prevent battery drain
    */
   async disconnect(): Promise<void> {
-    DevLogger.log('PerpsController: Disconnecting provider to cleanup subscriptions', {
-      timestamp: new Date().toISOString()
-    });
+    DevLogger.log(
+      'PerpsController: Disconnecting provider to cleanup subscriptions',
+      {
+        timestamp: new Date().toISOString(),
+      },
+    );
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
@@ -1043,7 +1143,7 @@ export class PerpsController extends BaseController<
    */
   private async submitTransactionDirectly(
     transaction: TransactionParams,
-    networkClientId: string
+    networkClientId: string,
   ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
       const { TransactionController } = Engine.context;
@@ -1063,7 +1163,10 @@ export class PerpsController extends BaseController<
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Transaction submission failed'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Transaction submission failed',
       };
     }
   }

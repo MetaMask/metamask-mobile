@@ -20,15 +20,22 @@ interface PerpsLeverageButtonsProps {
  * Generate smart leverage options showing selected leverage and adjacent values
  * Always shows the selected leverage plus one value before and after when possible
  */
-const generateSmartLeverageOptions = (selectedLeverage: number, maxLeverage: number): number[] => {
-  const allOptions = [1, 2, 3, 5, 10, 20, 50].filter(option => option <= maxLeverage);
+const generateSmartLeverageOptions = (
+  selectedLeverage: number,
+  maxLeverage: number,
+): number[] => {
+  const allOptions = [1, 2, 3, 5, 10, 20, 50].filter(
+    (option) => option <= maxLeverage,
+  );
 
   // If custom leverage options are provided, use them as-is
   const selectedIndex = allOptions.indexOf(selectedLeverage);
 
   if (selectedIndex === -1) {
     // Selected leverage is not in standard options, show it with closest neighbors
-    const customOptions = [...allOptions, selectedLeverage].sort((a, b) => a - b);
+    const customOptions = [...allOptions, selectedLeverage].sort(
+      (a, b) => a - b,
+    );
     const customIndex = customOptions.indexOf(selectedLeverage);
     const start = Math.max(0, customIndex - 1);
     const end = Math.min(customOptions.length, customIndex + 2);
@@ -51,7 +58,9 @@ const PerpsLeverageButtons: React.FC<PerpsLeverageButtonsProps> = ({
   const styles = createStyles(colors);
 
   // Use provided options or generate smart options based on selected leverage
-  const options = leverageOptions || generateSmartLeverageOptions(selectedLeverage, maxLeverage);
+  const options =
+    leverageOptions ||
+    generateSmartLeverageOptions(selectedLeverage, maxLeverage);
 
   const handleLeverageSelect = async (leverage: number) => {
     // Trigger haptic feedback for button selection
@@ -64,7 +73,11 @@ const PerpsLeverageButtons: React.FC<PerpsLeverageButtonsProps> = ({
       {options.map((leverage) => (
         <Button
           key={leverage}
-          variant={selectedLeverage === leverage ? ButtonVariants.Primary : ButtonVariants.Secondary}
+          variant={
+            selectedLeverage === leverage
+              ? ButtonVariants.Primary
+              : ButtonVariants.Secondary
+          }
           size={ButtonSize.Sm}
           label={`${leverage}x`}
           onPress={() => handleLeverageSelect(leverage)}

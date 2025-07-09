@@ -1,10 +1,31 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View, Alert, TextInput } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type ParamListBase, type RouteProp } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  Alert,
+  TextInput,
+} from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import Button, { ButtonVariants, ButtonSize } from '../../../../component-library/components/Buttons/Button';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import { usePerpsTrading } from '../hooks';
@@ -194,7 +215,8 @@ const PerpsOrderDetailsView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
-  const route = useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
 
   const { order, action } = route.params || {};
   const { cancelOrder } = usePerpsTrading();
@@ -229,12 +251,11 @@ const PerpsOrderDetailsView: React.FC = () => {
         textStyle: styles.failedText,
       };
     }
-      return {
-        status: 'pending',
-        badgeStyle: styles.pendingBadge,
-        textStyle: styles.pendingText,
-      };
-
+    return {
+      status: 'pending',
+      badgeStyle: styles.pendingBadge,
+      textStyle: styles.pendingText,
+    };
   }, [order, styles]);
 
   const orderStatus = getOrderStatus();
@@ -280,7 +301,10 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     Alert.alert(
       'Cancel Order',
-      `Are you sure you want to cancel this order?\n\nOrder ID: ${order.orderId.slice(0, 8)}...\n\nThis action cannot be undone.`,
+      `Are you sure you want to cancel this order?\n\nOrder ID: ${order.orderId.slice(
+        0,
+        8,
+      )}...\n\nThis action cannot be undone.`,
       [
         {
           text: 'Keep Order',
@@ -306,7 +330,10 @@ const PerpsOrderDetailsView: React.FC = () => {
               const result = await cancelOrder(cancelParams);
 
               if (result.success) {
-                DevLogger.log('PerpsOrderDetails: Order cancelled successfully', result);
+                DevLogger.log(
+                  'PerpsOrderDetails: Order cancelled successfully',
+                  result,
+                );
                 await triggerSuccessHaptic();
 
                 Alert.alert(
@@ -317,13 +344,14 @@ const PerpsOrderDetailsView: React.FC = () => {
                       text: 'OK',
                       onPress: () => navigation.goBack(),
                     },
-                  ]
+                  ],
                 );
               } else {
                 throw new Error(result.error || 'Failed to cancel order');
               }
             } catch (err) {
-              const errorMessage = err instanceof Error ? err.message : 'Failed to cancel order';
+              const errorMessage =
+                err instanceof Error ? err.message : 'Failed to cancel order';
               setError(errorMessage);
               DevLogger.log('PerpsOrderDetails: Error canceling order', err);
               await triggerErrorHaptic();
@@ -332,7 +360,7 @@ const PerpsOrderDetailsView: React.FC = () => {
             }
           },
         },
-      ]
+      ],
     );
   }, [order, cancelOrder, navigation]);
 
@@ -363,7 +391,8 @@ const PerpsOrderDetailsView: React.FC = () => {
       setError('Order editing is not yet implemented');
       setIsEditing(false);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to edit order';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to edit order';
       setError(errorMessage);
       DevLogger.log('PerpsOrderDetails: Error editing order', err);
       await triggerErrorHaptic();
@@ -377,14 +406,25 @@ const PerpsOrderDetailsView: React.FC = () => {
   };
 
   // Order details data
-  const orderDetails = useMemo(() => [
-    { label: 'Order ID', value: order.orderId ? `#${order.orderId.slice(0, 8)}...` : 'N/A' },
-    { label: 'Status', value: orderStatus.status.charAt(0).toUpperCase() + orderStatus.status.slice(1) },
-    { label: 'Filled Size', value: formatSize(order.filledSize) },
-    { label: 'Average Price', value: formatCurrency(order.averagePrice) },
-    { label: 'Success', value: order.success ? 'Yes' : 'No' },
-    { label: 'Error', value: order.error || 'None' },
-  ], [order, orderStatus, formatSize, formatCurrency]);
+  const orderDetails = useMemo(
+    () => [
+      {
+        label: 'Order ID',
+        value: order.orderId ? `#${order.orderId.slice(0, 8)}...` : 'N/A',
+      },
+      {
+        label: 'Status',
+        value:
+          orderStatus.status.charAt(0).toUpperCase() +
+          orderStatus.status.slice(1),
+      },
+      { label: 'Filled Size', value: formatSize(order.filledSize) },
+      { label: 'Average Price', value: formatCurrency(order.averagePrice) },
+      { label: 'Success', value: order.success ? 'Yes' : 'No' },
+      { label: 'Error', value: order.error || 'None' },
+    ],
+    [order, orderStatus, formatSize, formatCurrency],
+  );
 
   if (!order) {
     return (
@@ -452,7 +492,8 @@ const PerpsOrderDetailsView: React.FC = () => {
                 <View style={styles.editSection}>
                   <View style={styles.warningContainer}>
                     <Text style={styles.warningText}>
-                      ⚠️ Editing will cancel the current order and place a new one with the updated parameters.
+                      ⚠️ Editing will cancel the current order and place a new
+                      one with the updated parameters.
                     </Text>
                   </View>
 

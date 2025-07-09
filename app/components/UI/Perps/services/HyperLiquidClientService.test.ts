@@ -13,7 +13,7 @@ const mockExchangeClient = { initialized: true };
 const mockInfoClient = { initialized: true };
 const mockSubscriptionClient = {
   initialized: true,
-  [Symbol.asyncDispose]: jest.fn().mockResolvedValue(undefined)
+  [Symbol.asyncDispose]: jest.fn().mockResolvedValue(undefined),
 };
 const mockTransport = { url: 'ws://mock' };
 
@@ -27,7 +27,9 @@ jest.mock('@deeeed/hyperliquid-node20', () => ({
 // Mock configuration
 jest.mock('../constants/hyperLiquidConfig', () => ({
   getWebSocketEndpoint: jest.fn((isTestnet: boolean) =>
-    isTestnet ? 'wss://api.hyperliquid-testnet.xyz/ws' : 'wss://api.hyperliquid.xyz/ws'
+    isTestnet
+      ? 'wss://api.hyperliquid-testnet.xyz/ws'
+      : 'wss://api.hyperliquid.xyz/ws',
   ),
   HYPERLIQUID_TRANSPORT_CONFIG: {
     reconnectAttempts: 5,
@@ -83,8 +85,12 @@ describe('HyperLiquidClientService', () => {
 
       expect(service.isInitialized()).toBe(true);
 
-      const { ExchangeClient, InfoClient, SubscriptionClient, WebSocketTransport } =
-        require('@deeeed/hyperliquid-node20');
+      const {
+        ExchangeClient,
+        InfoClient,
+        SubscriptionClient,
+        WebSocketTransport,
+      } = require('@deeeed/hyperliquid-node20');
 
       expect(WebSocketTransport).toHaveBeenCalledWith({
         url: 'wss://api.hyperliquid.xyz/ws',
@@ -97,7 +103,9 @@ describe('HyperLiquidClientService', () => {
         isTestnet: false,
       });
       expect(InfoClient).toHaveBeenCalledWith({ transport: mockTransport });
-      expect(SubscriptionClient).toHaveBeenCalledWith({ transport: mockTransport });
+      expect(SubscriptionClient).toHaveBeenCalledWith({
+        transport: mockTransport,
+      });
     });
 
     it('should handle initialization errors', () => {
@@ -106,14 +114,19 @@ describe('HyperLiquidClientService', () => {
         throw new Error('Client initialization failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow('Client initialization failed');
+      expect(() => service.initialize(mockWallet)).toThrow(
+        'Client initialization failed',
+      );
     });
 
     it('should initialize with testnet configuration', () => {
       const testnetService = new HyperLiquidClientService({ isTestnet: true });
       testnetService.initialize(mockWallet);
 
-      const { ExchangeClient, WebSocketTransport } = require('@deeeed/hyperliquid-node20');
+      const {
+        ExchangeClient,
+        WebSocketTransport,
+      } = require('@deeeed/hyperliquid-node20');
 
       expect(WebSocketTransport).toHaveBeenCalledWith({
         url: 'wss://api.hyperliquid-testnet.xyz/ws',
@@ -155,7 +168,7 @@ describe('HyperLiquidClientService', () => {
       const uninitializedService = new HyperLiquidClientService();
 
       expect(() => uninitializedService.getExchangeClient()).toThrow(
-        'HyperLiquid SDK clients not properly initialized'
+        'HyperLiquid SDK clients not properly initialized',
       );
     });
 
@@ -163,7 +176,7 @@ describe('HyperLiquidClientService', () => {
       const uninitializedService = new HyperLiquidClientService();
 
       expect(() => uninitializedService.getInfoClient()).toThrow(
-        'HyperLiquid SDK clients not properly initialized'
+        'HyperLiquid SDK clients not properly initialized',
       );
     });
 
@@ -193,7 +206,7 @@ describe('HyperLiquidClientService', () => {
 
     it('should throw when ensuring initialization on uninitialized service', () => {
       expect(() => service.ensureInitialized()).toThrow(
-        'HyperLiquid SDK clients not properly initialized'
+        'HyperLiquid SDK clients not properly initialized',
       );
     });
 
@@ -249,7 +262,7 @@ describe('HyperLiquidClientService', () => {
 
     it('should handle disconnect errors gracefully', async () => {
       mockSubscriptionClient[Symbol.asyncDispose].mockRejectedValueOnce(
-        new Error('Disconnect failed')
+        new Error('Disconnect failed'),
       );
 
       // Should not throw, error is caught and logged
@@ -270,7 +283,10 @@ describe('HyperLiquidClientService', () => {
 
     it('should handle disconnect when subscription client is already undefined', async () => {
       // Manually clear subscription client to simulate partial state
-      Object.defineProperty(service, 'subscriptionClient', { value: undefined, writable: true });
+      Object.defineProperty(service, 'subscriptionClient', {
+        value: undefined,
+        writable: true,
+      });
 
       await expect(service.disconnect()).resolves.not.toThrow();
     });
@@ -283,7 +299,9 @@ describe('HyperLiquidClientService', () => {
         throw new Error('Transport creation failed');
       });
 
-      expect(() => service.initialize(mockWallet)).toThrow('Transport creation failed');
+      expect(() => service.initialize(mockWallet)).toThrow(
+        'Transport creation failed',
+      );
     });
 
     it('should maintain network state through errors', () => {
@@ -306,7 +324,9 @@ describe('HyperLiquidClientService', () => {
 
   describe('Logging and Debugging', () => {
     it('should log initialization events', () => {
-      const { DevLogger } = require('../../../../core/SDKConnect/utils/DevLogger');
+      const {
+        DevLogger,
+      } = require('../../../../core/SDKConnect/utils/DevLogger');
 
       service.initialize(mockWallet);
 
@@ -316,12 +336,14 @@ describe('HyperLiquidClientService', () => {
           testnet: false,
           endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
-        })
+        }),
       );
     });
 
     it('should log disconnect events', async () => {
-      const { DevLogger } = require('../../../../core/SDKConnect/utils/DevLogger');
+      const {
+        DevLogger,
+      } = require('../../../../core/SDKConnect/utils/DevLogger');
       service.initialize(mockWallet);
 
       await service.disconnect();
@@ -332,12 +354,14 @@ describe('HyperLiquidClientService', () => {
           isTestnet: false,
           endpoint: 'wss://api.hyperliquid.xyz/ws',
           timestamp: expect.any(String),
-        })
+        }),
       );
     });
 
     it('should log transport creation events', () => {
-      const { DevLogger } = require('../../../../core/SDKConnect/utils/DevLogger');
+      const {
+        DevLogger,
+      } = require('../../../../core/SDKConnect/utils/DevLogger');
 
       service.initialize(mockWallet);
 
@@ -347,7 +371,7 @@ describe('HyperLiquidClientService', () => {
           endpoint: 'wss://api.hyperliquid.xyz/ws',
           isTestnet: false,
           timestamp: expect.any(String),
-        })
+        }),
       );
     });
   });

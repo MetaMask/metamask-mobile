@@ -34,7 +34,6 @@ interface PerpsTokenSelectorProps {
   title?: string;
 }
 
-
 const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   isVisible,
   onClose,
@@ -50,89 +49,91 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   const supportedTokens = useMemo(() => {
     // Prioritize USDC as the primary deposit token, followed by other supported tokens
     const supportedSymbols = ['USDC', 'USDT', 'DAI', 'ETH', 'WETH'];
-    return tokens.filter(token =>
-      supportedSymbols.includes(token.symbol.toUpperCase())
-    ).sort((a, b) => {
-      // Prioritize USDC first
-      if (a.symbol === 'USDC') return -1;
-      if (b.symbol === 'USDC') return 1;
-      return 0;
-    });
+    return tokens
+      .filter((token) => supportedSymbols.includes(token.symbol.toUpperCase()))
+      .sort((a, b) => {
+        // Prioritize USDC first
+        if (a.symbol === 'USDC') return -1;
+        if (b.symbol === 'USDC') return 1;
+        return 0;
+      });
   }, [tokens]);
 
-  const handleTokenPress = useCallback((token: PerpsToken) => {
-    onTokenSelect(token);
-  }, [onTokenSelect]);
+  const handleTokenPress = useCallback(
+    (token: PerpsToken) => {
+      onTokenSelect(token);
+    },
+    [onTokenSelect],
+  );
 
-  const renderTokenItem = useCallback(({ item, index }: { item: PerpsToken; index: number }) => {
-    const isSelected = item.address === selectedTokenAddress;
-    const isLast = index === supportedTokens.length - 1;
+  const renderTokenItem = useCallback(
+    ({ item, index }: { item: PerpsToken; index: number }) => {
+      const isSelected = item.address === selectedTokenAddress;
+      const isLast = index === supportedTokens.length - 1;
 
-    return (
-      <TouchableOpacity
-        style={[styles.tokenItem, isLast && styles.lastTokenItem]}
-        onPress={() => handleTokenPress(item)}
-        testID={`token-${item.symbol}`}
-      >
-        <View style={styles.tokenIcon}>
-          <TokenIcon
-            symbol={item.symbol}
-            icon={item.iconUrl}
-            medium
-          />
-        </View>
-
-        <View style={styles.tokenInfo}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            style={styles.tokenSymbol}
-            testID={`token-symbol-${item.symbol}`}
-          >
-            {item.symbol}
-          </Text>
-          {item.name && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Muted}
-              style={styles.tokenName}
-              testID={`token-name-${item.symbol}`}
-            >
-              {item.name}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.tokenBalance}>
-          {item.balance && (
-            <Text
-              variant={TextVariant.BodyMD}
-              testID={`token-balance-${item.symbol}`}
-            >
-              {parseFloat(item.balance).toFixed(4)}
-            </Text>
-          )}
-          {item.balanceFiat !== undefined && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Muted}
-              testID={`token-fiat-${item.symbol}`}
-            >
-              ${item.balanceFiat.toFixed(2)}
-            </Text>
-          )}
-        </View>
-
-        {isSelected && (
-          <View style={styles.selectedIndicator}>
-            <ButtonIcon
-              iconName={IconName.Confirmation}
-              iconColor={IconColor.Inverse}
-            />
+      return (
+        <TouchableOpacity
+          style={[styles.tokenItem, isLast && styles.lastTokenItem]}
+          onPress={() => handleTokenPress(item)}
+          testID={`token-${item.symbol}`}
+        >
+          <View style={styles.tokenIcon}>
+            <TokenIcon symbol={item.symbol} icon={item.iconUrl} medium />
           </View>
-        )}
-      </TouchableOpacity>
-    );
-  }, [selectedTokenAddress, supportedTokens.length, styles, handleTokenPress]);
+
+          <View style={styles.tokenInfo}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.tokenSymbol}
+              testID={`token-symbol-${item.symbol}`}
+            >
+              {item.symbol}
+            </Text>
+            {item.name && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Muted}
+                style={styles.tokenName}
+                testID={`token-name-${item.symbol}`}
+              >
+                {item.name}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.tokenBalance}>
+            {item.balance && (
+              <Text
+                variant={TextVariant.BodyMD}
+                testID={`token-balance-${item.symbol}`}
+              >
+                {parseFloat(item.balance).toFixed(4)}
+              </Text>
+            )}
+            {item.balanceFiat !== undefined && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Muted}
+                testID={`token-fiat-${item.symbol}`}
+              >
+                ${item.balanceFiat.toFixed(2)}
+              </Text>
+            )}
+          </View>
+
+          {isSelected && (
+            <View style={styles.selectedIndicator}>
+              <ButtonIcon
+                iconName={IconName.Confirmation}
+                iconColor={IconColor.Inverse}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [selectedTokenAddress, supportedTokens.length, styles, handleTokenPress],
+  );
 
   return (
     <Modal
@@ -170,7 +171,7 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
           <FlatList
             data={supportedTokens}
             renderItem={renderTokenItem}
-            keyExtractor={item => item.address}
+            keyExtractor={(item) => item.address}
             style={styles.tokenList}
             showsVerticalScrollIndicator={false}
             testID="token-list"

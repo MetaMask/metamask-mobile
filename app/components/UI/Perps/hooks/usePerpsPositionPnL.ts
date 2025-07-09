@@ -13,11 +13,14 @@ export function usePerpsPositionPnL(position: Position): {
 } {
   const prices = usePerpsPrices([position.coin]);
 
-  const parsedPosition = useMemo(() => ({
-    entryPrice: parseFloat(position.entryPrice),
-    size: parseFloat(position.size),
-    unrealizedPnl: parseFloat(position.unrealizedPnl),
-  }), [position.entryPrice, position.size, position.unrealizedPnl]);
+  const parsedPosition = useMemo(
+    () => ({
+      entryPrice: parseFloat(position.entryPrice),
+      size: parseFloat(position.size),
+      unrealizedPnl: parseFloat(position.unrealizedPnl),
+    }),
+    [position.entryPrice, position.size, position.unrealizedPnl],
+  );
 
   const currentPrice = useMemo(() => {
     const priceData = prices[position.coin];

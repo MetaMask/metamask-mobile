@@ -8,7 +8,7 @@ import type { CaipAccountId, Hex } from '@metamask/utils';
 import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
-  SubscribePricesParams
+  SubscribePricesParams,
 } from '../controllers/types';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
@@ -136,7 +136,10 @@ describe('HyperLiquidSubscriptionService', () => {
       getUserAddressWithDefault: jest.fn().mockResolvedValue('0x123' as Hex),
     } as any;
 
-    service = new HyperLiquidSubscriptionService(mockClientService, mockWalletService);
+    service = new HyperLiquidSubscriptionService(
+      mockClientService,
+      mockWalletService,
+    );
   });
 
   describe('Price Subscriptions', () => {
@@ -149,19 +152,21 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPrices(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(mockWalletAdapter);
+      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
+        mockWalletAdapter,
+      );
       expect(mockSubscriptionClient.allMids).toHaveBeenCalled();
       expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledWith(
         { coin: 'BTC' },
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledWith(
         { coin: 'ETH' },
-        expect.any(Function)
+        expect.any(Function),
       );
 
       // Wait for async callbacks
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -192,7 +197,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache to populate
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second subscription should get cached data immediately
       const secondUnsubscribe = service.subscribeToPrices({
@@ -243,15 +248,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(mockWalletAdapter);
-      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(params.accountId);
+      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
+        mockWalletAdapter,
+      );
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        params.accountId,
+      );
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.webData2).toHaveBeenCalledWith(
         { user: '0x123' },
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockCallback).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -259,7 +268,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('should handle wallet service errors', async () => {
       mockWalletService.getUserAddressWithDefault.mockRejectedValue(
-        new Error('Wallet error')
+        new Error('Wallet error'),
       );
 
       const mockCallback = jest.fn();
@@ -271,7 +280,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.webData2).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -288,38 +297,42 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPositions(params);
 
       expect(typeof unsubscribe).toBe('function');
-      expect(mockWalletService.getUserAddressWithDefault).not.toHaveBeenCalled();
+      expect(
+        mockWalletService.getUserAddressWithDefault,
+      ).not.toHaveBeenCalled();
     });
 
     it('should filter out zero-size positions', async () => {
       const mockCallback = jest.fn();
 
       // Mock webData2 with mixed positions
-      mockSubscriptionClient.webData2.mockImplementation((_params: any, callback: any) => {
-        setTimeout(() => {
-          callback({
-            clearinghouseState: {
-              assetPositions: [
-                { position: { szi: '0.1' }, coin: 'BTC' }, // Should be included
-                { position: { szi: '0' }, coin: 'ETH' },   // Should be filtered out
-              ],
-            },
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  { position: { szi: '0.1' }, coin: 'BTC' }, // Should be included
+                  { position: { szi: '0' }, coin: 'ETH' }, // Should be filtered out
+                ],
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
           });
-        }, 0);
-        return Promise.resolve({ unsubscribe: jest.fn().mockResolvedValue(undefined) });
-      });
+        },
+      );
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,
       });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ size: '0.1' })
-        ])
+        expect.arrayContaining([expect.objectContaining({ size: '0.1' })]),
       );
 
       unsubscribe();
@@ -336,15 +349,19 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToOrderFills(params);
 
-      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(mockWalletAdapter);
-      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(params.accountId);
+      expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
+        mockWalletAdapter,
+      );
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        params.accountId,
+      );
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.userFills).toHaveBeenCalledWith(
         { user: '0x123' },
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockCallback).toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -358,7 +375,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
@@ -369,7 +386,7 @@ describe('HyperLiquidSubscriptionService', () => {
           price: '50000',
           fee: '5',
           timestamp: expect.any(Number),
-        })
+        }),
       ]);
 
       unsubscribe();
@@ -377,7 +394,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
     it('should handle wallet service errors in order fills', async () => {
       mockWalletService.getUserAddressWithDefault.mockRejectedValue(
-        new Error('Wallet error')
+        new Error('Wallet error'),
       );
 
       const mockCallback = jest.fn();
@@ -386,7 +403,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockSubscriptionClient.userFills).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
@@ -396,52 +413,8 @@ describe('HyperLiquidSubscriptionService', () => {
   describe('Subscription Lifecycle', () => {
     it('should unsubscribe from position updates successfully', async () => {
       const mockCallback = jest.fn();
-      const mockSubscription = { unsubscribe: jest.fn().mockResolvedValue(undefined) };
-
-      mockSubscriptionClient.webData2.mockResolvedValue(mockSubscription);
-
-      const unsubscribe = service.subscribeToPositions({
-        callback: mockCallback,
-      });
-
-      // Wait for subscription to be established
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      // Unsubscribe
-      unsubscribe();
-
-      // Wait for unsubscribe to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      expect(mockSubscription.unsubscribe).toHaveBeenCalled();
-    });
-
-    it('should unsubscribe from order fill updates successfully', async () => {
-      const mockCallback = jest.fn();
-      const mockSubscription = { unsubscribe: jest.fn().mockResolvedValue(undefined) };
-
-      mockSubscriptionClient.userFills.mockResolvedValue(mockSubscription);
-
-      const unsubscribe = service.subscribeToOrderFills({
-        callback: mockCallback,
-      });
-
-      // Wait for subscription to be established
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      // Unsubscribe
-      unsubscribe();
-
-      // Wait for unsubscribe to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      expect(mockSubscription.unsubscribe).toHaveBeenCalled();
-    });
-
-    it('should handle unsubscribe errors gracefully', async () => {
-      const mockCallback = jest.fn();
       const mockSubscription = {
-        unsubscribe: jest.fn().mockRejectedValue(new Error('Unsubscribe failed'))
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
       };
 
       mockSubscriptionClient.webData2.mockResolvedValue(mockSubscription);
@@ -451,7 +424,57 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for subscription to be established
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Unsubscribe
+      unsubscribe();
+
+      // Wait for unsubscribe to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+    });
+
+    it('should unsubscribe from order fill updates successfully', async () => {
+      const mockCallback = jest.fn();
+      const mockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.userFills.mockResolvedValue(mockSubscription);
+
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: mockCallback,
+      });
+
+      // Wait for subscription to be established
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Unsubscribe
+      unsubscribe();
+
+      // Wait for unsubscribe to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+    });
+
+    it('should handle unsubscribe errors gracefully', async () => {
+      const mockCallback = jest.fn();
+      const mockSubscription = {
+        unsubscribe: jest
+          .fn()
+          .mockRejectedValue(new Error('Unsubscribe failed')),
+      };
+
+      mockSubscriptionClient.webData2.mockResolvedValue(mockSubscription);
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      // Wait for subscription to be established
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe should not throw
       expect(() => unsubscribe()).not.toThrow();
@@ -469,7 +492,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache to populate
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(mockCallback).toHaveBeenCalledWith([
         expect.objectContaining({
@@ -477,7 +500,7 @@ describe('HyperLiquidSubscriptionService', () => {
           price: expect.any(String),
           timestamp: expect.any(Number),
           percentChange24h: expect.any(String),
-        })
+        }),
       ]);
 
       unsubscribe();
@@ -487,21 +510,25 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // Mock activeAssetCtx with market data
-      mockSubscriptionClient.activeAssetCtx.mockImplementation((params: any, callback: any) => {
-        setTimeout(() => {
-          callback({
-            coin: params.coin,
-            ctx: {
-              prevDayPx: '49000',
-              funding: '0.01',
-              openInterest: '1000000',
-              dayNtlVlm: '50000000',
-              oraclePx: '50100',
-            },
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                funding: '0.01',
+                openInterest: '1000000',
+                dayNtlVlm: '50000000',
+                oraclePx: '50100',
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
           });
-        }, 0);
-        return Promise.resolve({ unsubscribe: jest.fn().mockResolvedValue(undefined) });
-      });
+        },
+      );
 
       const unsubscribe = service.subscribeToPrices({
         symbols: ['BTC'],
@@ -509,7 +536,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for cache updates
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       // Verify market data is processed
       expect(mockCallback).toHaveBeenCalled();
@@ -534,7 +561,9 @@ describe('HyperLiquidSubscriptionService', () => {
     });
 
     it('should handle subscription errors gracefully', async () => {
-      mockSubscriptionClient.allMids.mockRejectedValue(new Error('Subscription failed'));
+      mockSubscriptionClient.allMids.mockRejectedValue(
+        new Error('Subscription failed'),
+      );
 
       const mockCallback = jest.fn();
       const unsubscribe = service.subscribeToPrices({
@@ -555,7 +584,9 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       expect(typeof unsubscribe).toBe('function');
-      expect(mockWalletService.getUserAddressWithDefault).not.toHaveBeenCalled();
+      expect(
+        mockWalletService.getUserAddressWithDefault,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle missing subscription client in order fill subscription', () => {
@@ -567,7 +598,9 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       expect(typeof unsubscribe).toBe('function');
-      expect(mockWalletService.getUserAddressWithDefault).not.toHaveBeenCalled();
+      expect(
+        mockWalletService.getUserAddressWithDefault,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -576,19 +609,23 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // Mock spot context (without perps-specific fields)
-      mockSubscriptionClient.activeAssetCtx.mockImplementation((params: any, callback: any) => {
-        setTimeout(() => {
-          callback({
-            coin: params.coin,
-            ctx: {
-              prevDayPx: '49000',
-              dayNtlVlm: '50000000',
-              // No funding, openInterest, oraclePx (spot context)
-            },
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: '49000',
+                dayNtlVlm: '50000000',
+                // No funding, openInterest, oraclePx (spot context)
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
           });
-        }, 0);
-        return Promise.resolve({ unsubscribe: jest.fn().mockResolvedValue(undefined) });
-      });
+        },
+      );
 
       const unsubscribe = service.subscribeToPrices({
         symbols: ['BTC'],
@@ -596,7 +633,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait for processing
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(mockCallback).toHaveBeenCalled();
 
@@ -607,23 +644,27 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // Mock webData2 with no position data
-      mockSubscriptionClient.webData2.mockImplementation((_params: any, callback: any) => {
-        setTimeout(() => {
-          callback({
-            clearinghouseState: {
-              // No assetPositions
-            },
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                // No assetPositions
+              },
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
           });
-        }, 0);
-        return Promise.resolve({ unsubscribe: jest.fn().mockResolvedValue(undefined) });
-      });
+        },
+      );
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,
       });
 
       // Wait for processing
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Should not call callback without position data
       expect(mockCallback).not.toHaveBeenCalled();

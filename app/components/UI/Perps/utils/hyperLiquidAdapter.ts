@@ -4,13 +4,11 @@ import type {
   MarketInfo,
   AccountState,
 } from '../controllers/types';
-import type {
-  OrderParams as SDKOrderParams
-} from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
+import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type {
   PerpsClearinghouseState,
   AssetPosition,
-  SpotClearinghouseState
+  SpotClearinghouseState,
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 import { isHexString } from '@metamask/utils';
@@ -23,7 +21,6 @@ import { isHexString } from '@metamask/utils';
  * to provide a consistent interface across different perps protocols.
  */
 
-
 /**
  * Transform MetaMask Perps API OrderParams to HyperLiquid SDK format
  * @param order - MetaMask Perps order parameters
@@ -32,7 +29,7 @@ import { isHexString } from '@metamask/utils';
  */
 export function adaptOrderToSDK(
   order: PerpsOrderParams,
-  coinToAssetId: Map<string, number>
+  coinToAssetId: Map<string, number>,
 ): SDKOrderParams {
   const assetId = coinToAssetId.get(order.coin);
   if (assetId === undefined) {
@@ -45,12 +42,18 @@ export function adaptOrderToSDK(
     p: order.price || '0',
     s: order.size,
     r: order.reduceOnly || false,
-    t: order.orderType === 'limit' ? {
-      limit: { tif: 'Gtc' }
-    } : {
-      limit: { tif: 'Ioc' }
-    },
-    c: order.clientOrderId && isHexString(order.clientOrderId) ? order.clientOrderId as `0x${string}` : null
+    t:
+      order.orderType === 'limit'
+        ? {
+            limit: { tif: 'Gtc' },
+          }
+        : {
+            limit: { tif: 'Ioc' },
+          },
+    c:
+      order.clientOrderId && isHexString(order.clientOrderId)
+        ? (order.clientOrderId as `0x${string}`)
+        : null,
   };
 }
 
@@ -72,7 +75,7 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     liquidationPrice: pos.liquidationPx,
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,
-    cumulativeFunding: pos.cumFunding
+    cumulativeFunding: pos.cumFunding,
   };
 }
 
@@ -88,7 +91,7 @@ export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
     maxLeverage: sdkMarket.maxLeverage,
     marginTableId: sdkMarket.marginTableId,
     onlyIsolated: sdkMarket.onlyIsolated,
-    isDelisted: sdkMarket.isDelisted
+    isDelisted: sdkMarket.isDelisted,
   };
 }
 
@@ -100,11 +103,15 @@ export function adaptMarketFromSDK(sdkMarket: PerpsUniverse): MarketInfo {
  */
 export function adaptAccountStateFromSDK(
   perpsState: PerpsClearinghouseState,
-  spotState?: SpotClearinghouseState
+  spotState?: SpotClearinghouseState,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
   const totalUnrealizedPnl = perpsState.assetPositions
-    .reduce((sum: number, assetPos: AssetPosition) => sum + parseFloat(assetPos.position.unrealizedPnl), 0)
+    .reduce(
+      (sum: number, assetPos: AssetPosition) =>
+        sum + parseFloat(assetPos.position.unrealizedPnl),
+      0,
+    )
     .toString();
 
   // TODO: BALANCE DISPLAY DECISION NEEDED
@@ -136,8 +143,11 @@ export function adaptAccountStateFromSDK(
   // Get Spot balance (if available)
   let spotBalance = 0;
   if (spotState?.balances) {
-    spotBalance = spotState.balances.reduce((sum: number, balance: { total?: string }) =>
-      sum + parseFloat(balance.total || '0'), 0);
+    spotBalance = spotState.balances.reduce(
+      (sum: number, balance: { total?: string }) =>
+        sum + parseFloat(balance.total || '0'),
+      0,
+    );
   }
 
   // Calculate total account value (Spot + Perps)
@@ -204,7 +214,8 @@ export function formatHyperLiquidPrice(params: {
 
   // Check significant figures (max 5)
   const [integerPart, decimalPart = ''] = formattedPrice.split('.');
-  const significantDigits = integerPart.replace(/^0+/, '').length + decimalPart.length;
+  const significantDigits =
+    integerPart.replace(/^0+/, '').length + decimalPart.length;
 
   if (significantDigits > 5) {
     // Need to reduce precision to maintain max 5 significant figures
@@ -252,4 +263,3 @@ export function calculatePositionSize(params: {
   const { usdValue, leverage, assetPrice } = params;
   return (usdValue * leverage) / assetPrice;
 }
-
