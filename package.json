@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.47.1",
+  "version": "7.47.3",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -45,6 +45,7 @@
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:qa:local": "./scripts/build.sh android qa local",
     "build:android:devbuild": "./scripts/build.sh android devBuild",
+    "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",
@@ -173,6 +174,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
+    "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/account-tree-controller": "0.1.1",
     "@metamask/accounts-controller": "^31.0.0",
@@ -337,8 +339,7 @@
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
     "lodash": "^4.17.21",
-    "lottie-ios": "3.4.1",
-    "lottie-react-native": "5.1.6",
+    "lottie-react-native": "6.7.2",
     "luxon": "^3.5.0",
     "mockttp": "^3.15.2",
     "multihashes": "0.4.14",
