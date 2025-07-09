@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
- - feat(bridge): fetch all tokens for bridge input([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
+ - feat(bridge): fetch all tokens for bridge input ([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
  - feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
  - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
  - feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
