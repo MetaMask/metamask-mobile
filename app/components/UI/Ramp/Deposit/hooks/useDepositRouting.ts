@@ -83,19 +83,22 @@ export const useDepositRouting = ({
     throws: true,
   });
 
-  const [{ error: ottError }, requestOtt] = useDepositSdkMethod({
+  const [, requestOtt] = useDepositSdkMethod({
     method: 'requestOtt',
     onMount: false,
+    throws: true,
   });
 
-  const [{ error: paymentUrlError }, generatePaymentUrl] = useDepositSdkMethod({
+  const [, generatePaymentUrl] = useDepositSdkMethod({
     method: 'generatePaymentWidgetUrl',
     onMount: false,
+    throws: true,
   });
 
-  const [{ error: getOrderError }, getOrder] = useDepositSdkMethod({
+  const [, getOrder] = useDepositSdkMethod({
     method: 'getOrder',
     onMount: false,
+    throws: true,
   });
 
   useEffect(() => {
@@ -133,12 +136,8 @@ export const useDepositRouting = ({
           if (orderId) {
             const order = await getOrder(orderId, selectedAddress);
 
-            if (getOrderError || !order) {
-              console.error(
-                'Error getting order: ',
-                getOrderError || 'No order',
-              );
-              return;
+            if (!order) {
+              throw new Error('Missing order');
             }
 
             const cryptoCurrency = getCryptoCurrencyFromTransakId(
@@ -163,7 +162,7 @@ export const useDepositRouting = ({
         }
       }
     },
-    [getOrder, selectedAddress, getOrderError, handleNewOrder, navigation],
+    [getOrder, selectedAddress, handleNewOrder, navigation],
   );
 
   const handleApprovedKycFlow = useCallback(
@@ -207,7 +206,7 @@ export const useDepositRouting = ({
         } else {
           const ottResponse = await requestOtt();
 
-          if (ottError || !ottResponse) {
+          if (!ottResponse) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
 
@@ -217,7 +216,7 @@ export const useDepositRouting = ({
             selectedAddress,
           );
 
-          if (paymentUrlError || !paymentUrl) {
+          if (!paymentUrl) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
 
@@ -244,9 +243,7 @@ export const useDepositRouting = ({
       navigation,
       cryptoCurrencyChainId,
       requestOtt,
-      ottError,
       generatePaymentUrl,
-      paymentUrlError,
       selectedAddress,
       handleNavigationStateChange,
     ],
@@ -298,7 +295,7 @@ export const useDepositRouting = ({
         if (purposeOfUsageKycForm && requiredForms?.length === 1) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
           // After successful purpose of usage submission, check forms again
-          routeAfterAuthentication(quote);
+          await routeAfterAuthentication(quote);
           return;
         }
 
