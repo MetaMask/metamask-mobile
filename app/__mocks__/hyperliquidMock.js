@@ -52,9 +52,15 @@ class WebSocketTransport {
   }
 }
 
+// Mock signing functions
+const actionSorter = jest.fn();
+const signL1Action = jest.fn();
+
 module.exports = {
   ExchangeClient,
   InfoClient,
   SubscriptionClient,
   WebSocketTransport,
+  actionSorter,
+  signL1Action,
 };
