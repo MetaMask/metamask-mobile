@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -36,19 +36,16 @@ import AccountSelector from '../../components/AccountSelector';
 import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
+
 import { useStyles } from '../../../../../hooks/useStyles';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
-import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
+import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -63,16 +60,15 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
-  DepositRegion,
+  DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -90,12 +86,15 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated } = useDepositSDK();
+  const { isAuthenticated, selectedWalletAddress, selectedRegion } =
+    useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.code === 'US') || null,
-  );
+  const { routeAfterAuthentication } = useDepositRouting({
+    selectedWalletAddress,
+    cryptoCurrencyChainId: cryptoCurrency.chainId,
+    paymentMethodId: paymentMethod.id,
+  });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -107,22 +106,6 @@ const BuildQuote = () => {
     paymentMethod.id,
     amount,
   );
-
-  const [{ error: kycFormsFetchError }, fetchKycForms] = useDepositSdkMethod({
-    method: 'getKYCForms',
-    onMount: false,
-  });
-
-  const [{ error: kycFormFetchError }, fetchKycFormData] = useDepositSdkMethod({
-    method: 'getKycForm',
-    onMount: false,
-  });
-
-  const [{ error: userDetailsFetchError }, fetchUserDetails] =
-    useDepositSdkMethod({
-      method: 'getUserDetails',
-      onMount: false,
-    });
 
   const {
     tokenAmount,
@@ -141,6 +124,32 @@ const BuildQuote = () => {
     );
   }, [navigation, theme]);
 
+  useEffect(() => {
+    if (selectedRegion?.currency) {
+      if (selectedRegion.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (selectedRegion.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    }
+  }, [selectedRegion?.currency]);
+
+  const handleRegionPress = useCallback(() => {
+    navigation.navigate(...createRegionSelectorModalNavigationDetails());
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedRegion && !selectedRegion.supported) {
+        InteractionManager.runAfterInteractions(() => {
+          navigation.navigate(
+            ...createUnsupportedRegionModalNavigationDetails(),
+          );
+        });
+      }
+    }, [selectedRegion, navigation]),
+  );
+
   const handleOnPressContinue = useCallback(async () => {
     try {
       const quote = await getQuote(
@@ -156,75 +165,17 @@ const BuildQuote = () => {
       }
 
       if (!isAuthenticated) {
-        navigation.navigate(...createEnterEmailNavDetails({ quote }));
-      }
-
-      const forms = await fetchKycForms(quote);
-
-      if (kycFormsFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
-
-      const { forms: requiredForms } = forms || {};
-
-      if (requiredForms?.length === 0) {
-        const userDetails = await fetchUserDetails();
-
-        if (userDetailsFetchError) {
-          setError(strings('deposit.buildQuote.unexpectedError'));
-          return;
-        }
-
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-          return;
-        }
-
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-        return;
-      }
-
-      const personalDetailsKycForm = requiredForms?.find(
-        (form) => form.id === 'personalDetails',
-      );
-
-      const addressKycForm = requiredForms?.find(
-        (form) => form.id === 'address',
-      );
-
-      const idProofKycForm = requiredForms?.find(
-        (form) => form.id === 'idProof',
-      );
-
-      const idProofData = idProofKycForm
-        ? await fetchKycFormData(quote, idProofKycForm)
-        : null;
-
-      if (kycFormFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
-
-      if (personalDetailsKycForm || addressKycForm) {
         navigation.navigate(
-          ...createBasicInfoNavDetails({
+          ...createEnterEmailNavDetails({
             quote,
-            kycUrl: idProofData?.data?.kycUrl,
-          }),
-        );
-        return;
-      } else if (idProofData) {
-        navigation.navigate(
-          ...createKycWebviewNavDetails({
-            quote,
-            kycUrl: idProofData.data.kycUrl,
+            paymentMethodId: paymentMethod.id,
+            cryptoCurrencyChainId: cryptoCurrency.chainId,
           }),
         );
         return;
       }
-      setError(strings('deposit.buildQuote.unexpectedError'));
-      return;
+
+      await routeAfterAuthentication(quote);
     } catch (_) {
       setError(strings('deposit.buildQuote.unexpectedError'));
       return;
@@ -237,13 +188,8 @@ const BuildQuote = () => {
     amount,
     quoteFetchError,
     isAuthenticated,
-    fetchKycForms,
-    kycFormsFetchError,
-    fetchKycFormData,
-    kycFormFetchError,
     navigation,
-    fetchUserDetails,
-    userDetailsFetchError,
+    routeAfterAuthentication,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -260,32 +206,6 @@ const BuildQuote = () => {
     },
     [],
   );
-
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
-
-  const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.code,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
 
   const handleSelectAssetId = useCallback(
     (assetId: string) => {
@@ -348,7 +268,14 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.code}</Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {selectedRegion?.isoCode}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.alternative}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -472,7 +399,7 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
