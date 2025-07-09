@@ -1139,8 +1139,27 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                mkdir -p ios/build/Build/Products/Release-iphonesimulator
-                mkdir -p ../Library/Detox/ios
+                
+                # Check if cached build products exist
+                if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
+                    echo "✅ iOS build artifacts found in cache"
+                    echo "Build products directory contents:"
+                    ls -la ios/build/Build/Products/Release-iphonesimulator/ | head -5
+                else
+                    echo "❌ iOS build products not found in cache"
+                    mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                fi
+                
+                # Check if cached Detox artifacts exist
+                if [ -d "../Library/Detox/ios" ]; then
+                    echo "✅ Detox iOS artifacts found in cache"
+                    echo "Detox directory contents:"
+                    ls -la ../Library/Detox/ios/ | head -5
+                else
+                    echo "❌ Detox iOS artifacts not found in cache"
+                    mkdir -p ../Library/Detox/ios
+                fi
+                
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
@@ -1227,7 +1246,7 @@ workflows:
                     echo "No PR number found, proceeding with both builds"
                 else
                     # Generate app code hash
-                    APP_CODE_HASH=$(find app/ ios/ android/ ppom/ . -maxdepth 1 -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" -o -name "*.lock" -o -name "yarn.lock" -o -name "package-lock.json" -o -name "Gemfile.lock" -o -name "Podfile.lock" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+                    APP_CODE_HASH=$(find app/ ios/ android/ ppom/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" \) -exec sha256sum {} \; 2>/dev/null | { find . -maxdepth 1 -type f \( -name "*.lock" -o -name "yarn.lock" -o -name "package-lock.json" -o -name "Gemfile.lock" -o -name "Podfile.lock" \) -exec sha256sum {} \; 2>/dev/null; cat; } | sort | sha256sum | cut -d' ' -f1)
                     
                     # Generate cache keys
                     IOS_CACHE_KEY="e2e-build-ios-pr-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
@@ -1400,8 +1419,27 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                mkdir -p ios/build/Build/Products/Release-iphonesimulator
-                mkdir -p ../Library/Detox/ios
+                
+                # Check if cached build products exist
+                if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
+                    echo "✅ iOS build artifacts found in cache"
+                    echo "Build products directory contents:"
+                    ls -la ios/build/Build/Products/Release-iphonesimulator/ | head -5
+                else
+                    echo "❌ iOS build products not found in cache"
+                    mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                fi
+                
+                # Check if cached Detox artifacts exist
+                if [ -d "../Library/Detox/ios" ]; then
+                    echo "✅ Detox iOS artifacts found in cache"
+                    echo "Detox directory contents:"
+                    ls -la ../Library/Detox/ios/ | head -5
+                else
+                    echo "❌ Detox iOS artifacts not found in cache"
+                    mkdir -p ../Library/Detox/ios
+                fi
+                
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
