@@ -135,6 +135,13 @@ export const DepositSDKProvider = ({
   }, []);
 
   useEffect(() => {
+    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
+      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
   }, [INITIAL_SELECTED_REGION, defaultRegion]);
 

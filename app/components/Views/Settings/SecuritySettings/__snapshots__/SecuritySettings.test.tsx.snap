@@ -37,9 +37,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 24,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 32,
               "marginBottom": 24,
@@ -66,9 +65,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -81,9 +79,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -102,9 +99,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "backgroundColor": "transparent",
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -116,9 +112,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -176,9 +171,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -199,12 +193,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#4459ff",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "marginTop": 16,
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -214,9 +209,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -239,9 +233,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -254,9 +247,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -276,12 +268,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#4459ff",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "marginTop": 16,
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -292,9 +285,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -317,9 +309,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -332,9 +323,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -458,9 +448,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -510,9 +499,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginTop": 8,
@@ -536,9 +524,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -551,9 +538,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -573,12 +559,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#4459ff",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
               "marginTop": 16,
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -589,9 +576,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -617,9 +603,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -661,9 +646,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 8,
@@ -678,9 +662,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -704,9 +687,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 24,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 32,
               "marginBottom": 24,
@@ -722,9 +704,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 0,
@@ -755,9 +736,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -793,9 +773,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -808,9 +787,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -827,9 +805,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 18,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 0,
@@ -851,9 +828,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -866,9 +842,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -895,13 +870,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -910,10 +886,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -939,9 +914,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -954,9 +928,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -983,13 +956,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -999,10 +973,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1027,9 +1000,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1042,9 +1014,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -1072,14 +1043,15 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
                 "opacity": 0.5,
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -1088,10 +1060,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1114,9 +1085,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1129,9 +1099,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -1159,14 +1128,15 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
                 "opacity": 0.5,
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -1175,10 +1145,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1195,9 +1164,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 18,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 32,
@@ -1228,9 +1196,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1280,9 +1247,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -1295,9 +1261,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 16,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1315,9 +1280,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 18,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 32,
@@ -1348,9 +1312,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1400,9 +1363,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -1425,9 +1387,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1440,9 +1401,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -1529,9 +1489,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1648,9 +1607,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1767,9 +1725,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1886,9 +1843,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1960,9 +1916,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2011,9 +1966,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2031,9 +1985,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2045,9 +1998,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2063,9 +2015,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 18,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 32,
@@ -2095,9 +2046,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2147,9 +2097,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2181,9 +2130,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2233,9 +2181,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginTop": 8,
@@ -2267,9 +2214,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2319,9 +2265,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2342,9 +2287,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginTop": 8,
@@ -2376,9 +2320,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 18,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 32,
@@ -2409,9 +2352,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2462,9 +2404,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2483,9 +2424,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2497,9 +2437,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2532,9 +2471,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "flex": 1,
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2585,9 +2523,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2609,9 +2546,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2624,9 +2560,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2638,9 +2573,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2659,9 +2593,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2673,9 +2606,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2690,9 +2622,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2706,9 +2637,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2727,9 +2657,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2741,9 +2670,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2772,13 +2700,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -2788,10 +2717,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2815,24 +2743,22 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
           }
         >
-          Delete wallet
+          Reset wallet
         </Text>
         <Text
           accessibilityRole="text"
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 8,
@@ -2861,13 +2787,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -2877,16 +2804,15 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
               }
             >
-              Delete wallet
+              Reset wallet
             </Text>
           </TouchableOpacity>
         </View>

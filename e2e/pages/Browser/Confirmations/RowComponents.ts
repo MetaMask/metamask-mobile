@@ -45,6 +45,10 @@ class RowComponents {
   get TokenHero() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
+
+  get ApproveRow() {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
+  }
 }
 
 export default new RowComponents();

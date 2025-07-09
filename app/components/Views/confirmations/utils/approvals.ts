@@ -94,11 +94,24 @@ export function updateApprovalAmount(
 
 export function calculateApprovalTokenAmount(
   amount: string,
-  decimals?: number,
-): string {
+  decimals = 18,
+): { amount: string; rawAmount: string } {
   const amountInDecimals = new BigNumber(amount ?? 0).div(
-    10 ** (decimals ?? 18),
+    10 ** (decimals),
   );
   const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
-  return isUnlimited ? strings('confirm.unlimited') : amountInDecimals.toString();
+  const rawAmount = amountInDecimals.toString();
+  return {
+    amount: isUnlimited ? strings('confirm.unlimited') : rawAmount,
+    rawAmount,
+  };
+}
+
+export function calculateTokenBalance(
+  tokenBalance?: string,
+  decimals?: number,
+): string {
+  return new BigNumber(tokenBalance ?? '0')
+    .div(new BigNumber(10).pow(decimals ?? 0))
+    .toString();
 }
