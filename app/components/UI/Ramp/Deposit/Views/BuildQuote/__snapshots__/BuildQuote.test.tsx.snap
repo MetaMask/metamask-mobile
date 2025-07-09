@@ -798,7 +798,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                   }
                                 >
-                                  An unexpected error occurred.
+                                  Failed to fetch quote.
                                 </Text>
                               </View>
                             </View>
@@ -1761,6 +1761,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -1773,6 +1775,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3569,6 +3572,8 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -3581,6 +3586,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -5358,6 +5364,8 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -5370,6 +5378,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -7147,6 +7156,8 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={false}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -8936,6 +8947,8 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -8948,6 +8961,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -10725,6 +10739,8 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -10737,6 +10753,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -12514,6 +12531,8 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
+                              disabled={true}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -12526,6 +12545,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "opacity": 0.5,
                                   "paddingHorizontal": 16,
                                 }
                               }

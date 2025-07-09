@@ -169,9 +169,9 @@ const BuildQuote = () => {
       if (!quote) {
         throw new Error(strings('deposit.buildQuote.quoteFetchError'));
       }
-    } catch (error) {
+    } catch (quoteError) {
       Logger.error(
-        error as Error,
+        quoteError as Error,
         'Deposit::BuildQuote - Error fetching quote',
       );
       setError(strings('deposit.buildQuote.quoteFetchError'));
@@ -192,9 +192,9 @@ const BuildQuote = () => {
       }
 
       await routeAfterAuthentication(quote);
-    } catch (error) {
+    } catch (routeError) {
       Logger.error(
-        error as Error,
+        routeError as Error,
         'Deposit::BuildQuote - Error handling authentication',
       );
       setError(strings('deposit.buildQuote.unexpectedError'));
