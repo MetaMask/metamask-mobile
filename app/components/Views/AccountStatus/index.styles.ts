@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -7,6 +7,10 @@ const styles = StyleSheet.create({
   root: {
     height: '100%',
     paddingHorizontal: 16,
+    paddingTop: Platform.select({
+      ios: 0,
+      android: 32,
+    }),
   },
   content: {
     flex: 1,
@@ -35,7 +39,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     display: 'flex',
     rowGap: 16,
-    marginBottom: 16,
+    marginBottom: Platform.select({
+      ios: 16,
+      android: 24,
+    }),
     marginTop: 'auto',
   },
 });
