@@ -334,7 +334,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1451,7 +1451,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2169,7 +2169,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",

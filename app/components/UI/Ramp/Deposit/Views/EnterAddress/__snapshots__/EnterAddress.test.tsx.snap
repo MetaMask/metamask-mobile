@@ -1177,7 +1177,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#3c4d9d1a",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -1276,11 +1276,12 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -2430,7 +2431,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#3c4d9d1a",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -2529,11 +2530,12 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }

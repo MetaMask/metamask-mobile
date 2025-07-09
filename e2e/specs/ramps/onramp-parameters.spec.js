@@ -105,7 +105,8 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
-      const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+      const paymentMethod =
+        device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
       await Assertions.checkIfTextIsNotDisplayed(paymentMethod);
@@ -126,34 +127,62 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
     const softAssert = new SoftAssert();
 
-    const rampRegionSelected = events.find((event) => event.event === expectedEvents.RAMPS_REGION_SELECTED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(rampRegionSelected);
-    }, 'Ramp Region Selected: Should be present');
+    const rampRegionSelected = events.find(
+      (event) => event.event === expectedEvents.RAMPS_REGION_SELECTED,
+    );
+    const onRampPaymentMethodSelected = events.find(
+      (event) => event.event === expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED,
+    );
 
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(rampRegionSelected.properties, {
-        is_unsupported_onramp: 'boolean',
-        is_unsupported_offramp: 'boolean',
-        country_id: 'string',
-        state_id: 'string',
-        location: 'string',
-      });
-    }, 'Ramp Region Selected: Should have correct properties');
+    const checkRampRegionSelectedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(rampRegionSelected);
+      },
+      'Ramp Region Selected: Should be present',
+    );
 
-    const onRampPaymentMethodSelected = events.find((event) => event.event === expectedEvents.ONRAMP_PAYMENT_METHOD_SELECTED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(onRampPaymentMethodSelected);
-    }, 'On-ramp Payment Method Selected: Should be present');
+    const checkRampRegionSelectedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          rampRegionSelected.properties,
+          {
+            is_unsupported_onramp: 'boolean',
+            is_unsupported_offramp: 'boolean',
+            country_id: 'string',
+            state_id: 'string',
+            location: 'string',
+          },
+        );
+      },
+      'Ramp Region Selected: Should have correct properties',
+    );
 
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(onRampPaymentMethodSelected.properties, {
-        payment_method_id: 'string',
-        available_payment_method_ids: 'array',
-        region: 'string',
-        location: 'string',
-      });
-    }, 'On-ramp Payment Method Selected: Should have correct properties');
+    const checkOnRampPaymentMethodSelectedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(onRampPaymentMethodSelected);
+      },
+      'On-ramp Payment Method Selected: Should be present',
+    );
+
+    const checkOnRampPaymentMethodSelectedProperties =
+      softAssert.checkAndCollect(async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          onRampPaymentMethodSelected.properties,
+          {
+            payment_method_id: 'string',
+            available_payment_method_ids: 'array',
+            region: 'string',
+            location: 'string',
+          },
+        );
+      }, 'On-ramp Payment Method Selected: Should have correct properties');
+
+    await Promise.all([
+      checkRampRegionSelectedDefined,
+      checkRampRegionSelectedProperties,
+      checkOnRampPaymentMethodSelectedDefined,
+      checkOnRampPaymentMethodSelectedProperties,
+    ]);
 
     softAssert.throwIfErrors();
   });
