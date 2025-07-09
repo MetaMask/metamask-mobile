@@ -23,9 +23,6 @@ const parsedArgs = parseArgs({
   strict: false,
 });
 
-// Apply SES Hermes shim on Android, iOS and Expo dev server by default
-const hermesRuntime = true;
-
 const getPolyfills = () => [
   // eslint-disable-next-line import/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
@@ -90,7 +87,7 @@ module.exports = function (baseConfig) {
         }),
       },
       serializer: lockdownSerializer(
-        { hermesRuntime },
+        { hermesRuntime: true },
         {
           getPolyfills,
         },
