@@ -394,6 +394,7 @@ const EarnWithdrawInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      // start trace between user initiating withdrawal and the redesigned confirmation screen loading
       trace({ name: TraceName.EarnWithdrawConfirmationScreen, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
 
       // this prevents the user from adding the transaction withdrawal into the
@@ -430,8 +431,6 @@ const EarnWithdrawInputView = () => {
 
       return;
     }
-
-    trace({ name: TraceName.EarnWithdrawReviewScreen });
 
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE_CONFIRMATION,

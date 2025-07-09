@@ -474,6 +474,7 @@ const EarnInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      // start trace between user initiating deposit and the redesigned confirmation screen loading
       trace({ name: TraceName.EarnDepositConfirmationScreen, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
 
       // this prevents the user from adding the transaction deposit into the
@@ -508,8 +509,6 @@ const EarnInputView = () => {
       );
       return;
     }
-
-    trace({ name: TraceName.EarnDepositReviewScreen });
 
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,

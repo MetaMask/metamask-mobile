@@ -1584,24 +1584,6 @@ describe('EarnInputView', () => {
           data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
         });
       });
-
-      it('calls trace with EarnDepositReviewScreen when redesigned confirmations are disabled', async () => {
-        selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_confirmations: false,
-        } as unknown as ConfirmationRedesignRemoteFlags);
-
-        const { getByText } = renderComponent();
-
-        fireEvent.press(getByText('1'));
-
-        await act(async () => {
-          fireEvent.press(getByText('Review'));
-        });
-
-        expect(mockTrace).toHaveBeenCalledWith({
-          name: TraceName.EarnDepositReviewScreen,
-        });
-      });
     });
   });
 });
