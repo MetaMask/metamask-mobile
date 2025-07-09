@@ -52,7 +52,7 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
         name,
         value: blockExplorer,
         isValid: true,
-        isRPC: true,
+        isRPC: type === RPC,
         baseUrl: url.href,
       });
     } catch {
