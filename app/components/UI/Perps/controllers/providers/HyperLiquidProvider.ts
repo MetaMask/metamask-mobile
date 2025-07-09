@@ -453,6 +453,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('Getting positions via HyperLiquid SDK:', params);
 
+      await this.ensureReady();
+
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(params?.accountId);
       const clearingState = await infoClient.clearinghouseState({ user: userAddress });
@@ -472,6 +474,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
       DevLogger.log('Getting account state via HyperLiquid SDK:', params);
+
+      await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(params?.accountId);
@@ -503,6 +507,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getMarkets(): Promise<MarketInfo[]> {
     try {
       DevLogger.log('Getting markets via HyperLiquid SDK');
+
+      await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
