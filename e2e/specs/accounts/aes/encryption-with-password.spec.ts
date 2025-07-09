@@ -49,6 +49,7 @@ describe(
       await SettingsView.tapAesCryptoTestForm();
 
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
+      await Assertions.checkIfVisible(AesCryptoTestForm.responseText);
       await AesCryptoTestForm.decrypt(PASSWORD_ONE);
       await Assertions.checkIfElementHasLabel(
         AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
@@ -57,6 +58,7 @@ describe(
 
       // encrypt and decrypt with password second piece of data
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
+      await Assertions.checkIfVisible(AesCryptoTestForm.responseText);
       await AesCryptoTestForm.decrypt(PASSWORD_TWO);
       await Assertions.checkIfElementHasLabel(
         AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
