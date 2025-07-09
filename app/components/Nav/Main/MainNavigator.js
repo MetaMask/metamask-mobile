@@ -57,6 +57,7 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
@@ -93,7 +94,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
-import { EarnScreenStack } from '../../UI/Earn/routes';
+import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
@@ -210,6 +211,10 @@ const TransactionsHome = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
+    />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
@@ -454,26 +459,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  /* tabs: state.browser.tabs, */
-  /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector((state) => {
-    const activeTabUrl = getActiveTabUrl(state);
-    if (!isUrl(activeTabUrl)) return [];
-    try {
-      const permissionsControllerState = selectPermissionControllerState(state);
-      const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedCaipAccountIdsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-      return permittedAcc;
-    } catch (error) {
-      Logger.error(error, {
-        message: 'ParseUrl::MainNavigator error while parsing URL',
-      });
-    }
-  }, isEqual);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -502,7 +487,6 @@ const HomeTabs = () => {
               number_of_accounts: accountsLength,
               chain_id: getDecimalChainId(chainId),
               source: 'Navigation Tab',
-              active_connected_dapp: activeConnectedDapp,
               number_of_open_tabs: amountOfBrowserOpenTabs,
             })
             .build(),
@@ -651,7 +635,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator>
+  <Stack.Navigator headerMode="screen">
     <Stack.Screen
       name="SendTo"
       component={SendTo}
@@ -668,7 +652,7 @@ const SendFlowView = () => (
       options={Confirm.navigationOptions}
     />
     <Stack.Screen
-      name={Routes.STANDALONE_CONFIRMATIONS.TRANSFER}
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={RedesignedConfirm}
     />
   </Stack.Navigator>
@@ -869,6 +853,11 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+    <Stack.Screen
+      name={Routes.EARN.MODALS.ROOT}
+      component={EarnModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen
       name="StakeModals"
       component={StakeModalStack}

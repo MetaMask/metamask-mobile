@@ -26,7 +26,6 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
-import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -36,7 +35,6 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -64,7 +62,6 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
-import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
@@ -133,6 +130,8 @@ import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
+import AccountStatus from '../../Views/AccountStatus';
+import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -142,6 +141,12 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
+import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
+import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { checkForDeeplink } from '../../../actions/user';
+import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import { RootState } from '../../../reducers';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -158,34 +163,15 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const OnboardingSuccessComponent = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
+const AccountAlreadyExists = () => <AccountStatus type="found" />;
 
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
+const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -205,6 +191,7 @@ const OnboardingSuccessFlow = () => (
     />
   </Stack.Navigator>
 );
+
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
@@ -223,7 +210,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      component={OnboardingSuccess} // Used in SRP flow
     />
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
@@ -239,6 +226,17 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="OptinMetrics"
       component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen name="AccountStatus" component={AccountStatus} />
+    <Stack.Screen
+      name="AccountAlreadyExists"
+      component={AccountAlreadyExists}
+    />
+    <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen
+      name="Rehydrate"
+      component={Login}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -336,6 +334,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ONBOARDING_SHEET}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -443,10 +445,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
     {
       <Stack.Screen
         name={Routes.SHEET.SELECT_SRP}
@@ -497,6 +495,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen
+      name={Routes.MODAL.DEEP_LINK_MODAL}
+      component={DeepLinkModal}
+    />
   </Stack.Navigator>
 );
 
@@ -591,15 +593,38 @@ const MultichainAccountDetails = () => {
         component={DeleteAccount}
         initialParams={route?.params}
       />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={route?.params}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
 
-const FlatConfirmationRequest = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.CONFIRMATION_REQUEST_FLAT} component={Confirm} />
-  </Stack.Navigator>
-);
+const MultichainWalletDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
@@ -711,6 +736,10 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
+      />
+      <Stack.Screen
         options={{
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
@@ -760,10 +789,6 @@ const AppFlow = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.CONFIRMATION_REQUEST_FLAT}
-        component={FlatConfirmationRequest}
-      />
-      <Stack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         component={ModalConfirmationRequest}
       />
@@ -776,15 +801,17 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
+  const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
-  const navigation = useNavigation();
-  const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
-
   const isFirstRender = useRef(true);
+
+  const isMetaMetricsUISeen = useSelector(
+    (state: RootState) => state.user.isMetaMetricsUISeen,
+  );
 
   if (isFirstRender.current) {
     trace({
@@ -817,8 +844,25 @@ const App: React.FC = () => {
               await Authentication.appTriggeredAuth();
             },
           );
-          // we need to reset the navigator here so that the user cannot go back to the login screen
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+
+          if (!isMetaMetricsUISeen) {
+            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: () =>
+                    navigation.reset({
+                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+                    }),
+                },
+              },
+            });
+          } else {
+            navigation.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
@@ -839,50 +883,36 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, queueOfHandleDeeplinkFunctions]);
+  }, [navigation, isMetaMetricsUISeen]);
 
   const handleDeeplink = useCallback(
-    ({
-      error,
-      params,
-      uri,
-    }: {
-      error?: string | null;
-      params?: Record<string, unknown>;
-      uri?: string;
-    }) => {
-      if (error) {
-        trackErrorAsAnalytics(error, 'Branch:');
-      }
-      const deeplink = params?.['+non_branch_link'] || uri || null;
+    ({ uri }: { uri?: string }) => {
       try {
-        if (deeplink && typeof deeplink === 'string') {
-          AppStateEventProcessor.setCurrentDeeplink(deeplink);
-          SharedDeeplinkManager.parse(deeplink, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          });
+        if (uri && typeof uri === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(uri);
+          dispatch(checkForDeeplink());
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
       }
     },
-    [],
+    [dispatch],
   );
 
-  // on Android devices, this creates a listener
-  // to deeplinks used to open the app
-  // when it is in background (so not closed)
-  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+  // Subscribe to incoming deeplinks
+  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
   useEffect(() => {
-    if (Device.isAndroid())
-      Linking.addEventListener('url', (params) => {
-        const { url } = params;
-        if (url) {
-          handleDeeplink({ uri: url });
-        }
-      });
+    Linking.addEventListener('url', (params) => {
+      const { url } = params;
+      if (url) {
+        handleDeeplink({ uri: url });
+      }
+    });
   }, [handleDeeplink]);
 
+  // Subscribe to incoming Branch deeplinks
+  // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+  // Ex. Branch links will funnel through here when opening the app from a Branch link
   useEffect(() => {
     // Initialize deep link manager
     SharedDeeplinkManager.init({
@@ -890,29 +920,20 @@ const App: React.FC = () => {
       dispatch,
     });
 
-    // Subscribe to incoming deeplinks
-    // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
     branch.subscribe((opts) => {
       const { error } = opts;
 
+      // Log error for analytics and continue handling deeplink
       if (error) {
-        // Log error for analytics and continue handling deeplink
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
+        trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      if (sdkInit.current) {
-        handleDeeplink(opts);
-      } else {
-        queueOfHandleDeeplinkFunctions.current =
-          queueOfHandleDeeplinkFunctions.current.concat([
-            () => {
-              handleDeeplink(opts);
-            },
-          ]);
-      }
+      branch.getLatestReferringParams().then((val) => {
+        const deeplink = opts.uri || (val['+non_branch_link'] as string);
+        handleDeeplink({ uri: deeplink });
+      });
     });
-  }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
+  }, [dispatch, handleDeeplink, navigation]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -935,11 +956,7 @@ const App: React.FC = () => {
             context: 'Nav/App',
             navigation: NavigationService.navigation,
           });
-          await SDKConnect.getInstance().postInit(() => {
-            setTimeout(() => {
-              queueOfHandleDeeplinkFunctions.current = [];
-            }, 1000);
-          });
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -948,13 +965,9 @@ const App: React.FC = () => {
       }
     }
 
-    initSDKConnect()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      })
-      .catch((err) => {
-        Logger.error(err, 'Error initializing SDKConnect');
-      });
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [onboarded, userLoggedIn]);
 
   useEffect(() => {

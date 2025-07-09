@@ -24,6 +24,7 @@ import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
+import { ImageSourcePropType } from 'react-native';
 
 /**
  * Checks if 2 date objects are on the same day
@@ -344,6 +345,20 @@ export const sortNotifications = (
   );
 };
 
+type KnownChainIds =
+  (typeof NOTIFICATION_CHAINS_ID)[keyof typeof NOTIFICATION_CHAINS_ID];
+
+const imageMap = {
+  [NOTIFICATION_CHAINS_ID.ETHEREUM]: images.ETHEREUM,
+  [NOTIFICATION_CHAINS_ID.LINEA]: images['LINEA-MAINNET'],
+  [NOTIFICATION_CHAINS_ID.ARBITRUM]: images.AETH,
+  [NOTIFICATION_CHAINS_ID.OPTIMISM]: images.OPTIMISM,
+  [NOTIFICATION_CHAINS_ID.BSC]: images.BNB,
+  [NOTIFICATION_CHAINS_ID.AVALANCHE]: images.AVAX,
+  [NOTIFICATION_CHAINS_ID.POLYGON]: images.POL,
+  [NOTIFICATION_CHAINS_ID.SEI]: images.SEI,
+} satisfies Record<KnownChainIds, ImageSourcePropType | undefined>;
+
 /**
  * Gets token information for the notification chains we support.
  * @param chainId Notification Chain Id. This is a subset of chains that support notifications
@@ -351,53 +366,17 @@ export const sortNotifications = (
  */
 export function getNativeTokenDetailsByChainId(chainId: number) {
   const chainIdString = chainId.toString();
-  if (chainIdString === NOTIFICATION_CHAINS_ID.ETHEREUM) {
+
+  if (
+    Object.values(NOTIFICATION_CHAINS_ID).includes(
+      chainIdString as KnownChainIds,
+    )
+  ) {
+    const knownChainId = chainIdString as KnownChainIds;
     return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.ETHEREUM,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.OPTIMISM) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.OPTIMISM,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.BSC) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.BNB,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.POLYGON) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.POL,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.ARBITRUM) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.AETH,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.AVALANCHE) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.AVAX,
-    };
-  }
-  if (chainIdString === NOTIFICATION_CHAINS_ID.LINEA) {
-    return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images['LINEA-MAINNET'],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[knownChainId],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[knownChainId],
+      image: imageMap[knownChainId],
     };
   }
 

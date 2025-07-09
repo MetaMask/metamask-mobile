@@ -56,6 +56,10 @@ import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import {
+  lockAccountSyncing,
+  unlockAccountSyncing,
+} from '../../../actions/identity';
 
 const defaultNumberOfWords = 12;
 
@@ -227,9 +231,11 @@ const ImportNewSecretRecoveryPhrase = () => {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
+      await lockAccountSyncing();
+      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -242,11 +248,16 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+      
       fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        ).build(),
+        )
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
       );
       navigation.navigate('WalletView');
     } catch (e) {
@@ -263,6 +274,8 @@ const ImportNewSecretRecoveryPhrase = () => {
         );
       }
       setLoading(false);
+    } finally {
+      await unlockAccountSyncing();
     }
   };
 

@@ -47,6 +47,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { setMetaMetricsUISeen } from '../../../actions/user';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -105,6 +106,9 @@ const createStyles = ({ colors }) =>
       height: 1,
       backgroundColor: colors.border.muted,
     },
+    title: {
+      fontWeight: '700',
+    },
   });
 
 /**
@@ -138,6 +142,10 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Action to set meta metrics UI seen
+     */
+    setMetaMetricsUISeen: PropTypes.func,
   };
 
   state = {
@@ -200,10 +208,10 @@ class OptinMetrics extends PureComponent {
       prevState.isEndReached !== isEndReached ||
       prevState.scrollViewHeight !== scrollViewHeight
     ) {
-      if (scrollViewContentHeight === undefined || isEndReached) return;
+      if (scrollViewContentHeight === undefined) return;
 
       // Check if content fits view port of scroll view
-      if (scrollViewHeight >= scrollViewContentHeight) {
+      if (scrollViewHeight >= scrollViewContentHeight && !isEndReached) {
         this.onScrollEndReached();
       }
     }
@@ -240,6 +248,7 @@ class OptinMetrics extends PureComponent {
       this.props.setOnboardingWizardStep(1);
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
+    this.props.setMetaMetricsUISeen(true);
   };
 
   /**
@@ -554,7 +563,6 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-    if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
     const paddingAllowance = Platform.select({
       ios: 16,
@@ -564,8 +572,11 @@ class OptinMetrics extends PureComponent {
       nativeEvent.contentSize.height -
       nativeEvent.layoutMeasurement.height -
       paddingAllowance;
+
     // Check when scroll has reached the end.
-    if (currentYOffset >= endThreshold) this.onScrollEndReached();
+    if (currentYOffset >= endThreshold && !this.state.isEndReached) {
+      this.onScrollEndReached();
+    }
   };
 
   render() {
@@ -577,21 +588,20 @@ class OptinMetrics extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaView
-        style={styles.root}
-        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
-      >
+      <SafeAreaView style={styles.root}>
         <ScrollView
           style={styles.root}
           scrollEventThrottle={150}
           onContentSizeChange={this.onContentSizeChange}
           onLayout={this.onLayout}
           onScroll={this.onScroll}
+          testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
         >
           <View style={styles.wrapper}>
             <Text
               variant={TextVariant.DisplayMD}
               color={TextColor.Default}
+              style={styles.title}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
@@ -668,6 +678,8 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),
+  setMetaMetricsUISeen: (isMetaMetricsUISeen) =>
+    dispatch(setMetaMetricsUISeen(isMetaMetricsUISeen)),
 });
 
 export default connect(

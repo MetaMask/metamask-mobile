@@ -4,19 +4,19 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { noop } from 'lodash';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { transferTransactionStateMock } from '../../../mock-data/transfer-transaction-mock';
-import { feeMarketEstimates } from '../../../mock-data/gas-fee-controller-mock';
+import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
+import { feeMarketEstimates } from '../../../__mocks__/controllers/gas-fee-controller-mock';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
-import { validatePriorityFee } from '../../../utils/gas-validations';
+import { validatePriorityFee } from '../../../utils/validations/gas';
 import { PriorityFeeInput } from './priority-fee-input';
 
 jest.mock('../../../hooks/gas/useGasFeeEstimates');
 
-jest.mock('../../../utils/gas-validations', () => ({
+jest.mock('../../../utils/validations/gas', () => ({
   validatePriorityFee: jest.fn(),
 }));
 
-jest.mock('../../../utils/gas-validations', () => ({
+jest.mock('../../../utils/validations/gas', () => ({
   validatePriorityFee: jest.fn(),
 }));
 

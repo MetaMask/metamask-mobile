@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Theme } from '../../../util/theme/models';
 
@@ -30,6 +30,7 @@ export const createStyles = (theme: Theme) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: theme.colors.border.default,
+      marginBottom: 16, // ensure the copy to clipboard is not clipped
     },
     clipboardButton: {
       alignSelf: 'center',
@@ -44,13 +45,19 @@ export const createStyles = (theme: Theme) =>
     rowWrapper: {
       padding: 20,
     },
+    tabContentContainer: {
+      minHeight: 320,
+      flexGrow: 1,
+      flexShrink: 0,
+      marginBottom: Platform.OS === 'android' ? 20 : 0,
+    },
     warningWrapper: {
       backgroundColor: theme.colors.error.muted,
-      margin: 20,
-      marginTop: 10,
+      padding: 20,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: theme.colors.error.default,
+      marginTop: 16,
     },
     warningRowWrapper: {
       flexDirection: 'row',
@@ -71,7 +78,6 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     icon: {
-      margin: 10,
       color: theme.colors.error.default,
     },
     blueText: {
@@ -87,7 +93,7 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     enterPassword: {
-      marginBottom: 15,
+      marginBottom: 4,
       color: theme.colors.text.default,
     },
     boldText: {
@@ -123,7 +129,7 @@ export const createStyles = (theme: Theme) =>
       fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
-      marginBottom: 20,
+      marginBottom: 24,
     },
     tabBar: {
       borderColor: theme.colors.border.muted,

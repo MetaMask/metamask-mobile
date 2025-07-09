@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import AccountNetworkInfoRow from '../../rows/account-network-info-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
@@ -12,7 +13,7 @@ const SwitchAccountType = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   return (
-    <View>
+    <View testID={ConfirmationInfoComponentIDs.SWITCH_ACCOUNT_TYPE}>
       <AccountNetworkInfoRow />
       <SwitchAccountTypeInfoRow />
       <GasFeesDetailsRow />

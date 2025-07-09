@@ -241,6 +241,9 @@ exports[`OptinMetrics render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -317,7 +320,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           "paddingTop": 24,
                         }
                       }
-                      testID="meta-metrics-container"
                     >
                       <RCTScrollView
                         onContentSizeChange={[Function]}
@@ -331,6 +333,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             "paddingTop": 24,
                           }
                         }
+                        testID="meta-metrics-container"
                       >
                         <View>
                           <View
@@ -348,7 +351,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -364,9 +367,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -404,9 +406,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -417,9 +418,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -432,15 +432,14 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  clicks and views on the app are stored, but other details (like your public address) are not.
+                                  Clicks and views on the app are stored, but other details (like your public address) are not.
                                 </Text>
                               </Text>
                             </View>
@@ -473,9 +472,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -486,9 +484,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -501,15 +498,14 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
+                                  We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.
                                 </Text>
                               </Text>
                             </View>
@@ -542,9 +538,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -555,9 +550,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -570,15 +564,14 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  you decide if you want to share or delete your usage data via settings any time.
+                                  You decide if you want to share or delete your usage data via settings any time.
                                 </Text>
                               </Text>
                             </View>
@@ -630,9 +623,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
@@ -655,9 +647,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
@@ -670,9 +661,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -710,14 +700,15 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "transparent",
-                              "borderColor": "#4459ff",
+                              "backgroundColor": "#3c4d9d1a",
+                              "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
                               "flex": 1,
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
+                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -727,10 +718,9 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#4459ff",
-                                "fontFamily": "CentraNo1-Medium",
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -757,12 +747,13 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#4459ff",
+                              "backgroundColor": "#121314",
                               "borderRadius": 12,
                               "flex": 1,
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
+                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -773,9 +764,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#ffffff",
-                                "fontFamily": "CentraNo1-Medium",
+                                "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }

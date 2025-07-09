@@ -75,6 +75,7 @@ import AvatarToken from '../../../component-library/components/Avatars/Avatar/va
 import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -121,7 +122,13 @@ const PermissionsSummary = ({
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
   const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
+    () => {
+      try {
+        return new URL(currentPageInformation.url).hostname
+      } catch {
+        return currentPageInformation.url;
+      }
+    },
     [currentPageInformation.url],
   );
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
@@ -285,6 +292,7 @@ const PermissionsSummary = ({
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -296,6 +304,7 @@ const PermissionsSummary = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
+    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {

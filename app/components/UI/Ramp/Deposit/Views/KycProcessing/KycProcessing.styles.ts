@@ -15,6 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginTop: 12,
       marginBottom: 16,
+      fontWeight: 'bold',
     },
     description: {
       textAlign: 'center',
@@ -27,6 +28,9 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.success.muted,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    footerContent: {
+      gap: 8,
     },
   });
 };

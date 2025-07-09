@@ -166,9 +166,8 @@ exports[`Confirm should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -190,9 +189,8 @@ exports[`Confirm should render correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -356,6 +354,9 @@ exports[`Confirm should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -426,9 +427,12 @@ exports[`Confirm should render correctly 1`] = `
                   >
                     <RNCSafeAreaView
                       edges={
-                        [
-                          "bottom",
-                        ]
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
                       }
                       style={
                         {
@@ -744,9 +748,8 @@ exports[`Confirm should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -768,9 +771,8 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 16,
-                                          "fontWeight": "700",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -787,9 +789,8 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                       "marginLeft": "auto",
@@ -803,9 +804,8 @@ exports[`Confirm should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 16,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1028,6 +1028,7 @@ exports[`Confirm should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
+                        <View />
                       </View>
                       <RCTScrollView
                         style={
@@ -1637,6 +1638,9 @@ exports[`Confirm should render correctly 1`] = `
                                 </View>
                               </View>
                             </View>
+                            <View />
+                            <View />
+                            <View />
                           </View>
                           <View
                             style={
@@ -1778,6 +1782,7 @@ exports[`Confirm should render correctly 1`] = `
                           </Text>
                         </TouchableOpacity>
                       </View>
+                      <View />
                     </RNCSafeAreaView>
                   </View>
                 </View>

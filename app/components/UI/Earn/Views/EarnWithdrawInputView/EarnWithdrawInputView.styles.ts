@@ -12,6 +12,15 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'column',
       justifyContent: 'center',
     },
+    spacer: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollViewContent: {
+      flexGrow: 1,
+    },
     stakeButtonText: {
       fontSize: 18,
       color: colors.text.alternative,
@@ -24,6 +33,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     unstakeBanner: {
       marginHorizontal: 16,
+    },
+    earnTokenSelectorContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
     },
   });
 };

@@ -82,6 +82,7 @@ export enum IconName {
   Add = 'Add',
   Ai = 'Ai',
   AlternateEmail = 'AlternateEmail',
+  Apple = 'Apple',
   Apps = 'Apps',
   Arrow2Down = 'Arrow2Down',
   Arrow2Left = 'Arrow2Left',

@@ -1,8 +1,6 @@
 import { AccountActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/AccountActionsBottomSheet.selectors.js';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
-import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountName.selectors.js';
-import TestHelpers from '../../helpers.js';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import EditAccountNameView from './EditAccountNameView.js';
 
 class AccountActionsBottomSheet {
@@ -39,8 +37,8 @@ class AccountActionsBottomSheet {
   async renameActiveAccount(newName) {
     await this.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput);
-    await TestHelpers.typeTextAndHideKeyboard(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
+    await Gestures.typeTextAndHideKeyboard(
+      EditAccountNameView.accountNameInput,
       newName,
     );
     await EditAccountNameView.tapSave();

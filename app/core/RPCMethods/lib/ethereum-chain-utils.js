@@ -4,7 +4,6 @@ import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
-  isChainPermissionsFeatureEnabled,
   isPrefixedFormattedHexString,
   isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
@@ -16,10 +15,6 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import {
-  getDefaultCaip25CaveatValue,
-  getPermittedAccounts,
-} from '../../Permissions';
 import Engine from '../../Engine';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
@@ -228,6 +223,7 @@ export async function switchToNetwork({
   origin,
   autoApprove = false,
   hooks,
+  dappUrl = origin,
 }) {
   const {
     getCaveat,
@@ -244,12 +240,6 @@ export async function switchToNetwork({
   } = Engine.context;
 
   const [networkConfigurationId, networkConfiguration] = network;
-
-  // for some reason this extra step is necessary for accessing the env variable in test environment
-  const chainPermissionsFeatureEnabled =
-    { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-      : isChainPermissionsFeatureEnabled;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -268,15 +258,11 @@ export async function switchToNetwork({
     });
   }
 
-  const shouldGrantPermissions =
-    chainPermissionsFeatureEnabled &&
-    (!ethChainIds || !ethChainIds.includes(chainId));
+  const shouldGrantPermissions = !ethChainIds?.includes(chainId);
 
   const requestModalType = autoApprove ? 'new' : 'switch';
 
-  const shouldShowRequestModal =
-    (!autoApprove && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
+  const shouldShowRequestModal = !autoApprove && shouldGrantPermissions;
 
   const requestData = {
     rpcUrl:
@@ -292,7 +278,7 @@ export async function switchToNetwork({
     ticker: networkConfiguration.ticker || 'ETH',
     chainColor: networkConfiguration.color,
     pageMeta: {
-      url: origin,
+      url: dappUrl ?? origin,
     },
   };
 
@@ -319,7 +305,7 @@ export async function switchToNetwork({
     }
   }
 
-  if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
+  if (!shouldShowRequestModal && !ethChainIds?.includes(chainId)) {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       origin,
       chainId,
@@ -338,9 +324,7 @@ export async function switchToNetwork({
 
   rejectApprovalRequestsForOrigin?.();
 
-  const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
-
-  if (isPerDappSelectedNetworkEnabled() && originHasAccountsPermission) {
+  if (isPerDappSelectedNetworkEnabled()) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
       networkConfigurationId || networkConfiguration.networkType,

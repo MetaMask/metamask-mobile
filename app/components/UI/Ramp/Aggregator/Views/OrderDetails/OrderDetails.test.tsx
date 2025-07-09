@@ -29,7 +29,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -462,7 +462,7 @@ describe('OrderDetails', () => {
         providerOrderLink: 'https://example.com',
       },
     };
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -485,7 +485,7 @@ describe('OrderDetails', () => {
       },
     };
 
-    render(OrderDetails, [testOrder]);
+    render(OrderDetails, [testOrder as FiatOrder]);
 
     fireEvent.press(screen.getByText('Contact Support'));
     expect(mockTrackEvent).toHaveBeenCalledWith(

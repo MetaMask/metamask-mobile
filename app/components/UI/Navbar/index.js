@@ -21,10 +21,8 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  importAccountFromPrivateKey,
-  getLabelTextByAddress,
-} from '../../../util/address';
+import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -75,6 +73,12 @@ const trackEvent = (event, params = {}) => {
 };
 
 const styles = StyleSheet.create({
+  hitSlop: {
+    top: 15,
+    bottom: 15,
+    left: 15,
+    right: 15,
+  },
   metamaskName: {
     width: 70,
     height: 35,
@@ -358,9 +362,8 @@ export function getPaymentRequestOptionsTitle(
   const goBack = route.params?.dispatch;
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -370,11 +373,18 @@ export function getPaymentRequestOptionsTitle(
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    headerCloseButton: {
+      marginRight: 16,
+    },
   });
 
   return {
-    title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitleAlign: 'center',
+    headerTitle: () => (
+      <View>
+        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
+      </View>
+    ),
     headerLeft: () =>
       goBack ? (
         // eslint-disable-next-line react/jsx-no-bind
@@ -393,17 +403,13 @@ export function getPaymentRequestOptionsTitle(
         <View />
       ),
     headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Md}
         onPress={() => navigation.pop()}
-        style={styles.closeButton}
-      >
-        <IonicIcon
-          name={'close'}
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
+        style={innerStyles.headerCloseButton}
+        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
+      />
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -1909,11 +1915,10 @@ export function getDepositNavbarOptions(
             <ButtonIcon
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
-              onPress={
-                onClose
-                  ? () => onClose()
-                  : () => navigation.navigate(Routes.WALLET.HOME)
-              }
+              onPress={() => {
+                navigation.dangerouslyGetParent()?.pop();
+                onClose?.();
+              }}
             />
           </TouchableOpacity>
         )
@@ -2077,6 +2082,7 @@ export function getStakingNavbar(
     headerStyle: {
       backgroundColor:
         navBarOptions?.backgroundColor ?? themeColors.background.default,
+      shadowColor: importedColors.transparent,
       shadowOffset: null,
     },
     headerLeft: {
@@ -2160,6 +2166,7 @@ export function getStakingNavbar(
         </TouchableOpacity>
       ) : hasIconButton ? (
         <TouchableOpacity
+          hitSlop={styles.hitSlop}
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
