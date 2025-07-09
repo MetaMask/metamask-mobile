@@ -181,7 +181,7 @@ describe('OtpCode Screen', () => {
       const codeInput = getByTestId('otp-code-input');
       fireEvent.changeText(codeInput, '123456');
     });
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockVerifyUserOtp).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
