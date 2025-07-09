@@ -156,6 +156,13 @@ const createStyles = (colors: Colors) =>
       color: colors.text.default,
       marginBottom: 16,
     },
+    subSectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text.default,
+      marginBottom: 8,
+      marginLeft: 16,
+    },
     closeSection: {
       backgroundColor: colors.background.alternative,
       borderRadius: 12,
@@ -591,6 +598,8 @@ const PerpsPositionDetailsView: React.FC = () => {
             </View>
           </View>
         </View>
+
+        {/* Chart */}
         <View style={styles.pnlContainer}>
           <CandlestickChartComponent
             candleData={candleData}
@@ -601,11 +610,14 @@ const PerpsPositionDetailsView: React.FC = () => {
           />
         </View>
 
+        <Text style={styles.subSectionTitle}>Open position</Text>
+
         {/* Position Card */}
         <PerpsPositionCard
           position={position}
           onClose={handleClosePosition}
           onEdit={handleEditTPSL}
+          disabled={true}
         />
 
         {/* Position Details Grid */}

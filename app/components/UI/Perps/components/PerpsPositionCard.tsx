@@ -1,9 +1,19 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, type GestureResponderEvent } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  type GestureResponderEvent,
+} from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import type { Position, PerpsNavigationParamList } from '../controllers/types';
@@ -13,12 +23,13 @@ interface PerpsPositionCardProps {
   position: Position;
   onClose?: (position: Position) => void;
   onEdit?: (position: Position) => void;
+  disabled?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.muted,
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
@@ -129,6 +140,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   position,
   onClose,
   onEdit,
+  disabled = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -169,7 +181,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     await triggerSelectionHaptic();
     navigation.navigate('PerpsPositionDetails', {
       position,
-      action: 'view'
+      action: 'view',
     });
   };
 
@@ -182,7 +194,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       // Navigate to position details with close action
       navigation.navigate('PerpsPositionDetails', {
         position,
-        action: 'close'
+        action: 'close',
       });
     }
   };
@@ -196,29 +208,38 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       // Navigate to position details with edit action
       navigation.navigate('PerpsPositionDetails', {
         position,
-        action: 'edit'
+        action: 'edit',
       });
     }
   };
 
   // Calculate PnL percentage
   const pnlNum = parseFloat(position.unrealizedPnl);
-  const entryValue = parseFloat(position.entryPrice) * Math.abs(parseFloat(position.size));
+  const entryValue =
+    parseFloat(position.entryPrice) * Math.abs(parseFloat(position.size));
   const pnlPercentage = entryValue > 0 ? (pnlNum / entryValue) * 100 : 0;
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handleCardPress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handleCardPress}
+      disabled={disabled}
+    >
       <View style={styles.header}>
         <View style={styles.assetInfo}>
           <Text style={styles.assetName}>{position.coin}</Text>
-          <View style={[
-            styles.directionBadge,
-            isLong ? styles.longBadge : styles.shortBadge
-          ]}>
-            <Text style={[
-              styles.directionText,
-              isLong ? styles.longText : styles.shortText
-            ]}>
+          <View
+            style={[
+              styles.directionBadge,
+              isLong ? styles.longBadge : styles.shortBadge,
+            ]}
+          >
+            <Text
+              style={[
+                styles.directionText,
+                isLong ? styles.longText : styles.shortText,
+              ]}
+            >
               {direction}
             </Text>
           </View>
@@ -263,19 +284,23 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       <View style={styles.detailsContainer}>
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>Unrealized P&L</Text>
-          <Text style={[
-            styles.pnlValue,
-            pnlNum >= 0 ? styles.positivePnl : styles.negativePnl
-          ]}>
+          <Text
+            style={[
+              styles.pnlValue,
+              pnlNum >= 0 ? styles.positivePnl : styles.negativePnl,
+            ]}
+          >
             {formatPnl(position.unrealizedPnl)}
           </Text>
         </View>
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>P&L %</Text>
-          <Text style={[
-            styles.pnlValue,
-            pnlPercentage >= 0 ? styles.positivePnl : styles.negativePnl
-          ]}>
+          <Text
+            style={[
+              styles.pnlValue,
+              pnlPercentage >= 0 ? styles.positivePnl : styles.negativePnl,
+            ]}
+          >
             {formatPercentage(pnlPercentage)}
           </Text>
         </View>
