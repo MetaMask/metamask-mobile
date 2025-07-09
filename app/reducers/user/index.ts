@@ -24,7 +24,6 @@ export const userInitialState: UserState = {
   ambiguousAddressEntries: {},
   appServicesReady: false,
   existingUser: false,
-  isMetaMetricsUISeen: false,
 };
 
 /**
@@ -122,11 +121,7 @@ const userReducer = (
         ...state,
         existingUser: action.payload.existingUser,
       };
-    case UserActionType.SET_META_METRICS_UI_SEEN:
-      return {
-        ...state,
-        isMetaMetricsUISeen: action.payload.isMetaMetricsUISeen,
-      };
+
     default:
       return state;
   }

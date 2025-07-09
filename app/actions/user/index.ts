@@ -188,13 +188,4 @@ export function setExistingUser(existingUser: boolean): SetExistingUserAction {
   };
 }
 
-export function setMetaMetricsUISeen(
-  isMetaMetricsUISeen: boolean,
-): SetMetaMetricsUISeenAction {
-  return {
-    type: UserActionType.SET_META_METRICS_UI_SEEN,
-    payload: {
-      isMetaMetricsUISeen,
-    },
-  };
-}
+

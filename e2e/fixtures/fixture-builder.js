@@ -528,7 +528,6 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
-          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
