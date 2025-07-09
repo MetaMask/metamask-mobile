@@ -72,6 +72,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -466,7 +467,17 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true, showPasswordChangeWarning: false });
 
-      await this.recreateVault();
+      try {
+        await this.recreateVault();
+      } catch (error) {
+        if (error instanceof SeedlessOnboardingControllerError) {
+          // prompt sheet
+          Logger.info(error);
+        }
+        Logger.error(error);
+        throw error;
+      }
+
       // Set biometrics for new password
       await Authentication.resetPassword();
       try {

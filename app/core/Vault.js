@@ -14,6 +14,8 @@ import {
 } from '@metamask/keyring-api';
 import ReduxService from './redux';
 import { areAddressesEqual } from '../util/address';
+import { SeedlessOnboardingControllerErrorType } from './Engine/controllers/seedless-onboarding-controller/error';
+import { SeedlessOnboardingControllerError } from './Engine/controllers/seedless-onboarding-controller';
 
 /**
  * Restore the given serialized QR keyring.
@@ -226,7 +228,10 @@ export const recreateVaultWithNewPassword = async (
         password,
         primaryKeyringSeedPhrase,
       );
-      seedlessChangePasswordError = error;
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error,
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
     }
   }
 
