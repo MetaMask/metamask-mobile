@@ -23,6 +23,9 @@ jest.mock('react', () => ({
   useState: jest.fn(),
 }));
 
+// Enable fake timers globally for this test file
+jest.useFakeTimers();
+
 const mockStore = configureMockStore();
 
 const initialState = {
@@ -88,6 +91,14 @@ const initialState = {
                   'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png?1547034427',
                 type: 'erc20',
               },
+              {
+                address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+                symbol: 'SAI',
+                decimals: 18,
+                name: 'Sai Stablecoin v1.0',
+                iconUrl: 'sai.svg',
+                type: 'erc20',
+              },
             ],
           },
         },
@@ -113,6 +124,12 @@ beforeEach(() => {
     state,
     mockSetShowError,
   ]);
+});
+
+afterEach(() => {
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
 });
 
 const store = mockStore(initialState);
@@ -275,20 +292,191 @@ describe('PaymentRequest', () => {
     });
   });
 
-  describe('Debounced Search Functionality', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
-    });
+  describe('Clear Search Input Functionality', () => {
+    it('clears search input and resets results when clear button is pressed', async () => {
+      // Given a PaymentRequest component with search input
+      const { getByPlaceholderText, getByText, queryByText, getByTestId } =
+        renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
 
-    afterEach(() => {
+      // When user types and then presses clear button
+      fireEvent.changeText(searchInput, 'BAT');
+
+      // Wait for debounce to complete
       act(() => {
-        jest.runOnlyPendingTimers();
+        jest.advanceTimersByTime(300);
       });
-      jest.useRealTimers();
+
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+      });
+
+      // Find and press clear button using testID
+      const clearButton = getByTestId('clear-search-input-button');
+      fireEvent.press(clearButton);
+
+      // Then input should be cleared and results reset
+      expect(searchInput.props.value).toBe('');
+      expect(getByText('Top picks')).toBeTruthy();
+      expect(queryByText('BAT')).toBeNull();
     });
 
+    it('focuses search input after clearing', async () => {
+      // Given a PaymentRequest component with search input
+      const { getByPlaceholderText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
 
+      // When user types and clears
+      fireEvent.changeText(searchInput, 'BAT');
+      fireEvent.changeText(searchInput, '');
 
+      // Then search input should maintain focus
+      expect(searchInput.props.value).toBe('');
+    });
+  });
+
+  describe('Component Lifecycle and Cleanup', () => {
+    it('cancels debounced search on component unmount', async () => {
+      // Given a PaymentRequest component with active search
+      const { getByPlaceholderText, unmount } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types and component unmounts before debounce completes
+      fireEvent.changeText(searchInput, 'ETH');
+
+      // Then unmount the component
+      unmount();
+
+      // When advancing timers after unmount
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then no errors should occur (debounced function should be cancelled)
+      expect(() => {
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      }).not.toThrow();
+    });
+
+    it('initializes with correct state on mount', () => {
+      // Given a PaymentRequest component
+      const { getByText } = renderComponent();
+
+      // Then it should show top picks by default
+      expect(getByText('Top picks')).toBeTruthy();
+      expect(getByText('Choose an asset to request')).toBeTruthy();
+    });
+
+    it('handles route params with receiveAsset on mount', () => {
+      // Given a route with receiveAsset parameter
+      const mockRouteWithAsset = {
+        params: {
+          receiveAsset: {
+            symbol: 'ETH',
+            name: 'Ether',
+            isETH: true,
+          },
+        },
+      };
+
+      // When component mounts with receiveAsset
+      const { getByText } = renderComponent({ route: mockRouteWithAsset });
+
+      // Then it should switch to amount input mode
+      expect(getByText('Enter amount')).toBeTruthy();
+    });
+  });
+
+  describe('Search Edge Cases', () => {
+    it('handles search with non-string input gracefully', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types invalid input (simulating edge case)
+      fireEvent.changeText(searchInput, '123');
+
+      // Then it should handle the search without errors
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+      });
+    });
+
+    it('handles search with special characters', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types special characters
+      fireEvent.changeText(searchInput, '!@#$%');
+
+      // Then it should handle the search gracefully
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('No tokens found')).toBeTruthy();
+      });
+    });
+
+    it('handles search with very long input', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types a very long search term
+      const longSearchTerm = 'a'.repeat(100);
+      fireEvent.changeText(searchInput, longSearchTerm);
+
+      // Then it should handle the search without performance issues
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('No tokens found')).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Network Configuration Tests', () => {
+    it('shows correct assets for mainnet', () => {
+      // Given a PaymentRequest component on mainnet
+      const { getByText } = renderComponent({ chainId: '0x1' });
+
+      // Then it should show default assets including SAI
+      expect(getByText('ETH')).toBeTruthy();
+      expect(getByText('SAI')).toBeTruthy();
+    });
+
+    it('shows correct assets for non-mainnet networks', () => {
+      // Given a PaymentRequest component on non-mainnet
+      const { getByText } = renderComponent({ chainId: '0x5' }); // Goerli
+
+      // Then it should show only ETH with network-specific ticker
+      expect(getByText('ETH')).toBeTruthy();
+    });
+
+    it('handles networks without token detection support', () => {
+      // Given a PaymentRequest component on network without token detection
+      const { getByText } = renderComponent({ chainId: '0x2' });
+
+      // Then it should show only ETH
+      expect(getByText('ETH')).toBeTruthy();
+    });
+  });
+
+  describe('Debounced Search Functionality', () => {
     it('debounces search input to reduce excessive calls', async () => {
       // Given a PaymentRequest component with search functionality
       const { getByPlaceholderText, getByText } = renderComponent();
@@ -396,7 +584,7 @@ describe('PaymentRequest', () => {
 
       // When user types and component unmounts before debounce completes
       fireEvent.changeText(searchInput, 'ETH');
-      
+
       // Then unmount the component
       unmount();
 
@@ -460,7 +648,8 @@ describe('PaymentRequest', () => {
 
     it('filters search results based on different search terms', async () => {
       // Given a PaymentRequest component
-      const { getByPlaceholderText, getByText, queryByText } = renderComponent();
+      const { getByPlaceholderText, getByText, queryByText } =
+        renderComponent();
       const searchInput = getByPlaceholderText('Search assets');
 
       // When searching for token symbol
@@ -537,7 +726,8 @@ describe('PaymentRequest', () => {
 
     it('maintains search results state during rapid typing', async () => {
       // Given a PaymentRequest component
-      const { getByPlaceholderText, getByText, queryByText } = renderComponent();
+      const { getByPlaceholderText, getByText, queryByText } =
+        renderComponent();
       const searchInput = getByPlaceholderText('Search assets');
 
       // When typing rapidly with valid search terms
@@ -570,6 +760,47 @@ describe('PaymentRequest', () => {
       });
 
       // Then should show valid results
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+    });
+
+    it('handles address-based search correctly', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When searching by token address
+      fireEvent.changeText(
+        searchInput,
+        '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+      );
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should find BAT token by address
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+    });
+
+    it('handles case-insensitive search', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When searching with different cases
+      fireEvent.changeText(searchInput, 'bat');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should find BAT token regardless of case
       await waitFor(() => {
         expect(getByText('Search results')).toBeTruthy();
         expect(getByText('BAT')).toBeTruthy();

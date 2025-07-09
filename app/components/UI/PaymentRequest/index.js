@@ -530,6 +530,7 @@ class PaymentRequest extends PureComponent {
               <TouchableOpacity
                 onPress={this.clearSearchInput}
                 style={styles.clearButton}
+                testID="clear-search-input-button"
               >
                 <FontAwesome
                   name="times-circle"
