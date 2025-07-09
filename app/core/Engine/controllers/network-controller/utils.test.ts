@@ -109,7 +109,7 @@ describe('shouldCreateRpcServiceEvents', () => {
     });
   });
 
-  describe.each(['production', 'pre-release', 'qa', 'beta', 'rc'])(
+  describe.each(['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'])(
     'if METAMASK_ENVIRONMENT is "%s"',
     (metamaskEnvironment: string) => {
       it('returns false if the MetaMetrics user is not within the sample', async () => {

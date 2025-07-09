@@ -449,9 +449,8 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -480,7 +479,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -498,7 +497,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -514,7 +513,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -532,7 +531,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -548,7 +547,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -566,7 +565,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -582,7 +581,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -600,7 +599,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -616,7 +615,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -634,7 +633,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -650,7 +649,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -668,7 +667,7 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -730,9 +729,8 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -752,7 +750,9 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -761,59 +761,51 @@ exports[`OtpCode Component calls resendOtp when resend link is clicked and prope
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -1279,9 +1271,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -1310,7 +1301,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1328,7 +1319,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1344,7 +1335,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1362,7 +1353,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1378,7 +1369,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1396,7 +1387,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1412,7 +1403,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1430,7 +1421,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1446,7 +1437,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1464,7 +1455,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1480,7 +1471,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1498,7 +1489,7 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -1560,9 +1551,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -1579,9 +1569,8 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -1602,7 +1591,9 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -1611,924 +1602,41 @@ exports[`OtpCode Component disables submit button and shows loading state when l
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
-                              style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
-                                }
-                              >
-                                Verifying code...
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      </View>
-                    </RCTSafeAreaView>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
-  </RNCSafeAreaProvider>
-</View>
-`;
-
-exports[`OtpCode Component render matches error snapshot when API call fails 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
->
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
-    style={
-      [
-        {
-          "flex": 1,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            style={
-              {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
-            pointerEvents="box-none"
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                Enter six-digit code
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={6}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
-                  "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
-                }
-              }
-            >
-              <View
-                collapsable={false}
-                pointerEvents="none"
-                style={
-                  {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
-                      {
-                        "backgroundColor": "rgb(242, 242, 242)",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <RCTSafeAreaView
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <View
-                            style={
-                              [
-                                {
-                                  "padding": 15,
-                                },
-                                {
-                                  "flex": 1,
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
-                            <View
+                              loading={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
                                   "flexDirection": "row",
+                                  "height": 48,
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
-                                  "width": "100%",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
                                 }
                               }
-                              testID="deposit-progress-container"
+                              testID="otp-code-submit-button"
                             >
-                              <View
-                                style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 2,
-                                        "flex": 1,
-                                        "height": 4,
-                                      },
-                                      {
-                                        "backgroundColor": "#4459ff",
-                                      },
-                                    ],
-                                    {
-                                      "marginRight": 10,
-                                    },
-                                  ]
-                                }
-                                testID="deposit-progress-step-0"
+                              <ActivityIndicator
+                                color="#ffffff"
+                                size="small"
                               />
-                              <View
-                                style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 2,
-                                        "flex": 1,
-                                        "height": 4,
-                                      },
-                                      {
-                                        "backgroundColor": "#2c3dc5",
-                                      },
-                                    ],
-                                    {
-                                      "marginRight": 10,
-                                    },
-                                  ]
-                                }
-                                testID="deposit-progress-step-1"
-                              />
-                              <View
-                                style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 2,
-                                        "flex": 1,
-                                        "height": 4,
-                                      },
-                                      {
-                                        "backgroundColor": "#9ca1af",
-                                      },
-                                    ],
-                                    {
-                                      "marginRight": 10,
-                                    },
-                                  ]
-                                }
-                                testID="deposit-progress-step-2"
-                              />
-                              <View
-                                style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 2,
-                                        "flex": 1,
-                                        "height": 4,
-                                      },
-                                      {
-                                        "backgroundColor": "#9ca1af",
-                                      },
-                                    ],
-                                    undefined,
-                                  ]
-                                }
-                                testID="deposit-progress-step-3"
-                              />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 16,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
-                            </Text>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "row",
-                                    "justifyContent": "space-between",
-                                  },
-                                  {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
-                                  },
-                                ]
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <View
-                                onLayout={[Function]}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 8,
-                                      "borderWidth": 1,
-                                      "height": 50,
-                                      "justifyContent": "center",
-                                      "margin": 5,
-                                      "width": 50,
-                                    },
-                                    false,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontSize": 24,
-                                      "fontWeight": "bold",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 30,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                />
-                              </View>
-                              <TextInput
-                                autoCapitalize="characters"
-                                autoComplete="one-time-code"
-                                autoCorrect={false}
-                                blurOnSubmit={false}
-                                caretHidden={true}
-                                clearButtonMode="never"
-                                disableFullscreenUI={true}
-                                keyboardType="number-pad"
-                                maxLength={6}
-                                onBlur={[Function]}
-                                onChangeText={[Function]}
-                                onFocus={[Function]}
-                                onPressOut={[Function]}
-                                spellCheck={false}
-                                style={
-                                  {
-                                    "bottom": 0,
-                                    "fontSize": 1,
-                                    "left": 0,
-                                    "opacity": 0.015,
-                                    "position": "absolute",
-                                    "right": 0,
-                                    "top": 0,
-                                  }
-                                }
-                                testID="otp-code-input"
-                                textContentType="oneTimeCode"
-                                underlineColorAndroid="transparent"
-                                value=""
-                              />
-                            </View>
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#ca3542",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 16,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Invalid code
-                            </Text>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "flexDirection": "row",
-                                    "marginTop": 12,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "marginRight": 4,
-                                  }
-                                }
-                              >
-                                Didn't receive the code?
-                              </Text>
-                              <TouchableOpacity
-                                onPress={[Function]}
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginLeft": 4,
-                                    }
-                                  }
-                                >
-                                  Resend it
-                                </Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        </View>
-                        <View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "padding": 15,
-                                },
-                                undefined,
-                                undefined,
-                              ]
-                            }
-                          >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
-                                }
-                              >
-                                Submit
-                              </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -2994,9 +2102,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3025,7 +2132,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3043,7 +2150,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3059,7 +2166,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3077,7 +2184,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3093,7 +2200,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3111,7 +2218,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3127,7 +2234,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3145,7 +2252,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3161,7 +2268,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3179,7 +2286,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3195,7 +2302,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3213,7 +2320,7 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3275,9 +2382,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -3294,9 +2400,8 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -3317,7 +2422,9 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -3326,59 +2433,51 @@ exports[`OtpCode Component render matches snapshot 1`] = `
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -3844,9 +2943,8 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3875,7 +2973,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3893,7 +2991,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3909,7 +3007,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3927,7 +3025,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3943,7 +3041,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3961,7 +3059,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -3977,7 +3075,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3995,7 +3093,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4011,7 +3109,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4029,7 +3127,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4045,7 +3143,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4063,7 +3161,7 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4125,9 +3223,8 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -4147,7 +3244,9 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -4156,59 +3255,906 @@ exports[`OtpCode Component renders cooldown timer snapshot after resending OTP 1
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    </RCTSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;
+
+exports[`OtpCode Component renders error snapshot when API call fails 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "rgb(255, 255, 255)",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "flex": 1,
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                Enter six-digit code
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              enabled={false}
+              handlerTag={6}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RCTSafeAreaView
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
+                              "flex": 1,
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "padding": 15,
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                  "paddingVertical": 12,
+                                  "width": "100%",
+                                }
+                              }
+                              testID="deposit-progress-container"
+                            >
+                              <View
+                                style={
+                                  [
+                                    [
+                                      {
+                                        "borderRadius": 2,
+                                        "flex": 1,
+                                        "height": 4,
+                                      },
+                                      {
+                                        "backgroundColor": "#4459ff",
+                                      },
+                                    ],
+                                    {
+                                      "marginRight": 10,
+                                    },
+                                  ]
+                                }
+                                testID="deposit-progress-step-0"
+                              />
+                              <View
+                                style={
+                                  [
+                                    [
+                                      {
+                                        "borderRadius": 2,
+                                        "flex": 1,
+                                        "height": 4,
+                                      },
+                                      {
+                                        "backgroundColor": "#2c3dc5",
+                                      },
+                                    ],
+                                    {
+                                      "marginRight": 10,
+                                    },
+                                  ]
+                                }
+                                testID="deposit-progress-step-1"
+                              />
+                              <View
+                                style={
+                                  [
+                                    [
+                                      {
+                                        "borderRadius": 2,
+                                        "flex": 1,
+                                        "height": 4,
+                                      },
+                                      {
+                                        "backgroundColor": "#9ca1af",
+                                      },
+                                    ],
+                                    {
+                                      "marginRight": 10,
+                                    },
+                                  ]
+                                }
+                                testID="deposit-progress-step-2"
+                              />
+                              <View
+                                style={
+                                  [
+                                    [
+                                      {
+                                        "borderRadius": 2,
+                                        "flex": 1,
+                                        "height": 4,
+                                      },
+                                      {
+                                        "backgroundColor": "#9ca1af",
+                                      },
+                                    ],
+                                    undefined,
+                                  ]
+                                }
+                                testID="deposit-progress-step-3"
+                              />
+                            </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                            </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                  },
+                                  {
+                                    "marginLeft": "auto",
+                                    "marginRight": "auto",
+                                    "marginTop": 40,
+                                  },
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "#b7bbc866",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "height": 50,
+                                      "justifyContent": "center",
+                                      "margin": 5,
+                                      "width": 50,
+                                    },
+                                    false,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
+                                      "fontWeight": "bold",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 30,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                />
+                              </View>
+                              <TextInput
+                                autoCapitalize="characters"
+                                autoComplete="one-time-code"
+                                autoCorrect={false}
+                                blurOnSubmit={false}
+                                caretHidden={true}
+                                clearButtonMode="never"
+                                disableFullscreenUI={true}
+                                keyboardType="number-pad"
+                                maxLength={6}
+                                onBlur={[Function]}
+                                onChangeText={[Function]}
+                                onFocus={[Function]}
+                                onPressOut={[Function]}
+                                spellCheck={false}
+                                style={
+                                  {
+                                    "bottom": 0,
+                                    "fontSize": 1,
+                                    "left": 0,
+                                    "opacity": 0.015,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
+                                }
+                                testID="otp-code-input"
+                                textContentType="oneTimeCode"
+                                underlineColorAndroid="transparent"
+                                value=""
+                              />
+                            </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#ca3542",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Invalid code
+                            </Text>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "flexDirection": "row",
+                                    "marginTop": 12,
+                                  },
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#9ca1af",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "marginRight": 4,
+                                  }
+                                }
+                              >
+                                Didn't receive the code?
+                              </Text>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#4459ff",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginLeft": 4,
+                                    }
+                                  }
+                                >
+                                  Resend it
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                        <View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "padding": 15,
+                                },
+                                undefined,
+                                {
+                                  "gap": 8,
+                                },
+                              ]
+                            }
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="otp-code-submit-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Submit
+                              </Text>
+                            </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -4674,9 +4620,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -4705,7 +4650,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4723,7 +4668,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4739,7 +4684,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4757,7 +4702,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4773,7 +4718,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4791,7 +4736,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4807,7 +4752,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4825,7 +4770,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4841,7 +4786,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4859,7 +4804,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4875,7 +4820,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4893,7 +4838,7 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -4955,9 +4900,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -4974,9 +4918,8 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
@@ -4997,7 +4940,9 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -5006,59 +4951,41 @@ exports[`OtpCode Component renders loading state snapshot 1`] = `
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={true}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
                                 }
-                              >
-                                Verifying code...
-                              </Text>
+                              }
+                              testID="otp-code-submit-button"
+                            >
+                              <ActivityIndicator
+                                color="#ffffff"
+                                size="small"
+                              />
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -5524,9 +5451,8 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -5555,7 +5481,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5573,7 +5499,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5589,7 +5515,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5607,7 +5533,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5623,7 +5549,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5641,7 +5567,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5657,7 +5583,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5675,7 +5601,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5691,7 +5617,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5709,7 +5635,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5725,7 +5651,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -5743,7 +5669,7 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
                                       "letterSpacing": 0,
@@ -5805,9 +5731,8 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginRight": 4,
@@ -5827,7 +5752,9 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
@@ -5836,59 +5763,51 @@ exports[`OtpCode Component renders resend error snapshot when resend fails 1`] =
                               accessible={true}
                               activeOpacity={1}
                               disabled={true}
+                              loading={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  {
-                                    "opacity": 0.6,
-                                  },
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "opacity": 0.5,
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
+                              testID="otp-code-submit-button"
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    {
-                                      "color": "#dcdcdc",
-                                    },
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Submit
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
