@@ -13,7 +13,9 @@ class NotificationsDetailView {
   }
 
   async tapOnBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Notification Details - Back Button',
+    });
   }
 }
 

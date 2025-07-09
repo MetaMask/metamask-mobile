@@ -2,8 +2,8 @@ import {
   NotificationSettingsViewSelectorsIDs,
   NotificationSettingsViewSelectorsText,
 } from '../../selectors/Notifications/NotificationSettingsView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class NotificationsSettingsView {
   get notificationToggle() {
@@ -33,16 +33,24 @@ class NotificationsSettingsView {
   }
 
   async tapNotificationToggle() {
-    await Gestures.waitAndTap(this.notificationToggle);
+    await Gestures.waitAndTap(this.notificationToggle, {
+      elemDescription: 'Notification Settings - Main Toggle',
+    });
   }
   async tapPushNotificationsToggle() {
-    await Gestures.waitAndTap(this.pushNotificationsToggle);
+    await Gestures.waitAndTap(this.pushNotificationsToggle, {
+      elemDescription: 'Notification Settings - Push Notifications Toggle',
+    });
   }
   async tapFeatureAnnouncementsToggle() {
-    await Gestures.waitAndTap(this.featureAnnonucementsToggle);
+    await Gestures.waitAndTap(this.featureAnnonucementsToggle, {
+      elemDescription: 'Notification Settings - Feature Announcements Toggle',
+    });
   }
   async tapAccountNotificationsToggle(address: string) {
-    await Gestures.waitAndTap(this.accountNotificationToggle(address));
+    await Gestures.waitAndTap(this.accountNotificationToggle(address), {
+      elemDescription: `Notification Settings - Account Notifications Toggle for ${address}`,
+    });
   }
 }
 

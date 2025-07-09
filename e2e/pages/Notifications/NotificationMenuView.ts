@@ -41,7 +41,9 @@ class EnableNotificationsModal {
     await Gestures.waitAndTap(this.announcements_tab);
   }
   async tapOnNotificationItem(id: string) {
-    await Gestures.waitAndTap(this.selectNotificationItem(id));
+    await Gestures.waitAndTap(this.selectNotificationItem(id), {
+      elemDescription: `Notification Menu - Notification Item with ID: ${id}`,
+    });
   }
   async scrollToNotificationItem(id: string) {
     await Gestures.scrollToElement(
