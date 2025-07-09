@@ -5621,9 +5621,9 @@
     is-stream "^2.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/react-native-acm@git+https://github.com/MetaMask/react-native-google-acm.git#97d5133fcc453a902ef7c9d979ca47fc3f06a36d":
+"@metamask/react-native-acm@git+https://github.com/MetaMask/react-native-google-acm.git#7a9c4ce54c97b786a5f2cd869b3b3c99f5079bdd":
   version "0.1.0"
-  resolved "git+https://github.com/MetaMask/react-native-google-acm.git#97d5133fcc453a902ef7c9d979ca47fc3f06a36d"
+  resolved "git+https://github.com/MetaMask/react-native-google-acm.git#7a9c4ce54c97b786a5f2cd869b3b3c99f5079bdd"
 
 "@metamask/react-native-actionsheet@2.4.2":
   version "2.4.2"

@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   StyleSheet,
   ScrollView,
-  Image,
   InteractionManager,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -67,12 +66,24 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-import { SecurityOptionToggle } from '../../UI/SecurityOptionToggle';
 import NavigationService from '../../../core/NavigationService';
-
 import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Checkbox from '../../../component-library/components/Checkbox';
+import fox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
+
+// Constants
+const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const RESET_PASSWORD = 'reset_password';
+const CONFIRM_PASSWORD = 'confirm_password';
+
+// Common button props
+const getCommonButtonProps = () => ({
+  variant: ButtonVariants.Primary,
+  size: ButtonSize.Lg,
+  width: ButtonWidthTypes.Full,
+});
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,10 +115,11 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
+      flexDirection: 'column',
     },
     scrollableWrapper: {
       flex: 1,
-      padding: 16,
+      paddingHorizontal: 16,
     },
     keyboardScrollableWrapper: {
       flexGrow: 1,
@@ -155,18 +167,15 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     checkboxContainer: {
-      marginTop: 10,
-      marginHorizontal: 10,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
       flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      columnGap: 8,
+      marginTop: 8,
+      marginBottom: 16,
     },
     checkbox: {
-      width: 18,
-      height: 18,
-      margin: 10,
-      marginTop: -5,
+      alignItems: 'flex-start',
     },
     label: {
       ...fontStyles.normal,
@@ -178,6 +187,14 @@ const createStyles = (colors) =>
     learnMore: {
       textDecorationLine: 'underline',
       textDecorationColor: colors.primary.default,
+    },
+    learnMoreTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      gap: 1,
+      flexWrap: 'wrap',
+      width: '90%',
     },
     field: {
       position: 'relative',
@@ -195,8 +212,15 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     ctaWrapper: {
-      flex: 1,
-      marginTop: 24,
+      width: '100%',
+      flexDirection: 'column',
+      rowGap: 18,
+      marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     biometrics: {
       position: 'relative',
@@ -266,10 +290,9 @@ const createStyles = (colors) =>
       height: '100%',
     },
     changePasswordContainer: {
-      width: '100%',
       flexDirection: 'column',
-      gap: 16,
-      marginBottom: 16,
+      rowGap: 16,
+      flexGrow: 1,
     },
     passwordLabel: {
       marginBottom: -4,
@@ -284,10 +307,6 @@ const createStyles = (colors) =>
       flex: 1,
     },
   });
-
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const RESET_PASSWORD = 'reset_password';
-const CONFIRM_PASSWORD = 'confirm_password';
 
 /**
  * View where users can set their password for the first time
@@ -340,9 +359,18 @@ class ResetPassword extends PureComponent {
 
   confirmPasswordInput = React.createRef();
 
+  // Helper method to get theme colors
+  getThemeColors = () => this.context.colors || mockTheme.colors;
+
+  // Helper method to get theme appearance
+  getThemeAppearance = () => this.context.themeAppearance || 'light';
+
+  // Helper method to get styles
+  getStyles = () => createStyles(this.getThemeColors());
+
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.getThemeColors();
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('password_reset.change_password'),
@@ -425,9 +453,7 @@ class ResetPassword extends PureComponent {
   };
 
   onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword } = this.state;
-    const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+    const { loading, password, confirmPassword } = this.state;
 
     if (loading) return;
     if (!passwordRequirementsMet(password)) {
@@ -565,11 +591,11 @@ class ResetPassword extends PureComponent {
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
-  };
-
-  toggleShowHide = () => {
-    this.setState((state) => ({ secureTextEntry: !state.secureTextEntry }));
+    this.setState((prevState) => ({
+      password: val,
+      passwordStrength: passInfo.score,
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
@@ -583,8 +609,7 @@ class ResetPassword extends PureComponent {
   };
 
   renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     return (
       <View style={styles.loader}>
@@ -595,11 +620,92 @@ class ResetPassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
+  // Helper method to render password strength text
+  renderPasswordStrengthText = (password, passwordStrengthWord, styles) => {
+    if (!password) return null;
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return (
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('reset_password.must_be_at_least', {
+            number: MIN_PASSWORD_LENGTH,
+          })}
+        </Text>
+      );
+    }
+
+    return (
+      <Text
+        variant={TextVariant.BodySM}
+        color={TextColor.Alternative}
+        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+      >
+        {strings('reset_password.password_strength')}
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          style={styles[`strength_${passwordStrengthWord}`]}
+        >
+          {' '}
+          {strings(`reset_password.strength_${passwordStrengthWord}`)}
+        </Text>
+      </Text>
+    );
+  };
+
+  // Helper method to render error text
+  renderErrorText = () => {
+    if (!this.isError()) return null;
+
+    return (
+      <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+        {strings('choose_password.password_error')}
+      </Text>
+    );
+  };
+
+  // Helper method to render warning text
+  renderWarningText = (warningText, styles) => {
+    if (!warningText) return null;
+
+    return (
+      <Text color={TextColor.Error} style={styles.warningMessageText}>
+        {warningText}
+      </Text>
+    );
+  };
+
+  // Helper method to render loading state
+  renderLoadingState = (previousScreen, colors, styles) => (
+    <View style={styles.loadingWrapper}>
+      <View style={styles.foxWrapper}>
+        <LottieView
+          style={styles.image}
+          autoPlay
+          loop
+          source={fox}
+          resizeMode="contain"
+        />
+      </View>
+      <ActivityIndicator size="large" color={colors.icon.default} />
+      <Text variant={TextVariant.HeadingLG} style={styles.title}>
+        {strings(
+          previousScreen === ONBOARDING
+            ? 'create_wallet.title'
+            : 'secure_your_wallet.creating_password',
+        )}
+      </Text>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
+        {strings('create_wallet.subtitle')}
+      </Text>
+    </View>
+  );
+
   renderConfirmPassword() {
     const { warningIncorrectPassword } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+    const colors = this.getThemeColors();
+    const themeAppearance = this.getThemeAppearance();
+    const styles = this.getStyles();
 
     return (
       <KeyboardAvoidingView
@@ -630,18 +736,12 @@ class ResetPassword extends PureComponent {
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
               />
-              {warningIncorrectPassword && (
-                <Text color={TextColor.Error} style={styles.warningMessageText}>
-                  {warningIncorrectPassword}
-                </Text>
-              )}
+              {this.renderWarningText(warningIncorrectPassword, styles)}
             </View>
             <View style={styles.buttonWrapper}>
               <Button
+                {...getCommonButtonProps()}
                 label={strings('manual_backup_step_1.confirm')}
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
                 onPress={this.tryUnlock}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                 isDisabled={!this.state.password}
@@ -654,13 +754,14 @@ class ResetPassword extends PureComponent {
   }
 
   toggleShowPassword = (index) => {
-    const newShowPasswordIndex = this.state.showPasswordIndex.includes(index)
-      ? this.state.showPasswordIndex.filter((i) => i !== index)
-      : [...this.state.showPasswordIndex, index];
-    this.setState({ showPasswordIndex: newShowPasswordIndex });
+    this.setState((prevState) => ({
+      showPasswordIndex: prevState.showPasswordIndex.includes(index)
+        ? prevState.showPasswordIndex.filter((i) => i !== index)
+        : [...prevState.showPasswordIndex, index],
+    }));
   };
 
-  handleConfirmAction = (styles) => {
+  handleConfirmAction = () => {
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
@@ -669,7 +770,7 @@ class ResetPassword extends PureComponent {
           'reset_password.warning_password_change_description',
         ),
         type: 'error',
-        icon: IconName.RichDanger,
+        icon: IconName.Danger,
         secondaryButtonLabel: strings(
           'reset_password.warning_password_cancel_button',
         ),
@@ -690,64 +791,40 @@ class ResetPassword extends PureComponent {
   };
 
   renderResetPassword() {
-    const {
-      isSelected,
-      inputWidth,
-      password,
-      passwordStrength,
-      confirmPassword,
-      secureTextEntry,
-      error,
-      loading,
-    } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+    const { isSelected, password, passwordStrength, confirmPassword, loading } =
+      this.state;
+    const colors = this.getThemeColors();
+    const themeAppearance = this.getThemeAppearance();
+    const styles = this.getStyles();
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-    const isBtnDisabled =
-      password === '' ||
-      confirmPassword === '' ||
-      password !== confirmPassword ||
-      password.length < 8;
+    const canSubmit =
+      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
-          <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <Image
-                source={require('../../../images/branding/fox.png')}
-                style={styles.image}
-                resizeMethod={'auto'}
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.icon.default} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
-          </View>
+          this.renderLoadingState(previousScreen, colors, styles)
         ) : (
-          <View style={styles.wrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollableWrapper}
-              contentContainerStyle={styles.keyboardScrollableWrapper}
-              resetScrollToCoords={{ x: 0, y: 0 }}
-            >
+          <KeyboardAwareScrollView
+            style={styles.scrollableWrapper}
+            contentContainerStyle={styles.keyboardScrollableWrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+          >
+            <View style={styles.wrapper}>
               <View
                 testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
                 style={styles.changePasswordContainer}
               >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.description')}
+                </Text>
+
                 <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
@@ -780,33 +857,19 @@ class ResetPassword extends PureComponent {
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(0)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
                       />
                     }
                   />
-                  {!password ? (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('reset_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
-                  ) : (
-                    <Text variant={TextVariant.BodySM}>
-                      {strings('reset_password.password_strength')}
-                      <Text
-                        variant={TextVariant.BodySM}
-                        style={styles[`strength_${passwordStrengthWord}`]}
-                      >
-                        {' '}
-                        {strings(
-                          `reset_password.strength_${passwordStrengthWord}`,
-                        )}
-                      </Text>
-                    </Text>
+                  {this.renderPasswordStrengthText(
+                    password,
+                    passwordStrengthWord,
+                    styles,
                   )}
                 </View>
+
                 <View style={styles.field}>
                   <Label
                     variant={TextVariant.BodyMDMedium}
@@ -842,51 +905,64 @@ class ResetPassword extends PureComponent {
                         size={IconSize.Lg}
                         color={colors.icon.alternative}
                         onPress={() => this.toggleShowPassword(1)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                       />
                     }
                     isDisabled={!password}
                   />
-                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
-                    {strings('reset_password.must_be_at_least', { number: 8 })}
-                  </Text>
+                  {this.renderErrorText()}
                 </View>
-                <View>{this.renderSwitch()}</View>
+
                 <View style={styles.checkboxContainer}>
                   <Checkbox
-                    value={isSelected}
-                    onValueChange={this.setSelection}
-                    style={styles.checkbox}
-                    tintColors={{
-                      true: colors.primary.default,
-                      false: colors.border.default,
-                    }}
-                    boxType="square"
+                    onPress={this.setSelection}
+                    isChecked={isSelected}
                     testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                    }
+                    style={styles.checkbox}
                   />
-                  {this.isError() && (
-                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                      {strings('choose_password.password_error')}
-                    </Text>
-                  )}
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={this.setSelection}
+                    style={styles.learnMoreTextContainer}
+                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                    label={
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Default}
+                      >
+                        {strings('import_from_seed.learn_more')}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
+                      </Text>
+                    }
+                  />
+                </View>
+
+                <View style={styles.ctaWrapper}>
+                  {this.renderSwitch()}
+                  <Button
+                    {...getCommonButtonProps()}
+                    label={strings('reset_password.confirm_btn')}
+                    onPress={() => this.handleConfirmAction()}
+                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                    disabled={!canSubmit}
+                    isDisabled={!canSubmit}
+                  />
                 </View>
               </View>
-
-              {this.renderSwitch()}
-
-              <View style={styles.ctaWrapper}>
-                <Button
-                  label={strings('reset_password.confirm_btn')}
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={() => this.handleConfirmAction(styles)}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                  disabled={isBtnDisabled}
-                  isDisabled={isBtnDisabled}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
+            </View>
+          </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
     );
@@ -894,8 +970,7 @@ class ResetPassword extends PureComponent {
 
   render() {
     const { view, ready } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
     return (
