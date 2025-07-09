@@ -1631,7 +1631,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -1656,7 +1656,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,
@@ -3627,7 +3627,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -3652,7 +3652,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,
@@ -7658,7 +7658,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -7683,7 +7683,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,
@@ -9654,7 +9654,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -9679,7 +9679,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,
@@ -14118,7 +14118,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -14143,7 +14143,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,
@@ -16114,7 +16114,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
+                                                        "borderRadius": 20,
                                                         "height": 40,
                                                         "overflow": "hidden",
                                                         "width": 40,
@@ -16139,7 +16139,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 20,
                                                           "height": 40,
                                                           "overflow": "hidden",
                                                           "width": 40,

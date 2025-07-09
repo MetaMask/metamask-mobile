@@ -85,7 +85,7 @@ const createStyles = (colors: Colors) =>
     ethLogo: {
       width: 40,
       height: 40,
-      borderRadius: 16,
+      borderRadius: 20,
       overflow: 'hidden',
     },
     emptyText: {

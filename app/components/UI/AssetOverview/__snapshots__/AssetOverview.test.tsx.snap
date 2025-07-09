@@ -2120,7 +2120,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                     false,
                     false,
                     {
-                      "borderRadius": 16,
+                      "borderRadius": 20,
                       "height": 40,
                       "overflow": "hidden",
                       "width": 40,
@@ -2146,7 +2146,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   style={
                     [
                       {
-                        "borderRadius": 16,
+                        "borderRadius": 20,
                         "height": 40,
                         "overflow": "hidden",
                         "width": 40,
@@ -3281,7 +3281,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                     false,
                     false,
                     {
-                      "borderRadius": 16,
+                      "borderRadius": 20,
                       "height": 40,
                       "overflow": "hidden",
                       "width": 40,
@@ -3307,7 +3307,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   style={
                     [
                       {
-                        "borderRadius": 16,
+                        "borderRadius": 20,
                         "height": 40,
                         "overflow": "hidden",
                         "width": 40,
