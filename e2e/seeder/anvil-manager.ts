@@ -104,8 +104,8 @@ class AnvilManager {
       noMining?: boolean;
     } = {},
   ): Promise<void> {
-    const options = { ...defaultOptions, ...opts,port: AnvilPort() };
-    const { port } = options;
+    const transformedPort = AnvilPort();
+    const options = { ...defaultOptions, ...opts, port: transformedPort };
 
     try {
       // eslint-disable-next-line no-console
@@ -118,7 +118,7 @@ class AnvilManager {
 
       await this.server.start();
       // eslint-disable-next-line no-console
-      console.log(`Server started on port ${port}`);
+      console.log(`Server started on port ${transformedPort}`);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to start server:', error);
@@ -137,7 +137,7 @@ class AnvilManager {
     }
     const { walletClient, publicClient, testClient } = createAnvilClients(
       this.server.options.chainId ?? 1337,
-      this.server.options.port ?? 8545,
+      this.server.options.port ?? AnvilPort(),
     );
 
     return { walletClient, publicClient, testClient };
