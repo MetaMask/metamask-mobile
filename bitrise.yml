@@ -1095,6 +1095,36 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: E2E_Android_Failure_Artifacts
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/account-list-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/account-list-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/network-list-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/network-list-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo " Copied network-list-performance-results.json"
+                fi
+                
+                # List what was copied
+                ls -la "$BITRISE_DEPLOY_DIR/performance-results/" || echo "No performance results found"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -1356,6 +1386,36 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_IOS_Failure_Artifacts'
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/account-list-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/account-list-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/network-list-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/network-list-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-performance-results.json"
+                fi
+                
+                # List what was copied
+                ls -la "$BITRISE_DEPLOY_DIR/performance-results/" || echo "No performance results found"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
   start_e2e_tests:
     steps:
       - build-router-start@0:
