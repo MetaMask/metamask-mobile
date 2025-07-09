@@ -209,16 +209,6 @@ remapEnvVariableExperimental() {
 	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
-# Mapping for environmental values in the experimental environment
-remapEnvVariableExperimental() {
-  	echo "Remapping Experimental env variable names to match Experimental values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
-}
-
 loadJSEnv(){
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
