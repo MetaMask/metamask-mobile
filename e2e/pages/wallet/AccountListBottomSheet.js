@@ -5,10 +5,9 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
 
 class AccountListBottomSheet {
   get accountList() {
@@ -97,7 +96,9 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElementName(index));
+    await Gestures.tap(this.getSelectWithMenuElementName(index), {
+      checkEnabled: false
+    });
   }
 
   async longPressAccountAtIndex(index) {
@@ -136,6 +137,9 @@ class AccountListBottomSheet {
     );
   }
 
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'fast');
+  }
 }
 
 export default new AccountListBottomSheet();

@@ -1,12 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DepositPhoneField additional props should match snapshot 1`] = `
+exports[`DepositPhoneField renders correctly after flag button press 1`] = `
 <View
   style={
-    {
-      "flexDirection": "column",
-      "marginBottom": 16,
-    }
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
   }
 >
   <Text
@@ -14,9 +17,8 @@ exports[`DepositPhoneField additional props should match snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -30,127 +32,119 @@ exports[`DepositPhoneField additional props should match snapshot 1`] = `
     style={
       {
         "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
         "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
+    testID="textfield"
   >
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 8,
-          "borderColor": "#b7bbc8",
-          "borderRightWidth": 0,
-          "borderTopLeftRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "paddingHorizontal": 12,
+          "marginRight": 8,
         }
       }
+      testID="textfield-startacccessory"
     >
-      <Text
-        accessibilityRole="text"
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
         style={
           {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginRight": 4,
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        🇺🇸
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
-        }
-      >
-        +
-        1
-      </Text>
+        >
+          🇩🇪
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +49
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 0,
-          "borderColor": "#b7bbc8",
-          "borderRadius": 8,
-          "borderTopLeftRadius": 0,
-          "borderWidth": 1,
           "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "opacity": 1,
-          "paddingHorizontal": 16,
         }
       }
-      testID="textfield"
     >
-      <View
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 7890"
+        placeholderTextColor="#9ca1af"
         style={
           {
-            "flex": 1,
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
           }
         }
-      >
-        <TextInput
-          autoFocus={false}
-          editable={true}
-          keyboardAppearance="light"
-          keyboardType="phone-pad"
-          maxLength={10}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          placeholder="Enter phone number"
-          placeholderTextColor="#9ca1af"
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderColor": "transparent",
-              "borderWidth": 1,
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "height": 24,
-              "letterSpacing": 0,
-              "opacity": 1,
-              "paddingVertical": 0,
-            }
-          }
-          testID="deposit-phone-field-test-id"
-          value=""
-        />
-      </View>
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
     </View>
   </View>
 </View>
 `;
 
-exports[`DepositPhoneField custom flags and country codes should match snapshot 1`] = `
+exports[`DepositPhoneField renders correctly after input change 1`] = `
 <View
   style={
-    {
-      "flexDirection": "column",
-      "marginBottom": 16,
-    }
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
   }
 >
   <Text
@@ -158,9 +152,8 @@ exports[`DepositPhoneField custom flags and country codes should match snapshot 
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -174,125 +167,119 @@ exports[`DepositPhoneField custom flags and country codes should match snapshot 
     style={
       {
         "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
         "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
+    testID="textfield"
   >
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 8,
-          "borderColor": "#b7bbc8",
-          "borderRightWidth": 0,
-          "borderTopLeftRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "paddingHorizontal": 12,
+          "marginRight": 8,
         }
       }
+      testID="textfield-startacccessory"
     >
-      <Text
-        accessibilityRole="text"
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
         style={
           {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginRight": 4,
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        🇬🇧
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
-        }
-      >
-        +
-        44
-      </Text>
+        >
+          🇩🇪
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +49
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 0,
-          "borderColor": "#b7bbc8",
-          "borderRadius": 8,
-          "borderTopLeftRadius": 0,
-          "borderWidth": 1,
           "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "opacity": 1,
-          "paddingHorizontal": 16,
         }
       }
-      testID="textfield"
     >
-      <View
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 7890"
+        placeholderTextColor="#9ca1af"
         style={
           {
-            "flex": 1,
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
           }
         }
-      >
-        <TextInput
-          autoFocus={false}
-          editable={true}
-          keyboardAppearance="light"
-          keyboardType="phone-pad"
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          placeholderTextColor="#9ca1af"
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderColor": "transparent",
-              "borderWidth": 1,
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "height": 24,
-              "letterSpacing": 0,
-              "opacity": 1,
-              "paddingVertical": 0,
-            }
-          }
-          testID="deposit-phone-field-test-id"
-          value=""
-        />
-      </View>
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
     </View>
   </View>
 </View>
 `;
 
-exports[`DepositPhoneField error message should match snapshot 1`] = `
+exports[`DepositPhoneField renders correctly with default props 1`] = `
 <View
   style={
-    {
-      "flexDirection": "column",
-      "marginBottom": 16,
-    }
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
   }
 >
   <Text
@@ -300,9 +287,8 @@ exports[`DepositPhoneField error message should match snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -316,113 +302,374 @@ exports[`DepositPhoneField error message should match snapshot 1`] = `
     style={
       {
         "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
         "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
+    testID="textfield"
   >
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 8,
-          "borderColor": "#b7bbc8",
-          "borderRightWidth": 0,
-          "borderTopLeftRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "paddingHorizontal": 12,
+          "marginRight": 8,
         }
       }
+      testID="textfield-startacccessory"
     >
-      <Text
-        accessibilityRole="text"
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
         style={
           {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginRight": 4,
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        🇺🇸
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
-        }
-      >
-        +
-        1
-      </Text>
+        >
+          🇺🇸
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +1
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 0,
-          "borderColor": "#b7bbc8",
-          "borderRadius": 8,
-          "borderTopLeftRadius": 0,
-          "borderWidth": 1,
           "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "opacity": 1,
-          "paddingHorizontal": 16,
         }
       }
-      testID="textfield"
     >
-      <View
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="(555) 555-1234"
+        placeholderTextColor="#9ca1af"
         style={
           {
-            "flex": 1,
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with different region 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        <TextInput
-          autoFocus={false}
-          editable={true}
-          keyboardAppearance="light"
-          keyboardType="phone-pad"
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          placeholderTextColor="#9ca1af"
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "backgroundColor": "#ffffff",
-              "borderColor": "transparent",
-              "borderWidth": 1,
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
-              "height": 24,
               "letterSpacing": 0,
-              "opacity": 1,
-              "paddingVertical": 0,
+              "lineHeight": 24,
             }
           }
-          testID="deposit-phone-field-test-id"
-          value=""
-        />
-      </View>
+        >
+          🇩🇪
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +49
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 7890"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with error message 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          🇺🇸
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +1
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="(555) 555-1234"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
     </View>
   </View>
   <Text
@@ -430,9 +677,8 @@ exports[`DepositPhoneField error message should match snapshot 1`] = `
     style={
       {
         "color": "#ca3542",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 12,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginTop": 4,
@@ -444,13 +690,16 @@ exports[`DepositPhoneField error message should match snapshot 1`] = `
 </View>
 `;
 
-exports[`DepositPhoneField render should match snapshot 1`] = `
+exports[`DepositPhoneField renders correctly with long phone number 1`] = `
 <View
   style={
-    {
-      "flexDirection": "column",
-      "marginBottom": 16,
-    }
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
   }
 >
   <Text
@@ -458,9 +707,8 @@ exports[`DepositPhoneField render should match snapshot 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -474,113 +722,645 @@ exports[`DepositPhoneField render should match snapshot 1`] = `
     style={
       {
         "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
         "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
+    testID="textfield"
   >
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 8,
-          "borderColor": "#b7bbc8",
-          "borderRightWidth": 0,
-          "borderTopLeftRadius": 8,
-          "borderWidth": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "paddingHorizontal": 12,
+          "marginRight": 8,
         }
       }
+      testID="textfield-startacccessory"
     >
-      <Text
-        accessibilityRole="text"
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
         style={
           {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginRight": 4,
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        🇺🇸
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
-        }
-      >
-        +
-        1
-      </Text>
+        >
+          🏳️
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +999
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
         {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderBottomLeftRadius": 0,
-          "borderColor": "#b7bbc8",
-          "borderRadius": 8,
-          "borderTopLeftRadius": 0,
-          "borderWidth": 1,
           "flex": 1,
-          "flexDirection": "row",
-          "height": 48,
-          "opacity": 1,
-          "paddingHorizontal": 16,
         }
       }
-      testID="textfield"
     >
-      <View
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 789"
+        placeholderTextColor="#9ca1af"
         style={
           {
-            "flex": 1,
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value="155512345678901234"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
           }
         }
       >
-        <TextInput
-          autoFocus={false}
-          editable={true}
-          keyboardAppearance="light"
-          keyboardType="phone-pad"
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          placeholderTextColor="#9ca1af"
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "backgroundColor": "#ffffff",
-              "borderColor": "transparent",
-              "borderWidth": 1,
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
-              "height": 24,
               "letterSpacing": 0,
-              "opacity": 1,
-              "paddingVertical": 0,
+              "lineHeight": 24,
             }
           }
-          testID="deposit-phone-field-test-id"
-          value=""
-        />
-      </View>
+        >
+          🇩🇪
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +49
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        onSubmitEditing={[MockFunction]}
+        placeholder="123 456 7890"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with special characters in phone number 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          🏳️
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +999
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 789"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value="15551234567"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          🏳️
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +999
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="123 456 789"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value=""
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DepositPhoneField renders correctly with value 1`] = `
+<View
+  style={
+    [
+      {
+        "flexDirection": "column",
+        "marginBottom": 16,
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 6,
+      }
+    }
+    testID="label"
+  >
+    Phone Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "opacity": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+    testID="textfield"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+      testID="textfield-startacccessory"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          🇺🇸
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginLeft": 4,
+            }
+          }
+        >
+          +1
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <TextInput
+        autoFocus={false}
+        editable={true}
+        keyboardAppearance="light"
+        keyboardType="phone-pad"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onFocus={[Function]}
+        placeholder="(555) 555-1234"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "transparent",
+            "borderWidth": 1,
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "height": 24,
+            "letterSpacing": 0,
+            "opacity": 1,
+            "paddingVertical": 0,
+          }
+        }
+        testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
+        value="(555) 123-4567"
+      />
     </View>
   </View>
 </View>

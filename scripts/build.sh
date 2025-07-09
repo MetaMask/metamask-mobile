@@ -7,7 +7,7 @@ readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 
 PLATFORM=$1
 MODE=$2
-TARGET=$3
+ENVIRONMENT=$3
 RUN_DEVICE=false
 PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
@@ -47,7 +47,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM in $MODE mode $TARGET" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM in $MODE mode $ENVIRONMENT" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -132,7 +132,12 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
   	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_UAT" "WEB3AUTH_NETWORK"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableRelease() {
@@ -141,7 +146,12 @@ remapEnvVariableRelease() {
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapFlaskEnvVariables() {
@@ -150,7 +160,12 @@ remapFlaskEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "FLASK_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+
+	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableProduction() {
@@ -159,7 +174,6 @@ remapEnvVariableProduction() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
 remapEnvVariableBeta() {
@@ -168,7 +182,6 @@ remapEnvVariableBeta() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
 remapEnvVariableReleaseCandidate() {
@@ -177,6 +190,15 @@ remapEnvVariableReleaseCandidate() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+}
+
+# Mapping for environmental values in the experimental environment
+remapEnvVariableExperimental() {
+  	echo "Remapping Experimental env variable names to match Experimental values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
 }
 
@@ -688,19 +710,22 @@ loadJSEnv
 
 echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
-echo "TARGET = $TARGET"
+echo "ENVIRONMENT = $ENVIRONMENT"
 
-if [ "$MODE" == "main" ] && { [ "$TARGET" == "production" ] || [ "$TARGET" == "beta" ] || [ "$TARGET" == "rc" ]; }; then
+# TODO: We should be able to remove some of the conditions in this if statement
+if [ "$MODE" == "main" ] && { [ "$ENVIRONMENT" == "production" ] || [ "$ENVIRONMENT" == "beta" ] || [ "$ENVIRONMENT" == "rc" ] || [ "$ENVIRONMENT" == "exp" ] ; }; then
   export METAMASK_BUILD_TYPE="$MODE"
-  export METAMASK_ENVIRONMENT="$TARGET"
+  export METAMASK_ENVIRONMENT="$ENVIRONMENT"
   export GENERATE_BUNDLE=true # Used only for Android
   export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-  if [ "$TARGET" == "production" ]; then
+  if [ "$ENVIRONMENT" == "production" ]; then
     remapEnvVariableProduction
-  elif [ "$TARGET" == "beta" ]; then
+  elif [ "$ENVIRONMENT" == "beta" ]; then
     remapEnvVariableBeta
-  elif [ "$TARGET" == "rc" ]; then
+  elif [ "$ENVIRONMENT" == "rc" ]; then
     remapEnvVariableReleaseCandidate
+  elif [ "$ENVIRONMENT" == "exp" ]; then
+    remapEnvVariableExperimental
   fi
 fi
 
