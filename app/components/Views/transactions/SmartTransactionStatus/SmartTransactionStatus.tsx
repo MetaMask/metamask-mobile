@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
@@ -257,11 +257,22 @@ const SmartTransactionStatus = ({
   const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
   const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
 
-  // We use a custom flow for swaps. We don't go through the STX hook for swaps, so there's no listener for the latest smart transaction.
-  // Read it directly from the SmartTransactionsController.
+  // For swaps, read transaction data directly from SmartTransactionsController
+  // since swap flow doesn't use the standard STX approval flow
   const { status, creationTime, uuid } = isInSwapFlow
     ? latestSmartTransaction
     : smartTransaction;
+
+  const isStxPending = status === SmartTransactionStatuses.PENDING;
+
+  // Ensure stable creationTime across re-renders to prevent timer restarts
+  // For swaps, latestSmartTransaction may not include creationTime, so we
+  // create a fallback timestamp when the transaction first becomes pending
+  const effectiveCreationTime = useMemo(() => {
+    if (creationTime) return creationTime;
+    if (isStxPending) return Date.now(); // Fallback: use current time when pending starts
+    return undefined; // No fallback needed if not pending
+  }, [creationTime, isStxPending]);
 
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -269,14 +280,12 @@ const SmartTransactionStatus = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isStxPending = status === SmartTransactionStatuses.PENDING;
-
   const {
     timeLeftForPendingStxInSec,
     stxDeadlineSec,
     isStxPastEstimatedDeadline,
   } = useRemainingTime({
-    creationTime,
+    creationTime: effectiveCreationTime,
     isStxPending,
   });
 
