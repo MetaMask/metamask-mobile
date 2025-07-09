@@ -139,7 +139,7 @@ exports[`AccountStatus Snapshots renders correctly with accountName in route par
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d1a",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -310,7 +310,7 @@ exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d1a",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -481,7 +481,7 @@ exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#3c4d9d1a",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
