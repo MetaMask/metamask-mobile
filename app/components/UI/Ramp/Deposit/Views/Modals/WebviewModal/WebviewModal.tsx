@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
+import { useWindowDimensions, TouchableOpacity } from 'react-native';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -24,6 +24,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
+import styleSheet from './WebviewModal.styles';
 
 interface WebviewModalParams {
   sourceUrl: string;
@@ -35,39 +37,32 @@ export const createWebviewModalNavigationDetails = createNavigationDetails(
   Routes.DEPOSIT.MODALS.WEBVIEW,
 );
 
-const styles = StyleSheet.create({
-  headerWithoutPadding: {
-    paddingVertical: 0,
-  },
-});
-
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { sourceUrl, handleNavigationStateChange } =
     useParams<WebviewModalParams>();
 
+  const { height: screenHeight } = useWindowDimensions();
+
+  const { styles } = useStyles(styleSheet, {
+    screenHeight,
+  });
+
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
-  const screenHeight = Dimensions.get('window').height;
-  const customSheetStyle = {
-    height: screenHeight * 0.92,
-  };
-
-  const customCloseButton = (
-    <TouchableOpacity>
-      <ButtonIcon
-        iconName={IconName.Close}
-        size={ButtonIconSizes.Lg}
-        iconColor={IconColor.Alternative}
-        onPress={() => sheetRef.current?.onCloseBottomSheet()}
-      />
-    </TouchableOpacity>
-  );
-
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack style={customSheetStyle}>
+    <BottomSheet ref={sheetRef} shouldNavigateBack style={styles.bottomSheet}>
       <BottomSheetHeader
-        endAccessory={customCloseButton}
+        endAccessory={
+          <TouchableOpacity>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Lg}
+              iconColor={IconColor.Alternative}
+              onPress={() => sheetRef.current?.onCloseBottomSheet()}
+            />
+          </TouchableOpacity>
+        }
         style={styles.headerWithoutPadding}
       />
 

@@ -22,7 +22,7 @@ function renderWithProvider(component: React.ComponentType) {
 }
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(),
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
 }));
 

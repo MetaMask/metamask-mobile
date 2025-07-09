@@ -32,6 +32,7 @@ import Button, {
 import PoweredByTransak from '../../components/PoweredByTransak';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { KycStatus } from '../../constants';
+import Logger from '../../../../../../util/Logger';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
@@ -91,7 +92,10 @@ const KycProcessing = () => {
     try {
       await handleApprovedKycFlow(quote);
     } catch (error) {
-      console.error('Error handling approved KYC flow:', error);
+      Logger.error(error as Error, {
+        message: 'KycProcessing::handleContinue error',
+        quote,
+      });
     }
   }, [handleApprovedKycFlow, quote]);
 
