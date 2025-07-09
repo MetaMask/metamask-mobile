@@ -48,11 +48,14 @@ export interface ApproveTransactionData {
   // ERC721 / ERC1155 specific
   tokenId?: string;
 
+  // Token balance
+  tokenBalance?: string;
+
   // Token standard
   tokenStandard?: TokenStandard;
 
-  // Token balance
-  tokenBalance?: string;
+  // Token Symbol
+  tokenSymbol?: string;
 }
 
 /**
@@ -87,6 +90,8 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     networkClientId as string,
   );
 
+  console.log("OGP - tokenDetails", JSON.stringify(details, null, 2));
+
   const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize parsing operations
@@ -110,12 +115,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     }
 
     const result: ApproveTransactionData = {
+      approveMethod: undefined,
+      decimals: details?.decimalsNumber,
       isLoading: false,
       isRevoke: false,
       tokenStandard: tokenStandard as TokenStandard,
-      approveMethod: undefined,
       tokenBalance: undefined,
-      decimals: details?.decimalsNumber,
+      tokenSymbol: details?.symbol as string,
     };
 
     switch (fourByteCode) {
