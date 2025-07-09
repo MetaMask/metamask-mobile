@@ -542,7 +542,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#f3f5f9",
+                                        "backgroundColor": "#3c4d9d1a",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -1115,7 +1115,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#f3f5f9",
+                                          "backgroundColor": "#3c4d9d1a",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
@@ -1705,7 +1705,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#f3f5f9",
+                                        "backgroundColor": "#3c4d9d1a",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -1837,7 +1837,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#f3f5f9",
+                                          "backgroundColor": "#3c4d9d1a",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
@@ -2976,7 +2976,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#f3f5f9",
+                                        "backgroundColor": "#3c4d9d1a",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -3564,7 +3564,7 @@ exports[`Settings renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#f3f5f9",
+                                        "backgroundColor": "#3c4d9d1a",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -4152,7 +4152,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#f3f5f9",
+                                        "backgroundColor": "#3c4d9d1a",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -4722,7 +4722,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#f3f5f9",
+                                          "backgroundColor": "#3c4d9d1a",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,

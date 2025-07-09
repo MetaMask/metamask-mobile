@@ -619,7 +619,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#3c4d9d1a",
                                     "borderColor": "transparent",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
