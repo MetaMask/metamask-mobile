@@ -20,12 +20,13 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -264,6 +265,7 @@ const EnterAddress = (): JSX.Element => {
         </ScreenLayout.Content>
         <ScreenLayout.Footer>
           <ScreenLayout.Content style={styles.footerContent}>
+            <PrivacySection />
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}

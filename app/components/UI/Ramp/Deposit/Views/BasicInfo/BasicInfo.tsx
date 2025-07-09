@@ -26,7 +26,8 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -233,6 +234,7 @@ const BasicInfo = (): JSX.Element => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection />
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
