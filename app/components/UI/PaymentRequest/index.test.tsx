@@ -313,6 +313,8 @@ describe('PaymentRequest', () => {
       // Then the search should execute and show search results
       await waitFor(() => {
         expect(getByText('Search results')).toBeTruthy();
+        // Should show "No tokens found" for ETH search since it's not in the test data
+        expect(getByText('No tokens found')).toBeTruthy();
       });
     });
 
@@ -356,9 +358,11 @@ describe('PaymentRequest', () => {
         jest.advanceTimersByTime(300);
       });
 
-      // Then search results should appear
+      // Then search results should appear with specific token details
       await waitFor(() => {
         expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
       });
     });
 
@@ -380,6 +384,8 @@ describe('PaymentRequest', () => {
       // Then it should search for the final term
       await waitFor(() => {
         expect(getByText('Search results')).toBeTruthy();
+        // Should show "No tokens found" for ETH search since it's not in the test data
+        expect(getByText('No tokens found')).toBeTruthy();
       });
     }, 10000);
 
@@ -444,9 +450,130 @@ describe('PaymentRequest', () => {
         jest.advanceTimersByTime(300);
       });
 
-      // Then the search should execute
+      // Then the search should execute with specific token details
       await waitFor(() => {
         expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+    });
+
+    it('filters search results based on different search terms', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText, queryByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When searching for token symbol
+      fireEvent.changeText(searchInput, 'BAT');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should find BAT token
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+
+      // When searching for token name
+      fireEvent.changeText(searchInput, 'Basic Attention');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should still find BAT token
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+
+      // When searching for non-existent token
+      fireEvent.changeText(searchInput, 'NONEXISTENT');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should show no results
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('No tokens found')).toBeTruthy();
+        expect(queryByText('BAT')).toBeNull();
+      });
+    });
+
+    it('shows correct search results for partial matches', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When searching with partial symbol
+      fireEvent.changeText(searchInput, 'BA');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should find BAT token
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+
+      // When searching with partial name
+      fireEvent.changeText(searchInput, 'Basic');
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should still find BAT token
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+    });
+
+    it('maintains search results state during rapid typing', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText, queryByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When typing rapidly with valid search terms
+      fireEvent.changeText(searchInput, 'B');
+      fireEvent.changeText(searchInput, 'BA');
+      fireEvent.changeText(searchInput, 'BAT');
+
+      // Then should not show results immediately
+      expect(queryByText('BAT')).toBeNull();
+
+      // When debounce delay passes
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should show final search results
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
+      });
+
+      // When typing rapidly with invalid then valid terms
+      fireEvent.changeText(searchInput, 'INVALID');
+      fireEvent.changeText(searchInput, 'BAT');
+
+      // When debounce delay passes
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then should show valid results
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+        expect(getByText('BAT')).toBeTruthy();
+        expect(getByText('Basic Attention Token')).toBeTruthy();
       });
     });
   });
