@@ -535,7 +535,7 @@ workflows:
                 echo "Android APK link: ${BITRISE_PUBLIC_INSTALL_PAGE_URL}"
                 echo "Bitrise build link: ${BITRISEIO_PIPELINE_BUILD_URL}"
                 echo "Bitrise build status: ${BITRISE_BUILD_STATUS}"
-                ./scripts/metamask-bot-build-announce-bitrise.sh
+                ./scripts/metamask-bot-build-announce-bitrise.js
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
