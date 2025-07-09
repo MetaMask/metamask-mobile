@@ -2473,13 +2473,13 @@ app:
       VERSION_NAME: 7.50.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2073
+      VERSION_NUMBER: 2083
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.50.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2073
+      FLASK_VERSION_NUMBER: 2083
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
