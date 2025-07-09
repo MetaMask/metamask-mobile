@@ -33,7 +33,7 @@ import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import type { ClosePositionParams, Position } from '../controllers/types';
 import { usePerpsTrading } from '../hooks';
-import { formatPercentage, formatPnl, formatPrice } from '../utils/formatUtils';
+import { formatPercentage, formatPrice } from '../utils/formatUtils';
 import { triggerErrorHaptic, triggerSuccessHaptic } from '../utils/hapticUtils';
 import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
@@ -552,46 +552,10 @@ const PerpsPositionDetailsView: React.FC = () => {
 
       <ScrollView style={styles.container}>
         {/* Position Header */}
-        <PerpsPositionHeader position={position} />
-        {/* <View style={styles.positionHeader}>
-          <View style={styles.assetInfo}>
-            <Text style={styles.assetName}>{position.coin}</Text>
-            <View
-              style={[
-                styles.directionBadge,
-                isLong ? styles.longBadge : styles.shortBadge,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.directionText,
-                  isLong ? styles.longText : styles.shortText,
-                ]}
-              >
-                {direction}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.pnlContainer}>
-            <Text
-              style={[
-                styles.pnlValue,
-                pnlNum >= 0 ? styles.positivePnl : styles.negativePnl,
-              ]}
-            >
-              {formatPnl(pnlNum)}
-            </Text>
-            <Text
-              style={[
-                styles.pnlPercentage,
-                pnlPercentage >= 0 ? styles.positivePnl : styles.negativePnl,
-              ]}
-            >
-              {formatPercentage(pnlPercentage)}
-            </Text>
-          </View>
-        </View> */}
+        <PerpsPositionHeader
+          position={position}
+          pnlPercentage={pnlPercentage}
+        />
 
         {/* Chart */}
         <View style={styles.section}>

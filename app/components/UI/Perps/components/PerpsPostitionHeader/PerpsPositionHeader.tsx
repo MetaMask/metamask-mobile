@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -16,10 +16,12 @@ import { styleSheet } from './PerpsPositionHeader.styles';
 
 interface PerpsPositionHeaderProps {
   position: Position;
+  pnlPercentage: number;
 }
 
 const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
   position,
+  pnlPercentage,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(position.coin);
@@ -44,13 +46,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
     return num >= 0 ? `+${formatted}` : `-${formatted}`;
   };
 
-  // Calculate PnL percentage
-  const pnlNum = parseFloat(position.unrealizedPnl);
-  const entryValue =
-    parseFloat(position.entryPrice) * Math.abs(parseFloat(position.size));
-  const pnlPercentage = entryValue > 0 ? (pnlNum / entryValue) * 100 : 0;
-
-  const isPositivePnl = pnlNum >= 0;
+  const isPositivePnl = pnlPercentage >= 0;
 
   return (
     <View style={styles.container}>
