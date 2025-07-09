@@ -59,7 +59,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
           color={TextColor.Alternative}
           style={styles.description}
         >
-          {description}
+          {description || strings('deposit.error_view.description')}
         </Text>
 
         {ctaOnPress && (
