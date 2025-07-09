@@ -5,17 +5,17 @@ import {
   AuthServerUrl,
   IosGID,
   IosGoogleRedirectUri,
-  IosAppleClientId,
   AndroidGoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
   AuthConnectionConfig,
 } from './constants';
 
+const mockAppRedirectUri = 'metamask://oauth-redirect';
 describe('OAuth Constants', () => {
   describe('AppRedirectUri', () => {
     it('should generate correct redirect URI', () => {
-      expect(AppRedirectUri).toBe('https://metamask.app.link/oauth-redirect');
+      expect(AppRedirectUri).toBe(mockAppRedirectUri);
     });
   });
 
@@ -33,12 +33,11 @@ describe('OAuth Constants', () => {
     it('should have IOS configuration from jest config', () => {
       expect(IosGID).toBe('iosGoogleClientId');
       expect(IosGoogleRedirectUri).toBe('iosGoogleRedirectUri');
-      expect(IosAppleClientId).toBe('io.metamask.MetaMask');
     });
 
     it('should have Android configuration from jest config', () => {
       expect(AndroidGoogleWebGID).toBe('androidGoogleWebClientId');
-      expect(AppleWebClientId).toBe('androidAppleClientId');
+      expect(AppleWebClientId).toBe('AppleClientId');
     });
 
     it('should generate correct Apple server redirect URI', () => {
@@ -54,7 +53,6 @@ describe('OAuth Constants', () => {
       expect(AuthServerUrl).toBeTruthy();
       expect(IosGID).toBeTruthy();
       expect(IosGoogleRedirectUri).toBeTruthy();
-      expect(IosAppleClientId).toBeTruthy();
       expect(AndroidGoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
       expect(AuthConnectionConfig).toBeTruthy();
