@@ -334,7 +334,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1007,7 +1007,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",

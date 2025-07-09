@@ -127,7 +127,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -529,7 +529,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -931,7 +931,7 @@ exports[`DepositOrderContent Component renders error state correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -1337,7 +1337,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -1739,7 +1739,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -2141,7 +2141,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -2543,7 +2543,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -2945,7 +2945,7 @@ exports[`DepositOrderContent Component renders without provider link when not av
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
