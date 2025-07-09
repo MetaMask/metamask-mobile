@@ -337,7 +337,7 @@ buildIosDevBuild(){
 	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
 		scheme="MetaMask-Flask"
 		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
-  elif [ "$METAMASK_ENVIRONMENT" = "qa" ] ; then
+  	elif [ "$METAMASK_ENVIRONMENT" = "qa" ] ; then
 		scheme="MetaMask-QA"
 		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 	fi
