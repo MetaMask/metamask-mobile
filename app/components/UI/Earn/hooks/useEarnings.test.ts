@@ -167,6 +167,7 @@ describe('useEarnings', () => {
   it('should return correct earnings data for stablecoin lending', () => {
     const mockLendingOutputToken: EarnTokenDetails = {
       ...mockOutputToken,
+      balanceMinimalUnit: '1000000',
       experience: {
         type: EARN_EXPERIENCES.STABLECOIN_LENDING,
         apr: '4.5',

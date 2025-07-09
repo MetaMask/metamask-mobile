@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -20,7 +20,7 @@ import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
@@ -40,11 +40,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { TraceName, TraceOperation, endTrace, trace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+
+  const { styles } = useStyles(styleSheet, { screenHeight });
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
@@ -90,21 +99,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      InteractionManager.runAfterInteractions(() => {
-        Engine.setSelectedAddress(address);
-        sheetRef.current?.onCloseBottomSheet();
-        onSelectAccount?.(address);
+      Engine.setSelectedAddress(address);
+      sheetRef.current?.onCloseBottomSheet();
+      onSelectAccount?.(address);
 
-        // Track Event: "Switched Account"
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-            .addProperties({
-              source: 'Wallet Tab',
-              number_of_accounts: accounts?.length,
-            })
-            .build(),
-        );
-      });
+      // Track Event: "Switched Account"
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
@@ -127,7 +134,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   // Tracing for the account list rendering:
-  const isAccountSelector = useMemo(() => screen === AccountSelectorScreens.AccountSelector, [screen]);
+  const isAccountSelector = useMemo(
+    () => screen === AccountSelectorScreens.AccountSelector,
+    [screen],
+  );
   useEffect(() => {
     if (isAccountSelector) {
       trace({
@@ -147,6 +157,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [isAccountSelector]);
 
+  const addAccountButtonProps: ButtonProps[] = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        label: strings('account_actions.add_account_or_hardware_wallet'),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleAddAccount,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [handleAddAccount],
+  );
+
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
@@ -160,18 +184,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
-        <View style={styles.sheet}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={handleAddAccount}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
-          />
-        </View>
+        <BottomSheetFooter
+          buttonPropsArray={addAccountButtonProps}
+          style={styles.sheet}
+        />
       </Fragment>
     ),
     [
@@ -181,8 +197,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
-      handleAddAccount,
       styles.sheet,
+      addAccountButtonProps,
     ],
   );
 
@@ -203,7 +219,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   return (
-    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef} onOpen={onOpen}>
+    <BottomSheet
+      style={styles.bottomSheetContent}
+      ref={sheetRef}
+      onOpen={onOpen}
+    >
       {renderAccountScreens()}
     </BottomSheet>
   );

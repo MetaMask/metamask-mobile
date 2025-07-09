@@ -5,8 +5,9 @@ import {
   View,
   ViewStyle,
   TouchableOpacity,
+  ScrollViewProps,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
 import { shallowEqual, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -27,7 +28,7 @@ import SensitiveText, {
 import {
   areAddressesEqual,
   formatAddress,
-  getLabelTextByAddress,
+  getLabelTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -53,9 +54,12 @@ import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
 import { Skeleton } from '../../../component-library/components/Skeleton';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  selectInternalAccounts,
+  selectInternalAccountsById,
+} from '../../../selectors/accountsController';
 import { AccountWallet } from '@metamask/account-tree-controller';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -83,14 +87,10 @@ const EvmAccountSelectorList = ({
 }: EvmAccountSelectorListProps) => {
   const { navigate } = useNavigation();
   /**
-   * Ref for the FlatList component.
-   * The type of the ref is not explicitly defined.
+   * Ref for the FlashList component.
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountListRef = useRef<any>(null);
+  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
-
   const { styles } = useStyles(styleSheet, {});
 
   const accountAvatarType = useSelector(
@@ -102,17 +102,15 @@ const EvmAccountSelectorList = ({
   );
 
   const accountTreeSections = useSelector(selectAccountSections);
+
   const internalAccounts = useSelector(selectInternalAccounts);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
-        const formattedAddress =
-          getFormattedAddressFromInternalAccount(account);
-        const accountObj = accounts.find((a) =>
-          areAddressesEqual(a.address, formattedAddress),
-        );
+        const accountObj = accounts.find((a) => a.id === account.id);
         if (accountObj) {
           accountsById.set(account.id, accountObj);
         }
@@ -176,6 +174,12 @@ const EvmAccountSelectorList = ({
     }
     return item.data.address;
   };
+
+  // FlashList optimization: Define item types for better recycling
+  const getItemType = useCallback(
+    (item: FlattenedAccountListItem) => item.type,
+    [],
+  );
 
   const useMultichainAccountDesign = Boolean(accountTreeSections);
 
@@ -363,10 +367,13 @@ const EvmAccountSelectorList = ({
       );
 
       if (selectedItemIndex !== -1) {
-        accountListRef.current?.scrollToIndex({
-          index: selectedItemIndex,
-          animated: true,
-          viewPosition: 0.5, // Center the item in the view
+        // Use requestAnimationFrame to ensure smooth scrolling
+        requestAnimationFrame(() => {
+          accountListRef.current?.scrollToIndex({
+            index: selectedItemIndex,
+            animated: true,
+            viewPosition: 0.5, // Center the item in the view
+          });
         });
       }
     }
@@ -383,8 +390,8 @@ const EvmAccountSelectorList = ({
     scrollToSelectedAccount();
   }, [scrollToSelectedAccount]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: FlattenedAccountListItem }) => {
+  const renderItem: ListRenderItem<FlattenedAccountListItem> = useCallback(
+    ({ item }) => {
       if (item.type === 'header') {
         return renderSectionHeader(item.data);
       }
@@ -395,24 +402,21 @@ const EvmAccountSelectorList = ({
 
       // Render account item
       const {
+        id,
         name,
         address,
         assets,
         type,
         isSelected,
         balanceError,
-        scopes,
         isLoadingAccount,
       } = item.data;
 
-      const partialAccount = {
-        address,
-        scopes,
-      };
+      const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
-        : getLabelTextByAddress(address);
+        : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -456,8 +460,7 @@ const EvmAccountSelectorList = ({
 
       const handleButtonClick = () => {
         if (useMultichainAccountDesign) {
-          const account =
-            Engine.context.AccountsController.getAccountByAddress(address);
+          const account = internalAccount;
 
           if (!account) return;
 
@@ -483,7 +486,6 @@ const EvmAccountSelectorList = ({
 
       return (
         <Cell
-          key={address}
           onLongPress={handleLongPress}
           variant={cellVariant}
           isSelected={isSelectedAccount}
@@ -503,7 +505,7 @@ const EvmAccountSelectorList = ({
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets &&
-              renderAccountBalances(assets, partialAccount, isLoadingAccount))}
+              renderAccountBalances(assets, item.data, isLoadingAccount))}
         </Cell>
       );
     },
@@ -526,6 +528,7 @@ const EvmAccountSelectorList = ({
       accountTreeSections,
       renderSectionHeader,
       renderSectionFooter,
+      internalAccountsById,
     ],
   );
 
@@ -557,18 +560,28 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
+  // Needed for the FlashList estimated item size prop: https://shopify.github.io/flash-list/docs/1.x/estimated-item-size
+  // This is a require prop that makes the list rendering more performant
+  const listItemHeight = 80; // Exact height of the Cell component
+
   return (
-    <FlatList
-      ref={accountListRef}
-      onContentSizeChange={onContentSizeChanged}
-      data={flattenedData}
-      keyExtractor={getKeyExtractor}
-      renderItem={renderItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
-      testID={ACCOUNT_SELECTOR_LIST_TESTID}
-      {...props}
-    />
+    <View style={styles.listContainer}>
+      <FlashList
+        ref={accountListRef}
+        onContentSizeChange={onContentSizeChanged}
+        data={flattenedData}
+        keyExtractor={getKeyExtractor}
+        renderItem={renderItem}
+        estimatedItemSize={listItemHeight}
+        getItemType={getItemType}
+        renderScrollComponent={
+          ScrollView as React.ComponentType<ScrollViewProps>
+        }
+        testID={ACCOUNT_SELECTOR_LIST_TESTID}
+        disableAutoLayout
+        {...props}
+      />
+    </View>
   );
 };
 

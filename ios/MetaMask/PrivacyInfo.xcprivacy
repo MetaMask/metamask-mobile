@@ -20,8 +20,8 @@
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
 				<string>C617.1</string>
-				<string>0A2A.1</string>
 				<string>3B52.1</string>
+				<string>0A2A.1</string>
 				<string>DDA9.1</string>
 			</array>
 		</dict>

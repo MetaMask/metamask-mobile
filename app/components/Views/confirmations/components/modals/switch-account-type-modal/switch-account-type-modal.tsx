@@ -23,12 +23,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Engine from '../../../../../../core/Engine';
 
 const SwitchAccountTypeModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const route = useRoute();
   const navigation = useNavigation();
-  const address = (route?.params as { address: Hex })?.address;
+  const address =
+    (route?.params as { address: Hex })?.address ??
+    Engine.context.AccountsController.getSelectedAccount()?.address;
   const { network7702List, pending } = useEIP7702Networks(address);
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(

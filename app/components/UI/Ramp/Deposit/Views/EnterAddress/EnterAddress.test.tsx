@@ -210,7 +210,7 @@ describe('EnterAddress Component', () => {
       mockSsnFunction,
     ];
     render(EnterAddress);
-    const button = screen.getByRole('button', { name: 'Continue' });
+    const button = screen.getByTestId('address-continue-button');
     expect(button.props.disabled).toBe(true);
   });
 });
