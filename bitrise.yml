@@ -1127,6 +1127,21 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - script@1:
+          title: Copy iOS build from cache (if build was skipped)
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Copying iOS build from cache..."
+                mkdir -p ios/build/Build/Products/Release-iphonesimulator
+                mkdir -p ../Library/Detox/ios
+                echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
