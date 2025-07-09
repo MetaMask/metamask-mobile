@@ -63,6 +63,9 @@ import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
