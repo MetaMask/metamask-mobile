@@ -26,6 +26,7 @@ import {
 import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-controller';
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 
 jest.useFakeTimers();
 
@@ -106,8 +107,13 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
+const mockUint8ArrayToMnemonic = jest
+  .fn()
+  .mockImplementation((uint8Array: Uint8Array) => uint8Array.toString());
+
 jest.mock('../../util/mnemonic', () => ({
-  uint8ArrayToMnemonic: jest.fn(),
+  uint8ArrayToMnemonic: (mnemonic: Uint8Array, wordlist: string[]) =>
+    mockUint8ArrayToMnemonic(mnemonic, wordlist),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -851,18 +857,14 @@ describe('Authentication', () => {
     const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
     const mockSeedPhrase1 = new Uint8Array([1]);
     const mockSeedPhrase2 = new Uint8Array([2]);
-    const mockMnemonic1 = 'mnemonic-1';
 
     let Engine: typeof import('../Engine').default;
     let OAuthService: typeof import('../OAuthService/OAuthService').default;
-    let uint8ArrayToMnemonic: jest.Mock;
     let Logger: jest.Mocked<typeof import('../../util/Logger').default>;
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      uint8ArrayToMnemonic = jest.requireMock(
-        '../../util/mnemonic',
-      ).uint8ArrayToMnemonic;
+
       OAuthService = jest.requireMock('../OAuthService/OAuthService');
       Logger = jest.requireMock('../../util/Logger');
 
@@ -895,7 +897,6 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController
           .fetchAllSeedPhrases as jest.Mock
       ).mockResolvedValueOnce([mockSeedPhrase1]);
-      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -905,14 +906,14 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
       ).toHaveBeenCalledWith(mockPassword);
-      expect(uint8ArrayToMnemonic).toHaveBeenCalledWith(
+      expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
         expect.any(Object),
       );
       expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         mockAuthData,
-        mockMnemonic1,
+        uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
@@ -924,7 +925,6 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController
           .fetchAllSeedPhrases as jest.Mock
       ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
-      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -936,10 +936,13 @@ describe('Authentication', () => {
 
       await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
 
+      const mockMnemonic1 = uint8ArrayToMnemonic(mockSeedPhrase1, []);
+      const mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
+
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
       ).toHaveBeenCalledWith(mockPassword);
-      expect(uint8ArrayToMnemonic).toHaveBeenCalledWith(
+      expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
         expect.any(Object),
       );
@@ -952,7 +955,7 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: mockSeedPhrase2,
+        mnemonic: mockMnemonic2,
         numberOfAccounts: 1,
       });
       expect(
@@ -991,7 +994,6 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController
           .fetchAllSeedPhrases as jest.Mock
       ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
-      uint8ArrayToMnemonic.mockReturnValueOnce(mockMnemonic1);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);

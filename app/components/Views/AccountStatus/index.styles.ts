@@ -1,19 +1,20 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
+  scrollView: {
+    marginBottom: 0,
+  },
   root: {
-    flex: 1,
-    flexDirection: 'column',
     height: '100%',
     padding: 24,
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingBottom: 32,
   },
   content: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     rowGap: 16,
+    paddingBottom: 24,
   },
   walletReadyImage: {
     marginHorizontal: 'auto',

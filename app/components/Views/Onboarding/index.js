@@ -65,20 +65,20 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 30,
     },
-    foxWrapper: {
-      width: Device.isLargeDevice() ? 200 : 175,
-      height: Device.isLargeDevice() ? 200 : 175,
-      marginVertical: 20,
-    },
     image: {
       alignSelf: 'center',
-      width: Device.isLargeDevice() ? 280 : 220,
-      height: Device.isLargeDevice() ? 280 : 220,
+      width: 240,
+      height: 240,
     },
     largeFoxWrapper: {
+      width: 240,
+      height: 240,
+      display: 'flex',
       alignItems: 'center',
-      paddingTop: 40,
-      paddingBottom: Device.isLargeDevice() ? 80 : 40,
+      justifyContent: 'center',
+      marginHorizontal: 'auto',
+      padding: 40,
+      marginTop: 16,
     },
     foxImage: {
       width: 145,
@@ -88,17 +88,21 @@ const createStyles = (colors) =>
     title: {
       fontSize: 40,
       lineHeight: 40,
-      justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 60,
       fontFamily: 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
+      width: '100%',
+      marginVertical: 16,
     },
     ctas: {
       flex: 1,
-      position: 'relative',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
+      rowGap: 24,
     },
     footer: {
       marginBottom: 40,
@@ -118,10 +122,9 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      justifyContent: 'flex-end',
       rowGap: 16,
       marginBottom: 16,
-      marginTop: 'auto',
+      width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -456,6 +459,8 @@ class Onboarding extends PureComponent {
       } else {
         errorMessage = 'oauth_error';
       }
+    } else {
+      errorMessage = 'oauth_error';
     }
 
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -542,7 +547,7 @@ class Onboarding extends PureComponent {
         </View>
 
         <Text
-          variant={TextVariant.HeadingSMRegular}
+          variant={TextVariant.BodyMD}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >

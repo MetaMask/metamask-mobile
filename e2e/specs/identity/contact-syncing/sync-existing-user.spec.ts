@@ -14,18 +14,20 @@ import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import SettingsView from '../../../pages/Settings/SettingsView';
+import { arrangeTestUtils } from '../utils/helpers';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
-  SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
+  SmokeIdentity('Contact syncing - syncs previously synced contacts'),
   () => {
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8005;
     let mockServer: MockttpServer;
+    let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {
       const segmentMock = {
@@ -34,17 +36,16 @@ describe(
 
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer(
-        segmentMock,
-        TEST_SPECIFIC_MOCK_SERVER_PORT,
-      );
+      mockServer = await startMockServer(segmentMock);
 
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      await userStorageMockttpControllerInstance.setupPath(
+      userStorageMockttpController = userStorageMockttpControllerInstance;
+
+      await userStorageMockttpController.setupPath(
         USER_STORAGE_FEATURE_NAMES.addressBook,
         mockServer,
         {
@@ -56,7 +57,7 @@ describe(
         newInstance: true,
         delete: true,
         launchArgs: {
-          mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT),
+          mockServerPort: mockServer.port,
           sendMetaMetricsinE2E: true,
         },
       });
@@ -69,6 +70,10 @@ describe(
     });
 
     it('retrieves all previously synced contacts', async () => {
+      const { waitUntilSyncedElementsNumberEquals } = arrangeTestUtils(
+        userStorageMockttpController,
+      );
+
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
       const decryptedContactNames = await Promise.all(
@@ -90,7 +95,12 @@ describe(
       await TestHelpers.delay(1000);
       await SettingsView.tapContacts();
       await Assertions.checkIfVisible(ContactsView.container);
-      await TestHelpers.delay(4000);
+
+      // Wait for contacts to be synced from remote storage
+      await waitUntilSyncedElementsNumberEquals(
+        USER_STORAGE_FEATURE_NAMES.addressBook,
+        contactsSyncMockResponse.length,
+      );
 
       for (const contactName of decryptedContactNames) {
         await ContactsView.isContactAliasVisible(contactName);

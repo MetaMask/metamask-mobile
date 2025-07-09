@@ -605,11 +605,11 @@ class ChoosePassword extends PureComponent {
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
-    this.setState({
+    this.setState((prevState) => ({
       password: val,
       passwordStrength: passInfo.score,
-      confirmPassword: '',
-    });
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
@@ -685,10 +685,7 @@ class ChoosePassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -717,7 +714,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.title')}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
                     {strings('choose_password.description')}
