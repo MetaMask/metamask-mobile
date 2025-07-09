@@ -134,7 +134,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
             networkConfigurationsByChainId: {
               ...oldState.engine.backgroundState.NetworkController
                 .networkConfigurationsByChainId,
-              ['0x1'] : {
+              '0x1' : {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0x1'],
                 blockExplorerUrls: [
@@ -142,7 +142,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0xaa36a7']: {
+              '0xaa36a7': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xaa36a7'],
                 blockExplorerUrls: [
@@ -150,7 +150,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0xe705']: {
+              '0xe705': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xe705'],
                 blockExplorerUrls: [
@@ -158,7 +158,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0xe708']: {
+              '0xe708': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xe708'],
                 blockExplorerUrls: [
@@ -166,7 +166,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0x2105']: {
+              '0x2105': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0x2105'],
                 blockExplorerUrls: [
@@ -206,7 +206,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
             networkConfigurationsByChainId: {
               ...oldState.engine.backgroundState.NetworkController
                 .networkConfigurationsByChainId,
-              ['0xaa36a7']: {
+              '0xaa36a7': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xaa36a7'],
                 blockExplorerUrls: [
@@ -214,7 +214,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0xe705']: {
+              '0xe705': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xe705'],
                 blockExplorerUrls: [
@@ -222,7 +222,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0xe708']: {
+              '0xe708': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0xe708'],
                 blockExplorerUrls: [
@@ -230,7 +230,7 @@ describe('Migration 89: Re-Fill BlockExploer URLs for Mainnet, Sepolia, Linea Ma
                 ],
                 defaultBlockExplorerUrlIndex: 0,
               },
-              ['0x2105']: {
+              '0x2105': {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0x2105'],
                 blockExplorerUrls: [
