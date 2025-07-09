@@ -71,6 +71,10 @@ const OtpCode = () => {
   const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
     useParams<OtpCodeParams>();
 
+  const [latestValueSubmitted, setLatestValueSubmitted] = useState<
+    string | null
+  >(null);
+
   const { routeAfterAuthentication } = useDepositRouting({
     selectedWalletAddress,
     cryptoCurrencyChainId,
@@ -98,10 +102,6 @@ const OtpCode = () => {
   const [value, setValue] = useState('');
 
   const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
-  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
-    value,
-    setValue,
-  });
 
   const [, submitCode] = useDepositSdkMethod(
     { method: 'verifyUserOtp', onMount: false, throws: true },
@@ -187,13 +187,20 @@ const OtpCode = () => {
   const handleValueChange = useCallback((text: string) => {
     setValue(text);
     setError(null);
+    setLatestValueSubmitted(null);
   }, []);
 
   useEffect(() => {
-    if (value.length === CELL_COUNT && !isLoading) {
+    if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
+      setLatestValueSubmitted(value);
       handleSubmit();
     }
-  }, [value, handleSubmit, isLoading]);
+  }, [value, handleSubmit, latestValueSubmitted]);
+
+  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
+    value,
+    setValue: handleValueChange,
+  });
 
   return (
     <ScreenLayout>
