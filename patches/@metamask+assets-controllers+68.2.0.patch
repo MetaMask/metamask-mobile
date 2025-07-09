@@ -162,7 +162,7 @@ index e16e91f..3168b35 100644
      address?: string;
      attributes?: Attributes[];
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
-index 718ba19..804bae3 100644
+index 718ba19..44abe89 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
 @@ -488,10 +488,8 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
@@ -190,8 +190,37 @@ index 718ba19..804bae3 100644
          }
      });
  }, _TokenDetectionController_getSelectedAccount = function _TokenDetectionController_getSelectedAccount() {
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
+index fb22e3f..3c14e2b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
+@@ -1,13 +1,13 @@
+ import type { AccountsControllerGetSelectedAccountAction, AccountsControllerGetAccountAction, AccountsControllerSelectedEvmAccountChangeEvent } from "@metamask/accounts-controller";
+ import type { RestrictedMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from "@metamask/base-controller";
+ import type { KeyringControllerGetStateAction, KeyringControllerLockEvent, KeyringControllerUnlockEvent } from "@metamask/keyring-controller";
+-import type { NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetNetworkConfigurationByNetworkClientId, NetworkControllerGetStateAction, NetworkControllerNetworkDidChangeEvent } from "@metamask/network-controller";
++import type { NetworkControllerFindNetworkClientIdByChainIdAction, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetNetworkConfigurationByNetworkClientId, NetworkControllerGetStateAction, NetworkControllerNetworkDidChangeEvent } from "@metamask/network-controller";
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from "@metamask/preferences-controller";
+ import type { TransactionControllerTransactionConfirmedEvent } from "@metamask/transaction-controller";
+ import type { Hex } from "@metamask/utils";
+ import type { AssetsContractController } from "./AssetsContractController.cjs";
+ import type { GetTokenListState, TokenListMap, TokenListStateChange, TokensChainsCache } from "./TokenListController.cjs";
+-import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction } from "./TokensController.cjs";
++import type { TokensControllerAddDetectedTokensAction, TokensControllerAddTokensAction, TokensControllerGetStateAction } from "./TokensController.cjs";
+ type TokenDetectionMap = {
+     [P in keyof TokenListMap]: Omit<TokenListMap[P], 'occurrences'>;
+ };
+@@ -24,7 +24,7 @@ export declare const controllerName = "TokenDetectionController";
+ export type TokenDetectionState = Record<never, never>;
+ export type TokenDetectionControllerGetStateAction = ControllerGetStateAction<typeof controllerName, TokenDetectionState>;
+ export type TokenDetectionControllerActions = TokenDetectionControllerGetStateAction;
+-export type AllowedActions = AccountsControllerGetSelectedAccountAction | AccountsControllerGetAccountAction | NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetNetworkConfigurationByNetworkClientId | NetworkControllerGetStateAction | GetTokenListState | KeyringControllerGetStateAction | PreferencesControllerGetStateAction | TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction;
++export type AllowedActions = AccountsControllerGetSelectedAccountAction | AccountsControllerGetAccountAction | NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetNetworkConfigurationByNetworkClientId | NetworkControllerGetStateAction | GetTokenListState | KeyringControllerGetStateAction | PreferencesControllerGetStateAction | TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction | TokensControllerAddTokensAction | NetworkControllerFindNetworkClientIdByChainIdAction;
+ export type TokenDetectionControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, TokenDetectionState>;
+ export type TokenDetectionControllerEvents = TokenDetectionControllerStateChangeEvent;
+ export type AllowedEvents = AccountsControllerSelectedEvmAccountChangeEvent | NetworkControllerNetworkDidChangeEvent | TokenListStateChange | KeyringControllerLockEvent | KeyringControllerUnlockEvent | PreferencesControllerStateChangeEvent | TransactionControllerTransactionConfirmedEvent;
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-index 4acb8f6..00bee10 100644
+index 4acb8f6..bf4da2a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
 @@ -39,6 +39,10 @@ export type TokensControllerAddDetectedTokensAction = {
