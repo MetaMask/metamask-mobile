@@ -200,7 +200,7 @@ const EarnLendingDepositConfirmationView = () => {
     else {
       endTrace({ name: TraceName.EarnDepositReviewScreen });
     }
-  }, []);
+  }, [action]);
 
   useEffect(() => {
     trackEvent(

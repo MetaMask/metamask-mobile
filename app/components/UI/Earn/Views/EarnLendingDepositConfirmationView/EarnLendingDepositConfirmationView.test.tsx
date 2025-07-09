@@ -1392,11 +1392,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     it('should call trace and endTrace with EarnDepositConfirmationScreen when confirm button is pressed', async () => {
-      const mockExecuteLendingDeposit = Engine.context.EarnController
-        .executeLendingDeposit as jest.MockedFunction<
-        typeof Engine.context.EarnController.executeLendingDeposit
-      >;
-
       mockExecuteLendingDeposit.mockResolvedValue({
         transactionMeta: {
           id: '123',
@@ -1432,10 +1427,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     it('should call trace with EarnDepositTxConfirmed when transaction is submitted', async () => {
-      const mockExecuteLendingDeposit = Engine.context.EarnController
-        .executeLendingDeposit as jest.MockedFunction<
-        typeof Engine.context.EarnController.executeLendingDeposit
-      >;
       const transactionId = '123';
 
       mockExecuteLendingDeposit.mockResolvedValue({
@@ -1493,10 +1484,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     it('should call endTrace with EarnDepositTxConfirmed when transaction is confirmed', async () => {
-      const mockExecuteLendingDeposit = Engine.context.EarnController
-        .executeLendingDeposit as jest.MockedFunction<
-        typeof Engine.context.EarnController.executeLendingDeposit
-      >;
       const transactionId = '123';
 
       mockExecuteLendingDeposit.mockResolvedValue({

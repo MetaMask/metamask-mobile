@@ -43,12 +43,10 @@ jest.mock('../../../../utils/token', () => ({
   fetchErc20Decimals: jest.fn().mockResolvedValue(18),
 }));
 
-jest.mock('../../../../../../../util/trace', () => {
-  return ({
+jest.mock('../../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../../util/trace'),
-    endTrace: jest.fn(),
-  })
-});
+  endTrace: jest.fn(),
+}));
 
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {

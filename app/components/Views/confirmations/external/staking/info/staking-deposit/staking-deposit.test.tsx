@@ -39,12 +39,10 @@ jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
-jest.mock('../../../../../../../util/trace', () => {
-  return ({
+jest.mock('../../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../../util/trace'),
-    endTrace: jest.fn(),
-  })
-});
+  endTrace: jest.fn(),
+}));
 
 const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {

@@ -93,13 +93,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../util/trace', () => {
-  return({
-    ...jest.requireActual('../../../../../util/trace'),
-    trace: jest.fn(),
-    endTrace: jest.fn(),
-  })
-});
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 const mockLineaAUsdcExperience = {
   apr: '2.099841551444753',

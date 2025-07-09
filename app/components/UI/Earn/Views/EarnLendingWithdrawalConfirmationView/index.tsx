@@ -351,7 +351,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, navigation],
+    [emitTxMetaMetric, tokenSnapshot, earnToken, navigation, outputToken?.chainId],
   );
 
   // Guards
