@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePerpsNetwork, usePerpsPrices } from '../../hooks';
@@ -24,7 +24,6 @@ const PreviewMarketData: React.FC<PreviewMarketDataProps> = ({
 
   // Get live prices for preview assets
   const prices = usePerpsPrices(PREVIEW_ASSETS);
-
 
   // Using shared formatPrice utility
 
@@ -81,9 +80,7 @@ const PreviewMarketData: React.FC<PreviewMarketDataProps> = ({
         </Text>
       </View>
 
-      {PREVIEW_ASSETS.map((symbol, index) =>
-        renderMarketRow(symbol, index)
-      )}
+      {PREVIEW_ASSETS.map((symbol, index) => renderMarketRow(symbol, index))}
     </View>
   );
 };

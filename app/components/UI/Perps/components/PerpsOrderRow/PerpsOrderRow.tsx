@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-  TextColor
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { createStyles } from './PerpsOrderRow.styles';
@@ -30,7 +30,9 @@ const PerpsOrderRow: React.FC<PerpsOrderRowProps> = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
           {value}
         </Text>
-      ) : children}
+      ) : (
+        children
+      )}
     </View>
   );
 };

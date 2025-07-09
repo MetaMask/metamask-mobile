@@ -1,12 +1,17 @@
 import { type GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import Card from '../../../../component-library/components/Cards/Card';
@@ -16,10 +21,13 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
-import { selectCurrencyRates, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
@@ -37,16 +45,22 @@ interface DepositPreviewParams {
 
 // Define proper navigation types for this screen
 interface DepositPreviewParamList {
-  'PerpsDepositPreview': DepositPreviewParams;
-  'PerpsDepositSuccess': DepositPreviewParams;
-  'PerpsDepositProcessing': DepositPreviewParams;
+  PerpsDepositPreview: DepositPreviewParams;
+  PerpsDepositSuccess: DepositPreviewParams;
+  PerpsDepositProcessing: DepositPreviewParams;
   [key: string]: object | undefined;
 }
 
-type DepositPreviewScreenNavigationProp = NavigationProp<DepositPreviewParamList, 'PerpsDepositPreview'>;
-type DepositPreviewScreenRouteProp = RouteProp<DepositPreviewParamList, 'PerpsDepositPreview'>;
+type DepositPreviewScreenNavigationProp = NavigationProp<
+  DepositPreviewParamList,
+  'PerpsDepositPreview'
+>;
+type DepositPreviewScreenRouteProp = RouteProp<
+  DepositPreviewParamList,
+  'PerpsDepositPreview'
+>;
 
-interface DepositPreviewViewProps { }
+interface DepositPreviewViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -157,12 +171,12 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledChainIds = useMemo(
     () => enabledSourceChains.map((chain) => chain.chainId),
-    [enabledSourceChains]
+    [enabledSourceChains],
   );
 
   // Get real token data with balances using enabled chains from Redux
   const tokens = useTokensWithBalance({
-    chainIds: enabledChainIds
+    chainIds: enabledChainIds,
   });
 
   const handleBack = useCallback(() => {
@@ -182,8 +196,8 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     if (usdcAmount === 0 || !selectedToken) return '0.00';
 
     // Find the selected token in our real token data
-    const selectedTokenData = tokens.find(token =>
-      token.symbol.toUpperCase() === selectedToken.toUpperCase()
+    const selectedTokenData = tokens.find(
+      (token) => token.symbol.toUpperCase() === selectedToken.toUpperCase(),
     );
 
     if (!selectedTokenData) {
@@ -200,11 +214,12 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         networkConfigurationsByChainId: networkConfigurations,
         evmMultiChainCurrencyRates: currencyRates,
         currentCurrency,
-        nonEvmMultichainAssetRates: multichainAssetRates
+        nonEvmMultichainAssetRates: multichainAssetRates,
       });
 
       // Parse the display value to get numeric price
-      const tokenPriceInUsd = parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
+      const tokenPriceInUsd =
+        parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
 
       if (tokenPriceInUsd > 0) {
         const tokenAmount = usdcAmount / tokenPriceInUsd;
@@ -216,7 +231,16 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
     // If we can't get real pricing data, return 0 instead of using fallbacks
     return '0.00';
-  }, [amount, selectedToken, tokens, tokenMarketData, currencyRates, currentCurrency, networkConfigurations, multichainAssetRates]);
+  }, [
+    amount,
+    selectedToken,
+    tokens,
+    tokenMarketData,
+    currencyRates,
+    currentCurrency,
+    networkConfigurations,
+    multichainAssetRates,
+  ]);
 
   // Real gas fee estimation
   const networkFee = useMemo(() => {
@@ -224,7 +248,9 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
       const estimates = gasFeeEstimates as GasFeeEstimates;
       if (estimates.medium?.suggestedMaxFeePerGas) {
         // Get medium fee estimate (in Gwei)
-        const mediumFeeGwei = parseFloat(estimates.medium.suggestedMaxFeePerGas);
+        const mediumFeeGwei = parseFloat(
+          estimates.medium.suggestedMaxFeePerGas,
+        );
 
         // Estimate gas limit for token transfer (approximately 21000 for ETH, 65000 for ERC20)
         const estimatedGasLimit = selectedToken === 'ETH' ? 21000 : 65000;
@@ -254,7 +280,11 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
           style={styles.backButton}
           testID="buttonicon-arrowleft"
         />
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID="header-title"
+        >
           Amount to deposit
         </Text>
         <View style={styles.placeholder} />
@@ -274,7 +304,12 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
         {/* Pay With Section */}
         <View style={styles.payWithSection}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted} style={styles.sectionLabel} testID="pay-with-label">
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Muted}
+            style={styles.sectionLabel}
+            testID="pay-with-label"
+          >
             PAY WITH
           </Text>
 
@@ -304,28 +339,52 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         <View style={styles.detailsSection}>
           <Card style={styles.detailCard}>
             <View style={styles.detailRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="pay-with-label-detail">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="pay-with-label-detail"
+              >
                 Pay with
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="pay-with-amount">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="pay-with-amount"
+              >
                 {exchangeAmount} {selectedToken}
               </Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="network-fee-label">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="network-fee-label"
+              >
                 Network fee
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="network-fee-amount">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="network-fee-amount"
+              >
                 {networkFee}
               </Text>
             </View>
 
             <View style={[styles.detailRow, styles.lastDetailRow]}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="estimated-time-label">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="estimated-time-label"
+              >
                 Estimated time
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default} testID="estimated-time-value">
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                testID="estimated-time-value"
+              >
                 2 minutes
               </Text>
             </View>

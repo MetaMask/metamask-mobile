@@ -44,7 +44,9 @@ export function calculatePnLPercentage(params: PnLCalculationParams): number {
 /**
  * Calculate both P&L and P&L percentage
  */
-export function calculatePnLWithPercentage(params: PnLCalculationParams): PnLResult {
+export function calculatePnLWithPercentage(
+  params: PnLCalculationParams,
+): PnLResult {
   return {
     pnl: calculatePnL(params),
     pnlPercentage: calculatePnLPercentage(params),
@@ -55,7 +57,9 @@ export function calculatePnLWithPercentage(params: PnLCalculationParams): PnLRes
  * Calculate P&L percentage based on unrealized P&L and position value
  * This is used when current price is not available
  */
-export function calculatePnLPercentageFromUnrealized(params: PnLFromUnrealizedParams): number {
+export function calculatePnLPercentageFromUnrealized(
+  params: PnLFromUnrealizedParams,
+): number {
   const { unrealizedPnl, entryPrice, size } = params;
   const entryValue = entryPrice * Math.abs(size);
   if (entryValue === 0) return 0;
@@ -67,7 +71,10 @@ export function calculatePnLPercentageFromUnrealized(params: PnLFromUnrealizedPa
  */
 export function calculateTotalPnL(params: TotalPnLParams): number {
   const { positions } = params;
-  return positions.reduce((sum, position) => sum + parseFloat(position.unrealizedPnl || '0'), 0);
+  return positions.reduce(
+    (sum, position) => sum + parseFloat(position.unrealizedPnl || '0'),
+    0,
+  );
 }
 
 /**
@@ -78,7 +85,7 @@ export function calculateTotalPnLPercentage(params: TotalPnLParams): number {
   let totalPnl = 0;
   let totalEntryValue = 0;
 
-  positions.forEach(position => {
+  positions.forEach((position) => {
     const pnl = parseFloat(position.unrealizedPnl || '0');
     const entryPrice = parseFloat(position.entryPrice || '0');
     const size = Math.abs(parseFloat(position.size || '0'));

@@ -10,42 +10,36 @@ import type {
  * Provides methods for switching networks and providers
  */
 export function usePerpsNetworkConfig() {
-  const toggleTestnet = useCallback(
-    async (): Promise<ToggleTestnetResult> => {
-      const controller = Engine.context.PerpsController;
-      return controller.toggleTestnet();
-    },
-    []
-  );
+  const toggleTestnet = useCallback(async (): Promise<ToggleTestnetResult> => {
+    const controller = Engine.context.PerpsController;
+    return controller.toggleTestnet();
+  }, []);
 
-  const getCurrentNetwork = useCallback(
-    (): 'mainnet' | 'testnet' => {
-      const controller = Engine.context.PerpsController;
-      return controller.getCurrentNetwork();
-    },
-    []
-  );
+  const getCurrentNetwork = useCallback((): 'mainnet' | 'testnet' => {
+    const controller = Engine.context.PerpsController;
+    return controller.getCurrentNetwork();
+  }, []);
 
   const switchProvider = useCallback(
     async (providerId: string): Promise<SwitchProviderResult> => {
       const controller = Engine.context.PerpsController;
       return controller.switchProvider(providerId);
     },
-    []
+    [],
   );
 
-  const disconnect = useCallback(
-    async (): Promise<void> => {
-      const controller = Engine.context.PerpsController;
-      return controller.disconnect();
-    },
-    []
-  );
+  const disconnect = useCallback(async (): Promise<void> => {
+    const controller = Engine.context.PerpsController;
+    return controller.disconnect();
+  }, []);
 
-  return useMemo(() => ({
-    toggleTestnet,
-    getCurrentNetwork,
-    switchProvider,
-    disconnect,
-  }), [toggleTestnet, getCurrentNetwork, switchProvider, disconnect]);
+  return useMemo(
+    () => ({
+      toggleTestnet,
+      getCurrentNetwork,
+      switchProvider,
+      disconnect,
+    }),
+    [toggleTestnet, getCurrentNetwork, switchProvider, disconnect],
+  );
 }

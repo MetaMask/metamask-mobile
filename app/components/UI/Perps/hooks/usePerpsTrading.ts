@@ -28,7 +28,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.placeOrder(params);
     },
-    []
+    [],
   );
 
   const cancelOrder = useCallback(
@@ -36,7 +36,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.cancelOrder(params);
     },
-    []
+    [],
   );
 
   const closePosition = useCallback(
@@ -44,7 +44,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.closePosition(params);
     },
-    []
+    [],
   );
 
   const getMarkets = useCallback(
@@ -52,23 +52,20 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.getMarkets(params);
     },
-    []
+    [],
   );
 
-  const getPositions = useCallback(
-    async (): Promise<Position[]> => {
-      const controller = Engine.context.PerpsController;
-      return controller.getPositions();
-    },
-    []
-  );
+  const getPositions = useCallback(async (): Promise<Position[]> => {
+    const controller = Engine.context.PerpsController;
+    return controller.getPositions();
+  }, []);
 
   const getAccountState = useCallback(
     async (params?: GetAccountStateParams): Promise<AccountState> => {
       const controller = Engine.context.PerpsController;
       return controller.getAccountState(params);
     },
-    []
+    [],
   );
 
   const subscribeToPrices = useCallback(
@@ -76,7 +73,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.subscribeToPrices(subscription);
     },
-    []
+    [],
   );
 
   const subscribeToPositions = useCallback(
@@ -84,7 +81,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.subscribeToPositions(subscription);
     },
-    []
+    [],
   );
 
   const subscribeToOrderFills = useCallback(
@@ -92,7 +89,7 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.subscribeToOrderFills(subscription);
     },
-    []
+    [],
   );
 
   const deposit = useCallback(
@@ -100,24 +97,18 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.deposit(params);
     },
-    []
+    [],
   );
 
-  const getDepositRoutes = useCallback(
-    (): AssetRoute[] => {
-      const controller = Engine.context.PerpsController;
-      return controller.getDepositRoutes();
-    },
-    []
-  );
+  const getDepositRoutes = useCallback((): AssetRoute[] => {
+    const controller = Engine.context.PerpsController;
+    return controller.getDepositRoutes();
+  }, []);
 
-  const resetDepositState = useCallback(
-    (): void => {
-      const controller = Engine.context.PerpsController;
-      controller.resetDepositState();
-    },
-    []
-  );
+  const resetDepositState = useCallback((): void => {
+    const controller = Engine.context.PerpsController;
+    controller.resetDepositState();
+  }, []);
 
   return {
     placeOrder,
@@ -134,4 +125,3 @@ export function usePerpsTrading() {
     resetDepositState,
   };
 }
-

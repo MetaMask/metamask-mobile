@@ -1,4 +1,9 @@
-import { parseCaipAccountId, type CaipAccountId, type Hex, isValidHexAddress } from '@metamask/utils';
+import {
+  parseCaipAccountId,
+  type CaipAccountId,
+  type Hex,
+  isValidHexAddress,
+} from '@metamask/utils';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import Engine from '../../../../core/Engine';
@@ -24,19 +29,28 @@ export class HyperLiquidWalletService {
     request: (args: { method: string; params: unknown[] }) => Promise<unknown>;
   } {
     return {
-      request: async (args: { method: string; params: unknown[] }): Promise<unknown> => {
+      request: async (args: {
+        method: string;
+        params: unknown[];
+      }): Promise<unknown> => {
         switch (args.method) {
           case 'eth_requestAccounts': {
-            const selectedAddress = selectSelectedInternalAccountAddress(store.getState());
+            const selectedAddress = selectSelectedInternalAccountAddress(
+              store.getState(),
+            );
             if (!selectedAddress) {
-              throw new Error('No account selected. Please ensure MetaMask has an active account.');
+              throw new Error(
+                'No account selected. Please ensure MetaMask has an active account.',
+              );
             }
             return [selectedAddress];
           }
 
           case 'eth_signTypedData_v4': {
             const [address, data] = args.params as [string, string | object];
-            const selectedAddress = selectSelectedInternalAccountAddress(store.getState());
+            const selectedAddress = selectSelectedInternalAccountAddress(
+              store.getState(),
+            );
 
             // Check if account is selected
             if (!selectedAddress) {
@@ -45,20 +59,24 @@ export class HyperLiquidWalletService {
 
             // Verify the signing address matches the selected account
             if (address.toLowerCase() !== selectedAddress.toLowerCase()) {
-              throw new Error('Signing address does not match selected account');
+              throw new Error(
+                'Signing address does not match selected account',
+              );
             }
 
             // Parse the JSON string if needed
-            const typedData = typeof data === 'string' ? JSON.parse(data) : data;
+            const typedData =
+              typeof data === 'string' ? JSON.parse(data) : data;
 
             // Use Engine's KeyringController directly
-            const signature = await Engine.context.KeyringController.signTypedMessage(
-              {
-                from: address,
-                data: typedData,
-              },
-              SignTypedDataVersion.V4
-            );
+            const signature =
+              await Engine.context.KeyringController.signTypedMessage(
+                {
+                  from: address,
+                  data: typedData,
+                },
+                SignTypedDataVersion.V4,
+              );
 
             return signature;
           }
@@ -66,7 +84,7 @@ export class HyperLiquidWalletService {
           default:
             throw new Error(`Unsupported method: ${args.method}`);
         }
-      }
+      },
     };
   }
 
@@ -74,10 +92,14 @@ export class HyperLiquidWalletService {
    * Get current account ID from Redux store
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const selectedAddress = selectSelectedInternalAccountAddress(store.getState());
+    const selectedAddress = selectSelectedInternalAccountAddress(
+      store.getState(),
+    );
 
     if (!selectedAddress) {
-      throw new Error('No account selected. Please ensure MetaMask has an active account.');
+      throw new Error(
+        'No account selected. Please ensure MetaMask has an active account.',
+      );
     }
 
     const chainId = getChainId(this.isTestnet);
@@ -103,8 +125,10 @@ export class HyperLiquidWalletService {
   /**
    * Get user address with default fallback to current account
    */
-  public async getUserAddressWithDefault(accountId?: CaipAccountId): Promise<Hex> {
-    const id = accountId || await this.getCurrentAccountId();
+  public async getUserAddressWithDefault(
+    accountId?: CaipAccountId,
+  ): Promise<Hex> {
+    const id = accountId || (await this.getCurrentAccountId());
     return this.getUserAddress(id);
   }
 

@@ -4,7 +4,13 @@ import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
-import { validateOrderParams, validateWithdrawalParams, validateCoinExists, validateAssetSupport, validateBalance } from '../../utils/hyperLiquidValidation';
+import {
+  validateOrderParams,
+  validateWithdrawalParams,
+  validateCoinExists,
+  validateAssetSupport,
+  validateBalance,
+} from '../../utils/hyperLiquidValidation';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
@@ -16,10 +22,12 @@ jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateCoinExists: jest.fn(),
   validateAssetSupport: jest.fn(),
   validateBalance: jest.fn(),
-  getSupportedPaths: jest.fn().mockReturnValue([
-    'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/default',
-    'eip155:1/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/default',
-  ]),
+  getSupportedPaths: jest
+    .fn()
+    .mockReturnValue([
+      'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/default',
+      'eip155:1/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/default',
+    ]),
   getBridgeInfo: jest.fn().mockReturnValue({
     chainId: 'eip155:42161',
     contractAddress: '0x1234567890123456789012345678901234567890',
@@ -31,14 +39,30 @@ jest.mock('../../utils/hyperLiquidValidation', () => ({
   })),
 }));
 
-const MockedHyperLiquidClientService = HyperLiquidClientService as jest.MockedClass<typeof HyperLiquidClientService>;
-const MockedHyperLiquidWalletService = HyperLiquidWalletService as jest.MockedClass<typeof HyperLiquidWalletService>;
-const MockedHyperLiquidSubscriptionService = HyperLiquidSubscriptionService as jest.MockedClass<typeof HyperLiquidSubscriptionService>;
-const mockValidateOrderParams = validateOrderParams as jest.MockedFunction<typeof validateOrderParams>;
-const mockValidateWithdrawalParams = validateWithdrawalParams as jest.MockedFunction<typeof validateWithdrawalParams>;
-const mockValidateCoinExists = validateCoinExists as jest.MockedFunction<typeof validateCoinExists>;
-const mockValidateAssetSupport = validateAssetSupport as jest.MockedFunction<typeof validateAssetSupport>;
-const mockValidateBalance = validateBalance as jest.MockedFunction<typeof validateBalance>;
+const MockedHyperLiquidClientService =
+  HyperLiquidClientService as jest.MockedClass<typeof HyperLiquidClientService>;
+const MockedHyperLiquidWalletService =
+  HyperLiquidWalletService as jest.MockedClass<typeof HyperLiquidWalletService>;
+const MockedHyperLiquidSubscriptionService =
+  HyperLiquidSubscriptionService as jest.MockedClass<
+    typeof HyperLiquidSubscriptionService
+  >;
+const mockValidateOrderParams = validateOrderParams as jest.MockedFunction<
+  typeof validateOrderParams
+>;
+const mockValidateWithdrawalParams =
+  validateWithdrawalParams as jest.MockedFunction<
+    typeof validateWithdrawalParams
+  >;
+const mockValidateCoinExists = validateCoinExists as jest.MockedFunction<
+  typeof validateCoinExists
+>;
+const mockValidateAssetSupport = validateAssetSupport as jest.MockedFunction<
+  typeof validateAssetSupport
+>;
+const mockValidateBalance = validateBalance as jest.MockedFunction<
+  typeof validateBalance
+>;
 
 describe('HyperLiquidProvider', () => {
   let provider: HyperLiquidProvider;
@@ -77,7 +101,12 @@ describe('HyperLiquidProvider', () => {
         clearinghouseState: jest.fn().mockResolvedValue({
           assetPositions: [
             {
-              position: { coin: 'BTC', szi: '0.1', entryPx: '50000', unrealizedPnl: '100' },
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                unrealizedPnl: '100',
+              },
               type: 'oneWay',
             },
           ],
@@ -88,9 +117,7 @@ describe('HyperLiquidProvider', () => {
           withdrawable: '5000',
         }),
         spotClearinghouseState: jest.fn().mockResolvedValue({
-          balances: [
-            { coin: 'USDC', hold: '1000', total: '10000' },
-          ],
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
         meta: jest.fn().mockResolvedValue({
           universe: [
@@ -110,12 +137,22 @@ describe('HyperLiquidProvider', () => {
 
     mockWalletService = {
       setTestnetMode: jest.fn(),
-      getCurrentAccountId: jest.fn().mockReturnValue('eip155:42161:0x1234567890123456789012345678901234567890'),
+      getCurrentAccountId: jest
+        .fn()
+        .mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        ),
       createWalletAdapter: jest.fn().mockReturnValue({
-        request: jest.fn().mockResolvedValue(['0x1234567890123456789012345678901234567890']),
+        request: jest
+          .fn()
+          .mockResolvedValue(['0x1234567890123456789012345678901234567890']),
       }),
-      getUserAddress: jest.fn().mockReturnValue('0x1234567890123456789012345678901234567890'),
-      getUserAddressWithDefault: jest.fn().mockResolvedValue('0x1234567890123456789012345678901234567890'),
+      getUserAddress: jest
+        .fn()
+        .mockReturnValue('0x1234567890123456789012345678901234567890'),
+      getUserAddressWithDefault: jest
+        .fn()
+        .mockResolvedValue('0x1234567890123456789012345678901234567890'),
     } as Partial<HyperLiquidWalletService> as jest.Mocked<HyperLiquidWalletService>;
 
     mockSubscriptionService = {
@@ -128,7 +165,9 @@ describe('HyperLiquidProvider', () => {
     // Mock constructors
     MockedHyperLiquidClientService.mockImplementation(() => mockClientService);
     MockedHyperLiquidWalletService.mockImplementation(() => mockWalletService);
-    MockedHyperLiquidSubscriptionService.mockImplementation(() => mockSubscriptionService);
+    MockedHyperLiquidSubscriptionService.mockImplementation(
+      () => mockSubscriptionService,
+    );
 
     // Mock validation
     mockValidateOrderParams.mockReturnValue({ isValid: true });
@@ -141,12 +180,18 @@ describe('HyperLiquidProvider', () => {
 
     // Mock the asset mapping that gets built during ensureReady
     Object.defineProperty(provider, 'coinToAssetId', {
-      value: new Map([['BTC', 0], ['ETH', 1]]),
-      writable: true
+      value: new Map([
+        ['BTC', 0],
+        ['ETH', 1],
+      ]),
+      writable: true,
     });
     Object.defineProperty(provider, 'assetIdToCoin', {
-      value: new Map([[0, 'BTC'], [1, 'ETH']]),
-      writable: true
+      value: new Map([
+        [0, 'BTC'],
+        [1, 'ETH'],
+      ]),
+      writable: true,
     });
   });
 
@@ -231,7 +276,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle order placement errors', async () => {
-      (mockClientService.getExchangeClient().order as jest.Mock).mockResolvedValueOnce({
+      (
+        mockClientService.getExchangeClient().order as jest.Mock
+      ).mockResolvedValueOnce({
         status: 'error',
         response: { message: 'Order failed' },
       });
@@ -294,7 +341,9 @@ describe('HyperLiquidProvider', () => {
 
       expect(Array.isArray(positions)).toBe(true);
       expect(positions.length).toBeGreaterThan(0);
-      expect(mockClientService.getInfoClient().clearinghouseState).toHaveBeenCalled();
+      expect(
+        mockClientService.getInfoClient().clearinghouseState,
+      ).toHaveBeenCalled();
     });
 
     it('should get account state successfully', async () => {
@@ -302,8 +351,12 @@ describe('HyperLiquidProvider', () => {
 
       expect(accountState).toBeDefined();
       expect(accountState.totalBalance).toBe('20000'); // 10000 (spot) + 10000 (perps)
-      expect(mockClientService.getInfoClient().clearinghouseState).toHaveBeenCalled();
-      expect(mockClientService.getInfoClient().spotClearinghouseState).toHaveBeenCalled();
+      expect(
+        mockClientService.getInfoClient().clearinghouseState,
+      ).toHaveBeenCalled();
+      expect(
+        mockClientService.getInfoClient().spotClearinghouseState,
+      ).toHaveBeenCalled();
     });
 
     it('should get markets successfully', async () => {
@@ -315,9 +368,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle data retrieval errors gracefully', async () => {
-      (mockClientService.getInfoClient().clearinghouseState as jest.Mock).mockRejectedValueOnce(
-        new Error('API Error')
-      );
+      (
+        mockClientService.getInfoClient().clearinghouseState as jest.Mock
+      ).mockRejectedValueOnce(new Error('API Error'));
 
       const positions = await provider.getPositions();
 
@@ -331,7 +384,8 @@ describe('HyperLiquidProvider', () => {
       const withdrawParams = {
         amount: '1000',
         destination: '0x1234567890123456789012345678901234567890' as Hex,
-        assetId: 'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
       };
 
       const result = await provider.withdraw(withdrawParams);
@@ -348,7 +402,8 @@ describe('HyperLiquidProvider', () => {
       const withdrawParams = {
         amount: '0',
         destination: '0x1234567890123456789012345678901234567890' as Hex,
-        assetId: 'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
       };
 
       const result = await provider.withdraw(withdrawParams);
@@ -431,7 +486,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle disconnect errors', async () => {
-      mockClientService.disconnect.mockRejectedValueOnce(new Error('Disconnect failed'));
+      mockClientService.disconnect.mockRejectedValueOnce(
+        new Error('Disconnect failed'),
+      );
 
       const result = await provider.disconnect();
 
@@ -446,9 +503,15 @@ describe('HyperLiquidProvider', () => {
       jest.clearAllMocks();
 
       // Mock constructors again for the fresh provider
-      MockedHyperLiquidClientService.mockImplementation(() => mockClientService);
-      MockedHyperLiquidWalletService.mockImplementation(() => mockWalletService);
-      MockedHyperLiquidSubscriptionService.mockImplementation(() => mockSubscriptionService);
+      MockedHyperLiquidClientService.mockImplementation(
+        () => mockClientService,
+      );
+      MockedHyperLiquidWalletService.mockImplementation(
+        () => mockWalletService,
+      );
+      MockedHyperLiquidSubscriptionService.mockImplementation(
+        () => mockSubscriptionService,
+      );
 
       // Create a fresh provider instance
       provider = new HyperLiquidProvider();
@@ -456,11 +519,11 @@ describe('HyperLiquidProvider', () => {
       // Clear the asset mapping to force it to be rebuilt
       Object.defineProperty(provider, 'coinToAssetId', {
         value: new Map(),
-        writable: true
+        writable: true,
       });
       Object.defineProperty(provider, 'assetIdToCoin', {
         value: new Map(),
-        writable: true
+        writable: true,
       });
 
       // Use getPositions which now calls ensureReady() and builds asset mapping
@@ -470,9 +533,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle asset mapping errors', async () => {
-      (mockClientService.getInfoClient().meta as jest.Mock).mockRejectedValueOnce(
-        new Error('Meta fetch failed')
-      );
+      (
+        mockClientService.getInfoClient().meta as jest.Mock
+      ).mockRejectedValueOnce(new Error('Meta fetch failed'));
 
       const orderParams: OrderParams = {
         coin: 'BTC',
@@ -516,7 +579,8 @@ describe('HyperLiquidProvider', () => {
       const withdrawParams = {
         amount: '',
         destination: '0x1234567890123456789012345678901234567890' as Hex,
-        assetId: 'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+        assetId:
+          'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
       };
 
       const result = await provider.withdraw(withdrawParams);
@@ -526,9 +590,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle unknown errors gracefully', async () => {
-      (mockClientService.getInfoClient().clearinghouseState as jest.Mock).mockRejectedValueOnce(
-        new Error('Unknown error')
-      );
+      (
+        mockClientService.getInfoClient().clearinghouseState as jest.Mock
+      ).mockRejectedValueOnce(new Error('Unknown error'));
 
       const result = await provider.getPositions();
 
@@ -539,7 +603,9 @@ describe('HyperLiquidProvider', () => {
 
   describe('Edge Cases', () => {
     it('should handle missing asset info in orders', async () => {
-      (mockClientService.getInfoClient().meta as jest.Mock).mockResolvedValueOnce({
+      (
+        mockClientService.getInfoClient().meta as jest.Mock
+      ).mockResolvedValueOnce({
         universe: [], // Empty universe
       });
 
@@ -557,7 +623,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle missing price data', async () => {
-      (mockClientService.getInfoClient().allMids as jest.Mock).mockResolvedValueOnce({});
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({});
 
       const orderParams: OrderParams = {
         coin: 'BTC',
@@ -573,7 +641,9 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should handle missing position in close operation', async () => {
-      (mockClientService.getInfoClient().clearinghouseState as jest.Mock).mockResolvedValueOnce({
+      (
+        mockClientService.getInfoClient().clearinghouseState as jest.Mock
+      ).mockResolvedValueOnce({
         assetPositions: [], // No positions
       });
 

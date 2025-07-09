@@ -1,13 +1,40 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import { ToastContext, ToastVariants } from '../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
@@ -16,17 +43,44 @@ import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import PerpsTPSLModal from '../components/PerpsTPSLModal';
 import PerpsLeverageButtons from '../components/PerpsLeverageButtons';
-import { usePerpsAccount, usePerpsTrading, usePerpsNetwork, usePerpsPrices } from '../hooks';
+import {
+  usePerpsAccount,
+  usePerpsTrading,
+  usePerpsNetwork,
+  usePerpsPrices,
+} from '../hooks';
 // Use the SDK directly without our abstractions
-import { HttpTransport, InfoClient, ExchangeClient } from '@deeeed/hyperliquid-node20';
-import { actionSorter, signL1Action } from '@deeeed/hyperliquid-node20/esm/src/signing/mod';
+import {
+  HttpTransport,
+  InfoClient,
+  ExchangeClient,
+} from '@deeeed/hyperliquid-node20';
+import {
+  actionSorter,
+  signL1Action,
+} from '@deeeed/hyperliquid-node20/esm/src/signing/mod';
 import type { OrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 // Import utilities for clean test code
-import { formatHyperLiquidPrice, formatHyperLiquidSize, calculatePositionSize, buildAssetMapping } from '../utils/hyperLiquidAdapter';
-import type { MarketInfo, PerpsNavigationParamList } from '../controllers/types';
-import { triggerLeverageHaptic, createMarginHapticHandler } from '../utils/hapticUtils';
-import { TRADING_DEFAULTS, FEE_RATES, RISK_MANAGEMENT } from '../constants/hyperLiquidConfig';
+import {
+  formatHyperLiquidPrice,
+  formatHyperLiquidSize,
+  calculatePositionSize,
+  buildAssetMapping,
+} from '../utils/hyperLiquidAdapter';
+import type {
+  MarketInfo,
+  PerpsNavigationParamList,
+} from '../controllers/types';
+import {
+  triggerLeverageHaptic,
+  createMarginHapticHandler,
+} from '../utils/hapticUtils';
+import {
+  TRADING_DEFAULTS,
+  FEE_RATES,
+  RISK_MANAGEMENT,
+} from '../constants/hyperLiquidConfig';
 
 // Order form state interface
 interface OrderFormState {
@@ -36,7 +90,7 @@ interface OrderFormState {
   leverage: number;
   balancePercent: number; // Percentage of available balance being used
   takeProfitPrice?: string; // Absolute price for take profit (e.g., "52500")
-  stopLossPrice?: string;   // Absolute price for stop loss (e.g., "48500")
+  stopLossPrice?: string; // Absolute price for stop loss (e.g., "48500")
 }
 
 // Navigation params interface
@@ -46,7 +100,6 @@ interface OrderRouteParams {
   amount?: string; // Default amount for deeplinks
   leverage?: number; // Default leverage
 }
-
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -480,7 +533,7 @@ const PerpsOrderView: React.FC = () => {
     direction = 'long',
     asset = 'BTC',
     amount: paramAmount,
-    leverage: paramLeverage
+    leverage: paramLeverage,
   } = route.params || {};
 
   // Get PerpsController methods and state
@@ -489,7 +542,9 @@ const PerpsOrderView: React.FC = () => {
   const cachedAccountState = usePerpsAccount();
 
   // Get real HyperLiquid USDC balance
-  const availableBalance = parseFloat(cachedAccountState?.availableBalance?.toString() || '0');
+  const availableBalance = parseFloat(
+    cachedAccountState?.availableBalance?.toString() || '0',
+  );
 
   // Market data state for dynamic leverage limits
   const [marketData, setMarketData] = useState<MarketInfo | null>(null);
@@ -498,7 +553,7 @@ const PerpsOrderView: React.FC = () => {
   const fetchMarketData = useCallback(async () => {
     try {
       const markets = await getMarkets({ symbols: [asset] });
-      const assetMarket = markets.find(market => market.name === asset);
+      const assetMarket = markets.find((market) => market.name === asset);
       setMarketData(assetMarket || null);
     } catch (error) {
       DevLogger.log('Failed to fetch market data:', error);
@@ -516,30 +571,54 @@ const PerpsOrderView: React.FC = () => {
    * - Default TP = 30% profit target
    * - Default SL = 10% loss limit
    */
-  const calculateDefaultTPSL = useCallback((currentPrice: number, orderDirection: 'long' | 'short') => {
-    if (currentPrice <= 0) return { takeProfitPrice: undefined, stopLossPrice: undefined };
+  const calculateDefaultTPSL = useCallback(
+    (currentPrice: number, orderDirection: 'long' | 'short') => {
+      if (currentPrice <= 0)
+        return { takeProfitPrice: undefined, stopLossPrice: undefined };
 
-    if (orderDirection === 'long') {
-      // Long position: TP above entry, SL below entry
-      const takeProfitPrice = (currentPrice * (1 + TRADING_DEFAULTS.takeProfitPercent)).toString(); // 30% above
-      const stopLossPrice = (currentPrice * (1 - TRADING_DEFAULTS.stopLossPercent)).toString();   // 10% below
-      return { takeProfitPrice, stopLossPrice };
-    }
+      if (orderDirection === 'long') {
+        // Long position: TP above entry, SL below entry
+        const takeProfitPrice = (
+          currentPrice *
+          (1 + TRADING_DEFAULTS.takeProfitPercent)
+        ).toString(); // 30% above
+        const stopLossPrice = (
+          currentPrice *
+          (1 - TRADING_DEFAULTS.stopLossPercent)
+        ).toString(); // 10% below
+        return { takeProfitPrice, stopLossPrice };
+      }
       // Short position: TP below entry, SL above entry
-      const takeProfitPrice = (currentPrice * (1 - TRADING_DEFAULTS.takeProfitPercent)).toString(); // 30% below
-      const stopLossPrice = (currentPrice * (1 + TRADING_DEFAULTS.stopLossPercent)).toString();   // 10% above
+      const takeProfitPrice = (
+        currentPrice *
+        (1 - TRADING_DEFAULTS.takeProfitPercent)
+      ).toString(); // 30% below
+      const stopLossPrice = (
+        currentPrice *
+        (1 + TRADING_DEFAULTS.stopLossPercent)
+      ).toString(); // 10% above
       return { takeProfitPrice, stopLossPrice };
-
-  }, []);
+    },
+    [],
+  );
 
   // Calculate initial balance percentage
-  const defaultAmount = currentNetwork === 'mainnet' ? TRADING_DEFAULTS.amount.mainnet : TRADING_DEFAULTS.amount.testnet;
+  const defaultAmount =
+    currentNetwork === 'mainnet'
+      ? TRADING_DEFAULTS.amount.mainnet
+      : TRADING_DEFAULTS.amount.testnet;
   const initialMarginRequired = defaultAmount / TRADING_DEFAULTS.leverage;
-  const initialBalancePercent = availableBalance > 0 ?
-    Math.min((initialMarginRequired / availableBalance) * 100, 100) : TRADING_DEFAULTS.marginPercent;
+  const initialBalancePercent =
+    availableBalance > 0
+      ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
+      : TRADING_DEFAULTS.marginPercent;
 
   // Determine default amount - priority: route params > network defaults
-  const defaultAmountValue = paramAmount || (currentNetwork === 'mainnet' ? TRADING_DEFAULTS.amount.mainnet.toString() : TRADING_DEFAULTS.amount.testnet.toString());
+  const defaultAmountValue =
+    paramAmount ||
+    (currentNetwork === 'mainnet'
+      ? TRADING_DEFAULTS.amount.mainnet.toString()
+      : TRADING_DEFAULTS.amount.testnet.toString());
   const defaultLeverageValue = paramLeverage || TRADING_DEFAULTS.leverage;
 
   // Order form state - Initialize with navigation params
@@ -587,15 +666,28 @@ const PerpsOrderView: React.FC = () => {
 
   // Auto-set default TP/SL when price data becomes available (JIRA requirement: 30% TP, 10% SL)
   useEffect(() => {
-    if (assetData.price > 0 && !orderForm.takeProfitPrice && !orderForm.stopLossPrice) {
-      const defaults = calculateDefaultTPSL(assetData.price, orderForm.direction);
-      setOrderForm(prev => ({
+    if (
+      assetData.price > 0 &&
+      !orderForm.takeProfitPrice &&
+      !orderForm.stopLossPrice
+    ) {
+      const defaults = calculateDefaultTPSL(
+        assetData.price,
+        orderForm.direction,
+      );
+      setOrderForm((prev) => ({
         ...prev,
         takeProfitPrice: defaults.takeProfitPrice,
         stopLossPrice: defaults.stopLossPrice,
       }));
     }
-  }, [assetData.price, orderForm.direction, orderForm.takeProfitPrice, orderForm.stopLossPrice, calculateDefaultTPSL]);
+  }, [
+    assetData.price,
+    orderForm.direction,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    calculateDefaultTPSL,
+  ]);
 
   // Calculate estimated fees using config constants
   const estimatedFees = useMemo(() => {
@@ -609,8 +701,7 @@ const PerpsOrderView: React.FC = () => {
     } else if (fee >= 0.0001) {
       return parseFloat(fee.toFixed(4)).toString(); // 4 decimal places for fees < $0.01 but >= $0.0001, remove trailing zeros
     }
-      return parseFloat(fee.toFixed(6)).toString(); // 6 decimal places for fees < $0.0001, remove trailing zeros
-
+    return parseFloat(fee.toFixed(6)).toString(); // 6 decimal places for fees < $0.0001, remove trailing zeros
   }, [orderForm.amount, orderType]);
 
   // Real-time position size calculation
@@ -644,12 +735,15 @@ const PerpsOrderView: React.FC = () => {
     // For short: liquidation = entry * (1 + (1/leverage - maintenance_margin))
     const liquidationRatio = 1 + (leverageRatio - maintenanceMargin);
     return (entryPrice * liquidationRatio).toFixed(2);
-
   }, [assetData.price, orderForm.leverage, orderForm.direction]);
 
   // TP/SL prices are now stored directly as absolute values
-  const takeProfitPrice = orderForm.takeProfitPrice ? parseFloat(orderForm.takeProfitPrice) : undefined;
-  const stopLossPrice = orderForm.stopLossPrice ? parseFloat(orderForm.stopLossPrice) : undefined;
+  const takeProfitPrice = orderForm.takeProfitPrice
+    ? parseFloat(orderForm.takeProfitPrice)
+    : undefined;
+  const stopLossPrice = orderForm.stopLossPrice
+    ? parseFloat(orderForm.stopLossPrice)
+    : undefined;
 
   // Order validation
   const orderValidation = useMemo(() => {
@@ -664,25 +758,40 @@ const PerpsOrderView: React.FC = () => {
 
     // Validate minimum order size (example: $10 minimum)
     if (amount > 0 && amount < 10) {
-      errors.push(strings('perps.order.validation.minimumAmount', { amount: '10' }));
+      errors.push(
+        strings('perps.order.validation.minimumAmount', { amount: '10' }),
+      );
     }
 
     // Validate maximum order size (example: $100,000 maximum)
     if (amount > 100000) {
-      errors.push(strings('perps.order.validation.maximumAmount', { amount: '100,000' }));
+      errors.push(
+        strings('perps.order.validation.maximumAmount', { amount: '100,000' }),
+      );
     }
 
     // Check if user has sufficient balance for margin
     const requiredMargin = parseFloat(marginRequired);
 
     if (requiredMargin > availableBalance) {
-      errors.push(strings('perps.order.validation.insufficientBalance', { required: marginRequired, available: availableBalance.toString() }));
+      errors.push(
+        strings('perps.order.validation.insufficientBalance', {
+          required: marginRequired,
+          available: availableBalance.toString(),
+        }),
+      );
     }
 
     // Validate leverage
-    const maxLeverage = marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
+    const maxLeverage =
+      marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
     if (orderForm.leverage < 1 || orderForm.leverage > maxLeverage) {
-      errors.push(strings('perps.order.validation.invalidLeverage', { min: '1', max: maxLeverage.toString() }));
+      errors.push(
+        strings('perps.order.validation.invalidLeverage', {
+          min: '1',
+          max: maxLeverage.toString(),
+        }),
+      );
     }
 
     // Warn about high leverage
@@ -691,24 +800,62 @@ const PerpsOrderView: React.FC = () => {
     }
 
     // Validate TP/SL levels only if they are set
-    if (takeProfitPrice && orderForm.direction === 'long' && takeProfitPrice <= assetData.price) {
-      errors.push(strings('perps.order.validation.invalidTakeProfit', { direction: 'above', positionType: 'long' }));
+    if (
+      takeProfitPrice &&
+      orderForm.direction === 'long' &&
+      takeProfitPrice <= assetData.price
+    ) {
+      errors.push(
+        strings('perps.order.validation.invalidTakeProfit', {
+          direction: 'above',
+          positionType: 'long',
+        }),
+      );
     }
-    if (takeProfitPrice && orderForm.direction === 'short' && takeProfitPrice >= assetData.price) {
-      errors.push(strings('perps.order.validation.invalidTakeProfit', { direction: 'below', positionType: 'short' }));
+    if (
+      takeProfitPrice &&
+      orderForm.direction === 'short' &&
+      takeProfitPrice >= assetData.price
+    ) {
+      errors.push(
+        strings('perps.order.validation.invalidTakeProfit', {
+          direction: 'below',
+          positionType: 'short',
+        }),
+      );
     }
-    if (stopLossPrice && orderForm.direction === 'long' && stopLossPrice >= assetData.price) {
-      errors.push(strings('perps.order.validation.invalidStopLoss', { direction: 'below', positionType: 'long' }));
+    if (
+      stopLossPrice &&
+      orderForm.direction === 'long' &&
+      stopLossPrice >= assetData.price
+    ) {
+      errors.push(
+        strings('perps.order.validation.invalidStopLoss', {
+          direction: 'below',
+          positionType: 'long',
+        }),
+      );
     }
-    if (stopLossPrice && orderForm.direction === 'short' && stopLossPrice <= assetData.price) {
-      errors.push(strings('perps.order.validation.invalidStopLoss', { direction: 'above', positionType: 'short' }));
+    if (
+      stopLossPrice &&
+      orderForm.direction === 'short' &&
+      stopLossPrice <= assetData.price
+    ) {
+      errors.push(
+        strings('perps.order.validation.invalidStopLoss', {
+          direction: 'above',
+          positionType: 'short',
+        }),
+      );
     }
 
     // Check liquidation proximity
     const liquidationPriceNum = parseFloat(liquidationPrice);
-    const priceDistance = Math.abs(liquidationPriceNum - assetData.price) / assetData.price;
+    const priceDistance =
+      Math.abs(liquidationPriceNum - assetData.price) / assetData.price;
 
-    if (priceDistance < 0.1) { // Less than 10% from liquidation
+    if (priceDistance < 0.1) {
+      // Less than 10% from liquidation
       warnings.push(strings('perps.order.validation.liquidationWarning'));
     }
 
@@ -717,13 +864,21 @@ const PerpsOrderView: React.FC = () => {
       warnings,
       isValid: errors.length === 0,
     };
-  }, [orderForm, marginRequired, takeProfitPrice, stopLossPrice, assetData.price, liquidationPrice, availableBalance, marketData]);
+  }, [
+    orderForm,
+    marginRequired,
+    takeProfitPrice,
+    stopLossPrice,
+    assetData.price,
+    liquidationPrice,
+    availableBalance,
+    marketData,
+  ]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
 
   // Handle order type toggle
   const handleOrderTypeToggle = useCallback(() => {
@@ -736,41 +891,49 @@ const PerpsOrderView: React.FC = () => {
   }, []);
 
   // Handle balance percentage slider
-  const handleBalancePercentageChange = useCallback((percentage: number) => {
-    const clampedPercentage = Math.max(0, Math.min(100, percentage));
-    const marginToUse = (availableBalance * clampedPercentage) / 100;
-    const newAmount = marginToUse * orderForm.leverage;
+  const handleBalancePercentageChange = useCallback(
+    (percentage: number) => {
+      const clampedPercentage = Math.max(0, Math.min(100, percentage));
+      const marginToUse = (availableBalance * clampedPercentage) / 100;
+      const newAmount = marginToUse * orderForm.leverage;
 
-    // Trigger haptic feedback for every 5% margin change
-    marginHapticHandler.current.trigger(percentage);
+      // Trigger haptic feedback for every 5% margin change
+      marginHapticHandler.current.trigger(percentage);
 
-    setOrderForm(prev => ({
-      ...prev,
-      amount: newAmount.toFixed(2),
-      balancePercent: clampedPercentage
-    }));
-  }, [availableBalance, orderForm.leverage]);
+      setOrderForm((prev) => ({
+        ...prev,
+        amount: newAmount.toFixed(2),
+        balancePercent: clampedPercentage,
+      }));
+    },
+    [availableBalance, orderForm.leverage],
+  );
 
   // Handle amount change
-  const handleAmountChange = useCallback((text: string) => {
-    // Only allow numbers and decimal point
-    const cleanText = text.replace(/[^0-9.]/g, '');
-    // Prevent multiple decimal points
-    const parts = cleanText.split('.');
-    const validText = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanText;
-    // Calculate the new balance percentage based on amount
-    const amount = parseFloat(validText || '0');
-    const requiredMargin = amount / orderForm.leverage;
-    const newBalancePercent = availableBalance > 0 && requiredMargin > 0 ?
-      Math.min((requiredMargin / availableBalance) * 100, 100) : 0;
+  const handleAmountChange = useCallback(
+    (text: string) => {
+      // Only allow numbers and decimal point
+      const cleanText = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
+      const parts = cleanText.split('.');
+      const validText =
+        parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanText;
+      // Calculate the new balance percentage based on amount
+      const amount = parseFloat(validText || '0');
+      const requiredMargin = amount / orderForm.leverage;
+      const newBalancePercent =
+        availableBalance > 0 && requiredMargin > 0
+          ? Math.min((requiredMargin / availableBalance) * 100, 100)
+          : 0;
 
-    setOrderForm(prev => ({
-      ...prev,
-      amount: validText,
-      balancePercent: Math.round(newBalancePercent * 100) / 100 // Round to 2 decimal places
-    }));
-  }, [orderForm.leverage, availableBalance]);
-
+      setOrderForm((prev) => ({
+        ...prev,
+        amount: validText,
+        balancePercent: Math.round(newBalancePercent * 100) / 100, // Round to 2 decimal places
+      }));
+    },
+    [orderForm.leverage, availableBalance],
+  );
 
   // Handle place order
   const handlePlaceOrder = useCallback(async () => {
@@ -788,7 +951,7 @@ const PerpsOrderView: React.FC = () => {
         labelOptions: [
           { label: strings('perps.order.validation.failed'), isBold: true },
           { label: ': ', isBold: false },
-          { label: firstError, isBold: false }
+          { label: firstError, isBold: false },
         ],
         iconName: IconName.Warning,
         iconColor: IconColor.Warning,
@@ -830,7 +993,10 @@ const PerpsOrderView: React.FC = () => {
           labelOptions: [
             { label: strings('perps.order.success.orderPlaced'), isBold: true },
             { label: ' - ', isBold: false },
-            { label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`, isBold: true }
+            {
+              label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`,
+              isBold: true,
+            },
           ],
           iconName: IconName.CheckBold,
           iconColor: IconColor.Success,
@@ -852,9 +1018,15 @@ const PerpsOrderView: React.FC = () => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
-            { label: strings('perps.order.error.placementFailed'), isBold: true },
+            {
+              label: strings('perps.order.error.placementFailed'),
+              isBold: true,
+            },
             { label: ': ', isBold: false },
-            { label: result.error || strings('perps.order.error.unknown'), isBold: false }
+            {
+              label: result.error || strings('perps.order.error.unknown'),
+              isBold: false,
+            },
           ],
           iconName: IconName.Error,
           iconColor: IconColor.Error,
@@ -875,7 +1047,13 @@ const PerpsOrderView: React.FC = () => {
         labelOptions: [
           { label: strings('perps.order.error.networkError'), isBold: true },
           { label: ': ', isBold: false },
-          { label: error instanceof Error ? error.message : strings('perps.order.error.unknown'), isBold: false }
+          {
+            label:
+              error instanceof Error
+                ? error.message
+                : strings('perps.order.error.unknown'),
+            isBold: false,
+          },
         ],
         iconName: IconName.Error,
         iconColor: IconColor.Error,
@@ -889,12 +1067,27 @@ const PerpsOrderView: React.FC = () => {
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [orderValidation, toastRef, orderForm, positionSize, marginRequired, liquidationPrice, assetData.price, placeOrder, navigation, currentPrice]);
-  const selectedAddress = selectSelectedInternalAccountAddress(store.getState());
-
+  }, [
+    orderValidation,
+    toastRef,
+    orderForm,
+    positionSize,
+    marginRequired,
+    liquidationPrice,
+    assetData.price,
+    placeOrder,
+    navigation,
+    currentPrice,
+  ]);
+  const selectedAddress = selectSelectedInternalAccountAddress(
+    store.getState(),
+  );
 
   // Helper function to create test order with utilities using dynamic form values
-  const createTestOrder = useCallback(async (): Promise<{ order: OrderParams; transport: HttpTransport }> => {
+  const createTestOrder = useCallback(async (): Promise<{
+    order: OrderParams;
+    transport: HttpTransport;
+  }> => {
     const isTestnet = currentNetwork === 'testnet';
     const transport = new HttpTransport({ isTestnet });
     const infoClient = new InfoClient({ transport });
@@ -903,7 +1096,9 @@ const PerpsOrderView: React.FC = () => {
 
     // Build asset mapping
     const { coinToAssetId } = buildAssetMapping(meta.universe);
-    const assetInfo: PerpsUniverse | undefined = meta.universe.find(assetItem => assetItem.name === orderForm.asset);
+    const assetInfo: PerpsUniverse | undefined = meta.universe.find(
+      (assetItem) => assetItem.name === orderForm.asset,
+    );
     if (!assetInfo) throw new Error(`${orderForm.asset} not found`);
 
     // Use dynamic values from the form
@@ -916,21 +1111,28 @@ const PerpsOrderView: React.FC = () => {
     const calculatedPositionSize: number = calculatePositionSize({
       usdValue: usdAmount,
       leverage,
-      assetPrice: currentAssetPrice
+      assetPrice: currentAssetPrice,
     });
 
     // Add slippage for market orders (1% for buys, -1% for sells)
     const slippage: number = 0.01;
     const orderPrice: number = isLong
-      ? currentAssetPrice * (1 + slippage)  // Buy above market
+      ? currentAssetPrice * (1 + slippage) // Buy above market
       : currentAssetPrice * (1 - slippage); // Sell below market
 
     // Format using utilities
-    const formattedPrice: string = formatHyperLiquidPrice({ price: orderPrice, szDecimals: assetInfo.szDecimals });
-    const formattedSize: string = formatHyperLiquidSize({ size: calculatedPositionSize, szDecimals: assetInfo.szDecimals });
+    const formattedPrice: string = formatHyperLiquidPrice({
+      price: orderPrice,
+      szDecimals: assetInfo.szDecimals,
+    });
+    const formattedSize: string = formatHyperLiquidSize({
+      size: calculatedPositionSize,
+      szDecimals: assetInfo.szDecimals,
+    });
 
     const assetId: number | undefined = coinToAssetId.get(orderForm.asset);
-    if (assetId === undefined) throw new Error(`${orderForm.asset} asset ID not found`);
+    if (assetId === undefined)
+      throw new Error(`${orderForm.asset} asset ID not found`);
 
     const order: OrderParams = {
       a: assetId,
@@ -938,7 +1140,10 @@ const PerpsOrderView: React.FC = () => {
       p: formattedPrice,
       s: formattedSize,
       r: false, // TODO: Support reduce-only orders
-      t: orderType === 'limit' ? { limit: { tif: 'Gtc' } } : { limit: { tif: 'Ioc' } }
+      t:
+        orderType === 'limit'
+          ? { limit: { tif: 'Gtc' } }
+          : { limit: { tif: 'Ioc' } },
     };
 
     DevLogger.log('🧪 TEST ORDER (Dynamic):', {
@@ -950,7 +1155,7 @@ const PerpsOrderView: React.FC = () => {
       calculatedPositionSize,
       formattedPrice,
       formattedSize,
-      order
+      order,
     });
 
     return { order, transport };
@@ -964,39 +1169,58 @@ const PerpsOrderView: React.FC = () => {
       const { order } = await createTestOrder();
 
       // Create wallet adapter
-      const wallet: { request: (args: { method: string; params: unknown[] }) => Promise<unknown> } = {
-        request: async (args: { method: string; params: unknown[] }): Promise<unknown> => {
+      const wallet: {
+        request: (args: {
+          method: string;
+          params: unknown[];
+        }) => Promise<unknown>;
+      } = {
+        request: async (args: {
+          method: string;
+          params: unknown[];
+        }): Promise<unknown> => {
           if (args.method === 'eth_requestAccounts') return [selectedAddress];
           if (args.method === 'eth_signTypedData_v4') {
             const [, data] = args.params as [string, string | object];
-            const typedData = typeof data === 'string' ? JSON.parse(data) : data;
+            const typedData =
+              typeof data === 'string' ? JSON.parse(data) : data;
             return await Engine.context.KeyringController.signTypedMessage(
               { from: selectedAddress as `0x${string}`, data: typedData },
-              SignTypedDataVersion.V4
+              SignTypedDataVersion.V4,
             );
           }
           throw new Error(`Unsupported method: ${args.method}`);
-        }
+        },
       };
 
       // Sign and send
-      const action = { type: 'order' as const, orders: [order], grouping: 'na' as const };
+      const action = {
+        type: 'order' as const,
+        orders: [order],
+        grouping: 'na' as const,
+      };
       const sortedAction = actionSorter.order(action);
       const nonce: number = Date.now();
 
       const isTestnet: boolean = currentNetwork === 'testnet';
-      const signature = await signL1Action({ wallet, action: sortedAction, nonce, isTestnet });
+      const signature = await signL1Action({
+        wallet,
+        action: sortedAction,
+        nonce,
+        isTestnet,
+      });
 
-      const apiUrl: string = isTestnet ? 'https://api.hyperliquid-testnet.xyz/exchange' : 'https://api.hyperliquid.xyz/exchange';
+      const apiUrl: string = isTestnet
+        ? 'https://api.hyperliquid-testnet.xyz/exchange'
+        : 'https://api.hyperliquid.xyz/exchange';
       const response: Response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: sortedAction, signature, nonce })
+        body: JSON.stringify({ action: sortedAction, signature, nonce }),
       });
 
       const result: unknown = await response.json();
       DevLogger.log('✅ signL1Action result:', result);
-
     } catch (error) {
       DevLogger.log('❌ signL1Action failed:', (error as Error).message);
     } finally {
@@ -1012,28 +1236,43 @@ const PerpsOrderView: React.FC = () => {
       const { order, transport } = await createTestOrder();
 
       // Create wallet adapter
-      const wallet: { request: (args: { method: string; params: unknown[] }) => Promise<unknown> } = {
-        request: async (args: { method: string; params: unknown[] }): Promise<unknown> => {
+      const wallet: {
+        request: (args: {
+          method: string;
+          params: unknown[];
+        }) => Promise<unknown>;
+      } = {
+        request: async (args: {
+          method: string;
+          params: unknown[];
+        }): Promise<unknown> => {
           if (args.method === 'eth_requestAccounts') return [selectedAddress];
           if (args.method === 'eth_signTypedData_v4') {
             const [, data] = args.params as [string, string | object];
-            const typedData = typeof data === 'string' ? JSON.parse(data) : data;
+            const typedData =
+              typeof data === 'string' ? JSON.parse(data) : data;
             return await Engine.context.KeyringController.signTypedMessage(
               { from: selectedAddress as `0x${string}`, data: typedData },
-              SignTypedDataVersion.V4
+              SignTypedDataVersion.V4,
             );
           }
           throw new Error(`Unsupported method: ${args.method}`);
-        }
+        },
       };
 
       // Use high-level ExchangeClient
       const isTestnet: boolean = currentNetwork === 'testnet';
-      const exchangeClient: ExchangeClient = new ExchangeClient({ wallet, transport, isTestnet });
-      const result: unknown = await exchangeClient.order({ orders: [order], grouping: 'na' });
+      const exchangeClient: ExchangeClient = new ExchangeClient({
+        wallet,
+        transport,
+        isTestnet,
+      });
+      const result: unknown = await exchangeClient.order({
+        orders: [order],
+        grouping: 'na',
+      });
 
       DevLogger.log('✅ exchange.order result:', result);
-
     } catch (error) {
       DevLogger.log('❌ exchange.order failed:', (error as Error).message);
     } finally {
@@ -1053,30 +1292,46 @@ const PerpsOrderView: React.FC = () => {
         />
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>
-            {orderForm.direction === 'long' ? 'Long' : 'Short'} {orderForm.asset}
+            {orderForm.direction === 'long' ? 'Long' : 'Short'}{' '}
+            {orderForm.asset}
           </Text>
           <View style={styles.headerCenterRow}>
             <Text style={styles.headerPrice}>
-              {assetData.price > 0 ? `$${assetData.price.toLocaleString()}` : 'Loading...'}
+              {assetData.price > 0
+                ? `$${assetData.price.toLocaleString()}`
+                : 'Loading...'}
             </Text>
             {assetData.price > 0 && (
-              <Text style={[
-                styles.headerPriceChange,
-                assetData.change >= 0 ? styles.headerPriceChangePositive : styles.headerPriceChangeNegative
-              ]}>
-                {assetData.change >= 0 ? '+' : ''}{assetData.change.toFixed(2)}%
+              <Text
+                style={[
+                  styles.headerPriceChange,
+                  assetData.change >= 0
+                    ? styles.headerPriceChangePositive
+                    : styles.headerPriceChangeNegative,
+                ]}
+              >
+                {assetData.change >= 0 ? '+' : ''}
+                {assetData.change.toFixed(2)}%
               </Text>
             )}
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.marketButton} onPress={handleOrderTypeToggle}>
-            <Text style={styles.marketButtonText}>{orderType === 'market' ? 'Market' : 'Limit'}</Text>
+          <TouchableOpacity
+            style={styles.marketButton}
+            onPress={handleOrderTypeToggle}
+          >
+            <Text style={styles.marketButtonText}>
+              {orderType === 'market' ? 'Market' : 'Limit'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Amount Section */}
         <View style={styles.amountSection}>
           <View style={styles.amountRow}>
@@ -1085,7 +1340,9 @@ const PerpsOrderView: React.FC = () => {
               value={`$${orderForm.amount}`}
               onChangeText={(text) => {
                 // Remove $ symbol and any non-numeric characters except decimal
-                const cleanText = text.replace(/[$]/g, '').replace(/[^0-9.]/g, '');
+                const cleanText = text
+                  .replace(/[$]/g, '')
+                  .replace(/[^0-9.]/g, '');
                 handleAmountChange(cleanText);
               }}
               keyboardType="numeric"
@@ -1100,10 +1357,17 @@ const PerpsOrderView: React.FC = () => {
         <View style={styles.sliderContainer}>
           <View style={styles.marginSliderContainer}>
             <TouchableOpacity style={styles.marginBadge}>
-              <Text style={styles.marginBadgeText}>{orderForm.balancePercent.toFixed(1)}%</Text>
+              <Text style={styles.marginBadgeText}>
+                {orderForm.balancePercent.toFixed(1)}%
+              </Text>
             </TouchableOpacity>
             <View style={styles.marginTrack}>
-              <View style={[styles.marginProgress, { width: `${orderForm.balancePercent}%` }]} />
+              <View
+                style={[
+                  styles.marginProgress,
+                  { width: `${orderForm.balancePercent}%` },
+                ]}
+              />
             </View>
           </View>
           <View style={styles.sliderPercentageRow}>
@@ -1119,7 +1383,9 @@ const PerpsOrderView: React.FC = () => {
             <TouchableOpacity onPress={() => handleBalancePercentageChange(75)}>
               <Text style={styles.sliderPercentageText}>75%</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleBalancePercentageChange(100)}>
+            <TouchableOpacity
+              onPress={() => handleBalancePercentageChange(100)}
+            >
               <Text style={styles.sliderPercentageText}>100%</Text>
             </TouchableOpacity>
           </View>
@@ -1145,8 +1411,12 @@ const PerpsOrderView: React.FC = () => {
             <View style={styles.detailRowContainer}>
               <PerpsLeverageButtons
                 selectedLeverage={orderForm.leverage}
-                onLeverageSelect={(leverage) => setOrderForm(prev => ({ ...prev, leverage }))}
-                maxLeverage={marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage}
+                onLeverageSelect={(leverage) =>
+                  setOrderForm((prev) => ({ ...prev, leverage }))
+                }
+                maxLeverage={
+                  marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage
+                }
               />
               <ButtonIcon
                 iconName={IconName.Setting}
@@ -1176,7 +1446,9 @@ const PerpsOrderView: React.FC = () => {
           <View style={styles.bottomRow}>
             <Text style={styles.bottomLabel}>Balance</Text>
             <Text style={styles.bottomValue}>
-              {availableBalance > 0 ? `${availableBalance.toLocaleString()} USDC` : 'Loading...'}
+              {availableBalance > 0
+                ? `${availableBalance.toLocaleString()} USDC`
+                : 'Loading...'}
             </Text>
           </View>
           <View style={styles.bottomRow}>
@@ -1191,7 +1463,9 @@ const PerpsOrderView: React.FC = () => {
         <View style={styles.debugPanel}>
           <View style={styles.debugPanelHeader}>
             <Text style={styles.debugPanelTitle}>🧪 Debug Panel</Text>
-            <TouchableOpacity onPress={() => setDebugPanelVisible(!isDebugPanelVisible)}>
+            <TouchableOpacity
+              onPress={() => setDebugPanelVisible(!isDebugPanelVisible)}
+            >
               <Text style={styles.debugToggle}>
                 {isDebugPanelVisible ? 'Hide' : 'Show'}
               </Text>
@@ -1205,18 +1479,50 @@ const PerpsOrderView: React.FC = () => {
                 <Text style={styles.debugLabel}>SDK Method:</Text>
                 <View style={styles.debugButtonRow}>
                   <TouchableOpacity
-                    style={[styles.debugButton, { backgroundColor: useSDKSignL1 ? colors.primary.default : colors.background.default }]}
+                    style={[
+                      styles.debugButton,
+                      {
+                        backgroundColor: useSDKSignL1
+                          ? colors.primary.default
+                          : colors.background.default,
+                      },
+                    ]}
                     onPress={() => setUseSDKSignL1(true)}
                   >
-                    <Text style={[styles.debugButtonText, { color: useSDKSignL1 ? colors.primary.inverse : colors.text.muted }]}>
+                    <Text
+                      style={[
+                        styles.debugButtonText,
+                        {
+                          color: useSDKSignL1
+                            ? colors.primary.inverse
+                            : colors.text.muted,
+                        },
+                      ]}
+                    >
                       signL1Action
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.debugButton, { backgroundColor: !useSDKSignL1 ? colors.primary.default : colors.background.default }]}
+                    style={[
+                      styles.debugButton,
+                      {
+                        backgroundColor: !useSDKSignL1
+                          ? colors.primary.default
+                          : colors.background.default,
+                      },
+                    ]}
                     onPress={() => setUseSDKSignL1(false)}
                   >
-                    <Text style={[styles.debugButtonText, { color: !useSDKSignL1 ? colors.primary.inverse : colors.text.muted }]}>
+                    <Text
+                      style={[
+                        styles.debugButtonText,
+                        {
+                          color: !useSDKSignL1
+                            ? colors.primary.inverse
+                            : colors.text.muted,
+                        },
+                      ]}
+                    >
                       exchange.order
                     </Text>
                   </TouchableOpacity>
@@ -1226,11 +1532,16 @@ const PerpsOrderView: React.FC = () => {
               {/* Test Buttons */}
               <TouchableOpacity
                 style={styles.debugTestButton}
-                onPress={useSDKSignL1 ? testDirectWalletSignL1Action : testDirectWalletExchangeOrder}
+                onPress={
+                  useSDKSignL1
+                    ? testDirectWalletSignL1Action
+                    : testDirectWalletExchangeOrder
+                }
                 disabled={isPlacingOrder}
               >
                 <Text style={styles.debugTestButtonText}>
-                  👤 TEST Direct Wallet {useSDKSignL1 ? 'signL1Action' : 'exchange.order'} ($11 BTC)
+                  👤 TEST Direct Wallet{' '}
+                  {useSDKSignL1 ? 'signL1Action' : 'exchange.order'} ($11 BTC)
                 </Text>
               </TouchableOpacity>
             </>
@@ -1238,21 +1549,26 @@ const PerpsOrderView: React.FC = () => {
         </View>
       )}
 
-
       {/* Place Order Button */}
       <TouchableOpacity
         style={[
           styles.placeOrderButton,
-          !orderValidation.isValid && styles.placeOrderButtonDisabled
+          !orderValidation.isValid && styles.placeOrderButtonDisabled,
         ]}
         onPress={handlePlaceOrder}
         disabled={!orderValidation.isValid || isPlacingOrder}
       >
-        <Text style={[
-          styles.placeOrderButtonText,
-          !orderValidation.isValid && styles.placeOrderButtonTextDisabled
-        ]}>
-          {orderValidation.isValid ? 'Place order' : `Cannot place order: ${orderValidation.errors[0] || 'Unknown error'}`}
+        <Text
+          style={[
+            styles.placeOrderButtonText,
+            !orderValidation.isValid && styles.placeOrderButtonTextDisabled,
+          ]}
+        >
+          {orderValidation.isValid
+            ? 'Place order'
+            : `Cannot place order: ${
+                orderValidation.errors[0] || 'Unknown error'
+              }`}
         </Text>
       </TouchableOpacity>
 
@@ -1262,7 +1578,7 @@ const PerpsOrderView: React.FC = () => {
         onClose={() => setTpSlModalVisible(false)}
         onConfirm={(tpPrice, slPrice) => {
           // Store absolute prices directly - no conversion needed
-          setOrderForm(prev => ({
+          setOrderForm((prev) => ({
             ...prev,
             takeProfitPrice: tpPrice ? tpPrice.toString() : undefined,
             stopLossPrice: slPrice ? slPrice.toString() : undefined,
@@ -1278,22 +1594,42 @@ const PerpsOrderView: React.FC = () => {
       {isOrderTypeModalVisible && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              Order Type
-            </Text>
+            <Text style={styles.modalTitle}>Order Type</Text>
             <TouchableOpacity
-              style={[styles.modalOption, orderType === 'market' && styles.modalOptionSelected]}
-              onPress={() => { setOrderType('market'); setOrderTypeModalVisible(false); }}
+              style={[
+                styles.modalOption,
+                orderType === 'market' && styles.modalOptionSelected,
+              ]}
+              onPress={() => {
+                setOrderType('market');
+                setOrderTypeModalVisible(false);
+              }}
             >
-              <Text style={[styles.modalOptionText, orderType === 'market' && styles.modalOptionTextSelected]}>
+              <Text
+                style={[
+                  styles.modalOptionText,
+                  orderType === 'market' && styles.modalOptionTextSelected,
+                ]}
+              >
                 Market
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.modalOption, orderType === 'limit' && styles.modalOptionSelected]}
-              onPress={() => { setOrderType('limit'); setOrderTypeModalVisible(false); }}
+              style={[
+                styles.modalOption,
+                orderType === 'limit' && styles.modalOptionSelected,
+              ]}
+              onPress={() => {
+                setOrderType('limit');
+                setOrderTypeModalVisible(false);
+              }}
             >
-              <Text style={[styles.modalOptionText, orderType === 'limit' && styles.modalOptionTextSelected]}>
+              <Text
+                style={[
+                  styles.modalOptionText,
+                  orderType === 'limit' && styles.modalOptionTextSelected,
+                ]}
+              >
                 Limit
               </Text>
             </TouchableOpacity>
@@ -1311,32 +1647,37 @@ const PerpsOrderView: React.FC = () => {
       {isLeverageModalVisible && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              Leverage Settings
-            </Text>
+            <Text style={styles.modalTitle}>Leverage Settings</Text>
             {(() => {
               // Generate dynamic leverage options based on marketData maxLeverage
-              const maxLeverage = marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
+              const maxLeverage =
+                marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
               const baseOptions = [1, 2, 3, 5, 10, 20, 50];
-              const availableOptions = baseOptions.filter(option => option <= maxLeverage);
+              const availableOptions = baseOptions.filter(
+                (option) => option <= maxLeverage,
+              );
 
-              return availableOptions.map(leverage => (
+              return availableOptions.map((leverage) => (
                 <TouchableOpacity
                   key={leverage}
                   style={[
                     styles.modalOption,
-                    orderForm.leverage === leverage && styles.modalOptionSelected
+                    orderForm.leverage === leverage &&
+                      styles.modalOptionSelected,
                   ]}
                   onPress={async () => {
                     await triggerLeverageHaptic();
-                    setOrderForm(prev => ({ ...prev, leverage }));
+                    setOrderForm((prev) => ({ ...prev, leverage }));
                     setLeverageModalVisible(false);
                   }}
                 >
-                  <Text style={[
-                    styles.modalOptionText,
-                    orderForm.leverage === leverage && styles.modalOptionTextSelected
-                  ]}>
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      orderForm.leverage === leverage &&
+                        styles.modalOptionTextSelected,
+                    ]}
+                  >
                     {leverage}x
                   </Text>
                 </TouchableOpacity>
@@ -1356,4 +1697,3 @@ const PerpsOrderView: React.FC = () => {
 };
 
 export default PerpsOrderView;
-

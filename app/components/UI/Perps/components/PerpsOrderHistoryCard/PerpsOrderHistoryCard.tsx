@@ -1,8 +1,17 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React from 'react';
-import { TouchableOpacity, View, type GestureResponderEvent } from 'react-native';
-import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  TouchableOpacity,
+  View,
+  type GestureResponderEvent,
+} from 'react-native';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { OrderResult } from '../../controllers';
@@ -15,7 +24,6 @@ interface PerpsOrderHistoryCardProps {
   onCancel?: (order: OrderResult) => void;
   onEdit?: (order: OrderResult) => void;
 }
-
 
 const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
   order,
@@ -46,7 +54,6 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
       badgeStyle: styles.pendingBadge,
       textStyle: styles.pendingText,
     };
-
   };
 
   const orderStatus = getOrderStatus();
@@ -73,14 +80,12 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
   // Format timestamp if available (this would need to be added to OrderResult type)
   const formatTimestamp = () =>
     // For now, return a placeholder as timestamp isn't in OrderResult type
-    new Date().toLocaleString()
-    ;
-
+    new Date().toLocaleString();
   const handleCardPress = async () => {
     await triggerSelectionHaptic();
     navigation.navigate('PerpsOrderDetails', {
       order,
-      action: 'view'
+      action: 'view',
     });
   };
 
@@ -93,7 +98,7 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
       // Navigate to order details with cancel action
       navigation.navigate('PerpsOrderDetails', {
         order,
-        action: 'cancel'
+        action: 'cancel',
       });
     }
   };
@@ -107,7 +112,7 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
       // Navigate to order details with edit action
       navigation.navigate('PerpsOrderDetails', {
         order,
-        action: 'edit'
+        action: 'edit',
       });
     }
   };
@@ -149,9 +154,7 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
       <View style={styles.detailsContainer}>
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>Filled Size</Text>
-          <Text style={styles.detailValue}>
-            {formatSize(order.filledSize)}
-          </Text>
+          <Text style={styles.detailValue}>{formatSize(order.filledSize)}</Text>
         </View>
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>Average Price</Text>
@@ -162,7 +165,8 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>Status</Text>
           <Text style={[styles.detailValue, orderStatus.textStyle]}>
-            {orderStatus.status.charAt(0).toUpperCase() + orderStatus.status.slice(1)}
+            {orderStatus.status.charAt(0).toUpperCase() +
+              orderStatus.status.slice(1)}
           </Text>
         </View>
       </View>
@@ -170,17 +174,13 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
       {/* Show error message if order failed */}
       {order.error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            Error: {order.error}
-          </Text>
+          <Text style={styles.errorText}>Error: {order.error}</Text>
         </View>
       )}
 
       {/* Timestamp */}
       <View style={styles.timestampContainer}>
-        <Text style={styles.timestampText}>
-          {formatTimestamp()}
-        </Text>
+        <Text style={styles.timestampText}>{formatTimestamp()}</Text>
       </View>
     </TouchableOpacity>
   );

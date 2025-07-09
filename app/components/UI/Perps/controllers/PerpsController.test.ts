@@ -4,7 +4,7 @@ import { Messenger } from '@metamask/base-controller';
 import {
   getDefaultPerpsControllerState,
   PerpsController,
-  type PerpsControllerState
+  type PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId } from '@metamask/utils';
@@ -89,14 +89,19 @@ describe('PerpsController', () => {
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
-    (HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>).mockImplementation(() => mockHyperLiquidProvider);
+    (
+      HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+    ).mockImplementation(() => mockHyperLiquidProvider);
   });
 
   /**
    * Helper function to create a PerpsController with proper messenger setup
    */
   function withController<ReturnValue>(
-    fn: (args: { controller: PerpsController; messenger: UnrestrictedMessenger }) => ReturnValue,
+    fn: (args: {
+      controller: PerpsController;
+      messenger: UnrestrictedMessenger;
+    }) => ReturnValue,
     options: {
       state?: Partial<PerpsControllerState>;
       mocks?: {
@@ -112,18 +117,20 @@ describe('PerpsController', () => {
     // Register mock external actions
     messenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
-      mocks.getSelectedAccount ?? jest.fn().mockReturnValue({
-        id: 'mock-account-id',
-        address: '0x1234567890123456789012345678901234567890',
-        metadata: { name: 'Test Account' },
-      }),
+      mocks.getSelectedAccount ??
+        jest.fn().mockReturnValue({
+          id: 'mock-account-id',
+          address: '0x1234567890123456789012345678901234567890',
+          metadata: { name: 'Test Account' },
+        }),
     );
 
     messenger.registerActionHandler(
       'NetworkController:getState',
-      mocks.getNetworkState ?? jest.fn().mockReturnValue({
-        selectedNetworkClientId: 'mainnet',
-      }),
+      mocks.getNetworkState ??
+        jest.fn().mockReturnValue({
+          selectedNetworkClientId: 'mainnet',
+        }),
     );
 
     const restrictedMessenger = messenger.getRestricted({
@@ -185,12 +192,15 @@ describe('PerpsController', () => {
         ],
       };
 
-      withController(({ controller }) => {
-        expect(controller.state.activeProvider).toBe('hyperliquid');
-        expect(controller.state.isTestnet).toBe(false);
-        expect(controller.state.positions).toHaveLength(1);
-        expect(controller.state.positions[0].coin).toBe('BTC');
-      }, { state: customState });
+      withController(
+        ({ controller }) => {
+          expect(controller.state.activeProvider).toBe('hyperliquid');
+          expect(controller.state.isTestnet).toBe(false);
+          expect(controller.state.positions).toHaveLength(1);
+          expect(controller.state.positions[0].coin).toBe('BTC');
+        },
+        { state: customState },
+      );
     });
   });
 
@@ -221,13 +231,19 @@ describe('PerpsController', () => {
     });
 
     it('should get current network', () => {
-      withController(({ controller }) => {
-        expect(controller.getCurrentNetwork()).toBe('testnet'); // Default in tests
-      }, { state: { isTestnet: true } });
+      withController(
+        ({ controller }) => {
+          expect(controller.getCurrentNetwork()).toBe('testnet'); // Default in tests
+        },
+        { state: { isTestnet: true } },
+      );
 
-      withController(({ controller }) => {
-        expect(controller.getCurrentNetwork()).toBe('mainnet');
-      }, { state: { isTestnet: false } });
+      withController(
+        ({ controller }) => {
+          expect(controller.getCurrentNetwork()).toBe('mainnet');
+        },
+        { state: { isTestnet: false } },
+      );
     });
   });
 
@@ -276,7 +292,9 @@ describe('PerpsController', () => {
       };
 
       withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getAccountState.mockResolvedValue(mockAccountState);
+        mockHyperLiquidProvider.getAccountState.mockResolvedValue(
+          mockAccountState,
+        );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
         await controller.initializeProviders();
@@ -292,7 +310,9 @@ describe('PerpsController', () => {
     it('should handle errors when getting positions', async () => {
       withController(async ({ controller }) => {
         const errorMessage = 'Network error';
-        mockHyperLiquidProvider.getPositions.mockRejectedValue(new Error(errorMessage));
+        mockHyperLiquidProvider.getPositions.mockRejectedValue(
+          new Error(errorMessage),
+        );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
         await controller.initializeProviders();
@@ -328,7 +348,9 @@ describe('PerpsController', () => {
         const result = await controller.placeOrder(orderParams);
 
         expect(result).toEqual(mockOrderResult);
-        expect(mockHyperLiquidProvider.placeOrder).toHaveBeenCalledWith(orderParams);
+        expect(mockHyperLiquidProvider.placeOrder).toHaveBeenCalledWith(
+          orderParams,
+        );
         // Test focuses on the result, not internal pending state management
       });
     });
@@ -377,7 +399,9 @@ describe('PerpsController', () => {
         const result = await controller.cancelOrder(cancelParams);
 
         expect(result).toEqual(mockCancelResult);
-        expect(mockHyperLiquidProvider.cancelOrder).toHaveBeenCalledWith(cancelParams);
+        expect(mockHyperLiquidProvider.cancelOrder).toHaveBeenCalledWith(
+          cancelParams,
+        );
       });
     });
   });
@@ -399,9 +423,11 @@ describe('PerpsController', () => {
     it('should get deposit routes', () => {
       const mockRoutes = [
         {
-          assetId: 'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+          assetId:
+            'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
           chainId: 'eip155:42161' as CaipChainId,
-          contractAddress: '0x5678901234567890123456789012345678901234' as `0x${string}`,
+          contractAddress:
+            '0x5678901234567890123456789012345678901234' as `0x${string}`,
         },
       ];
 
@@ -427,7 +453,7 @@ describe('PerpsController', () => {
         // This simulates the case where initializeProviders() hasn't been called yet
         (controller as any).isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
-          'PerpsController not initialized. Call initialize() first.'
+          'PerpsController not initialized. Call initialize() first.',
         );
       });
     });
@@ -435,7 +461,9 @@ describe('PerpsController', () => {
     it('should update error state when provider fails', async () => {
       withController(async ({ controller }) => {
         const errorMessage = 'Provider initialization failed';
-        mockHyperLiquidProvider.initialize.mockRejectedValue(new Error(errorMessage));
+        mockHyperLiquidProvider.initialize.mockRejectedValue(
+          new Error(errorMessage),
+        );
 
         // Should not throw, but should log error
         await controller.initializeProviders();
@@ -455,10 +483,13 @@ describe('PerpsController', () => {
         // Test missing amount
         const result1 = await controller.deposit({
           amount: '',
-          assetId: 'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default',
+          assetId:
+            'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default',
         });
         expect(result1.success).toBe(false);
-        expect(result1.error).toBe('Amount is required and must be greater than 0');
+        expect(result1.error).toBe(
+          'Amount is required and must be greater than 0',
+        );
 
         // Test missing assetId
         const result2 = await controller.deposit({
@@ -466,7 +497,9 @@ describe('PerpsController', () => {
           assetId: '' as any,
         });
         expect(result2.success).toBe(false);
-        expect(result2.error).toBe('AssetId is required for deposit validation');
+        expect(result2.error).toBe(
+          'AssetId is required for deposit validation',
+        );
       });
     });
 
@@ -475,9 +508,11 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
           {
-            assetId: 'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as any,
+            assetId:
+              'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as any,
             chainId: 'eip155:42161' as any,
-            contractAddress: '0x5678901234567890123456789012345678901234' as any,
+            contractAddress:
+              '0x5678901234567890123456789012345678901234' as any,
           },
         ]);
 
@@ -486,11 +521,14 @@ describe('PerpsController', () => {
         // Mock the analyzeDepositRoute to throw error for unsupported assets
         const result = await controller.deposit({
           amount: '100',
-          assetId: 'eip155:1/erc20:0x9999999999999999999999999999999999999999/default',
+          assetId:
+            'eip155:1/erc20:0x9999999999999999999999999999999999999999/default',
         });
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Only direct deposits are currently supported');
+        expect(result.error).toContain(
+          'Only direct deposits are currently supported',
+        );
       });
     });
   });
@@ -510,7 +548,9 @@ describe('PerpsController', () => {
 
         const unsubscribe = controller.subscribeToPrices(params);
 
-        expect(mockHyperLiquidProvider.subscribeToPrices).toHaveBeenCalledWith(params);
+        expect(mockHyperLiquidProvider.subscribeToPrices).toHaveBeenCalledWith(
+          params,
+        );
         expect(typeof unsubscribe).toBe('function');
       });
     });
@@ -528,7 +568,9 @@ describe('PerpsController', () => {
 
         const unsubscribe = controller.subscribeToPositions(params);
 
-        expect(mockHyperLiquidProvider.subscribeToPositions).toHaveBeenCalledWith(params);
+        expect(
+          mockHyperLiquidProvider.subscribeToPositions,
+        ).toHaveBeenCalledWith(params);
         expect(typeof unsubscribe).toBe('function');
       });
     });
@@ -536,7 +578,9 @@ describe('PerpsController', () => {
     it('should subscribe to order fill updates', () => {
       withController(({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        mockHyperLiquidProvider.subscribeToOrderFills.mockReturnValue(jest.fn());
+        mockHyperLiquidProvider.subscribeToOrderFills.mockReturnValue(
+          jest.fn(),
+        );
 
         controller.initializeProviders();
 
@@ -546,7 +590,9 @@ describe('PerpsController', () => {
 
         const unsubscribe = controller.subscribeToOrderFills(params);
 
-        expect(mockHyperLiquidProvider.subscribeToOrderFills).toHaveBeenCalledWith(params);
+        expect(
+          mockHyperLiquidProvider.subscribeToOrderFills,
+        ).toHaveBeenCalledWith(params);
         expect(typeof unsubscribe).toBe('function');
       });
     });
@@ -565,7 +611,9 @@ describe('PerpsController', () => {
 
         controller.setLiveDataConfig(config);
 
-        expect(mockHyperLiquidProvider.setLiveDataConfig).toHaveBeenCalledWith(config);
+        expect(mockHyperLiquidProvider.setLiveDataConfig).toHaveBeenCalledWith(
+          config,
+        );
       });
     });
   });
@@ -596,7 +644,9 @@ describe('PerpsController', () => {
         const result = await controller.editOrder(editParams);
 
         expect(result).toEqual(mockEditResult);
-        expect(mockHyperLiquidProvider.editOrder).toHaveBeenCalledWith(editParams);
+        expect(mockHyperLiquidProvider.editOrder).toHaveBeenCalledWith(
+          editParams,
+        );
       });
     });
 
@@ -613,14 +663,18 @@ describe('PerpsController', () => {
       };
 
       withController(async ({ controller }) => {
-        mockHyperLiquidProvider.closePosition.mockResolvedValue(mockCloseResult);
+        mockHyperLiquidProvider.closePosition.mockResolvedValue(
+          mockCloseResult,
+        );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
         await controller.initializeProviders();
         const result = await controller.closePosition(closeParams);
 
         expect(result).toEqual(mockCloseResult);
-        expect(mockHyperLiquidProvider.closePosition).toHaveBeenCalledWith(closeParams);
+        expect(mockHyperLiquidProvider.closePosition).toHaveBeenCalledWith(
+          closeParams,
+        );
       });
     });
 
@@ -699,7 +753,9 @@ describe('PerpsController', () => {
         const result = await controller.withdraw(withdrawParams);
 
         expect(result).toEqual(mockWithdrawResult);
-        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(withdrawParams);
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
       });
     });
   });

@@ -4,7 +4,7 @@ import type { RootState } from '../../../../reducers';
 
 const selectPerpsNetwork = createSelector(
   (state: RootState) => state.engine.backgroundState.PerpsController?.isTestnet,
-  (isTestnet): 'mainnet' | 'testnet' => isTestnet ? 'testnet' : 'mainnet'
+  (isTestnet): 'mainnet' | 'testnet' => (isTestnet ? 'testnet' : 'mainnet'),
 );
 
 /**

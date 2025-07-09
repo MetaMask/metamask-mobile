@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, Animated, Easing } from 'react-native';
 import Text, {
   TextVariant,
-  TextColor
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { createStyles } from './PerpsAmountDisplay.styles';

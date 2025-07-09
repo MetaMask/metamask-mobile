@@ -6,7 +6,12 @@ export interface PerpsViewProps {}
 /**
  * Test result states for SDK validation
  */
-export type TestResultStatus = 'idle' | 'loading' | 'success' | 'warning' | 'error';
+export type TestResultStatus =
+  | 'idle'
+  | 'loading'
+  | 'success'
+  | 'warning'
+  | 'error';
 
 /**
  * Test result data structure

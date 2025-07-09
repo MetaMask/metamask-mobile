@@ -17,10 +17,13 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
+import {
+  getNetworkImageSource,
+  BLOCKAID_SUPPORTED_NETWORK_NAMES,
+} from '../../../../../util/networks';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsPayWithRow.styles';
 
@@ -32,7 +35,6 @@ interface PerpsPayWithRowProps {
   showUsdEquivalent?: boolean;
   usdEquivalent?: string;
 }
-
 
 const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
   selectedToken,
@@ -67,10 +69,7 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
           <Text variant={TextVariant.BodyMD}>
             {strings('perps.deposit.payWith')}
           </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-          >
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {tokenAmount} {selectedToken.symbol}
           </Text>
           {showUsdEquivalent && usdEquivalent && (
@@ -97,13 +96,15 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
             >
               <AvatarToken
                 name={selectedToken.name || selectedToken.symbol}
-                imageSource={selectedToken.iconUrl ? { uri: selectedToken.iconUrl } : undefined}
+                imageSource={
+                  selectedToken.iconUrl
+                    ? { uri: selectedToken.iconUrl }
+                    : undefined
+                }
                 size={AvatarSize.Md}
               />
             </BadgeWrapper>
-            <Text variant={TextVariant.BodyMD}>
-              {selectedToken.symbol}
-            </Text>
+            <Text variant={TextVariant.BodyMD}>{selectedToken.symbol}</Text>
           </View>
         </ListItemColumn>
 

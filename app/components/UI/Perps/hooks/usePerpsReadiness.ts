@@ -22,16 +22,21 @@ export function usePerpsReadiness() {
       } catch (initError) {
         setReady(false);
         setLoading(false);
-        setError(initError instanceof Error ? initError.message : 'Unknown error');
+        setError(
+          initError instanceof Error ? initError.message : 'Unknown error',
+        );
       }
     };
 
     checkReadiness();
   }, []);
 
-  return useMemo(() => ({
-    ready,
-    loading,
-    error,
-  }), [ready, loading, error]);
+  return useMemo(
+    () => ({
+      ready,
+      loading,
+      error,
+    }),
+    [ready, loading, error],
+  );
 }

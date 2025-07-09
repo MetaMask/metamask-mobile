@@ -1,12 +1,21 @@
-import { useNavigation, useRoute, type NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+} from '@react-navigation/native';
 import type { PerpsNavigationParamList } from '../controllers/types';
 import React, { useCallback, useEffect } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -15,14 +24,12 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import {
-  usePerpsDeposit,
-} from '../hooks';
+import { usePerpsDeposit } from '../hooks';
 
 interface DepositProcessingParams {
   amount: string;
@@ -31,7 +38,7 @@ interface DepositProcessingParams {
   isDirectDeposit?: boolean; // true for USDC on Arbitrum, false for complex routes
 }
 
-interface DepositProcessingViewProps { }
+interface DepositProcessingViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -138,7 +145,12 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     currentTxHash,
   } = usePerpsDeposit();
 
-  const { amount, selectedToken, txHash, isDirectDeposit = false } = (route.params as DepositProcessingParams) || {};
+  const {
+    amount,
+    selectedToken,
+    txHash,
+    isDirectDeposit = false,
+  } = (route.params as DepositProcessingParams) || {};
 
   // Use the actual transaction hash from controller if available, otherwise fallback to route param
   const actualTxHash = currentTxHash || txHash;
@@ -153,7 +165,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
         depositStatus,
         actualTxHash,
         amount,
-        selectedToken
+        selectedToken,
       });
 
       // Navigate to success after short delay to show success state
@@ -190,25 +202,51 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     switch (depositStatus) {
       case 'preparing':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: strings('perps.deposit.steps.preparing'),
           description: strings('perps.deposit.stepDescriptions.preparing'),
         };
       case 'swapping':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: strings('perps.deposit.steps.swapping', { token: selectedToken || 'token' }),
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
+          title: strings('perps.deposit.steps.swapping', {
+            token: selectedToken || 'token',
+          }),
           description: strings('perps.deposit.stepDescriptions.swapping'),
         };
       case 'bridging':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: strings('perps.deposit.steps.bridging'),
           description: strings('perps.deposit.stepDescriptions.bridging'),
         };
       case 'depositing':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: stepName || strings('perps.deposit.steps.depositing'),
           description: isDirectDeposit
             ? strings('perps.deposit.steps.depositingDirect')
@@ -226,7 +264,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             </View>
           ),
           title: strings('perps.deposit.depositCompleted'),
-          description: strings('perps.deposit.stepDescriptions.success', { amount }),
+          description: strings('perps.deposit.stepDescriptions.success', {
+            amount,
+          }),
         };
       case 'error':
         return {
@@ -240,14 +280,23 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             </View>
           ),
           title: strings('perps.deposit.depositFailed'),
-          description: depositError || strings('perps.deposit.stepDescriptions.error'),
+          description:
+            depositError || strings('perps.deposit.stepDescriptions.error'),
         };
       case 'idle':
       default:
         // Fallback for when controller state is not yet set
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: isDirectDeposit ? strings('perps.deposit.steps.depositing') : strings('perps.deposit.steps.preparing'),
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
+          title: isDirectDeposit
+            ? strings('perps.deposit.steps.depositing')
+            : strings('perps.deposit.steps.preparing'),
           description: strings('perps.deposit.stepDescriptions.preparing'),
         };
     }
@@ -260,7 +309,11 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.placeholder} />
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID="header-title"
+        >
           {strings('perps.deposit.processingTitle')}
         </Text>
         <ButtonIcon
@@ -275,15 +328,22 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
       <View style={styles.content}>
         {/* Status Content */}
         <View style={styles.statusContainer}>
-          <View style={styles.statusIcon}>
-            {statusContent?.icon}
-          </View>
+          <View style={styles.statusIcon}>{statusContent?.icon}</View>
 
-          <Text variant={TextVariant.HeadingMD} style={styles.statusText} testID="status-title">
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.statusText}
+            testID="status-title"
+          >
             {statusContent?.title}
           </Text>
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted} style={styles.progressText} testID="status-description">
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+            style={styles.progressText}
+            testID="status-description"
+          >
             {statusContent?.description}
           </Text>
         </View>

@@ -1,14 +1,18 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type { Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import {
-  getBridgeInfo,
-  getChainId,
-} from '../../constants/hyperLiquidConfig';
+import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
-import { adaptAccountStateFromSDK, adaptMarketFromSDK, adaptPositionFromSDK, buildAssetMapping, formatHyperLiquidPrice, formatHyperLiquidSize } from '../../utils/hyperLiquidAdapter';
+import {
+  adaptAccountStateFromSDK,
+  adaptMarketFromSDK,
+  adaptPositionFromSDK,
+  buildAssetMapping,
+  formatHyperLiquidPrice,
+  formatHyperLiquidSize,
+} from '../../utils/hyperLiquidAdapter';
 import {
   createErrorResult,
   getSupportedPaths,
@@ -72,7 +76,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     this.walletService = new HyperLiquidWalletService({ isTestnet });
     this.subscriptionService = new HyperLiquidSubscriptionService(
       this.clientService,
-      this.walletService
+      this.walletService,
     );
 
     // Initialize clients
@@ -112,14 +116,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       DevLogger.log('Asset mapping built', {
         assetCount: meta.universe.length,
-        coins: Array.from(this.coinToAssetId.keys())
+        coins: Array.from(this.coinToAssetId.keys()),
       });
     } catch (error) {
       DevLogger.log('Failed to build asset mapping:', error);
       throw error;
     }
   }
-
 
   /**
    * Get supported deposit routes with complete asset and routing information
@@ -129,7 +132,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const supportedAssets = getSupportedPaths({ ...params, isTestnet });
     const bridgeInfo = getBridgeInfo(isTestnet);
 
-    return supportedAssets.map(assetId => ({
+    return supportedAssets.map((assetId) => ({
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
@@ -143,7 +146,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // For HyperLiquid, withdrawal routes are the same as deposit routes
     return this.getDepositRoutes(params);
   }
-
 
   /**
    * Place an order using direct wallet signing (same as working debug test)
@@ -164,7 +166,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
 
-      const assetInfo = meta.universe.find(asset => asset.name === params.coin);
+      const assetInfo = meta.universe.find(
+        (asset) => asset.name === params.coin,
+      );
       if (!assetInfo) {
         throw new Error(`Asset ${params.coin} not found`);
       }
@@ -176,7 +180,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log('Using provided current price:', {
           coin: params.coin,
           providedPrice: currentPrice,
-          source: 'UI price feed'
+          source: 'UI price feed',
         });
       } else {
         DevLogger.log('Fetching current price via API (fallback)');
@@ -198,14 +202,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderPrice = params.isBuy
           ? currentPrice * (1 + slippage) // Buy above market
           : currentPrice * (1 - slippage); // Sell below market
-        formattedSize = formatHyperLiquidSize({ size: positionSize, szDecimals: assetInfo.szDecimals });
+        formattedSize = formatHyperLiquidSize({
+          size: positionSize,
+          szDecimals: assetInfo.szDecimals,
+        });
       } else {
         // For limit orders, use provided price and size
         orderPrice = parseFloat(params.price || '0');
-        formattedSize = formatHyperLiquidSize({ size: parseFloat(params.size), szDecimals: assetInfo.szDecimals });
+        formattedSize = formatHyperLiquidSize({
+          size: parseFloat(params.size),
+          szDecimals: assetInfo.szDecimals,
+        });
       }
 
-      const formattedPrice = formatHyperLiquidPrice({ price: orderPrice, szDecimals: assetInfo.szDecimals });
+      const formattedPrice = formatHyperLiquidPrice({
+        price: orderPrice,
+        szDecimals: assetInfo.szDecimals,
+      });
       const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
         throw new Error(`Asset ID not found for ${params.coin}`);
@@ -221,8 +234,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
-        t: params.orderType === 'limit' ? { limit: { tif: 'Gtc' } } : { limit: { tif: 'Ioc' } },
-        c: params.clientOrderId ? params.clientOrderId as `0x${string}` : undefined
+        t:
+          params.orderType === 'limit'
+            ? { limit: { tif: 'Gtc' } }
+            : { limit: { tif: 'Ioc' } },
+        c: params.clientOrderId
+          ? (params.clientOrderId as `0x${string}`)
+          : undefined,
       };
       orders.push(mainOrder);
 
@@ -231,16 +249,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const tpOrder: SDKOrderParams = {
           a: assetId,
           b: !params.isBuy, // Opposite side to close position
-          p: formatHyperLiquidPrice({ price: parseFloat(params.takeProfitPrice), szDecimals: assetInfo.szDecimals }),
+          p: formatHyperLiquidPrice({
+            price: parseFloat(params.takeProfitPrice),
+            szDecimals: assetInfo.szDecimals,
+          }),
           s: formattedSize, // Same size as main order
           r: true, // Always reduce-only for TP
           t: {
             trigger: {
               isMarket: false, // Limit order when triggered
-              triggerPx: formatHyperLiquidPrice({ price: parseFloat(params.takeProfitPrice), szDecimals: assetInfo.szDecimals }),
-              tpsl: 'tp'
-            }
-          }
+              triggerPx: formatHyperLiquidPrice({
+                price: parseFloat(params.takeProfitPrice),
+                szDecimals: assetInfo.szDecimals,
+              }),
+              tpsl: 'tp',
+            },
+          },
         };
         orders.push(tpOrder);
       }
@@ -250,29 +274,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const slOrder: SDKOrderParams = {
           a: assetId,
           b: !params.isBuy, // Opposite side to close position
-          p: formatHyperLiquidPrice({ price: parseFloat(params.stopLossPrice), szDecimals: assetInfo.szDecimals }),
+          p: formatHyperLiquidPrice({
+            price: parseFloat(params.stopLossPrice),
+            szDecimals: assetInfo.szDecimals,
+          }),
           s: formattedSize, // Same size as main order
           r: true, // Always reduce-only for SL
           t: {
             trigger: {
               isMarket: true, // Market order when triggered for faster execution
-              triggerPx: formatHyperLiquidPrice({ price: parseFloat(params.stopLossPrice), szDecimals: assetInfo.szDecimals }),
-              tpsl: 'sl'
-            }
-          }
+              triggerPx: formatHyperLiquidPrice({
+                price: parseFloat(params.stopLossPrice),
+                szDecimals: assetInfo.szDecimals,
+              }),
+              tpsl: 'sl',
+            },
+          },
         };
         orders.push(slOrder);
       }
 
       // 4. Determine grouping - use explicit override or smart defaults
-      const grouping = params.grouping ||
-        ((params.takeProfitPrice || params.stopLossPrice) ? 'normalTpsl' : 'na');
+      const grouping =
+        params.grouping ||
+        (params.takeProfitPrice || params.stopLossPrice ? 'normalTpsl' : 'na');
 
       // 5. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
       const result = await exchangeClient.order({
         orders,
-        grouping
+        grouping,
       });
 
       if (result.status !== 'ok') {
@@ -280,7 +311,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const status = result.response?.data?.statuses?.[0];
-      const restingOrder = status && 'resting' in status ? status.resting : null;
+      const restingOrder =
+        status && 'resting' in status ? status.resting : null;
       const filledOrder = status && 'filled' in status ? status.filled : null;
 
       return {
@@ -309,7 +341,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const meta = await infoClient.meta();
       const mids = await infoClient.allMids(); // Default to perps data (same as subscription service)
 
-      const assetInfo = meta.universe.find(asset => asset.name === params.newOrder.coin);
+      const assetInfo = meta.universe.find(
+        (asset) => asset.name === params.newOrder.coin,
+      );
       if (!assetInfo) {
         throw new Error(`Asset ${params.newOrder.coin} not found`);
       }
@@ -329,13 +363,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);
-        formattedSize = formatHyperLiquidSize({ size: positionSize, szDecimals: assetInfo.szDecimals });
+        formattedSize = formatHyperLiquidSize({
+          size: positionSize,
+          szDecimals: assetInfo.szDecimals,
+        });
       } else {
         orderPrice = parseFloat(params.newOrder.price || '0');
-        formattedSize = formatHyperLiquidSize({ size: parseFloat(params.newOrder.size), szDecimals: assetInfo.szDecimals });
+        formattedSize = formatHyperLiquidSize({
+          size: parseFloat(params.newOrder.size),
+          szDecimals: assetInfo.szDecimals,
+        });
       }
 
-      const formattedPrice = formatHyperLiquidPrice({ price: orderPrice, szDecimals: assetInfo.szDecimals });
+      const formattedPrice = formatHyperLiquidPrice({
+        price: orderPrice,
+        szDecimals: assetInfo.szDecimals,
+      });
       const assetId = this.coinToAssetId.get(params.newOrder.coin);
       if (assetId === undefined) {
         throw new Error(`Asset ID not found for ${params.newOrder.coin}`);
@@ -348,15 +391,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
-        t: params.newOrder.orderType === 'limit' ? { limit: { tif: 'Gtc' } } : { limit: { tif: 'Ioc' } },
-        c: params.newOrder.clientOrderId ? params.newOrder.clientOrderId as `0x${string}` : undefined
+        t:
+          params.newOrder.orderType === 'limit'
+            ? { limit: { tif: 'Gtc' } }
+            : { limit: { tif: 'Ioc' } },
+        c: params.newOrder.clientOrderId
+          ? (params.newOrder.clientOrderId as `0x${string}`)
+          : undefined,
       };
 
       // Submit modification via SDK
       const exchangeClient = this.clientService.getExchangeClient();
       const result = await exchangeClient.modify({
-        oid: typeof params.orderId === 'string' ? params.orderId as `0x${string}` : params.orderId,
-        order: newOrder
+        oid:
+          typeof params.orderId === 'string'
+            ? (params.orderId as `0x${string}`)
+            : params.orderId,
+        order: newOrder,
       });
 
       if (result.status !== 'ok') {
@@ -381,7 +432,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Canceling order:', params);
 
       // Validate coin exists
-      const coinValidation = validateCoinExists(params.coin, this.coinToAssetId);
+      const coinValidation = validateCoinExists(
+        params.coin,
+        this.coinToAssetId,
+      );
       if (!coinValidation.isValid) {
         throw new Error(coinValidation.error);
       }
@@ -395,10 +449,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const result = await exchangeClient.cancel({
-        cancels: [{
-          a: asset,
-          o: parseInt(params.orderId, 10)
-        }]
+        cancels: [
+          {
+            a: asset,
+            o: parseInt(params.orderId, 10),
+          },
+        ],
       });
 
       const success = result.response?.data?.statuses?.[0] === 'success';
@@ -406,7 +462,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return {
         success,
         orderId: params.orderId,
-        error: success ? undefined : 'Order cancellation failed'
+        error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
       DevLogger.log('Order cancellation failed:', error);
@@ -422,7 +478,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Closing position:', params);
 
       const positions = await this.getPositions();
-      const position = positions.find(p => p.coin === params.coin);
+      const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
         throw new Error(`No position found for ${params.coin}`);
@@ -456,12 +512,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
-      const userAddress = await this.walletService.getUserAddressWithDefault(params?.accountId);
-      const clearingState = await infoClient.clearinghouseState({ user: userAddress });
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+      const clearingState = await infoClient.clearinghouseState({
+        user: userAddress,
+      });
 
       return clearingState.assetPositions
-        .filter(assetPos => assetPos.position.szi !== '0')
-        .map(assetPos => adaptPositionFromSDK(assetPos));
+        .filter((assetPos) => assetPos.position.szi !== '0')
+        .map((assetPos) => adaptPositionFromSDK(assetPos));
     } catch (error) {
       DevLogger.log('Error getting positions:', error);
       return [];
@@ -478,12 +538,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
-      const userAddress = await this.walletService.getUserAddressWithDefault(params?.accountId);
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
 
       // Get both Perps and Spot balances
       const [perpsState, spotState] = await Promise.all([
         infoClient.clearinghouseState({ user: userAddress }),
-        infoClient.spotClearinghouseState({ user: userAddress })
+        infoClient.spotClearinghouseState({ user: userAddress }),
       ]);
 
       DevLogger.log('Perps state:', perpsState);
@@ -512,7 +574,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
-      return meta.universe.map(asset => adaptMarketFromSDK(asset));
+      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
@@ -546,7 +608,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error('assetId is required for withdrawals');
       }
 
-      const assetValidation = validateAssetSupport(params.assetId, supportedRoutes);
+      const assetValidation = validateAssetSupport(
+        params.assetId,
+        supportedRoutes,
+      );
       if (!assetValidation.isValid) {
         throw new Error(assetValidation.error);
       }
@@ -574,7 +639,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const withdrawAmount = parseFloat(params.amount);
 
-      const balanceValidation = validateBalance(withdrawAmount, availableBalance);
+      const balanceValidation = validateBalance(
+        withdrawAmount,
+        availableBalance,
+      );
       if (!balanceValidation.isValid) {
         throw new Error(balanceValidation.error);
       }
@@ -712,7 +780,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       DevLogger.log('HyperLiquid: Disconnecting provider', {
         isTestnet: this.clientService.isTestnetMode(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Clear subscriptions through subscription service
@@ -722,7 +790,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       await this.clientService.disconnect();
 
       DevLogger.log('HyperLiquid: Provider fully disconnected', {
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       return { success: true };
@@ -730,5 +798,4 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return createErrorResult(error, { success: false });
     }
   }
-
 }

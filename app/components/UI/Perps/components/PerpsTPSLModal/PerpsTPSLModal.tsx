@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Modal, TouchableOpacity, FlatList } from 'react-native';
 import Text, {
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
@@ -9,7 +9,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName, IconColor } from '../../../../../component-library/components/Icons/Icon';
+import {
+  IconName,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { createStyles } from './PerpsTPSLModal.styles';
@@ -48,8 +51,12 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [takeProfitPrice, setTakeProfitPrice] = useState<number | undefined>(initialTakeProfitPrice);
-  const [stopLossPrice, setStopLossPrice] = useState<number | undefined>(initialStopLossPrice);
+  const [takeProfitPrice, setTakeProfitPrice] = useState<number | undefined>(
+    initialTakeProfitPrice,
+  );
+  const [stopLossPrice, setStopLossPrice] = useState<number | undefined>(
+    initialStopLossPrice,
+  );
 
   // Generate price levels around current price
   const priceLevels = useMemo((): PriceLevel[] => {
@@ -58,7 +65,7 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
     const range = 10; // Show 10 levels above and below
 
     for (let i = range; i >= -range; i--) {
-      const price = currentPrice + (step * i);
+      const price = currentPrice + step * i;
       levels.push({
         price,
         isMarkPrice: i === 0,
@@ -71,7 +78,8 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
   const handleTPToggle = (price: number) => {
     // For long positions, TP should be above current price
     // For short positions, TP should be below current price
-    const isValidTP = direction === 'long' ? price > currentPrice : price < currentPrice;
+    const isValidTP =
+      direction === 'long' ? price > currentPrice : price < currentPrice;
 
     if (isValidTP) {
       setTakeProfitPrice(takeProfitPrice === price ? undefined : price);
@@ -81,7 +89,8 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
   const handleSLToggle = (price: number) => {
     // For long positions, SL should be below current price
     // For short positions, SL should be above current price
-    const isValidSL = direction === 'long' ? price < currentPrice : price > currentPrice;
+    const isValidSL =
+      direction === 'long' ? price < currentPrice : price > currentPrice;
 
     if (isValidSL) {
       setStopLossPrice(stopLossPrice === price ? undefined : price);
@@ -95,8 +104,10 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
 
   const renderPriceLevel = ({ item }: { item: PriceLevel }) => {
     const { price, isMarkPrice } = item;
-    const canSetTP = direction === 'long' ? price > currentPrice : price < currentPrice;
-    const canSetSL = direction === 'long' ? price < currentPrice : price > currentPrice;
+    const canSetTP =
+      direction === 'long' ? price > currentPrice : price < currentPrice;
+    const canSetSL =
+      direction === 'long' ? price < currentPrice : price > currentPrice;
     const isTpSelected = takeProfitPrice === price;
     const isSlSelected = stopLossPrice === price;
 
@@ -121,12 +132,16 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
               <TouchableOpacity
                 style={[
                   styles.tpButton,
-                  isTpSelected ? styles.selectedButton : styles.unselectedButton
+                  isTpSelected
+                    ? styles.selectedButton
+                    : styles.unselectedButton,
                 ]}
                 onPress={() => handleTPToggle(price)}
               >
                 <Text style={styles.buttonText}>
-                  {isTpSelected ? strings('perps.order.tpslModal.removeTP') : strings('perps.order.tpslModal.addTP')}
+                  {isTpSelected
+                    ? strings('perps.order.tpslModal.removeTP')
+                    : strings('perps.order.tpslModal.addTP')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -135,12 +150,16 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
               <TouchableOpacity
                 style={[
                   styles.slButton,
-                  isSlSelected ? styles.selectedButton : styles.unselectedButton
+                  isSlSelected
+                    ? styles.selectedButton
+                    : styles.unselectedButton,
                 ]}
                 onPress={() => handleSLToggle(price)}
               >
                 <Text style={styles.buttonText}>
-                  {isSlSelected ? strings('perps.order.tpslModal.removeSL') : strings('perps.order.tpslModal.addSL')}
+                  {isSlSelected
+                    ? strings('perps.order.tpslModal.removeSL')
+                    : strings('perps.order.tpslModal.addSL')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -199,4 +218,3 @@ const PerpsTPSLModal: React.FC<PerpsTPSLModalProps> = ({
 };
 
 export default PerpsTPSLModal;
-

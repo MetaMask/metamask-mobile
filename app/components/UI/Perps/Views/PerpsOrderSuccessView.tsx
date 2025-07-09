@@ -1,10 +1,15 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { PerpsNavigationParamList } from '../controllers/types';
 import Text, {
   TextVariant,
-  TextColor
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
@@ -22,7 +27,10 @@ interface OrderSuccessParams {
   orderId?: string;
 }
 
-type OrderSuccessRoute = RouteProp<{ OrderSuccess: OrderSuccessParams }, 'OrderSuccess'>;
+type OrderSuccessRoute = RouteProp<
+  { OrderSuccess: OrderSuccessParams },
+  'OrderSuccess'
+>;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -115,10 +123,18 @@ const PerpsOrderSuccessView: React.FC = () => {
         </View>
 
         {/* Title and Subtitle */}
-        <Text variant={TextVariant.HeadingLG} color={TextColor.Default} style={styles.title}>
+        <Text
+          variant={TextVariant.HeadingLG}
+          color={TextColor.Default}
+          style={styles.title}
+        >
           {strings('perps.order.success.title')}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Muted} style={styles.subtitle}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.subtitle}
+        >
           {strings('perps.order.success.subtitle', { direction, asset })}
         </Text>
 
@@ -142,7 +158,12 @@ const PerpsOrderSuccessView: React.FC = () => {
               style={[
                 styles.detailValue,
                 styles.directionText,
-                { color: direction === 'long' ? colors.success.default : colors.error.default }
+                {
+                  color:
+                    direction === 'long'
+                      ? colors.success.default
+                      : colors.error.default,
+                },
               ]}
             >
               {direction}
@@ -194,4 +215,3 @@ const PerpsOrderSuccessView: React.FC = () => {
 };
 
 export default PerpsOrderSuccessView;
-

@@ -51,7 +51,9 @@ jest.mock('@metamask/utils', () => ({
       address: parts[2],
     };
   }),
-  isValidHexAddress: jest.fn((address: string) => /^0x[0-9a-fA-F]{40}$/.test(address)),
+  isValidHexAddress: jest.fn((address: string) =>
+    /^0x[0-9a-fA-F]{40}$/.test(address),
+  ),
 }));
 
 jest.mock('../../../../store', () => ({
@@ -62,7 +64,9 @@ jest.mock('../../../../store', () => ({
 
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountAddress: jest.fn(() => MOCK_SELECTED_ACCOUNT.address),
+  selectSelectedInternalAccountAddress: jest.fn(
+    () => MOCK_SELECTED_ACCOUNT.address,
+  ),
 }));
 
 // Mock Engine with proper hoisting
@@ -83,7 +87,7 @@ jest.mock('../../../../core/Engine', () => {
 
 // Mock config
 jest.mock('../constants/hyperLiquidConfig', () => ({
-  getChainId: jest.fn((isTestnet: boolean) => isTestnet ? '421614' : '42161'),
+  getChainId: jest.fn((isTestnet: boolean) => (isTestnet ? '421614' : '42161')),
 }));
 
 import { HyperLiquidWalletService } from './HyperLiquidWalletService';
@@ -119,7 +123,12 @@ describe('HyperLiquidWalletService', () => {
   });
 
   describe('Wallet Adapter Creation', () => {
-    let walletAdapter: { request: (args: { method: string; params: unknown[] }) => Promise<unknown> };
+    let walletAdapter: {
+      request: (args: {
+        method: string;
+        params: unknown[];
+      }) => Promise<unknown>;
+    };
 
     beforeEach(() => {
       walletAdapter = service.createWalletAdapter();
@@ -142,14 +151,18 @@ describe('HyperLiquidWalletService', () => {
 
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
-        jest.mocked(selectSelectedInternalAccountAddress).mockReturnValueOnce(undefined);
+        jest
+          .mocked(selectSelectedInternalAccountAddress)
+          .mockReturnValueOnce(undefined);
 
         await expect(
           walletAdapter.request({
             method: 'eth_requestAccounts',
             params: [],
-          })
-        ).rejects.toThrow('No account selected. Please ensure MetaMask has an active account.');
+          }),
+        ).rejects.toThrow(
+          'No account selected. Please ensure MetaMask has an active account.',
+        );
       });
     });
 
@@ -173,12 +186,14 @@ describe('HyperLiquidWalletService', () => {
         });
 
         expect(result).toBe('0xSignatureResult');
-        expect(Engine.context.KeyringController.signTypedMessage).toHaveBeenCalledWith(
+        expect(
+          Engine.context.KeyringController.signTypedMessage,
+        ).toHaveBeenCalledWith(
           {
             from: '0x1234567890123456789012345678901234567890',
             data: mockTypedData,
           },
-          SignTypedDataVersion.V4
+          SignTypedDataVersion.V4,
         );
       });
 
@@ -191,24 +206,31 @@ describe('HyperLiquidWalletService', () => {
         });
 
         expect(result).toBe('0xSignatureResult');
-        expect(Engine.context.KeyringController.signTypedMessage).toHaveBeenCalledWith(
+        expect(
+          Engine.context.KeyringController.signTypedMessage,
+        ).toHaveBeenCalledWith(
           {
             from: '0x1234567890123456789012345678901234567890',
             data: mockTypedData,
           },
-          SignTypedDataVersion.V4
+          SignTypedDataVersion.V4,
         );
       });
 
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
-        jest.mocked(selectSelectedInternalAccountAddress).mockReturnValueOnce(undefined);
+        jest
+          .mocked(selectSelectedInternalAccountAddress)
+          .mockReturnValueOnce(undefined);
 
         await expect(
           walletAdapter.request({
             method: 'eth_signTypedData_v4',
-            params: ['0x1234567890123456789012345678901234567890', mockTypedData],
-          })
+            params: [
+              '0x1234567890123456789012345678901234567890',
+              mockTypedData,
+            ],
+          }),
         ).rejects.toThrow('No account selected');
       });
 
@@ -216,21 +238,27 @@ describe('HyperLiquidWalletService', () => {
         await expect(
           walletAdapter.request({
             method: 'eth_signTypedData_v4',
-            params: ['0x9999999999999999999999999999999999999999', mockTypedData],
-          })
+            params: [
+              '0x9999999999999999999999999999999999999999',
+              mockTypedData,
+            ],
+          }),
         ).rejects.toThrow('Signing address does not match selected account');
       });
 
       it('should handle keyring controller errors', async () => {
-        (Engine.context.KeyringController.signTypedMessage as jest.Mock).mockRejectedValueOnce(
-          new Error('Signing failed')
-        );
+        (
+          Engine.context.KeyringController.signTypedMessage as jest.Mock
+        ).mockRejectedValueOnce(new Error('Signing failed'));
 
         await expect(
           walletAdapter.request({
             method: 'eth_signTypedData_v4',
-            params: ['0x1234567890123456789012345678901234567890', mockTypedData],
-          })
+            params: [
+              '0x1234567890123456789012345678901234567890',
+              mockTypedData,
+            ],
+          }),
         ).rejects.toThrow('Signing failed');
       });
     });
@@ -241,7 +269,7 @@ describe('HyperLiquidWalletService', () => {
           walletAdapter.request({
             method: 'unsupported_method',
             params: [],
-          })
+          }),
         ).rejects.toThrow('Unsupported method: unsupported_method');
       });
     });
@@ -251,7 +279,9 @@ describe('HyperLiquidWalletService', () => {
     it('should get current account ID for mainnet', async () => {
       const accountId = await service.getCurrentAccountId();
 
-      expect(accountId).toBe('eip155:42161:0x1234567890123456789012345678901234567890');
+      expect(accountId).toBe(
+        'eip155:42161:0x1234567890123456789012345678901234567890',
+      );
     });
 
     it('should get current account ID for testnet', async () => {
@@ -259,20 +289,25 @@ describe('HyperLiquidWalletService', () => {
 
       const accountId = await service.getCurrentAccountId();
 
-      expect(accountId).toBe('eip155:421614:0x1234567890123456789012345678901234567890');
+      expect(accountId).toBe(
+        'eip155:421614:0x1234567890123456789012345678901234567890',
+      );
     });
 
     it('should throw error when getting account ID with no selected account', async () => {
       // Mock selector to return null for this test
-      jest.mocked(selectSelectedInternalAccountAddress).mockReturnValueOnce(undefined);
+      jest
+        .mocked(selectSelectedInternalAccountAddress)
+        .mockReturnValueOnce(undefined);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'No account selected. Please ensure MetaMask has an active account.'
+        'No account selected. Please ensure MetaMask has an active account.',
       );
     });
 
     it('should parse user address from account ID', () => {
-      const accountId = 'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const accountId =
+        'eip155:42161:0x1234567890123456789012345678901234567890' as CaipAccountId;
 
       const address = service.getUserAddress(accountId);
 
@@ -287,12 +322,13 @@ describe('HyperLiquidWalletService', () => {
       const accountId = 'eip155:42161:invalid-address' as CaipAccountId;
 
       expect(() => service.getUserAddress(accountId)).toThrow(
-        'Invalid address format: invalid-address'
+        'Invalid address format: invalid-address',
       );
     });
 
     it('should get user address with provided account ID', async () => {
-      const accountId = 'eip155:42161:0x9999999999999999999999999999999999999999' as CaipAccountId;
+      const accountId =
+        'eip155:42161:0x9999999999999999999999999999999999999999' as CaipAccountId;
 
       const address = await service.getUserAddressWithDefault(accountId);
 
@@ -337,7 +373,9 @@ describe('HyperLiquidWalletService', () => {
         throw new Error('Store error');
       });
 
-      await expect(service.getCurrentAccountId()).rejects.toThrow('Store error');
+      await expect(service.getCurrentAccountId()).rejects.toThrow(
+        'Store error',
+      );
     });
 
     it('should handle malformed CAIP account IDs', () => {
@@ -349,20 +387,22 @@ describe('HyperLiquidWalletService', () => {
 
       const accountId = 'invalid-caip-id' as CaipAccountId;
 
-      expect(() => service.getUserAddress(accountId)).toThrow('Invalid CAIP account ID');
+      expect(() => service.getUserAddress(accountId)).toThrow(
+        'Invalid CAIP account ID',
+      );
     });
 
     it('should handle keyring controller initialization errors', async () => {
       const walletAdapter = service.createWalletAdapter();
-      (Engine.context.KeyringController.signTypedMessage as jest.Mock).mockRejectedValueOnce(
-        new Error('Keyring not initialized')
-      );
+      (
+        Engine.context.KeyringController.signTypedMessage as jest.Mock
+      ).mockRejectedValueOnce(new Error('Keyring not initialized'));
 
       await expect(
         walletAdapter.request({
           method: 'eth_signTypedData_v4',
           params: ['0x1234567890123456789012345678901234567890', {}],
-        })
+        }),
       ).rejects.toThrow('Keyring not initialized');
     });
   });

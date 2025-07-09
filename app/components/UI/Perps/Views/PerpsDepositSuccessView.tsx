@@ -1,4 +1,8 @@
-import { useNavigation, useRoute, type NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+} from '@react-navigation/native';
 import type { PerpsNavigationParamList } from '../controllers/types';
 import React, { useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
@@ -6,7 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -15,7 +19,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
@@ -28,7 +32,7 @@ interface DepositSuccessParams {
   processingTime?: number;
 }
 
-interface PerpsDepositSuccessViewProps { }
+interface PerpsDepositSuccessViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -117,7 +121,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
       amount,
       selectedToken,
       txHash,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Navigate back to main Perps view - it will auto-refresh HyperLiquid balance
@@ -127,7 +131,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
   const handleViewTransaction = useCallback(() => {
     DevLogger.log('PerpsDepositSuccess: View transaction requested', {
       txHash,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // In real implementation, open blockchain explorer
@@ -155,10 +159,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
             />
           </View>
 
-          <Text
-            variant={TextVariant.HeadingLG}
-            style={styles.successTitle}
-          >
+          <Text variant={TextVariant.HeadingLG} style={styles.successTitle}>
             {strings('perps.deposit.success.title')}
           </Text>
 
@@ -185,10 +186,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
             >
               {strings('perps.deposit.success.amount')}
             </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              style={styles.infoValue}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.infoValue}>
               {amount} {selectedToken}
             </Text>
           </View>
@@ -201,10 +199,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
             >
               {strings('perps.deposit.success.processingTime')}
             </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              style={styles.infoValue}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.infoValue}>
               {formatProcessingTime(processingTime)}
             </Text>
           </View>

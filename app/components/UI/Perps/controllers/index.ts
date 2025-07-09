@@ -28,7 +28,10 @@
  */
 
 // Core controller and types
-export { PerpsController, getDefaultPerpsControllerState } from './PerpsController';
+export {
+  PerpsController,
+  getDefaultPerpsControllerState,
+} from './PerpsController';
 export type {
   PerpsControllerState,
   PerpsControllerOptions,

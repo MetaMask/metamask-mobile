@@ -3,11 +3,11 @@ import { View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import ScreenView from '../../../../Base/ScreenView';

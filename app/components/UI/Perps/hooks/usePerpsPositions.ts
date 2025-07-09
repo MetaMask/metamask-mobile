@@ -5,7 +5,7 @@ import type { Position } from '../controllers/types';
 
 const selectPerpsPositions = createSelector(
   (state: RootState) => state.engine.backgroundState.PerpsController?.positions,
-  (positions): Position[] => positions || []
+  (positions): Position[] => positions || [],
 );
 
 /**

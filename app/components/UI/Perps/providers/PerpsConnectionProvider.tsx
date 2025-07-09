@@ -1,4 +1,11 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 
@@ -12,7 +19,8 @@ interface PerpsConnectionContextValue {
   resetError: () => void;
 }
 
-const PerpsConnectionContext = createContext<PerpsConnectionContextValue | null>(null);
+const PerpsConnectionContext =
+  createContext<PerpsConnectionContextValue | null>(null);
 
 interface PerpsConnectionProviderProps {
   children: React.ReactNode;
@@ -24,14 +32,13 @@ interface PerpsConnectionProviderProps {
  * Only disconnects when leaving the entire Perps trading environment
  * SDK handles reconnection automatically, so we just track connection state
  */
-export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = ({
-  children,
-}) => {
+export const PerpsConnectionProvider: React.FC<
+  PerpsConnectionProviderProps
+> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
 
   // Stable connect function - SDK handles reconnection
   const connect = useCallback(async () => {
@@ -62,7 +69,8 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Unknown connection error';
       setError(errorMessage);
       DevLogger.log('PerpsConnectionProvider: Connection failed', {
         error: errorMessage,
@@ -78,9 +86,12 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
     if (!isConnected && !isConnecting) return;
 
     try {
-      DevLogger.log('PerpsConnectionProvider: Disconnecting from Perps trading environment', {
-        timestamp: new Date().toISOString(),
-      });
+      DevLogger.log(
+        'PerpsConnectionProvider: Disconnecting from Perps trading environment',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
 
       await Engine.context.PerpsController.disconnect();
 
@@ -88,7 +99,8 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
       setIsConnecting(false);
       setError(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown disconnection error';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Unknown disconnection error';
       DevLogger.log('PerpsConnectionProvider: Disconnection error', {
         error: errorMessage,
         timestamp: new Date().toISOString(),
@@ -105,9 +117,12 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
 
   // Connect on mount, disconnect on unmount
   useEffect(() => {
-    DevLogger.log('PerpsConnectionProvider: Entering Perps trading environment', {
-      timestamp: new Date().toISOString(),
-    });
+    DevLogger.log(
+      'PerpsConnectionProvider: Entering Perps trading environment',
+      {
+        timestamp: new Date().toISOString(),
+      },
+    );
 
     // Connect immediately on mount
     const initializeConnection = async () => {
@@ -134,7 +149,8 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
           timestamp: new Date().toISOString(),
         });
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown connection error';
         setError(errorMessage);
         DevLogger.log('PerpsConnectionProvider: Connection failed', {
           error: errorMessage,
@@ -149,9 +165,12 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
 
     // Disconnect when provider unmounts
     return () => {
-      DevLogger.log('PerpsConnectionProvider: Leaving Perps trading environment', {
-        timestamp: new Date().toISOString(),
-      });
+      DevLogger.log(
+        'PerpsConnectionProvider: Leaving Perps trading environment',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
 
       Engine.context.PerpsController.disconnect();
     };
@@ -168,7 +187,15 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
       disconnect,
       resetError,
     }),
-    [isConnected, isConnecting, isInitialized, error, connect, disconnect, resetError]
+    [
+      isConnected,
+      isConnecting,
+      isInitialized,
+      error,
+      connect,
+      disconnect,
+      resetError,
+    ],
   );
 
   return (
@@ -184,7 +211,9 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
 export const usePerpsConnection = (): PerpsConnectionContextValue => {
   const context = useContext(PerpsConnectionContext);
   if (!context) {
-    throw new Error('usePerpsConnection must be used within a PerpsConnectionProvider');
+    throw new Error(
+      'usePerpsConnection must be used within a PerpsConnectionProvider',
+    );
   }
   return context;
 };
