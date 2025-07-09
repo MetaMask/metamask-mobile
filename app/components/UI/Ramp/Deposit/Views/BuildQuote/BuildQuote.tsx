@@ -95,6 +95,7 @@ const BuildQuote = () => {
     cryptoCurrencyChainId: cryptoCurrency.chainId,
     paymentMethodId: paymentMethod.id,
   });
+
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
   const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(

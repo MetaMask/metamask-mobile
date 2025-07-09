@@ -916,15 +916,14 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "transparent",
+                                      "backgroundColor": "transparent",
+                                      "borderColor": "#4459ff",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -933,7 +932,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#4459ff",
                                         "fontFamily": "Geist Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -955,13 +954,12 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#4459ff",
                                       "borderRadius": 12,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -2058,15 +2056,14 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#f3f5f9",
-                                      "borderColor": "transparent",
+                                      "backgroundColor": "transparent",
+                                      "borderColor": "#4459ff",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -2075,7 +2072,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#4459ff",
                                         "fontFamily": "Geist Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2097,13 +2094,12 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#4459ff",
                                       "borderRadius": 12,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }

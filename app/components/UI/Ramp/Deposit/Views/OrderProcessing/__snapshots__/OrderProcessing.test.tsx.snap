@@ -484,13 +484,12 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -991,15 +990,14 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#f3f5f9",
-                "borderColor": "transparent",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -1008,7 +1006,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1038,13 +1036,12 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -1164,12 +1161,11 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -1680,13 +1676,12 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -2195,13 +2190,12 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }

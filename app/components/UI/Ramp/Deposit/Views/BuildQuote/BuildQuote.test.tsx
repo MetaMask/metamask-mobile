@@ -25,23 +25,16 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 
-const MOCK_US_REGION = {
-  isoCode: 'US',
-  flag: '🇺🇸',
-  name: 'United States',
-  phone: {
-    prefix: '+1',
-    placeholder: '(555) 555-1234',
-    template: '(XXX) XXX-XXXX',
-  },
-  currency: 'USD',
-  recommended: true,
-  supported: true,
-};
-
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
-  selectedRegion: MOCK_US_REGION,
+  selectedWalletAddress: '0x123',
+  selectedRegion: {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    currency: 'USD',
+    supported: true,
+  },
   setSelectedRegion: jest.fn(),
   ...overrides,
 });

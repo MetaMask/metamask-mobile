@@ -1768,12 +1768,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3577,12 +3576,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -5367,12 +5365,11 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -7157,12 +7154,11 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -8947,12 +8943,11 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -10737,12 +10732,11 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -12527,12 +12521,11 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#4459ff",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
