@@ -27,8 +27,6 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../components/PrivacySection';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -57,12 +55,7 @@ const EnterAddress = (): JSX.Element => {
     kycUrl,
   } = useParams<EnterAddressParams>();
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-
   const { navigateToKycWebview } = useDepositRouting({
-    selectedWalletAddress: selectedAddress,
     cryptoCurrencyChainId: quote.cryptoCurrency,
     paymentMethodId: quote.paymentMethod,
   });

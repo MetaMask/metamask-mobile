@@ -89,6 +89,7 @@ jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
     selectedRegion: { isoCode: 'US' },
     clearAuthToken: mockClearAuthToken,
+    selectedWalletAddress: '0x123',
   })),
 }));
 
@@ -145,7 +146,6 @@ describe('useDepositRouting', () => {
 
   it('should create the hook with correct parameters', () => {
     const mockParams = {
-      selectedWalletAddress: '0x123',
       cryptoCurrencyChainId: 'eip155:1',
       paymentMethodId: SEPA_PAYMENT_METHOD.id,
     };
@@ -164,7 +164,6 @@ describe('useDepositRouting', () => {
     it('should navigate to BankDetails when SEPA payment method is used and KYC is approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: SEPA_PAYMENT_METHOD.id,
       };
@@ -188,7 +187,6 @@ describe('useDepositRouting', () => {
     it('should throw error when SEPA reservation fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: SEPA_PAYMENT_METHOD.id,
       };
@@ -207,7 +205,6 @@ describe('useDepositRouting', () => {
     it('should navigate to WebviewModal when non-SEPA payment method is used and KYC is approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -240,7 +237,6 @@ describe('useDepositRouting', () => {
     it('should navigate to BasicInfo when personalDetails form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -268,7 +264,6 @@ describe('useDepositRouting', () => {
     it('should navigate to BasicInfo when address form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -296,7 +291,6 @@ describe('useDepositRouting', () => {
     it('should navigate to BasicInfo when SSN form is required for US user', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -321,7 +315,6 @@ describe('useDepositRouting', () => {
     it('should auto-submit purpose of usage form when it is the only remaining form', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -358,7 +351,6 @@ describe('useDepositRouting', () => {
     it('should navigate to WebviewModal when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -389,7 +381,6 @@ describe('useDepositRouting', () => {
     it('should throw error when idProof form exists but no form data is returned', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -411,7 +402,6 @@ describe('useDepositRouting', () => {
     it('should start polling and navigate to WebviewModal', () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -434,7 +424,6 @@ describe('useDepositRouting', () => {
     it('should handle SEPA payment flow correctly', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: SEPA_PAYMENT_METHOD.id,
       };
@@ -455,7 +444,6 @@ describe('useDepositRouting', () => {
     it('should handle non-SEPA payment flow correctly', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -483,7 +471,6 @@ describe('useDepositRouting', () => {
     it('should navigate to KycProcessing when KYC is not approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -507,7 +494,6 @@ describe('useDepositRouting', () => {
     it('should throw error when user details are missing', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -521,7 +507,6 @@ describe('useDepositRouting', () => {
     it('should throw error when KYC forms fetch fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -540,7 +525,6 @@ describe('useDepositRouting', () => {
     it('should throw error when payment URL generation fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -622,7 +606,6 @@ describe('useDepositRouting', () => {
   describe('handleNavigationStateChange', () => {
     it('processes order and navigates when URL contains orderId', async () => {
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -656,7 +639,6 @@ describe('useDepositRouting', () => {
 
     it('does nothing when URL does not start with metamask.io', async () => {
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
@@ -685,7 +667,6 @@ describe('useDepositRouting', () => {
 
     it('does nothing when metamask.io URL has no orderId', async () => {
       const mockParams = {
-        selectedWalletAddress: '0x123',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };

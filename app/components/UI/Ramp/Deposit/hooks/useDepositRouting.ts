@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
-import { useSelector } from 'react-redux';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import useUserDetailsPolling from './useUserDetailsPolling';
@@ -11,7 +10,6 @@ import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import { getCryptoCurrencyFromTransakId } from '../utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
@@ -22,22 +20,18 @@ import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderP
 import { useDepositSDK } from '../sdk';
 
 export interface UseDepositRoutingParams {
-  selectedWalletAddress?: string;
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
 }
 
 export const useDepositRouting = ({
-  selectedWalletAddress,
   cryptoCurrencyChainId,
   paymentMethodId,
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, clearAuthToken } = useDepositSDK();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const { selectedRegion, clearAuthToken, selectedWalletAddress } =
+    useDepositSDK();
 
   const quoteRef = useRef<BuyQuote | null>(null);
 
@@ -134,7 +128,7 @@ export const useDepositRouting = ({
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
-            const order = await getOrder(orderId, selectedAddress);
+            const order = await getOrder(orderId, selectedWalletAddress);
 
             if (!order) {
               throw new Error('Missing order');
@@ -145,7 +139,7 @@ export const useDepositRouting = ({
             );
             const processedOrder = {
               ...depositOrderToFiatOrder(order),
-              account: selectedAddress || order.walletAddress,
+              account: selectedWalletAddress || order.walletAddress,
               network: cryptoCurrency?.chainId || order.network,
             };
 
@@ -162,7 +156,7 @@ export const useDepositRouting = ({
         }
       }
     },
-    [getOrder, selectedAddress, handleNewOrder, navigation],
+    [getOrder, selectedWalletAddress, handleNewOrder, navigation],
   );
 
   const handleApprovedKycFlow = useCallback(
@@ -213,7 +207,7 @@ export const useDepositRouting = ({
           const paymentUrl = await generatePaymentUrl(
             ottResponse.token,
             quote,
-            selectedAddress,
+            selectedWalletAddress,
           );
 
           if (!paymentUrl) {
@@ -244,7 +238,6 @@ export const useDepositRouting = ({
       cryptoCurrencyChainId,
       requestOtt,
       generatePaymentUrl,
-      selectedAddress,
       handleNavigationStateChange,
     ],
   );

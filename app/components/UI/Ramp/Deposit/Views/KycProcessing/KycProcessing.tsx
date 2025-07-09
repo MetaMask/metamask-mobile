@@ -31,8 +31,6 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { KycStatus } from '../../constants';
 
 export interface KycProcessingParams {
@@ -47,12 +45,7 @@ const KycProcessing = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-
   const { handleApprovedKycFlow } = useDepositRouting({
-    selectedWalletAddress: selectedAddress,
     cryptoCurrencyChainId: quote.cryptoCurrency,
     paymentMethodId: quote.paymentMethod,
   });
