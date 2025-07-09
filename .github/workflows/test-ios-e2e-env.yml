@@ -1,0 +1,28 @@
+name: Test iOS E2E Setup
+
+on:
+  push:
+
+jobs:
+  ios-e2e:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup E2E iOS Environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        with:
+          platform: ios
+          setup-simulator: true
+          xcode-version: 15.2
+          ios-device: iPhone 15
+
+      - name: Print tool versions
+        run: |
+          node -v
+          yarn -v
+          pod --version
+          xcode-select -p
+          xcrun simctl list | grep Booted
+
