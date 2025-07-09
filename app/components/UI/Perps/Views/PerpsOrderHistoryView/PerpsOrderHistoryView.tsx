@@ -1,14 +1,22 @@
 import React, { useState, useCallback } from 'react';
 import { SafeAreaView, ScrollView, RefreshControl, View } from 'react-native';
-import { useNavigation, type NavigationProp, type ParamListBase } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../../util/theme';
 import { usePerpsOrderFills } from '../../hooks';
 import PerpsOrderHistoryCard from '../../components/PerpsOrderHistoryCard';
 import { createStyles } from './PerpsOrderHistoryView.styles';
-
 
 const PerpsOrderHistoryView: React.FC = () => {
   const { colors } = useTheme();
@@ -29,8 +37,6 @@ const PerpsOrderHistoryView: React.FC = () => {
     }, 1000);
   };
 
-
-
   const renderOrdersSummary = () => (
     <View style={styles.summaryContainer}>
       <Text style={styles.summaryTitle}>Order Fills</Text>
@@ -48,7 +54,7 @@ const PerpsOrderHistoryView: React.FC = () => {
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>No Order Fills</Text>
           <Text style={styles.emptyDescription}>
-            You haven't executed any trades yet.{'\n'}Start trading to see your order fills here.
+            {`You haven't executed any trades yet.{'\n'}Start trading to see your order fills here.`}
           </Text>
         </View>
       );
