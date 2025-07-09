@@ -696,7 +696,7 @@ buildIos() {
 		fi
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDevBuild
+			buildIosDeviceFlask
 		else
 			buildIosSimulatorFlask
 		fi
