@@ -7,6 +7,7 @@ exports[`AccountStatus Snapshots renders correctly with accountName in route par
       {
         "height": "100%",
         "paddingHorizontal": 16,
+        "paddingTop": 0,
       }
     }
   >
@@ -177,6 +178,7 @@ exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
       {
         "height": "100%",
         "paddingHorizontal": 16,
+        "paddingTop": 0,
       }
     }
   >
@@ -347,6 +349,7 @@ exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
       {
         "height": "100%",
         "paddingHorizontal": 16,
+        "paddingTop": 0,
       }
     }
   >
