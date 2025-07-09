@@ -28,16 +28,6 @@ jest.mock('../SelectSRP', () => {
   ));
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { muted: '#f0f0f0' },
-      border: { muted: '#e0e0e0' },
-      icon: { default: '#000' },
-    },
-  })),
-}));
-
 jest.mock('../../UI/Navbar', () => ({
   getNavigationOptionsTitle: jest.fn((title: string) => ({ title })),
 }));
