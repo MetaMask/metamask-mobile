@@ -334,7 +334,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -890,7 +890,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
