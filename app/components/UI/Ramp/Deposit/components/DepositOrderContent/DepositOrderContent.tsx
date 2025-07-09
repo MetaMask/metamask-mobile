@@ -38,6 +38,7 @@ import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
 import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS } from '../../constants';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -87,11 +88,13 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     return styles.processingIconContainer;
   };
 
+  const providerOrderId = (order.data as DepositOrder).providerOrderId;
+
   const handleCopyOrderId = useCallback(() => {
-    if (hasDepositOrderField(order?.data, 'providerOrderId')) {
-      Clipboard.setString(order.data.providerOrderId);
+    if (providerOrderId) {
+      Clipboard.setString(providerOrderId);
     }
-  }, [order?.data]);
+  }, [providerOrderId]);
 
   const handleViewInTransak = useCallback(() => {
     if (
@@ -102,7 +105,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     }
   }, [order?.data]);
 
-  const shortOrderId = order.id.slice(-6);
+  const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
   const totalAmount =
     order.amount && order.fee
       ? (
