@@ -108,7 +108,7 @@ const Price = ({
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}
           >
-            Asset
+            {asset.name} ({ticker})
           </Text>
         ) : (
           <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
