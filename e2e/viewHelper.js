@@ -235,8 +235,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
 
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  await skipNotificationsDeviceSettings();
 
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();

@@ -17,8 +17,8 @@ import { getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 
 const PaymentMethods = {
-    SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
-  };
+  SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
+};
 
 let mockServer;
 let mockServerPort;
@@ -88,18 +88,37 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
 
     const softAssert = new SoftAssert();
 
-    const offRampPaymentMethodSelected = events.find((event) => event.event === expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(offRampPaymentMethodSelected);
-    }, 'Off-ramp Payment Method Selected: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(offRampPaymentMethodSelected.properties, {
-        payment_method_id: 'string',
-        available_payment_method_ids: 'array',
-        region: 'string',
-        location: 'string',
-      });
-    }, 'Off-ramp Payment Method Selected: Should have correct properties');
+    const offRampPaymentMethodSelected = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED,
+    );
+
+    // Define assertion calls as variables
+    const checkOffRampPaymentMethodDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(offRampPaymentMethodSelected);
+      },
+      'Off-ramp Payment Method Selected: Should be present',
+    );
+
+    const checkOffRampPaymentMethodProperties = softAssert.checkAndCollect(
+      async () => {
+        Assertions.checkIfObjectHasKeysAndValidValues(
+          offRampPaymentMethodSelected.properties,
+          {
+            payment_method_id: 'string',
+            available_payment_method_ids: 'array',
+            region: 'string',
+            location: 'string',
+          },
+        );
+      },
+      'Off-ramp Payment Method Selected: Should have correct properties',
+    );
+
+    await Promise.all([
+      checkOffRampPaymentMethodDefined,
+      checkOffRampPaymentMethodProperties,
+    ]);
 
     softAssert.throwIfErrors();
   });
