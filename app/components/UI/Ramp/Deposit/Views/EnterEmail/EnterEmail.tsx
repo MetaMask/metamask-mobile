@@ -34,6 +34,8 @@ import Logger from '../../../../../../util/Logger';
 
 export interface EnterEmailParams {
   quote: BuyQuote;
+  paymentMethodId: string;
+  cryptoCurrencyChainId: string;
 }
 
 export const createEnterEmailNavDetails =
@@ -43,7 +45,8 @@ const EnterEmail = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState(false);
-  const { quote } = useParams<EnterEmailParams>();
+  const { quote, paymentMethodId, cryptoCurrencyChainId } =
+    useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -71,7 +74,14 @@ const EnterEmail = () => {
         await submitEmail();
 
         if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails({ quote, email }));
+          navigation.navigate(
+            ...createOtpCodeNavDetails({
+              quote,
+              email,
+              paymentMethodId,
+              cryptoCurrencyChainId,
+            }),
+          );
         }
       } else {
         setValidationError(true);
@@ -79,7 +89,15 @@ const EnterEmail = () => {
     } catch (e) {
       Logger.error(e as Error, 'Error submitting email');
     }
-  }, [email, error, navigation, submitEmail, quote]);
+  }, [
+    email,
+    error,
+    navigation,
+    submitEmail,
+    quote,
+    paymentMethodId,
+    cryptoCurrencyChainId,
+  ]);
 
   return (
     <ScreenLayout>
