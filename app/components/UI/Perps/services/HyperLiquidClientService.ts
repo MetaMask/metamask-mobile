@@ -8,8 +8,8 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   getWebSocketEndpoint,
   HYPERLIQUID_TRANSPORT_CONFIG,
-  type HyperLiquidNetwork,
 } from '../constants/hyperLiquidConfig';
+import type { HyperLiquidNetwork } from '../types/config';
 
 /**
  * Service for managing HyperLiquid SDK clients
