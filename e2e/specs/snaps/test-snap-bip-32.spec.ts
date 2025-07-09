@@ -79,7 +79,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     );
   });
 
-  it.skip('can sign BIP-32 message using ed25519Bip32', async () => {
+  it('can sign BIP-32 message using ed25519Bip32', async () => {
     await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip32ed25519Bip32Button');
     await Assertions.checkIfTextIsDisplayed('Signature request');
@@ -91,7 +91,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
   });
 
   it('can sign BIP-32 message using secp256k1 and SRP 1', async () => {
-    await TestSnaps.selectEntropySource('bip32EntropyDropDown', 'SRP 1');
+    await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 1');
     await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
     await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
     await Assertions.checkIfTextIsDisplayed('Signature request');
@@ -103,7 +103,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
   });
 
   it('can sign BIP-32 message using secp256k1 and SRP 2', async () => {
-    await TestSnaps.selectEntropySource('bip32EntropyDropDown', 'SRP 2');
+    await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 2');
     await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
     await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
     await Assertions.checkIfTextIsDisplayed('Signature request');
@@ -115,7 +115,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
   });
 
   it('fails when choosing the invalid entropy source', async () => {
-    await TestSnaps.selectEntropySource('bip32EntropyDropDown', 'Invalid');
+    await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
     await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
     await Assertions.checkIfTextIsDisplayed(
