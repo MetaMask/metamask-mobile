@@ -1,14 +1,17 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import KycWebviewModal from './KycWebviewModal';
 import { KycStatus } from '../../../constants';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockStartPolling = jest.fn();
 const mockStopPolling = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
@@ -21,13 +24,6 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   })),
 }));
 
-jest.mock('../../KycProcessing/KycProcessing', () => ({
-  createKycProcessingNavDetails: jest.fn(() => [
-    'KycProcessing',
-    { quote: { id: 'test-quote' } },
-  ]),
-}));
-
 const mockUseUserDetailsPolling = jest.fn();
 
 jest.mock(
@@ -38,6 +34,22 @@ jest.mock(
 jest.mock('./WebviewModal', () => () => 'WebviewModal');
 
 describe('KycWebviewModal', () => {
+  function render(Component: React.ComponentType) {
+    return renderScreen(
+      Component,
+      {
+        name: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseUserDetailsPolling.mockReturnValue({
@@ -48,18 +60,18 @@ describe('KycWebviewModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = render(<KycWebviewModal />);
+    const { toJSON } = render(KycWebviewModal);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('starts polling when component mounts', () => {
-    render(<KycWebviewModal />);
+    render(KycWebviewModal);
 
     expect(mockStartPolling).toHaveBeenCalled();
   });
 
   it('stops polling when component unmounts', () => {
-    const { unmount } = render(<KycWebviewModal />);
+    const { unmount } = render(KycWebviewModal);
 
     unmount();
 
@@ -80,7 +92,7 @@ describe('KycWebviewModal', () => {
       stopPolling: mockStopPolling,
     });
 
-    render(<KycWebviewModal />);
+    render(KycWebviewModal);
 
     expect(mockStopPolling).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
@@ -102,7 +114,7 @@ describe('KycWebviewModal', () => {
       stopPolling: mockStopPolling,
     });
 
-    render(<KycWebviewModal />);
+    render(KycWebviewModal);
 
     expect(mockStopPolling).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
@@ -124,7 +136,7 @@ describe('KycWebviewModal', () => {
       stopPolling: mockStopPolling,
     });
 
-    render(<KycWebviewModal />);
+    render(KycWebviewModal);
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -148,7 +160,7 @@ describe('KycWebviewModal', () => {
       stopPolling: mockStopPolling,
     });
 
-    render(<KycWebviewModal />);
+    render(KycWebviewModal);
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
