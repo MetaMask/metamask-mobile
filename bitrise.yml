@@ -1674,6 +1674,7 @@ workflows:
           inputs:
             - source: $KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - script@1:
           title: Install CCache & symlink
           inputs:
