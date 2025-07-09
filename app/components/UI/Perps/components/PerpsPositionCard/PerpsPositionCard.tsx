@@ -6,7 +6,8 @@ import { IconColor, IconName } from '../../../../../component-library/components
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import type { PerpsNavigationParamList, Position } from '../../controllers/types';
-import { formatPercentage, formatPnl, formatPrice } from '../../utils/formatUtils';
+import { formatPercentage, formatPnl, formatPrice, formatPositionSize } from '../../utils/formatUtils';
+import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
 import { triggerSelectionHaptic } from '../../utils/hapticUtils';
 import { createStyles } from './PerpsPositionCard.styles';
 
@@ -69,10 +70,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  // Calculate PnL percentage
   const pnlNum = parseFloat(position.unrealizedPnl);
-  const entryValue = parseFloat(position.entryPrice) * Math.abs(parseFloat(position.size));
-  const pnlPercentage = entryValue > 0 ? (pnlNum / entryValue) * 100 : 0;
+  const pnlPercentage = calculatePnLPercentageFromUnrealized({
+    unrealizedPnl: pnlNum,
+    entryPrice: parseFloat(position.entryPrice),
+    size: parseFloat(position.size)
+  });
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleCardPress}>
@@ -111,7 +114,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <View style={styles.detailColumn}>
           <Text style={styles.detailLabel}>Size</Text>
           <Text style={styles.detailValue}>
-            {Math.abs(parseFloat(position.size)).toFixed(6)} {position.coin}
+            {formatPositionSize(position.size)} {position.coin}
           </Text>
         </View>
         <View style={styles.detailColumn}>
@@ -135,7 +138,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             styles.pnlValue,
             pnlNum >= 0 ? styles.positivePnl : styles.negativePnl
           ]}>
-            {formatPnl(position.unrealizedPnl)}
+            {formatPnl(pnlNum)}
           </Text>
         </View>
         <View style={styles.detailColumn}>

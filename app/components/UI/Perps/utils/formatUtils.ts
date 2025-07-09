@@ -124,3 +124,18 @@ export const formatPositionSize = (size: string | number): string => {
   // For normal numbers, use 2 decimal places
   return num.toFixed(2);
 };
+
+/**
+ * Formats a leverage value with 'x' suffix
+ * @param leverage - The leverage value to format (string or number)
+ * @returns Formatted leverage string with 'x' suffix
+ */
+export const formatLeverage = (leverage: string | number): string => {
+  const num = typeof leverage === 'string' ? parseFloat(leverage) : leverage;
+
+  if (isNaN(num)) {
+    return '1x';
+  }
+
+  return `${num.toFixed(1)}x`;
+};

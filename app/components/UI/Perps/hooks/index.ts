@@ -1,5 +1,6 @@
 // Core hooks (direct controller access)
-export { usePerpsController } from './usePerpsController';
+export { usePerpsTrading } from './usePerpsTrading';
+export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetwork } from './usePerpsNetwork';
 
 // Connection management hooks
@@ -7,10 +8,10 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 // State hooks (Redux selectors)
 export { usePerpsPositions } from './usePerpsPositions';
-export { usePerpsAccountState } from './usePerpsAccountState';
-export { usePerpsDepositState } from './usePerpsDepositState';
-export { usePerpsOrderHistory } from './usePerpsOrderHistory';
+export { usePerpsAccount } from './usePerpsAccount';
+export { usePerpsDeposit } from './usePerpsDeposit';
 export { usePerpsPendingOrders } from './usePerpsPendingOrders';
+export { usePerpsError } from './usePerpsError';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPrices } from './usePerpsPrices';
@@ -18,11 +19,11 @@ export { usePerpsLivePositions } from './usePerpsLivePositions';
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 
 // Computed hooks (derived data)
-export { usePositionPnL } from './usePositionPnL';
+export { usePerpsPositionPnL } from './usePerpsPositionPnL';
 export { usePerpsReadiness } from './usePerpsReadiness';
 
 // Management hooks (complex workflows)
-export { useOrderManagement } from './useOrderManagement';
+export { usePerpsOrderManagement } from './usePerpsOrderManagement';
 
 // Utility hooks
 export { useStableArray } from './useStableArray';

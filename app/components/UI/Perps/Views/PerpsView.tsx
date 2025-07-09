@@ -17,10 +17,11 @@ import ScreenView from '../../../Base/ScreenView';
 
 // Import PerpsController hooks
 import {
-  usePerpsAccountState,
+  usePerpsAccount,
   usePerpsConnection,
-  usePerpsController,
-  usePerpsNetwork
+  usePerpsNetwork,
+  usePerpsNetworkConfig,
+  usePerpsTrading
 } from '../hooks';
 
 // Import navigation types
@@ -76,19 +77,18 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
 
-  // Use PerpsController hooks
-  const {
-    getAccountState,
-    toggleTestnet,
-  } = usePerpsController();
-
-  // Use Redux-based hooks for cached data
-  const cachedAccountState = usePerpsAccountState();
+  // Use state hooks
+  const cachedAccountState = usePerpsAccount();
+  DevLogger.log('PerpsView: cachedAccountState from Redux:', cachedAccountState);
+  const { getPositions, getAccountState } = usePerpsTrading();
+  const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
 
   // Use connection provider for connection state
   const {
+    isConnected,
     isConnecting,
+    isInitialized,
     error: connectionError,
     connect: reconnect,
     resetError
@@ -127,14 +127,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     }
   }, [getAccountState, currentNetwork]);
 
-  // Automatically load balance on mount and when network changes
+  // Automatically load account state on mount and when network changes
   useEffect(() => {
-    DevLogger.log('PerpsView: Component mounted or network changed, auto-loading balance', { currentNetwork });
-    // Clear any previous results
-    setResult('');
-    // Automatically fetch fresh balance
-    getAccountBalance();
-  }, [currentNetwork, getAccountBalance]);
+    DevLogger.log('PerpsView: Component mounted or network changed, auto-loading account state', { 
+      currentNetwork, 
+      isConnected, 
+      isInitialized 
+    });
+    
+    // Only load account state if we're connected and initialized
+    if (isConnected && isInitialized) {
+      getAccountState().catch(error => {
+        DevLogger.log('PerpsView: Failed to auto-load account state', error);
+      });
+    }
+  }, [getAccountState, currentNetwork, isConnected, isInitialized]);
 
   const handleToggleTestnet = async () => {
     setIsToggling(true);
@@ -185,11 +192,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     );
   }
 
-  // Show loader while connecting
-  if (isConnecting) {
+  // Show loader while initializing or connecting
+  if (!isInitialized || isConnecting) {
     return (
       <PerpsLoader
-        message="Connecting to Perps trading..."
+        message={!isInitialized ? 'Initializing Perps controller...' : 'Connecting to Perps trading...'}
         fullScreen
       />
     );

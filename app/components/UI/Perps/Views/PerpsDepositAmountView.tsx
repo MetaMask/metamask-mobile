@@ -46,10 +46,10 @@ import PerpsAmountDisplay from '../components/PerpsAmountDisplay';
 import PerpsDepositPreviewModal from '../components/PerpsDepositPreviewModal';
 import PerpsPayWithRow from '../components/PerpsPayWithRow';
 import PerpsTokenSelector, { type PerpsToken } from '../components/PerpsTokenSelector';
-import type { DepositParams, PerpsNavigationParamList } from '../controllers/types';
+import type { AssetRoute, DepositParams, PerpsNavigationParamList } from '../controllers/types';
 import {
-  usePerpsController,
-  usePerpsDepositState,
+  usePerpsDeposit,
+  usePerpsTrading
 } from '../hooks';
 
 interface PerpsDepositAmountViewProps { }
@@ -135,24 +135,19 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   // Selectors (moved up to avoid use-before-define)
   const chainId = useSelector(selectEvmChainId);
 
-  // Get PerpsController instance and destructure for cleaner code
-  const {
-    getDepositRoutes: getDepositRoutesHook,
-    deposit,
-    resetDepositState,
-    controller,
-  } = usePerpsController();
-  // Memoize the getDepositRoutes call to prevent infinite re-renders
-  const getDepositRoutes = useCallback(() => getDepositRoutesHook(), [getDepositRoutesHook]);
-
-  // Consolidated reactive deposit state
+  // Get deposit state and methods from different hooks
   const {
     status: depositStatus,
     flowType: depositFlowType,
     currentTxHash: currentDepositTxHash,
     error: depositError,
     requiresModalDismissal,
-  } = usePerpsDepositState();
+  } = usePerpsDeposit();
+  const {
+    getDepositRoutes,
+    deposit,
+    resetDepositState,
+  } = usePerpsTrading();
 
   // Get default token from PerpsController supported routes or fall back to native token
   const getDefaultToken = useMemo((): SelectedToken => {
@@ -221,8 +216,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     try {
       // For direct deposits on Arbitrum (no bridging needed)
       // Get deposit routes from PerpsController
-      const depositRoutes = controller.getDepositRoutes();
-      const matchingRoute = depositRoutes.find(route => {
+      const depositRoutes = getDepositRoutes();
+      const matchingRoute = depositRoutes.find((route: AssetRoute) => {
         // Parse token asset ID using MetaMask CAIP utilities
         const parsedAsset = parseCaipAssetId(route.assetId);
         const chainHex = `0x${parseInt(parsedAsset.chainId.split(':')[1], 10).toString(16)}`;
@@ -263,7 +258,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     } catch (error) {
       return '';
     }
-  }, [gasFeeEstimates, controller]);
+  }, [gasFeeEstimates, getDepositRoutes]);
 
 
   // Convert tokens from swaps format to PerpsToken format
@@ -509,8 +504,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   }, []);
 
   const handleConfirmDeposit = useCallback(async () => {
-    if (!controller || !selectedAddress) {
-      setLocalDepositError('Controller or account not available');
+    if (!selectedAddress) {
+      setLocalDepositError('Account not available');
       return;
     }
 
@@ -562,7 +557,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     } finally {
       setIsDepositing(false);
     }
-  }, [deposit, getDepositRoutes, selectedAddress, amount, selectedToken, controller]);
+  }, [deposit, getDepositRoutes, selectedAddress, amount, selectedToken]);
 
   const handleClosePreview = useCallback(() => {
     setPreviewModalVisible(false);
@@ -581,8 +576,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     // Only auto-navigate for legitimate deposits (not persisted old state)
     // hasResetState ensures we've cleared old state, and we need both success + txHash
     if (hasResetState && depositStatus === 'success' && currentDepositTxHash && amount !== '0') {
-      const isDirectDeposit = depositFlowType === 'direct';
-
       navigation.navigate('PerpsDepositProcessing', {
         amount,
         fromToken: selectedToken.symbol,

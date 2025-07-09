@@ -1,4 +1,4 @@
-import type { CaipChainId, Hex } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 
 // WebSocket endpoints interface
 export interface HyperLiquidEndpoints {
@@ -8,8 +8,8 @@ export interface HyperLiquidEndpoints {
 
 // Asset configuration interface
 export interface AssetNetworkConfig {
-  mainnet: string;
-  testnet: string;
+  mainnet: CaipAssetId;
+  testnet: CaipAssetId;
 }
 
 export interface HyperLiquidAssetConfigs {

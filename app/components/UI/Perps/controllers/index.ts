@@ -88,16 +88,17 @@ export type {
 
 // React hooks for UI integration
 export {
-  usePerpsController,
+  usePerpsAccount,
+  usePerpsTrading,
+  usePerpsDeposit,
+  usePerpsNetworkConfig,
   usePerpsPositions,
-  usePerpsAccountState,
   usePerpsNetwork,
   usePerpsPrices,
   usePerpsLivePositions,
   usePerpsOrderFills,
-  usePositionPnL,
+  usePerpsPositionPnL,
   usePerpsReadiness,
-  useOrderManagement,
-  usePerpsDepositState,
+  usePerpsOrderManagement,
   useStableArray,
 } from '../hooks';

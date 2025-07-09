@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
 import type {
   DepositStatus,
@@ -8,16 +8,18 @@ import type {
 } from '../controllers/types';
 
 /**
- * Consolidated hook for deposit state
- * Returns all deposit-related state in a single object to minimize re-renders
- * Reusable pattern for withdrawal and other operation flows
+ * Default deposit steps for when no steps are available
  */
-export function usePerpsDepositState() {
-  const perpsState = useSelector((state: RootState) =>
-    state.engine.backgroundState.PerpsController
-  );
+const defaultDepositSteps: DepositStepInfo = {
+  totalSteps: 0,
+  currentStep: 0,
+  stepNames: [],
+  stepTxHashes: [],
+};
 
-  return useMemo(() => {
+const selectPerpsDepositState = createSelector(
+  (state: RootState) => state.engine.backgroundState.PerpsController,
+  (perpsState) => {
     if (!perpsState) {
       return {
         status: 'idle' as DepositStatus,
@@ -25,12 +27,7 @@ export function usePerpsDepositState() {
         currentTxHash: null as string | null,
         error: null as string | null,
         requiresModalDismissal: false,
-        steps: {
-          totalSteps: 0,
-          currentStep: 0,
-          stepNames: [],
-          stepTxHashes: [],
-        } as DepositStepInfo,
+        steps: defaultDepositSteps,
       };
     }
 
@@ -40,12 +37,14 @@ export function usePerpsDepositState() {
       currentTxHash: perpsState.currentDepositTxHash || null,
       error: perpsState.depositError || null,
       requiresModalDismissal: perpsState.requiresModalDismissal || false,
-      steps: perpsState.depositSteps || {
-        totalSteps: 0,
-        currentStep: 0,
-        stepNames: [],
-        stepTxHashes: [],
-      },
+      steps: perpsState.depositSteps || defaultDepositSteps,
     };
-  }, [perpsState]);
+  }
+);
+
+/**
+ * Consolidated hook for deposit state
+ */
+export function usePerpsDeposit() {
+  return useSelector(selectPerpsDepositState);
 }

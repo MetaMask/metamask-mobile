@@ -16,7 +16,7 @@ import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import PerpsTPSLModal from '../components/PerpsTPSLModal';
 import PerpsLeverageButtons from '../components/PerpsLeverageButtons';
-import { usePerpsAccountState, usePerpsController, usePerpsNetwork, usePerpsPrices } from '../hooks';
+import { usePerpsAccount, usePerpsTrading, usePerpsNetwork, usePerpsPrices } from '../hooks';
 // Use the SDK directly without our abstractions
 import { HttpTransport, InfoClient, ExchangeClient } from '@deeeed/hyperliquid-node20';
 import { actionSorter, signL1Action } from '@deeeed/hyperliquid-node20/esm/src/signing/mod';
@@ -484,9 +484,9 @@ const PerpsOrderView: React.FC = () => {
   } = route.params || {};
 
   // Get PerpsController methods and state
-  const { placeOrder, getMarkets } = usePerpsController();
+  const { placeOrder, getMarkets } = usePerpsTrading();
   const currentNetwork = usePerpsNetwork();
-  const cachedAccountState = usePerpsAccountState();
+  const cachedAccountState = usePerpsAccount();
 
   // Get real HyperLiquid USDC balance
   const availableBalance = parseFloat(cachedAccountState?.availableBalance?.toString() || '0');

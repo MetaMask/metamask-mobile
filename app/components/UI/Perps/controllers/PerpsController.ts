@@ -52,7 +52,6 @@ export type PerpsControllerState = {
 
   // Order management
   pendingOrders: OrderParams[];
-  orderHistory: OrderResult[];
 
   // Deposit flow state (for reactive UI)
   depositStatus: DepositStatus;
@@ -77,7 +76,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   positions: [],
   accountState: null,
   pendingOrders: [],
-  orderHistory: [],
   // Deposit flow state defaults
   depositStatus: 'idle',
   depositFlowType: null,
@@ -98,11 +96,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: { persist: false, anonymous: false },
-  accountState: { persist: false, anonymous: false },
-  orderHistory: { persist: false, anonymous: false },
-  isTestnet: { persist: false, anonymous: false },
-  activeProvider: { persist: false, anonymous: false },
+  positions: { persist: true, anonymous: false },
+  accountState: { persist: true, anonymous: false },
+  isTestnet: { persist: true, anonymous: false },
+  activeProvider: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   // Deposit flow state - transient, no need to persist across app restarts
@@ -215,6 +212,8 @@ export class PerpsController extends BaseController<
   PerpsControllerMessenger
 > {
   private providers: Map<string, IPerpsProvider>;
+  private isInitialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   constructor({ messenger, state = {} }: PerpsControllerOptions) {
     super({
@@ -225,14 +224,37 @@ export class PerpsController extends BaseController<
     });
 
     this.providers = new Map();
-    this.initializeProviders();
+    this.initializeProviders().catch(error => {
+      DevLogger.log('PerpsController: Error initializing providers', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    });
   }
 
   /**
-   * Initialize all available providers
+   * Initialize the PerpsController providers
+   * Must be called before using any other methods
+   * Prevents double initialization with promise caching
    */
-  private async initializeProviders(): Promise<void> {
-    DevLogger.log('PerpsController: Reinitializing providers', {
+  async initializeProviders(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    this.initializationPromise = this.performInitialization();
+    return this.initializationPromise;
+  }
+
+  /**
+   * Actual initialization implementation
+   */
+  private async performInitialization(): Promise<void> {
+    DevLogger.log('PerpsController: Initializing providers', {
       currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString()
@@ -266,16 +288,38 @@ export class PerpsController extends BaseController<
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
     // - Some might use different wallet patterns: new GMXProvider({ signer })
     // - Some might not need auth at all: new DydxProvider()
+
+    this.isInitialized = true;
+    DevLogger.log('PerpsController: Providers initialized successfully', {
+      providerCount: this.providers.size,
+      activeProvider: this.state.activeProvider,
+      timestamp: new Date().toISOString()
+    });
   }
 
   /**
-   * Get the currently active provider
+   * Get the currently active provider - ensures initialization first
    */
   getActiveProvider(): IPerpsProvider {
+    if (!this.isInitialized) {
+      const error = 'PerpsController not initialized. Call initialize() first.';
+      this.update(state => {
+        state.lastError = error;
+        state.lastUpdateTimestamp = Date.now();
+      });
+      throw new Error(error);
+    }
+    
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
-      throw new Error(`Provider ${this.state.activeProvider} not found`);
+      const error = `Provider ${this.state.activeProvider} not found`;
+      this.update(state => {
+        state.lastError = error;
+        state.lastUpdateTimestamp = Date.now();
+      });
+      throw new Error(error);
     }
+    
     return provider;
   }
 
@@ -295,7 +339,6 @@ export class PerpsController extends BaseController<
     // Update state
     this.update(state => {
       state.pendingOrders = state.pendingOrders.filter(o => o !== params);
-      state.orderHistory.push(result);
       state.lastUpdateTimestamp = Date.now();
     });
 
@@ -596,49 +639,100 @@ export class PerpsController extends BaseController<
    * Get current positions
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
-    const provider = this.getActiveProvider();
-    const positions = await provider.getPositions(params);
+    try {
+      const provider = this.getActiveProvider();
+      const positions = await provider.getPositions(params);
 
-    this.update(state => {
-      state.positions = positions;
-      state.lastUpdateTimestamp = Date.now();
-    });
+      // Only update state if the provider call succeeded
+      this.update(state => {
+        state.positions = positions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null; // Clear any previous errors
+      });
 
-    return positions;
+      return positions;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get positions';
+      
+      // Update error state but don't modify positions (keep existing data)
+      this.update(state => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
   }
 
   /**
    * Get account state (balances, etc.)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
-    const provider = this.getActiveProvider();
-    const accountState = await provider.getAccountState(params);
+    try {
+      const provider = this.getActiveProvider();
+      const accountState = await provider.getAccountState(params);
 
-    this.update(state => {
-      state.accountState = accountState;
-      state.lastUpdateTimestamp = Date.now();
-    });
+      // Only update state if the provider call succeeded
+      DevLogger.log('PerpsController: Updating Redux store with accountState:', accountState);
+      this.update(state => {
+        state.accountState = accountState;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null; // Clear any previous errors
+      });
+      DevLogger.log('PerpsController: Redux store updated successfully');
 
-    return accountState;
+      return accountState;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get account state';
+      
+      // Update error state but don't modify accountState (keep existing data)
+      this.update(state => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
   }
 
   /**
    * Get available markets with optional filtering
    */
   async getMarkets(params?: { symbols?: string[] }): Promise<MarketInfo[]> {
-    const provider = this.getActiveProvider();
-    const allMarkets = await provider.getMarkets();
+    try {
+      const provider = this.getActiveProvider();
+      const allMarkets = await provider.getMarkets();
 
-    // Filter by symbols if provided
-    if (params?.symbols && params.symbols.length > 0) {
-      return allMarkets.filter(market =>
-        params.symbols?.some(symbol =>
-          market.name.toLowerCase() === symbol.toLowerCase()
-        )
-      );
+      // Clear any previous errors on successful call
+      this.update(state => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Filter by symbols if provided
+      if (params?.symbols && params.symbols.length > 0) {
+        return allMarkets.filter(market =>
+          params.symbols?.some(symbol =>
+            market.name.toLowerCase() === symbol.toLowerCase()
+          )
+        );
+      }
+
+      return allMarkets;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get markets';
+
+      // Update error state
+      this.update(state => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
     }
-
-    return allMarkets;
   }
 
   /**
@@ -677,7 +771,9 @@ export class PerpsController extends BaseController<
         timestamp: new Date().toISOString()
       });
 
-      // Reinitialize provider with new testnet setting
+      // Reset initialization state and reinitialize provider with new testnet setting
+      this.isInitialized = false;
+      this.initializationPromise = null;
       await this.initializeProviders();
 
       DevLogger.log('PerpsController: Network toggle completed', {

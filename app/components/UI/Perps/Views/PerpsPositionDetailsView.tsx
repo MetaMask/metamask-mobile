@@ -1,16 +1,18 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View, Alert, TextInput, Modal } from 'react-native';
 import { useNavigation, useRoute, type NavigationProp, type ParamListBase, type RouteProp } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, SafeAreaView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
+import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
-import Button, { ButtonVariants, ButtonSize, ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import { usePerpsController } from '../hooks';
-import type { Position, ClosePositionParams } from '../controllers/types';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
+import type { ClosePositionParams, Position } from '../controllers/types';
+import { usePerpsTrading } from '../hooks';
+import { formatPercentage, formatPnl, formatPrice } from '../utils/formatUtils';
+import { triggerErrorHaptic, triggerSuccessHaptic } from '../utils/hapticUtils';
+import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -238,7 +240,7 @@ const PerpsPositionDetailsView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
 
   const { position } = route.params || {};
-  const { closePosition, getPositions } = usePerpsController();
+  const { closePosition, getPositions } = usePerpsTrading();
 
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -254,26 +256,12 @@ const PerpsPositionDetailsView: React.FC = () => {
   const direction = isLong ? 'long' : 'short';
   const absoluteSize = Math.abs(parseFloat(position.size));
   const pnlNum = parseFloat(position.unrealizedPnl);
-  const entryValue = parseFloat(position.entryPrice) * absoluteSize;
-  const pnlPercentage = entryValue > 0 ? (pnlNum / entryValue) * 100 : 0;
+  const pnlPercentage = calculatePnLPercentageFromUnrealized({
+    unrealizedPnl: pnlNum,
+    entryPrice: parseFloat(position.entryPrice),
+    size: parseFloat(position.size)
+  });
 
-  // Format currency values
-  const formatCurrency = useCallback((value: string | number) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4,
-    }).format(num);
-  }, []);
-
-  const formatPnl = useCallback((pnl: number) => {
-    const formatted = formatCurrency(Math.abs(pnl));
-    return pnl >= 0 ? `+${formatted}` : `-${formatted}`;
-  }, [formatCurrency]);
-
-  const formatPercentage = useCallback((value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`, []);
 
   // Handle position close
   const handleClosePosition = useCallback(async () => {
@@ -413,17 +401,17 @@ const PerpsPositionDetailsView: React.FC = () => {
   // Position details data
   const positionDetails = useMemo(() => [
     { label: 'Size', value: `${absoluteSize.toFixed(6)} ${position.coin}` },
-    { label: 'Entry Price', value: formatCurrency(position.entryPrice) },
-    { label: 'Mark Price', value: formatCurrency(position.liquidationPrice || position.entryPrice) },
-    { label: 'Position Value', value: formatCurrency(position.positionValue) },
-    { label: 'Margin Used', value: formatCurrency(position.marginUsed) },
+    { label: 'Entry Price', value: formatPrice(position.entryPrice) },
+    { label: 'Mark Price', value: formatPrice(position.liquidationPrice || position.entryPrice) },
+    { label: 'Position Value', value: formatPrice(position.positionValue) },
+    { label: 'Margin Used', value: formatPrice(position.marginUsed) },
     { label: 'Leverage', value: `${position.leverage.value}x` },
-    { label: 'Liquidation Price', value: position.liquidationPrice ? formatCurrency(position.liquidationPrice) : 'N/A' },
+    { label: 'Liquidation Price', value: position.liquidationPrice ? formatPrice(position.liquidationPrice) : 'N/A' },
     { label: 'ROE', value: formatPercentage(parseFloat(position.returnOnEquity || '0')) },
     // TODO: Add actual TP/SL fields when available in Position type
     { label: 'Take Profit', value: 'Not Set' },
     { label: 'Stop Loss', value: 'Not Set' },
-  ], [position, absoluteSize, formatCurrency, formatPercentage]);
+  ], [position, absoluteSize]);
 
   if (!position) {
     return (
@@ -559,7 +547,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 style={styles.textInput}
                 value={takeProfitPrice}
                 onChangeText={setTakeProfitPrice}
-                placeholder={`Enter TP price (Current: ${formatCurrency(position.entryPrice)})`}
+                placeholder={`Enter TP price (Current: ${formatPrice(position.entryPrice)})`}
                 keyboardType="numeric"
                 placeholderTextColor={colors.text.muted}
               />
@@ -571,7 +559,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 style={styles.textInput}
                 value={stopLossPrice}
                 onChangeText={setStopLossPrice}
-                placeholder={`Enter SL price (Current: ${formatCurrency(position.entryPrice)})`}
+                placeholder={`Enter SL price (Current: ${formatPrice(position.entryPrice)})`}
                 keyboardType="numeric"
                 placeholderTextColor={colors.text.muted}
               />

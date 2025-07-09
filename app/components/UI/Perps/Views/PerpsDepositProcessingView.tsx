@@ -21,7 +21,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import {
-  usePerpsDepositState,
+  usePerpsDeposit,
 } from '../hooks';
 
 interface DepositProcessingParams {
@@ -136,7 +136,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     steps: depositSteps,
     error: depositError,
     currentTxHash,
-  } = usePerpsDepositState();
+  } = usePerpsDeposit();
 
   const { amount, selectedToken, txHash, isDirectDeposit = false } = (route.params as DepositProcessingParams) || {};
 

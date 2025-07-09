@@ -6,10 +6,12 @@ import Text from '../../../../component-library/components/Texts/Text';
 import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import { usePerpsAccountState, usePerpsController } from '../hooks';
+import { usePerpsAccount, usePerpsTrading } from '../hooks';
 import PerpsPositionCard from '../components/PerpsPositionCard';
 import type { Position } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { formatPnl, formatPrice } from '../utils/formatUtils';
+import { calculateTotalPnL } from '../utils/pnlCalculations';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -150,8 +152,8 @@ const PerpsPositionsView: React.FC = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const { getPositions } = usePerpsController();
-  const cachedAccountState = usePerpsAccountState();
+  const { getPositions } = usePerpsTrading();
+  const cachedAccountState = usePerpsAccount();
 
   const [positions, setPositions] = useState<Position[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -200,24 +202,8 @@ const PerpsPositionsView: React.FC = () => {
     }, [loadPositions])
   );
 
-  // Calculate total unrealized PnL
-  const totalUnrealizedPnl = positions.reduce((sum, position) => sum + parseFloat(position.unrealizedPnl || '0'), 0);
-
-  // Format currency values
-  const formatCurrency = (value: string | number) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num);
-  };
-
-  const formatPnl = (pnl: number) => {
-    const formatted = formatCurrency(Math.abs(pnl));
-    return pnl >= 0 ? `+${formatted}` : `-${formatted}`;
-  };
+  // Calculate total unrealized PnL using utility function
+  const totalUnrealizedPnl = calculateTotalPnL({ positions });
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -305,21 +291,21 @@ const PerpsPositionsView: React.FC = () => {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Balance</Text>
             <Text style={styles.summaryValue}>
-              {formatCurrency(cachedAccountState?.totalBalance || '0')}
+              {formatPrice(cachedAccountState?.totalBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Available Balance</Text>
             <Text style={styles.summaryValue}>
-              {formatCurrency(cachedAccountState?.availableBalance || '0')}
+              {formatPrice(cachedAccountState?.availableBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Margin Used</Text>
             <Text style={styles.summaryValue}>
-              {formatCurrency(cachedAccountState?.marginUsed || '0')}
+              {formatPrice(cachedAccountState?.marginUsed || '0')}
             </Text>
           </View>
 

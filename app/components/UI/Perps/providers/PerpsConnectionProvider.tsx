@@ -1,10 +1,11 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePerpsController } from '../hooks/usePerpsController';
+import Engine from '../../../../core/Engine';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
   isConnecting: boolean;
+  isInitialized: boolean;
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
@@ -28,14 +29,9 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { controller } = usePerpsController();
-  const isMountedRef = useRef(true);
-  const controllerRef = useRef(controller);
-
-  // Update controller ref when it changes
-  controllerRef.current = controller;
 
   // Stable connect function - SDK handles reconnection
   const connect = useCallback(async () => {
@@ -49,32 +45,33 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
         timestamp: new Date().toISOString(),
       });
 
+      // Initialize the controller first
+      await Engine.context.PerpsController.initializeProviders();
+
+      setIsInitialized(true);
+      DevLogger.log('PerpsConnectionProvider: Controller initialized', {
+        timestamp: new Date().toISOString(),
+      });
+
       // Connection is handled by the controller's providers
       // We just need to track the connection state
-      await controller.getAccountState(); // This will trigger connection if needed
+      await Engine.context.PerpsController.getAccountState(); // This will trigger connection if needed
 
-      if (isMountedRef.current) {
-        setIsConnected(true);
-        DevLogger.log('PerpsConnectionProvider: Successfully connected', {
-          timestamp: new Date().toISOString(),
-        });
-      }
+      setIsConnected(true);
+      DevLogger.log('PerpsConnectionProvider: Successfully connected', {
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
-
-      if (isMountedRef.current) {
-        setError(errorMessage);
-        DevLogger.log('PerpsConnectionProvider: Connection failed', {
-          error: errorMessage,
-          timestamp: new Date().toISOString(),
-        });
-      }
+      setError(errorMessage);
+      DevLogger.log('PerpsConnectionProvider: Connection failed', {
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+      });
     } finally {
-      if (isMountedRef.current) {
-        setIsConnecting(false);
-      }
+      setIsConnecting(false);
     }
-  }, [controller, isConnecting, isConnected]);
+  }, [isConnecting, isConnected]);
 
   // Stable disconnect function
   const disconnect = useCallback(async () => {
@@ -85,13 +82,11 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
         timestamp: new Date().toISOString(),
       });
 
-      await controller.disconnect();
+      await Engine.context.PerpsController.disconnect();
 
-      if (isMountedRef.current) {
-        setIsConnected(false);
-        setIsConnecting(false);
-        setError(null);
-      }
+      setIsConnected(false);
+      setIsConnecting(false);
+      setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown disconnection error';
       DevLogger.log('PerpsConnectionProvider: Disconnection error', {
@@ -99,21 +94,17 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
         timestamp: new Date().toISOString(),
       });
 
-      if (isMountedRef.current) {
-        setError(errorMessage);
-      }
+      setError(errorMessage);
     }
-  }, [controller, isConnected, isConnecting]);
+  }, [isConnected, isConnecting]);
 
   // Reset error state
   const resetError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Connect on mount, disconnect only when leaving entire Perps section
+  // Connect on mount, disconnect on unmount
   useEffect(() => {
-    isMountedRef.current = true;
-
     DevLogger.log('PerpsConnectionProvider: Entering Perps trading environment', {
       timestamp: new Date().toISOString(),
     });
@@ -128,57 +119,56 @@ export const PerpsConnectionProvider: React.FC<PerpsConnectionProviderProps> = (
           timestamp: new Date().toISOString(),
         });
 
-        await controllerRef.current.getAccountState(); // This will trigger connection if needed
+        // Initialize the controller first
+        await Engine.context.PerpsController.initializeProviders();
 
-        if (isMountedRef.current) {
-          setIsConnected(true);
-          DevLogger.log('PerpsConnectionProvider: Successfully connected', {
-            timestamp: new Date().toISOString(),
-          });
-        }
+        setIsInitialized(true);
+        DevLogger.log('PerpsConnectionProvider: Controller initialized', {
+          timestamp: new Date().toISOString(),
+        });
+
+        await Engine.context.PerpsController.getAccountState(); // This will trigger connection if needed
+
+        setIsConnected(true);
+        DevLogger.log('PerpsConnectionProvider: Successfully connected', {
+          timestamp: new Date().toISOString(),
+        });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
-
-        if (isMountedRef.current) {
-          setError(errorMessage);
-          DevLogger.log('PerpsConnectionProvider: Connection failed', {
-            error: errorMessage,
-            timestamp: new Date().toISOString(),
-          });
-        }
+        setError(errorMessage);
+        DevLogger.log('PerpsConnectionProvider: Connection failed', {
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+        });
       } finally {
-        if (isMountedRef.current) {
-          setIsConnecting(false);
-        }
+        setIsConnecting(false);
       }
     };
 
     initializeConnection();
 
-    // Cleanup only when leaving the entire Perps trading environment
+    // Disconnect when provider unmounts
     return () => {
-      isMountedRef.current = false;
-
       DevLogger.log('PerpsConnectionProvider: Leaving Perps trading environment', {
         timestamp: new Date().toISOString(),
       });
 
-      // Disconnect when provider unmounts (user leaves entire Perps section)
-      controllerRef.current.disconnect();
+      Engine.context.PerpsController.disconnect();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
       isConnected,
       isConnecting,
+      isInitialized,
       error,
       connect,
       disconnect,
       resetError,
     }),
-    [isConnected, isConnecting, error, connect, disconnect, resetError]
+    [isConnected, isConnecting, isInitialized, error, connect, disconnect, resetError]
   );
 
   return (

@@ -7,7 +7,7 @@ import Button, { ButtonVariants, ButtonSize } from '../../../../component-librar
 import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import { usePerpsController } from '../hooks';
+import { usePerpsTrading } from '../hooks';
 import type { OrderResult, CancelOrderParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
@@ -197,7 +197,7 @@ const PerpsOrderDetailsView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
 
   const { order, action } = route.params || {};
-  const { cancelOrder } = usePerpsController();
+  const { cancelOrder } = usePerpsTrading();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
