@@ -9,10 +9,8 @@ import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 import { useSelector } from 'react-redux';
 import {
-  selectEvmChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
 
 function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   const [explorer, setExplorer] = useState({
@@ -23,30 +21,23 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     baseUrl: '',
   });
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectEvmChainId);
-  const networkName = useSelector(selectNetworkName);
 
   useEffect(() => {
     const definitiveProviderConfig =
       providerConfigTokenExplorer ?? providerConfig;
     try {
-      const networkConfigurationsByChainId = networkConfigurations?.[chainId]
-      let blockExplorer = networkConfigurationsByChainId.blockExplorerUrls?.[
-        networkConfigurationsByChainId.defaultBlockExplorerUrlIndex
-      ]
-      
-      if (!blockExplorer) {
-        // If no block explorer URL is found in the network configurations,
-        // we attempt to retrieve it using a hardcoded Etherscan URL mapping.
-        // Additionally, since `definitiveProviderConfig.type` defaults to `rpc` for non-built-in networks,
-        // the fallback is applied only to built-in networks, as they all use Etherscan.
-        if (definitiveProviderConfig.type !== RPC) {
-          blockExplorer = getEtherscanBaseUrl(definitiveProviderConfig.type)
-        }
+      const { rpcUrl , type } = definitiveProviderConfig;
 
-        if (!blockExplorer) {
-          throw new Error('No block explorer url');
-        }
+      let blockExplorer;
+
+      if (type === RPC && rpcUrl) {
+        blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations)
+      } else {
+        blockExplorer = getEtherscanBaseUrl(type);
+      }
+ 
+      if (!blockExplorer) {
+        throw new Error('No block explorer url');
       }
 
       const url = new URL(blockExplorer);
@@ -77,8 +68,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     networkConfigurations,
     providerConfig,
     providerConfigTokenExplorer,
-    chainId,
-    networkName,
   ]);
 
   const tx = useCallback(
