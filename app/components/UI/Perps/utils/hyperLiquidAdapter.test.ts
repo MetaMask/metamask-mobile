@@ -145,7 +145,7 @@ describe('hyperLiquidAdapter', () => {
             sinceChange: '25',
           },
         },
-        type: 'perp',
+        type: 'oneWay',
       };
 
       const result = adaptPositionFromSDK(assetPosition);
@@ -178,7 +178,7 @@ describe('hyperLiquidAdapter', () => {
         maxLeverage: 50,
         marginTableId: 1,
         onlyIsolated: true,
-        isDelisted: false,
+        isDelisted: true,
       };
 
       const result = adaptMarketFromSDK(sdkMarket);
@@ -220,17 +220,51 @@ describe('hyperLiquidAdapter', () => {
         crossMarginSummary: {
           accountValue: '1000.50',
           totalMarginUsed: '300.25',
+          totalNtlPos: '1000.50',
+          totalRawUsd: '1000.50',
         },
+        marginSummary: {
+          accountValue: '1000.50',
+          totalNtlPos: '1000.50',
+          totalRawUsd: '1000.50',
+          totalMarginUsed: '300.25',
+        },
+        crossMaintenanceMarginUsed: '100.0',
+        time: Date.now(),
         withdrawable: '700.25',
         assetPositions: [
           {
-            position: { unrealizedPnl: '50.0' },
-            type: 'perp',
-          } as AssetPosition,
+            position: {
+              coin: 'BTC',
+              szi: '1.0',
+              leverage: { type: 'cross', value: 2 },
+              entryPx: '50000',
+              positionValue: '50000',
+              unrealizedPnl: '50.0',
+              returnOnEquity: '0.1',
+              liquidationPx: '40000',
+              marginUsed: '25000',
+              maxLeverage: 100,
+              cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+            },
+            type: 'oneWay',
+          },
           {
-            position: { unrealizedPnl: '-25.5' },
-            type: 'perp',
-          } as AssetPosition,
+            position: {
+              coin: 'ETH',
+              szi: '0.5',
+              leverage: { type: 'cross', value: 3 },
+              entryPx: '3000',
+              positionValue: '1500',
+              unrealizedPnl: '-25.5',
+              returnOnEquity: '-0.02',
+              liquidationPx: '2500',
+              marginUsed: '500',
+              maxLeverage: 50,
+              cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+            },
+            type: 'oneWay',
+          },
         ],
       };
 
@@ -249,18 +283,31 @@ describe('hyperLiquidAdapter', () => {
         crossMarginSummary: {
           accountValue: '500.0',
           totalMarginUsed: '150.0',
+          totalNtlPos: '500.0',
+          totalRawUsd: '500.0',
         },
+        marginSummary: {
+          accountValue: '500.0',
+          totalNtlPos: '500.0',
+          totalRawUsd: '500.0',
+          totalMarginUsed: '150.0',
+        },
+        crossMaintenanceMarginUsed: '50.0',
+        time: Date.now(),
         withdrawable: '350.0',
         assetPositions: [
           {
             position: { unrealizedPnl: '100.0' },
             type: 'perp',
-          } as AssetPosition,
+          } as unknown as AssetPosition,
         ],
       };
 
       const spotState: SpotClearinghouseState = {
-        balances: [{ total: '200.0' }, { total: '300.5' }],
+        balances: [
+          { total: '200.0' },
+          { total: '300.5' },
+        ] as unknown as SpotBalance[],
       };
 
       const result = adaptAccountStateFromSDK(perpsState, spotState);
@@ -278,7 +325,17 @@ describe('hyperLiquidAdapter', () => {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '200.0',
+          totalNtlPos: '1000.0',
+          totalRawUsd: '1000.0',
         },
+        marginSummary: {
+          accountValue: '1000.0',
+          totalNtlPos: '1000.0',
+          totalRawUsd: '1000.0',
+          totalMarginUsed: '200.0',
+        },
+        crossMaintenanceMarginUsed: '80.0',
+        time: Date.now(),
         withdrawable: '800.0',
         assetPositions: [],
       };
@@ -287,7 +344,7 @@ describe('hyperLiquidAdapter', () => {
         balances: [
           { total: undefined },
           {} as SpotBalance, // no total field
-        ],
+        ] as unknown as SpotBalance[],
       };
 
       const result = adaptAccountStateFromSDK(perpsState, spotState);
@@ -305,7 +362,17 @@ describe('hyperLiquidAdapter', () => {
         crossMarginSummary: {
           accountValue: '1000.0',
           totalMarginUsed: '0',
+          totalNtlPos: '1000.0',
+          totalRawUsd: '1000.0',
         },
+        marginSummary: {
+          accountValue: '1000.0',
+          totalNtlPos: '1000.0',
+          totalRawUsd: '1000.0',
+          totalMarginUsed: '0',
+        },
+        crossMaintenanceMarginUsed: '0',
+        time: Date.now(),
         withdrawable: '1000.0',
         assetPositions: [],
       };
