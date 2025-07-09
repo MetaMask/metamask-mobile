@@ -189,7 +189,7 @@ describe('hyperLiquidAdapter', () => {
         maxLeverage: 50,
         marginTableId: 1,
         onlyIsolated: true,
-        isDelisted: false,
+        isDelisted: true,
       });
     });
 
