@@ -20,7 +20,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './ErrorView.styles';
 
 interface Props {
-  description: string; // The error description (Required)
+  description?: string; // The error description (Optional)
   title?: string; //  The error title, default will be "Error" if not provided (Optional)
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
   ctaOnPress?: () => void; // The optional callback to be invoked when pressing the CTA button (Optional)
