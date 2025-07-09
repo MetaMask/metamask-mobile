@@ -1613,6 +1613,75 @@ class FixtureBuilder {
     return this;
   }
 
+  withTokensRates(tokens, chainId = CHAIN_IDS.MAINNET) {
+    // Generate mock market data for each token
+    const tokenMarketData = {};
+
+    tokens.forEach((token, index) => {
+      // Generate realistic but varied market data for testing
+      const basePrice = (index + 1) * 100; // Starting price based on token index
+      const randomVariation = Math.random() * 50; // Add some randomness
+      const price = basePrice + randomVariation;
+
+      tokenMarketData[token.address] = {
+        tokenAddress: token.address,
+        currency: 'USD',
+        allTimeHigh: price * 1.8, // 80% higher than current price
+        allTimeLow: price * 0.2, // 80% lower than current price
+        circulatingSupply: 1000000000, // 1 billion tokens
+        dilutedMarketCap: price * 1200000000, // Based on total supply
+        high1d: price * 1.05, // 5% higher than current
+        low1d: price * 0.95, // 5% lower than current
+        marketCap: price * 1000000000, // Based on circulating supply
+        marketCapPercentChange1d: (Math.random() - 0.5) * 10, // Random change between -5% and +5%
+        price,
+        priceChange1d: (Math.random() - 0.5) * price * 0.1, // Random change up to 10%
+        pricePercentChange1d: (Math.random() - 0.5) * 10, // Random percentage between -5% and +5%
+        pricePercentChange1h: (Math.random() - 0.5) * 2, // Random percentage between -1% and +1%
+        pricePercentChange1y: (Math.random() - 0.5) * 200, // Random percentage between -100% and +100%
+        pricePercentChange7d: (Math.random() - 0.5) * 30, // Random percentage between -15% and +15%
+        pricePercentChange14d: (Math.random() - 0.5) * 50, // Random percentage between -25% and +25%
+        pricePercentChange30d: (Math.random() - 0.5) * 80, // Random percentage between -40% and +40%
+        pricePercentChange200d: (Math.random() - 0.5) * 150, // Random percentage between -75% and +75%
+        totalVolume: price * 50000000, // Volume based on price
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: tokenMarketData,
+      },
+    });
+    return this;
+  }
+
+  withTokensBalances(tokens, chainId = CHAIN_IDS.MAINNET) {
+    // Generate mock token balances for the default account
+    const tokenBalances = {};
+    tokenBalances[DEFAULT_FIXTURE_ACCOUNT] = {};
+    tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId] = {};
+
+    tokens.forEach((token, index) => {
+      // Generate realistic but varied balances for testing
+      const baseBalance = (index + 1) * 1000;
+      const randomVariation = Math.floor(Math.random() * 5000);
+      const finalBalance = baseBalance + randomVariation;
+
+      // Convert to hex with proper padding for token decimals
+      const balanceInWei = (
+        finalBalance * Math.pow(10, token.decimals)
+      ).toString(16);
+      tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId][
+        token.address
+      ] = `0x${balanceInWei}`;
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+    return this;
+  }
+
   withTokensForAllPopularNetworks(tokens) {
     // Get all popular network chain IDs using proper constants
     const popularChainIds = [
