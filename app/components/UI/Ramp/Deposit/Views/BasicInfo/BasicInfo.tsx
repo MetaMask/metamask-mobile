@@ -135,16 +135,17 @@ const BasicInfo = (): JSX.Element => {
   );
 
   const handleFieldChange = useCallback(
-    (field: keyof BasicInfoFormData, nextAction?: () => void) => (value: string) => {
-      const currentValue = formData[field];
-      const isAutofill = value.length - currentValue.length > 1;
+    (field: keyof BasicInfoFormData, nextAction?: () => void) =>
+      (value: string) => {
+        const currentValue = formData[field];
+        const isAutofill = value.length - currentValue.length > 1;
 
-      handleFormDataChange(field)(value);
+        handleFormDataChange(field)(value);
 
-      if (isAutofill && nextAction) {
-        nextAction();
-      }
-    },
+        if (isAutofill && nextAction) {
+          nextAction();
+        }
+      },
     [formData, handleFormDataChange],
   );
 
@@ -166,7 +167,10 @@ const BasicInfo = (): JSX.Element => {
                 label={strings('deposit.basic_info.first_name')}
                 placeholder="John"
                 value={formData.firstName}
-                onChangeText={handleFieldChange('firstName', focusNextField(lastNameInputRef))}
+                onChangeText={handleFieldChange(
+                  'firstName',
+                  focusNextField(lastNameInputRef),
+                )}
                 error={errors.firstName}
                 returnKeyType="next"
                 testID="first-name-input"
@@ -182,7 +186,10 @@ const BasicInfo = (): JSX.Element => {
                 label={strings('deposit.basic_info.last_name')}
                 placeholder="Smith"
                 value={formData.lastName}
-                onChangeText={handleFieldChange('lastName', focusNextField(phoneInputRef))}
+                onChangeText={handleFieldChange(
+                  'lastName',
+                  focusNextField(phoneInputRef),
+                )}
                 error={errors.lastName}
                 returnKeyType="next"
                 testID="last-name-input"
@@ -198,7 +205,10 @@ const BasicInfo = (): JSX.Element => {
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
               value={formData.mobileNumber}
-              onChangeText={handleFieldChange('mobileNumber', focusNextField(dateInputRef))}
+              onChangeText={handleFieldChange(
+                'mobileNumber',
+                focusNextField(dateInputRef),
+              )}
               error={errors.mobileNumber}
               ref={phoneInputRef}
               onSubmitEditing={focusNextField(dateInputRef)}
@@ -247,7 +257,6 @@ const BasicInfo = (): JSX.Element => {
                 maxLength={11}
                 onSubmitEditing={() => {
                   Keyboard.dismiss();
-                  handleOnPressContinue();
                 }}
               />
             )}

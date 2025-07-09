@@ -585,7 +585,8 @@
       "state": "State/Region",
       "city": "City",
       "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "country": "Country",
+      "select_state": "Select state"
     },
     "privacy_section":{
       "transak": "Transak encrypts and stores this information.",
@@ -1340,9 +1341,6 @@
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
-    "ses_heading": "Code Lockdown",
-    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
-    "ses_link": "Learn more",
     "general_heading": "General",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
@@ -4554,7 +4552,7 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "add_account": "Add account",
+      "create_account": "Create account",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },

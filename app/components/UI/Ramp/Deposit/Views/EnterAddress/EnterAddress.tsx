@@ -27,6 +27,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../components/PrivacySection';
+import { useDepositSDK } from '../../sdk';
+import { US_STATES } from '../../constants';
+import SelectOptionSheet from '../../../../SelectOptionSheet';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -54,6 +57,7 @@ const EnterAddress = (): JSX.Element => {
     quote,
     kycUrl,
   } = useParams<EnterAddressParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -61,7 +65,7 @@ const EnterAddress = (): JSX.Element => {
     state: '',
     city: '',
     postCode: '',
-    countryCode: '',
+    countryCode: selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {
@@ -75,16 +79,12 @@ const EnterAddress = (): JSX.Element => {
       errors.city = 'City is required';
     }
 
-    if (!data.state.trim()) {
+    if (selectedRegion?.isoCode === 'US' && !data.state.trim()) {
       errors.state = 'State/Region is required';
     }
 
     if (!data.postCode.trim()) {
       errors.postCode = 'Postal/Zip Code is required';
-    }
-
-    if (!data.countryCode.trim()) {
-      errors.countryCode = 'Country is required';
     }
 
     return errors;
@@ -187,6 +187,20 @@ const EnterAddress = (): JSX.Element => {
     ssnError,
   ]);
 
+  const countryFlagAccessory = (
+    <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
+  );
+
+  const stateOptions = US_STATES.map((state) => ({
+    key: state.code,
+    label: state.name,
+    value: state.code,
+  }));
+
+  const selectedStateName = US_STATES.find(
+    (state) => state.code === formData.state,
+  )?.name;
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -227,16 +241,30 @@ const EnterAddress = (): JSX.Element => {
               containerStyle={styles.nameInputContainer}
             />
 
-            <DepositTextField
-              label={strings('deposit.enter_address.state')}
-              placeholder={strings('deposit.enter_address.state')}
-              value={formData.state}
-              onChangeText={handleFormDataChange('state')}
-              error={errors.state}
-              returnKeyType="next"
-              testID="state-input"
-              containerStyle={styles.nameInputContainer}
-            />
+            {selectedRegion?.isoCode === 'US' ? (
+              <View style={styles.nameInputContainer}>
+                <Text style={styles.label}>
+                  {strings('deposit.enter_address.state')}
+                </Text>
+                <SelectOptionSheet
+                  label={strings('deposit.enter_address.state')}
+                  selectedValue={formData.state}
+                  options={stateOptions}
+                  onValueChange={handleFormDataChange('state')}
+                  defaultValue={strings('deposit.enter_address.select_state')}
+                />
+                {errors.state && (
+                  <Text style={styles.error}>{errors.state}</Text>
+                )}
+              </View>
+            ) : (
+              <DepositTextField
+                label={strings('deposit.enter_address.state')}
+                placeholder={strings('deposit.enter_address.state')}
+                value={formData.state}
+                onChangeText={handleFormDataChange('state')}
+              />
+            )}
           </View>
 
           <View style={styles.nameInputRow}>
@@ -254,12 +282,15 @@ const EnterAddress = (): JSX.Element => {
             <DepositTextField
               label={strings('deposit.enter_address.country')}
               placeholder={strings('deposit.enter_address.country')}
-              value={formData.countryCode}
-              onChangeText={handleFormDataChange('countryCode')}
+              value={selectedRegion?.name || ''}
+              onChangeText={() => {}}
               error={errors.countryCode}
               returnKeyType="done"
               testID="country-input"
               containerStyle={styles.nameInputContainer}
+              isDisabled={true}
+              startAccessory={countryFlagAccessory}
+              style={{ opacity: 1 }}
             />
           </View>
         </ScreenLayout.Content>
