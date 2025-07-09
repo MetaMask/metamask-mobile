@@ -98,9 +98,10 @@ export type SetExistingUserAction = Action<UserActionType.SET_EXISTING_USER> & {
   payload: { existingUser: boolean };
 };
 
-export type SetMetaMetricsUISeenAction = Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
-  payload: { isMetaMetricsUISeen: boolean };
-};
+export type SetMetaMetricsUISeenAction =
+  Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
+    payload: { isMetaMetricsUISeen: boolean };
+  };
 
 /**
  * User actions union type
@@ -129,4 +130,5 @@ export type UserAction =
   | CheckedAuthAction
   | SetAppServicesReadyAction
   | SetExistingUserAction
-  | SetMetaMetricsUISeenAction;
+  | SetMetaMetricsUISeenAction
+  | SetAppServicesReadyAction;

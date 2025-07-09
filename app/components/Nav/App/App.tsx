@@ -31,6 +31,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -148,7 +149,7 @@ import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { RootState } from '../../../reducers';
+import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -658,6 +659,21 @@ const ModalSwitchAccountType = () => (
   </Stack.Navigator>
 );
 
+const ModalSmartAccountOptIn = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen
+      name={Routes.SMART_ACCOUNT_OPT_IN}
+      component={SmartAccountUpdateModal}
+    />
+  </Stack.Navigator>
+);
+
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
@@ -799,6 +815,10 @@ const AppFlow = () => {
           name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
           component={ModalSwitchAccountType}
         />
+        <Stack.Screen
+          name={Routes.SMART_ACCOUNT_OPT_IN}
+          component={ModalSmartAccountOptIn}
+        />
       </Stack.Navigator>
     </>
   );
@@ -812,10 +832,6 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
-
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
   if (isFirstRender.current) {
     trace({
@@ -850,19 +866,25 @@ const App: React.FC = () => {
             },
           );
 
-          if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-                params: {
-                  onContinue: () =>
-                    navigation.reset({
-                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                    }),
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+
+          if (!isOptinMetaMetricsUISeen) {
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
                 },
-              },
-            });
+              ],
+            };
+            navigation.reset(resetParams);
           } else {
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],

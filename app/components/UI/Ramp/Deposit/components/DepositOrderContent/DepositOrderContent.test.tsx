@@ -40,6 +40,7 @@ describe('DepositOrderContent Component', () => {
     orderType: DepositOrderType.Deposit,
     data: {
       id: 'test-order-id-123456',
+      providerOrderId: 'transak-provider-order-id-123456',
       provider: 'test-provider',
       createdAt: Date.now(),
       fiatAmount: 100,
@@ -141,7 +142,9 @@ describe('DepositOrderContent Component', () => {
       fireEvent.press(copyButton);
     }
 
-    expect(Clipboard.setString).toHaveBeenCalledWith('test-order-id-123456');
+    expect(Clipboard.setString).toHaveBeenCalledWith(
+      'transak-provider-order-id-123456',
+    );
   });
 
   it('opens Transak link when view details button is pressed', () => {

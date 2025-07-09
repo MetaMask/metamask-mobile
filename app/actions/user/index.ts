@@ -24,7 +24,6 @@ import {
   type SetAppServicesReadyAction,
   type SetExistingUserAction,
   UserActionType,
-  type SetMetaMetricsUISeenAction,
 } from './types';
 
 export * from './types';

@@ -9,18 +9,22 @@ import { MetaMetrics } from '../../../core/Analytics';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  OPTIN_META_METRICS_UI_SEEN,
+  EXISTING_USER,
+} from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
 import { NavigationContainer } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { Authentication } from '../../../core';
 
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
-    isMetaMetricsUISeen: true,
-    existingUser: true,
-  } as DeepPartial<RootState['user']>,
+  },
   engine: {
     backgroundState,
   },
@@ -82,6 +86,14 @@ const mockMetrics = {
   addTraitsToUser: jest.fn(),
 };
 
+// Mock Authentication module
+jest.mock('../../../core', () => ({
+  Authentication: {
+    appTriggeredAuth: jest.fn().mockResolvedValue(undefined),
+    lockApp: jest.fn(),
+  },
+}));
+
 // Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
 jest.mock(
   '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
@@ -92,6 +104,16 @@ jest.mock(
   '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
+
+// Mock essential dependencies
+jest.mock('react-native-branch', () => ({
+  subscribe: jest.fn(),
+  getLatestReferringParams: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
@@ -119,6 +141,91 @@ describe('App', () => {
     });
   });
 
+  describe('Authentication flow logic', () => {
+    it('navigates to onboarding when user does not exist', async () => {
+      renderScreen(App, { name: 'App' }, { 
+        state: {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: false,
+          },
+        }
+      });
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+        });
+      });
+    });
+    it('navigates to login when user exists and logs in', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true; // OptinMetrics UI has been seen
+        }
+        return null; // Default for other keys
+      });
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      renderScreen(App, { name: 'App' }, { 
+        state: {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+        }
+      });
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
+      });
+    });
+
+    it('navigates to OptinMetrics when user exists and OptinMetaMetricsUISeen is false', async () => {
+      // Mock StorageWrapper.getItem to return different values based on the key
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return false; // OptinMetrics UI has not been seen
+        }
+        return null; // Default for other keys
+      });
+
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
+          },
+        },
+      );
+
+      // Wait a bit longer and add debugging
+      await waitFor(
+        () => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        },
+        { timeout: 5000 },
+      );
+    });
+  });
   describe('OnboardingRootNav', () => {
     it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
       const routeState = {
