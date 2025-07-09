@@ -1,7 +1,5 @@
 // Re-export all interfaces and constants from the separated files
-export type {
-  DepositCryptoCurrency,
-} from './cryptoCurrencies.ts';
+export type { DepositCryptoCurrency } from './cryptoCurrencies.ts';
 
 export {
   USDC_TOKEN,
@@ -9,20 +7,18 @@ export {
   SUPPORTED_DEPOSIT_TOKENS,
 } from './cryptoCurrencies.ts';
 
-export type {
-  DepositPaymentMethod,
-} from './paymentMethods.ts';
+export type { DepositPaymentMethod } from './paymentMethods.ts';
 
 export {
   DEBIT_CREDIT_PAYMENT_METHOD,
   SEPA_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
   APPLE_PAY_PAYMENT_METHOD,
   SUPPORTED_PAYMENT_METHODS,
+  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
 } from './paymentMethods.ts';
 
-export type {
-  DepositFiatCurrency,
-} from './constants.ts';
+export type { DepositFiatCurrency } from './constants.ts';
 
 export {
   USD_CURRENCY,
@@ -31,10 +27,6 @@ export {
   TRANSAK_SUPPORT_URL,
 } from './constants.ts';
 
-export type {
-  DepositRegion,
-} from './regions.ts';
+export type { DepositRegion } from './regions.ts';
 
-export {
-  DEPOSIT_REGIONS,
-} from './regions.ts';
+export { DEPOSIT_REGIONS } from './regions.ts';
