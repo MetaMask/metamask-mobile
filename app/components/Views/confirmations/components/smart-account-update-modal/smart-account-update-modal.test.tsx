@@ -57,7 +57,7 @@ const renderComponent = (state?: Record<string, unknown>) =>
       }),
   });
 
-describe('SmartContractWithLogo', () => {
+describe('SmartAccountUpdateModal', () => {
   beforeEach(() => {
     jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(false);
   });
