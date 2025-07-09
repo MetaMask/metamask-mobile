@@ -23,7 +23,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -164,7 +164,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -220,7 +220,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -330,7 +330,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -388,7 +388,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -529,7 +529,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -585,7 +585,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -695,7 +695,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
