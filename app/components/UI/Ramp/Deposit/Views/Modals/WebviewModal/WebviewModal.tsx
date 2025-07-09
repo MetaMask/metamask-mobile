@@ -24,15 +24,16 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 
-interface WebviewModalParams {
+export interface WebviewModalParams {
   sourceUrl: string;
   handleNavigationStateChange?: (navState: { url: string }) => void;
 }
 
-export const createWebviewModalNavigationDetails = createNavigationDetails(
-  Routes.DEPOSIT.MODALS.ID,
-  Routes.DEPOSIT.MODALS.WEBVIEW,
-);
+export const createWebviewModalNavigationDetails =
+  createNavigationDetails<WebviewModalParams>(
+    Routes.DEPOSIT.MODALS.ID,
+    Routes.DEPOSIT.MODALS.WEBVIEW,
+  );
 
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

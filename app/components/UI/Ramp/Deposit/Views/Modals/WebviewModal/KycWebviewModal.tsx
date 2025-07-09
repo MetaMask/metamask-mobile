@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-import WebviewModal from './WebviewModal';
+import WebviewModal, { WebviewModalParams } from './WebviewModal';
 import useUserDetailsPolling from '../../../hooks/useUserDetailsPolling';
 import { KycStatus } from '../../../constants';
 import { createKycProcessingNavDetails } from '../../KycProcessing/KycProcessing';
@@ -12,14 +12,15 @@ import {
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
-interface KycWebviewModalParams {
+interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
 }
 
-export const createKycWebviewModalNavigationDetails = createNavigationDetails(
-  Routes.DEPOSIT.MODALS.ID,
-  Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
-);
+export const createKycWebviewModalNavigationDetails =
+  createNavigationDetails<KycWebviewModalParams>(
+    Routes.DEPOSIT.MODALS.ID,
+    Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+  );
 
 function KycWebviewModal() {
   const navigation = useNavigation();
