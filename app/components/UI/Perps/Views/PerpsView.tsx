@@ -4,11 +4,11 @@ import { View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -21,7 +21,7 @@ import {
   usePerpsConnection,
   usePerpsNetwork,
   usePerpsNetworkConfig,
-  usePerpsTrading
+  usePerpsTrading,
 } from '../hooks';
 
 // Import navigation types
@@ -34,7 +34,7 @@ import PreviewMarketData from '../components/PreviewMarketData';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
 
-interface PerpsViewProps { }
+interface PerpsViewProps {}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -79,8 +79,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
-  DevLogger.log('PerpsView: cachedAccountState from Redux:', cachedAccountState);
-  const { getPositions, getAccountState } = usePerpsTrading();
+  DevLogger.log(
+    'PerpsView: cachedAccountState from Redux:',
+    cachedAccountState,
+  );
+  const { getAccountState } = usePerpsTrading();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
 
@@ -91,7 +94,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     isInitialized,
     error: connectionError,
     connect: reconnect,
-    resetError
+    resetError,
   } = usePerpsConnection();
 
   const getAccountBalance = useCallback(async () => {
@@ -115,10 +118,13 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       ];
 
       setResult(resultLines.join('\n'));
-      DevLogger.log('Perps: Account balance retrieved successfully', accountState);
-
+      DevLogger.log(
+        'Perps: Account balance retrieved successfully',
+        accountState,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const fullErrorMessage = `❌ Failed to get account balance: ${errorMessage}`;
       setResult(fullErrorMessage);
       DevLogger.log('Perps: Failed to get account balance', error);
@@ -129,15 +135,18 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Automatically load account state on mount and when network changes
   useEffect(() => {
-    DevLogger.log('PerpsView: Component mounted or network changed, auto-loading account state', { 
-      currentNetwork, 
-      isConnected, 
-      isInitialized 
-    });
-    
+    DevLogger.log(
+      'PerpsView: Component mounted or network changed, auto-loading account state',
+      {
+        currentNetwork,
+        isConnected,
+        isInitialized,
+      },
+    );
+
     // Only load account state if we're connected and initialized
     if (isConnected && isInitialized) {
-      getAccountState().catch(error => {
+      getAccountState().catch((error) => {
         DevLogger.log('PerpsView: Failed to auto-load account state', error);
       });
     }
@@ -150,25 +159,30 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     try {
       DevLogger.log('Perps: Toggling testnet...', {
         currentNetworkBefore: currentNetwork,
-        buttonLabel: `Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'}`
+        buttonLabel: `Switch to ${
+          currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
+        }`,
       });
 
       const toggleResult = await toggleTestnet();
 
       if (toggleResult.success) {
         const newNetwork = toggleResult.isTestnet ? 'TESTNET' : 'MAINNET';
-        setResult(`✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`);
+        setResult(
+          `✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`,
+        );
         DevLogger.log('Perps: Network toggled successfully', {
           toggledTo: toggleResult.isTestnet,
           uiStillShows: currentNetwork,
-          shouldShowDifferent: toggleResult.isTestnet ? 'testnet' : 'mainnet'
+          shouldShowDifferent: toggleResult.isTestnet ? 'testnet' : 'mainnet',
         });
       } else {
         setResult(`❌ Failed to toggle network: ${toggleResult.error}`);
         DevLogger.log('Perps: Failed to toggle network', toggleResult.error);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       setResult(`❌ Failed to toggle network: ${errorMessage}`);
       DevLogger.log('Perps: Failed to toggle network', error);
     } finally {
@@ -196,7 +210,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   if (!isInitialized || isConnecting) {
     return (
       <PerpsLoader
-        message={!isInitialized ? 'Initializing Perps controller...' : 'Connecting to Perps trading...'}
+        message={
+          !isInitialized
+            ? 'Initializing Perps controller...'
+            : 'Connecting to Perps trading...'
+        }
         fullScreen
       />
     );
@@ -212,7 +230,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             Step-by-Step Feature Testing
           </Text>
-          <Text variant={TextVariant.BodySM} color={currentNetwork === 'testnet' ? TextColor.Warning : TextColor.Success}>
+          <Text
+            variant={TextVariant.BodySM}
+            color={
+              currentNetwork === 'testnet'
+                ? TextColor.Warning
+                : TextColor.Success
+            }
+          >
             Network: {currentNetwork.toUpperCase()}
           </Text>
           {cachedAccountState ? (
@@ -238,7 +263,12 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Long BTC"
-            onPress={() => navigation.navigate('PerpsOrder', { direction: 'long', asset: 'BTC' })}
+            onPress={() =>
+              navigation.navigate('PerpsOrder', {
+                direction: 'long',
+                asset: 'BTC',
+              })
+            }
             style={styles.button}
           />
 
@@ -247,7 +277,12 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label="Short BTC"
-            onPress={() => navigation.navigate('PerpsOrder', { direction: 'short', asset: 'BTC' })}
+            onPress={() =>
+              navigation.navigate('PerpsOrder', {
+                direction: 'short',
+                asset: 'BTC',
+              })
+            }
             style={styles.button}
           />
 
@@ -292,7 +327,9 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={`Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'}`}
+            label={`Switch to ${
+              currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
+            }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
             style={styles.button}
@@ -304,7 +341,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               Result:
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted} style={styles.resultText}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Muted}
+              style={styles.resultText}
+            >
               {result}
             </Text>
           </View>
