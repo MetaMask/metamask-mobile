@@ -27,6 +27,24 @@ const initialState: DeepPartial<RootState> = {
   },
 };
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+    Soft: 'soft',
+    Rigid: 'rigid',
+  },
+  selectionAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
 }));
@@ -184,11 +202,11 @@ describe('App', () => {
                     routes: [
                       {
                         name: 'OnboardingCarousel',
-                        params: {}
-                      }
-                    ]
-                  }
-                }
+                        params: {},
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -209,7 +227,9 @@ describe('App', () => {
 
       const { getByText } = render(<App />, { wrapper: Providers });
 
-      expect(getByText(strings('onboarding_carousel.get_started'))).toBeTruthy();
+      expect(
+        getByText(strings('onboarding_carousel.get_started')),
+      ).toBeTruthy();
     });
   });
 });
