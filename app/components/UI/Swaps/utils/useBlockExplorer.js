@@ -45,9 +45,15 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
         throw new Error('Block explorer URL is not a valid http(s) protocol');
       }
 
-      const name =
-        getBlockExplorerName(blockExplorer) ||
-        strings('swaps.block_explorer');
+      let name;
+      if (type === RPC) {
+        name = 
+          getBlockExplorerName(blockExplorer) ||
+          strings('swaps.block_explorer');
+      } else {
+        name = 'Etherscan';
+      }
+
       setExplorer({
         name,
         value: blockExplorer,
