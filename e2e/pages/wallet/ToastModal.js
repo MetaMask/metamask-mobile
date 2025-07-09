@@ -2,8 +2,8 @@ import {
   ToastSelectorsIDs,
   ToastSelectorsText,
 } from '../../selectors/wallet/ToastModal.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 
 class ToastModal {
   get container() {
@@ -19,7 +19,9 @@ class ToastModal {
   }
 
   async tapToastCloseButton() {
-    await Gestures.waitAndTap(this.toastCloseButton);
+    await Gestures.waitAndTap(this.toastCloseButton, {
+      elemDescription: 'Toast Modal Close Button',
+    });
   }
 }
 

@@ -207,7 +207,7 @@ class AesCryptoTestForm {
   async decrypt(encryptionKey) {
     await this.scrollToDecrypt();
     await Gestures.typeTextAndHideKeyboard(
-      this.decryptPasswordInput,
+      await this.decryptPasswordInput,
       encryptionKey,
     );
     await this.scrollToDecrypt();
