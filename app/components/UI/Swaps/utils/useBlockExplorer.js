@@ -32,7 +32,7 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       let name;
 
       if (type === RPC) {
-        blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations)
+        blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
         name = 
           getBlockExplorerName(blockExplorer) ||
           strings('swaps.block_explorer');
