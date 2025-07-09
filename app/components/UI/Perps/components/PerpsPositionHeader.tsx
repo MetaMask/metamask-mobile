@@ -28,8 +28,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
       margin: 16,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
+      backgroundColor: colors.background.default,
       padding: 16,
     },
     leftSection: {
@@ -95,8 +94,6 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(position.coin);
-
-  console.log('assetUrl', assetUrl);
 
   // Format currency
   const formatCurrency = (value: number) =>
