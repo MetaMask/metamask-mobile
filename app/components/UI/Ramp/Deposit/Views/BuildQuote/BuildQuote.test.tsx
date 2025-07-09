@@ -284,6 +284,22 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('displays error when quote is falsy', async () => {
+      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockGetQuote.mockReturnValue(null);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
     it('displays error when routeAfterAuthentication throws', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
