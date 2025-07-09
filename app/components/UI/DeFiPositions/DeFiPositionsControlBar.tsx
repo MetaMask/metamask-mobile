@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
@@ -23,6 +23,9 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
@@ -46,11 +49,11 @@ const DeFiPositionsControlBar: React.FC = () => {
       <ButtonBase
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
         label={
-          <Text style={styles.controlButtonText} numberOfLines={1}>
+          <TextComponent numberOfLines={1} variant={TextVariant.BodyMDMedium}>
             {isAllNetworks && isPopularNetwork
               ? strings('wallet.popular_networks')
               : networkName ?? strings('wallet.current_network')}
-          </Text>
+          </TextComponent>
         }
         isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
         onPress={showFilterControls}
