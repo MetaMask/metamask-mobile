@@ -90,8 +90,6 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     networkClientId as string,
   );
 
-  console.log("OGP - tokenDetails", JSON.stringify(details, null, 2));
-
   const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize parsing operations
