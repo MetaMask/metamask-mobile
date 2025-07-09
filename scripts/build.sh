@@ -411,7 +411,7 @@ buildIosDeviceFlask(){
 	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
-# Generates the 
+# Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
 	configuration="${2:-"Release"}"
@@ -728,7 +728,7 @@ buildIos() {
 		fi
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
-			buildIosDevBuild
+			buildIosDeviceFlask
 		else
 			buildIosSimulatorFlask
 		fi
