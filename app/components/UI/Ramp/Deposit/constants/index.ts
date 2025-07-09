@@ -2,9 +2,9 @@ import { CaipChainId } from '@metamask/utils';
 import {
   IconColor,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon/index.ts';
 import { brandColor } from '@metamask/design-tokens';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { AppThemeKey } from '../../../../../util/theme/models.ts';
 
 export interface DepositCryptoCurrency {
   assetId: string;

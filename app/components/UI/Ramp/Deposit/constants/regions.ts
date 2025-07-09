@@ -1,4 +1,4 @@
-import { DepositRegion } from './constants';
+import { DepositRegion } from './index.ts';
 
 export const DEPOSIT_REGIONS: DepositRegion[] = [
   {
