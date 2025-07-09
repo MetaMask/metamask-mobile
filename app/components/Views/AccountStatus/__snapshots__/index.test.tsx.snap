@@ -95,11 +95,12 @@ exports[`AccountStatus Snapshots renders correctly with accountName in route par
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -130,14 +131,15 @@ exports[`AccountStatus Snapshots renders correctly with accountName in route par
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#f3f5f9",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
           "marginTop": 16,
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -146,7 +148,7 @@ exports[`AccountStatus Snapshots renders correctly with accountName in route par
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -256,11 +258,12 @@ exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -291,14 +294,15 @@ exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#f3f5f9",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
           "marginTop": 16,
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -307,7 +311,7 @@ exports[`AccountStatus Snapshots renders correctly with type="found" 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -417,11 +421,12 @@ exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -452,14 +457,15 @@ exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#f3f5f9",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
           "marginTop": 16,
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -468,7 +474,7 @@ exports[`AccountStatus Snapshots renders correctly with type="not_exist" 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
