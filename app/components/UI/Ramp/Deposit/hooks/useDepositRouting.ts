@@ -132,6 +132,7 @@ export const useDepositRouting = ({
     async (quote: BuyQuote) => {
       try {
         const forms = await fetchKycForms(quote);
+      
         const { forms: requiredForms } = forms || {};
         if (requiredForms?.length === 0) {
           await handleApprovedKycFlow(quote);
@@ -141,6 +142,11 @@ export const useDepositRouting = ({
         const personalDetailsKycForm = requiredForms?.find(
           (form) => form.id === 'personalDetails',
         );
+        const personalDetailsData = personalDetailsKycForm
+          ? await fetchKycFormData(quote, personalDetailsKycForm)
+          : null;
+        console.log('personalDetailsData', personalDetailsData);
+
 
         const addressKycForm = requiredForms?.find(
           (form) => form.id === 'address',

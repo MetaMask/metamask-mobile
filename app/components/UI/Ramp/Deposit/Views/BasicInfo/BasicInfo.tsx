@@ -69,24 +69,50 @@ const BasicInfo = (): JSX.Element => {
     formData: BasicInfoFormData,
   ): Record<string, string> => {
     const errors: Record<string, string> = {};
+
     if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = strings('deposit.basic_info.first_name_required');
+    } else {
+      const firstNameRegex = /^(?!\s+$).{1,35}$/;
+      if (!firstNameRegex.test(formData.firstName)) {
+        errors.firstName = strings('deposit.basic_info.first_name_invalid');
+      }
     }
 
     if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = strings('deposit.basic_info.last_name_required');
+    } else {
+      const lastNameRegex = /^(?!\s+$).{1,35}$/;
+      if (!lastNameRegex.test(formData.lastName)) {
+        errors.lastName = strings('deposit.basic_info.last_name_invalid');
+      }
     }
 
     if (!formData.mobileNumber.trim()) {
-      errors.mobileNumber = 'Phone number is required';
+      errors.mobileNumber = strings(
+        'deposit.basic_info.mobile_number_required',
+      );
+    } else {
+      const mobileNumberRegex = /^\+(?:[0-9]●?){6,14}[0-9]$/;
+      if (!mobileNumberRegex.test(formData.mobileNumber)) {
+        errors.mobileNumber = strings(
+          'deposit.basic_info.mobile_number_invalid',
+        );
+      }
     }
 
     if (!formData.dob.trim()) {
-      errors.dob = 'Date of birth is required';
+      errors.dob = strings('deposit.basic_info.dob_required');
+    } else {
+      const dobRegex =
+        /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/;
+      if (!dobRegex.test(formData.dob)) {
+        errors.dob = strings('deposit.basic_info.dob_invalid');
+      }
     }
 
     if (selectedRegion?.isoCode === 'US' && !formData.ssn.trim()) {
-      errors.ssn = 'Social security number is required';
+      errors.ssn = strings('deposit.basic_info.ssn_required');
     }
 
     return errors;
@@ -231,6 +257,15 @@ const BasicInfo = (): JSX.Element => {
                 } else {
                   Keyboard.dismiss();
                 }
+              }}
+              handleOnPress={() => {
+                console.log('handleOnPress!!!');
+                Keyboard.dismiss();
+                firstNameInputRef.current?.blur();
+                lastNameInputRef.current?.blur();
+                phoneInputRef.current?.blur();
+                ssnInputRef.current?.blur();
+                console.log('blurred!!!');
               }}
               ref={dateInputRef}
               textFieldProps={{

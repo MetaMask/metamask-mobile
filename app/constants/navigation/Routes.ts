@@ -42,6 +42,7 @@ const Routes = {
       REGION_SELECTOR: 'DepositRegionSelectorModal',
       PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
       UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+      STATE_SELECTOR: 'DepositStateSelectorModal',
     },
   },
   HW: {

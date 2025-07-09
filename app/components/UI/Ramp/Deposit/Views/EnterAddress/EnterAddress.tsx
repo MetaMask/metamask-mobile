@@ -29,8 +29,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../components/PrivacySection';
 import { useDepositSDK } from '../../sdk';
-import { US_STATES } from '../../constants';
-import SelectOptionSheet from '../../../../SelectOptionSheet';
+import StateSelector from '../../components/StateSelector';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -79,19 +78,48 @@ const EnterAddress = (): JSX.Element => {
     const errors: Record<string, string> = {};
 
     if (!data.addressLine1.trim()) {
-      errors.addressLine1 = 'Address line 1 is required';
+      errors.addressLine1 = strings('deposit.enter_address.address_line_1_required');
+    } else {
+      const addressLine1Regex = /^(?!\s+$)(?=.*[a-zA-Z]).{3,50}$/;
+      if (!addressLine1Regex.test(data.addressLine1)) {
+        errors.addressLine1 = strings('deposit.enter_address.address_line_1_invalid');
+      }
+    }
+
+    if (data.addressLine2.trim()) {
+      const addressLine2Regex = /^(?=.*[a-zA-Z]).{0,50}$|^\s*$/;
+      if (!addressLine2Regex.test(data.addressLine2)) {
+        errors.addressLine2 = strings('deposit.enter_address.address_line_2_invalid');
+      }
     }
 
     if (!data.city.trim()) {
-      errors.city = 'City is required';
+      errors.city = strings('deposit.enter_address.city_required');
+    } else {
+      const cityRegex = /^(?!\s+$)(?=.*[a-zA-Z]).{2,25}$/;
+      if (!cityRegex.test(data.city)) {
+        errors.city = strings('deposit.enter_address.city_invalid');
+      }
     }
 
-    if (selectedRegion?.isoCode === 'US' && !data.state.trim()) {
-      errors.state = 'State/Region is required';
+    if (selectedRegion?.isoCode === 'US') {
+      if (!data.state.trim()) {
+        errors.state = strings('deposit.enter_address.state_required');
+      } else {
+        const stateRegex = /^(?!\s+$)(?=.*[a-zA-Z]).{2,100}$/;
+        if (!stateRegex.test(data.state)) {
+          errors.state = strings('deposit.enter_address.state_invalid');
+        }
+      }
     }
 
     if (!data.postCode.trim()) {
-      errors.postCode = 'Postal/Zip Code is required';
+      errors.postCode = strings('deposit.enter_address.postal_code_required');
+    } else {
+      const postCodeRegex = /^(?!s*$).+/;
+      if (!postCodeRegex.test(data.postCode)) {
+        errors.postCode = strings('deposit.enter_address.postal_code_required');
+      }
     }
 
     return errors;
@@ -220,16 +248,6 @@ const EnterAddress = (): JSX.Element => {
     <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
   );
 
-  const stateOptions = US_STATES.map((state) => ({
-    key: state.code,
-    label: state.name,
-    value: state.code,
-  }));
-
-  const selectedStateName = US_STATES.find(
-    (state) => state.code === formData.state,
-  )?.name;
-
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -269,6 +287,7 @@ const EnterAddress = (): JSX.Element => {
                 'addressLine2',
                 focusNextField(cityInputRef),
               )}
+              error={errors.addressLine2}
               returnKeyType="next"
               testID="address-line-2-input"
               ref={addressLine2InputRef}
@@ -298,21 +317,14 @@ const EnterAddress = (): JSX.Element => {
               />
 
               {selectedRegion?.isoCode === 'US' ? (
-                <View style={styles.nameInputContainer}>
-                  <Text style={styles.label}>
-                    {strings('deposit.enter_address.state')}
-                  </Text>
-                  <SelectOptionSheet
-                    label={strings('deposit.enter_address.state')}
-                    selectedValue={formData.state}
-                    options={stateOptions}
-                    onValueChange={handleFormDataChange('state')}
-                    defaultValue={strings('deposit.enter_address.select_state')}
-                  />
-                  {errors.state && (
-                    <Text style={styles.error}>{errors.state}</Text>
-                  )}
-                </View>
+                <StateSelector
+                  label={strings('deposit.enter_address.state')}
+                  selectedValue={formData.state}
+                  onValueChange={handleFormDataChange('state')}
+                  error={errors.state}
+                  containerStyle={styles.nameInputContainer}
+                  defaultValue={strings('deposit.enter_address.select_state')}
+                />
               ) : (
                 <DepositTextField
                   label={strings('deposit.enter_address.state')}
@@ -322,6 +334,7 @@ const EnterAddress = (): JSX.Element => {
                     'state',
                     focusNextField(postCodeInputRef),
                   )}
+                  error={errors.state}
                   returnKeyType="next"
                   testID="state-input"
                   containerStyle={styles.nameInputContainer}
@@ -365,7 +378,6 @@ const EnterAddress = (): JSX.Element => {
                 containerStyle={styles.nameInputContainer}
                 isDisabled={true}
                 startAccessory={countryFlagAccessory}
-                style={{ opacity: 1 }}
               />
             </View>
           </ScreenLayout.Content>
