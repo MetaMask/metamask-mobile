@@ -30,10 +30,6 @@ export const HOWTO_MANAGE_METAMETRICS =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
-// SES
-export const SES_URL =
-  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
-
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
