@@ -26,17 +26,16 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
-import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -146,8 +145,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { RootState } from '../../../reducers';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -802,19 +801,13 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
+  const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
-  const navigation = useNavigation();
-  const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
-
   const isFirstRender = useRef(true);
-
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
   if (isFirstRender.current) {
     trace({
@@ -848,19 +841,25 @@ const App: React.FC = () => {
             },
           );
 
-          if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-                params: {
-                  onContinue: () =>
-                    navigation.reset({
-                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                    }),
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+
+          if (!isOptinMetaMetricsUISeen) {
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
                 },
-              },
-            });
+              ],
+            };
+            navigation.reset(resetParams);
           } else {
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
@@ -886,50 +885,36 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, queueOfHandleDeeplinkFunctions, isMetaMetricsUISeen]);
+  }, [navigation]);
 
   const handleDeeplink = useCallback(
-    ({
-      error,
-      params,
-      uri,
-    }: {
-      error?: string | null;
-      params?: Record<string, unknown>;
-      uri?: string;
-    }) => {
-      if (error) {
-        trackErrorAsAnalytics(error, 'Branch:');
-      }
-      const deeplink = params?.['+non_branch_link'] || uri || null;
+    ({ uri }: { uri?: string }) => {
       try {
-        if (deeplink && typeof deeplink === 'string') {
-          AppStateEventProcessor.setCurrentDeeplink(deeplink);
-          SharedDeeplinkManager.parse(deeplink, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          });
+        if (uri && typeof uri === 'string') {
+          AppStateEventProcessor.setCurrentDeeplink(uri);
+          dispatch(checkForDeeplink());
         }
       } catch (e) {
         Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
       }
     },
-    [],
+    [dispatch],
   );
 
-  // on Android devices, this creates a listener
-  // to deeplinks used to open the app
-  // when it is in background (so not closed)
-  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+  // Subscribe to incoming deeplinks
+  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
   useEffect(() => {
-    if (Device.isAndroid())
-      Linking.addEventListener('url', (params) => {
-        const { url } = params;
-        if (url) {
-          handleDeeplink({ uri: url });
-        }
-      });
+    Linking.addEventListener('url', (params) => {
+      const { url } = params;
+      if (url) {
+        handleDeeplink({ uri: url });
+      }
+    });
   }, [handleDeeplink]);
 
+  // Subscribe to incoming Branch deeplinks
+  // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+  // Ex. Branch links will funnel through here when opening the app from a Branch link
   useEffect(() => {
     // Initialize deep link manager
     SharedDeeplinkManager.init({
@@ -937,29 +922,20 @@ const App: React.FC = () => {
       dispatch,
     });
 
-    // Subscribe to incoming deeplinks
-    // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
     branch.subscribe((opts) => {
       const { error } = opts;
 
+      // Log error for analytics and continue handling deeplink
       if (error) {
-        // Log error for analytics and continue handling deeplink
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
+        trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      if (sdkInit.current) {
-        handleDeeplink(opts);
-      } else {
-        queueOfHandleDeeplinkFunctions.current =
-          queueOfHandleDeeplinkFunctions.current.concat([
-            () => {
-              handleDeeplink(opts);
-            },
-          ]);
-      }
+      branch.getLatestReferringParams().then((val) => {
+        const deeplink = opts.uri || (val['+non_branch_link'] as string);
+        handleDeeplink({ uri: deeplink });
+      });
     });
-  }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
+  }, [dispatch, handleDeeplink, navigation]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -982,11 +958,7 @@ const App: React.FC = () => {
             context: 'Nav/App',
             navigation: NavigationService.navigation,
           });
-          await SDKConnect.getInstance().postInit(() => {
-            setTimeout(() => {
-              queueOfHandleDeeplinkFunctions.current = [];
-            }, 1000);
-          });
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;
@@ -995,13 +967,9 @@ const App: React.FC = () => {
       }
     }
 
-    initSDKConnect()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      })
-      .catch((err) => {
-        Logger.error(err, 'Error initializing SDKConnect');
-      });
+    initSDKConnect().catch((err) => {
+      Logger.error(err, 'Error initializing SDKConnect');
+    });
   }, [onboarded, userLoggedIn]);
 
   useEffect(() => {

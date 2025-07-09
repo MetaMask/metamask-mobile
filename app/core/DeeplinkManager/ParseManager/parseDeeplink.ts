@@ -50,10 +50,7 @@ async function parseDeeplink({
           instance,
           handled,
           urlObj,
-          params,
           browserCallBack,
-          origin,
-          wcURL,
           url,
         });
 
