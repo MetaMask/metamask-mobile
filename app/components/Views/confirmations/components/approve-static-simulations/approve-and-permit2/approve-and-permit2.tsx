@@ -85,9 +85,9 @@ export const ApproveAndPermit2 = () => {
                 approveMethod: approveMethod as ApproveMethod,
                 balance: tokenBalance ?? '0',
                 decimals: decimals ?? 1,
-                spendingCap: rawAmount ?? '',
                 onSpendingCapUpdate,
-                tokenSymbol: tokenSymbol,
+                spendingCap: rawAmount ?? '',
+                tokenSymbol,
               }}
             >
               <PillAndAddress
