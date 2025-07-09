@@ -617,7 +617,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -2429,7 +2429,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -4245,7 +4245,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -6038,7 +6038,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -7830,7 +7830,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -9623,7 +9623,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -11416,7 +11416,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
