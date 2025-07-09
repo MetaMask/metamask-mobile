@@ -125,7 +125,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Left Section with Icon and Position Info */}
+      {/* Icon Section */}
       <View style={styles.perpIcon}>
         {assetUrl ? (
           <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
@@ -134,6 +134,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
         )}
       </View>
 
+      {/* Left Section */}
       <View style={styles.leftSection}>
         <Text
           variant={TextVariant.BodySM}
@@ -151,7 +152,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
         </Text>
       </View>
 
-      {/* Chart Section */}
+      {/* Right Section */}
       <View style={styles.rightSection}>
         <Text
           variant={TextVariant.BodySM}
