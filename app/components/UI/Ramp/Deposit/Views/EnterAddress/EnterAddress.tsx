@@ -27,6 +27,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../components/PrivacySection';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -55,8 +56,10 @@ const EnterAddress = (): JSX.Element => {
     kycUrl,
   } = useParams<EnterAddressParams>();
 
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+
   const { navigateToKycWebview } = useDepositRouting({
-    cryptoCurrencyChainId: quote.cryptoCurrency,
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
 

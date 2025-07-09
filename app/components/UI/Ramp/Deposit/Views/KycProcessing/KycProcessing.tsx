@@ -31,6 +31,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 import { KycStatus } from '../../constants';
 import Logger from '../../../../../../util/Logger';
 
@@ -46,8 +47,10 @@ const KycProcessing = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
 
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+
   const { handleApprovedKycFlow } = useDepositRouting({
-    cryptoCurrencyChainId: quote.cryptoCurrency,
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
 
