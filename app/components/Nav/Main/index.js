@@ -122,7 +122,6 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
@@ -134,8 +133,12 @@ const Main = (props) => {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
           title: strings('login.seedless_password_outdated_modal_title'),
-          description: strings('login.seedless_password_outdated_modal_content'),
-          primaryButtonLabel: strings('login.seedless_password_outdated_modal_confirm'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
+          primaryButtonLabel: strings(
+            'login.seedless_password_outdated_modal_confirm',
+          ),
           icon: IconName.RichDanger,
           isInteractable: false,
           onPrimaryButtonPress: async () => {
@@ -146,7 +149,6 @@ const Main = (props) => {
       });
     }
   }, [isSeedlessPasswordOutdated, props.navigation]);
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
@@ -277,7 +279,7 @@ const Main = (props) => {
 
       return isEvmSelected
         ? chainId !== previousConfig.chainId ||
-        providerConfig.type !== previousConfig.type
+            providerConfig.type !== previousConfig.type
         : chainId !== previousConfig.chainId;
     },
     [providerConfig.type],
@@ -355,9 +357,10 @@ const Main = (props) => {
         variant: ToastVariants.Plain,
         labelOptions: [
           {
-            label: `${(newNetwork?.name || deletedNetwork?.name) ??
+            label: `${
+              (newNetwork?.name || deletedNetwork?.name) ??
               strings('asset_details.network')
-              } `,
+            } `,
             isBold: true,
           },
           {

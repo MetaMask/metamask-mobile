@@ -730,7 +730,6 @@ class AuthenticationService {
       });
     return isSeedlessPasswordOutdated;
   };
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 }
 
 export const Authentication = new AuthenticationService();
