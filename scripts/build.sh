@@ -799,7 +799,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapEnvVariableExperimental
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ] ]; then
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
