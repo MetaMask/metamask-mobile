@@ -1234,6 +1234,11 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+      - restore-cache@2:
+          title: Restore last successful build commit marker
+          is_skippable: true
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
       - script@1:
           title: Generate cache keys and check both iOS and Android builds
           inputs:
@@ -1257,55 +1262,8 @@ workflows:
                     # Generate app code hash based on commits since last successful build
                     echo "Generating content hash for cache key..."
                     
-                    # Find the last successful build by checking for existing cache entries
-                    LAST_SUCCESSFUL_COMMIT=""
+                    # LAST_SUCCESSFUL_COMMIT will be set by reading from cache below
                     
-                    # Check if we're in a git repository
-                    if ! git rev-parse --git-dir > /dev/null 2>&1; then
-                        echo "Warning: Not in a git repository, skipping commit history check"
-                    else
-                        echo "Checking recent commits for existing cache entries..."
-                        
-                        # Check last 10 commits in reverse order (most recent first)
-                        for commit in $(git rev-list HEAD~10..HEAD 2>/dev/null || git rev-list HEAD 2>/dev/null); do
-                            commit_short=$(echo "$commit" | cut -c1-8)
-                            
-                            # Skip current commit (we're trying to find a previous successful build)
-                            if [[ "$commit" == "$(git rev-parse HEAD 2>/dev/null)" ]]; then
-                                continue
-                            fi
-                            
-                            echo "Checking cache existence for commit ${commit_short}..."
-                            
-                            # Check if there are any app code changes since this commit
-                            if git diff --name-only ${commit}..HEAD 2>/dev/null | \
-                               grep -E '\.(ts|tsx|js|jsx|swift|m|java|kt|gradle|pbxproj|plist|xml)$|^(package\.json|.*\.lock)$' | \
-                               grep -v '^app/e2e/' | grep -v '^e2e/' > /dev/null; then
-                                echo "  App code changes found since commit ${commit_short}, checking next commit..."
-                                continue
-                            else
-                                echo "  No app code changes since commit ${commit_short} - can potentially reuse cache"
-                                LAST_SUCCESSFUL_COMMIT="$commit"
-                                break
-                            fi
-                        done
-                    fi
-                    
-                    # Determine commit range based on findings
-                    if [[ -n "$LAST_SUCCESSFUL_COMMIT" ]]; then
-                        echo "Found last successful build at commit: $LAST_SUCCESSFUL_COMMIT"
-                        COMMIT_RANGE="${LAST_SUCCESSFUL_COMMIT}..HEAD"
-                    else
-                        echo "No previous successful build found, using PR base"
-                        if git rev-parse --git-dir > /dev/null 2>&1 && git merge-base --is-ancestor origin/main HEAD 2>/dev/null; then
-                            BASE_COMMIT=$(git merge-base origin/main HEAD)
-                            echo "Using commit range: ${BASE_COMMIT}..HEAD"
-                            COMMIT_RANGE="${BASE_COMMIT}..HEAD"
-                        else
-                            echo "Using fallback - will build unconditionally"
-                            COMMIT_RANGE=""
-                        fi
-                    fi
                     
                     # Use current commit SHA as the cache key identifier
                     if git rev-parse --git-dir > /dev/null 2>&1; then
@@ -1319,20 +1277,30 @@ workflows:
                         fi
                     fi
                     
-                    # If we found a previous successful commit, check if we can reuse its cache
+                    # Try to get the last successful build commit from cache
+                    LAST_BUILD_COMMIT_CACHE_KEY="last-e2e-build-commit-pr-${GITHUB_PR_NUMBER}"
+                    
+                    # Read the last successful build commit if available
+                    if [[ -f "/tmp/last-build-commit/commit" ]]; then
+                        LAST_SUCCESSFUL_COMMIT=$(head -1 /tmp/last-build-commit/commit)
+                        echo "Found last successful build commit: $LAST_SUCCESSFUL_COMMIT"
+                    else
+                        echo "No previous successful build commit found"
+                    fi
+                    
+                    # Check if we can reuse the cache from last successful build
                     if [[ -n "$LAST_SUCCESSFUL_COMMIT" ]]; then
                         LAST_COMMIT_SHORT=$(echo "$LAST_SUCCESSFUL_COMMIT" | cut -c1-8)
-                        echo "Checking if we can reuse cache from commit ${LAST_COMMIT_SHORT}..."
                         
                         # Check if there are any app code changes since the last successful commit
                         if git rev-parse --git-dir > /dev/null 2>&1 && \
                            git diff --name-only ${LAST_SUCCESSFUL_COMMIT}..HEAD 2>/dev/null | \
                            grep -E '\.(ts|tsx|js|jsx|swift|m|java|kt|gradle|pbxproj|plist|xml)$|^(package\.json|.*\.lock)$' | \
                            grep -v '^app/e2e/' | grep -v '^e2e/' > /dev/null; then
-                            echo "App code changes found since last successful build - need to rebuild"
+                            echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
                             APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
                         else
-                            echo "No app code changes since last successful build - can reuse cache"
+                            echo "No app code changes since commit ${LAST_COMMIT_SHORT} - reusing cache"
                             APP_CODE_HASH="$LAST_COMMIT_SHORT"
                         fi
                     else
@@ -1508,6 +1476,22 @@ workflows:
             - paths: |-
                 ios/build/Build/Products/Release-iphonesimulator
                 ../Library/Detox/ios
+      - script@1:
+          title: Save last successful build commit
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
@@ -1913,6 +1897,22 @@ workflows:
             - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
             - paths: |-
                 /tmp/android-cache
+      - script@1:
+          title: Save last successful build commit (Android)
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Android build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker (Android)
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
