@@ -36,6 +36,7 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;
@@ -80,8 +81,18 @@ export enum TokenInputAreaType {
   Destination = 'destination',
 }
 
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+const shortAddress = (address?: string) => {
+  return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+}
+
+const formatAddress = (address?: string) => {
+  if (isCaipAssetType(address)) {
+    const { assetReference } = parseCaipAssetType(address);
+    return shortAddress(assetReference);
+  }
+
+  return shortAddress(address);
+}
 
 export const getDisplayAmount = (
   amount?: string,
