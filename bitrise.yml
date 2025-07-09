@@ -129,7 +129,7 @@ pipelines:
   nightly_build_pipeline:
     stages:
       # - bump_version_stage: {}
-      - create_build_release: {}
+      # - create_build_release: {}
       - nightly_notify_stage: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -522,28 +522,20 @@ workflows:
           inputs:
             - artifact_sources: .*
           title: Pull build artifacts
-      - slack-message@4:
-          is_always_run: true
+      - script@1:
           inputs:
-            - webhook_url: 'https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}'
-            - channel: '$SLACK_CHANNEL'
-            - text: 'Nightly build completed successfully! 🌙'
-            - pretext: '*Nightly Build Available*'
-            - color: '#3bc3a3'
-            - from_username: 'Bitrise Bot'
-            - title: 'MetaMask Mobile Nightly Build'
-            - message: |-
-                Build completed for commit: ${BITRISE_GIT_COMMIT}
-                Branch: ${BITRISE_GIT_BRANCH}
-                
-                📱 **Download Links:**
-                • iOS: (Available on TestFlight)[https://testflight.apple.com/join/hBrjtFuA]
-                • Android: ${BITRISE_PUBLIC_INSTALL_PAGE_URL}
-            - buttons: |-
-                View Build|${BITRISE_BUILD_URL}
-                Install Android APK|${BITRISE_PUBLIC_INSTALL_PAGE_URL}
-            - footer: 'MetaMask Mobile CI'
-            - timestamp: 'yes'
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Nightly build completed successfully! 🌙"
+                echo "Build completed for commit: ${BITRISE_GIT_COMMIT}"
+                echo "Branch: ${BITRISE_GIT_BRANCH}"
+                echo "Build link: ${BITRISEIO_PIPELINE_BUILD_URL}"
+                echo "Install link: ${BITRISE_PUBLIC_INSTALL_PAGE_URL}"
+                echo "TestFlight link: https://testflight.apple.com/join/hBrjtFuA"
+                echo "Android APK link: ${BITRISE_PUBLIC_INSTALL_PAGE_URL}"
+                echo "Bitrise build link: ${BITRISEIO_PIPELINE_BUILD_URL}"
+                echo "Bitrise build status: ${BITRISE_BUILD_STATUS}"
+                ./scripts/metamask-bot-build-announce-bitrise.sh
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
