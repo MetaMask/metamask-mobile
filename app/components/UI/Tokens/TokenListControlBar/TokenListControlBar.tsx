@@ -1,18 +1,26 @@
 import React, { useCallback } from 'react';
 import { View, Text } from 'react-native';
+import { parseCaipChainId } from '@metamask/utils';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
-import { isTestNet } from '../../../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../util/networks';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../locales/i18n';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import {
+  selectedSelectedMultichainNetworkChainId,
+  selectIsEvmNetworkSelected,
+} from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -20,8 +28,11 @@ import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { selectEnabledNetworksByNamespace } from '../../../../selectors/networkEnablementController';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -39,25 +50,46 @@ export const TokenListControlBar = ({
   const styles = createStyles(colors);
 
   const currentChainId = useSelector(selectChainId);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
+  const currentCaipChainId = useSelector(
+    selectedSelectedMultichainNetworkChainId,
+  );
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const { namespace } = parseCaipChainId(currentCaipChainId);
 
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
 
-  const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
+  const isDisabled = isTestNet(currentChainId) || !isAllPopularEVMNetworks;
 
-  const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-  }, [navigation]);
+  const handleFilterControls = useCallback(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else if (isEvmSelected) {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    } else {
+      return null;
+    }
+  }, [navigation, isEvmSelected]);
 
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+  // TODO: Come back to refactor this logic is used in several places
+  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
+    .filter(([_key, value]) => value)
+    .map(([chainId, enabled]) => ({ chainId, enabled }));
+  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
+  const currentNetworkName = networksByCaipChainId[caipChainId].name;
 
   return (
     <View style={styles.actionBarWrapper}>
@@ -65,14 +97,24 @@ export const TokenListControlBar = ({
         <ButtonBase
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
           label={
-            <Text style={styles.controlButtonText} numberOfLines={1}>
-              {isAllNetworks && isPopularNetwork && isEvmSelected
-                ? strings('wallet.popular_networks')
-                : networkName ?? strings('wallet.current_network')}
-            </Text>
+            <>
+              {isRemoveGlobalNetworkSelectorEnabled() ? (
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {enabledNetworks.length > 1
+                    ? strings('networks.enabled_networks')
+                    : currentNetworkName ?? strings('wallet.current_network')}
+                </Text>
+              ) : (
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
+                    ? strings('wallet.popular_networks')
+                    : networkName ?? strings('wallet.current_network')}
+                </Text>
+              )}
+            </>
           }
           isDisabled={isDisabled}
-          onPress={isEvmSelected ? showFilterControls : () => null}
+          onPress={isEvmSelected ? handleFilterControls : () => null}
           endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
           style={
             isDisabled ? styles.controlButtonDisabled : styles.controlButton
@@ -83,7 +125,7 @@ export const TokenListControlBar = ({
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}
             onPress={showSortControls}
-            iconName={IconName.SwapVertical}
+            iconName={IconName.Filter}
             style={styles.controlIconButton}
           />
           <ButtonIcon

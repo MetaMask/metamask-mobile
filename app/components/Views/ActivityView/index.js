@@ -22,7 +22,10 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isTestNet } from '../../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import {
   selectEvmChainId,
   selectIsAllNetworks,
@@ -39,6 +42,7 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -142,7 +146,11 @@ const ActivityView = () => {
   ]);
 
   const showFilterControls = () => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   };
 
   useEffect(

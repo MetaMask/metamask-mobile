@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItemMultiSelectWithMenuButton should render correctly with default props 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flexDirection": "row",
+    }
+  }
+>
+  <TouchableOpacity
+    disabled={false}
+    style={
+      {
+        "flex": 1,
+        "opacity": 1,
+        "padding": 16,
+        "position": "relative",
+        "zIndex": 1,
+      }
+    }
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "column",
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
+          "zIndex": 2,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "height": 24,
+              "opacity": 1,
+            }
+          }
+        >
+          <View
+            accessibilityRole="checkbox"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#121314",
+                "borderRadius": 4,
+                "borderWidth": 2,
+                "height": 20,
+                "justifyContent": "center",
+                "width": 20,
+              }
+            }
+          />
+        </TouchableOpacity>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View />
+      </View>
+    </View>
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "paddingRight": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+      testID="button-menu-select-with-menu-button-test-id"
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={16}
+        name="MoreVertical"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;
