@@ -20,7 +20,7 @@ const initialState: DeepPartial<RootState> = {
     userLoggedIn: true,
     isMetaMetricsUISeen: true,
     existingUser: true,
-  } as any,
+  } as DeepPartial<RootState['user']>,
   engine: {
     backgroundState,
   },
