@@ -18,6 +18,7 @@ import {
 import Button from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './ErrorView.styles';
+import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 
 interface Props {
   description?: string;
@@ -30,22 +31,20 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.content}>
-      <View style={styles.mainSection}>
-        <View style={styles.iconRow}>
-          <View style={styles.errorIconContainer}>
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Xl}
-              color={IconColor.Error}
-            />
-          </View>
+    <ScreenLayout>
+      <ScreenLayout.Content style={styles.content}>
+        <View style={styles.errorIconContainer}>
+          <Icon
+            name={IconName.Close}
+            size={IconSize.Xl}
+            color={IconColor.Error}
+          />
         </View>
 
         <Text
           variant={TextVariant.HeadingMD}
           color={TextColor.Error}
-          style={styles.title}
+          style={styles.centeredText}
         >
           {title || strings('deposit.error_view.title')}
         </Text>
@@ -53,7 +52,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
-          style={styles.description}
+          style={styles.centeredText}
         >
           {description || strings('deposit.error_view.description')}
         </Text>
@@ -67,8 +66,8 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
             size={ButtonSize.Lg}
           />
         )}
-      </View>
-    </View>
+      </ScreenLayout.Content>
+    </ScreenLayout>
   );
 }
 
