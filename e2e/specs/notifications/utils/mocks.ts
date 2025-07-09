@@ -27,44 +27,51 @@ import {
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 
-export const mockListNotificationsResponse = getMockListNotificationsResponse();
-mockListNotificationsResponse.response = [
-  createMockNotificationEthSent(),
-  createMockNotificationEthReceived(),
-  createMockNotificationERC20Sent(),
-  createMockNotificationERC20Received(),
-  createMockNotificationERC721Sent(),
-  createMockNotificationERC721Received(),
-  createMockNotificationERC1155Sent(),
-  createMockNotificationERC1155Received(),
-  createMockNotificationMetaMaskSwapsCompleted(),
-  createMockNotificationRocketPoolStakeCompleted(),
-  createMockNotificationRocketPoolUnStakeCompleted(),
-  createMockNotificationLidoStakeCompleted(),
-  createMockNotificationLidoWithdrawalRequested(),
-  createMockNotificationLidoReadyToBeWithdrawn(),
-  createMockNotificationLidoWithdrawalCompleted(),
-].map((n, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - i);
-  n.created_at = date.toString();
-  n.unread = false;
-  return n;
-});
+function createMockListNotificationsResponse() {
+  const mockListNotificationsResponse = getMockListNotificationsResponse();
+  mockListNotificationsResponse.response = [
+    createMockNotificationEthSent(),
+    createMockNotificationEthReceived(),
+    createMockNotificationERC20Sent(),
+    createMockNotificationERC20Received(),
+    createMockNotificationERC721Sent(),
+    createMockNotificationERC721Received(),
+    createMockNotificationERC1155Sent(),
+    createMockNotificationERC1155Received(),
+    createMockNotificationMetaMaskSwapsCompleted(),
+    createMockNotificationRocketPoolStakeCompleted(),
+    createMockNotificationRocketPoolUnStakeCompleted(),
+    createMockNotificationLidoStakeCompleted(),
+    createMockNotificationLidoWithdrawalRequested(),
+    createMockNotificationLidoReadyToBeWithdrawn(),
+    createMockNotificationLidoWithdrawalCompleted(),
+  ].map((n, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    n.created_at = date.toString();
+    n.unread = false;
+    return n;
+  });
+  return mockListNotificationsResponse;
+}
 
-const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
-mockFeatureAnnouncementResponse.url =
-  mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
-if (mockFeatureAnnouncementResponse.response.items?.[0]) {
-  mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
-    new Date().toString() as `${number}-${number}-${number}T${number}:${number}:${number}Z`;
+function createMockFeatureAnnouncementResponse() {
+  const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
+  mockFeatureAnnouncementResponse.url =
+    mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
+  if (mockFeatureAnnouncementResponse.response.items?.[0]) {
+    mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
+      new Date().toString() as `${number}-${number}-${number}T${number}:${number}:${number}Z`;
+  }
+  return mockFeatureAnnouncementResponse;
 }
 
 export function getMockWalletNotificationItemIds() {
-  return mockListNotificationsResponse.response.map((n) => n.id);
+  return createMockListNotificationsResponse().response.map((n) => n.id);
 }
 
 export function getMockFeatureAnnouncementItemId() {
+  const mockFeatureAnnouncementResponse = createMockFeatureAnnouncementResponse();
   return (
     mockFeatureAnnouncementResponse.response.items?.at(0)?.fields?.id ??
     'DOES NOT EXIST'
@@ -80,9 +87,9 @@ export async function mockNotificationServices(server: Mockttp) {
   // Trigger Config
   await new MockttpNotificationTriggerServer().setupServer(server);
 
-  // Notifications
-  await mockAPICall(server, mockFeatureAnnouncementResponse);
-  await mockAPICall(server, mockListNotificationsResponse);
+  // Notifications - Create fresh instances for each test
+  await mockAPICall(server, createMockFeatureAnnouncementResponse());
+  await mockAPICall(server, createMockListNotificationsResponse());
   await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
