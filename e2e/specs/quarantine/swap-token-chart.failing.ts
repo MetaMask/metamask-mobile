@@ -19,11 +19,11 @@ import Assertions from '../../utils/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants'
+import { localNodeOptions, testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from './helpers/swap-mocks';
+import { startMockServer } from '../swaps/helpers/swap-mocks';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -82,6 +82,7 @@ describe(Regression('Swap from Token view'), (): void => {
     await WalletView.tapOnToken('Ethereum');
     await Assertions.checkIfVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(1000);
     await TokenOverview.tapSwapButton();
 
     // Submit the Swap

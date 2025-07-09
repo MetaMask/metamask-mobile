@@ -77,6 +77,7 @@ class FixtureBuilder {
     }
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
+      '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
@@ -516,7 +517,6 @@ class FixtureBuilder {
           isAuthChecked: false,
           initialScreen: '',
           appTheme: 'os',
-          isMetaMetricsUISeen: true,
         },
         wizard: {
           step: 0,
@@ -691,6 +691,7 @@ class FixtureBuilder {
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
+        '@MetaMask:OptinMetaMetricsUISeen': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
@@ -1248,6 +1249,38 @@ class FixtureBuilder {
   withETHAsPrimaryCurrency() {
     this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
     this.fixture.state.settings.primaryCurrency = 'ETH';
+    return this;
+  }
+
+  withBackupAndSyncSettings(options = {}) {
+    const {
+      isBackupAndSyncEnabled = true,
+      isAccountSyncingEnabled = true,
+      isContactSyncingEnabled = true,
+    } = options;
+
+    // Backup and Sync Settings
+    this.fixture.state.engine.backgroundState.UserStorageController = {
+      isBackupAndSyncEnabled,
+      isAccountSyncingEnabled,
+      isContactSyncingEnabled,
+      isBackupAndSyncUpdateLoading: false,
+      isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+    };
+    return this;
+  }
+
+  /**
+   * Disables the seedphraseBackedUp flag in the user state.
+   * This is useful for testing scenarios where the user hasn't backed up their seedphrase.
+   *
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSeedphraseBackedUpDisabled() {
+    this.fixture.state.user.seedphraseBackedUp = false;
     return this;
   }
 
