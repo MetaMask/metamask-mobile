@@ -147,48 +147,48 @@ describe('Onboarding', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
   });
 
-  // it('should render correctly', () => {
-  //   const { toJSON } = renderScreen(
-  //     Onboarding,
-  //     { name: 'Onboarding' },
-  //     {
-  //       state: mockInitialState,
-  //     },
-  //   );
-  //   expect(toJSON()).toMatchSnapshot();
-  // });
+  it('should render correctly', () => {
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-  // it('should render correctly with large device and iphoneX', () => {
-  //   (Device.isLargeDevice as jest.Mock).mockReturnValue(true);
-  //   (Device.isIphoneX as jest.Mock).mockReturnValue(true);
-  //   (Device.isAndroid as jest.Mock).mockReturnValue(false);
-  //   (Device.isIos as jest.Mock).mockReturnValue(true);
+  it('should render correctly with large device and iphoneX', () => {
+    (Device.isLargeDevice as jest.Mock).mockReturnValue(true);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(true);
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
+    (Device.isIos as jest.Mock).mockReturnValue(true);
 
-  //   const { toJSON } = renderScreen(
-  //     Onboarding,
-  //     { name: 'Onboarding' },
-  //     {
-  //       state: mockInitialState,
-  //     },
-  //   );
-  //   expect(toJSON()).toMatchSnapshot();
-  // });
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-  // it('should render correctly with android', () => {
-  //   (Device.isAndroid as jest.Mock).mockReturnValue(true);
-  //   (Device.isIos as jest.Mock).mockReturnValue(false);
-  //   (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
-  //   (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+  it('should render correctly with android', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+    (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
-  //   const { toJSON } = renderScreen(
-  //     Onboarding,
-  //     { name: 'Onboarding' },
-  //     {
-  //       state: mockInitialState,
-  //     },
-  //   );
-  //   expect(toJSON()).toMatchSnapshot();
-  // });
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 
   it('should click on create wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
