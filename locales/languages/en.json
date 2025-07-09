@@ -557,7 +557,8 @@
       "resend_code_error": "Error resending code.",
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
-      "contact_support": "Contact support"
+      "contact_support": "Contact support",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Verify your identity",

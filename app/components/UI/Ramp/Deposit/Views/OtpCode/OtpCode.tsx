@@ -31,6 +31,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Logger from '../../../../../../util/Logger';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
@@ -75,6 +76,8 @@ const OtpCode = () => {
     cryptoCurrencyChainId,
     paymentMethodId,
   });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport' | 'resendError'
   >('resend');
@@ -100,12 +103,11 @@ const OtpCode = () => {
     setValue,
   });
 
-  const [{ error, isFetching: loading, data: response }, submitCode] =
-    useDepositSdkMethod(
-      { method: 'verifyUserOtp', onMount: false },
-      email,
-      value,
-    );
+  const [, submitCode] = useDepositSdkMethod(
+    { method: 'verifyUserOtp', onMount: false, throws: true },
+    email,
+    value,
+  );
 
   const [, resendOtp] = useDepositSdkMethod(
     { method: 'sendUserOtp', onMount: false },
@@ -115,26 +117,6 @@ const OtpCode = () => {
   useEffect(() => {
     inputRef.current?.focus();
   }, [inputRef]);
-
-  useEffect(() => {
-    const saveTokenAndNavigate = async () => {
-      if (response) {
-        try {
-          await setAuthToken(response);
-
-          // Use the shared routing logic to check KYC status and navigate accordingly
-          await routeAfterAuthentication(quote);
-        } catch (e) {
-          console.error(
-            'Failed to store auth token or route after authentication:',
-            e,
-          );
-        }
-      }
-    };
-
-    saveTokenAndNavigate();
-  }, [response, setAuthToken, navigation, quote, routeAfterAuthentication]);
 
   useEffect(() => {
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
@@ -164,6 +146,7 @@ const OtpCode = () => {
       await resendOtp();
     } catch (e) {
       setResendButtonState('resendError');
+      Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [resendOtp, resetAttemptCount]);
 
@@ -172,10 +155,38 @@ const OtpCode = () => {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!loading && value.length === CELL_COUNT) {
-      await submitCode();
+    if (value.length === CELL_COUNT) {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await submitCode();
+        if (!response) {
+          throw new Error('No response from submitCode');
+        }
+        await setAuthToken(response);
+        await routeAfterAuthentication(quote);
+      } catch (e) {
+        setError(strings('deposit.otp_code.error'));
+        Logger.error(
+          e as Error,
+          'Error submitting OTP code, setAuthToken, or routing after authentication',
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [loading, submitCode, value.length]);
+  }, [quote, routeAfterAuthentication, setAuthToken, submitCode, value.length]);
+
+  const handleValueChange = useCallback((text: string) => {
+    setValue(text);
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    if (value.length === CELL_COUNT) {
+      handleSubmit();
+    }
+  }, [value, handleSubmit]);
 
   return (
     <ScreenLayout>
@@ -188,7 +199,7 @@ const OtpCode = () => {
             ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
-            onChangeText={setValue}
+            onChangeText={handleValueChange}
             cellCount={CELL_COUNT}
             rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
@@ -217,19 +228,22 @@ const OtpCode = () => {
                 text="deposit.otp_code.resend_code_description"
                 button="deposit.otp_code.resend_code_button"
               />
-            ) : resendButtonState === 'cooldown' ? (
+            ) : null}
+            {resendButtonState === 'cooldown' ? (
               <Text style={styles.resendButtonText}>
                 {strings('deposit.otp_code.resend_cooldown', {
                   seconds: cooldownSeconds,
                 })}
               </Text>
-            ) : resendButtonState === 'contactSupport' ? (
+            ) : null}
+            {resendButtonState === 'contactSupport' ? (
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.need_help"
                 button="deposit.otp_code.contact_support"
               />
-            ) : resendButtonState === 'resendError' ? (
+            ) : null}
+            {resendButtonState === 'resendError' ? (
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.resend_error"
@@ -248,8 +262,8 @@ const OtpCode = () => {
             label={strings('deposit.otp_code.submit_button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-            loading={loading}
-            isDisabled={loading || value.length !== CELL_COUNT}
+            loading={isLoading}
+            isDisabled={isLoading || value.length !== CELL_COUNT}
             testID="otp-code-submit-button"
           />
           <PoweredByTransak name="powered-by-transak-logo" />
