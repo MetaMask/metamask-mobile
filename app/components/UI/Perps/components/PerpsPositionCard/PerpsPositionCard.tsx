@@ -1,13 +1,13 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View, type GestureResponderEvent } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import React from 'react';
+import { TouchableOpacity, View, type GestureResponderEvent } from 'react-native';
+import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../../util/theme';
-import type { Position, PerpsNavigationParamList } from '../../controllers/types';
+import type { PerpsNavigationParamList, Position } from '../../controllers/types';
+import { formatPercentage, formatPnl, formatPrice } from '../../utils/formatUtils';
 import { triggerSelectionHaptic } from '../../utils/hapticUtils';
-import { formatPrice, formatPnl, formatPercentage } from '../../utils/formatUtils';
 import { createStyles } from './PerpsPositionCard.styles';
 
 interface PerpsPositionCardProps {

@@ -1,12 +1,13 @@
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity, View, type GestureResponderEvent } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
-import Text from '../../../../component-library/components/Texts/Text';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { useTheme } from '../../../../util/theme';
-import type { OrderResult, PerpsNavigationParamList } from '../controllers/types';
-import { triggerSelectionHaptic } from '../utils/hapticUtils';
+import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
+import { OrderResult } from '../../controllers';
+import type { PerpsNavigationParamList } from '../../types/navigation';
+import { triggerSelectionHaptic } from '../../utils/hapticUtils';
 import { createStyles } from './PerpsOrderHistoryCard.styles';
 
 interface PerpsOrderHistoryCardProps {
@@ -40,11 +41,11 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
         textStyle: styles.failedText,
       };
     }
-      return {
-        status: 'pending',
-        badgeStyle: styles.pendingBadge,
-        textStyle: styles.pendingText,
-      };
+    return {
+      status: 'pending',
+      badgeStyle: styles.pendingBadge,
+      textStyle: styles.pendingText,
+    };
 
   };
 
@@ -72,8 +73,8 @@ const PerpsOrderHistoryCard: React.FC<PerpsOrderHistoryCardProps> = ({
   // Format timestamp if available (this would need to be added to OrderResult type)
   const formatTimestamp = () =>
     // For now, return a placeholder as timestamp isn't in OrderResult type
-     new Date().toLocaleString()
-  ;
+    new Date().toLocaleString()
+    ;
 
   const handleCardPress = async () => {
     await triggerSelectionHaptic();

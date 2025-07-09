@@ -17,7 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 const Stack = createStackNavigator();
 
 const PerpsScreenStack = () => (
-  <Stack.Navigator>
+  <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
     <Stack.Screen
       name={Routes.PERPS.TRADING_VIEW}
       component={PerpsView}

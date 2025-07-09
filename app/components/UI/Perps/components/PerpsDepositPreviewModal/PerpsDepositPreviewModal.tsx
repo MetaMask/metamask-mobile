@@ -4,20 +4,20 @@ import Modal from 'react-native-modal';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsDepositPreviewModal.styles';
 

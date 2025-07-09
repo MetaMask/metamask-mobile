@@ -4,8 +4,8 @@ import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../util/theme';
+} from '../../../../../component-library/components/Buttons/Button';
+import { useTheme } from '../../../../../util/theme';
 import { createStyles } from './PerpsPlaceOrderButton.styles';
 
 interface PerpsPlaceOrderButtonProps {

@@ -3,10 +3,10 @@ import { View } from 'react-native';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../util/theme';
-import { triggerSelectionHaptic } from '../utils/hapticUtils';
-import { RISK_MANAGEMENT } from '../constants/hyperLiquidConfig';
+} from '../../../../../component-library/components/Buttons/Button';
+import { useTheme } from '../../../../../util/theme';
+import { triggerSelectionHaptic } from '../../utils/hapticUtils';
+import { RISK_MANAGEMENT } from '../../constants/hyperLiquidConfig';
 import { createStyles } from './PerpsLeverageButtons.styles';
 
 interface PerpsLeverageButtonsProps {

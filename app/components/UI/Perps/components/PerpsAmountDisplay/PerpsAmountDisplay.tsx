@@ -3,8 +3,8 @@ import { View, Animated, Easing } from 'react-native';
 import Text, {
   TextVariant,
   TextColor
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
 import { createStyles } from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {

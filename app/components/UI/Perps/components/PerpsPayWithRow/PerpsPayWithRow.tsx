@@ -1,26 +1,26 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import { strings } from '../../../../../../locales/i18n';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import ListItem from '../../../../component-library/components/List/ListItem';
+} from '../../../../../component-library/components/Icons/Icon';
+import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
-} from '../../../../component-library/components/List/ListItemColumn';
+} from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
   TextVariant
-} from '../../../../component-library/components/Texts/Text';
-import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../util/networks';
-import { useTheme } from '../../../../util/theme';
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
+import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsPayWithRow.styles';
 

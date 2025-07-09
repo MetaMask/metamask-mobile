@@ -3,10 +3,10 @@ import { View } from 'react-native';
 import Text, {
   TextVariant,
   TextColor
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
 import PerpsOrderRow from '../PerpsOrderRow';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { createStyles } from './PerpsOrderSummary.styles';
 
 interface PerpsOrderSummaryProps {

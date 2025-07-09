@@ -1,17 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import TokenIcon from '../../Swaps/components/TokenIcon';
+} from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
+import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { createStyles } from './PerpsTokenSelector.styles';
 
 export interface PerpsToken {
