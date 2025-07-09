@@ -13,7 +13,12 @@ import {
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
-  formatWithThreshold: (value: number, threshold: number, locale: string, options: Intl.NumberFormatOptions) => {
+  formatWithThreshold: (
+    value: number,
+    _threshold: number,
+    locale: string,
+    options: Intl.NumberFormatOptions,
+  ) => {
     const formatter = new Intl.NumberFormat(locale, options);
     return formatter.format(value);
   },

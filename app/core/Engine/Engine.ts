@@ -197,7 +197,6 @@ import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { PerpsController } from '../../components/UI/Perps/controllers/PerpsController';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
@@ -232,6 +231,7 @@ import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+import { perpsControllerInit } from './controllers/perps-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1268,6 +1268,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1283,6 +1284,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const perpsController = controllersByName.PerpsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1410,25 +1412,6 @@ export class Engine {
       addTransactionFn: transactionController.addTransaction.bind(
         transactionController,
       ),
-    });
-
-    const perpsController = new PerpsController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'PerpsController',
-        allowedEvents: [
-          'AccountsController:selectedAccountChange',
-          'NetworkController:stateChange',
-          'KeyringController:lock',
-          'KeyringController:unlock',
-        ],
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-          'KeyringController:signTypedMessage',
-        ],
-      }),
-      state: initialState.PerpsController,
     });
 
     this.context = {
@@ -1655,9 +1638,9 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
-      PerpsController: perpsController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      PerpsController: perpsController,
     };
 
     const childControllers = Object.assign({}, this.context);

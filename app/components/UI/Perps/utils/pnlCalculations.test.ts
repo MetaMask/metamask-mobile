@@ -330,7 +330,7 @@ describe('pnlCalculations', () => {
           size: '1',
           entryPrice: '50000',
           positionValue: '51000',
-          unrealizedPnl: undefined as any,
+          unrealizedPnl: undefined as unknown as string,
           marginUsed: '25000',
           leverage: { type: 'cross', value: 2 },
           liquidationPrice: '40000',
@@ -379,7 +379,7 @@ describe('pnlCalculations', () => {
 
       const params: TotalPnLParams = { positions };
       const result = calculateTotalPnLPercentage(params);
-      
+
       // Total P&L: 2000 + 400 = 2400
       // Total Entry Value: (50000 * 2) + (3000 * 4) = 100000 + 12000 = 112000
       // Percentage: (2400 / 112000) * 100 ≈ 2.14%
@@ -405,7 +405,7 @@ describe('pnlCalculations', () => {
 
       const params: TotalPnLParams = { positions };
       const result = calculateTotalPnLPercentage(params);
-      
+
       // Total P&L: -1000
       // Total Entry Value: 50000 * 1 = 50000
       // Percentage: (-1000 / 50000) * 100 = -2%

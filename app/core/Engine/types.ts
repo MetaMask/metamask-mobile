@@ -263,7 +263,7 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
-import { 
+import {
   PerpsController,
   PerpsControllerState,
   PerpsControllerActions,
@@ -500,7 +500,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
-  WebSocketService: WebSocketService,
+  WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -640,7 +640,8 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
-  | 'TransactionController';
+  | 'TransactionController'
+  | 'PerpsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
