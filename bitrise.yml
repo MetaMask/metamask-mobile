@@ -220,9 +220,9 @@ stages:
     abort_on_fail: true
     workflows:
       - ios_e2e_build:
-          run_if: '{{getenv "SKIP_IOS_BUILD" | ne "true"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
       - android_e2e_build:
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | ne "true"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -1011,12 +1011,12 @@ workflows:
       - restore-gradle-cache@2: {}
       - restore-cache@2:
           title: Restore Android PR Build Cache (if build was skipped)
-          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
           inputs:
             - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy Android build from cache (if build was skipped)
-          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1040,7 +1040,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
-          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "true"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1129,12 +1129,12 @@ workflows:
     steps:
       - restore-cache@2:
           title: Restore iOS PR Build Cache (if build was skipped)
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
           inputs:
             - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy iOS build from cache (if build was skipped)
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1148,7 +1148,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "true"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1221,19 +1221,17 @@ workflows:
                 # Default to building both platforms
                 SKIP_IOS_BUILD="false"
                 SKIP_ANDROID_BUILD="false"
-                NEED_IOS_BUILD="true"
-                NEED_ANDROID_BUILD="true"
                 
                 # Check if we have PR number
                 if [[ -z "$GITHUB_PR_NUMBER" ]]; then
                     echo "No PR number found, proceeding with both builds"
                 else
                     # Generate app code hash
-                    APP_CODE_HASH=$(find app/ ios/ android/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" \) -exec md5sum {} \; 2>/dev/null | sort | md5sum | cut -d' ' -f1)
+                    APP_CODE_HASH=$(find app/ ios/ android/ ppom/ . -maxdepth 1 -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.swift" -o -name "*.m" -o -name "*.java" -o -name "*.kt" -o -name "*.gradle" -o -name "*.pbxproj" -o -name "*.plist" -o -name "*.xml" -o -name "*.lock" -o -name "yarn.lock" -o -name "package-lock.json" -o -name "Gemfile.lock" -o -name "Podfile.lock" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
                     
-                    # Generate cache keys (v3 format with fixed Android path handling)
-                    IOS_CACHE_KEY="e2e-build-ios-pr-v3-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
-                    ANDROID_CACHE_KEY="e2e-build-android-pr-v3-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    # Generate cache keys
+                    IOS_CACHE_KEY="e2e-build-ios-pr-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
+                    ANDROID_CACHE_KEY="e2e-build-android-pr-${GITHUB_PR_NUMBER}-${APP_CODE_HASH}"
                     
                     echo "Cache keys generated:"
                     echo "  iOS: $IOS_CACHE_KEY"
@@ -1247,8 +1245,6 @@ workflows:
                 # Set initial values
                 envman add --key SKIP_IOS_BUILD --value "$SKIP_IOS_BUILD"
                 envman add --key SKIP_ANDROID_BUILD --value "$SKIP_ANDROID_BUILD"
-                envman add --key NEED_IOS_BUILD --value "$NEED_IOS_BUILD"
-                envman add --key NEED_ANDROID_BUILD --value "$NEED_ANDROID_BUILD"
       - restore-cache@2:
           title: Check iOS cache
           is_skippable: true
@@ -1262,7 +1258,6 @@ workflows:
                 if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
                     echo "✅ iOS cache found - build will be skipped"
                     envman add --key SKIP_IOS_BUILD --value "true"
-                    envman add --key NEED_IOS_BUILD --value "false"
                 else
                     echo "❌ iOS cache not found - build will proceed"
                 fi
@@ -1280,7 +1275,6 @@ workflows:
                 if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
                     echo "✅ Android cache found - build will be skipped"
                     envman add --key SKIP_ANDROID_BUILD --value "true"
-                    envman add --key NEED_ANDROID_BUILD --value "false"
                 else
                     echo "❌ Android cache not found - build will proceed"
                 fi
@@ -1295,8 +1289,6 @@ workflows:
             - variables: |-
                 SKIP_IOS_BUILD
                 SKIP_ANDROID_BUILD
-                NEED_IOS_BUILD
-                NEED_ANDROID_BUILD
                 IOS_PR_BUILD_CACHE_KEY
                 ANDROID_PR_BUILD_CACHE_KEY
 
@@ -1398,12 +1390,12 @@ workflows:
     steps:
       - restore-cache@2:
           title: Restore iOS PR Build Cache (if build was skipped)
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
           inputs:
             - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy iOS build from cache (if build was skipped)
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1417,7 +1409,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          run_if: '{{getenv "NEED_IOS_BUILD" | eq "true"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
