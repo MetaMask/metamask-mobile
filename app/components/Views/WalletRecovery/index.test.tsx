@@ -131,7 +131,7 @@ describe('WalletRecovery', () => {
     expect(
       screen.getByText(strings('protect_your_wallet.social_recovery_enable')),
     ).toBeOnTheScreen();
-    expect(screen.getByText('t********st@example.com')).toBeOnTheScreen();
+    expect(screen.getByText('t********@example.com')).toBeOnTheScreen();
   });
 
   it('handles Apple private relay email by hiding it', () => {

@@ -108,7 +108,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
                   }
                 }
               >
-                t********st@example.com
+                t********@example.com
               </Text>
             </View>
           </View>
