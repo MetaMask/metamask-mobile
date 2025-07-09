@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -59,6 +60,12 @@ const EnterAddress = (): JSX.Element => {
   } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
 
+  const addressLine1InputRef = useRef<TextInput>(null);
+  const addressLine2InputRef = useRef<TextInput>(null);
+  const cityInputRef = useRef<TextInput>(null);
+  const stateInputRef = useRef<TextInput>(null);
+  const postCodeInputRef = useRef<TextInput>(null);
+
   const initialFormData: AddressFormData = {
     addressLine1: '',
     addressLine2: '',
@@ -101,6 +108,28 @@ const EnterAddress = (): JSX.Element => {
       handleChange(field, value);
     },
     [handleChange],
+  );
+
+  const focusNextField = useCallback(
+    (nextRef: React.RefObject<TextInput>) => () => {
+      nextRef.current?.focus();
+    },
+    [],
+  );
+
+  const handleFieldChange = useCallback(
+    (field: keyof AddressFormData, nextAction?: () => void) =>
+      (value: string) => {
+        const currentValue = formData[field];
+        const isAutofill = value.length - currentValue.length > 1;
+
+        handleFormDataChange(field)(value);
+
+        if (isAutofill && nextAction) {
+          nextAction();
+        }
+      },
+    [formData, handleFormDataChange],
   );
 
   const [{ error: kycError, isFetching: kycIsFetching }, postKycForm] =
@@ -204,96 +233,143 @@ const EnterAddress = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content grow>
-          <DepositProgressBar steps={4} currentStep={3} />
-          <Text style={styles.subtitle}>
-            {strings('deposit.enter_address.subtitle')}
-          </Text>
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <ScreenLayout.Content grow>
+            <DepositProgressBar steps={4} currentStep={3} />
+            <Text style={styles.subtitle}>
+              {strings('deposit.enter_address.subtitle')}
+            </Text>
 
-          <DepositTextField
-            label={strings('deposit.enter_address.address_line_1')}
-            placeholder={strings('deposit.enter_address.address_line_1')}
-            value={formData.addressLine1}
-            onChangeText={handleFormDataChange('addressLine1')}
-            error={errors.addressLine1}
-            returnKeyType="next"
-            testID="address-line-1-input"
-          />
-
-          <DepositTextField
-            label={strings('deposit.enter_address.address_line_2')}
-            placeholder={strings('deposit.enter_address.address_line_2')}
-            value={formData.addressLine2}
-            onChangeText={handleFormDataChange('addressLine2')}
-            returnKeyType="next"
-            testID="address-line-2-input"
-          />
-
-          <View style={styles.nameInputRow}>
             <DepositTextField
-              label={strings('deposit.enter_address.city')}
-              placeholder={strings('deposit.enter_address.city')}
-              value={formData.city}
-              onChangeText={handleFormDataChange('city')}
-              error={errors.city}
+              label={strings('deposit.enter_address.address_line_1')}
+              placeholder={strings('deposit.enter_address.address_line_1')}
+              value={formData.addressLine1}
+              onChangeText={handleFieldChange(
+                'addressLine1',
+                focusNextField(addressLine2InputRef),
+              )}
+              error={errors.addressLine1}
               returnKeyType="next"
-              testID="city-input"
-              containerStyle={styles.nameInputContainer}
+              testID="address-line-1-input"
+              ref={addressLine1InputRef}
+              autoComplete="address-line1"
+              textContentType="fullStreetAddress"
+              autoCapitalize="words"
+              onSubmitEditing={focusNextField(addressLine2InputRef)}
             />
 
-            {selectedRegion?.isoCode === 'US' ? (
-              <View style={styles.nameInputContainer}>
-                <Text style={styles.label}>
-                  {strings('deposit.enter_address.state')}
-                </Text>
-                <SelectOptionSheet
-                  label={strings('deposit.enter_address.state')}
-                  selectedValue={formData.state}
-                  options={stateOptions}
-                  onValueChange={handleFormDataChange('state')}
-                  defaultValue={strings('deposit.enter_address.select_state')}
-                />
-                {errors.state && (
-                  <Text style={styles.error}>{errors.state}</Text>
-                )}
-              </View>
-            ) : (
+            <DepositTextField
+              label={strings('deposit.enter_address.address_line_2')}
+              placeholder={strings('deposit.enter_address.address_line_2')}
+              value={formData.addressLine2}
+              onChangeText={handleFieldChange(
+                'addressLine2',
+                focusNextField(cityInputRef),
+              )}
+              returnKeyType="next"
+              testID="address-line-2-input"
+              ref={addressLine2InputRef}
+              autoComplete="address-line2"
+              textContentType="fullStreetAddress"
+              autoCapitalize="words"
+              onSubmitEditing={focusNextField(cityInputRef)}
+            />
+
+            <View style={styles.nameInputRow}>
               <DepositTextField
-                label={strings('deposit.enter_address.state')}
-                placeholder={strings('deposit.enter_address.state')}
-                value={formData.state}
-                onChangeText={handleFormDataChange('state')}
+                label={strings('deposit.enter_address.city')}
+                placeholder={strings('deposit.enter_address.city')}
+                value={formData.city}
+                onChangeText={handleFieldChange(
+                  'city',
+                  focusNextField(stateInputRef),
+                )}
+                error={errors.city}
+                returnKeyType="next"
+                testID="city-input"
+                containerStyle={styles.nameInputContainer}
+                ref={cityInputRef}
+                textContentType="addressCity"
+                autoCapitalize="words"
+                onSubmitEditing={focusNextField(stateInputRef)}
               />
-            )}
-          </View>
 
-          <View style={styles.nameInputRow}>
-            <DepositTextField
-              label={strings('deposit.enter_address.postal_code')}
-              placeholder={strings('deposit.enter_address.postal_code')}
-              value={formData.postCode}
-              onChangeText={handleFormDataChange('postCode')}
-              error={errors.postCode}
-              returnKeyType="next"
-              testID="postal-code-input"
-              containerStyle={styles.nameInputContainer}
-            />
+              {selectedRegion?.isoCode === 'US' ? (
+                <View style={styles.nameInputContainer}>
+                  <Text style={styles.label}>
+                    {strings('deposit.enter_address.state')}
+                  </Text>
+                  <SelectOptionSheet
+                    label={strings('deposit.enter_address.state')}
+                    selectedValue={formData.state}
+                    options={stateOptions}
+                    onValueChange={handleFormDataChange('state')}
+                    defaultValue={strings('deposit.enter_address.select_state')}
+                  />
+                  {errors.state && (
+                    <Text style={styles.error}>{errors.state}</Text>
+                  )}
+                </View>
+              ) : (
+                <DepositTextField
+                  label={strings('deposit.enter_address.state')}
+                  placeholder={strings('deposit.enter_address.state')}
+                  value={formData.state}
+                  onChangeText={handleFieldChange(
+                    'state',
+                    focusNextField(postCodeInputRef),
+                  )}
+                  returnKeyType="next"
+                  testID="state-input"
+                  containerStyle={styles.nameInputContainer}
+                  ref={stateInputRef}
+                  textContentType="addressState"
+                  autoCapitalize="words"
+                  onSubmitEditing={focusNextField(postCodeInputRef)}
+                />
+              )}
+            </View>
 
-            <DepositTextField
-              label={strings('deposit.enter_address.country')}
-              placeholder={strings('deposit.enter_address.country')}
-              value={selectedRegion?.name || ''}
-              onChangeText={() => {}}
-              error={errors.countryCode}
-              returnKeyType="done"
-              testID="country-input"
-              containerStyle={styles.nameInputContainer}
-              isDisabled={true}
-              startAccessory={countryFlagAccessory}
-              style={{ opacity: 1 }}
-            />
-          </View>
-        </ScreenLayout.Content>
+            <View style={styles.nameInputRow}>
+              <DepositTextField
+                label={strings('deposit.enter_address.postal_code')}
+                placeholder={strings('deposit.enter_address.postal_code')}
+                value={formData.postCode}
+                onChangeText={handleFieldChange('postCode', () => {
+                  Keyboard.dismiss();
+                })}
+                error={errors.postCode}
+                returnKeyType="done"
+                testID="postal-code-input"
+                containerStyle={styles.nameInputContainer}
+                ref={postCodeInputRef}
+                autoComplete="postal-code"
+                textContentType="postalCode"
+                keyboardType="number-pad"
+                onSubmitEditing={() => {
+                  Keyboard.dismiss();
+                }}
+              />
+
+              <DepositTextField
+                label={strings('deposit.enter_address.country')}
+                placeholder={strings('deposit.enter_address.country')}
+                value={selectedRegion?.name || ''}
+                onChangeText={() => {}}
+                error={errors.countryCode}
+                returnKeyType="done"
+                testID="country-input"
+                containerStyle={styles.nameInputContainer}
+                isDisabled={true}
+                startAccessory={countryFlagAccessory}
+                style={{ opacity: 1 }}
+              />
+            </View>
+          </ScreenLayout.Content>
+        </KeyboardAwareScrollView>
         <ScreenLayout.Footer>
           <ScreenLayout.Content style={styles.footerContent}>
             <PrivacySection />
