@@ -167,6 +167,20 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('Missing reservation');
     });
+
+    it('should throw error when SEPA order creation fails', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+      };
+      mockCreateOrder = jest.fn().mockResolvedValue(null);
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing order');
+    });
   });
 
   describe('KYC forms routing', () => {
@@ -381,6 +395,20 @@ describe('useDepositRouting', () => {
   });
 
   describe('Error handling', () => {
+    it('should throw error when user details are missing', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+      mockFetchUserDetails = jest.fn().mockResolvedValue(null);
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).rejects.toThrow('Missing user details');
+    });
+
     it('should throw error when KYC forms fetch fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
