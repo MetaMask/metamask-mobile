@@ -16,7 +16,6 @@ jest.mock('./constants', () => ({
   AppRedirectUri: 'https://app.example.com',
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  IosAppleClientId: 'mock-ios-apple-client-id',
   AndroidGoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
