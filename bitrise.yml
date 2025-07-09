@@ -1308,9 +1308,14 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 
+                # Initialize local variables with current state
+                LOCAL_SKIP_IOS="$SKIP_IOS_BUILD"
+                LOCAL_SKIP_ANDROID="$SKIP_ANDROID_BUILD"
+                
                 # Ensure iOS value is set if cache check was skipped
                 if [[ -z "$IOS_PR_BUILD_CACHE_KEY" ]]; then
                     echo "No iOS cache key available - build will proceed"
+                    LOCAL_SKIP_IOS="false"
                     envman add --key SKIP_IOS_BUILD --value "false"
                 fi
                 
@@ -1318,23 +1323,23 @@ workflows:
                 if [[ -n "$ANDROID_PR_BUILD_CACHE_KEY" ]]; then
                     if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
                         echo "✅ Android cache found - build will be skipped"
+                        LOCAL_SKIP_ANDROID="true"
                         envman add --key SKIP_ANDROID_BUILD --value "true"
                     else
                         echo "❌ Android cache not found - build will proceed"
+                        LOCAL_SKIP_ANDROID="false"
                         envman add --key SKIP_ANDROID_BUILD --value "false"
                     fi
                 else
                     echo "No Android cache key available - build will proceed"
+                    LOCAL_SKIP_ANDROID="false"
                     envman add --key SKIP_ANDROID_BUILD --value "false"
                 fi
                 
                 echo ""
                 echo "=== Final Build Decisions ==="
-                # Read current environment variable values
-                CURRENT_SKIP_IOS=$(envman get --key SKIP_IOS_BUILD)
-                CURRENT_SKIP_ANDROID=$(envman get --key SKIP_ANDROID_BUILD)
-                echo "iOS build:     $([ "$CURRENT_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
-                echo "Android build: $([ "$CURRENT_SKIP_ANDROID" == "true" ] && echo "SKIP" || echo "BUILD")"
+                echo "iOS build:     $([ "$LOCAL_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
+                echo "Android build: $([ "$LOCAL_SKIP_ANDROID" == "true" ] && echo "SKIP" || echo "BUILD")"
       - share-pipeline-variable@1:
           title: Share variables across pipeline stages
           inputs:
