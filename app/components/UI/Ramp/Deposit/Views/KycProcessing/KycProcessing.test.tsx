@@ -155,9 +155,7 @@ describe('KycProcessing Component', () => {
       mockHandleApprovedKycFlow.mockResolvedValueOnce(undefined);
       render(KycProcessing);
 
-      const continueButton = screen.getByText(
-        'deposit.kyc_processing.success_button',
-      );
+      const continueButton = screen.getByText('Complete your order');
       fireEvent.press(continueButton);
 
       await waitFor(() => {
