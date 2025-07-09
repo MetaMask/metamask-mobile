@@ -160,7 +160,7 @@ export const useDepositRouting = ({
         if (purposeOfUsageKycForm && requiredForms?.length === 1) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
           // After successful purpose of usage submission, check forms again
-          routeAfterAuthentication(quote);
+          await routeAfterAuthentication(quote);
           return;
         }
 
