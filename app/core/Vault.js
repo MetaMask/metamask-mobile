@@ -215,7 +215,7 @@ export const recreateVaultWithNewPassword = async (
   // START: Restoring keyrings
 
   const { SeedlessOnboardingController } = Engine.context;
-  // TODO: Fix with latest controller isCompleted
+  let seedlessChangePasswordError = null;
   if (
     !skipSeedlessOnboardingPWChange &&
     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
@@ -232,7 +232,7 @@ export const recreateVaultWithNewPassword = async (
         password,
         primaryKeyringSeedPhrase,
       );
-      throw new Error('Password change failed');
+      seedlessChangePasswordError = error;
     }
   }
 
@@ -297,6 +297,12 @@ export const recreateVaultWithNewPassword = async (
       )
     ) {
       Engine.setSelectedAddress(selectedAddress);
+
+      // If seedless change password failed, throw the error message
+      // note the vault is recreated successfully, but the password is not changed
+      if (seedlessChangePasswordError) {
+        throw seedlessChangePasswordError;
+      }
       return;
     }
   }

@@ -56,6 +56,9 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { ScrollView } from 'react-native-gesture-handler';
+import { TraceName } from '../../../../../util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -135,8 +138,10 @@ const EarnWithdrawInputView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEndTraceOnMount(TraceName.EarnWithdrawScreen);
+
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
-    useState('0');
+    useState<string | undefined>(undefined);
   const [
     isLoadingMaxSafeWithdrawalAmount,
     setIsLoadingMaxSafeWithdrawalAmount,
@@ -151,6 +156,7 @@ const EarnWithdrawInputView = () => {
       !receiptToken?.chainId
     )
       return;
+    setMaxRiskAwareWithdrawalAmount(undefined);
 
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
@@ -166,7 +172,12 @@ const EarnWithdrawInputView = () => {
       });
     // Call once on render and only once
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [receiptToken, activeAccount?.address]);
+  }, [
+    receiptToken?.experience?.type,
+    activeAccount?.address,
+    receiptToken?.address,
+    receiptToken?.chainId,
+  ]);
 
   const stakedBalanceText = strings('stake.staked_balance');
 
@@ -474,6 +485,10 @@ const EarnWithdrawInputView = () => {
     if (maxRiskAwareWithdrawalAmount === receiptToken?.balanceMinimalUnit)
       return;
 
+    if (!maxRiskAwareWithdrawalAmount) {
+      return;
+    }
+
     return renderFromTokenMinimalUnit(
       maxRiskAwareWithdrawalAmount,
       receiptToken?.decimals as number,
@@ -490,6 +505,10 @@ const EarnWithdrawInputView = () => {
     if (
       receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
+      return false;
+    }
+
+    if (!maxRiskAwareWithdrawalAmount) {
       return false;
     }
 
@@ -632,32 +651,38 @@ const EarnWithdrawInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <InputDisplay
-        isOverMaximum={isOverMaximum}
-        balanceText={stakedBalanceText}
-        balanceValue={earnBalanceValue}
-        amountToken={amountToken}
-        amountFiatNumber={amountFiatNumber}
-        isFiat={isFiat}
-        asset={token}
-        currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitchWithTracking}
-        currencyToggleValue={currencyToggleValue}
-        maxWithdrawalAmount={maxRiskAwareWithdrawalText}
-        error={
-          isWithdrawingMoreThanAvailableForLendingToken
-            ? strings('earn.amount_exceeds_safe_withdrawal_limit')
-            : undefined
-        }
-      />
-      {isStablecoinLendingEnabled && (
-        <View style={styles.earnTokenSelectorContainer}>
-          <EarnTokenSelector
-            token={receiptToken as TokenI}
-            action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
-          />
-        </View>
-      )}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        <InputDisplay
+          isOverMaximum={isOverMaximum}
+          balanceText={stakedBalanceText}
+          balanceValue={earnBalanceValue}
+          amountToken={amountToken}
+          amountFiatNumber={amountFiatNumber}
+          isFiat={isFiat}
+          asset={token}
+          currentCurrency={currentCurrency}
+          handleCurrencySwitch={handleCurrencySwitchWithTracking}
+          currencyToggleValue={currencyToggleValue}
+          maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+          error={
+            isWithdrawingMoreThanAvailableForLendingToken
+              ? strings('earn.amount_exceeds_safe_withdrawal_limit')
+              : undefined
+          }
+        />
+        {isStablecoinLendingEnabled && (
+          <View style={styles.earnTokenSelectorContainer}>
+            <View style={styles.spacer} />
+            <EarnTokenSelector
+              token={receiptToken as TokenI}
+              action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+            />
+          </View>
+        )}
+      </ScrollView>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleQuickAmountPressWithTracking}

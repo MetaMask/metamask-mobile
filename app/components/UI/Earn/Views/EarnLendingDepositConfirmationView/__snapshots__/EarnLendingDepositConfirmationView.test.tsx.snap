@@ -10,476 +10,153 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
     }
   }
 >
-  <View
-    style={
+  <RCTScrollView
+    contentContainerStyle={
       {
         "paddingHorizontal": 16,
       }
     }
-  >
-    <View
-      style={
-        {
-          "paddingVertical": 16,
-        }
+    showsVerticalScrollIndicator={false}
+    style={
+      {
+        "height": "85%",
       }
-    >
+    }
+  >
+    <View>
       <View
         style={
           {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "center",
+            "paddingVertical": 16,
           }
         }
       >
         <View
-          onLayout={[Function]}
           style={
             {
-              "alignSelf": "flex-start",
-              "position": "relative",
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
             }
           }
-          testID="badge-wrapper-badge"
         >
-          <View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 24,
-                  "height": 48,
-                  "overflow": "hidden",
-                  "width": 48,
-                }
-              }
-              testID="earn-token-selector-USDC-0x1"
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
-                  }
-                }
-                testID="token-avatar-image"
-              />
-            </View>
-          </View>
           <View
+            onLayout={[Function]}
             style={
               {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
+                "alignSelf": "flex-start",
+                "position": "relative",
               }
             }
+            testID="badge-wrapper-badge"
           >
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
-                }
-              }
-              testID="badgenetwork"
-            >
+            <View>
               <View
                 style={
                   {
-                    "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
+                    "borderRadius": 24,
+                    "height": 48,
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
+                    "width": 48,
                   }
                 }
+                testID="earn-token-selector-USDC-0x1"
               >
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={1}
-                  style={
+                  source={
                     {
-                      "height": 32,
-                      "width": 32,
+                      "uri": "",
                     }
                   }
-                  testID="network-avatar-image"
+                  style={
+                    {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="token-avatar-image"
                 />
               </View>
             </View>
-          </View>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "paddingTop": 8,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
-              "fontSize": 24,
-              "fontWeight": "700",
-              "letterSpacing": 0,
-              "lineHeight": 32,
-              "textAlign": "center",
-            }
-          }
-        >
-          5
-           
-          USDC
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#686e7d",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "center",
-            }
-          }
-        >
-          $4.99
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "backgroundColor": "#ffffff",
-          "borderRadius": 8,
-          "marginBottom": 8,
-          "paddingBottom": 8,
-          "paddingHorizontal": 8,
-          "paddingTop": 12,
-        }
-      }
-      testID="depositDetailsSection"
-    >
-      <View
-        style={
-          {
-            "gap": 16,
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "overflow": "hidden",
-              },
-              [
-                undefined,
-              ],
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
-            }
-          >
             <View
               style={
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
+                  "aspectRatio": 1,
+                  "bottom": 0,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateY": 0,
+                    },
+                  ],
                 }
               }
             >
               <View
+                onLayout={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "flexDirection": "row",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "maxHeight": 24,
+                    "minHeight": 8,
+                    "opacity": 0,
                   }
                 }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  APR
-                </Text>
-                <TouchableOpacity
-                  accessibilityLabel="APR tooltip"
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#9ca1af"
-                    fill="currentColor"
-                    height={16}
-                    name="Question"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#1c7e33",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  4.5%
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "overflow": "hidden",
-              },
-              [
-                undefined,
-              ],
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Est. annual reward
-                </Text>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
+                testID="badgenetwork"
               >
                 <View
                   style={
                     {
-                      "flexDirection": "row",
-                      "gap": 8,
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#ffffff",
+                      "borderRadius": 8,
+                      "borderWidth": 2,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "shadowColor": "#0000001a",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
                     }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={1}
                     style={
                       {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "height": 32,
+                        "width": 32,
                       }
                     }
-                  >
-                    $45.00
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    45 USDC
-                  </Text>
+                    testID="network-avatar-image"
+                  />
                 </View>
               </View>
             </View>
@@ -487,507 +164,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
         </View>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "overflow": "hidden",
-              },
-              [
-                undefined,
-              ],
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Reward frequency
-                </Text>
-                <TouchableOpacity
-                  accessibilityLabel="Reward frequency tooltip"
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#9ca1af"
-                    fill="currentColor"
-                    height={16}
-                    name="Question"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Every minute
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "overflow": "hidden",
-              },
-              [
-                undefined,
-              ],
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Withdrawal time
-                </Text>
-                <TouchableOpacity
-                  accessibilityLabel="Withdrawal time tooltip"
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#9ca1af"
-                    fill="currentColor"
-                    height={16}
-                    name="Question"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Immediate
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "overflow": "hidden",
-              },
-              [
-                undefined,
-              ],
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="label"
-                >
-                  Protocol
-                </Text>
-                <TouchableOpacity
-                  accessibilityLabel="Protocol tooltip"
-                  accessibilityRole="button"
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#9ca1af"
-                    fill="currentColor"
-                    height={16}
-                    name="Question"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <View
-                  accessibilityRole="none"
-                  accessible={true}
-                  onLayout={[Function]}
-                  style={
-                    {
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderColor": "#b7bbc8",
-                      "borderRadius": 999,
-                      "borderWidth": 0,
-                      "color": "#686e7d",
-                      "padding": 16,
-                      "paddingHorizontal": 8,
-                      "paddingVertical": 2,
-                    }
-                  }
-                  testID="tagbase"
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                      }
-                    }
-                  >
-                    <View
-                      style={
-                        {
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
-                          "height": 16,
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                    >
-                      <Image
-                        source={
-                          {
-                            "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAACVBMVEUNLd9Mm8uBkynK/Y+vAAAAA3RSTlP////6yOLMAABAi0lEQVR42gGAQH+/AAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAWq4qAc/PAtYAAAAASUVORK5CYII=",
-                          }
-                        }
-                        style={
-                          {
-                            "flex": 1,
-                          }
-                        }
-                      />
-                    </View>
-                    <View
-                      accessible={false}
-                      style={
-                        {
-                          "width": 4,
-                        }
-                      }
-                      testID="listitem-gap"
-                    />
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        }
-                      }
-                    >
-                      AAVE v3
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "backgroundColor": "#ffffff",
-          "borderRadius": 8,
-          "marginBottom": 8,
-          "paddingBottom": 8,
-          "paddingHorizontal": 8,
-          "paddingTop": 12,
-        }
-      }
-      testID="depositReceiveSection"
-    >
-      <View
-        style={
-          {
-            "gap": 16,
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        <View
-          style={
             {
-              "flexDirection": "row",
+              "paddingTop": 8,
             }
           }
         >
@@ -996,157 +174,973 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Medium",
-                "fontSize": 16,
-                "fontWeight": "500",
+                "fontFamily": "Geist Bold",
+                "fontSize": 24,
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 32,
+                "textAlign": "center",
               }
             }
           >
-            Receive
+            5
+             
+            USDC
           </Text>
-          <TouchableOpacity
-            accessibilityLabel="receive tooltip"
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "alignItems": "center",
-                "borderRadius": 8,
-                "height": 24,
-                "justifyContent": "center",
-                "opacity": 1,
-                "width": 24,
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
               }
             }
           >
-            <SvgMock
-              color="#686e7d"
-              fill="currentColor"
-              height={16}
-              name="Info"
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              width={16}
-            />
-          </TouchableOpacity>
+            $4.99
+          </Text>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 8,
+            "marginBottom": 8,
+            "paddingBottom": 8,
+            "paddingHorizontal": 8,
+            "paddingTop": 12,
+          }
+        }
+        testID="depositDetailsSection"
+      >
         <View
           style={
             {
-              "alignItems": "baseline",
-              "flexDirection": "row",
-              "justifyContent": "space-between",
+              "gap": 16,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    APR
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="APR tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      fill="currentColor"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    4.5%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Est. annual reward
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      $45.00
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="head"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      45 USDC
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Reward frequency
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Reward frequency tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      fill="currentColor"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Every minute
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Withdrawal time
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Withdrawal time tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      fill="currentColor"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Immediate
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Protocol
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Protocol tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      fill="currentColor"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    accessibilityRole="none"
+                    accessible={true}
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "backgroundColor": "#f3f5f9",
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 999,
+                        "borderWidth": 0,
+                        "color": "#686e7d",
+                        "padding": 16,
+                        "paddingHorizontal": 8,
+                        "paddingVertical": 2,
+                      }
+                    }
+                    testID="tagbase"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 8,
+                            "height": 16,
+                            "overflow": "hidden",
+                            "width": 16,
+                          }
+                        }
+                      >
+                        <Image
+                          source={
+                            {
+                              "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAACVBMVEUNLd9Mm8uBkynK/Y+vAAAAA3RSTlP////6yOLMAABAi0lEQVR42gGAQH+/AAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAWq4qAc/PAtYAAAAASUVORK5CYII=",
+                            }
+                          }
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
+                      <View
+                        accessible={false}
+                        style={
+                          {
+                            "width": 4,
+                          }
+                        }
+                        testID="listitem-gap"
+                      />
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        AAVE v3
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 8,
+            "marginBottom": 8,
+            "paddingBottom": 8,
+            "paddingHorizontal": 8,
+            "paddingTop": 12,
+          }
+        }
+        testID="depositReceiveSection"
+      >
+        <View
+          style={
+            {
+              "gap": 16,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
             }
           }
         >
           <View
             style={
               {
-                "alignItems": "center",
                 "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Receive
+            </Text>
+            <TouchableOpacity
+              accessibilityLabel="receive tooltip"
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "borderRadius": 8,
+                  "height": 24,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "width": 24,
+                }
+              }
+            >
+              <SvgMock
+                color="#686e7d"
+                fill="currentColor"
+                height={16}
+                name="Info"
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                width={16}
+              />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "baseline",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
               }
             }
           >
             <View
               style={
                 {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 8,
-                  "height": 16,
-                  "marginRight": 8,
-                  "overflow": "hidden",
-                  "width": 16,
+                  "alignItems": "center",
+                  "flexDirection": "row",
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
+              <View
                 style={
                   {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 16,
+                    "marginRight": 8,
+                    "overflow": "hidden",
+                    "width": 16,
                   }
                 }
-                testID="token-avatar-image"
-              />
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="token-avatar-image"
+                />
+              </View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                aUSDC TOKEN
+              </Text>
             </View>
-            <Text
-              accessibilityRole="text"
+            <View
               style={
                 {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "alignItems": "flex-end",
+                  "justifyContent": "center",
                 }
               }
             >
-              aUSDC TOKEN
-            </Text>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "flex-end",
-                "justifyContent": "center",
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
-              }
-            >
-              5 aUSDC
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
+              >
+                5 aUSDC
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
-              }
-            >
-              $4.99
-            </Text>
+              >
+                $4.99
+              </Text>
+            </View>
           </View>
         </View>
       </View>
     </View>
-  </View>
+  </RCTScrollView>
   <View
     style={
       {
@@ -1290,15 +1284,28 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
+                  "textAlign": "center",
                 }
               }
             >
-              Approve
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Approve
+              </Text>
             </Text>
           </View>
           <View
@@ -1329,9 +1336,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1346,15 +1352,28 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
+                  "textAlign": "center",
                 }
               }
             >
-              Deposit
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Deposit
+              </Text>
             </Text>
           </View>
         </View>
@@ -1383,14 +1402,15 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1400,10 +1420,9 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
-              "fontFamily": "CentraNo1-Medium",
+              "color": "#121314",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1424,7 +1443,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#4459ff",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -1432,6 +1451,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
             "justifyContent": "center",
             "marginLeft": 16,
             "marginTop": 0,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1442,9 +1462,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1476,9 +1495,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1492,9 +1510,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
               "textDecorationLine": "underline",
@@ -1518,9 +1535,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1536,9 +1552,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
               "textDecorationLine": "underline",
@@ -1553,9 +1568,8 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

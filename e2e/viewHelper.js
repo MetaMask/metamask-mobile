@@ -23,7 +23,7 @@ import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
-import Assertions from './utils/Assertions';
+import Assertions from './framework/Assertions.ts';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
@@ -34,11 +34,17 @@ const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
-  await Assertions.checkIfVisible(TermsOfUseModal.container);
+  await Assertions.expectElementToBeVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use Modal should be visible',
+  });
+
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
   await TermsOfUseModal.tapAcceptButton();
-  await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+
+  await Assertions.expectElementToNotBeVisible(TermsOfUseModal.container, {
+    description: 'Terms of Use Modal should not be visible',
+  });
 };
 
 /**
@@ -55,12 +61,15 @@ export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
-  await TestHelpers.delay(1000);
 
   try {
-    await Assertions.checkIfVisible(ToastModal.container);
+    await Assertions.expectElementToBeVisible(ToastModal.container, {
+      description: 'Toast Modal should be visible',
+    });
     await ToastModal.tapToastCloseButton();
-    await Assertions.checkIfNotVisible(ToastModal.container);
+    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
+      description: 'Toast Modal should not be visible',
+    });
   } catch {
     // eslint-disable-next-line no-console
     console.log('The marketing toast is not visible');
@@ -68,6 +77,7 @@ have to have all these workarounds in the tests
 
   // Handle Solana New feature sheet
   if (solanaSheetAction === 'dismiss') {
+    await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
     await SolanaNewFeatureSheet.tapNotNowButton();
   } else if (solanaSheetAction === 'create') {
     await SolanaNewFeatureSheet.tapCreateAccountButton();
@@ -128,13 +138,15 @@ export const importWalletWithRecoveryPhrase = async ({
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.checkIfVisible(OnboardingCarouselView.container);
+  await Assertions.expectElementToBeVisible(OnboardingCarouselView.container, {
+    description: 'Onboarding Carousel should be visible',
+  });
+
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
-  await TestHelpers.delay(3500);
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -142,17 +154,16 @@ export const importWalletWithRecoveryPhrase = async ({
   );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
-  await TestHelpers.delay(3500);
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-  // Add delay for 1 second to avoid flakiness on ios
-  if (device.getPlatform() === 'ios') TestHelpers.delay(1000);
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+    description: 'MetaMetrics Opt-In should be visible',
+  });
   if (optInToMetrics) {
     await MetaMetricsOptIn.tapAgreeButton();
   } else {
@@ -160,11 +171,12 @@ export const importWalletWithRecoveryPhrase = async ({
   }
 
   //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
-  await Assertions.checkIfVisible(OnboardingSuccessView.container);
+  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
+    description: 'Onboarding Success View should be visible',
+  });
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await skipNotificationsDeviceSettings();
+  // await skipNotificationsDeviceSettings();
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
@@ -223,8 +235,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
 
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  await skipNotificationsDeviceSettings();
 
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
@@ -288,8 +298,17 @@ export const switchToSepoliaNetwork = async () => {
   }
 };
 
-export const loginToApp = async () => {
-  const PASSWORD = '123123123';
+/**
+ * Logs into the application using the provided password or a default password.
+ * 
+ * @async
+ * @function loginToApp
+ * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
+ * @returns {Promise<void>} A promise that resolves when the login process is complete.
+ * @throws {Error} Throws an error if the login view container or password input is not visible.
+ */
+export const loginToApp = async (password) => {
+  const PASSWORD = password ?? '123123123';
   await Assertions.checkIfVisible(LoginView.container);
   await Assertions.checkIfVisible(LoginView.passwordInput);
   await LoginView.enterPassword(PASSWORD);

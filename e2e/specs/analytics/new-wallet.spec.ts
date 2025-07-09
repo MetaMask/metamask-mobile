@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
@@ -5,12 +6,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  EventPayload,
-  filterEvents,
-  getEventsPayloads,
-  onboardingEvents,
-} from './helpers';
+import { getEventsPayloads, onboardingEvents } from './helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getBalanceMocks,
@@ -63,17 +59,109 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
 
         const softAssert = new SoftAssert();
 
-        softAssert.checkAndCollect(async () => {
-          await Assertions.checkIfArrayHasLength(events, 12);
-        }, 'Should have 12 events in the new wallet flow');
+        const analyticsPreferenceSelectedEvent = events.find(
+          (event) => event.event === 'Analytics Preference Selected',
+        );
+        const welcomeMessageViewedEvent = events.find(
+          (event) => event.event === 'Welcome Message Viewed',
+        );
+        const onboardingStartedEvent = events.find(
+          (event) => event.event === 'Onboarding Started',
+        );
+        const walletSetupStartedEvent = events.find(
+          (event) => event.event === 'Wallet Setup Started',
+        );
+        const walletCreationAttemptedEvent = events.find(
+          (event) => event.event === 'Wallet Creation Attempted',
+        );
+        const walletSetupCompletedEvent = events.find(
+          (event) => event.event === 'Wallet Setup Completed',
+        );
 
-        eventNames.forEach((eventName) => {
-          const filtered = filterEvents(events, eventName) as EventPayload[];
-          softAssert.checkAndCollect(
-            () => Assertions.checkIfArrayHasLength(filtered, 1),
-            `${eventName} event should be tracked`,
+        const checkEventCount = softAssert.checkAndCollect(
+          () => Assertions.checkIfArrayHasLength(events, 6),
+          'Expected 6 events for new wallet onboarding',
+        );
+
+        const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(analyticsPreferenceSelectedEvent);
+            Assertions.checkIfObjectsMatch(
+              analyticsPreferenceSelectedEvent!.properties,
+              {
+                has_marketing_consent: false,
+                is_metrics_opted_in: true,
+                location: 'onboarding_metametrics',
+                updated_after_onboarding: false,
+              },
+            );
+          },
+          'Analytics Preference Selected: Should be present with correct properties',
+        );
+
+        const checkWelcomeMessageViewed = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(welcomeMessageViewedEvent);
+            Assertions.checkIfObjectsMatch(
+              welcomeMessageViewedEvent!.properties,
+              {},
+            );
+          },
+          'Welcome Message Viewed: Should be present with empty properties',
+        );
+
+        const checkOnboardingStarted = softAssert.checkAndCollect(async () => {
+          Assertions.checkIfValueIsDefined(onboardingStartedEvent);
+          Assertions.checkIfObjectsMatch(
+            onboardingStartedEvent!.properties,
+            {},
           );
-        });
+        }, 'Onboarding Started: Should be present with empty properties');
+
+        const checkWalletSetupStarted = softAssert.checkAndCollect(async () => {
+          Assertions.checkIfValueIsDefined(walletSetupStartedEvent);
+          Assertions.checkIfObjectsMatch(walletSetupStartedEvent!.properties, {
+            account_type: 'metamask',
+          });
+        }, 'Wallet Setup Started: Should be present with correct properties');
+
+        const checkWalletCreationAttempted = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(walletCreationAttemptedEvent);
+            Assertions.checkIfObjectsMatch(
+              walletCreationAttemptedEvent!.properties,
+              {
+                account_type: 'metamask',
+              },
+            );
+          },
+          'Wallet Creation Attempted: Should be present with correct properties',
+        );
+
+        const checkWalletSetupCompleted = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(walletSetupCompletedEvent);
+            Assertions.checkIfObjectsMatch(
+              walletSetupCompletedEvent!.properties,
+              {
+                wallet_setup_type: 'new',
+                new_wallet: true,
+                account_type: 'metamask',
+              },
+            );
+          },
+          'Wallet Setup Completed: Should be present with correct properties',
+        );
+
+        await Promise.all([
+          checkEventCount,
+          checkAnalyticsPreferenceSelected,
+          checkWelcomeMessageViewed,
+          checkOnboardingStarted,
+          checkWalletSetupStarted,
+          checkWalletCreationAttempted,
+          checkWalletSetupCompleted,
+        ]);
 
         softAssert.throwIfErrors();
       },

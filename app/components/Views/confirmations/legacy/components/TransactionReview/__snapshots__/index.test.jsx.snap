@@ -390,9 +390,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       }
@@ -414,9 +413,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 16,
-                                          "fontWeight": "700",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -431,9 +429,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                       "marginLeft": "auto",
@@ -447,9 +444,8 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 16,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1072,12 +1068,15 @@ exports[`TransactionReview should match snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "flex": 0,
-                  "flexDirection": "row",
-                  "paddingHorizontal": 24,
-                  "paddingVertical": 16,
-                }
+                [
+                  {
+                    "flex": 0,
+                    "flexDirection": "row",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  },
+                  undefined,
+                ]
               }
             >
               <TouchableOpacity

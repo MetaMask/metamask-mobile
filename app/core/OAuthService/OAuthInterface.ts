@@ -70,12 +70,10 @@ export type AuthRequestParams =
 
 export interface AuthResponse {
   id_token: string;
-  refresh_token?: string;
+  access_token: string;
   indexes: number[];
   endpoints: Record<string, string>;
-  success: boolean;
-  message: string;
-  jwt_tokens: Record<string, string>;
+  refresh_token?: string;
 }
 
 export interface LoginHandler {

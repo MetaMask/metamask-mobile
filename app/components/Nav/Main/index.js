@@ -96,6 +96,7 @@ import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 
 const Stack = createStackNavigator();
 
@@ -150,6 +151,7 @@ const Main = (props) => {
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
+  useCompletedOnboardingEffect();
   useNotificationHandler();
   useIdentityEffects();
   useMinimumVersions();

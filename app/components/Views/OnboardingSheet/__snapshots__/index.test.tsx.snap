@@ -23,7 +23,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -134,9 +134,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -165,7 +164,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -173,6 +172,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -198,9 +198,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -221,7 +220,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -229,6 +228,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -254,9 +254,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -291,9 +290,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             style={
               {
                 "color": "#9ca1af",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -332,13 +330,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -348,10 +347,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -390,7 +388,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -501,9 +499,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -532,7 +529,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -540,6 +537,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -565,9 +563,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -588,7 +585,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -596,6 +593,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -621,9 +619,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -658,9 +655,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             style={
               {
                 "color": "#9ca1af",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 18,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -699,13 +695,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -715,10 +712,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

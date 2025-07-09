@@ -34,7 +34,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000066",
+            "backgroundColor": "#3f434a66",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -75,7 +75,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
       <View
         collapsable={false}
         enabled={false}
-        handlerTag={1}
+        handlerTag={2}
         handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
@@ -109,227 +109,49 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
           ]
         }
       >
-        <View>
-          <View
-            style={
-              [
-                {
-                  "backgroundColor": "#ffffff",
-                  "flexDirection": "row",
-                  "padding": 16,
-                },
-                false,
-              ]
+        <RCTScrollView
+          collapsable={false}
+          handlerTag={1}
+          handlerType="NativeViewGestureHandler"
+          onGestureHandlerEvent={[Function]}
+          onGestureHandlerStateChange={[Function]}
+          style={
+            {
+              "paddingHorizontal": 16,
             }
-            testID="header"
-          >
+          }
+        >
+          <View>
             <View
               style={
-                {
-                  "width": undefined,
-                }
-              }
-            >
-              <View
-                onLayout={[Function]}
-              />
-            </View>
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flex": 1,
-                  "marginHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
+                [
                   {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontSize": 16,
-                    "fontWeight": "700",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                How it works
-              </Text>
-            </View>
-            <View
-              style={
-                {
-                  "width": undefined,
-                }
-              }
-            >
-              <View
-                onLayout={[Function]}
-              >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={16}
-                    name="Close"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "height": 0,
-                "opacity": 0,
-                "overflow": "hidden",
-                "transform": [
-                  {
-                    "translateY": 20,
-                  },
-                ],
-              }
-            }
-          >
-            <View
-              testID="InteractiveTimespanChart"
-            >
-              <View
-                style={
-                  {
+                    "backgroundColor": "#ffffff",
                     "flexDirection": "row",
-                    "flexWrap": "wrap",
-                    "gap": 12,
-                    "justifyContent": "center",
-                    "marginTop": 24,
-                    "paddingBottom": 16,
+                    "padding": 16,
+                  },
+                  false,
+                ]
+              }
+              testID="header"
+            >
+              <View
+                style={
+                  {
+                    "width": undefined,
                   }
                 }
               >
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 32,
-                      "height": 36,
-                      "justifyContent": "center",
-                      "paddingHorizontal": 16,
-                      "paddingVertical": 7,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    7D
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 32,
-                      "height": 36,
-                      "justifyContent": "center",
-                      "paddingHorizontal": 16,
-                      "paddingVertical": 7,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    1M
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 32,
-                      "height": 36,
-                      "justifyContent": "center",
-                      "paddingHorizontal": 16,
-                      "paddingVertical": 7,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 16,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    3M
-                  </Text>
-                </TouchableOpacity>
+                <View
+                  onLayout={[Function]}
+                />
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "gap": 4,
-                    "paddingVertical": 16,
+                    "flex": 1,
+                    "marginHorizontal": 16,
                   }
                 }
               >
@@ -337,281 +159,466 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#1c7e33",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 24,
-                      "fontWeight": "700",
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
-                  }
-                >
-                  3.3% APR
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 16,
-                      "fontWeight": "500",
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
                   }
                 >
-                  1 week average
+                  How it works
                 </Text>
               </View>
               <View
-                onMoveShouldSetResponder={[Function]}
-                onMoveShouldSetResponderCapture={[Function]}
-                onResponderEnd={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderReject={[Function]}
-                onResponderRelease={[Function]}
-                onResponderStart={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onStartShouldSetResponderCapture={[Function]}
                 style={
                   {
-                    "paddingVertical": 16,
+                    "width": undefined,
                   }
                 }
               >
                 <View
+                  onLayout={[Function]}
+                >
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={16}
+                      name="Close"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "height": 0,
+                  "opacity": 0,
+                  "overflow": "hidden",
+                  "transform": [
+                    {
+                      "translateY": 20,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                testID="InteractiveTimespanChart"
+              >
+                <View
                   style={
                     {
-                      "height": 112,
+                      "flexDirection": "row",
+                      "flexWrap": "wrap",
+                      "gap": 12,
+                      "justifyContent": "center",
+                      "marginTop": 24,
+                      "paddingBottom": 16,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#3c4d9d1a",
+                        "borderRadius": 32,
+                        "height": 36,
+                        "justifyContent": "center",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 7,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      7D
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderRadius": 32,
+                        "height": 36,
+                        "justifyContent": "center",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 7,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      1M
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderRadius": 32,
+                        "height": 36,
+                        "justifyContent": "center",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 7,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      3M
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 4,
+                      "paddingVertical": 16,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "Geist Bold",
+                        "fontSize": 24,
+                        "letterSpacing": 0,
+                        "lineHeight": 32,
+                      }
+                    }
+                  >
+                    3.3% APR
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    1 week average
+                  </Text>
+                </View>
+                <View
+                  onMoveShouldSetResponder={[Function]}
+                  onMoveShouldSetResponderCapture={[Function]}
+                  onResponderEnd={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderReject={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderStart={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onStartShouldSetResponderCapture={[Function]}
+                  style={
+                    {
+                      "paddingVertical": 16,
                     }
                   }
                 >
                   <View
-                    onLayout={[Function]}
                     style={
                       {
-                        "flex": 1,
+                        "height": 112,
                       }
                     }
                   >
-                    <RNSVGSvgView
-                      bbHeight={100}
-                      bbWidth={300}
-                      focusable={false}
+                    <View
+                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "backgroundColor": "transparent",
-                            "borderWidth": 0,
-                          },
-                          {
-                            "height": 100,
-                            "width": 300,
-                          },
-                          {
-                            "flex": 0,
-                            "height": 100,
-                            "width": 300,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     >
-                      <RNSVGGroup
-                        fill={
-                          {
-                            "payload": 4278190080,
-                            "type": 0,
-                          }
+                      <RNSVGSvgView
+                        bbHeight={100}
+                        bbWidth={300}
+                        focusable={false}
+                        style={
+                          [
+                            {
+                              "backgroundColor": "transparent",
+                              "borderWidth": 0,
+                            },
+                            {
+                              "height": 100,
+                              "width": 300,
+                            },
+                            {
+                              "flex": 0,
+                              "height": 100,
+                              "width": 300,
+                            },
+                          ]
                         }
                       >
-                        <RNSVGPath
-                          d="M0,26.602617677844897L50,28.378276982371048L100,27.975753493938946L150,27.84724876068642L200,23.942756550053588L250,20.912574840323348L300,20L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
+                        <RNSVGGroup
                           fill={
                             {
-                              "brushRef": "dataGradient",
-                              "type": 1,
-                            }
-                          }
-                          propList={
-                            [
-                              "fill",
-                            ]
-                          }
-                        />
-                        <RNSVGPath
-                          d="M0,26.602617677844897L50,28.378276982371048L100,27.975753493938946L150,27.84724876068642L200,23.942756550053588L250,20.912574840323348L300,20"
-                          fill={null}
-                          opacity={1}
-                          propList={
-                            [
-                              "fill",
-                              "stroke",
-                              "strokeWidth",
-                            ]
-                          }
-                          stroke={
-                            {
-                              "payload": 4280057395,
+                              "payload": 4278190080,
                               "type": 0,
                             }
                           }
-                          strokeWidth={1.75}
-                          testID="InteractiveChartPlotLine"
-                        />
-                        <RNSVGDefs>
-                          <RNSVGLinearGradient
-                            gradient={
+                        >
+                          <RNSVGPath
+                            d="M0,26.602617677844897L50,28.378276982371048L100,27.975753493938946L150,27.84724876068642L200,23.942756550053588L250,20.912574840323348L300,20L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
+                            fill={
+                              {
+                                "brushRef": "dataGradient",
+                                "type": 1,
+                              }
+                            }
+                            propList={
                               [
-                                0,
-                                857505331,
-                                1,
-                                872415231,
+                                "fill",
                               ]
                             }
-                            gradientTransform={null}
-                            gradientUnits={0}
-                            name="dataGradient"
-                            x1={0}
-                            x2={0}
-                            y1={0}
-                            y2="100%"
                           />
-                        </RNSVGDefs>
-                      </RNSVGGroup>
-                    </RNSVGSvgView>
+                          <RNSVGPath
+                            d="M0,26.602617677844897L50,28.378276982371048L100,27.975753493938946L150,27.84724876068642L200,23.942756550053588L250,20.912574840323348L300,20"
+                            fill={null}
+                            opacity={1}
+                            propList={
+                              [
+                                "fill",
+                                "stroke",
+                                "strokeWidth",
+                              ]
+                            }
+                            stroke={
+                              {
+                                "payload": 4280057395,
+                                "type": 0,
+                              }
+                            }
+                            strokeWidth={1.75}
+                            testID="InteractiveChartPlotLine"
+                          />
+                          <RNSVGDefs>
+                            <RNSVGLinearGradient
+                              gradient={
+                                [
+                                  0,
+                                  857505331,
+                                  1,
+                                  872415231,
+                                ]
+                              }
+                              gradientTransform={null}
+                              gradientUnits={0}
+                              name="dataGradient"
+                              x1={0}
+                              x2={0}
+                              y1={0}
+                              y2="100%"
+                            />
+                          </RNSVGDefs>
+                        </RNSVGGroup>
+                      </RNSVGSvgView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
-          <View
-            style={
-              {
-                "paddingBottom": 16,
-                "paddingHorizontal": 16,
-              }
-            }
-          >
             <View
               style={
                 {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "gap": 12,
-                  "paddingVertical": 16,
+                  "paddingBottom": 16,
                 }
               }
             >
-              <SvgMock
-                color="#121314"
-                fill="currentColor"
-                height={20}
-                name="Plant"
+              <View
                 style={
                   {
-                    "height": 20,
-                    "width": 20,
+                    "alignItems": "flex-start",
+                    "flexDirection": "row",
+                    "gap": 12,
+                    "paddingVertical": 16,
                   }
                 }
-                width={20}
-              />
-              <View>
-                <Text
-                  accessibilityRole="text"
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="Plant"
                   style={
                     {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
-                      "fontWeight": "700",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "height": 20,
+                      "width": 20,
+                    }
+                  }
+                  width={20}
+                />
+                <View
+                  style={
+                    {
+                      "flex": 1,
                     }
                   }
                 >
-                  Earn rewards on your USDC
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Bold",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
-                  }
-                >
-                  Lend your USDC with Aave and earn daily rewards. Rewards grow over time and APR varies.
-                </Text>
+                  >
+                    Earn rewards on your USDC
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Lend your USDC with Aave and earn daily rewards. Rewards grow over time and APR varies.
+                  </Text>
+                </View>
               </View>
-            </View>
-            <View
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "gap": 12,
-                  "paddingVertical": 16,
-                }
-              }
-            >
-              <SvgMock
-                color="#121314"
-                fill="currentColor"
-                height={20}
-                name="Clock"
+              <View
                 style={
                   {
-                    "height": 20,
-                    "paddingTop": 2,
-                    "width": 20,
+                    "alignItems": "flex-start",
+                    "flexDirection": "row",
+                    "gap": 12,
+                    "paddingVertical": 16,
                   }
                 }
-                width={20}
-              />
-              <View>
-                <Text
-                  accessibilityRole="text"
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={20}
+                  name="Clock"
                   style={
                     {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
-                      "fontWeight": "700",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "height": 20,
+                      "paddingTop": 2,
+                      "width": 20,
                     }
                   }
-                >
-                  Withdraw whenever you want
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
+                  width={20}
+                />
+                <View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "Geist Bold",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
-                  }
-                >
-                   
-                  Get USDC back in your wallet instantly.
-                </Text>
+                  >
+                    Withdraw whenever you want
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    Get USDC back in your wallet instantly.
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </RCTScrollView>
         <View
           style={
             {
@@ -619,6 +626,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               "flexDirection": "row",
               "paddingBottom": 16,
               "paddingHorizontal": 16,
+              "paddingTop": 16,
               "paddingVertical": 4,
             }
           }
@@ -635,14 +643,15 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -652,10 +661,9 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -675,7 +683,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#4459ff",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
@@ -683,6 +691,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 "justifyContent": "center",
                 "marginLeft": 16,
                 "marginTop": 0,
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -693,9 +702,8 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

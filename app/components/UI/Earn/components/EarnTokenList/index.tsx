@@ -41,12 +41,14 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../selectors/featureFlags';
+import useEarnNetworkPolling from '../../hooks/useEarnNetworkPolling';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import EarnDepositTokenListItem from '../EarnDepositTokenListItem';
 import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
-import { sortByHighestRewards } from '../../utils';
+import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
+import { trace, TraceName } from '../../../../../util/trace';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -87,6 +89,10 @@ export interface EarnTokenListProps {
 }
 
 const EarnTokenList = () => {
+  // Start polling lending networks when this component mounts and stops when it unmounts
+  // This is currently the main component that needs data cross chain on boot
+  useEarnNetworkPolling();
+
   // Temp: Used as workaround for BadgeNetwork not properly anchoring to its parent BadgeWrapper.
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const { createEventBuilder, trackEvent } = useMetrics();
@@ -98,7 +104,8 @@ const EarnTokenList = () => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
 
-  const { earnTokens, earnOutputTokens } = useEarnTokens();
+  const { earnTokens, earnOutputTokens, earnableTotalFiatFormatted } =
+    useEarnTokens();
 
   const tokens = includeReceiptTokens ? earnOutputTokens : earnTokens;
 
@@ -121,6 +128,7 @@ const EarnTokenList = () => {
   );
 
   const redirectToDepositScreen = async (token: TokenI) => {
+    trace({ name: TraceName.EarnDepositScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -130,6 +138,7 @@ const EarnTokenList = () => {
   };
 
   const redirectToWithdrawalScreen = (token: TokenI) => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.UNSTAKE,
@@ -175,32 +184,13 @@ const EarnTokenList = () => {
     );
   };
 
-  const renderTokenListItem = (token: EarnTokenDetails) => {
-    const onItemPressScreen = params?.onItemPressScreen;
-    if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
-      return (
-        <EarnWithdrawalTokenListItem
-          earnToken={token}
-          onPress={handleRedirectToInputScreen}
-        />
-      );
-    }
-    return (
-      <EarnDepositTokenListItem
-        token={token}
-        onPress={handleRedirectToInputScreen}
-        primaryText={{
-          value: `${token?.experience?.apr || 0}% APR`,
-          color: TextColor.Success,
-        }}
-        {...(!isEmptyBalance(token) && {
-          secondaryText: {
-            value: token.balanceFormatted,
-          },
-        })}
-      />
-    );
-  };
+  const isNoEarnableTokensWithBalance = useMemo(
+    () =>
+      earnTokens?.every((token) =>
+        new BN4(token.balanceMinimalUnit).eq(new BN4(0)),
+      ),
+    [earnTokens],
+  );
 
   const highestAvailableApr = useMemo(
     () =>
@@ -233,40 +223,84 @@ const EarnTokenList = () => {
     return [...sortByHighestRewards(tokensWithBalance)];
   }, [tokens]);
 
+  const tokensSortedByHighestBalance = useMemo(() => {
+    if (!tokens?.length) return [];
+
+    return [...sortByHighestBalance(tokens)];
+  }, [tokens]);
+
+  const renderTokenListItems = () => {
+    const onItemPressScreen = params?.onItemPressScreen;
+
+    let filteredTokens;
+    if (onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT) {
+      filteredTokens = tokensSortedByHighestYield;
+    } else {
+      filteredTokens = tokensSortedByHighestBalance;
+    }
+
+    return filteredTokens.map((token) => {
+      if (token.isETH && !token.isStaked && !isPooledStakingEnabled) {
+        return null;
+      }
+
+      return (
+        token?.chainId && (
+          <View
+            style={styles.listItemContainer}
+            key={`${token.name}-${token.symbol}-${token.chainId}`}
+          >
+            {onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW ? (
+              <EarnWithdrawalTokenListItem
+                earnToken={token}
+                onPress={handleRedirectToInputScreen}
+              />
+            ) : (
+              <EarnDepositTokenListItem
+                token={token}
+                onPress={handleRedirectToInputScreen}
+                primaryText={{
+                  value: `${token?.experience?.apr || 0}% APR`,
+                  color: TextColor.Success,
+                }}
+                {...(!isEmptyBalance(token) && {
+                  secondaryText: {
+                    value: token.balanceFormatted,
+                  },
+                })}
+              />
+            )}
+          </View>
+        )
+      );
+    });
+  };
+
   return (
     <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingSM}>
-          {strings('stake.select_a_token')}
+          {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
+            ? strings('stake.select_a_token_to_withdraw')
+            : strings('stake.select_a_token_to_deposit')}
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.container}>
-        {tokensSortedByHighestYield?.length ? (
-          <>
-            {params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
-              <UpsellBanner
-                primaryText={strings('stake.you_could_earn_up_to')}
-                secondaryText={`${highestAvailableApr.toString()}%`}
-                tertiaryText={strings('stake.per_year_on_your_tokens')}
-                variant={UPSELL_BANNER_VARIANTS.HEADER}
-              />
-            )}
-            {tokensSortedByHighestYield?.map((token) => {
-              if (token.isETH && !token.isStaked && !isPooledStakingEnabled) {
-                return null;
+        {earnTokens?.length &&
+          params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.DEPOSIT && (
+            <UpsellBanner
+              primaryText={strings('stake.you_could_earn_up_to')}
+              secondaryText={
+                isNoEarnableTokensWithBalance
+                  ? `${highestAvailableApr.toString()}%`
+                  : `${earnableTotalFiatFormatted}`
               }
-              return (
-                token?.chainId && (
-                  <View
-                    style={styles.listItemContainer}
-                    key={`${token.name}-${token.symbol}-${token.chainId}`}
-                  >
-                    {renderTokenListItem(token)}
-                  </View>
-                )
-              );
-            })}
-          </>
+              tertiaryText={strings('stake.per_year_on_your_tokens')}
+              variant={UPSELL_BANNER_VARIANTS.HEADER}
+            />
+          )}
+        {earnTokens?.length ? (
+          renderTokenListItems()
         ) : (
           <EarnTokenListSkeletonPlaceholder />
         )}

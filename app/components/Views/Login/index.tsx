@@ -93,6 +93,7 @@ import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -103,7 +104,6 @@ const EmptyRecordConstant = {};
  */
 const Login: React.FC = () => {
   const [disabledInput, setDisabledInput] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -130,12 +130,14 @@ const Login: React.FC = () => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const isMetaMetricsUISeen = useSelector(
+    (state: RootState) => state.user.isMetaMetricsUISeen,
+  );
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -267,39 +269,73 @@ const Login: React.FC = () => {
     setBiometryChoice(newBiometryChoice);
   };
 
+  const navigateToHome = async () => {
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
+    if (onboardingWizard) {
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    } else {
+      setOnboardingWizardStep(1);
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    }
+  };
+
+  const checkMetricsUISeen = async (): Promise<void> => {
+    if (!isMetaMetricsUISeen) {
+      navigation.replace(Routes.ONBOARDING.ROOT_NAV, {
+        screen: Routes.ONBOARDING.NAV,
+        params: {
+          screen: Routes.ONBOARDING.OPTIN_METRICS,
+          params: {
+            onContinue: () => navigateToHome(),
+          },
+        },
+      });
+    } else {
+      navigateToHome();
+    }
+  };
+
   const handleUseOtherMethod = () => {
     navigation.goBack();
     OAuthService.resetOauthState();
   };
 
-  const tooManyAttemptsError = (remainingTime: number) => {
-    if (remainingTime > 0) {
-      setError(strings('login.too_many_attempts', { remainingTime }));
-      timeoutRef.current = setTimeout(
-        () => tooManyAttemptsError(remainingTime - 1),
-        1000,
-      );
-      setDisabledInput(true);
-    } else {
-      setError('');
-      setDisabledInput(false);
-    }
-  };
+  const isMountedRef = useRef(true);
 
   useEffect(
     () => () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      isMountedRef.current = false;
     },
     [],
   );
+
+  const tooManyAttemptsError = async (remainingTime: number) => {
+    setDisabledInput(true);
+    for (let i = remainingTime; i > 0; i--) {
+      if (!isMountedRef.current) {
+        setError(null);
+        setDisabledInput(false);
+        return; // Exit early if component unmounted
+      }
+
+      setError(
+        strings('login.too_many_attempts', {
+          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+        }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (isMountedRef.current) {
+      setError(null);
+      setDisabledInput(false);
+    }
+  };
 
   const handleSeedlessOnboardingControllerError = (
     seedlessError: SeedlessOnboardingControllerRecoveryError,
   ) => {
     if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime);
+      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
     } else {
       const errMessage = seedlessError.message.replace(
         'SeedlessOnboardingController - ',
@@ -346,43 +382,7 @@ const Login: React.FC = () => {
 
       Keyboard.dismiss();
 
-      // Get onboarding wizard state
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-
-      if (oauthLoginSuccess) {
-        if (onboardingWizard) {
-          setOnboardingWizardStep(1);
-        }
-        if (isMetricsEnabled()) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
-        } else {
-          navigation.navigate('OnboardingRootNav', {
-            screen: 'OnboardingNav',
-            params: {
-              screen: 'OptinMetrics',
-              params: {
-                onContinue: () => {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                  });
-                },
-              },
-            },
-          });
-        }
-      } else {
-        // eslint-disable-next-line no-lonely-if
-        if (onboardingWizard) {
-          navigation.replace(Routes.ONBOARDING.HOME_NAV);
-        } else {
-          setOnboardingWizardStep(1);
-          navigation.replace(Routes.ONBOARDING.HOME_NAV);
-        }
-      }
+      await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
@@ -446,6 +446,7 @@ const Login: React.FC = () => {
   const tryBiometric = async () => {
     fieldRef.current?.blur();
     try {
+      setLoading(true);
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
@@ -455,16 +456,17 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (!onboardingWizard) setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+      await checkMetricsUISeen();
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      setLoading(true);
       setPassword('');
       setHasBiometricCredentials(false);
+      setLoading(false);
       fieldRef.current?.clear();
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
+      setLoading(false);
       Logger.log(tryBiometricError);
     }
     fieldRef.current?.blur();
@@ -599,10 +601,7 @@ const Login: React.FC = () => {
               )}
             </View>
 
-            <View
-              style={styles.ctaWrapper}
-              testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-            >
+            <View style={styles.ctaWrapper}>
               {renderSwitch()}
 
               <Button
@@ -621,6 +620,7 @@ const Login: React.FC = () => {
                   )
                 }
                 isDisabled={password.length === 0 || disabledInput}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               />
 
               {!oauthLoginSuccess && (

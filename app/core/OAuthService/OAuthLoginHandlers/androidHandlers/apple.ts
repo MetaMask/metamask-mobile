@@ -1,18 +1,16 @@
-import {
-  CodeChallengeMethod,
-  ResponseType,
-  AuthRequest,
-} from 'expo-auth-session';
+import { ResponseType, AuthRequest } from 'expo-auth-session';
 import {
   AuthConnection,
+  AuthRequestParams,
+  HandleFlowParams,
   LoginHandler,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
-import { BaseLoginHandler } from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
-export interface AndroidAppleLoginHandlerParams {
+
+export interface AndroidAppleLoginHandlerParams extends BaseHandlerOptions {
   clientId: string;
-  redirectUri: string;
   appRedirectUri: string;
 }
 
@@ -23,8 +21,7 @@ export class AndroidAppleLoginHandler
   extends BaseLoginHandler
   implements LoginHandler
 {
-  public readonly OAUTH_SERVER_URL = 'https://appleid.apple.com/auth/authorize';
-
+  public readonly OAUTH_SERVER_URL: string;
   readonly #scope = ['name', 'email'];
 
   protected clientId: string;
@@ -40,7 +37,7 @@ export class AndroidAppleLoginHandler
   }
 
   get authServerPath() {
-    return 'api/v1/oauth/token';
+    return 'api/v1/oauth/callback/verify';
   }
 
   /**
@@ -51,11 +48,12 @@ export class AndroidAppleLoginHandler
    * @param params.appRedirectUri - The Android App redirectUri for the customChromeTab to handle auth-session login.
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
-    super();
-    const { appRedirectUri, redirectUri, clientId } = params;
+    super(params);
+    const { appRedirectUri, clientId, authServerUrl } = params;
     this.clientId = clientId;
-    this.redirectUri = redirectUri;
+    this.redirectUri = `${authServerUrl}/api/v1/oauth/callback`;
     this.appRedirectUri = appRedirectUri;
+    this.OAUTH_SERVER_URL = `${authServerUrl}/api/v1/oauth/initiate`;
   }
 
   /**
@@ -65,58 +63,44 @@ export class AndroidAppleLoginHandler
    * It then prompts the auth request via the client auth request instance with auth url generated with server redirect uri and state.
    *
    * Data flow:
-   * App -> Apple -> AuthServer -> App
+   * App -> AuthServer -> Apple -> AuthServer -> App
    *
    * @returns LoginHandlerCodeResult
    */
   async login(): Promise<LoginHandlerCodeResult> {
+    const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
+
     const state = JSON.stringify({
       provider: this.authConnection,
       client_redirect_back_uri: this.appRedirectUri,
-      redirectUri: this.redirectUri,
       clientId: this.clientId,
-      random: this.nonce,
+      code_challenge: challenge,
+      nonce: this.nonce,
     });
+
     const authRequest = new AuthRequest({
       clientId: this.clientId,
-      redirectUri: this.redirectUri,
+      redirectUri: this.appRedirectUri,
       scopes: this.#scope,
       responseType: ResponseType.Code,
-      codeChallengeMethod: CodeChallengeMethod.S256,
-      usePKCE: true,
+      usePKCE: false,
       state,
       extraParams: {
         response_mode: 'form_post',
       },
     });
-    // generate the auth url
-    const authUrl = await authRequest.makeAuthUrlAsync({
+
+    const result = await authRequest.promptAsync({
       authorizationEndpoint: this.OAUTH_SERVER_URL,
     });
 
-    // create a client auth request instance so that the auth-session can return result on appRedirectUrl
-    const authRequestClient = new AuthRequest({
-      clientId: this.clientId,
-      redirectUri: this.appRedirectUri,
-      state,
-    });
-
-    // prompt the auth request using generated auth url instead of the client auth request instance
-    const result = await authRequestClient.promptAsync(
-      {
-        authorizationEndpoint: this.OAUTH_SERVER_URL,
-      },
-      {
-        url: authUrl,
-      },
-    );
     if (result.type === 'success') {
       return {
         authConnection: AuthConnection.Apple,
-        code: result.params.code,
+        code: challenge,
         clientId: this.clientId,
         redirectUri: this.redirectUri,
-        codeVerifier: authRequest.codeVerifier,
+        codeVerifier,
       };
     }
     if (result.type === 'error') {
@@ -144,5 +128,24 @@ export class AndroidAppleLoginHandler
       'handleAndroidAppleLogin: Unknown error',
       OAuthErrorType.UnknownError,
     );
+  }
+
+  getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
+    if (!('code' in params)) {
+      throw new OAuthError(
+        'handleAndroidAppleLogin: Invalid params',
+        OAuthErrorType.InvalidGetAuthTokenParams,
+      );
+    }
+    const { code, clientId, codeVerifier, web3AuthNetwork, redirectUri } =
+      params;
+    return {
+      client_id: clientId,
+      code,
+      login_provider: this.authConnection,
+      network: web3AuthNetwork,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+    };
   }
 }

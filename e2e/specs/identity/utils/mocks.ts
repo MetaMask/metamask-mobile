@@ -12,25 +12,46 @@ interface MockResponse {
   response: unknown;
 }
 
+/**
+ * Sets up authentication service mocks (nonce, login, access token)
+ * @param server - The Mockttp server instance
+ */
+export async function mockAuthServices(server: Mockttp) {
+  await mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
+  await mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
+  await mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
+}
+
+/**
+ * Creates a new UserStorageMockttpController instance
+ * @returns A new controller instance for user storage mocking
+ */
+export function createUserStorageController(): UserStorageMockttpController {
+  return new UserStorageMockttpController();
+}
+
+/**
+ * Sets up complete identity services (auth + storage) with default storage features
+ * This is the original function, kept for backward compatibility
+ * @param server - The Mockttp server instance
+ * @returns An object containing the user storage controller instance
+ */
 export async function mockIdentityServices(server: Mockttp) {
-  // Auth
-  mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
-  mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
-  mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
+  // Set up auth services
+  await mockAuthServices(server);
 
-  // Storage
-  const userStorageMockttpControllerInstance =
-    new UserStorageMockttpController();
+  // Create and set up storage controller with default features
+  const userStorageMockttpControllerInstance = createUserStorageController();
 
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.accounts,
     server,
   );
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.networks,
     server,
   );
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.addressBook,
     server,
   );
@@ -63,7 +84,7 @@ const getE2ESrpIdentifierForPublicKey = (publicKey: string) => {
   return nextIdentifier;
 };
 
-function mockAPICall(server: Mockttp, response: MockResponse) {
+async function mockAPICall(server: Mockttp, response: MockResponse) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -82,7 +103,7 @@ function mockAPICall(server: Mockttp, response: MockResponse) {
     requestRuleBuilder = server.forDelete('/proxy');
   }
 
-  requestRuleBuilder
+  await requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
 
