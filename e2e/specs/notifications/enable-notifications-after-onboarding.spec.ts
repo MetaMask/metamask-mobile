@@ -20,13 +20,15 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('enables notifications through bell icon', async () => {
-    // Onboard - Import SRP
+  it('should enable notifications and view feature announcements and wallet notifications', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
         testSpecificMock: {},
+        permissions: {
+          notifications: 'YES',
+        }
       },
       async ({ mockServer }: { mockServer: MockttpServer }) => {
         await mockNotificationServices(mockServer);
