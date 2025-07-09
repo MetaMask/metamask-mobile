@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
-  StyleSheet,
+  StyleSheet as RNStyleSheet,
   View,
   TextStyle,
   Linking,
@@ -53,13 +53,8 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
@@ -126,7 +121,7 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
-  StyleSheet.create({
+  RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
     },
@@ -267,7 +262,6 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -403,11 +397,6 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
-
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
-
-  const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -435,22 +424,6 @@ const Wallet = ({
    * Show multi rpc modal if there are networks duplicated and if never showed before
    */
   useCheckMultiRpcModal();
-
-  /**
-   * Callback to trigger when pressing the navigation title.
-   */
-  const onTitlePress = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
@@ -534,9 +507,6 @@ const Wallet = ({
         selectedInternalAccount,
         accountName,
         accountAvatarType,
-        networkName,
-        networkImageSource,
-        onTitlePress,
         navigation,
         colors,
         isNotificationEnabled,
@@ -551,9 +521,6 @@ const Wallet = ({
     accountAvatarType,
     navigation,
     colors,
-    networkName,
-    networkImageSource,
-    onTitlePress,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,

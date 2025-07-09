@@ -46,7 +46,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
             variant={AvatarVariant.Account}
             type={accountAvatarType}
             accountAddress={accountAddress}
-            size={AvatarSize.Xs}
+            size={AvatarSize.Sm}
             style={styles.accountAvatar}
           />
           <Text

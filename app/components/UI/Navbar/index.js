@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   Platform,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
+    gap: 12,
   },
   optinHeaderLeft: {
     flexDirection: 'row',
@@ -148,9 +150,6 @@ const styles = StyleSheet.create({
   },
   headerRightButton: {
     marginHorizontal: 16,
-  },
-  addressCopyWrapper: {
-    marginHorizontal: 4,
   },
   iconButton: {
     marginHorizontal: 24,
@@ -929,16 +928,12 @@ export function getOfflineModalNavbar() {
  * @param {Object} selectedInternalAccount - The currently selected internal account
  * @param {string} accountName - The name of the currently selected account
  * @param {string} accountAvatarType - The type of avatar for the currently selected account
- * @param {string} networkName - The name of the current network
- * @param {Object} networkImageSource - The image source for the network icon
- * @param {Function} onPressTitle - Callback function when the title is pressed
  * @param {Object} navigation - The navigation object
  * @param {Object} themeColors - The theme colors object
  * @param {boolean} isNotificationEnabled - Whether notifications are enabled
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
- * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -946,9 +941,6 @@ export function getWalletNavbarOptions(
   selectedInternalAccount,
   accountName,
   accountAvatarType,
-  networkName,
-  networkImageSource,
-  onPressTitle,
   navigation,
   themeColors,
   isNotificationEnabled,
@@ -957,18 +949,22 @@ export function getWalletNavbarOptions(
   readNotificationCount,
 ) {
   const innerStyles = StyleSheet.create({
-    headerStyle: {
+    headerContainer: {
+      height: 72,
       backgroundColor: themeColors.background,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+      borderBottomWidth: 1,
+      borderBottomColor: themeColors.border.muted,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingLeft: 16,
+      paddingRight: 0,
     },
     headerIcon: {
       color: themeColors.primary.default,
     },
-    headerTitle: {
+    headerLeftContainer: {
       justifyContent: 'center',
-      marginTop: 5,
-      flex: 1,
     },
   });
 
@@ -1063,93 +1059,78 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const renderNetworkPicker = () => {
-    const networkPicker = (
-      <PickerNetwork
-        label={networkName}
-        imageSource={networkImageSource}
-        onPress={onPressTitle}
-        testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-        hideNetworkName
-      />
-    );
-
-    return <View style={styles.leftElementContainer}>{networkPicker}</View>;
-  };
-
   return {
-    headerTitle: () => (
-      <View style={innerStyles.headerTitle}>
-        <PickerAccount
-          ref={accountActionsRef}
-          accountAddress={formattedAddress}
-          accountName={accountName}
-          accountAvatarType={accountAvatarType}
-          onPress={() => {
-            trace({
-              name: TraceName.AccountList,
-              tags: getTraceTags(store.getState()),
-              op: TraceOperation.AccountList,
-            });
-            navigation.navigate(...createAccountSelectorNavDetails({}));
-          }}
-          accountTypeLabel={
-            getLabelTextByAddress(formattedAddress) || undefined
-          }
-          showAddress
-          cellAccountContainerStyle={styles.account}
-          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-        />
-      </View>
-    ),
-    headerLeft: () => renderNetworkPicker(),
-    headerRight: () => (
-      <View style={styles.rightElementContainer}>
-        <View
-          testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-          style={styles.addressCopyWrapper}
-        >
-          <AddressCopy account={selectedInternalAccount} />
-        </View>
-        {isNotificationsFeatureEnabled() && (
-          <View>
-            {/* Icon */}
+    header: () => (
+      <SafeAreaView style={{ backgroundColor: themeColors.background }}>
+        <View style={innerStyles.headerContainer}>
+          {/* Left side - Account Picker */}
+          <View style={innerStyles.headerLeftContainer}>
+            <PickerAccount
+              ref={accountActionsRef}
+              accountAddress={formattedAddress}
+              accountName={accountName}
+              accountAvatarType={accountAvatarType}
+              onPress={() => {
+                trace({
+                  name: TraceName.AccountList,
+                  tags: getTraceTags(store.getState()),
+                  op: TraceOperation.AccountList,
+                });
+                navigation.navigate(...createAccountSelectorNavDetails({}));
+              }}
+              accountTypeLabel={
+                getLabelTextByAddress(formattedAddress) || undefined
+              }
+              showAddress={false}
+              cellAccountContainerStyle={styles.account}
+              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+            />
+          </View>
+
+          {/* Right side - Action buttons */}
+          <View style={styles.rightElementContainer}>
+            <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
+              <AddressCopy account={selectedInternalAccount} />
+            </View>
+            {isNotificationsFeatureEnabled() && (
+              <View>
+                {/* Icon */}
+                <ButtonIcon
+                  iconColor={IconColor.Default}
+                  onPress={handleNotificationOnPress}
+                  iconName={IconName.Notification}
+                  size={IconSize.Xl}
+                  testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+                  style={styles.notificationButton}
+                />
+
+                {/* Badge Dot */}
+                {isNotificationEnabled && (
+                  <View
+                    style={[
+                      styles.notificationsBadge,
+                      {
+                        backgroundColor: unreadNotificationCount
+                          ? themeColors.error.default
+                          : themeColors.background.transparent,
+                      },
+                    ]}
+                  />
+                )}
+              </View>
+            )}
+
             <ButtonIcon
               iconColor={IconColor.Default}
-              onPress={handleNotificationOnPress}
-              iconName={IconName.Notification}
+              onPress={openQRScanner}
+              iconName={IconName.ScanBarcode}
               size={IconSize.Xl}
-              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-              style={styles.notificationButton}
+              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
             />
-
-            {/* Badge Dot */}
-            {isNotificationEnabled && (
-              <View
-                style={[
-                  styles.notificationsBadge,
-                  {
-                    backgroundColor: unreadNotificationCount
-                      ? themeColors.error.default
-                      : themeColors.background.transparent,
-                  },
-                ]}
-              />
-            )}
           </View>
-        )}
-
-        <ButtonIcon
-          iconColor={IconColor.Default}
-          onPress={openQRScanner}
-          iconName={IconName.ScanBarcode}
-          size={IconSize.Xl}
-          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-        />
-      </View>
+        </View>
+      </SafeAreaView>
     ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
   };
 }
 
