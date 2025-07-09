@@ -2696,10 +2696,18 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 }
                               }
                             >
-                              <ActivityIndicator
-                                color="#4459ff"
-                                size="large"
-                                testID="activity-indicator"
+                              <SvgMock
+                                color="#ca3542"
+                                fill="currentColor"
+                                height={32}
+                                name="CircleX"
+                                style={
+                                  {
+                                    "height": 32,
+                                    "width": 32,
+                                  }
+                                }
+                                width={32}
                               />
                               <Text
                                 accessibilityRole="text"
@@ -2717,7 +2725,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Hang tight!
+                                We were unable to verify your identity.
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -2732,7 +2740,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                This should only take about 2 minutes.
+                                Try uploading your documents again and resubmit for verification.
                               </Text>
                             </View>
                           </View>
@@ -2751,6 +2759,42 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                               ]
                             }
                           >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Retry verification
+                              </Text>
+                            </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
                               name="powered-by-transak-logo"

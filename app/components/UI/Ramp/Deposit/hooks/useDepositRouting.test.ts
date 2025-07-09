@@ -618,4 +618,96 @@ describe('useDepositRouting', () => {
       `);
     });
   });
+
+  describe('handleNavigationStateChange', () => {
+    it('processes order and navigates when URL contains orderId', async () => {
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+      const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
+      mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      expect(handler).toBeDefined();
+
+      await handler({
+        url: 'https://metamask.io/success?orderId=test-order-id',
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
+      expect(mockHandleNewOrder).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: 'order-id',
+      });
+    });
+
+    it('does nothing when URL does not start with metamask.io', async () => {
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      jest.clearAllMocks();
+
+      await handler({
+        url: 'https://example.com/success?orderId=test-order-id',
+      });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when metamask.io URL has no orderId', async () => {
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      jest.clearAllMocks();
+
+      await handler({ url: 'https://metamask.io/success' });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
 });
