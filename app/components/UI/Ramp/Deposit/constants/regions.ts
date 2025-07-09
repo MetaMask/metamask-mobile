@@ -1,4 +1,16 @@
-import { DepositRegion } from './index.ts';
+export interface DepositRegion {
+  isoCode: string;
+  flag: string;
+  name: string;
+  phone: {
+    prefix: string;
+    placeholder: string;
+    template: string;
+  };
+  currency: string;
+  supported: boolean;
+  recommended?: boolean;
+}
 
 export const DEPOSIT_REGIONS: DepositRegion[] = [
   {
