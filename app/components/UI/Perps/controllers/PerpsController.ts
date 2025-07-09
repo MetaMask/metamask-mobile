@@ -270,16 +270,6 @@ export class PerpsController extends BaseController<
       await Promise.all(existingProviders.map(provider => provider.disconnect()));
     }
     this.providers.clear();
-
-    // HyperLiquid provider handles its own wallet/authentication internally
-    DevLogger.log('PerpsController: Creating new HyperLiquid provider', {
-      isTestnet: this.state.isTestnet,
-      expectedEndpoint: this.state.isTestnet
-        ? 'wss://api.hyperliquid-testnet.xyz/ws'
-        : 'wss://api.hyperliquid.xyz/ws',
-      timestamp: new Date().toISOString()
-    });
-
     this.providers.set('hyperliquid', new HyperLiquidProvider(
       { isTestnet: this.state.isTestnet }
     ));
@@ -309,7 +299,7 @@ export class PerpsController extends BaseController<
       });
       throw new Error(error);
     }
-    
+
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
       const error = `Provider ${this.state.activeProvider} not found`;
@@ -319,7 +309,7 @@ export class PerpsController extends BaseController<
       });
       throw new Error(error);
     }
-    
+
     return provider;
   }
 
@@ -336,11 +326,18 @@ export class PerpsController extends BaseController<
 
     const result = await provider.placeOrder(params);
 
-    // Update state
-    this.update(state => {
-      state.pendingOrders = state.pendingOrders.filter(o => o !== params);
-      state.lastUpdateTimestamp = Date.now();
-    });
+    // Update state only on success
+    if (result.success) {
+      this.update(state => {
+        state.pendingOrders = state.pendingOrders.filter(o => o !== params);
+        state.lastUpdateTimestamp = Date.now();
+      });
+    } else {
+      // Remove from pending orders even on failure since the attempt is complete
+      this.update(state => {
+        state.pendingOrders = state.pendingOrders.filter(o => o !== params);
+      });
+    }
 
     return result;
   }
@@ -631,6 +628,7 @@ export class PerpsController extends BaseController<
    * Withdraw funds from trading account
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
+    // TODO: not validated yet
     const provider = this.getActiveProvider();
     return provider.withdraw(params);
   }
@@ -653,7 +651,7 @@ export class PerpsController extends BaseController<
       return positions;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get positions';
-      
+
       // Update error state but don't modify positions (keep existing data)
       this.update(state => {
         state.lastError = errorMessage;
@@ -685,7 +683,7 @@ export class PerpsController extends BaseController<
       return accountState;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get account state';
-      
+
       // Update error state but don't modify accountState (keep existing data)
       this.update(state => {
         state.lastError = errorMessage;
@@ -892,6 +890,7 @@ export class PerpsController extends BaseController<
         ]
       });
 
+      // TODO: ⚠️ Flagging: We'll need to keep an eye out for breaking changes regarding the global network selector (GNS) removal initiative. Assuming it's still happening, we won't be able to rely on a single user-selected "active" network and instead will need to rely on contextual data.
       // Submit the transaction directly via TransactionController
       const { NetworkController } = Engine.context;
       const selectedNetworkClientId = NetworkController.state.selectedNetworkClientId;
