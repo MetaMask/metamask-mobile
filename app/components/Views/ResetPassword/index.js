@@ -903,7 +903,6 @@ class ResetPassword extends PureComponent {
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
-                    onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
