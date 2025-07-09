@@ -51,25 +51,25 @@ describe('OnboardingSheet', () => {
     jest.clearAllMocks();
   });
 
-  // describe('Snapshots', () => {
-  //   it('renders correctly with createWallet=false (import mode)', () => {
-  //     const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
-  //     expect(toJSON()).toMatchSnapshot();
-  //   });
+  describe('Snapshots', () => {
+    it('renders correctly with createWallet=false (import mode)', () => {
+      const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
+      expect(toJSON()).toMatchSnapshot();
+    });
 
-  //   it('renders correctly with createWallet=true (create mode)', () => {
-  //     const propsWithCreateWallet = {
-  //       route: {
-  //         params: {
-  //           ...defaultProps.route.params,
-  //           createWallet: true,
-  //         },
-  //       },
-  //     };
-  //     const { toJSON } = render(<OnboardingSheet {...propsWithCreateWallet} />);
-  //     expect(toJSON()).toMatchSnapshot();
-  //   });
-  // });
+    it('renders correctly with createWallet=true (create mode)', () => {
+      const propsWithCreateWallet = {
+        route: {
+          params: {
+            ...defaultProps.route.params,
+            createWallet: true,
+          },
+        },
+      };
+      const { toJSON } = render(<OnboardingSheet {...propsWithCreateWallet} />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
 
   describe('Behavior Tests', () => {
     describe('Google button interactions', () => {
