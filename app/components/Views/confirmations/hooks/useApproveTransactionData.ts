@@ -205,6 +205,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     return result;
   }, [
     details.decimalsNumber,
+    details.symbol,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,
