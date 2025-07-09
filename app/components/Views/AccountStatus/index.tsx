@@ -1,5 +1,11 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -49,6 +55,8 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   const oauthLoginSuccess = (route.params as AccountRouteParams)
     ?.oauthLoginSuccess;
 
+  // check for small screen size
+  const isSmallScreen = Dimensions.get('window').width < 375;
   useLayoutEffect(() => {
     const marginLeft = 16;
     const headerLeft = () => (
@@ -100,59 +108,63 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.root}>
-      <View style={styles.content}>
-        <Text variant={TextVariant.DisplayMD}>
-          {type === 'found'
-            ? strings('account_status.account_already_exists')
-            : strings('account_status.account_not_found')}
-        </Text>
-        <Image
-          source={AccountStatusImg}
-          resizeMethod={'auto'}
-          style={styles.walletReadyImage}
-        />
-        <View style={styles.descriptionWrapper}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+    <View style={styles.root}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.content}>
+          <Text variant={TextVariant.DisplayMD}>
             {type === 'found'
-              ? strings('account_status.account_already_exists_description', {
-                  accountName,
-                })
-              : strings('account_status.account_not_found_description', {
-                  accountName,
-                })}
+              ? strings('account_status.account_already_exists')
+              : strings('account_status.account_not_found')}
           </Text>
+          <Image
+            source={AccountStatusImg}
+            resizeMethod={'auto'}
+            style={styles.walletReadyImage}
+          />
+          <View style={styles.descriptionWrapper}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {type === 'found'
+                ? strings('account_status.account_already_exists_description', {
+                    accountName,
+                  })
+                : strings('account_status.account_not_found_description', {
+                    accountName,
+                  })}
+            </Text>
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
-      <Button
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        onPress={() => {
-          if (type === 'found') {
-            navigateNextScreen('Rehydrate', 'Onboarding', 'import');
-          } else {
-            navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
+      <View>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          onPress={() => {
+            if (type === 'found') {
+              navigateNextScreen('Rehydrate', 'Onboarding', 'import');
+            } else {
+              navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
+            }
+          }}
+          label={
+            type === 'found'
+              ? strings('account_status.log_in')
+              : strings('account_status.create_new_wallet')
           }
-        }}
-        label={
-          type === 'found'
-            ? strings('account_status.log_in')
-            : strings('account_status.create_new_wallet')
-        }
-      />
-      <Button
-        variant={ButtonVariants.Secondary}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        onPress={() => {
-          navigation.goBack();
-        }}
-        label={strings('account_status.use_different_login_method')}
-        style={styles.secondaryButton}
-      />
-    </ScrollView>
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          onPress={() => {
+            navigation.goBack();
+          }}
+          label={strings('account_status.use_different_login_method')}
+          style={styles.secondaryButton}
+        />
+      </View>
+    </View>
   );
 };
 

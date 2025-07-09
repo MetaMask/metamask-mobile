@@ -1,8 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
@@ -24,11 +26,13 @@ export const ApproveAndPermit2 = () => {
     tokenBalance,
     tokenId,
     tokenStandard,
+    rawAmount,
     spender,
   } = useApproveTransactionData();
   const { onSpendingCapUpdate } = useApproveTransactionActions();
 
-  const transactionMetadata = useTransactionMetadataRequest();
+  const transactionMetadata =
+    useTransactionMetadataRequest() as TransactionMeta;
   const isERC20 = tokenStandard === TokenStandard.ERC20;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
   const shouldShow = isERC20 || isERC721;
@@ -47,8 +51,8 @@ export const ApproveAndPermit2 = () => {
         >
           <View style={styles.amountAndAddressContainer}>
             <Address
-              address={transactionMetadata?.txParams?.to ?? ''}
-              chainId={transactionMetadata?.chainId ?? ''}
+              address={transactionMetadata?.txParams?.to as string}
+              chainId={transactionMetadata.chainId}
             />
           </View>
         </InfoRow>
@@ -56,7 +60,7 @@ export const ApproveAndPermit2 = () => {
           <InfoRow label={strings('confirm.permission_from')}>
             <Address
               address={spender ?? ''}
-              chainId={transactionMetadata?.chainId ?? ''}
+              chainId={transactionMetadata.chainId}
             />
           </InfoRow>
         )}
@@ -80,24 +84,60 @@ export const ApproveAndPermit2 = () => {
                 approveMethod: approveMethod as ApproveMethod,
                 balance: tokenBalance ?? '0',
                 decimals: decimals ?? 1,
-                spendingCap: amount ?? '',
+                spendingCap: rawAmount ?? '',
                 onSpendingCapUpdate,
               }}
+            >
+              <PillAndAddress
+                amount={amount}
+                isERC20
+                tokenId={tokenId}
+                transactionMetadata={transactionMetadata}
+              />
+            </EditSpendingCapButton>
+          )}
+          {!isERC20 && (
+            <PillAndAddress
+              isERC20={isERC20}
+              tokenId={tokenId}
+              transactionMetadata={transactionMetadata}
             />
           )}
-          <Pill text={isERC20 ? amount ?? '' : `#${tokenId}`} />
-          <Address
-            address={transactionMetadata?.txParams?.to ?? ''}
-            chainId={transactionMetadata?.chainId ?? ''}
-          />
         </View>
       </InfoRow>
       <InfoRow label={strings('confirm.spender')}>
         <Address
           address={spender ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
+          chainId={transactionMetadata.chainId}
         />
       </InfoRow>
     </>
   );
 };
+
+interface PillAndAddressProps {
+  amount?: string;
+  isERC20: boolean;
+  tokenId?: string;
+  transactionMetadata: TransactionMeta;
+}
+
+function PillAndAddress({
+  amount,
+  isERC20,
+  tokenId,
+  transactionMetadata,
+}: PillAndAddressProps) {
+  return (
+    <>
+      <Pill
+        testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+        text={isERC20 ? amount ?? '' : `#${tokenId}`}
+      />
+      <Address
+        address={transactionMetadata?.txParams?.to as string}
+        chainId={transactionMetadata.chainId}
+      />
+    </>
+  );
+}
