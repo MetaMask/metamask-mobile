@@ -155,7 +155,7 @@ const OtpCode = () => {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (value.length === CELL_COUNT) {
+    if (!isLoading && value.length === CELL_COUNT) {
       try {
         setIsLoading(true);
         setError(null);
@@ -175,7 +175,14 @@ const OtpCode = () => {
         setIsLoading(false);
       }
     }
-  }, [quote, routeAfterAuthentication, setAuthToken, submitCode, value.length]);
+  }, [
+    isLoading,
+    quote,
+    routeAfterAuthentication,
+    setAuthToken,
+    submitCode,
+    value.length,
+  ]);
 
   const handleValueChange = useCallback((text: string) => {
     setValue(text);
@@ -183,10 +190,10 @@ const OtpCode = () => {
   }, []);
 
   useEffect(() => {
-    if (value.length === CELL_COUNT) {
+    if (value.length === CELL_COUNT && !isLoading) {
       handleSubmit();
     }
-  }, [value, handleSubmit]);
+  }, [value, handleSubmit, isLoading]);
 
   return (
     <ScreenLayout>
