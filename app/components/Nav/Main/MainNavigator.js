@@ -103,6 +103,7 @@ import ProtectYourWallet from '../../Views/Settings/SecuritySettings/Sections/Pr
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import WalletRecovery from '../../Views/WalletRecovery';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -400,8 +401,8 @@ const SettingsFlow = () => (
     />
     <Stack.Screen
       name="WalletRecovery"
-      component={ProtectYourWallet}
-      options={ProtectYourWallet.navigationOptions}
+      component={WalletRecovery}
+      options={WalletRecovery.navigationOptions}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
