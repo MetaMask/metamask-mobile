@@ -717,6 +717,15 @@
     },
     "order": {
       "title": "New Order",
+      "success": {
+        "title": "Order Success"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
       "longTitle": "Long {{asset}}",
       "shortTitle": "Short {{asset}}",
       "market": "Market",
@@ -768,6 +777,24 @@
         "networkError": "Network error",
         "unknown": "Unknown error occurred",
         "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
+    },
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
       }
     }
   },
