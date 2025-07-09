@@ -542,7 +542,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
-      "validation_error": "Please enter a valid email address"
+      "validation_error": "Please enter a valid email address",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Enter six-digit code",
@@ -633,7 +634,9 @@
       "cancel_order_button": "Cancel order"
     },
     "order_details": {
-      "title": "Deposit Order"
+      "title": "Deposit Order",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
     },
     "bank_details": {
       "title": "{{paymentMethod}} bank transfer",
@@ -667,6 +670,11 @@
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
       "deposit_pending_description": "This should only take a few minutes..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1340,9 +1348,6 @@
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
-    "ses_heading": "Code Lockdown",
-    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
-    "ses_link": "Learn more",
     "general_heading": "General",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
@@ -4347,13 +4352,13 @@
         "payToken": "Pay with any token, any time",
         "payTokenDescription": "Use the tokens you already have to cover network fees.",
         "reject": "No",
-        "requestFor": "Request for",
         "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?",
-        "upgradeBannerDescription": "Same address. Smarter features.",
-        "upgradeBannerTitle": "Switch to smart account"
+        "splashTitle": "Use smart account?"
       },
-      "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",
@@ -4554,7 +4559,7 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "add_account": "Add account",
+      "create_account": "Create account",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },

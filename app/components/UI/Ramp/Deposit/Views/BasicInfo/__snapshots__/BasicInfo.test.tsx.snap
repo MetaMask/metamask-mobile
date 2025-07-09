@@ -890,7 +890,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
+                                        placeholder="(555) 123-4567"
                                         placeholderTextColor="#9ca1af"
                                         style={
                                           {
@@ -908,6 +908,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value="(234) 567-890"
                                       />
                                     </View>
@@ -2202,7 +2203,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
+                                        placeholder="(555) 123-4567"
                                         placeholderTextColor="#9ca1af"
                                         style={
                                           {
@@ -2220,6 +2221,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value=""
                                       />
                                     </View>
@@ -3544,7 +3546,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
+                                        placeholder="(555) 123-4567"
                                         placeholderTextColor="#9ca1af"
                                         style={
                                           {
@@ -3562,6 +3564,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value=""
                                       />
                                     </View>
