@@ -272,6 +272,15 @@ describe('ResetPassword', () => {
       }),
     } as unknown as ReduxStore);
 
+    jest.spyOn(Authentication, 'getType').mockResolvedValue({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    jest
+      .spyOn(StorageWrapper, 'getItem')
+      .mockImplementationOnce(() => Promise.resolve(BIOMETRY_TYPE.FACE_ID));
+
     const component = await renderConfirmPasswordView();
 
     const newPasswordInput = component.getByTestId(
