@@ -1292,11 +1292,11 @@ workflows:
                     if [[ -n "$LAST_SUCCESSFUL_COMMIT" ]]; then
                         LAST_COMMIT_SHORT=$(echo "$LAST_SUCCESSFUL_COMMIT" | cut -c1-8)
                         
-                        # Check if there are any app code changes since the last successful commit
+                        # Check if there are any native code changes since the last successful commit
                         if git rev-parse --git-dir > /dev/null 2>&1 && \
                            git diff --name-only ${LAST_SUCCESSFUL_COMMIT}..HEAD 2>/dev/null | \
-                           grep -E '\.(ts|tsx|js|jsx|swift|m|java|kt|gradle|pbxproj|plist|xml)$|^(package\.json|.*\.lock)$' | \
-                           grep -v '^app/e2e/' | grep -v '^e2e/' > /dev/null; then
+                           grep -E '\.(swift|m|h|java|kt|gradle|pbxproj|plist|xml)$|^(package\.json|.*\.lock|Podfile|metro\.config\.js)$|ios/|android/' | \
+                           grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
                             echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
                             APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
                         else
