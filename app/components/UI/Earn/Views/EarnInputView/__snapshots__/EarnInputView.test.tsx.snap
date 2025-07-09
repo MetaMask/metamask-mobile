@@ -394,9 +394,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -444,9 +443,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -470,9 +468,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 32,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                     }
@@ -485,9 +482,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#9ca1af",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 32,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                     }
@@ -513,6 +509,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "flexDirection": "row",
                                       "height": 32,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -523,9 +520,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -597,9 +593,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -638,9 +633,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#1c7e33",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -653,9 +647,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -698,6 +691,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -707,9 +701,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -735,6 +728,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -744,9 +738,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -772,6 +765,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -781,9 +775,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -809,6 +802,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -832,9 +826,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -1665,12 +1658,13 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#4459ff",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
                                 "opacity": 0.5,
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -1680,9 +1674,8 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2100,9 +2093,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -2150,9 +2142,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -2176,9 +2167,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 32,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                     }
@@ -2191,9 +2181,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     {
                                       "color": "#9ca1af",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 32,
-                                      "fontWeight": "700",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                     }
@@ -2219,6 +2208,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "flexDirection": "row",
                                       "height": 32,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -2229,9 +2219,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 16,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2303,9 +2292,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -2344,9 +2332,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#1c7e33",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -2359,9 +2346,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "CentraNo1-Medium",
+                                          "fontFamily": "Geist Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -2404,6 +2390,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2413,9 +2400,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2441,6 +2427,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2450,9 +2437,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2478,6 +2464,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2487,9 +2474,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -2515,6 +2501,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2538,9 +2525,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -3371,12 +3357,13 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#4459ff",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
                                 "opacity": 0.5,
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -3386,9 +3373,8 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }

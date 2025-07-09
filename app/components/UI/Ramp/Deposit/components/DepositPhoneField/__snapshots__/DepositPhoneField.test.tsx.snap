@@ -17,9 +17,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -69,9 +68,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -84,9 +82,8 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -120,7 +117,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -130,6 +127,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -154,9 +152,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -206,9 +203,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -221,9 +217,8 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -257,7 +252,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -267,6 +262,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -291,9 +287,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -343,9 +338,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -358,9 +352,8 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -394,7 +387,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -404,6 +397,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -428,9 +422,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -480,9 +473,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -495,9 +487,8 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -531,7 +522,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -541,6 +532,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -565,9 +557,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -617,9 +608,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -632,9 +622,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -668,7 +657,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -678,6 +667,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -687,9 +677,8 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     style={
       {
         "color": "#ca3542",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 12,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginTop": 4,
@@ -718,9 +707,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -770,9 +758,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -785,9 +772,8 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -821,7 +807,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -831,6 +817,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="155512345678901234"
       />
     </View>
@@ -855,9 +842,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -907,9 +893,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -922,9 +907,8 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -959,7 +943,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -969,6 +953,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -993,9 +978,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1045,9 +1029,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1060,9 +1043,8 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1096,7 +1078,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -1106,6 +1088,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="15551234567"
       />
     </View>
@@ -1130,9 +1113,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1182,9 +1164,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1197,9 +1178,8 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1233,7 +1213,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -1243,6 +1223,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -1267,9 +1248,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Book",
+        "fontFamily": "Geist Regular",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
         "marginBottom": 6,
@@ -1319,9 +1299,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1334,9 +1313,8 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           style={
             {
               "color": "#9ca1af",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginLeft": 4,
@@ -1370,7 +1348,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
             "height": 24,
@@ -1380,6 +1358,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="(555) 123-4567"
       />
     </View>

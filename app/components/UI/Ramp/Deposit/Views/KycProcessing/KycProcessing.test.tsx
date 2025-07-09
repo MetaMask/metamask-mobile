@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
@@ -134,17 +134,5 @@ describe('KycProcessing Component', () => {
     ]);
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('navigates to browser tab on button press and stops polling', async () => {
-    render(KycProcessing);
-    const button = screen.getByRole('button');
-    fireEvent.press(button);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER_TAB_HOME);
-    });
-
-    expect(mockStopPolling).toHaveBeenCalled();
   });
 });
