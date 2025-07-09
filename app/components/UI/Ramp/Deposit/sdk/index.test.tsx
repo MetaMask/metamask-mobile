@@ -16,6 +16,8 @@ import {
   TransakEnvironment,
 } from '@consensys/native-ramps-sdk';
 
+import { getGeolocation } from '../utils/geolocation';
+
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -27,6 +29,10 @@ jest.mock('../utils/ProviderTokenVault', () => ({
     .fn()
     .mockResolvedValue({ success: false, token: null }),
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('../utils/geolocation', () => ({
+  getGeolocation: jest.fn(),
 }));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -359,6 +365,190 @@ describe('Deposit SDK Context', () => {
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'FIAT_SET_REGION_DEPOSIT',
         payload: newRegion,
+      });
+    });
+  });
+
+  describe('Geolocation Effect', () => {
+    const mockGetGeolocation = jest.mocked(getGeolocation);
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockDispatch.mockClear();
+      mockGetGeolocation.mockClear();
+    });
+
+    it('sets region based on geolocation when no initial region is set', async () => {
+      const mockGeolocationResponse = { ipCountryCode: 'GB' };
+      mockGetGeolocation.mockResolvedValue(mockGeolocationResponse);
+
+      const stateWithNoRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: null,
+        },
+      };
+      const TestComponent = () => null;
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithNoRegion },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockGetGeolocation).toHaveBeenCalledTimes(1);
+
+      const gbRegion = DEPOSIT_REGIONS.find(
+        (region) => region.isoCode === 'GB',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'FIAT_SET_REGION_DEPOSIT',
+        payload: gbRegion,
+      });
+    });
+
+    it('falls back to default region when geolocation returns unsupported country', async () => {
+      const mockGeolocationResponse = { ipCountryCode: 'XX' }; // Unsupported country
+      mockGetGeolocation.mockResolvedValue(mockGeolocationResponse);
+
+      const stateWithNoRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: null,
+        },
+      };
+
+      const TestComponent = () => null;
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithNoRegion },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockGetGeolocation).toHaveBeenCalledTimes(1);
+
+      const usRegion = DEPOSIT_REGIONS.find(
+        (region) => region.isoCode === 'US',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'FIAT_SET_REGION_DEPOSIT',
+        payload: usRegion,
+      });
+    });
+
+    it('falls back to default region when geolocation API fails', async () => {
+      const geolocationError = new Error('Geolocation API failed');
+      mockGetGeolocation.mockRejectedValue(geolocationError);
+
+      const stateWithNoRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: null,
+        },
+      };
+
+      const TestComponent = () => null;
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithNoRegion },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockGetGeolocation).toHaveBeenCalledTimes(1);
+
+      const usRegion = DEPOSIT_REGIONS.find(
+        (region) => region.isoCode === 'US',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'FIAT_SET_REGION_DEPOSIT',
+        payload: usRegion,
+      });
+    });
+
+    it('does not call geolocation when initial region is already set', async () => {
+      const testRegion =
+        DEPOSIT_REGIONS.find((region) => region.isoCode === 'CA') || null;
+      const stateWithRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: testRegion,
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithRegion },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockGetGeolocation).not.toHaveBeenCalled();
+      expect(contextValue?.selectedRegion).toEqual(testRegion);
+    });
+
+    it('sets region based on geolocation for supported European country', async () => {
+      const mockGeolocationResponse = { ipCountryCode: 'DE' };
+      mockGetGeolocation.mockResolvedValue(mockGeolocationResponse);
+
+      const stateWithNoRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: null,
+        },
+      };
+
+      const TestComponent = () => null;
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithNoRegion },
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockGetGeolocation).toHaveBeenCalledTimes(1);
+
+      const deRegion = DEPOSIT_REGIONS.find(
+        (region) => region.isoCode === 'DE',
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'FIAT_SET_REGION_DEPOSIT',
+        payload: deRegion,
       });
     });
   });
