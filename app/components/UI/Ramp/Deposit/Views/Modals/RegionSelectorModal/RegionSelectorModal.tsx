@@ -19,20 +19,13 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useDepositSDK } from '../../../sdk';
 
 const MAX_REGION_RESULTS = 20;
-
-interface RegionSelectorModalNavigationDetails {
-  selectedRegionCode?: string;
-  handleSelectRegion?: (region: DepositRegion) => void;
-}
 
 export const createRegionSelectorModalNavigationDetails =
   createNavigationDetails(
@@ -44,8 +37,7 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegionCode, handleSelectRegion } =
-    useParams<RegionSelectorModalNavigationDetails>();
+  const { selectedRegion, setSelectedRegion } = useDepositSDK();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -92,18 +84,18 @@ function RegionSelectorModal() {
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported && handleSelectRegion) {
-        handleSelectRegion(region);
+      if (region.supported && setSelectedRegion) {
+        setSelectedRegion(region);
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [handleSelectRegion],
+    [setSelectedRegion],
   );
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: DepositRegion }) => (
       <ListItemSelect
-        isSelected={selectedRegionCode === region.isoCode}
+        isSelected={selectedRegion?.isoCode === region.isoCode}
         onPress={() => {
           if (region.supported) {
             handleOnRegionPressCallback(region);
@@ -139,12 +131,7 @@ function RegionSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [
-      handleOnRegionPressCallback,
-      selectedRegionCode,
-      styles.region,
-      styles.emoji,
-    ],
+    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
   );
 
   const renderEmptyList = useCallback(
@@ -195,7 +182,7 @@ function RegionSelectorModal() {
         style={styles.list}
         data={dataSearchResults}
         renderItem={renderRegionItem}
-        extraData={selectedRegionCode}
+        extraData={selectedRegion?.isoCode}
         keyExtractor={(item) => item.isoCode}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"

@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Button, {
   ButtonSize,
@@ -91,15 +92,16 @@ export const EditSpendingCapModal = ({
             size={ButtonSize.Lg}
             isDisabled={isDataUpdating}
             style={styles.button}
-            label={'Cancel'}
+            label={strings('confirm.simulation.cancel')}
             onPress={handleCloseModal}
           />
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             style={styles.button}
-            label={'Save'}
+            label={strings('confirm.simulation.save')}
             isDisabled={!!error}
+            testID={ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON}
             onPress={async () => {
               setIsDataUpdating(true);
               await onSpendingCapUpdate?.(newSpendingCap);

@@ -26,6 +26,8 @@ import {
 import {
   fiatOrdersGetStartedDeposit,
   setFiatOrdersGetStartedDeposit,
+  fiatOrdersRegionSelectorDeposit,
+  setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
 
@@ -79,11 +81,16 @@ export const DepositSDKProvider = ({
   const [authToken, setAuthToken] = useState<NativeTransakAccessToken>();
 
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedDeposit);
+  const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
+    fiatOrdersRegionSelectorDeposit,
+  );
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
-  // Initialize with US region as default
+  const defaultRegion =
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
+    INITIAL_SELECTED_REGION || defaultRegion,
   );
 
   const setGetStartedCallback = useCallback(
@@ -97,9 +104,21 @@ export const DepositSDKProvider = ({
   const setSelectedRegionCallback = useCallback(
     (region: DepositRegion | null) => {
       setSelectedRegion(region);
+      dispatch(setFiatOrdersRegionDeposit(region));
     },
-    [],
+    [dispatch],
   );
+
+  useEffect(() => {
+    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
+      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
+  }, [INITIAL_SELECTED_REGION, defaultRegion]);
 
   useEffect(() => {
     try {

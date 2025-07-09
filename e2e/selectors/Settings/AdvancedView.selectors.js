@@ -6,4 +6,5 @@ export const AdvancedViewSelectorsIDs = {
   ADVANCED_SETTINGS_SCROLLVIEW: 'advanced-settings-scrollview',
   STX_OPT_IN_SWITCH: 'smart_transactions_opt_in_switch',
   DISMISS_SMART_ACCOUNT_UPDATE: 'dismiss_smart_account_update',
+  SMART_ACCOUNT_OPT_IN: 'smart_account_opt_in',
 };
