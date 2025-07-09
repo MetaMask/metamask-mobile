@@ -149,6 +149,7 @@ import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/Wall
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
