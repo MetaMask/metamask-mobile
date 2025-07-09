@@ -62,7 +62,9 @@ export async function withIdentityFixtures(
     },
     async ({ mockServer }: { mockServer: MockttpServer }) => {
       // mock auth services
+
       await mockAuthServices(mockServer);
+
       if (mockBalancesAccounts.length > 0) {
         await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
       }
