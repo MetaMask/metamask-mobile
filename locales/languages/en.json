@@ -542,7 +542,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
-      "validation_error": "Please enter a valid email address"
+      "validation_error": "Please enter a valid email address",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Enter six-digit code",
