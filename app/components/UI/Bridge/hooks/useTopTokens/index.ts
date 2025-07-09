@@ -7,7 +7,7 @@ import {
 } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
-import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
+import { handleFetch } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
 import { useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
@@ -105,7 +105,12 @@ export const useTopTokens = ({
         ? normalizeToCaipAssetType(bridgeAsset.address, caipChainId)
         : bridgeAsset.address;
 
-      bridgeTokenObj[addr] = {
+      // Use the normalized address as the key for consistent lookups
+      const normalizedKey = isSolanaChainId(caipChainId)
+        ? tokenAddress // Solana addresses are case-sensitive
+        : tokenAddress.toLowerCase(); // EVM addresses are case-insensitive
+
+      bridgeTokenObj[normalizedKey] = {
         address: tokenAddress,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
@@ -157,10 +162,13 @@ export const useTopTokens = ({
     for (const topAssetAddr of topAssetAddrs) {
       if (result.length >= MAX_TOP_TOKENS) break;
 
-      const candidateBridgeToken =
-        bridgeTokens[topAssetAddr] ||
-        bridgeTokens[topAssetAddr.toLowerCase()] ||
-        bridgeTokens[toChecksumHexAddress(topAssetAddr)];
+      // Normalize the lookup address the same way as the keys
+      const normalizedLookupAddr =
+        chainId && isSolanaChainId(chainId)
+          ? topAssetAddr // Solana addresses are case-sensitive
+          : topAssetAddr.toLowerCase(); // EVM addresses are case-insensitive
+
+      const candidateBridgeToken = bridgeTokens[normalizedLookupAddr];
 
       if (candidateBridgeToken) {
         addTokenIfNotExists(candidateBridgeToken);
@@ -185,7 +193,7 @@ export const useTopTokens = ({
       topTokens: result,
       remainingTokens: remainingTokensList,
     };
-  }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
+  }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags, chainId]);
 
   return {
     topTokens,

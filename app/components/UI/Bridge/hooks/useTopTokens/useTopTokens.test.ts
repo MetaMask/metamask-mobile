@@ -148,4 +148,34 @@ describe('useTopTokens', () => {
       expect(result.current.topTokens).toEqual([]);
     });
   });
+
+  it('should correctly match normalized addresses for lookups', async () => {
+    // Mock Bridge API response with raw address as key but normalized address in token data
+    const mockBridgeResponse = {
+      '0x1234567890123456789012345678901234567890': {
+        address: '0x1234567890123456789012345678901234567890',
+        symbol: 'TOKEN1',
+        name: 'Token One',
+        iconUrl: 'https://token1.com/logo.png',
+        decimals: 18,
+        chainId: '0x1',
+        assetId: 'token1-asset-id',
+      },
+    };
+
+    // Mock the Bridge API call
+    (fetchBridgeTokens as jest.Mock).mockResolvedValue(mockBridgeResponse);
+
+    const { result } = renderHookWithProvider(
+      () => useTopTokens({ chainId: mockChainId }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(result.current.pending).toBe(false);
+      // Should find the token even though the lookup uses normalized address
+      expect(result.current.topTokens).toHaveLength(1);
+      expect(result.current.topTokens?.[0]?.symbol).toBe('TOKEN1');
+    });
+  });
 });
