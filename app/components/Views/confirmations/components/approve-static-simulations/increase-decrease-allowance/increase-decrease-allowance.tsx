@@ -24,6 +24,7 @@ export const IncreaseDecreaseAllowance = () => {
     decimals,
     tokenBalance,
     tokenStandard,
+    tokenSymbol,
     rawAmount,
     spender,
   } = useApproveTransactionData();
@@ -46,6 +47,7 @@ export const IncreaseDecreaseAllowance = () => {
               balance: tokenBalance ?? '0',
               decimals: decimals ?? 1,
               spendingCap: rawAmount ?? '0',
+              tokenSymbol: tokenSymbol,
               onSpendingCapUpdate,
             }}
           />

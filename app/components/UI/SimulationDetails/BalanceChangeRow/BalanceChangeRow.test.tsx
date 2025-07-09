@@ -68,21 +68,15 @@ describe('BalanceChangeList', () => {
     expect(container).toBeNull();
   });
 
-  it('EditRowValue component is included if enableEdit is true and onUpdate is defined', () => {
+  it('adds EditSpendingCapButton component if onApprovalAmountUpdate is defined', () => {
     const { getByTestId } = render(
       <BalanceChangeRow
         showFiat={false}
         balanceChange={balanceChangeMock}
-        enableEdit
-        editTexts={{
-          title: 'Edit approval limit',
-          description:
-            'Enter the amount that you feel comfortable being spent on your behalf.',
-        }}
-        onUpdate={() => undefined}
+        onApprovalAmountUpdate={() => Promise.resolve()}
       />,
     );
 
-    expect(getByTestId('edit-amount-button-icon')).toBeTruthy();
+    expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
   });
 });

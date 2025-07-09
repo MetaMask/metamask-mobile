@@ -16,6 +16,7 @@ import {
   TokenDetailsERC20,
 } from '../../utils/token';
 import { parseApprovalTransactionData } from '../../utils/approvals';
+import { ApproveMethod } from '../../types/approve';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
@@ -23,9 +24,11 @@ type ApprovalSimulationBalanceChange = SimulationTokenBalanceChange & {
   isAll: boolean;
   isUnlimited: boolean;
   nestedTransactionIndex: number;
+  approveMethod: ApproveMethod;
 };
 
 export type ApprovalBalanceChange = BalanceChange & {
+  approveMethod?: ApproveMethod;
   nestedTransactionIndex: number;
 };
 
@@ -63,6 +66,7 @@ export function useBatchApproveBalanceChanges(): {
 
         return {
           ...change,
+          approveMethod: simulation?.approveMethod,
           isApproval: true,
           isAllApproval: simulation?.isAll ?? false,
           isUnlimitedApproval: simulation?.isUnlimited ?? false,
@@ -136,7 +140,7 @@ async function buildSimulationTokenBalanceChanges({
       continue;
     }
 
-    const { amountOrTokenId, isApproveAll: isAll } = parseResult;
+    const { amountOrTokenId, isApproveAll: isAll, name } = parseResult;
     const amountOrTokenIdHex = add0x(amountOrTokenId?.toString(16) ?? '0x0');
 
     const difference =
@@ -151,6 +155,7 @@ async function buildSimulationTokenBalanceChanges({
 
     const balanceChange: ApprovalSimulationBalanceChange = {
       address: to as Hex,
+      approveMethod: name,
       difference,
       id: tokenId,
       isAll: isAll ?? false,
