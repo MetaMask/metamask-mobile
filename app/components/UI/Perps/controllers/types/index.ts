@@ -26,7 +26,7 @@ export type OrderParams = {
 };
 
 export type OrderResult = {
-  success: boolean;
+  success?: boolean;
   orderId?: string;              // Order ID from exchange
   error?: string;
   filledSize?: string;           // Amount filled
@@ -207,7 +207,7 @@ export interface OrderFill {
   price: string;                   // Fill price
   fee: string;                     // Fee paid
   timestamp: number;               // Fill timestamp
-  success: boolean;                // Whether the order was filled successfully
+  success?: boolean;                // Whether the order was filled successfully
 }
 
 // Parameter interfaces - all fully optional for better UX
