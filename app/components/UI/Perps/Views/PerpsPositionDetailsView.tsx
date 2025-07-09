@@ -50,6 +50,9 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    section: {
+      marginBottom: 8,
+    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -128,24 +131,22 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 16,
     },
     detailCard: {
-      width: '48%',
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-      marginHorizontal: '1%',
-      borderWidth: 1,
-      borderColor: colors.border.muted,
+      width: '50%',
+      paddingVertical: 8,
+      paddingHorizontal: 0,
+      marginBottom: 8,
     },
     detailLabel: {
       fontSize: 12,
       color: colors.text.muted,
-      marginBottom: 6,
+      marginBottom: 2,
+      textAlign: 'left',
     },
     detailValue: {
       fontSize: 16,
       fontWeight: '600',
       color: colors.text.default,
+      textAlign: 'left',
     },
     actionsSection: {
       margin: 16,
@@ -600,7 +601,7 @@ const PerpsPositionDetailsView: React.FC = () => {
         </View>
 
         {/* Chart */}
-        <View style={styles.pnlContainer}>
+        <View style={styles.section}>
           <CandlestickChartComponent
             candleData={candleData}
             isLoading={isLoadingHistory}
@@ -613,12 +614,16 @@ const PerpsPositionDetailsView: React.FC = () => {
         <Text style={styles.subSectionTitle}>Open position</Text>
 
         {/* Position Card */}
-        <PerpsPositionCard
-          position={position}
-          onClose={handleClosePosition}
-          onEdit={handleEditTPSL}
-          disabled={true}
-        />
+        <View style={styles.section}>
+          <PerpsPositionCard
+            position={position}
+            onClose={handleClosePosition}
+            onEdit={handleEditTPSL}
+            disabled={true}
+          />
+        </View>
+
+        <Text style={styles.subSectionTitle}>Stats</Text>
 
         {/* Position Details Grid */}
         <View style={styles.detailsGrid}>
