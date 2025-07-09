@@ -20,12 +20,9 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { WebView } from '@metamask/react-native-webview';
 import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import styleSheet from './WebviewModal.styles';
+import ErrorView from '../../../components/ErrorView';
 
 interface WebviewModalParams {
   sourceUrl: string;
@@ -69,10 +66,7 @@ function WebviewModal() {
       <ScreenLayout>
         <ScreenLayout.Body>
           {webviewError ? (
-            // TODO: Replace this with a proper error view
-            <Text variant={TextVariant.HeadingMD} color={TextColor.Error}>
-              {webviewError}
-            </Text>
+            <ErrorView description={webviewError} />
           ) : (
             <WebView
               source={{ uri: sourceUrl }}
