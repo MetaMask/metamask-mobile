@@ -34,9 +34,14 @@ const Routes = {
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
+    ORDER_DETAILS: 'DepositOrderDetails',
+    BANK_DETAILS: 'BankDetails',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+      REGION_SELECTOR: 'DepositRegionSelectorModal',
+      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
+      UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
     },
   },
   HW: {
@@ -87,6 +92,7 @@ const Routes = {
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
+    OPTIN_METRICS: 'OptinMetrics',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -138,6 +144,7 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    ONBOARDING_SHEET: 'OnboardingSheet',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
@@ -186,6 +193,7 @@ const Routes = {
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
+      BLOCKAID_MODAL: 'BlockaidModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

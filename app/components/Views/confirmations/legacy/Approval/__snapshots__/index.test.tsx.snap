@@ -364,7 +364,7 @@ exports[`Approval render matches snapshot 1`] = `
                           onStartShouldSetResponder={[Function]}
                           style={
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "height": 1334,
                               "left": 0,
@@ -1017,12 +1017,15 @@ exports[`Approval render matches snapshot 1`] = `
                                             </View>
                                             <View
                                               style={
-                                                {
-                                                  "flex": 0,
-                                                  "flexDirection": "row",
-                                                  "paddingHorizontal": 24,
-                                                  "paddingVertical": 16,
-                                                }
+                                                [
+                                                  {
+                                                    "flex": 0,
+                                                    "flexDirection": "row",
+                                                    "paddingHorizontal": 16,
+                                                    "paddingVertical": 16,
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
                                               <TouchableOpacity

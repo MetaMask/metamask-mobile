@@ -7,6 +7,8 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
+  - EXApplication (6.0.2):
+    - ExpoModulesCore
   - EXConstants (17.0.8):
     - ExpoModulesCore
   - EXJSONUtils (0.14.0)
@@ -221,13 +223,19 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoAppleAuthentication (7.1.3):
+    - ExpoModulesCore
   - ExpoAsset (11.0.5):
+    - ExpoModulesCore
+  - ExpoCrypto (14.0.2):
     - ExpoModulesCore
   - ExpoFileSystem (18.0.12):
     - ExpoModulesCore
   - ExpoFont (13.0.4):
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.3):
+    - ExpoModulesCore
+  - ExpoLinking (7.0.5):
     - ExpoModulesCore
   - ExpoModulesCore (2.1.4):
     - DoubleConversion
@@ -252,6 +260,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoWebBrowser (14.0.2):
+    - ExpoModulesCore
   - EXUpdatesInterface (1.0.0):
     - ExpoModulesCore
   - fast_float (6.1.4)
@@ -285,6 +295,27 @@ PODS:
     - nanopb (< 2.30911.0, >= 2.30908.0)
   - fmt (11.0.2)
   - glog (0.3.5)
+  - GoogleAcm (0.1.0):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - GoogleDataTransport (9.4.1):
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
@@ -316,10 +347,29 @@ PODS:
     - GoogleUtilities/Privacy
   - GZIP (1.3.2)
   - GzipSwift (5.1.1)
-  - lottie-ios (3.4.1)
-  - lottie-react-native (5.1.6):
-    - lottie-ios (~> 3.4.0)
+  - lottie-ios (4.4.1)
+  - lottie-react-native (6.7.2):
+    - DoubleConversion
+    - glog
+    - lottie-ios (= 4.4.1)
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -1745,7 +1795,7 @@ PODS:
     - Yoga
   - react-native-quick-base64 (2.0.8):
     - React-Core
-  - react-native-quick-crypto (0.7.13):
+  - react-native-quick-crypto (0.7.15):
     - DoubleConversion
     - glog
     - OpenSSL-Universal
@@ -1948,7 +1998,7 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
-  - react-native-webview-mm (14.2.0):
+  - react-native-webview-mm (14.2.2):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.10.14.00)
@@ -2226,7 +2276,7 @@ PODS:
     - React-utils (= 0.76.9)
   - ReactNativePayments (2.0.0):
     - React
-  - RNCAsyncStorage (1.23.1):
+  - RNCAsyncStorage (1.24.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.10.14.00)
@@ -2669,6 +2719,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
   - EXManifests (from `../node_modules/expo-manifests/ios`)
@@ -2677,20 +2728,24 @@ DEPENDENCIES:
   - expo-dev-launcher (from `../node_modules/expo-dev-launcher`)
   - expo-dev-menu (from `../node_modules/expo-dev-menu`)
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
+  - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
+  - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FirebaseCore
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - "GoogleAcm (from `../node_modules/@metamask/react-native-acm`)"
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
-  - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OpenSSL-Universal
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
@@ -2827,6 +2882,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GZIP
     - GzipSwift
+    - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
     - OpenSSL-Universal
@@ -2842,6 +2898,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXApplication:
+    :path: "../node_modules/expo-application/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXJSONUtils:
@@ -2858,16 +2916,24 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-dev-menu"
   expo-dev-menu-interface:
     :path: "../node_modules/expo-dev-menu-interface/ios"
+  ExpoAppleAuthentication:
+    :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoCrypto:
+    :path: "../node_modules/expo-crypto/ios"
   ExpoFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
+  ExpoLinking:
+    :path: "../node_modules/expo-linking/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoWebBrowser:
+    :path: "../node_modules/expo-web-browser/ios"
   EXUpdatesInterface:
     :path: "../node_modules/expo-updates-interface/ios"
   fast_float:
@@ -2878,8 +2944,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
-  lottie-ios:
-    :path: "../node_modules/lottie-ios"
+  GoogleAcm:
+    :path: "../node_modules/@metamask/react-native-acm"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   Permission-BluetoothPeripheral:
@@ -3119,6 +3185,7 @@ SPEC CHECKSUMS:
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  EXApplication: 4c72f6017a14a65e338c5e74fca418f35141e819
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
   EXManifests: a19d50504b8826546a4782770317bc83fffec87d
@@ -3127,11 +3194,15 @@ SPEC CHECKSUMS:
   expo-dev-launcher: ba7d742ce78fd4a9cdf84ae4b081533d46224080
   expo-dev-menu: ef9bbc9bd5a884caef53a1d56d511747f9278359
   expo-dev-menu-interface: 00dc42302a72722fdecec3fa048de84a9133bcc4
+  ExpoAppleAuthentication: 52631ed9dcb71c65712a447bbb9a5667bb8fcf0c
   ExpoAsset: 48386d40d53a8c1738929b3ed509bcad595b5516
+  ExpoCrypto: e97e864c8d7b9ce4a000bca45dddb93544a1b2b4
   ExpoFileSystem: 42d363d3b96f9afab980dcef60d5657a4443c655
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
+  ExpoLinking: 8d12bee174ba0cdf31239706578e29e74a417402
   ExpoModulesCore: a6a8ab2ea6d0b6488b6fafc12033b1f8aac8ffb6
+  ExpoWebBrowser: a212e6b480d8857d3e441fba51e0c968333803b3
   EXUpdatesInterface: 7c977640bdd8b85833c19e3959ba46145c5719db
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 7605ea4810e0e10ae4815292433c09bf4324ba45
@@ -3143,12 +3214,13 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  GoogleAcm: baefc9e2bf9d40709561af90318a94edf609ac7f
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
-  lottie-react-native: 5d89c05930d4180a1e39b1757d46e6c0eec90255
+  lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
+  lottie-react-native: 4c145c6250abfc18f217b0415c6805b8ac3c9eec
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
@@ -3203,14 +3275,14 @@ SPEC CHECKSUMS:
   react-native-pager-view: 4418fa30e7906316026b5da0b50e6c1629433ed4
   react-native-performance: 6919b25d368968aeed6571d717d2c338f1f77bf5
   react-native-quick-base64: daf67f19ee076b77f0755bf4056f3425f164e1d8
-  react-native-quick-crypto: 8b0f34070629ef2c9da5ea5d68fc1549cb580591
+  react-native-quick-crypto: 6235df5ec2e2452e6dcd96763ff957ce96a45ee1
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 8e56fd66d2848a7111f83831fddedb5472b60bd9
   react-native-slider: 3dd74f2a74332277a065428d64e0fdca7f5ac658
   react-native-video: 344080fe089178965dd1572ce5cb71b4bb207c33
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
-  react-native-webview-mm: df0b41ef5f3557a2717460a8c0b2098469e90558
+  react-native-webview-mm: a1f93febab673185c4fd25aa946037a726bdaa1a
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: 2f4fd95d013b5f3f485b5e2ff267b45e4c7ffc25
   React-perflogger: 72e653eb3aba9122f9e57cf012d22d2486f33358
@@ -3238,7 +3310,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 25c2c1bed6e2c89daaa9e61c40e8680803df3c8f
   ReactCommon: 9cd9f89d1600b392c3a94552afc34def5fe54d02
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
-  RNCAsyncStorage: 1cfe8404ff97c19efefeb683cf5fca88424365a4
+  RNCAsyncStorage: 9e8a701a78de3df4c1c668fde40d2608a873d6b1
   RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
   RNCClipboard: 8596d5006addc4cbc61bee51cd90afdc591fe7e1
   RNCMaskedView: 051a9e7748be98cfc1b127631ca6c6e28028924f

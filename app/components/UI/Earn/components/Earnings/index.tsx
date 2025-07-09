@@ -30,6 +30,9 @@ import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetric
 import { TokenI } from '../../../Tokens/types';
 import styleSheet from './Earnings.styles';
 import EarningsHistoryButton from './EarningsHistoryButton/EarningsHistoryButton';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { RootState } from '../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { earnSelectors } from '../../../../../selectors/earnController';
 
 export interface EarningsProps {
   asset: TokenI;
@@ -48,6 +51,12 @@ const EarningsContent = ({ asset }: EarningsProps) => {
 
   const { navigate } = useNavigation();
 
+  const { outputToken } = useSelector((state: RootState) =>
+    earnSelectors.selectEarnTokenPair(state, asset),
+  );
+
+  const experienceType = outputToken?.experience?.type;
+
   const {
     annualRewardRate,
     lifetimeRewards,
@@ -58,11 +67,19 @@ const EarningsContent = ({ asset }: EarningsProps) => {
     hasEarnings,
   } = useEarnings({ asset });
 
-  const onDisplayAnnualRateTooltip = () =>
-    navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.LEARN_MORE,
-      params: { chainId: asset.chainId },
-    });
+  const onDisplayAnnualRateTooltip = () => {
+    if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      navigate('EarnModals', {
+        screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
+        params: { asset: outputToken },
+      });
+    } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+      navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.LEARN_MORE,
+        params: { chainId: asset?.chainId },
+      });
+    }
+  };
 
   if (!hasEarnings) return <></>;
 
@@ -86,6 +103,8 @@ const EarningsContent = ({ asset }: EarningsProps) => {
               {strings('stake.annual_rate')}
             </Text>
             <ButtonIcon
+              hitSlop={styles.hitSlop}
+              testID="annual-rate-tooltip"
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Muted}
               iconName={IconName.Info}
@@ -116,43 +135,47 @@ const EarningsContent = ({ asset }: EarningsProps) => {
             </Text>
           )}
         </View>
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapperCentered}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.keyValuePrimaryText}
-            >
-              {strings('stake.lifetime_rewards')}
-            </Text>
+        {experienceType === EARN_EXPERIENCES.POOLED_STAKING && (
+          <View style={styles.keyValueRow}>
+            <View style={styles.keyValuePrimaryTextWrapperCentered}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.keyValuePrimaryText}
+              >
+                {strings('stake.lifetime_rewards')}
+              </Text>
+            </View>
+            <View style={styles.keyValueSecondaryText}>
+              {isLoadingEarningsData ? (
+                <SkeletonPlaceholder>
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={20}
+                    borderRadius={6}
+                  />
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={20}
+                    borderRadius={6}
+                    marginTop={5}
+                  />
+                </SkeletonPlaceholder>
+              ) : (
+                <>
+                  <Text variant={TextVariant.BodyMD}>
+                    {lifetimeRewardsFiat}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySMMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {lifetimeRewards}
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
-          <View style={styles.keyValueSecondaryText}>
-            {isLoadingEarningsData ? (
-              <SkeletonPlaceholder>
-                <SkeletonPlaceholder.Item
-                  width={100}
-                  height={20}
-                  borderRadius={6}
-                />
-                <SkeletonPlaceholder.Item
-                  width={100}
-                  height={20}
-                  borderRadius={6}
-                  marginTop={5}
-                />
-              </SkeletonPlaceholder>
-            ) : (
-              <>
-                <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                >
-                  {lifetimeRewards}
-                </Text>
-              </>
-            )}
-          </View>
-        </View>
+        )}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
@@ -193,7 +216,9 @@ const EarningsContent = ({ asset }: EarningsProps) => {
           </View>
         </View>
       </View>
-      <EarningsHistoryButton asset={asset} />
+      {experienceType === EARN_EXPERIENCES.POOLED_STAKING && (
+        <EarningsHistoryButton asset={asset} />
+      )}
     </View>
   );
 };

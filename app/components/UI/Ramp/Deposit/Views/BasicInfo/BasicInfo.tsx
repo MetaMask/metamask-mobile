@@ -3,9 +3,7 @@ import { View, TextInput, Keyboard } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
@@ -22,6 +20,14 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { useDepositSDK } from '../../sdk';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -39,13 +45,11 @@ export interface BasicInfoFormData {
   ssn: string;
 }
 
-// TODO: Country Code must be dynamic and not hardcoded to USA
-const COUNTRY_CODE = '1';
-
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -81,7 +85,7 @@ const BasicInfo = (): JSX.Element => {
       errors.dob = 'Date of birth is required';
     }
 
-    if (!formData.ssn.trim()) {
+    if (selectedRegion?.isoCode === 'US' && !formData.ssn.trim()) {
       errors.ssn = 'Social security number is required';
     }
 
@@ -113,14 +117,9 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      const formattedFormData = {
-        ...formData,
-        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-      };
-
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData: formattedFormData,
+          formData,
           quote,
           kycUrl,
         }),
@@ -128,11 +127,26 @@ const BasicInfo = (): JSX.Element => {
     }
   }, [navigation, validateFormData, formData, quote, kycUrl]);
 
-  const handleSubmitEditing = useCallback(
+  const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
     },
     [],
+  );
+
+  const handleFieldChange = useCallback(
+    (field: keyof BasicInfoFormData, nextAction?: () => void) =>
+      (value: string) => {
+        const currentValue = formData[field];
+        const isAutofill = value.length - currentValue.length > 1;
+
+        handleFormDataChange(field)(value);
+
+        if (isAutofill && nextAction) {
+          nextAction();
+        }
+      },
+    [formData, handleFormDataChange],
   );
 
   return (
@@ -153,7 +167,10 @@ const BasicInfo = (): JSX.Element => {
                 label={strings('deposit.basic_info.first_name')}
                 placeholder="John"
                 value={formData.firstName}
-                onChangeText={handleFormDataChange('firstName')}
+                onChangeText={handleFieldChange(
+                  'firstName',
+                  focusNextField(lastNameInputRef),
+                )}
                 error={errors.firstName}
                 returnKeyType="next"
                 testID="first-name-input"
@@ -162,14 +179,17 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="given-name"
                 textContentType="givenName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(firstNameInputRef)}
+                onSubmitEditing={focusNextField(lastNameInputRef)}
               />
 
               <DepositTextField
                 label={strings('deposit.basic_info.last_name')}
                 placeholder="Smith"
                 value={formData.lastName}
-                onChangeText={handleFormDataChange('lastName')}
+                onChangeText={handleFieldChange(
+                  'lastName',
+                  focusNextField(phoneInputRef),
+                )}
                 error={errors.lastName}
                 returnKeyType="next"
                 testID="last-name-input"
@@ -178,74 +198,81 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="family-name"
                 textContentType="familyName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
+                onSubmitEditing={focusNextField(phoneInputRef)}
               />
             </View>
 
             <DepositPhoneField
-              // TODO: Add internationalization for phone number format
-              // TODO: Automatic formatting
-              countryCode={COUNTRY_CODE}
               label={strings('deposit.basic_info.phone_number')}
-              placeholder="(234) 567-8910"
               value={formData.mobileNumber}
-              onChangeText={handleFormDataChange('mobileNumber')}
+              onChangeText={handleFieldChange(
+                'mobileNumber',
+                focusNextField(dateInputRef),
+              )}
               error={errors.mobileNumber}
-              testID="phone-number-input"
-              returnKeyType="next"
               ref={phoneInputRef}
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              keyboardType="phone-pad"
-              onSubmitEditing={handleSubmitEditing(phoneInputRef)}
+              onSubmitEditing={focusNextField(dateInputRef)}
             />
 
             <DepositDateField
               label={strings('deposit.basic_info.date_of_birth')}
               value={formData.dob}
-              onChangeText={handleFormDataChange('dob')}
+              onChangeText={handleFieldChange('dob', () => {
+                if (selectedRegion?.isoCode === 'US') {
+                  focusNextField(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              })}
               error={errors.dob}
-              onSubmitEditing={handleSubmitEditing(dateInputRef)}
+              onSubmitEditing={() => {
+                if (selectedRegion?.isoCode === 'US') {
+                  focusNextField(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              }}
               ref={dateInputRef}
               textFieldProps={{
                 testID: 'date-of-birth-input',
               }}
             />
-
-            <DepositTextField
-              label={strings('deposit.basic_info.social_security_number')}
-              placeholder="XXX-XX-XXXX"
-              value={formData.ssn}
-              onChangeText={handleFormDataChange('ssn')}
-              error={errors.ssn}
-              returnKeyType="done"
-              testID="ssn-input"
-              ref={ssnInputRef}
-              autoComplete="off"
-              textContentType="none"
-              secureTextEntry
-              keyboardType="number-pad"
-              maxLength={11}
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-                handleOnPressContinue();
-              }}
-            />
+            {selectedRegion?.isoCode === 'US' && (
+              <DepositTextField
+                label={strings('deposit.basic_info.social_security_number')}
+                placeholder="XXX-XX-XXXX"
+                value={formData.ssn}
+                onChangeText={handleFieldChange('ssn')}
+                error={errors.ssn}
+                returnKeyType="done"
+                testID="ssn-input"
+                ref={ssnInputRef}
+                autoComplete="off"
+                textContentType="none"
+                secureTextEntry
+                keyboardType="number-pad"
+                maxLength={11}
+                onSubmitEditing={() => {
+                  Keyboard.dismiss();
+                }}
+              />
+            )}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row>
-            <StyledButton
-              type="confirm"
-              onPress={handleOnPressContinue}
-              testID="continue-button"
-            >
-              {strings('deposit.basic_info.continue')}
-            </StyledButton>
-          </Row>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection />
+          <Button
+            size={ButtonSize.Lg}
+            onPress={handleOnPressContinue}
+            label={strings('deposit.basic_info.continue')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            testID="continue-button"
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

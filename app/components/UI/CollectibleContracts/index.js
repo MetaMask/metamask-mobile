@@ -62,9 +62,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import TextComponent, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -185,6 +183,7 @@ const CollectibleContracts = ({
   const allNetworkClientIds = useMemo(
     () =>
       Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        if (isNonEvmChainId(chainId)) return [];
         const entry = allNetworks[chainId];
         if (!entry) {
           return [];

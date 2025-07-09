@@ -10,12 +10,23 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
+import { DepositRegion } from '../../constants';
 
 const EMAIL = 'test@email.com';
+const PAYMENT_METHOD_ID = 'test-payment-method';
+const CRYPTO_CURRENCY_CHAIN_ID = '1';
 
 const mockQuote = {
   quoteId: 'mock-quote-id',
 } as BuyQuote;
+
+const mockRouteAfterAuthentication = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
@@ -25,6 +36,7 @@ jest.mock('../../sdk', () => ({
     providerApiKey: 'mock-api-key',
     providerFrontendAuth: 'mock-frontend-auth',
     setAuthToken: jest.fn().mockResolvedValue(undefined),
+    selectedWalletAddress: '0x1234567890abcdef',
   }),
 }));
 
@@ -61,7 +73,12 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: { email: EMAIL, quote: mockQuote },
+      params: {
+        email: EMAIL,
+        quote: mockQuote,
+        paymentMethodId: PAYMENT_METHOD_ID,
+        cryptoCurrencyChainId: CRYPTO_CURRENCY_CHAIN_ID,
+      },
     }),
   };
 });
@@ -108,7 +125,7 @@ describe('OtpCode Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to next screen on submit button press when valid code is entered', async () => {
+  it('calls routeAfterAuthentication when valid code is submitted and response is received', async () => {
     const mockResponse = {
       id: 'mock-id',
       ttl: 1000,
@@ -141,6 +158,11 @@ describe('OtpCode Component', () => {
       clearAuthToken: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
+      setSelectedRegion: jest.fn(),
+      selectedWalletAddress: '0x1234567890abcdef',
+      selectedRegion: {
+        isoCode: 'US',
+      } as DepositRegion,
     });
 
     const { getByTestId } = render(OtpCode);
@@ -165,14 +187,11 @@ describe('OtpCode Component', () => {
 
     await waitFor(() => {
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.VERIFY_IDENTITY,
-        { quote: mockQuote },
-      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
-  it('render matches error snapshot when API call fails', async () => {
+  it('renders error snapshot when API call fails', async () => {
     mockUseDepositSdkMethodValues = [
       { ...mockUseDepositSdkMethodInitialState, error: 'Invalid code' },
       mockSdkMethod,
@@ -188,9 +207,7 @@ describe('OtpCode Component', () => {
     ];
     render(OtpCode);
     expect(screen.toJSON()).toMatchSnapshot();
-    const loadingButton = screen.getByRole('button', {
-      name: 'Verifying code...',
-    });
+    const loadingButton = screen.getByTestId('otp-code-submit-button');
     fireEvent.press(loadingButton);
     expect(mockSdkMethod).not.toHaveBeenCalled();
   });

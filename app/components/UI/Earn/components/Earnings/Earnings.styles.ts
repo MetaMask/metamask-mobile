@@ -6,6 +6,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    hitSlop: {
+      top: 15,
+      bottom: 15,
+      left: 15,
+      right: 15,
+    },
     earningsContainer: {
       paddingTop: 16,
     },
