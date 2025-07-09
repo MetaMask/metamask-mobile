@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import useUserDetailsPolling from './useUserDetailsPolling';
 import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
@@ -16,6 +15,7 @@ import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
 import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
+import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
 
@@ -32,14 +32,6 @@ export const useDepositRouting = ({
   const handleNewOrder = useHandleNewOrder();
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
-
-  const quoteRef = useRef<BuyQuote | null>(null);
-
-  const {
-    userDetails: userDetailsPolling,
-    startPolling,
-    stopPolling,
-  } = useUserDetailsPolling(5000, false, 0);
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -94,31 +86,6 @@ export const useDepositRouting = ({
     onMount: false,
     throws: true,
   });
-
-  useEffect(() => {
-    const kycStatus = userDetailsPolling?.kyc?.l1?.status;
-    const kycType = userDetailsPolling?.kyc?.l1?.type;
-
-    if (
-      kycStatus &&
-      kycStatus !== KycStatus.NOT_SUBMITTED &&
-      kycType !== null &&
-      kycType !== 'SIMPLE'
-    ) {
-      stopPolling();
-      if (quoteRef.current) {
-        navigation.navigate(
-          ...createKycProcessingNavDetails({ quote: quoteRef.current }),
-        );
-      }
-    }
-  }, [
-    userDetailsPolling?.kyc?.l1?.status,
-    userDetailsPolling?.kyc?.l1?.type,
-    stopPolling,
-    navigation,
-    quoteRef,
-  ]);
 
   const handleNavigationStateChange = useCallback(
     async (navState: { url: string }) => {
@@ -244,16 +211,14 @@ export const useDepositRouting = ({
 
   const navigateToKycWebview = useCallback(
     (quote: BuyQuote, kycUrl: string) => {
-      quoteRef.current = quote;
-      startPolling();
-
       navigation.navigate(
-        ...createWebviewModalNavigationDetails({
+        ...createKycWebviewModalNavigationDetails({
+          quote,
           sourceUrl: kycUrl,
         }),
       );
     },
-    [startPolling, navigation],
+    [navigation],
   );
 
   const routeAfterAuthentication = useCallback(

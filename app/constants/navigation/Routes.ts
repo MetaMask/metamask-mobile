@@ -41,6 +41,7 @@ const Routes = {
       PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
       UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
       WEBVIEW: 'DepositWebviewModal',
+      KYC_WEBVIEW: 'DepositKycWebviewModal',
     },
   },
   HW: {

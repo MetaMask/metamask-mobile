@@ -39,8 +39,6 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 });
 
 const mockNavigate = jest.fn();
-const mockStartPolling = jest.fn();
-const mockStopPolling = jest.fn();
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -76,14 +74,6 @@ jest.mock('./useDepositSdkMethod', () => ({
 }));
 
 const mockClearAuthToken = jest.fn();
-jest.mock('./useUserDetailsPolling', () =>
-  jest.fn(() => ({
-    userDetails: null,
-    error: null,
-    startPolling: mockStartPolling,
-    stopPolling: mockStopPolling,
-  })),
-);
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
@@ -348,7 +338,7 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should navigate to WebviewModal when only idProof form is required', async () => {
+    it('should navigate to KYC webview when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -369,10 +359,10 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
-      expect(mockStartPolling).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositWebviewModal',
+        screen: 'DepositKycWebviewModal',
         params: {
+          quote: mockQuote,
           sourceUrl: 'test-kyc-url',
         },
       });
@@ -395,28 +385,6 @@ describe('useDepositRouting', () => {
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('An unexpected error occurred.');
-    });
-  });
-
-  describe('navigateToKycWebview method', () => {
-    it('should start polling and navigate to WebviewModal', () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
-
-      const { result } = renderHook(() => useDepositRouting(mockParams));
-
-      result.current.navigateToKycWebview(mockQuote, 'test-kyc-url');
-
-      expect(mockStartPolling).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositWebviewModal',
-        params: {
-          sourceUrl: 'test-kyc-url',
-        },
-      });
     });
   });
 
