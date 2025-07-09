@@ -2,6 +2,9 @@
 export { usePerpsController } from './usePerpsController';
 export { usePerpsNetwork } from './usePerpsNetwork';
 
+// Connection management hooks
+export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+
 // State hooks (Redux selectors)
 export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsAccountState } from './usePerpsAccountState';

@@ -18,6 +18,7 @@ import ScreenView from '../../../Base/ScreenView';
 // Import PerpsController hooks
 import {
   usePerpsAccountState,
+  usePerpsConnection,
   usePerpsController,
   usePerpsNetwork
 } from '../hooks';
@@ -27,6 +28,10 @@ import type { PerpsNavigationParamList } from '../types/navigation';
 
 // Import preview market data component
 import PreviewMarketData from '../components/PreviewMarketData';
+
+// Import connection components
+import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
+import PerpsLoader from '../components/PerpsLoader';
 
 interface PerpsViewProps { }
 
@@ -80,6 +85,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   // Use Redux-based hooks for cached data
   const cachedAccountState = usePerpsAccountState();
   const currentNetwork = usePerpsNetwork();
+
+  // Use connection provider for connection state
+  const {
+    isConnecting,
+    error: connectionError,
+    connect: reconnect,
+    resetError
+  } = usePerpsConnection();
 
   const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
@@ -155,6 +168,32 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       setIsToggling(false);
     }
   };
+
+  const handleRetryConnection = async () => {
+    resetError();
+    await reconnect();
+  };
+
+  // Show connection error screen if there's an error
+  if (connectionError) {
+    return (
+      <PerpsConnectionErrorView
+        error={connectionError}
+        onRetry={handleRetryConnection}
+        isRetrying={isConnecting}
+      />
+    );
+  }
+
+  // Show loader while connecting
+  if (isConnecting) {
+    return (
+      <PerpsLoader
+        message="Connecting to Perps trading..."
+        fullScreen
+      />
+    );
+  }
 
   return (
     <ScreenView>

@@ -98,11 +98,11 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: { persist: true, anonymous: false },
-  accountState: { persist: true, anonymous: false },
-  orderHistory: { persist: true, anonymous: false },
-  isTestnet: { persist: true, anonymous: false },
-  activeProvider: { persist: true, anonymous: false },
+  positions: { persist: false, anonymous: false },
+  accountState: { persist: false, anonymous: false },
+  orderHistory: { persist: false, anonymous: false },
+  isTestnet: { persist: false, anonymous: false },
+  activeProvider: { persist: false, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   // Deposit flow state - transient, no need to persist across app restarts
