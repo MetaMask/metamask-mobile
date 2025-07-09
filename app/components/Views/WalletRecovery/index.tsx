@@ -99,6 +99,9 @@ const SocialLinked = ({
   });
 
   const getMaskedEmail = (emailValue: string) => {
+    if (!emailValue.includes('@')) {
+      return emailValue;
+    }
     const [firstPart, secondPart] = emailValue.split('@');
     return `${firstPart.slice(0, 1)}********@${secondPart}`;
   };
@@ -267,7 +270,7 @@ const WalletRecovery = () => {
             </Text>
             {authConnection && seedlessOnboardingUserId ? (
               <SocialLinked
-                email={finalUserEmail}
+                email={finalUserEmail || ''}
                 authConnection={authConnection}
               />
             ) : (
