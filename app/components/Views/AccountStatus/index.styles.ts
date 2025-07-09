@@ -6,22 +6,18 @@ const styles = StyleSheet.create({
   },
   root: {
     height: '100%',
-    padding: 24,
-    paddingBottom: 32,
+    paddingHorizontal: 16,
   },
   content: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    rowGap: 16,
     paddingBottom: 24,
   },
   walletReadyImage: {
     marginHorizontal: 'auto',
-    marginVertical: 20,
     alignSelf: 'center',
-    width: 340,
-    height: 286,
+    marginVertical: 16,
   },
   description: {
     fontSize: 14,
@@ -35,8 +31,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     rowGap: 20,
   },
-  secondaryButton: {
-    marginTop: 16,
+  buttonContainer: {
+    flexDirection: 'column',
+    display: 'flex',
+    rowGap: 16,
+    marginBottom: 16,
+    marginTop: 'auto',
   },
 });
 

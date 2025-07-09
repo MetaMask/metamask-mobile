@@ -20,6 +20,8 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import GoogleIcon from '../../../images/google.svg';
+import AppleIcon from '../../../images/apple.svg';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -69,7 +71,6 @@ const SocialLinked = ({
   const styles = StyleSheet.create({
     socialDetailsBoxRoot: {
       width: '100%',
-      paddingVertical: 16,
     },
     socialDetailsBoxRowLeft: {
       flexDirection: 'row',
@@ -89,26 +90,52 @@ const SocialLinked = ({
     iconContainer: {
       marginRight: 8,
     },
+    socialDetailsBoxContent: {
+      flexDirection: 'column',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+    },
   });
+
+  const getMaskedEmail = (emailValue: string) => {
+    const [firstPart, secondPart] = emailValue.split('@');
+    return `${firstPart.slice(0, 1)}********${firstPart.slice(
+      -2,
+    )}@${secondPart}`;
+  };
 
   return (
     <View style={styles.socialDetailsBoxRoot}>
       <View style={styles.socialBoxContainer}>
         <View style={styles.iconContainer}>
-          {/* <Icon
-            name={
-              authConnection === 'google' ? IconName.Google : IconName.Apple
-            }
-            size={IconSize.Lg}
-            color={IconColor.Alternative}
-          /> */}
-          <Text>{authConnection}</Text>
+          {authConnection === 'google' ? (
+            <GoogleIcon
+              name="google"
+              width={24}
+              height={24}
+              fill="currentColor"
+              color={colors.icon.default}
+            />
+          ) : (
+            <AppleIcon
+              name="apple"
+              width={24}
+              height={24}
+              fill="currentColor"
+              color={colors.icon.default}
+            />
+          )}
         </View>
-        <View>
+        <View style={styles.socialDetailsBoxContent}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('protect_your_wallet.social_recovery_enable')}
           </Text>
-          {!!email && <Text>{email}</Text>}
+          {!!email && (
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {getMaskedEmail(email)}
+            </Text>
+          )}
         </View>
       </View>
     </View>
@@ -128,7 +155,7 @@ const WalletRecovery = () => {
       flex: 1,
       flexDirection: 'column',
       rowGap: 24,
-      paddingVertical: 24,
+      paddingVertical: 8,
     },
     socialBox: {
       padding: 16,
@@ -151,9 +178,8 @@ const WalletRecovery = () => {
       marginBottom: 16,
     },
     socialContainer: {
-      paddingHorizontal: 24,
-    },
-    authContainer: {
+      paddingHorizontal: 16,
+      display: 'flex',
       flexDirection: 'column',
       rowGap: 8,
     },
@@ -182,30 +208,32 @@ const WalletRecovery = () => {
     lineBreak: {
       height: 1,
       backgroundColor: colors.border.muted,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     lineBreakContainer: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     bottomContainer: {
       paddingHorizontal: 24,
     },
     srpContainer: {
       flexDirection: 'column',
-      rowGap: 8,
+      rowGap: 6,
     },
     srpTitle: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     srpListContainer: {
-      paddingVertical: 8,
+      paddingVertical: 0,
+      paddingHorizontal: 16,
+      margin: 0,
     },
   });
 
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle(
-        strings('protect_your_wallet.title'),
+        strings('app_settings.manage_recovery_method'),
         navigation,
         false,
         colors,
@@ -229,28 +257,29 @@ const WalletRecovery = () => {
       <View style={styles.root}>
         {authConnection && (
           <View style={styles.socialContainer}>
-            <View style={styles.authContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('protect_your_wallet.social_recovery_title', {
-                  authConnection: authConnection
-                    ? authConnection.toUpperCase()
-                    : 'GOOGLE OR APPLE',
-                })}
-              </Text>
-              {authConnection && seedlessOnboardingUserId ? (
-                <SocialLinked
-                  email={finalUserEmail}
-                  authConnection={authConnection}
-                />
-              ) : (
-                <SocialNotLinked />
-              )}
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('protect_your_wallet.social_login_description', {
-                  authConnection: authConnection || 'Google',
-                })}
-              </Text>
-            </View>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('protect_your_wallet.social_recovery_title', {
+                authConnection: authConnection
+                  ? authConnection.toUpperCase()
+                  : 'GOOGLE OR APPLE',
+              })}
+            </Text>
+            {authConnection && seedlessOnboardingUserId ? (
+              <SocialLinked
+                email={finalUserEmail}
+                authConnection={authConnection}
+              />
+            ) : (
+              <SocialNotLinked />
+            )}
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {strings('protect_your_wallet.social_login_description', {
+                authConnection: authConnection || 'Google',
+              })}
+            </Text>
           </View>
         )}
 
@@ -262,7 +291,7 @@ const WalletRecovery = () => {
 
         <View style={styles.srpContainer}>
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
             style={styles.srpTitle}
           >
@@ -272,16 +301,6 @@ const WalletRecovery = () => {
             containerStyle={styles.srpListContainer}
             showArrowName={strings('protect_your_wallet.reveal')}
           />
-        </View>
-
-        <View style={styles.lineBreakContainer}>
-          <View style={styles.lineBreak} />
-        </View>
-
-        <View style={styles.bottomContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('protect_your_wallet.srps_description')}
-          </Text>
         </View>
       </View>
     </ScrollView>
