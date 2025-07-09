@@ -5,13 +5,6 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { SEPA_PAYMENT_METHOD } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 
-// Mock React Navigation at the module level to allow navigation detail creators to be imported
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-  }),
-}));
-
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
 }));
@@ -36,8 +29,18 @@ let mockCreateOrder = jest
   .fn()
   .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
 let mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
+let mockRequestOtt = jest.fn().mockResolvedValue({ token: 'test-ott-token' });
+let mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
+let mockGetOrder = jest.fn().mockResolvedValue({
+  id: 'order-id',
+  walletAddress: '0x123',
+  cryptoCurrency: 'USDC',
+  network: 'ethereum',
+});
 
 const mockNavigate = jest.fn();
+const mockStartPolling = jest.fn();
+const mockStopPolling = jest.fn();
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -59,11 +62,28 @@ jest.mock('./useDepositSdkMethod', () => ({
     if (config?.method === 'submitPurposeOfUsageForm') {
       return [mockUseDepositSdkMethodInitialState, mockSubmitPurposeOfUsage];
     }
+    if (config?.method === 'requestOtt') {
+      return [mockUseDepositSdkMethodInitialState, mockRequestOtt];
+    }
+    if (config?.method === 'generatePaymentWidgetUrl') {
+      return [mockUseDepositSdkMethodInitialState, mockGeneratePaymentUrl];
+    }
+    if (config?.method === 'getOrder') {
+      return [mockUseDepositSdkMethodInitialState, mockGetOrder];
+    }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
   }),
 }));
 
 const mockClearAuthToken = jest.fn();
+jest.mock('./useUserDetailsPolling', () =>
+  jest.fn(() => ({
+    userDetails: null,
+    error: null,
+    startPolling: mockStartPolling,
+    stopPolling: mockStopPolling,
+  })),
+);
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
@@ -73,6 +93,12 @@ jest.mock('../sdk', () => ({
 }));
 
 jest.mock('./useHandleNewOrder');
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => '0x123'),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
@@ -81,10 +107,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../orderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => order),
-}));
-
-jest.mock('../constants', () => ({
-  SEPA_PAYMENT_METHOD: { id: 'sepa' },
 }));
 
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
@@ -107,6 +129,14 @@ describe('useDepositRouting', () => {
       .fn()
       .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
     mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
+    mockRequestOtt = jest.fn().mockResolvedValue({ token: 'test-ott-token' });
+    mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
+    mockGetOrder = jest.fn().mockResolvedValue({
+      id: 'order-id',
+      walletAddress: '0x123',
+      cryptoCurrency: 'USDC',
+      network: 'ethereum',
+    });
 
     mockUseHandleNewOrder.mockReturnValue(
       jest.fn().mockResolvedValue(undefined),
@@ -123,7 +153,11 @@ describe('useDepositRouting', () => {
     const { result } = renderHook(() => useDepositRouting(mockParams));
 
     expect(result.current.routeAfterAuthentication).toBeDefined();
+    expect(result.current.navigateToKycWebview).toBeDefined();
+    expect(result.current.handleApprovedKycFlow).toBeDefined();
     expect(typeof result.current.routeAfterAuthentication).toBe('function');
+    expect(typeof result.current.navigateToKycWebview).toBe('function');
+    expect(typeof result.current.handleApprovedKycFlow).toBe('function');
   });
 
   describe('SEPA payment method routing', () => {
@@ -166,6 +200,39 @@ describe('useDepositRouting', () => {
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('Missing reservation');
+    });
+  });
+
+  describe('Non-SEPA payment method routing', () => {
+    it('should navigate to WebviewModal when non-SEPA payment method is used and KYC is approved', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
+        'test-ott-token',
+        mockQuote,
+        '0x123',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: {
+          sourceUrl: 'https://payment.url',
+          handleNavigationStateChange: expect.any(Function),
+        },
+      });
     });
   });
 
@@ -278,12 +345,17 @@ describe('useDepositRouting', () => {
         'Buying/selling crypto for investments',
       ]);
       expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
-      expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
-        quote: mockQuote,
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: expect.objectContaining({
+          sourceUrl: 'https://payment.url',
+        }),
       });
     });
 
-    it('should navigate to KycWebview when only idProof form is required', async () => {
+    it('should navigate to WebviewModal when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         selectedWalletAddress: '0x123',
@@ -305,9 +377,12 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
-      expect(mockNavigate).toHaveBeenCalledWith('KycWebview', {
-        quote: mockQuote,
-        kycUrl: 'test-kyc-url',
+      expect(mockStartPolling).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: {
+          sourceUrl: 'test-kyc-url',
+        },
       });
     });
 
@@ -332,8 +407,8 @@ describe('useDepositRouting', () => {
     });
   });
 
-  describe('User authentication and KYC status routing', () => {
-    it('should navigate to ProviderWebview when user is authenticated, no forms required, and KYC is approved', async () => {
+  describe('navigateToKycWebview method', () => {
+    it('should start polling and navigate to WebviewModal', () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         selectedWalletAddress: '0x123',
@@ -343,18 +418,69 @@ describe('useDepositRouting', () => {
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
-      await expect(
-        result.current.routeAfterAuthentication(mockQuote),
-      ).resolves.not.toThrow();
+      result.current.navigateToKycWebview(mockQuote, 'test-kyc-url');
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
-      expect(mockFetchUserDetails).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
-        quote: mockQuote,
+      expect(mockStartPolling).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: {
+          sourceUrl: 'test-kyc-url',
+        },
+      });
+    });
+  });
+
+  describe('handleApprovedKycFlow method', () => {
+    it('should handle SEPA payment flow correctly', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const success = await result.current.handleApprovedKycFlow(mockQuote);
+
+      expect(success).toBe(true);
+      expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
+      expect(mockCreateOrder).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
+        orderId: 'order-id',
+        shouldUpdate: false,
       });
     });
 
-    it('should navigate to KycProcessing when user is authenticated, no forms required, but KYC is not approved', async () => {
+    it('should handle non-SEPA payment flow correctly', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        selectedWalletAddress: '0x123',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const success = await result.current.handleApprovedKycFlow(mockQuote);
+
+      expect(success).toBe(true);
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
+        'test-ott-token',
+        mockQuote,
+        '0x123',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: expect.objectContaining({
+          sourceUrl: 'https://payment.url',
+          handleNavigationStateChange: expect.any(Function),
+        }),
+      });
+    });
+
+    it('should navigate to KycProcessing when KYC is not approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         selectedWalletAddress: '0x123',
@@ -368,12 +494,9 @@ describe('useDepositRouting', () => {
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
-      await expect(
-        result.current.routeAfterAuthentication(mockQuote),
-      ).resolves.not.toThrow();
+      const success = await result.current.handleApprovedKycFlow(mockQuote);
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
-      expect(mockFetchUserDetails).toHaveBeenCalled();
+      expect(success).toBe(false);
       expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
         quote: mockQuote,
       });
@@ -400,7 +523,7 @@ describe('useDepositRouting', () => {
       ).rejects.toThrow('KYC forms fetch failed');
     });
 
-    it('should throw error when KYC form data fetch fails', async () => {
+    it('should throw error when payment URL generation fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         selectedWalletAddress: '0x123',
@@ -408,37 +531,13 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [{ id: 'idProof' }],
-      });
-      mockFetchKycFormData = jest
-        .fn()
-        .mockRejectedValue(new Error('KYC form data fetch failed'));
+      mockGeneratePaymentUrl = jest.fn().mockResolvedValue(null);
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('KYC form data fetch failed');
-    });
-
-    it('should throw error when user details fetch fails', async () => {
-      const mockQuote = {} as BuyQuote;
-      const mockParams = {
-        selectedWalletAddress: '0x123',
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
-
-      mockFetchUserDetails = jest
-        .fn()
-        .mockRejectedValue(new Error('User details fetch failed'));
-
-      const { result } = renderHook(() => useDepositRouting(mockParams));
-
-      await expect(
-        result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('User details fetch failed');
+      ).rejects.toThrow('An unexpected error occurred.');
     });
   });
 

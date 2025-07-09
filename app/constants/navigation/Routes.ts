@@ -31,8 +31,6 @@ const Routes = {
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
-    KYC_WEBVIEW: 'KycWebview',
-    PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',

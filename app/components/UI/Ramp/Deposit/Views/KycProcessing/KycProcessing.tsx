@@ -3,9 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import useUserDetailsPolling, {
-  KycStatus,
-} from '../../hooks/useUserDetailsPolling';
+import useUserDetailsPolling from '../../hooks/useUserDetailsPolling';
 import {
   createNavigationDetails,
   useParams,
@@ -35,6 +33,7 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { KycStatus } from '../../constants';
 
 export interface KycProcessingParams {
   quote: BuyQuote;

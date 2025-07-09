@@ -794,3 +794,10 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
 ];
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
+
+export enum KycStatus {
+  NOT_SUBMITTED = 'NOT_SUBMITTED',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}

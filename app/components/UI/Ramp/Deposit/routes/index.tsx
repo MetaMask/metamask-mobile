@@ -15,8 +15,6 @@ import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
-import ProviderWebview from '../Views/ProviderWebview';
-import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
 
@@ -95,18 +93,8 @@ const MainRoutes = () => (
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.KYC_WEBVIEW}
-      component={KycWebview}
-      options={getAnimationOptions}
-    />
-    <Stack.Screen
       name={Routes.DEPOSIT.KYC_PROCESSING}
       component={KycProcessing}
-      options={getAnimationOptions}
-    />
-    <Stack.Screen
-      name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
-      component={ProviderWebview}
       options={getAnimationOptions}
     />
     <Stack.Screen

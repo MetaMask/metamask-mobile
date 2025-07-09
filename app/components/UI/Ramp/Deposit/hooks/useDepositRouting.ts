@@ -6,8 +6,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import useUserDetailsPolling, { KycStatus } from './useUserDetailsPolling';
-import { SEPA_PAYMENT_METHOD } from '../constants';
+import useUserDetailsPolling from './useUserDetailsPolling';
+import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import { getCryptoCurrencyFromTransakId } from '../utils';

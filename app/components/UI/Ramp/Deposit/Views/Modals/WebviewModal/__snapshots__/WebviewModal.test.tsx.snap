@@ -388,7 +388,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "height": 1334,
+                                "height": 1227.28,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
@@ -437,6 +437,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "padding": 16,
+                                  "paddingVertical": 0,
                                 },
                                 false,
                               ]
@@ -473,37 +474,39 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Close"
+                                <TouchableOpacity>
+                                  <TouchableOpacity
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "alignItems": "center",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       }
                                     }
-                                    width={16}
-                                  />
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="Close"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </TouchableOpacity>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -941,7 +944,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "height": 1334,
+                                "height": 1227.28,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
@@ -990,6 +993,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "padding": 16,
+                                  "paddingVertical": 0,
                                 },
                                 false,
                               ]
@@ -1026,37 +1030,39 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                               <View
                                 onLayout={[Function]}
                               >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Close"
+                                <TouchableOpacity>
+                                  <TouchableOpacity
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "alignItems": "center",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       }
                                     }
-                                    width={16}
-                                  />
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="Close"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </TouchableOpacity>
                                 </TouchableOpacity>
                               </View>
                             </View>

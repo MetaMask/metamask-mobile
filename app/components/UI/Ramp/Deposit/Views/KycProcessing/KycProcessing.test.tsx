@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { KycStatus } from '../../constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

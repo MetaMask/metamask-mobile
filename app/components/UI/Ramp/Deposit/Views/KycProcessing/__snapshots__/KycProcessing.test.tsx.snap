@@ -2696,18 +2696,10 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#ca3542"
-                                fill="currentColor"
-                                height={32}
-                                name="CircleX"
-                                style={
-                                  {
-                                    "height": 32,
-                                    "width": 32,
-                                  }
-                                }
-                                width={32}
+                              <ActivityIndicator
+                                color="#4459ff"
+                                size="large"
+                                testID="activity-indicator"
                               />
                               <Text
                                 accessibilityRole="text"
@@ -2725,7 +2717,8 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                We were unable to verify your identity.
+                                Hang tight!
+We’re verifying your identity now.
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -2740,7 +2733,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Try uploading your documents again and resubmit for verification.
+                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
                               </Text>
                             </View>
                           </View>
@@ -2792,7 +2785,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Retry verification
+                                Browse tokens
                               </Text>
                             </TouchableOpacity>
                             <SvgMock
