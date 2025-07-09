@@ -135,7 +135,7 @@ export const BaseWalletDetails = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView>
       <HeaderBase
         style={styles.header}
         startAccessory={

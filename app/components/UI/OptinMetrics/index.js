@@ -16,7 +16,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+  TRUE,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -47,7 +51,6 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { setMetaMetricsUISeen } from '../../../actions/user';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -142,10 +145,6 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Action to set meta metrics UI seen
-     */
-    setMetaMetricsUISeen: PropTypes.func,
   };
 
   state = {
@@ -235,6 +234,8 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -243,12 +244,15 @@ class OptinMetrics extends PureComponent {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     } else {
       this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     }
-    this.props.setMetaMetricsUISeen(true);
   };
 
   /**
@@ -346,7 +350,6 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -395,7 +398,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -499,14 +501,9 @@ class OptinMetrics extends PureComponent {
   renderActionButtons = () => {
     const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -516,6 +513,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -525,6 +523,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
       </View>
     );
@@ -678,8 +677,6 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),
-  setMetaMetricsUISeen: (isMetaMetricsUISeen) =>
-    dispatch(setMetaMetricsUISeen(isMetaMetricsUISeen)),
 });
 
 export default connect(
