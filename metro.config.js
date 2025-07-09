@@ -23,7 +23,7 @@ const parsedArgs = parseArgs({
   strict: false,
 });
 
-// Apply SES Hermes shim on Android (Hermes) and Expo dev server by default
+// Apply SES Hermes shim on Android, iOS and Expo dev server by default
 const hermesRuntime = true;
 
 const getPolyfills = () => [
