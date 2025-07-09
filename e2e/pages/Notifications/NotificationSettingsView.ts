@@ -35,21 +35,25 @@ class NotificationsSettingsView {
   async tapNotificationToggle() {
     await Gestures.waitAndTap(this.notificationToggle, {
       elemDescription: 'Notification Settings - Main Toggle',
+      delay: 2000, // Toggle can take time to update state
     });
   }
   async tapPushNotificationsToggle() {
     await Gestures.waitAndTap(this.pushNotificationsToggle, {
       elemDescription: 'Notification Settings - Push Notifications Toggle',
+      delay: 2000, // Toggle can take time to update state
     });
   }
   async tapFeatureAnnouncementsToggle() {
     await Gestures.waitAndTap(this.featureAnnonucementsToggle, {
       elemDescription: 'Notification Settings - Feature Announcements Toggle',
+      delay: 2000, // Toggle can take time to update state
     });
   }
   async tapAccountNotificationsToggle(address: string) {
     await Gestures.waitAndTap(this.accountNotificationToggle(address), {
       elemDescription: `Notification Settings - Account Notifications Toggle for ${address}`,
+      delay: 2000, // Toggle can take time to update state
     });
   }
 }
