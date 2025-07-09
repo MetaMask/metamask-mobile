@@ -52,6 +52,11 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
             return;
           }
           setIsStxPastEstimatedDeadline(true);
+          // After setting the state, recalculate with the new deadline
+          const newDeadline = stxMaxDeadlineSec;
+          const newTimeLeft = newDeadline - secondsAfterStxSubmission;
+          setTimeLeftForPendingStxInSec(newTimeLeft > 0 ? newTimeLeft : 0);
+          return;
         }
         setTimeLeftForPendingStxInSec(
           currentDeadline - secondsAfterStxSubmission,
