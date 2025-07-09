@@ -6,14 +6,20 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 
 const mockQuote = {
   quoteId: 'test-quote-id',
 } as BuyQuote;
 
+const mockSelectedRegion = DEPOSIT_REGIONS.find(
+  (region) => region.isoCode === 'US',
+) as DepositRegion;
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockUseDepositSDK = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -32,6 +38,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -49,6 +59,12 @@ function render(Component: React.ComponentType) {
 }
 
 describe('BasicInfo Component', () => {
+  beforeEach(() => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
+    });
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
@@ -72,8 +88,8 @@ describe('BasicInfo Component', () => {
     fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
     fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
     fireEvent.changeText(
-      screen.getByPlaceholderText('(234) 567-8910'),
-      '1234567890',
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
     );
     fireEvent.changeText(
       screen.getByTestId('date-of-birth-input'),
@@ -83,6 +99,7 @@ describe('BasicInfo Component', () => {
       screen.getByPlaceholderText('XXX-XX-XXXX'),
       '123456789',
     );
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
@@ -92,9 +109,10 @@ describe('BasicInfo Component', () => {
           dob: '01/01/1990',
           firstName: 'John',
           lastName: 'Smith',
-          mobileNumber: '+11234567890',
+          mobileNumber: '+1234567890',
           ssn: '123456789',
         },
+        kycUrl: undefined,
         quote: mockQuote,
       }),
     );
