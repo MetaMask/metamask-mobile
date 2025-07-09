@@ -44,7 +44,7 @@ import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLend
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
-import { endTrace, trace, TraceName } from 'app/util/trace';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
@@ -259,6 +259,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
       )(transactionId);
 
       emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
+      // generic confirmation bottom sheet shows after transaction has been added
+      endTrace({ name: TraceName.EarnWithdrawConfirmationScreen });
 
       // Transaction Event Listeners
       Engine.controllerMessenger.subscribeOnceIf(
@@ -298,6 +300,14 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
           );
+          // start trace of time between tx submitted and tx confirmed
+          trace({
+            name: TraceName.EarnWithdrawTxConfirmed,
+            data: {
+              chainId: outputToken?.chainId || '',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            },
+          });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -312,6 +322,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
+          endTrace({ name: TraceName.EarnWithdrawTxConfirmed });
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
@@ -389,6 +400,15 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .addProperties(getTrackEventProperties('withdrawal'))
           .build(),
       );
+      
+      // start trace between user intiating withdrawal and generic confirmation bottom sheet showing
+      trace({
+        name: TraceName.EarnWithdrawConfirmationScreen,
+        data: {
+          chainId: outputToken?.chainId || '',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
 
       // if sending max amount, send max uint256 (aave specific)
       // TODO: STAKE-1044 move this logic to earn controller and sdk.

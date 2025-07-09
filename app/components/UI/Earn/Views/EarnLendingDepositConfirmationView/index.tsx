@@ -39,7 +39,7 @@ import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
-import { endTrace, TraceName } from '../../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -368,6 +368,9 @@ const EarnLendingDepositConfirmationView = () => {
         TransactionType.lendingDeposit,
       )(transactionId);
 
+      // generic confirmation bottom sheet shows after transaction has been added
+      endTrace({ name: TraceName.EarnDepositConfirmationScreen });
+
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
@@ -389,6 +392,14 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionSubmitted',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
+          // start trace of time between tx submitted and tx confirmed
+          trace({
+            name: TraceName.EarnDepositTxConfirmed,
+            data: {
+              chainId: outputToken?.chainId || '',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            },
+          });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -401,6 +412,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
+          endTrace({ name: TraceName.EarnDepositTxConfirmed });
 
           if (!outputToken) {
             const networkClientId =
@@ -622,6 +634,15 @@ const EarnLendingDepositConfirmationView = () => {
 
   const depositTokens = async (networkClientId: string) => {
     if (!earnToken?.experience?.market?.protocol) return;
+
+    // start trace between user intiating deposit and generic confirmation bottom sheet showing
+    trace({
+      name: TraceName.EarnDepositConfirmationScreen,
+      data: {
+        chainId: outputToken?.chainId || '',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      },
+    });
 
     setIsDepositLoading(true);
 
