@@ -72,6 +72,16 @@ describe('WalletRecovery', () => {
       },
     });
 
+  it('render matches snapshot', () => {
+    const { toJSON } = renderComponent({
+      authConnection: 'google',
+      userId: '123',
+      socialLoginEmail: 'test@example.com',
+    });
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders SRP section and sets navigation options', () => {
     renderComponent();
 
