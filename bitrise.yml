@@ -1040,6 +1040,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
+          run_if: '{{getenv "NEED_ANDROID_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1132,6 +1133,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1400,6 +1402,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
+          run_if: '{{getenv "NEED_IOS_BUILD" | eq "true"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
