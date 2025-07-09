@@ -4883,10 +4883,10 @@
     "@metamask/utils" "^11.2.0"
     immer "^9.0.6"
 
-"@metamask/bitcoin-wallet-snap@^0.16.1":
-  version "0.16.1"
-  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.16.1.tgz#93b1d19faa3fe63a36aec3f7b5483f8cf5c2f1bf"
-  integrity sha512-cJIZx64JD0GMSBbNU0yS2002lHjgUfolItWIyrwsAJLkR+aCebNtVUFJHJ+l0V5cbz38sAto3xUty9CPTOrcKw==
+"@metamask/bitcoin-wallet-snap@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.17.0.tgz#a0555c62b27af0a50694fc1e559f8cdd5f175c70"
+  integrity sha512-+C7cNP+BnUx0BjEMzH7giBl6aSlgHBkPk0sKMoG9XmRalBmkDbZW4fx6Ve/GkFbG7nWt5ZHPbXUzL2w03bcDbA==
 
 "@metamask/bridge-controller@^32.2.0":
   version "32.2.0"
@@ -5002,10 +5002,10 @@
     fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
-"@metamask/design-tokens@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
-  integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
+"@metamask/design-tokens@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-8.0.0.tgz#eaee5631553a138900c39c842eca8f5e19d59439"
+  integrity sha512-iZPdGG/kzgeUn9SUDI+U86JD6Bu4VxJHoCA3smajzaXzCbFP3dbJPvT36ise+VTP4yGykSIZxZQbnSBIabfcVw==
 
 "@metamask/earn-controller@^2.0.1":
   version "2.0.1"
