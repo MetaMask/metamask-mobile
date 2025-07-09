@@ -1307,6 +1307,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                
+                # Ensure iOS value is set if cache check was skipped
+                if [[ -z "$IOS_PR_BUILD_CACHE_KEY" ]]; then
+                    echo "No iOS cache key available - build will proceed"
+                    envman add --key SKIP_IOS_BUILD --value "false"
+                fi
+                
                 # Only process Android cache if we have cache keys
                 if [[ -n "$ANDROID_PR_BUILD_CACHE_KEY" ]]; then
                     if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
@@ -1317,14 +1324,17 @@ workflows:
                         envman add --key SKIP_ANDROID_BUILD --value "false"
                     fi
                 else
-                    echo "No cache key available - build will proceed"
+                    echo "No Android cache key available - build will proceed"
                     envman add --key SKIP_ANDROID_BUILD --value "false"
                 fi
                 
                 echo ""
                 echo "=== Final Build Decisions ==="
-                echo "iOS build:     $([ "$SKIP_IOS_BUILD" == "true" ] && echo "SKIP" || echo "BUILD")"
-                echo "Android build: $([ "$SKIP_ANDROID_BUILD" == "true" ] && echo "SKIP" || echo "BUILD")"
+                # Read current environment variable values
+                CURRENT_SKIP_IOS=$(envman get --key SKIP_IOS_BUILD)
+                CURRENT_SKIP_ANDROID=$(envman get --key SKIP_ANDROID_BUILD)
+                echo "iOS build:     $([ "$CURRENT_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
+                echo "Android build: $([ "$CURRENT_SKIP_ANDROID" == "true" ] && echo "SKIP" || echo "BUILD")"
       - share-pipeline-variable@1:
           title: Share variables across pipeline stages
           inputs:
