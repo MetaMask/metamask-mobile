@@ -81,9 +81,7 @@ export enum TokenInputAreaType {
   Destination = 'destination',
 }
 
-const shortAddress = (address?: string) => {
-  return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
-}
+const shortAddress = (address?: string) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 const formatAddress = (address?: string) => {
   if (isCaipAssetType(address)) {
@@ -92,7 +90,7 @@ const formatAddress = (address?: string) => {
   }
 
   return shortAddress(address);
-}
+};
 
 export const getDisplayAmount = (
   amount?: string,
