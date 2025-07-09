@@ -11,7 +11,6 @@ import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
-  EXISTING_USER,
 } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
 import { NavigationContainer } from '@react-navigation/native';
