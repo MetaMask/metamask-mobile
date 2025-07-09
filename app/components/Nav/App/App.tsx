@@ -891,7 +891,7 @@ const App: React.FC = () => {
     });
     // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation]);
+  }, [navigation, isMetaMetricsUISeen]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {

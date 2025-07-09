@@ -27,11 +27,7 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import {
-  loadingSet,
-  loadingUnset,
-  setExistingUser,
-} from '../../../actions/user';
+import { loadingSet, loadingUnset } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -216,10 +212,6 @@ class Onboarding extends PureComponent {
      */
     passwordSet: PropTypes.bool,
     /**
-     * redux flag that indicates if the user is existing
-     */
-    existingUser: PropTypes.bool,
-    /**
      * loading status
      */
     loading: PropTypes.bool,
@@ -232,9 +224,9 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
-     * set existing user flag
+     * redux flag that indicates if the user is existing
      */
-    setExistingUser: PropTypes.func,
+    existingUser: PropTypes.bool,
     /**
      * Action to save onboarding event
      */
@@ -338,6 +330,14 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
   };
 
+  async checkIfExistingUser() {
+    // Read from Redux state instead of MMKV storage
+    const { existingUser } = this.props;
+    if (existingUser) {
+      this.setState({ existingUser: true });
+    }
+  }
+
   onLogin = async () => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
@@ -350,7 +350,7 @@ class Onboarding extends PureComponent {
   };
 
   handleExistingUser = (action) => {
-    if (this.props.existingUser) {
+    if (this.state.existingUser) {
       this.alertExistingUser(action);
     } else {
       action();
@@ -618,7 +618,8 @@ class Onboarding extends PureComponent {
   };
 
   render() {
-    const { loading, existingUser } = this.props;
+    const { loading } = this.props;
+    const { existingUser } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -685,7 +686,6 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  setExistingUser: (existingUser) => dispatch(setExistingUser(existingUser)),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
