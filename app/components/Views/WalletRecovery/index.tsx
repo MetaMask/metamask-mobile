@@ -100,9 +100,7 @@ const SocialLinked = ({
 
   const getMaskedEmail = (emailValue: string) => {
     const [firstPart, secondPart] = emailValue.split('@');
-    return `${firstPart.slice(0, 1)}********${firstPart.slice(
-      -2,
-    )}@${secondPart}`;
+    return `${firstPart.slice(0, 1)}********@${secondPart}`;
   };
 
   return (
