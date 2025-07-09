@@ -16,7 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
       height: '100%',
       width: '100%',
       paddingInline: 8,
-      paddingVertical: 20,
+      paddingVertical: 40,
     },
     buttonSection: {
       flexDirection: 'row',

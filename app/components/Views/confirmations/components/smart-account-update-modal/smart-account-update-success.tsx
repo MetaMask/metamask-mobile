@@ -23,7 +23,6 @@ export const SmartAccountUpdateSuccess = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
-  // todo: go back test
   const onClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
