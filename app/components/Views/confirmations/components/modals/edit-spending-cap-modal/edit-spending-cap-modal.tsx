@@ -86,7 +86,7 @@ export const EditSpendingCapModal = ({
           color={TextColor.Alternative}
         >
           {strings('confirm.edit_spending_cap_modal.account_balance')} :{' '}
-          {balance} {tokenSymbol}
+          {balance} {tokenSymbol ?? ''}
         </Text>
 
         <View style={styles.buttonsContainer}>
