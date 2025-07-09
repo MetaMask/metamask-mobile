@@ -4562,6 +4562,11 @@
     js-yaml "4.1.0"
     lockfile-lint-api "5.9.1"
 
+"@lavamoat/react-native-lockdown@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@lavamoat/react-native-lockdown/-/react-native-lockdown-0.0.2.tgz#d5487ae89af13bf091154017ba649a85ea53133c"
+  integrity sha512-cCcinV/6dpM2Ur6xsHFRHaL1m+2cbC1Reb3uISUUv21iwaovo6ST1JMk/GqfmV0a5TZ/rM+Fe90VfHHBH4mFRA==
+
 "@ledgerhq/cryptoassets-evm-signatures@^13.5.2":
   version "13.5.2"
   resolved "https://registry.yarnpkg.com/@ledgerhq/cryptoassets-evm-signatures/-/cryptoassets-evm-signatures-13.5.2.tgz#1c31cb1d0b5f95e0c7a7d47af0b8f78bb9efbc7f"

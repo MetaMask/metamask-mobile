@@ -169,6 +169,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",
+    "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/account-tree-controller": "0.1.1",
     "@metamask/accounts-controller": "^31.0.0",
