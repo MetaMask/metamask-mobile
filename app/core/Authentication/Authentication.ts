@@ -569,7 +569,9 @@ class AuthenticationService {
     const seedPhrase = await KeyringController.exportSeedPhrase(password);
     try {
       const keyringId = KeyringController.state.keyrings[0]?.metadata.id;
-
+      if (!keyringId) {
+        throw new Error('No keyring metadata found');
+      }
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
