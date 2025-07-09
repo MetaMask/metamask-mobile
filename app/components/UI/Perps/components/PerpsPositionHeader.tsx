@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Image } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -11,6 +11,8 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import type { Position } from '../controllers/types';
+import { usePerpsAssetMetadata } from '../hooks/usePerpsAssetMetadata';
+import RemoteImage from '../../../Base/RemoteImage';
 
 interface PerpsPositionHeaderProps {
   position: Position;
@@ -40,6 +42,13 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     perpIcon: {
       marginRight: 16,
+      width: 32,
+      height: 32,
+    },
+    tokenIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     positionInfo: {
       flex: 1,
@@ -85,6 +94,9 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
   position,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { assetUrl } = usePerpsAssetMetadata(position.coin);
+
+  console.log('assetUrl', assetUrl);
 
   // Format currency
   const formatCurrency = (value: number) =>
@@ -118,7 +130,11 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
     <View style={styles.container}>
       {/* Left Section with Icon and Position Info */}
       <View style={styles.perpIcon}>
-        <Icon name={IconName.Coin} size={IconSize.Lg} />
+        {assetUrl ? (
+          <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
+        ) : (
+          <Icon name={IconName.Coin} size={IconSize.Lg} />
+        )}
       </View>
 
       <View style={styles.leftSection}>
