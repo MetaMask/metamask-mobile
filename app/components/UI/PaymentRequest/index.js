@@ -343,9 +343,11 @@ class PaymentRequest extends PureComponent {
     inputWidth: { width: '99%' },
   };
 
-  /*
-   * Search tokens based on user input
-   * Debounced by 300ms to prevent searches on every keystroke
+  /**
+   * Handle token search based on user input
+   * debounced by 300ms to prevent calls on every keystroke
+   *
+   * @param {string} searchInputValue - String containing assets query
    */
   debouncedTokenSearch = debounce((searchInputValue) => {
     const { tokenList } = this.props;
@@ -437,23 +439,13 @@ class PaymentRequest extends PureComponent {
     this.updateAmount();
   };
 
-  /**
-   * Handle search input result
-   *
-   * @param {string} searchInputValue - String containing assets query
-   */
-  handleSearch = (searchInputValue) => {
-    this.setState({ searchInputValue });
-    this.debouncedTokenSearch(searchInputValue);
-  };
-
   handleSearchTokenList = (searchInputValue) => {
     if (typeof searchInputValue !== 'string') {
       searchInputValue = this.state.searchInputValue;
     }
     this.setState({ searchInputValue });
 
-    this.handleSearch(searchInputValue);
+    this.debouncedTokenSearch(searchInputValue);
   };
 
   /** Clear search input and focus */

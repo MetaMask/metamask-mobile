@@ -4,6 +4,7 @@ import {
   fireEvent,
   act,
   userEvent,
+  waitFor,
 } from '@testing-library/react-native';
 import PaymentRequest from './index';
 import { Provider } from 'react-redux';
@@ -137,6 +138,7 @@ const renderComponent = (props = {}) =>
           navigation={mockNavigation}
           route={mockRoute}
           networkImageSource=""
+          chainId="0x1"
           {...props}
         />
       </ThemeContext.Provider>
@@ -270,6 +272,182 @@ describe('PaymentRequest', () => {
       );
 
       expect(networkPicker).toBeNull();
+    });
+  });
+
+  describe('Debounced Search Functionality', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      jest.useRealTimers();
+    });
+
+
+
+    it('debounces search input to reduce excessive calls', async () => {
+      // Given a PaymentRequest component with search functionality
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // Initially should show top picks
+      expect(getByText('Top picks')).toBeTruthy();
+
+      // When user types rapidly
+      fireEvent.changeText(searchInput, 'E');
+      fireEvent.changeText(searchInput, 'ET');
+      fireEvent.changeText(searchInput, 'ETH');
+
+      // Then the input value should update immediately
+      expect(searchInput.props.value).toBe('ETH');
+
+      // The search should execute after debounce delay
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then the search should execute and show search results
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+      });
+    });
+
+    it('cancels pending search when user clears input', async () => {
+      // Given a PaymentRequest component with search input
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types and then clears immediately
+      fireEvent.changeText(searchInput, 'ETH');
+      fireEvent.changeText(searchInput, '');
+
+      // Then the input should be cleared immediately
+      expect(searchInput.props.value).toBe('');
+
+      // And the search should not execute even after delay
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then it should show top picks instead of search results
+      expect(getByText('Top picks')).toBeTruthy();
+    });
+
+    it('updates search results after debounce delay', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // Initially should show top picks
+      expect(getByText('Top picks')).toBeTruthy();
+
+      // When user types a search term
+      fireEvent.changeText(searchInput, 'BAT');
+
+      // Then the input value should update immediately
+      expect(searchInput.props.value).toBe('BAT');
+
+      // The search should execute after debounce delay
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then search results should appear
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+      });
+    });
+
+    it('handles multiple rapid search inputs correctly', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types rapidly with different terms
+      fireEvent.changeText(searchInput, 'E');
+      fireEvent.changeText(searchInput, 'ET');
+      fireEvent.changeText(searchInput, 'ETH');
+
+      // Then only the final search should execute
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then it should search for the final term
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+      });
+    }, 10000);
+
+    it('cancels debounced search on component unmount', async () => {
+      // Given a PaymentRequest component with active search
+      const { getByPlaceholderText, unmount } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types and component unmounts before debounce completes
+      fireEvent.changeText(searchInput, 'ETH');
+      
+      // Then unmount the component
+      unmount();
+
+      // When advancing timers after unmount
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then no errors should occur (debounced function should be cancelled)
+      expect(() => {
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      }).not.toThrow();
+    });
+
+    it('handles empty search input correctly', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types and then clears to empty
+      fireEvent.changeText(searchInput, 'ETH');
+      fireEvent.changeText(searchInput, '');
+
+      // Then it should show top picks immediately
+      expect(getByText('Top picks')).toBeTruthy();
+
+      // And should not show search results after delay
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(getByText('Top picks')).toBeTruthy();
+    });
+
+    it('debounces handleSearchTokenList calls', async () => {
+      // Given a PaymentRequest component
+      const { getByPlaceholderText, getByText } = renderComponent();
+      const searchInput = getByPlaceholderText('Search assets');
+
+      // When user types and submits (which calls handleSearchTokenList)
+      fireEvent.changeText(searchInput, 'BAT');
+      fireEvent(searchInput, 'submitEditing');
+
+      // Then the search should not execute immediately
+      expect(searchInput.props.value).toBe('BAT');
+
+      // When the debounce delay passes
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Then the search should execute
+      await waitFor(() => {
+        expect(getByText('Search results')).toBeTruthy();
+      });
     });
   });
 });
