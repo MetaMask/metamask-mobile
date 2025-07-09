@@ -37,6 +37,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
 import CandlestickChartComponent from '../components/CandlestickChart';
 import PerpsPositionCard from '../components/PerpsPositionCard';
+import PerpsPositionHeader from '../components/PerpsPositionHeader';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 
 interface PositionDetailsRouteParams {
@@ -67,45 +68,7 @@ const createStyles = (colors: Colors) =>
       fontWeight: '600',
       color: colors.text.default,
     },
-    positionHeader: {
-      backgroundColor: colors.background.alternative,
-      margin: 16,
-      borderRadius: 12,
-      padding: 16,
-    },
-    assetInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    assetName: {
-      fontSize: 24,
-      fontWeight: '600',
-      color: colors.text.default,
-      marginRight: 12,
-    },
-    directionBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-    },
-    longBadge: {
-      backgroundColor: colors.success.muted,
-    },
-    shortBadge: {
-      backgroundColor: colors.error.muted,
-    },
-    directionText: {
-      fontSize: 14,
-      fontWeight: '600',
-      textTransform: 'uppercase',
-    },
-    longText: {
-      color: colors.success.default,
-    },
-    shortText: {
-      color: colors.error.default,
-    },
+
     pnlContainer: {
       alignItems: 'center',
       marginBottom: 16,
@@ -579,26 +542,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
       <ScrollView style={styles.container}>
         {/* Position Header */}
-        <View style={styles.positionHeader}>
-          <View style={styles.assetInfo}>
-            <Text style={styles.assetName}>{position.coin}</Text>
-            <View
-              style={[
-                styles.directionBadge,
-                isLong ? styles.longBadge : styles.shortBadge,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.directionText,
-                  isLong ? styles.longText : styles.shortText,
-                ]}
-              >
-                {direction}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <PerpsPositionHeader position={position} />
 
         {/* Chart */}
         <View style={styles.section}>
