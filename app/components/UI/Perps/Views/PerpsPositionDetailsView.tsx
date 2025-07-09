@@ -9,7 +9,6 @@ import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import { usePerpsController } from '../hooks';
 import type { Position, ClosePositionParams } from '../controllers/types';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { triggerSuccessHaptic, triggerErrorHaptic } from '../utils/hapticUtils';
 
@@ -185,7 +184,7 @@ const createStyles = (colors: Colors) =>
     // TP/SL Modal styles
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.overlay.default,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -243,7 +242,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // TP/SL editing state
   const [isEditingTPSL, setIsEditingTPSL] = useState(false);
   const [takeProfitPrice, setTakeProfitPrice] = useState('');
@@ -347,7 +346,7 @@ const PerpsPositionDetailsView: React.FC = () => {
         },
       ]
     );
-  }, [position, direction, absoluteSize, closePosition, navigation]);
+  }, [position, direction, absoluteSize, closePosition, navigation, getPositions]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -388,7 +387,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
       await triggerErrorHaptic();
       setError('TP/SL updates are not yet implemented');
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update TP/SL';
       setError(errorMessage);
@@ -397,7 +396,7 @@ const PerpsPositionDetailsView: React.FC = () => {
     } finally {
       setIsUpdatingTPSL(false);
     }
-  }, [position.coin, takeProfitPrice, stopLossPrice, getPositions]);
+  }, [position.coin, takeProfitPrice, stopLossPrice]);
 
   const handleEditTPSL = () => {
     setIsEditingTPSL(true);
@@ -522,7 +521,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 loading={isUpdatingTPSL}
                 style={styles.editButton}
               />
-              
+
               <Button
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
@@ -547,7 +546,7 @@ const PerpsPositionDetailsView: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Take Profit & Stop Loss</Text>
-            
+
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>

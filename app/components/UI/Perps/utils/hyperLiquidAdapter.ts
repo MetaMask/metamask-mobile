@@ -13,6 +13,7 @@ import type {
   SpotClearinghouseState
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
+import { isHexString } from '@metamask/utils';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -22,12 +23,6 @@ import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/inf
  * to provide a consistent interface across different perps protocols.
  */
 
-/**
- * Type guard to validate hex string format for client order ID
- */
-function isValidHexString(value: string): value is `0x${string}` {
-  return /^0x[a-fA-F0-9]+$/.test(value);
-}
 
 /**
  * Transform MetaMask Perps API OrderParams to HyperLiquid SDK format
@@ -55,7 +50,7 @@ export function adaptOrderToSDK(
     } : {
       limit: { tif: 'Ioc' }
     },
-    c: order.clientOrderId && isValidHexString(order.clientOrderId) ? order.clientOrderId : null
+    c: order.clientOrderId && isHexString(order.clientOrderId) ? order.clientOrderId as `0x${string}` : null
   };
 }
 
@@ -148,12 +143,14 @@ export function adaptAccountStateFromSDK(
   // Calculate total account value (Spot + Perps)
   const totalBalance = (spotBalance + perpsBalance).toString();
 
-  return {
+  const accountState: AccountState = {
     availableBalance: perpsState.withdrawable, // Always Perps withdrawable
     totalBalance, // Combined or Perps-only? See TODO above
     marginUsed: perpsState.crossMarginSummary.totalMarginUsed,
     unrealizedPnl: totalUnrealizedPnl,
   };
+
+  return accountState;
 }
 
 /**

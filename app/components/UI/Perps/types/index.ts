@@ -29,3 +29,6 @@ export interface HyperliquidAsset {
   name: string;
   [key: string]: unknown;
 }
+
+// Export all configuration types directly
+export * from './config';

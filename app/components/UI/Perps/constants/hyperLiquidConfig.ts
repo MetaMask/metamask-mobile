@@ -1,4 +1,15 @@
-import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId } from '@metamask/utils';
+import type {
+  HyperLiquidNetwork,
+  HyperLiquidEndpoints,
+  HyperLiquidAssetConfigs,
+  BridgeContractConfig,
+  HyperLiquidBridgeContracts,
+  HyperLiquidTransportConfig,
+  TradingDefaultsConfig,
+  FeeRatesConfig,
+  RiskManagementConfig,
+} from '../types';
 
 // Network constants
 export const ARBITRUM_MAINNET_CHAIN_ID = '42161';
@@ -7,70 +18,69 @@ export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_I
 export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_ID}`;
 
 // WebSocket endpoints
-export const HYPERLIQUID_ENDPOINTS = {
+export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
   mainnet: 'wss://api.hyperliquid.xyz/ws',
   testnet: 'wss://api.hyperliquid-testnet.xyz/ws',
-} as const;
+};
 
 // Asset configurations for multichain abstraction
-export const HYPERLIQUID_ASSET_CONFIGS = {
+export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
   'USDC': {
     mainnet: `${ARBITRUM_MAINNET_CAIP_CHAIN_ID}/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default`,
     testnet: `${ARBITRUM_TESTNET_CAIP_CHAIN_ID}/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default`
   }
-} as const;
+};
 
 // HyperLiquid bridge contract addresses for direct USDC deposits
 // These are the official bridge contracts where USDC must be sent to credit user's HyperLiquid account
-export const HYPERLIQUID_BRIDGE_CONTRACTS = {
+export const HYPERLIQUID_BRIDGE_CONTRACTS: HyperLiquidBridgeContracts = {
   mainnet: {
-    chainId: ARBITRUM_MAINNET_CAIP_CHAIN_ID as CaipChainId,
-    contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex
+    chainId: ARBITRUM_MAINNET_CAIP_CHAIN_ID,
+    contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7'
   },
   testnet: {
-    chainId: ARBITRUM_TESTNET_CAIP_CHAIN_ID as CaipChainId,
-    contractAddress: '0x08cfc1B6b2dCF36A1480b99353A354AA8AC56f89' as Hex
+    chainId: ARBITRUM_TESTNET_CAIP_CHAIN_ID,
+    contractAddress: '0x08cfc1B6b2dCF36A1480b99353A354AA8AC56f89'
   }
-} as const;
+};
 
 // SDK transport configuration
-export const HYPERLIQUID_TRANSPORT_CONFIG = {
+export const HYPERLIQUID_TRANSPORT_CONFIG: HyperLiquidTransportConfig = {
   timeout: 10_000,
   keepAlive: { interval: 30_000 },
   reconnect: {
     maxRetries: 5,
     connectionTimeout: 10_000
   }
-} as const;
+};
 
 // Trading configuration constants
-export const TRADING_DEFAULTS = {
-  leverage: 3, // JIRA requirement: 3x default leverage
-  marginPercent: 10, // JIRA requirement: 10% fixed margin default
-  takeProfitPercent: 0.30, // JIRA requirement: 30% take profit
-  stopLossPercent: 0.10, // JIRA requirement: 10% stop loss
+export const TRADING_DEFAULTS: TradingDefaultsConfig = {
+  leverage: 3, // 3x default leverage
+  marginPercent: 10, // 10% fixed margin default
+  takeProfitPercent: 0.30, // 30% take profit
+  stopLossPercent: 0.10, // 10% stop loss
   slippage: 0.05, // 5% max slippage protection
   amount: {
-    mainnet: 5, // JIRA requirement: $5 minimum order size
+    mainnet: 5, // $5 minimum order size
     testnet: 11, // Default USD amount for testnet
   },
-} as const;
+};
 
 // Fee configuration
-export const FEE_RATES = {
+export const FEE_RATES: FeeRatesConfig = {
   market: 0.0002, // 0.02% market order fee
   limit: 0.0001, // 0.01% limit order fee
-} as const;
+};
 
 // Risk management constants
-export const RISK_MANAGEMENT = {
+export const RISK_MANAGEMENT: RiskManagementConfig = {
   maintenanceMargin: 0.05, // 5% maintenance margin for liquidation
   fallbackMaxLeverage: 20, // Fallback when market data unavailable
   fallbackBalancePercent: 0.1, // Default balance percentage if no balance
-} as const;
+};
 
 // Type helpers
-export type HyperLiquidNetwork = 'mainnet' | 'testnet';
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
 
 // Configuration helpers
@@ -83,11 +93,13 @@ export function getChainId(isTestnet: boolean): string {
 }
 
 export function getCaipChainId(isTestnet: boolean): CaipChainId {
-  return isTestnet ? ARBITRUM_TESTNET_CAIP_CHAIN_ID as CaipChainId : ARBITRUM_MAINNET_CAIP_CHAIN_ID as CaipChainId;
+  const network: HyperLiquidNetwork = isTestnet ? 'testnet' : 'mainnet';
+  return HYPERLIQUID_BRIDGE_CONTRACTS[network].chainId;
 }
 
-export function getBridgeInfo(isTestnet: boolean): { chainId: CaipChainId; contractAddress: Hex } {
-  return isTestnet ? HYPERLIQUID_BRIDGE_CONTRACTS.testnet : HYPERLIQUID_BRIDGE_CONTRACTS.mainnet;
+export function getBridgeInfo(isTestnet: boolean): BridgeContractConfig {
+  const network: HyperLiquidNetwork = isTestnet ? 'testnet' : 'mainnet';
+  return HYPERLIQUID_BRIDGE_CONTRACTS[network];
 }
 
 export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
