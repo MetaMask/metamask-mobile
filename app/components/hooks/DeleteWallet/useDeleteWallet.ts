@@ -6,6 +6,7 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { clearAllVaultBackups } from '../../../core/BackupVault';
 import { useMetrics } from '../useMetrics';
+import Engine from '../../../core/Engine';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
@@ -14,6 +15,9 @@ const useDeleteWallet = () => {
       await Authentication.newWalletAndKeychain(`${Date.now()}`, {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
+
+      Engine.context.SeedlessOnboardingController.clearState();
+
       await clearAllVaultBackups();
       await Authentication.lockApp();
       // TODO: Replace "any" with type
