@@ -29,11 +29,16 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       const { rpcUrl , type } = definitiveProviderConfig;
 
       let blockExplorer;
+      let name;
 
-      if (type === RPC && rpcUrl) {
+      if (type === RPC) {
         blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations)
+        name = 
+          getBlockExplorerName(blockExplorer) ||
+          strings('swaps.block_explorer');
       } else {
         blockExplorer = getEtherscanBaseUrl(type);
+        name = 'Etherscan';
       }
  
       if (!blockExplorer) {
@@ -43,15 +48,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       const url = new URL(blockExplorer);
       if (!['http:', 'https:'].includes(url.protocol)) {
         throw new Error('Block explorer URL is not a valid http(s) protocol');
-      }
-
-      let name;
-      if (type === RPC) {
-        name = 
-          getBlockExplorerName(blockExplorer) ||
-          strings('swaps.block_explorer');
-      } else {
-        name = 'Etherscan';
       }
 
       setExplorer({
