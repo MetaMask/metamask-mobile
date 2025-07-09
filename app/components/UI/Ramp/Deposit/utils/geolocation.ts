@@ -11,28 +11,24 @@ export async function getGeolocation(): Promise<GeolocationResponse> {
 
   const url = `${TRANSAK_API_URL}/${TRANSAK_GEOLOCATION_ENDPOINT}`;
 
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(
-        `Transak geolocation API request failed with status: ${response.status}`,
-      );
-    }
-
-    const data = await response.json();
-
-    if (!data.ipCountryCode) {
-      throw new Error('Invalid geolocation response: missing ipCountryCode');
-    }
-
-    return data;
-  } catch (error) {
-    throw new Error('Error getting geolocation');
+  if (!response.ok) {
+    throw new Error(
+      `Transak geolocation API request failed with status: ${response.status}`,
+    );
   }
+
+  const data = await response.json();
+
+  if (!data.ipCountryCode) {
+    throw new Error('Invalid geolocation response: missing ipCountryCode');
+  }
+
+  return data;
 }
