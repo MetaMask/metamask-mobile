@@ -94,7 +94,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     }
   }, [order?.data]);
 
-  const shortOrderId = providerOrderId.slice(-6);
+  const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
   const totalAmount =
     order.amount && order.fee
       ? (
