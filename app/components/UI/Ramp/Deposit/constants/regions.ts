@@ -24,8 +24,8 @@ export const DEPOSIT_REGIONS: DepositRegion[] = [
     },
     currency: 'USD',
     supported: true,
+    recommended: true,
   },
-  // EU countries
   {
     isoCode: 'AT',
     flag: '🇦🇹',
