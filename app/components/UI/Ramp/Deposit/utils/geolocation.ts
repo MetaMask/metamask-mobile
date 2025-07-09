@@ -1,4 +1,3 @@
-import Logger from '../../../../../util/Logger';
 import { TRANSAK_API_URL, TRANSAK_GEOLOCATION_ENDPOINT } from '../constants';
 
 export interface GeolocationResponse {
@@ -26,12 +25,14 @@ export async function getGeolocation(): Promise<GeolocationResponse> {
       );
     }
 
-    return response.json();
+    const data = await response.json();
+
+    if (!data.ipCountryCode) {
+      throw new Error('Invalid geolocation response: missing ipCountryCode');
+    }
+
+    return data;
   } catch (error) {
-    Logger.error(error as Error, {
-      message: 'Transak geolocation API request failed',
-      endpoint: TRANSAK_GEOLOCATION_ENDPOINT,
-    });
-    throw error;
+    throw new Error('Error getting geolocation');
   }
 }
