@@ -346,7 +346,8 @@ export const getMultichainNetworkAggregatedBalance = (
     if (totalBalanceFiat) {
       totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
     } else {
-      totalBalanceFiat = balanceInFiat;
+      // If the rate is undefined, we don't want to set the total balance fiat to 0
+      totalBalanceFiat = rate !== undefined ? balanceInFiat : undefined;
     }
   }
 

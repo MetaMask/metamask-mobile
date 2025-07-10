@@ -3,6 +3,7 @@ import enContent from '../../../locales/languages/en.json';
 export const QuoteViewSelectorText = {
   GET_QUOTES: enContent.swaps.get_quotes,
   CANCEL: 'Cancel',
+  GET_NEW_QUOTES: enContent.swaps.get_new_quotes,
 };
 
 export const QuoteViewSelectorIDs = {

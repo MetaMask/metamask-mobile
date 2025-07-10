@@ -1,4 +1,7 @@
 import React from 'react';
+import { merge } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
+
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -6,17 +9,14 @@ import {
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
   transferConfirmationState,
+  upgradeOnlyAccountConfirmation,
+  getAppStateForConfirmation,
+  downgradeAccountConfirmation,
+  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
 import Title from './title';
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokenListController: {
-      fetchTokenList: jest.fn(),
-    },
-  },
-}));
 
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
@@ -73,9 +73,81 @@ describe('Confirm Title', () => {
 
   it('renders correct title for transfer', () => {
     const { getByText } = renderWithProvider(<Title />, {
-      state: transferConfirmationState,
+      state: merge(transferConfirmationState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  origin: 'test-dapp',
+                },
+              ],
+            },
+          },
+        },
+      }),
     });
     expect(getByText('Transfer request')).toBeTruthy();
   });
 
+  it('renders correct title and subtitle for upgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(getByText("You're switching to a smart account.")).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for downgrade smart account', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(downgradeAccountConfirmation),
+    });
+    expect(getByText('Account update')).toBeTruthy();
+    expect(
+      getByText("You're switching back to a standard account (EOA)."),
+    ).toBeTruthy();
+  });
+
+  it('renders correct title and subtitle for upgrade+batched confirmation', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Transaction request')).toBeTruthy();
+  });
+
+  it('displays transaction count for batched confirmation', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+    });
+    expect(getByText('Includes 2 transactions')).toBeTruthy();
+  });
+
+  it('renders expected elements for approve', () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByText('Approve request')).toBeTruthy();
+  });
+
+  it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(
+    'does not render subtitle for %s',
+    (transactionType) => {
+      const fakeLendingDepositState = merge(generateContractInteractionState, {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [{ type: transactionType }],
+            },
+          },
+        },
+      });
+      const { getByText, queryByText } = renderWithProvider(<Title />, {
+        state: fakeLendingDepositState,
+      });
+      expect(getByText('Transaction request')).toBeTruthy();
+      expect(
+        queryByText('Review request details before you confirm.'),
+      ).toBeNull();
+    },
+  );
 });

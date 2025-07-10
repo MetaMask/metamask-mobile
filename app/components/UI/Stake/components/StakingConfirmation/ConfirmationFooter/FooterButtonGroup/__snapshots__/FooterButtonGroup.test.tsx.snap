@@ -25,7 +25,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -36,6 +36,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
@@ -67,7 +68,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
@@ -77,6 +78,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <ActivityIndicator
       color="#ffffff"
@@ -111,7 +113,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -122,6 +124,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
@@ -153,7 +156,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
@@ -163,6 +166,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <ActivityIndicator
       color="#ffffff"
@@ -197,7 +201,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -208,6 +212,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
@@ -239,7 +244,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
@@ -249,6 +254,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <Text
       accessibilityRole="text"
@@ -294,7 +300,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
         "borderColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -305,6 +311,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
@@ -336,7 +343,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "#4459ff",
-        "borderRadius": 24,
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
@@ -346,6 +353,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <Text
       accessibilityRole="text"

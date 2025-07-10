@@ -1,22 +1,23 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
+import { View, ViewProps } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../locales/i18n';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../../locales/i18n';
-import { View, ViewProps } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './StakingButtons.styles';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
-import { useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import { RootState } from '../../../../../../reducers';
+import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
-import Engine from '../../../../../../core/Engine';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { TokenI } from '../../../../Tokens/types';
-import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
+import styleSheet from './StakingButtons.styles';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -49,12 +50,16 @@ const StakingButtons = ({
     }
   };
 
+  const { outputToken } = useSelector((state: RootState) =>
+    earnSelectors.selectEarnTokenPair(state, asset),
+  );
+
   const onUnstakePress = async () => {
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
       params: {
-        token: asset,
+        token: outputToken,
       },
     });
     trackEvent(
@@ -75,7 +80,6 @@ const StakingButtons = ({
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
     trackEvent(

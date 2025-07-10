@@ -1,5 +1,5 @@
 import { initialState } from '../../_mocks_/initialState';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen , DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -14,31 +14,30 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { isHardwareAccount } from '../../../../../util/address';
 import { strings } from '../../../../../../locales/i18n';
+import { isHardwareAccount } from '../../../../../util/address';
+import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
-// TODO remove this mock once we have a real implementation
-jest.mock('../../../../../selectors/confirmTransaction');
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    SwapsController: {
-      fetchAggregatorMetadataWithCache: jest.fn(),
-      fetchTopAssetsWithCache: jest.fn(),
-      fetchTokenWithCache: jest.fn(),
-    },
-    KeyringController: {
-      state: {
+const mockState = {
+  ...initialState,
+  engine: {
+    ...initialState.engine,
+    backgroundState: {
+      ...initialState.engine.backgroundState,
+      KeyringController: {
         keyrings: [
           {
             accounts: ['0x1234567890123456789012345678901234567890'],
             type: 'HD Key Tree',
+            metadata: {
+              id: mockEntropySource,
+              name: '',
+            },
           },
         ],
       },
-    },
-    AccountsController: {
-      state: {
+      AccountsController: {
         internalAccounts: {
           selectedAccount: '30786334-3935-4563-b064-363339643939',
           accounts: {
@@ -50,44 +49,101 @@ jest.mock('../../../../../core/Engine', () => ({
               scopes: ['eip155:0'],
               metadata: {
                 lastSelected: 0,
+                keyring: {
+                  type: 'HD Key Tree',
+                },
               },
             },
           },
         },
       },
     },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
+  }
+} as DeepPartial<RootState>;
+
+// TODO remove this mock once we have a real implementation
+jest.mock('../../../../../selectors/confirmTransaction');
+
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ENTROPY_SOURCE } = jest.requireActual('../../../../../util/test/keyringControllerTestUtils');
+  return {
+    context: {
+      SwapsController: {
+        fetchAggregatorMetadataWithCache: jest.fn(),
+        fetchTopAssetsWithCache: jest.fn(),
+        fetchTokenWithCache: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0x1234567890123456789012345678901234567890'],
+              type: 'HD Key Tree',
+              metadata: {
+                id: MOCK_ENTROPY_SOURCE,
+                name: '',
+              },
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        state: {
+          internalAccounts: {
+            selectedAccount: '30786334-3935-4563-b064-363339643939',
+            accounts: {
+              '30786334-3935-4563-b064-363339643939': {
+                id: '30786334-3935-4563-b064-363339643939',
+                address: '0x1234567890123456789012345678901234567890',
+                name: 'Account 1',
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+                metadata: {
+                  lastSelected: 0,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      GasFeeController: {
+        startPolling: jest.fn(),
+        stopPollingByPollingToken: jest.fn(),
+      },
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
+      },
+      BridgeController: {
+        resetState: jest.fn(),
+        setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
+        updateBridgeQuoteRequestParams: jest.fn(),
+      },
     },
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
-    BridgeStatusController: {
-      submitTx: jest.fn().mockResolvedValue({ success: true }),
-    },
-    BridgeController: {
-      resetState: jest.fn(),
-      setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
-      updateBridgeQuoteRequestParams: jest.fn(),
-    },
-  },
-  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
-    balance: '1000000000000000000', // 1 ETH
-    fiatBalance: '2000', // $2000
-  }),
-}));
+    getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+      balance: '1000000000000000000', // 1 ETH
+      fiatBalance: '2000', // $2000
+    }),
+  };
+});
 
 // Mock useAccounts hook
 jest.mock('../../../../hooks/useAccounts', () => ({
   useAccounts: () => ({
     accounts: [
       {
+        id: '30786334-3935-4563-b064-363339643939',
         address: '0x1234567890123456789012345678901234567890',
         name: 'Account 1',
         type: 'HD Key Tree',
         yOffset: 0,
         isSelected: true,
+        caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
       },
     ],
     ensByAccountAddress: {
@@ -166,7 +222,7 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: mockState },
     );
 
     expect(toJSON()).toMatchSnapshot();
@@ -178,7 +234,7 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: mockState },
     );
 
     // Find and click the token button
@@ -199,7 +255,7 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: mockState },
     );
 
     // Find and click the destination token area
@@ -235,7 +291,7 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: mockState },
     );
 
     // Press number buttons to input
@@ -255,9 +311,9 @@ describe('BridgeView', () => {
 
   it('should display source token symbol and balance', async () => {
     const stateWithAmount = {
-      ...initialState,
+      ...mockState,
       bridge: {
-        ...initialState.bridge,
+        ...mockState.bridge,
         sourceAmount: '1.5',
       },
     };
@@ -287,10 +343,10 @@ describe('BridgeView', () => {
   });
 
   it('should switch tokens when clicking arrow button', () => {
-    const initialStateWithTokens = {
-      ...initialState,
+    const mockStateWithTokens = {
+      ...mockState,
       bridge: {
-        ...initialState.bridge,
+        ...mockState.bridge,
         sourceToken: {
           address: '0x0000000000000000000000000000000000000000',
           chainId: '0x1' as Hex,
@@ -315,17 +371,17 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialStateWithTokens },
+      { state: mockStateWithTokens },
     );
 
     const arrowButton = getByTestId('arrow-button');
     fireEvent.press(arrowButton);
 
     expect(setSourceToken).toHaveBeenCalledWith(
-      initialStateWithTokens.bridge.destToken,
+      mockStateWithTokens.bridge.destToken,
     );
     expect(setDestToken).toHaveBeenCalledWith(
-      initialStateWithTokens.bridge.sourceToken,
+      mockStateWithTokens.bridge.sourceToken,
     );
   });
 
@@ -382,7 +438,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: initialState },
+        { state: mockState },
       );
 
       expect(getByText('Select amount')).toBeTruthy();
@@ -390,9 +446,9 @@ describe('BridgeView', () => {
 
     it('displays "Select amount" when amount is zero', () => {
       const stateWithZeroAmount = {
-        ...initialState,
+        ...mockState,
         bridge: {
-          ...initialState.bridge,
+          ...mockState.bridge,
           sourceAmount: '0',
         },
       };
@@ -569,7 +625,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: initialState },
+        { state: mockState },
       );
 
       await waitFor(() => {
@@ -593,7 +649,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: initialState },
+        { state: mockState },
       );
 
       await waitFor(() => {
@@ -620,7 +676,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: initialState },
+        { state: mockState },
       );
 
       await waitFor(() => {
@@ -648,7 +704,7 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: initialState },
+        { state: mockState },
       );
 
       await waitFor(() => {
@@ -685,7 +741,7 @@ describe('BridgeView', () => {
             symbol: 'SOL',
           },
         },
-      });
+      }, mockState);
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -800,4 +856,3 @@ describe('BridgeView', () => {
     });
   });
 });
-

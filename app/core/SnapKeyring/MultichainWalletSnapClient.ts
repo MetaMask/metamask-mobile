@@ -37,10 +37,9 @@ export const WALLET_SNAP_MAP = {
 
 export interface MultichainWalletSnapOptions {
   scope: CaipChainId;
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  synchronize?: boolean;
   entropySource?: string;
   accountNameSuggestion?: string;
-  ///: END:ONLY_INCLUDE_IF
   derivationPath?: string;
 }
 
@@ -119,16 +118,17 @@ export abstract class MultichainWalletSnapClient {
       options?.accountNameSuggestion ??
       getMultichainAccountName(options.scope, this.getClientType());
 
-    return await this.withSnapKeyring(async (keyring) => {
-      await keyring.createAccount(
-        this.snapId,
-        {
-          ...options,
-          accountNameSuggestion: accountName,
-        } as unknown as Record<string, Json>,
-        snapKeyringOptions ?? this.snapKeyringOptions,
-      );
-    });
+    return await this.withSnapKeyring(
+      async (keyring) =>
+        await keyring.createAccount(
+          this.snapId,
+          {
+            ...options,
+            accountNameSuggestion: accountName,
+          } as unknown as Record<string, Json>,
+          snapKeyringOptions ?? this.snapKeyringOptions,
+        ),
+    );
   }
 
   /**
@@ -171,6 +171,9 @@ export abstract class MultichainWalletSnapClient {
    * @throws Error if account discovery or addition fails
    */
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
+
+    let totalDiscoveredAccounts = 0;
+
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -217,11 +220,14 @@ export abstract class MultichainWalletSnapClient {
               setSelectedAccount: false,
             },
           );
+          totalDiscoveredAccounts += 1;
         } catch (error) {
           captureException(new Error(`Failed to create account ${error}`));
         }
       }
     }
+
+    return totalDiscoveredAccounts;
   }
 }
 
@@ -240,6 +246,16 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
 
   protected getSnapSender(): Sender {
     return new BitcoinWalletSnapSender();
+  }
+
+  async createAccount(
+    options: MultichainWalletSnapOptions,
+    snapKeyringOptions?: SnapKeyringOptions,
+  ) {
+    return super.createAccount(
+      { ...options, synchronize: true },
+      snapKeyringOptions,
+    );
   }
 }
 

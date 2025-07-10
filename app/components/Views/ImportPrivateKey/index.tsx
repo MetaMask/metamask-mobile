@@ -22,6 +22,7 @@ import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -36,6 +37,11 @@ const ImportPrivateKey = () => {
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
   const styles = createStyles(colors);
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
+
   useEffect(() => {
     mounted.current = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -84,6 +90,7 @@ const ImportPrivateKey = () => {
       });
       setLoading(false);
       setPrivateKey('');
+      fetchAccountsWithActivity();
     } catch (e) {
       Alert.alert(
         strings('import_private_key.error_title'),

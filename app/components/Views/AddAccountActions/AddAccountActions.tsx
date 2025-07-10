@@ -1,9 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { useSelector } from 'react-redux';
-///: END:ONLY_INCLUDE_IF
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -39,9 +37,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 // eslint-disable-next-line import/no-duplicates
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import {
   selectHasCreatedBtcMainnetAccount,
@@ -50,16 +46,15 @@ import {
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHDKeyrings);
   const hasMultipleSRPs = hdKeyrings.length > 1;
-  ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -78,25 +73,32 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const openImportSrp = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+      ).build(),
+    );
     navigate(Routes.MULTI_SRP.IMPORT);
     onBack();
-  }, [onBack, navigate]);
-  ///: END:ONLY_INCLUDE_IF
+  }, [onBack, navigate, trackEvent, createEventBuilder]);
+
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const createNewAccount = useCallback(async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     if (hasMultipleSRPs) {
       navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     try {
       setIsLoading(true);
 
       await addNewHdAccount();
+      fetchAccountsWithActivity();
 
       trackEvent(
         createEventBuilder(
@@ -112,7 +114,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [hasMultipleSRPs, navigate, trackEvent, createEventBuilder, onBack]);
+  }, [
+    hasMultipleSRPs,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    onBack,
+    fetchAccountsWithActivity,
+  ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(
@@ -216,7 +225,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             {strings('account_actions.import_wallet_or_account')}
           </Text>
           {
-            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
             <AccountAction
               actionTitle={strings('account_actions.import_srp')}
               iconName={IconName.Wallet}
@@ -224,7 +232,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               disabled={isLoading}
               testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
             />
-            ///: END:ONLY_INCLUDE_IF
           }
           <AccountAction
             actionTitle={strings('account_actions.import_account')}

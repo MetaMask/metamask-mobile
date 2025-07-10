@@ -9,7 +9,6 @@ import {
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-import { selectAllTokenBalances } from '../../../selectors/tokenBalancesController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
@@ -22,9 +21,6 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
-  // Selectors returning state updated by the polling
-  const tokenBalances = useSelector(selectAllTokenBalances);
-
   const networkConfigurationsToPoll =
     isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
       ? Object.values(networkConfigurationsPopularNetworks).map(
@@ -32,9 +28,20 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
         )
       : [currentChainId];
 
-  const chainIdsToPoll = chainIds ?? networkConfigurationsToPoll;
+  const chainIdsToPoll = isEvmSelected
+    ? networkConfigurationsToPoll.map((chainId) => ({
+        chainId: chainId as Hex,
+      }))
+    : [];
 
   const { TokenBalancesController } = Engine.context;
+
+  let providedChainIds;
+  if (chainIds) {
+    providedChainIds = chainIds.map((chainId) => ({ chainId: chainId as Hex }));
+  }
+
+  const input = providedChainIds ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenBalancesController.startPolling.bind(
@@ -44,14 +51,8 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       TokenBalancesController.stopPollingByPollingToken.bind(
         TokenBalancesController,
       ),
-    input: isEvmSelected
-      ? chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
-      : [],
+    input,
   });
-
-  return {
-    tokenBalances,
-  };
 };
 
 export default useTokenBalancesPolling;

@@ -164,7 +164,7 @@ exports[`Wallet should render correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "borderRadius": 4,
                           "height": 16,
                           "justifyContent": "center",
                           "overflow": "hidden",
@@ -1355,7 +1355,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "borderRadius": 4,
                           "height": 16,
                           "justifyContent": "center",
                           "overflow": "hidden",
@@ -2546,7 +2546,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "borderRadius": 4,
                           "height": 16,
                           "justifyContent": "center",
                           "overflow": "hidden",

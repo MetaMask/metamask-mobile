@@ -1,25 +1,28 @@
+import {
+  EarnControllerState,
+  LendingMarketWithPosition,
+} from '@metamask/earn-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
-  CreateMockTokenOptions,
-  TOKENS_WITH_DEFAULT_OPTIONS,
-} from './testUtils.types';
-import { PooledStakingState } from '@metamask/earn-controller';
-import {
-  VaultData,
-  VaultApyAverages,
-  VaultDailyApy,
-} from '@metamask/stake-sdk';
-import {
+  MOCK_EXCHANGE_RATE,
+  MOCK_LENDING_MARKETS,
+  MOCK_LENDING_POSITIONS,
   MOCK_POOLED_STAKES_DATA,
   MOCK_VAULT_DATA,
-  MOCK_EXCHANGE_RATE,
 } from '../__mocks__/earnControllerMockData';
 import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_DAILY_APYS,
 } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import {
+  CreateMockTokenOptions,
+  TOKENS_WITH_DEFAULT_OPTIONS,
+} from './testUtils.types';
+import { EarnTokenDetails } from '../../Earn/types/lending.types';
+import { EARN_EXPERIENCES } from '../../Earn/constants/experiences';
+import { VaultData } from '@metamask/stake-sdk';
 
-export const HOLESKY_CHAIN_ID = '0x4268';
+export const HOODI_CHAIN_ID = '0x88BB0'; // Chain id 560048
 
 export const createMockToken = (options: CreateMockTokenOptions) => {
   const {
@@ -30,22 +33,19 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     decimals = 0,
     isStaked = false,
     ticker = '',
+    balance = '',
     balanceFiat = '',
   } = options;
 
   const isETH = symbol === 'ETH' || symbol === 'Ethereum';
 
-  const nativeChainIds = [
-    CHAIN_IDS.MAINNET,
-    CHAIN_IDS.SEPOLIA,
-    HOLESKY_CHAIN_ID,
-  ];
+  const nativeChainIds = [CHAIN_IDS.MAINNET, CHAIN_IDS.SEPOLIA, HOODI_CHAIN_ID];
   const isNative = nativeChainIds.includes(chainId) && isETH;
 
   return {
     address,
     aggregators: [],
-    balance: '',
+    balance,
     balanceFiat,
     chainId,
     decimals: decimals ?? 0,
@@ -126,19 +126,25 @@ export const getCreateMockTokenOptions = (
 };
 
 export const mockEarnControllerRootState = ({
+  chainId = 1,
   isEligible = true,
   pooledStakes = MOCK_POOLED_STAKES_DATA,
   vaultMetadata = MOCK_VAULT_DATA,
   exchangeRate = MOCK_EXCHANGE_RATE,
   vaultApyAverages = MOCK_VAULT_APY_AVERAGES,
   vaultDailyApys = MOCK_VAULT_DAILY_APYS,
+  markets = MOCK_LENDING_MARKETS,
+  positions = MOCK_LENDING_POSITIONS,
 }: {
+  chainId?: number;
   isEligible?: boolean;
-  pooledStakes?: PooledStakingState['pooledStakes'];
-  vaultMetadata?: VaultData;
-  exchangeRate?: string;
-  vaultApyAverages?: VaultApyAverages;
-  vaultDailyApys?: VaultDailyApy[];
+  pooledStakes?: EarnControllerState['pooled_staking'][0]['pooledStakes'];
+  vaultMetadata?: EarnControllerState['pooled_staking'][0]['vaultMetadata'];
+  exchangeRate?: EarnControllerState['pooled_staking'][0]['exchangeRate'];
+  vaultApyAverages?: EarnControllerState['pooled_staking'][0]['vaultApyAverages'];
+  vaultDailyApys?: EarnControllerState['pooled_staking'][0]['vaultDailyApys'];
+  markets?: EarnControllerState['lending']['markets'];
+  positions?: EarnControllerState['lending']['positions'];
 } = {}) => ({
   engine: {
     backgroundState: {
@@ -146,14 +152,83 @@ export const mockEarnControllerRootState = ({
         lastUpdated: 0,
         pooled_staking: {
           isEligible,
-          pooledStakes,
-          vaultMetadata,
-          exchangeRate,
-          vaultApyAverages,
-          vaultDailyApys,
+          [chainId]: {
+            pooledStakes,
+            vaultMetadata,
+            exchangeRate,
+            vaultApyAverages,
+            vaultDailyApys,
+          },
         },
-        stablecoin_lending: {},
+        lending: {
+          isEligible,
+          markets,
+          positions,
+        },
       },
     },
   },
 });
+
+type CreateMockEarnTokenOptions = CreateMockTokenOptions &
+  Partial<
+    Pick<
+      EarnTokenDetails,
+      | 'balanceFormatted'
+      | 'balanceMinimalUnit'
+      | 'balanceFiat'
+      | 'balanceFiatNumber'
+      | 'tokenUsdExchangeRate'
+      | 'experiences'
+      | 'experience'
+    >
+  >;
+
+/**
+ * Creates a mock EarnTokenDetails object for testing.
+ */
+export const createMockEarnToken = (
+  options: CreateMockEarnTokenOptions,
+): EarnTokenDetails => {
+  const {
+    balanceFormatted = '0.0',
+    balanceMinimalUnit = '0',
+    balanceFiat = '0',
+    balanceFiatNumber = 0,
+    tokenUsdExchangeRate = 1,
+    experiences,
+    experience,
+    ...tokenOptions
+  } = options;
+
+  const baseToken = createMockToken(tokenOptions);
+
+  // Provide a default experience if not supplied
+  const defaultExperience = {
+    type:
+      tokenOptions.name === 'Ethereum' ||
+      tokenOptions.name === 'Staked Ethereum'
+        ? EARN_EXPERIENCES.POOLED_STAKING
+        : EARN_EXPERIENCES.STABLECOIN_LENDING,
+    apr: '5.00',
+    estimatedAnnualRewardsFormatted: '0.00',
+    estimatedAnnualRewardsFiatNumber: 0,
+    estimatedAnnualRewardsTokenMinimalUnit: '0',
+    estimatedAnnualRewardsTokenFormatted: '0.00',
+    market: undefined as LendingMarketWithPosition | undefined,
+    vault: undefined as VaultData | undefined,
+  };
+
+  const experiencesArr = experiences ?? [defaultExperience];
+
+  return {
+    ...baseToken,
+    balanceFormatted,
+    balanceMinimalUnit,
+    balanceFiat,
+    balanceFiatNumber,
+    tokenUsdExchangeRate,
+    experiences: experiencesArr,
+    experience: experience ?? experiencesArr[0],
+  };
+};

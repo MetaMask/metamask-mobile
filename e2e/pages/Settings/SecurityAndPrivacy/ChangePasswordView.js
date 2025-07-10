@@ -32,12 +32,14 @@ class ChangePasswordView {
 
   get iosUnderstandCheck() {
     return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
   get submitButton() {
-    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {

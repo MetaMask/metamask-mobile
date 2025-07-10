@@ -1618,27 +1618,6 @@ PODS:
     - React-Core
   - react-native-blob-util (0.19.9):
     - React-Core
-  - react-native-blur (4.4.1):
-    - DoubleConversion
-    - glog
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-branch (5.6.2):
     - Branch (= 1.43.2)
     - React-Core
@@ -1810,8 +1789,27 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
-  - react-native-webview-mm (14.0.4):
+  - react-native-webview-mm (14.2.2):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - React-nativeconfig (0.76.9)
   - React-NativeModulesApple (0.76.9):
     - glog
@@ -2409,7 +2407,6 @@ DEPENDENCIES:
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
@@ -2633,8 +2630,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-blob-jsi-helper"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
-  react-native-blur:
-    :path: "../node_modules/@react-native-community/blur"
   react-native-branch:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
@@ -2872,7 +2867,6 @@ SPEC CHECKSUMS:
   react-native-ble-plx: b1a8203898d3d108fd13a38759f11833a94b8fcb
   react-native-blob-jsi-helper: bd7509e50b0f906044c53ad7ab767786054424c9
   react-native-blob-util: 6560d6fc4b940ec140f9c3ebe21c8669b1df789b
-  react-native-blur: c6212b0b7fdfeb0a5023b75ab0697ad3892f906e
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-camera: 1e6fefa515d3af8b4aeaca3a8bffa2925252c4ea
   react-native-compat: b17f12ba0892fe4f9d19d35ca9ae59e20fa3d10e
@@ -2894,7 +2888,7 @@ SPEC CHECKSUMS:
   react-native-slider: e21dce5f0da69ac69804fa11a382d6d320bccdde
   react-native-video: fc96dbbcfd9e8d6d228cfacd8258e78e9dfb0940
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
-  react-native-webview-mm: d5f16bf95d45db97b53851ab87c79b2e1d964a13
+  react-native-webview-mm: e4feb109f8b891c123dea7009f6295ebe35d753d
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: 2f4fd95d013b5f3f485b5e2ff267b45e4c7ffc25
   React-perflogger: 72e653eb3aba9122f9e57cf012d22d2486f33358

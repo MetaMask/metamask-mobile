@@ -17,6 +17,7 @@ import {
   disabledSmartTransactionsState,
   enabledSmartTransactionsState,
 } from '../data-helpers';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -25,6 +26,10 @@ jest.mock('../../../../../util/smart-transactions', () => {
     getSmartTransactionMetricsProperties: jest.fn(),
   };
 });
+
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(true),
+}));
 
 // Mock dependencies
 jest.mock('../../../../Analytics', () => ({
@@ -46,6 +51,9 @@ describe('Transaction Metric Event Handlers', () => {
   const mockGetState = jest.fn();
   const mockInitMessenger = jest.fn();
   const mockSmartTransactionsController = jest.fn();
+  const mockSelectShouldUseSmartTransaction = jest.mocked(
+    selectShouldUseSmartTransaction,
+  );
 
   const mockTransactionMeta = {
     id: 'test-id',
@@ -149,14 +157,14 @@ describe('Transaction Metric Event Handlers', () => {
     },
   );
 
-  it('handles missing transaction metrics properties', () => {
+  it('handles missing transaction metrics properties', async () => {
     mockGetState.mockReturnValueOnce({
       confirmationMetrics: {
         metricsById: {},
       },
     });
 
-    handleTransactionApprovedEventForMetrics(
+    await handleTransactionApprovedEventForMetrics(
       mockTransactionMeta,
       mockTransactionMetricRequest,
     );
@@ -182,17 +190,36 @@ describe('Transaction Metric Event Handlers', () => {
 
   describe('handleTransactionFinalized', () => {
     it('adds STX metrics properties if smart transactions are enabled', async () => {
+      // Force the selector to return true
+      mockSelectShouldUseSmartTransaction.mockReturnValue(true);
+
+      // Force the mock to return the expected properties
+      mockGetSmartTransactionMetricsProperties.mockResolvedValue({
+        smart_transaction_timed_out: false,
+        smart_transaction_proxied: false,
+      });
+
       await handleTransactionFinalizedEventForMetrics(
         mockTransactionMeta,
         mockTransactionMetricRequest,
       );
 
+      // Check if the mock was called
+      expect(mockGetSmartTransactionMetricsProperties).toHaveBeenCalled();
+
+      // Check if addProperties was called with the STX properties
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining(mockSmartTransactionMetricsProperties),
+        expect.objectContaining({
+          smart_transaction_timed_out: false,
+          smart_transaction_proxied: false,
+        }),
       );
     });
 
     it('does not add STX metrics properties if smart transactions are not enabled', async () => {
+      // Force the selector to return false for this test
+      mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+
       mockGetState.mockReturnValue(
         merge({}, disabledSmartTransactionsState, {
           confirmationMetrics: {

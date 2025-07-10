@@ -24,6 +24,8 @@ import ObjectMultiplex from '@metamask/object-multiplex';
 import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
+import { createOriginMiddleware } from '../../util/middlewares';
+import { createSelectedNetworkMiddleware } from '@metamask/selected-network-controller';
 const pump = require('pump');
 
 interface ISnapBridgeProps {
@@ -151,6 +153,9 @@ export default class SnapBridge {
     subscriptionManager.events.on('notification', (message: any) =>
       engine.emit('notification', message),
     );
+
+    engine.push(createOriginMiddleware({ origin: this.snapId }));
+    engine.push(createSelectedNetworkMiddleware(Engine.controllerMessenger));
 
     // Filter and subscription polyfills
     engine.push(filterMiddleware);

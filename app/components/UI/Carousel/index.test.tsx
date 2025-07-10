@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  waitFor,
+  userEvent,
+} from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
 import Carousel from './';
@@ -8,6 +13,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import { PREDEFINED_SLIDES } from './constants';
+import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
+import { CarouselSlide } from './types';
+// eslint-disable-next-line import/no-namespace
+import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
+import { RootState } from '../../../reducers';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -52,8 +63,6 @@ jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   setSelectedAddress: jest.fn(),
 }));
-
-const selectShowFiatInTestnets = jest.fn();
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -130,6 +139,12 @@ jest.mock('../../../components/hooks/useMultichainBalances', () => ({
   }),
 }));
 
+// Mock contentful slides
+jest.mock('./fetchCarouselSlidesFromContentful', () => ({
+  ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
+  fetchCarouselSlidesFromContentful: jest.fn(),
+}));
+
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -139,70 +154,70 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-describe('Carousel', () => {
-  beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: [],
-        },
-        browser: {
-          tabs: [],
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '1',
-                accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
-                  },
-                },
+const setupMocks = ({
+  dismissedBanners = [] as string[],
+  prioritySlides = [] as CarouselSlide[],
+  regularSlides = [] as CarouselSlide[],
+} = {}) => {
+  const mockSelectContentfulCarouselEnabledFlag = jest
+    .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
+    .mockReturnValue(false);
+
+  const mockState = {
+    banners: {
+      dismissedBanners,
+    },
+    browser: {
+      tabs: [],
+    },
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: '1',
+            accounts: {
+              '1': {
+                address: '0xSomeAddress',
               },
             },
           },
         },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-      }),
-    );
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    (selectShowFiatInTestnets as jest.Mock).mockReturnValue(false);
+      },
+    },
+    settings: {
+      showFiatOnTestnets: false,
+    },
+  } as unknown as RootState;
+
+  (useSelector as jest.Mock).mockImplementation((selector) =>
+    selector(mockState),
+  );
+
+  const mockFetchCarouselSlidesFromContentful = jest
+    .mocked(fetchCarouselSlidesFromContentful)
+    .mockResolvedValue({
+      prioritySlides,
+      regularSlides,
+    });
+
+  (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+  jest.clearAllMocks();
+
+  return {
+    mockSelectContentfulCarouselEnabledFlag,
+    mockFetchCarouselSlidesFromContentful,
+    mockState,
+  };
+};
+
+describe('Carousel', () => {
+  beforeEach(() => {
     jest.clearAllMocks();
+    setupMocks();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = render(<Carousel />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should only render fund banner when all banners are dismissed', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: ['card', 'fund', 'cashout', 'aggregated'],
-        },
-        browser: {
-          tabs: [],
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            MultichainNetworkController: {
-              ...backgroundState.MultichainNetworkController,
-              isEvmSelected: false,
-            },
-          },
-        },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-      }),
-    );
-
+  it('render an expected snapshot', () => {
     const { toJSON } = render(<Carousel />);
     expect(toJSON()).toMatchSnapshot();
   });
@@ -265,82 +280,180 @@ describe('Carousel', () => {
       },
     });
 
-    expect(flatList).toBeTruthy();
+    expect(flatList).toBeOnTheScreen();
   });
 
   it('does not render solana banner if user has a solana account', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: [],
-        },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '1',
-                accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
-                    type: SolAccountType.DataAccount,
-                  },
-                },
-              },
-            },
+    const { mockState } = setupMocks();
+    mockState.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        selectedAccount: '1',
+        accounts: {
+          '1': {
+            address: '0xSomeAddress',
+            type: SolAccountType.DataAccount,
           },
         },
-      }),
-    );
+      },
+    } as unknown as AccountsControllerState;
 
     const { queryByTestId } = render(<Carousel />);
     const solanaBanner = queryByTestId(
       WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
     );
 
-    expect(solanaBanner).toBeNull();
+    expect(solanaBanner).not.toBeOnTheScreen();
   });
 
   it('changes to a solana address if user has a solana account', async () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: [],
-        },
-        settings: {
-          showFiatOnTestnets: false,
-        },
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '1',
-                accounts: {
-                  '1': {
-                    address: '0xSomeAddress',
-                  },
-                  '2': {
-                    address: 'SomeSolanaAddress',
-                    type: SolAccountType.DataAccount,
-                  },
-                },
-              },
-            },
+    const { mockState } = setupMocks();
+    mockState.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        selectedAccount: '1',
+        accounts: {
+          '1': {
+            address: '0xSomeAddress',
+          },
+          '2': {
+            address: 'SomeSolanaAddress',
+            type: SolAccountType.DataAccount,
           },
         },
-      }),
-    );
+      },
+    } as unknown as AccountsControllerState;
 
     const { getByTestId } = render(<Carousel />);
     const solanaBanner = getByTestId(
       WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
     );
-    fireEvent.press(solanaBanner);
+    await userEvent.press(solanaBanner);
 
     expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
+  });
+});
+
+describe('Carousel with dynamic banners', () => {
+  const mockPrioritySlides: CarouselSlide[] = [
+    {
+      id: 'contentful-priority-1',
+      title: 'Priority Slide 1',
+      description: 'This is a priority slide from Contentful',
+      navigation: { type: 'url', href: 'https://example.com/priority' },
+      image: 'https://example.com/priority-image.jpg',
+      undismissable: true,
+    },
+  ];
+
+  const mockRegularSlides: CarouselSlide[] = [
+    {
+      id: 'contentful-regular-1',
+      title: 'Regular Slide 1',
+      description: 'This is a regular slide from Contentful',
+      navigation: { type: 'url', href: 'https://example.com/regular' },
+      image: 'https://example.com/regular-image.jpg',
+      undismissable: false,
+    },
+  ];
+
+  const arrange = (...args: Parameters<typeof setupMocks>) => {
+    const mocks = setupMocks(...args);
+    mocks.mockSelectContentfulCarouselEnabledFlag.mockReturnValue(true);
+    return mocks;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    arrange();
+  });
+
+  it('renders Contentful priority and regular slides', async () => {
+    const banners = ['contentful-priority-1', 'contentful-regular-1'];
+    const { mockFetchCarouselSlidesFromContentful } = arrange({
+      prioritySlides: mockPrioritySlides,
+      regularSlides: mockRegularSlides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    await waitFor(() => {
+      expect(mockFetchCarouselSlidesFromContentful).toHaveBeenCalled();
+    });
+
+    banners.forEach(async (bannerId) => {
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE(bannerId)),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('does not render dismissed Contentful slides', async () => {
+    const dismissedBanners = ['contentful-priority-1', 'contentful-regular-1'];
+    const { mockFetchCarouselSlidesFromContentful } = arrange({
+      dismissedBanners,
+      prioritySlides: mockPrioritySlides,
+      regularSlides: mockRegularSlides,
+    });
+
+    const { queryByTestId } = render(<Carousel />);
+
+    await waitFor(() => {
+      expect(mockFetchCarouselSlidesFromContentful).toHaveBeenCalled();
+    });
+
+    dismissedBanners.forEach((bannerId) => {
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE(bannerId)),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('opens the correct URL when a Contentful slide is clicked', async () => {
+    arrange({
+      prioritySlides: mockPrioritySlides,
+      regularSlides: mockRegularSlides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    // Click on the priority slide
+    const prioritySlide = await findByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE('contentful-priority-1'),
+    );
+    await userEvent.press(prioritySlide);
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://example.com/priority',
+    );
+
+    // Click on the regular slide
+    const regularSlide = await findByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE('contentful-regular-1'),
+    );
+    await userEvent.press(regularSlide);
+
+    expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/regular');
+  });
+
+  it('dismisses a Contentful slide when the close button is clicked', async () => {
+    arrange({
+      prioritySlides: mockPrioritySlides,
+      regularSlides: mockRegularSlides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    const closeButton = await findByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(
+        'contentful-regular-1',
+      ),
+    );
+    await userEvent.press(closeButton);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'banners/dismissBanner',
+        payload: 'contentful-regular-1',
+      }),
+    );
   });
 });

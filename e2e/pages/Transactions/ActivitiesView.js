@@ -40,10 +40,20 @@ class ActivitiesView {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
+  transactionItem(row) {
+    return Matchers.getElementByID(`transaction-item-${row}`);
+  }
+
   generateSwapActivityLabel(sourceToken, destinationToken) {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
+    return title;
+  }
+
+  generateBridgeActivityLabel(destNetwork) {
+    let title = ActivitiesViewSelectorsText.BRIDGE;
+    title = title.replace('{{chainName}}', destNetwork);
     return title;
   }
 
@@ -60,6 +70,11 @@ class ActivitiesView {
     );
   }
 
+  bridgeActivityTitle(destNetwork) {
+    return Matchers.getElementByText(
+      this.generateBridgeActivityLabel(destNetwork),
+    );
+  }
   tokenApprovalActivity(sourceToken) {
     return Matchers.getElementByText(
       this.generateApprovedTokenActivityLabel(sourceToken),
@@ -75,6 +90,9 @@ class ActivitiesView {
   }
   async swipeDown() {
     await Gestures.swipe(this.container, 'down', 'slow', 0.5);
+  }
+  async tapOnTransactionItem(row) {
+    await Gestures.waitAndTap(this.transactionItem(row));
   }
 }
 

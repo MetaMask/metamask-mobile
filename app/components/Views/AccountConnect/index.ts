@@ -8,4 +8,7 @@ export const createAccountConnectNavDetails =
     Routes.MODAL.ROOT_MODAL_FLOW,
     Routes.SHEET.ACCOUNT_CONNECT,
   );
-export type { AccountConnectProps } from './AccountConnect.types';
+export type {
+  AccountConnectProps,
+  NetworkAvatarProps,
+} from './AccountConnect.types';

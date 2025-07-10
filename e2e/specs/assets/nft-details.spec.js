@@ -32,7 +32,6 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
           .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
       async ({ contractRegistry }) => {

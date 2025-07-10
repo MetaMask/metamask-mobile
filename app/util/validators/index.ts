@@ -14,7 +14,10 @@ export const failedSeedPhraseRequirements = (seed: string): boolean => {
  * @param {string} vault - exported from ios/android filesystem
  * @returns seed phrase from vault
  */
-export const parseVaultValue = async (password: string, vault: string): Promise<string | undefined> => {
+export const parseVaultValue = async (
+  password: string,
+  vault: string,
+): Promise<string | undefined> => {
   let vaultSeed: string | undefined;
 
   if (vault[0] === '{' && vault[vault.length - 1] === '}')
@@ -29,7 +32,9 @@ export const parseVaultValue = async (password: string, vault: string): Promise<
         const encryptor = new Encryptor({
           keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
         });
-        const result = await encryptor.decrypt(password, vault) as { data?: { mnemonic?: string } }[];
+        const result = (await encryptor.decrypt(password, vault)) as {
+          data?: { mnemonic?: string };
+        }[];
         vaultSeed = result[0]?.data?.mnemonic;
       }
     } catch (error) {

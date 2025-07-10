@@ -26,6 +26,8 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  HOME = 'home',
+  SWAP = 'swap',
   EMPTY = '',
 }
 
@@ -43,5 +45,7 @@ export const PREFIXES = {
   [ACTIONS.SELL]: '',
   [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.SELL_CRYPTO]: '',
+  [ACTIONS.HOME]: '',
+  [ACTIONS.SWAP]: '',
   METAMASK: 'metamask://',
 };

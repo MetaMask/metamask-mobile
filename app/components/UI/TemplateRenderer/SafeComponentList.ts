@@ -4,7 +4,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
-import { View, Text as RNText, ScrollView } from 'react-native';
+import { View, Text as RNText, ScrollView, TouchableHighlight } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
@@ -29,6 +29,7 @@ import { Skeleton } from '../../../component-library/components/Skeleton';
 import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
 import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
+import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -64,6 +65,8 @@ export const safeComponentList = {
   ScrollView,
   SnapUITooltip,
   Skeleton,
+  SnapUICopyable,
+  TouchableHighlight,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

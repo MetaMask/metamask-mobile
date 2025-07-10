@@ -48,7 +48,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
   selectRpcUrlByChainId,
-  selectEvmChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -56,7 +55,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import {
-  selectAccounts,
+  selectAccountsByChainId,
   selectAccountsLength,
 } from '../../../../../selectors/accountTrackerController';
 import ShowBlockExplorer from '../components/ApproveTransactionReview/ShowBlockExplorer';
@@ -413,12 +412,13 @@ class Approve extends PureComponent {
   validateGas = (total) => {
     let error;
     const {
+      chainId,
       ticker,
       transaction: { from },
       accounts,
     } = this.props;
 
-    const fromAccount = accounts[safeToChecksumAddress(from)];
+    const fromAccount = accounts[chainId]?.[safeToChecksumAddress(from)] ?? {};
 
     const weiBalance = hexToBN(fromAccount.balance);
     const totalTransactionValue = hexToBN(total);
@@ -965,7 +965,7 @@ const mapStateToProps = (state) => {
   const networkClientId = transaction?.networkId;
 
   return {
-    accounts: selectAccounts(state),
+    accounts: selectAccountsByChainId(state),
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
     transactions: selectTransactions(state),
