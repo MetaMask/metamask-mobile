@@ -94,7 +94,6 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-// import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 
 const Stack = createStackNavigator();
@@ -238,25 +237,6 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
-
-  // const skipAccountModalSecureNow = () => {
-  //   props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
-  //     screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-  //     params: { backupFlow: true },
-  //   });
-  // };
-
-  // const navigation = useNavigation();
-
-  // const toggleRemindLater = () => {
-  //   props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-  //     screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-  //     params: {
-  //       onConfirm: () => navigation.goBack(),
-  //       onCancel: skipAccountModalSecureNow,
-  //     },
-  //   });
-  // };
 
   /**
    * Current network
