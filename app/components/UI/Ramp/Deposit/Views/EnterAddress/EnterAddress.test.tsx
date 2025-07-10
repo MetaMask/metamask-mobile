@@ -158,7 +158,6 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
-    // Clear the state selector navigation call and check that no other navigation occurred
     const navigationCalls = mockNavigate.mock.calls.filter(
       (call) => call[0] !== 'DepositModals',
     );
@@ -219,7 +218,6 @@ describe('EnterAddress Component', () => {
     expect(mockKycFunction).toHaveBeenCalled();
 
     await waitFor(() => {
-      // Clear the state selector navigation call and check that no other navigation occurred
       const navigationCalls = mockNavigate.mock.calls.filter(
         (call) => call[0] !== 'DepositModals',
       );
