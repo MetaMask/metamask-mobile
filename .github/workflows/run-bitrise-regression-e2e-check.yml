@@ -1,0 +1,46 @@
+name: Run Bitrise Regression E2E Check
+
+on:
+  issue_comment:
+    types: [edited, deleted]
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled, synchronize]
+
+env:
+  E2E_LABEL: 'Run Regression E2E'
+  NO_E2E_LABEL: 'No Regression E2E Needed'
+  E2E_PIPELINE: 'pr_regression_e2e_pipeline'
+  WORKFLOW_NAME: 'run-bitrise-regression-e2e-check'
+  STATUS_CHECK_NAME: 'Bitrise Regression E2E Status (Non-blocking)'
+
+jobs:
+  run-bitrise-regression-e2e-check:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: yarn --immutable
+        working-directory: '.github/scripts'
+
+      - name: Check Bitrise Regression E2E Status
+        env:
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
+        # For example, the status check may show as `CLA Signature Bot / Bitrise Regression E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
+        run: yarn run run-bitrise-e2e-check
+        working-directory: '.github/scripts'
+        # Continue on error to ensure this doesn't block PRs
+        continue-on-error: true
