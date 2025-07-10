@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import createStyles from '../../styles';
 import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
-import Text, {
+import TextComponent, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
@@ -35,7 +35,15 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { RootState } from '../../../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 
-export const TokenListFooter = () => {
+interface TokenListFooterProps {
+  isAddTokenEnabled?: boolean;
+  goToAddToken?: () => void;
+}
+
+export const TokenListFooter = ({
+  isAddTokenEnabled: _isAddTokenEnabled,
+  goToAddToken: _goToAddToken,
+}: TokenListFooterProps = {}) => {
   const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -90,11 +98,14 @@ export const TokenListFooter = () => {
       {/* render buy button */}
       {isBuyableToken && (
         <View style={styles.buy}>
-          <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
+          <TextComponent
+            variant={TextVariant.HeadingSM}
+            style={styles.buyTitle}
+          >
             {strings('wallet.token_is_needed_to_continue', {
               tokenSymbol: mainToken.symbol,
             })}
-          </Text>
+          </TextComponent>
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
