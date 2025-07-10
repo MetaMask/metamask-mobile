@@ -13,6 +13,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       backgroundColor: colors.background.default,
     },
+    perpIcon: {
+      width: 32,
+      height: 32,
+      marginRight: 16,
+      marginLeft: 16,
+    },
     leftSection: {
       flexDirection: 'row',
       alignItems: 'center',
