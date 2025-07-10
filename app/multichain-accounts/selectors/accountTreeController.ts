@@ -24,7 +24,8 @@ export const selectAccountSections = createDeepEqualSelector(
   (accountTreeState, multichainAccountsState1Enabled) => {
     if (
       !multichainAccountsState1Enabled ||
-      !accountTreeState?.accountTree?.wallets
+      !accountTreeState?.accountTree?.wallets ||
+      Object.keys(accountTreeState.accountTree.wallets).length === 0
     ) {
       return null;
     }

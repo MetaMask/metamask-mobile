@@ -18,33 +18,45 @@ const ACCOUNT_ID_2 = 'account2';
 const ACCOUNT_ID_3 = 'account3';
 const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
 
+/**
+ * Helper function to create a base mock state with RemoteFeatureFlagController
+ */
+const createMockState = (
+  accountTreeController: Record<string, unknown> = {},
+  multichainAccountsEnabled: boolean = true,
+): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        AccountTreeController: accountTreeController,
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            enableMultichainAccounts: {
+              enabled: multichainAccountsEnabled,
+              featureVersion: '1',
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      },
+    },
+  } as unknown as RootState);
+
 describe('AccountTreeController Selectors', () => {
   describe('selectAccountSections', () => {
     it('returns null when accountTree is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: undefined,
-          },
-        },
-      } as unknown as RootState;
+      const mockState = createMockState(undefined);
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual(null);
     });
 
     it('returns null when accountTree.wallets is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: null,
-              },
-            },
-          },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: null,
         },
-      } as unknown as RootState;
+      });
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual(null);
@@ -56,50 +68,35 @@ describe('AccountTreeController Selectors', () => {
         { id: 'account2', address: '0x456', name: 'Account 2' },
       ];
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: {
-                    metadata: {
-                      name: 'Wallet 1',
-                    },
-                    groups: {
-                      group1: {
-                        accounts: [mockAccounts[0]],
-                      },
-                      group2: {
-                        accounts: [mockAccounts[1]],
-                      },
-                    },
-                  },
-                  [WALLET_ID_2]: {
-                    metadata: {
-                      name: 'Wallet 2',
-                    },
-                    groups: {
-                      group3: {
-                        accounts: [],
-                      },
-                    },
-                  },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              metadata: {
+                name: 'Wallet 1',
+              },
+              groups: {
+                group1: {
+                  accounts: [mockAccounts[0]],
+                },
+                group2: {
+                  accounts: [mockAccounts[1]],
                 },
               },
             },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
+            [WALLET_ID_2]: {
+              metadata: {
+                name: 'Wallet 2',
+              },
+              groups: {
+                group3: {
+                  accounts: [],
                 },
               },
             },
           },
         },
-      } as unknown as RootState;
+      });
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual([
@@ -150,17 +147,11 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when wallets is empty', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {},
-              },
-            },
-          },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {},
         },
-      } as unknown as RootState;
+      });
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual(null);
@@ -169,13 +160,7 @@ describe('AccountTreeController Selectors', () => {
 
   describe('selectWalletById', () => {
     it('returns null when accountTree is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: undefined,
-          },
-        },
-      } as unknown as RootState;
+      const mockState = createMockState(undefined);
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_1);
@@ -183,32 +168,20 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when multichain accounts feature is disabled', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: {
-                    id: WALLET_ID_1,
-                    metadata: { name: 'Wallet 1' },
-                    groups: {},
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: false,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                metadata: { name: 'Wallet 1' },
+                groups: {},
               },
             },
           },
         },
-      } as unknown as RootState;
+        false, // multichain accounts disabled
+      );
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_1);
@@ -226,33 +199,18 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet,
-                  [WALLET_ID_2]: {
-                    id: WALLET_ID_2,
-                    metadata: { name: 'Wallet 2' },
-                    groups: {},
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet,
+            [WALLET_ID_2]: {
+              id: WALLET_ID_2,
+              metadata: { name: 'Wallet 2' },
+              groups: {},
             },
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_1);
@@ -260,32 +218,17 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when wallet ID is not found', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: {
-                    id: WALLET_ID_1,
-                    metadata: { name: 'Wallet 1' },
-                    groups: {},
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {},
             },
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_NONEXISTENT);
@@ -293,26 +236,11 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when wallets is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: null,
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
-          },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: null,
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_1);
@@ -342,29 +270,14 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet1,
-                  [WALLET_ID_2]: mockWallet2,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet1,
+            [WALLET_ID_2]: mockWallet2,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
 
@@ -402,29 +315,14 @@ describe('AccountTreeController Selectors', () => {
         groups: {},
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_WITH_GROUPS]: mockWalletWithGroups,
-                  [WALLET_ID_EMPTY]: mockEmptyWallet,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_WITH_GROUPS]: mockWalletWithGroups,
+            [WALLET_ID_EMPTY]: mockEmptyWallet,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
 
@@ -459,29 +357,14 @@ describe('AccountTreeController Selectors', () => {
         groups: {},
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_A]: mockWallet1,
-                  [WALLET_ID_B]: mockWallet2,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_A]: mockWallet1,
+            [WALLET_ID_B]: mockWallet2,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletById(mockState);
 
@@ -495,13 +378,7 @@ describe('AccountTreeController Selectors', () => {
 
   describe('selectWalletByAccount', () => {
     it('returns null when accountTree is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: undefined,
-          },
-        },
-      } as unknown as RootState;
+      const mockState = createMockState(undefined);
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -509,36 +386,24 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when multichain accounts feature is disabled', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: {
-                    id: WALLET_ID_1,
-                    metadata: { name: 'Wallet 1' },
-                    groups: {
-                      group1: {
-                        accounts: [ACCOUNT_ID_1],
-                      },
-                    },
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                metadata: { name: 'Wallet 1' },
+                groups: {
+                  group1: {
+                    accounts: [ACCOUNT_ID_1],
                   },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: false,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
                 },
               },
             },
           },
         },
-      } as unknown as RootState;
+        false, // multichain accounts disabled
+      );
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -546,26 +411,11 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when wallets is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: null,
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
-          },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: null,
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -573,36 +423,21 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns null when account ID is not found', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: {
-                    id: WALLET_ID_1,
-                    metadata: { name: 'Wallet 1' },
-                    groups: {
-                      group1: {
-                        accounts: [ACCOUNT_ID_1],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                group1: {
+                  accounts: [ACCOUNT_ID_1],
                 },
               },
             },
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_NONEXISTENT);
@@ -620,28 +455,13 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -662,28 +482,13 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
 
@@ -717,29 +522,14 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet1,
-                  [WALLET_ID_2]: mockWallet2,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet1,
+            [WALLET_ID_2]: mockWallet2,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
 
@@ -759,28 +549,13 @@ describe('AccountTreeController Selectors', () => {
         groups: {},
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_EMPTY]: mockWallet,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_EMPTY]: mockWallet,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -808,29 +583,14 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_1]: mockWallet1,
-                  [WALLET_ID_2]: mockWallet2,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet1,
+            [WALLET_ID_2]: mockWallet2,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -858,29 +618,14 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_A]: mockWallet1,
-                  [WALLET_ID_B]: mockWallet2,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_A]: mockWallet1,
+            [WALLET_ID_B]: mockWallet2,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
 
@@ -909,28 +654,13 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
-      const mockState = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [WALLET_ID_WITH_GROUPS]: mockWallet,
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                enableMultichainAccounts: {
-                  enabled: true,
-                  featureVersion: '1',
-                  minimumVersion: '1.0.0',
-                },
-              },
-            },
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_WITH_GROUPS]: mockWallet,
           },
         },
-      } as unknown as RootState;
+      });
 
       const selector = selectWalletByAccount(mockState);
 
