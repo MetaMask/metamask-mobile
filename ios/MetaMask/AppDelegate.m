@@ -3,9 +3,15 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
 
+#import "HTTPServer.h"
+#import "MockStateFixture.h"
+
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
 
+@interface AppDelegate ()
+@property (nonatomic, strong) HTTPServer *mockServer;
+@end
 
 @implementation AppDelegate
 
@@ -29,8 +35,26 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
+  [self startMockServerIfRunningUITests];
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+- (void)startMockServerIfRunningUITests {
+    BOOL isRunningUITests = [[[[NSProcessInfo processInfo] environment] objectForKey:@"IS_RUNNING_UI_TESTS"] isEqualToString:@"YES"];
+    if (isRunningUITests) {
+      self.mockServer = [[HTTPServer alloc] init];
+      [self.mockServer setPort:12345];
+      [self.mockServer setType:@"HTTP"];
+      [self.mockServer setConnectionClass:[MockStateFixture class]];
+
+      [self.mockServer setDocumentRoot:NSTemporaryDirectory()];
+
+      NSError *error = nil;
+      if (![self.mockServer start:&error]) {
+        @throw error;
+      }
+    }
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
@@ -53,7 +77,7 @@
     return [super application:application openURL:url options:options] || [RCTLinkingManager application:application openURL:url options:options];
   #endif
   return [RNBranch application:application openURL:url options:options];
-  
+
 }
 
 // Universal Links
