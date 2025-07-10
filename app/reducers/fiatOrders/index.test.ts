@@ -14,6 +14,7 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   fiatOrdersRegionSelectorAgg,
+  fiatOrdersRegionSelectorDeposit,
   getActivationKeys,
   getAuthenticationUrls,
   getCustomOrderIds,
@@ -36,6 +37,7 @@ import fiatOrderReducer, {
   setFiatOrdersPaymentMethodAGG,
   fiatOrdersGetStartedDeposit,
   setFiatOrdersRegionAGG,
+  setFiatOrdersRegionDeposit,
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
@@ -415,6 +417,33 @@ describe('fiatOrderReducer', () => {
 
     expect(stateWithSelectedRegion.selectedRegionAgg).toEqual(testRegion);
     expect(stateWithoutSelectedRegion.selectedRegionAgg).toEqual(null);
+  });
+
+  it('should set the selected deposit region', () => {
+    const testDepositRegion = {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
+      currency: 'USD',
+      supported: true,
+      recommended: true,
+    };
+    const stateWithSelectedDepositRegion = fiatOrderReducer(
+      initialState,
+      setFiatOrdersRegionDeposit(testDepositRegion),
+    );
+    const stateWithoutSelectedDepositRegion = fiatOrderReducer(
+      stateWithSelectedDepositRegion,
+      setFiatOrdersRegionDeposit(null),
+    );
+
+    expect(stateWithSelectedDepositRegion.selectedRegionDeposit).toEqual(testDepositRegion);
+    expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(null);
   });
 
   it('should set the selected payment method', () => {
@@ -822,6 +851,41 @@ describe('selectors', () => {
         id: '/region/cl',
         name: 'Chile',
       });
+    });
+  });
+
+  describe('fiatOrdersRegionSelectorDeposit', () => {
+    it('should return the selected deposit region', () => {
+      const testDepositRegion = {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: {
+          prefix: '+1',
+          placeholder: '123 456 7890',
+          template: 'XXX XXX XXXX',
+        },
+        currency: 'USD',
+        supported: true,
+        recommended: true,
+      };
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: testDepositRegion,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(testDepositRegion);
+    });
+
+    it('should return null when no deposit region is selected', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: null,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(null);
     });
   });
 

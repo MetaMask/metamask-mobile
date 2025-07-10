@@ -15,7 +15,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
   ButtonVariants,
