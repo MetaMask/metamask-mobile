@@ -4433,6 +4433,7 @@
     "insufficient_funds": "Insufficient funds",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
+    "swap_to": "Swap to",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
