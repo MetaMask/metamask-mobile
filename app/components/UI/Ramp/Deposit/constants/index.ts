@@ -12,8 +12,10 @@ export type { DepositPaymentMethod } from './paymentMethods.ts';
 export {
   DEBIT_CREDIT_PAYMENT_METHOD,
   SEPA_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
   APPLE_PAY_PAYMENT_METHOD,
   SUPPORTED_PAYMENT_METHODS,
+  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
 } from './paymentMethods.ts';
 
 export type { DepositFiatCurrency } from './constants.ts';

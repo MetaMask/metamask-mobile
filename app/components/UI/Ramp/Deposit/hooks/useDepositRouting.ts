@@ -5,7 +5,7 @@ import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
+import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS, KycStatus } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import { getCryptoCurrencyFromTransakId } from '../utils';
@@ -134,7 +134,10 @@ export const useDepositRouting = ({
       }
 
       if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-        if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
+        const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+          (method) => method.id === paymentMethodId,
+        );
+        if (isManualBankTransfer) {
           const reservation = await createReservation(
             quote,
             selectedWalletAddress,
