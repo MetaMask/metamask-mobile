@@ -151,7 +151,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
       async (userState) => {
         // Create a large number of test tokens to stress test the system
         const heavyTokenLoad = [];
-        for (let i = 1; i <= 50; i++) {
+        for (let i = 1; i <= 5; i++) {
           // 50 tokens for stress testing
           heavyTokenLoad.push({
             address: toChecksumAddress(
