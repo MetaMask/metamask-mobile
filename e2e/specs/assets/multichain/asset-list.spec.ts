@@ -106,7 +106,9 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.scrollToToken('AVAX', 'up');
+    if (device.getPlatform() === 'ios') {
+      await WalletView.scrollToToken('AVAX', 'up');
+    }
     await WalletView.tapOnToken('AVAX');
 
     await Assertions.checkIfVisible(TokenOverview.container);
