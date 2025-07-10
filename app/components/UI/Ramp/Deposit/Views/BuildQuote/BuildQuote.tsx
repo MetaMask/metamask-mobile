@@ -141,7 +141,7 @@ const BuildQuote = () => {
   }, [selectedRegion?.currency]);
 
   useEffect(() => {
-    if (selectedRegion && paymentMethods.length > 0) {
+    if (selectedRegion?.isoCode && paymentMethods.length > 0) {
       const isPaymentMethodSupported = paymentMethods.some(
         (method) => method.id === paymentMethod.id,
       );
@@ -150,7 +150,7 @@ const BuildQuote = () => {
         setPaymentMethod(paymentMethods[0]);
       }
     }
-  }, [selectedRegion, paymentMethods, paymentMethod]);
+  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
