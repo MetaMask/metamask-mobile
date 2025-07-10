@@ -210,11 +210,10 @@ export default class Assertions {
       description = 'element should be enabled',
     } = options;
 
-    const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
-
     return Utilities.executeWithRetry(
       async () => {
         try {
+          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(true);
         } catch (error) {
@@ -247,11 +246,11 @@ export default class Assertions {
       description = 'element should be disabled',
     } = options;
 
-    const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
 
     return Utilities.executeWithRetry(
       async () => {
         try {
+          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(false);
         } catch (error) {

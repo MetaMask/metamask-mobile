@@ -45,8 +45,8 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await NotificationSettingsView.tapNotificationToggleAndVerifyState('on');
 
         // Test push notifications toggle functionality
-        if (device.getPlatform() === 'android') {
-          // Failing on iOS
+        if (device.getPlatform() === 'android' || !process.env.CI ) {
+          // Failing on iOS on CI
           await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('off');
           await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('on');
         }
