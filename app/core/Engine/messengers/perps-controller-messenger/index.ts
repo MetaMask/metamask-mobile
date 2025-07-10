@@ -15,14 +15,10 @@ export function getPerpsControllerMessenger(
     allowedEvents: [
       'AccountsController:selectedAccountChange',
       'NetworkController:stateChange',
-      'KeyringController:lock',
-      'KeyringController:unlock',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',
-      'NetworkController:getNetworkClientById',
       'NetworkController:getState',
-      'KeyringController:signTypedMessage',
     ],
   });
 }

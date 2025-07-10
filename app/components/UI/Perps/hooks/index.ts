@@ -8,23 +8,19 @@ export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 // State hooks (Redux selectors)
-export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsAccount } from './usePerpsAccount';
-export { usePerpsDeposit } from './usePerpsDeposit';
-export { usePerpsPendingOrders } from './usePerpsPendingOrders';
-export { usePerpsError } from './usePerpsError';
 
 // Live data hooks (WebSocket subscriptions)
-export { usePerpsPrices } from './usePerpsPrices';
-export { usePerpsLivePositions } from './usePerpsLivePositions';
-export { usePerpsOrderFills } from './usePerpsOrderFills';
+// - usePerpsPrices (removed with Live Market Prices component)
 
-// Computed hooks (derived data)
-export { usePerpsPositionPnL } from './usePerpsPositionPnL';
-export { usePerpsReadiness } from './usePerpsReadiness';
-
-// Management hooks (complex workflows)
-export { usePerpsOrderManagement } from './usePerpsOrderManagement';
-
-// Utility hooks
-export { useStableArray } from './useStableArray';
+// Removed for minimal PR:
+// - usePerpsPositions (positions management)
+// - usePerpsDeposit (deposit flows)
+// - usePerpsPendingOrders (order management)
+// - usePerpsError (error handling)
+// - usePerpsLivePositions (live position tracking)
+// - usePerpsOrderFills (order fills)
+// - usePerpsPositionPnL (P&L calculations)
+// - usePerpsReadiness (readiness checks)
+// - usePerpsOrderManagement (order workflows)
+// - useStableArray (utility hook for stable array references)

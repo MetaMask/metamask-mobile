@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsLoader.styles';
 
@@ -17,8 +17,7 @@ const PerpsLoader: React.FC<PerpsLoaderProps> = ({
   message = 'Connecting to Perps...',
   fullScreen = true,
 }) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles, theme } = useStyles(createStyles, {});
 
   const loaderContent = (
     <View style={fullScreen ? styles.container : styles.inlineContainer}>
