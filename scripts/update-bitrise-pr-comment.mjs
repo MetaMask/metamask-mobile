@@ -19,9 +19,9 @@ const PIPELINE_ID_MAP = {
 };
 
 async function main() {
-  // Only run for PR-triggered builds
-  if (TRIGGERED_BY_PR_LABEL !== 'true') {
-    console.log('Not triggered by PR label, skipping comment update');
+  // Run for PR-triggered builds or manual triggers on PRs
+  if (TRIGGERED_BY_PR_LABEL !== 'true' && !PR_NUMBER) {
+    console.log('Not triggered by PR label and no PR number available, skipping comment update');
     return;
   }
 
