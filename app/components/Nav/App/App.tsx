@@ -32,6 +32,7 @@ import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -877,19 +878,25 @@ const App: React.FC = () => {
             },
           );
 
-          if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-                params: {
-                  onContinue: () =>
-                    navigation.reset({
-                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                    }),
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+
+          if (!isOptinMetaMetricsUISeen) {
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
                 },
-              },
-            });
+              ],
+            };
+            navigation.reset(resetParams);
           } else {
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],

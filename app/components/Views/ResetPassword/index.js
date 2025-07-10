@@ -72,6 +72,8 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -335,6 +337,10 @@ class ResetPassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * A boolean representing if the user is in the seedless onboarding login flow
+     */
+    isSeedlessOnboardingLoginFlow: PropTypes.bool,
   };
 
   state = {
@@ -466,7 +472,17 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true, showPasswordChangeWarning: false });
 
-      await this.recreateVault();
+      try {
+        await this.recreateVault();
+      } catch (error) {
+        if (error instanceof SeedlessOnboardingControllerError) {
+          // prompt sheet
+          Logger.info(error);
+        }
+        Logger.error(error);
+        throw error;
+      }
+
       // Set biometrics for new password
       await Authentication.resetPassword();
       try {
@@ -689,14 +705,10 @@ class ResetPassword extends PureComponent {
       </View>
       <ActivityIndicator size="large" color={colors.icon.default} />
       <Text variant={TextVariant.HeadingLG} style={styles.title}>
-        {strings(
-          previousScreen === ONBOARDING
-            ? 'create_wallet.title'
-            : 'secure_your_wallet.creating_password',
-        )}
+        {strings('reset_password.changing_password')}
       </Text>
       <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
-        {strings('create_wallet.subtitle')}
+        {strings('reset_password.changing_password_subtitle')}
       </Text>
     </View>
   );
@@ -891,7 +903,6 @@ class ResetPassword extends PureComponent {
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
-                    onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
@@ -935,7 +946,7 @@ class ResetPassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {strings('reset_password.checkbox_forgot_password')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
@@ -954,7 +965,13 @@ class ResetPassword extends PureComponent {
                   <Button
                     {...getCommonButtonProps()}
                     label={strings('reset_password.confirm_btn')}
-                    onPress={() => this.handleConfirmAction()}
+                    onPress={() => {
+                      if (this.props.isSeedlessOnboardingLoginFlow) {
+                        this.handleConfirmAction();
+                      } else {
+                        this.onPressCreate();
+                      }
+                    }}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                     disabled={!canSubmit}
                     isDisabled={!canSubmit}
@@ -993,6 +1010,7 @@ ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  isSeedlessOnboardingLoginFlow: selectSeedlessOnboardingLoginFlow(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

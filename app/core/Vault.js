@@ -14,6 +14,11 @@ import {
 } from '@metamask/keyring-api';
 import ReduxService from './redux';
 import { areAddressesEqual } from '../util/address';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from './Engine/controllers/seedless-onboarding-controller/error';
+
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 
 /**
@@ -232,7 +237,10 @@ export const recreateVaultWithNewPassword = async (
         password,
         primaryKeyringSeedPhrase,
       );
-      seedlessChangePasswordError = error;
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error || 'Password change failed',
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
     }
   }
 

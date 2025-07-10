@@ -577,10 +577,16 @@ class AuthenticationService {
     await this.createWalletVaultAndKeychain(password);
     // submit password to unlock keyring ?
     await KeyringController.submitPassword(password);
-    const seedPhrase = await KeyringController.exportSeedPhrase(password);
     try {
       const keyringId = KeyringController.state.keyrings[0]?.metadata.id;
+      if (!keyringId) {
+        throw new Error('No keyring metadata found');
+      }
 
+      const seedPhrase = await KeyringController.exportSeedPhrase(
+        password,
+        keyringId,
+      );
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,

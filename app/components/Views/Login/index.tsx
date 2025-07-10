@@ -37,6 +37,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -135,9 +136,6 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -280,15 +278,23 @@ const Login: React.FC = () => {
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
-    if (!isMetaMetricsUISeen) {
-      navigation.replace(Routes.ONBOARDING.ROOT_NAV, {
-        screen: Routes.ONBOARDING.NAV,
-        params: {
-          screen: Routes.ONBOARDING.OPTIN_METRICS,
-          params: {
-            onContinue: () => navigateToHome(),
+    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+      OPTIN_META_METRICS_UI_SEEN,
+    );
+
+    if (!isOptinMetaMetricsUISeen) {
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
           },
-        },
+        ],
       });
     } else {
       navigateToHome();

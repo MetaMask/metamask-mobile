@@ -18,6 +18,8 @@ import { Authentication } from '../../../core';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
+import ReduxService from '../../../core/redux/ReduxService';
+import { ReduxStore } from '../../../core/redux/types';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -114,13 +116,15 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      SeedlessOnboardingController: {
+        vault: 'vault string',
+      },
     },
   },
   security: {
     allowLoginWithRememberMe: true,
   },
 };
-
 const store = mockStore(initialState);
 interface ResetPasswordProps {
   route: {
@@ -255,6 +259,28 @@ describe('ResetPassword', () => {
   });
 
   it('correctly navigates to the success error sheet when the new password is confirmed', async () => {
+    // mock redux store
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: jest.fn().mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'vault string',
+            },
+          },
+        },
+      }),
+    } as unknown as ReduxStore);
+
+    jest.spyOn(Authentication, 'getType').mockResolvedValue({
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+    });
+
+    jest
+      .spyOn(StorageWrapper, 'getItem')
+      .mockImplementationOnce(() => Promise.resolve(BIOMETRY_TYPE.FACE_ID));
+
     const component = await renderConfirmPasswordView();
 
     const newPasswordInput = component.getByTestId(
