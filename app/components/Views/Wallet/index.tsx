@@ -127,9 +127,6 @@ import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -137,7 +134,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     walletAccount: { marginTop: 28 },
     tabUnderlineStyle: {
       height: 2,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.icon.default,
     },
     tabStyle: {
       paddingBottom: 8,
@@ -192,19 +189,17 @@ const WalletTokensTabView = React.memo(
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <View style={styles.base}>
-          <DefaultTabBar
-            underlineStyle={styles.tabUnderlineStyle}
-            activeTextColor={colors.primary.default}
-            inactiveTextColor={colors.text.default}
-            backgroundColor={colors.background.default}
-            tabStyle={styles.tabStyle}
-            textStyle={styles.textStyle}
-            tabPadding={16}
-            style={styles.tabBar}
-            {...tabBarProps}
-          />
-        </View>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.text.default}
+          inactiveTextColor={colors.text.alternative}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          style={styles.tabBar}
+          tabPadding={32}
+          {...tabBarProps}
+        />
       ),
       [styles, colors],
     );
