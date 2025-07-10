@@ -31,8 +31,6 @@ const Routes = {
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
-    KYC_WEBVIEW: 'KycWebview',
-    PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',
@@ -42,6 +40,9 @@ const Routes = {
       REGION_SELECTOR: 'DepositRegionSelectorModal',
       PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
       UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+      STATE_SELECTOR: 'DepositStateSelectorModal',
+      WEBVIEW: 'DepositWebviewModal',
+      KYC_WEBVIEW: 'DepositKycWebviewModal',
     },
   },
   HW: {
@@ -200,6 +201,7 @@ const Routes = {
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
+  SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',

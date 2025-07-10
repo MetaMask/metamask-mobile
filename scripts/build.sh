@@ -14,6 +14,13 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $MODE"
+echo "ENVIRONMENT = $ENVIRONMENT"
+
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+
 envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
@@ -250,17 +257,17 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
-  #Create google-services.json file to be used by the Firebase services.
-  # Check if GOOGLE_SERVICES_B64_ANDROID is set
-  if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
-    echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
-    echo "google-services.json has been created successfully."
-    # Ensure the file has read and write permissions
-    chmod 664 ./android/app/google-services.json
-  else
-    echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
-    exit 1
-  fi
+	#Create google-services.json file to be used by the Firebase services.
+	# Check if GOOGLE_SERVICES_B64_ANDROID is set
+	if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
+		echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
+		echo "google-services.json has been created successfully."
+		# Ensure the file has read and write permissions
+		chmod 664 ./android/app/google-services.json
+	else
+		echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
+		exit 1
+	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
@@ -279,11 +286,25 @@ buildAndroidRun(){
 
 buildAndroidDevBuild(){
 	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the Flask APK for local development
+buildAndroidFlaskLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the QA APK for local development
+buildAndroidQaLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -312,6 +333,14 @@ buildIosDevBuild(){
 
 	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 	scheme="MetaMask"
+
+	if [ "$METAMASK_BUILD_TYPE" = "flask" ] ; then
+		scheme="MetaMask-Flask"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+  	elif [ "$METAMASK_BUILD_TYPE" = "qa" ] ; then
+		scheme="MetaMask-QA"
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
+	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
   	echo "Generating archive packages for $scheme"
@@ -382,22 +411,39 @@ buildIosDeviceFlask(){
 	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
-generateArchivePackages() {
-  scheme="$1"
+# Generates the iOS binary for the given scheme and configuration
+generateIosBinary() {
+	scheme="$1"
+	configuration="${2:-"Release"}"
 
-  if [ "$scheme" = "MetaMask-QA" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
-  elif [ "$scheme" = "MetaMask-Flask" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
-  else
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
-  fi
+	if [ "$scheme" = "MetaMask-QA" ] ; then
+		if [ "$configuration" = "Debug" ] ; then
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
+		else
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+		fi
+	elif [ "$scheme" = "MetaMask-Flask" ] ; then
+		if [ "$configuration" = "Debug" ] ; then
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+		else
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
+		fi
+	else
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
+	fi
 
-  echo "exportOptionsPlist: $exportOptionsPlist"
-  echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-  echo "Generating ipa for $scheme"
-  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	echo "exportOptionsPlist: $exportOptionsPlist"
+	echo "Generating archive packages for $scheme in $configuration configuration"
+	if [ "$IS_SIM_BUILD" = "true" ]; then
+    	echo "Binary build type: Simulator"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+	else
+		echo "Binary build type: Device"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+		echo "Generating ipa for $scheme"
+		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	fi
+
 }
 
 buildIosRelease(){
@@ -418,7 +464,7 @@ buildIosRelease(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask"
+		generateIosBinary "MetaMask"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -427,10 +473,25 @@ buildIosRelease(){
 	fi
 }
 
-buildIosFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
+# Builds the Flask binary for local development
+buildIosFlaskLocal() {
+	prebuild_ios
 
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-Flask" "Debug"
+}
+
+# Builds the QA binary local development
+buildIosQaLocal() {
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-QA" "Debug"
+}
+
+buildIosFlaskRelease(){
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -440,7 +501,7 @@ buildIosFlaskRelease(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask-Flask"
+		generateIosBinary "MetaMask-Flask"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -459,7 +520,7 @@ buildIosReleaseE2E(){
 		echo "Pre-release E2E Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask"
+		generateIosBinary "MetaMask"
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -484,7 +545,7 @@ buildIosQA(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask-QA"
+		generateIosBinary "MetaMask-QA"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -597,14 +658,22 @@ buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildAndroidFlaskRelease
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidFlaskLocal
+		else
+			buildAndroidFlaskRelease
+		fi
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidQaLocal
+		else
+			buildAndroidQA
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
@@ -632,7 +701,11 @@ buildIos() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildIosFlaskRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosFlaskLocal
+		else
+			buildIosFlaskRelease
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
@@ -641,8 +714,12 @@ buildIos() {
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] ; then
-		buildIosQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosQaLocal
+		else
+			buildIosQA
+		fi
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -708,25 +785,26 @@ checkParameters "$@"
 printTitle
 loadJSEnv
 
-echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
-echo "ENVIRONMENT = $ENVIRONMENT"
-
-# TODO: We should be able to remove some of the conditions in this if statement
-if [ "$MODE" == "main" ] && { [ "$ENVIRONMENT" == "production" ] || [ "$ENVIRONMENT" == "beta" ] || [ "$ENVIRONMENT" == "rc" ] || [ "$ENVIRONMENT" == "exp" ] ; }; then
-  export METAMASK_BUILD_TYPE="$MODE"
-  export METAMASK_ENVIRONMENT="$ENVIRONMENT"
-  export GENERATE_BUNDLE=true # Used only for Android
-  export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-  if [ "$ENVIRONMENT" == "production" ]; then
-    remapEnvVariableProduction
-  elif [ "$ENVIRONMENT" == "beta" ]; then
-    remapEnvVariableBeta
-  elif [ "$ENVIRONMENT" == "rc" ]; then
-    remapEnvVariableReleaseCandidate
-  elif [ "$ENVIRONMENT" == "exp" ]; then
-    remapEnvVariableExperimental
-  fi
+# Map environment variables based on mode.
+# TODO: MODE should be renamed to TARGET
+if [ "$MODE" == "main" ]; then
+	export GENERATE_BUNDLE=true # Used only for Android
+	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+	if [ "$ENVIRONMENT" == "production" ]; then
+		remapEnvVariableProduction
+	elif [ "$ENVIRONMENT" == "beta" ]; then
+		remapEnvVariableBeta
+	elif [ "$ENVIRONMENT" == "rc" ]; then
+		remapEnvVariableReleaseCandidate
+	elif [ "$ENVIRONMENT" == "exp" ]; then
+		remapEnvVariableExperimental
+	fi
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+	# TODO: Map environment variables based on environment
+	remapFlaskEnvVariables
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
+	# TODO: Map environment variables based on environment
+	remapEnvVariableQA
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
