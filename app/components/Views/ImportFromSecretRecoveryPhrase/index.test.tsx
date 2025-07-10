@@ -858,7 +858,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const pasteButton = getByText(strings('import_from_seed.paste'));
       expect(pasteButton).toBeOnTheScreen();
     });
-  });
 
     describe('onQrCodePress', () => {
       let customRender: (children: React.ReactElement) => ReturnType<typeof renderWithProvider>;
