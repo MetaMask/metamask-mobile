@@ -5,6 +5,7 @@ import { useNavigation, useRoute , RouteProp } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
+  selectBridgeViewMode,
   selectEnabledDestChains,
   setSelectedDestChainId,
 } from '../../../../../core/redux/slices/bridge';
@@ -16,6 +17,7 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
+
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
 }
@@ -33,24 +35,27 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
   const currentChainId = useSelector(selectChainId);
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const handleChainSelect = useCallback((chainId: Hex | CaipChainId) => {
     dispatch(setSelectedDestChainId(chainId));
 
     navigation.goBack();
 
-    if (route.params.shouldGoToTokens) {
+    if (route?.params?.shouldGoToTokens) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-        params: {
-          bridgeViewMode: BridgeViewMode.Bridge,
-        },
       });
     }
-  }, [dispatch, navigation, route.params.shouldGoToTokens]);
+  }, [dispatch, navigation, route?.params?.shouldGoToTokens]);
 
   const renderDestChains = useCallback(() => (
-    enabledDestChains.filter(chain => chain.chainId !== currentChainId).map((chain) => (
+    enabledDestChains.filter(chain => {
+      if (bridgeViewMode === BridgeViewMode.Unified) {
+        return true;
+      }
+      return chain.chainId !== currentChainId;
+    }).map((chain) => (
       <TouchableOpacity
         key={chain.chainId}
         onPress={() => handleChainSelect(chain.chainId)}
@@ -65,7 +70,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
         </ListItem>
       </TouchableOpacity>
     ))
-  ), [enabledDestChains, handleChainSelect, currentChainId]);
+  ), [enabledDestChains, handleChainSelect, currentChainId, bridgeViewMode]);
 
   return (
     <BridgeNetworkSelectorBase>

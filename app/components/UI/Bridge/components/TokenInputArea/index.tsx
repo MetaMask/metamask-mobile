@@ -26,6 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
+  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -137,6 +138,9 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
+
+    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
@@ -260,7 +264,7 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings('bridge.bridge_to')}
+                label={strings(isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to')}
                 onPress={navigateToDestNetworkSelector}
               />
             )}
