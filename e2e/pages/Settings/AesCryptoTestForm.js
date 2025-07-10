@@ -4,6 +4,7 @@ import {
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
   accountAddress,
+  responseText,
 } from '../../selectors/Settings/AesCrypto.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -16,6 +17,11 @@ class AesCryptoTestForm {
   // Get account address
   get accountAddress() {
     return Matchers.getElementByID(accountAddress);
+  }
+
+  // Get response text
+  get responseText() {
+    return Matchers.getElementByID(responseText);
   }
 
   // Generate salt getters

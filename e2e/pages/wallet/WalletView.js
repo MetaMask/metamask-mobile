@@ -2,10 +2,10 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 
 class WalletView {
   get container() {
@@ -178,11 +178,15 @@ class WalletView {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.accountIcon);
+    await Gestures.waitAndTap(this.accountIcon, {
+      elemDescription: 'Top Account Icon',
+    });
   }
 
   async tapBellIcon() {
-    await Gestures.waitAndTap(this.notificationBellIcon);
+    await Gestures.waitAndTap(this.notificationBellIcon, {
+      elemDescription: 'Notification Bell Icon',
+    });
   }
 
   async tapNetworksButtonOnNavBar() {
@@ -202,6 +206,16 @@ class WalletView {
     await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
   }
 
+  async scrollToToken(tokenName, direction = 'down') {
+    await Gestures.scrollToElement(
+      this.tokenInWallet(tokenName),
+      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        direction,
+      },
+    );
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
@@ -211,7 +225,10 @@ class WalletView {
   }
 
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.testCollectible, {
+      checkEnabled: false,
+      elemDescription: 'NFT Name',
+    });
   }
 
   async tapImportTokensButton() {
@@ -357,7 +374,7 @@ class WalletView {
   async getBalanceText() {
     const balanceElement = this.totalBalance;
     await Assertions.checkIfVisible(balanceElement);
-    
+
     const balanceAttributes = await (await balanceElement).getAttributes();
     return balanceAttributes.text || balanceAttributes.label;
   }

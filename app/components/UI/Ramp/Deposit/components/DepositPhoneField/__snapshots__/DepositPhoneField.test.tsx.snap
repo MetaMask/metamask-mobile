@@ -127,6 +127,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -261,6 +262,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -395,6 +397,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -529,6 +532,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -663,6 +667,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -812,6 +817,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="155512345678901234"
       />
     </View>
@@ -947,6 +953,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -1081,6 +1088,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="15551234567"
       />
     </View>
@@ -1215,6 +1223,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value=""
       />
     </View>
@@ -1349,6 +1358,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           }
         }
         testID="deposit-phone-field-test-id"
+        textContentType="telephoneNumber"
         value="(555) 123-4567"
       />
     </View>
