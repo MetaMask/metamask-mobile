@@ -14,8 +14,7 @@ import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../../helpers';
 import SendView from '../../../pages/Send/SendView';
-import QuoteView from '../../../pages/swaps/QuoteView';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import QuoteView from '../../../pages/Bridge/QuoteView';
 
 const fixtureServer = new FixtureServer();
 
@@ -64,7 +63,25 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
+  it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
+    const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
+    await WalletView.tapTokenNetworkFilter();
+    await WalletView.tapTokenNetworkFilterAll();
+    const avax = WalletView.tokenInWallet('AVAX');
+    await Assertions.checkIfVisible(avax);
+    await WalletView.tapOnToken('AVAX');
+    await Assertions.checkIfVisible(TokenOverview.sendButton);
+    await TokenOverview.tapSendButton();
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkEducationModal.networkName,
+      AVAX_NETWORK_NAME,
+    );
+    await NetworkEducationModal.tapGotItButton();
+  });
+
   it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+    await SendView.tapCancelButton();
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -83,29 +100,15 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await QuoteView.tapOnCancelButton();
   });
 
-  it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
-    await WalletView.tapTokenNetworkFilter();
-    await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.scrollToToken('AVAX', 'up');
-    const avax = WalletView.tokenInWallet('AVAX');
-    await Assertions.checkIfVisible(avax);
-    await WalletView.tapOnToken('AVAX');
-    await Assertions.checkIfVisible(TokenOverview.sendButton);
-    await TokenOverview.tapSendButton();
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      AVAX_NETWORK_NAME,
-    );
-    await NetworkEducationModal.tapGotItButton();
-  });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
-    await SendView.tapCancelButton();
-    await TabBarComponent.tapWallet();
+    await TokenOverview.tapBackButton();
+
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    if (device.getPlatform() === 'ios') {
+      await WalletView.scrollToToken('AVAX', 'up');
+    }
     await WalletView.tapOnToken('AVAX');
 
     await Assertions.checkIfVisible(TokenOverview.container);
@@ -126,4 +129,4 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(TokenOverview.receiveButton);
     await Assertions.checkIfVisible(TokenOverview.sendButton);
   });
-}); 
+});

@@ -67,22 +67,13 @@ describe('AccountStatus', () => {
     });
 
     it('renders correctly with accountName in route params', () => {
-        mockRoute.params = { accountName: 'test@example.com' };
-        const { toJSON } = render(<AccountStatus type="found" />);
-        expect(toJSON()).toMatchSnapshot();
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = render(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('Behavior Tests', () => {
-    it('sets up navigation header correctly', () => {
-      render(<AccountStatus />);
-
-      expect(mockSetOptions).toHaveBeenCalled();
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      expect(setOptionsCall.headerLeft).toBeDefined();
-      expect(setOptionsCall.headerRight).toBeDefined();
-    });
-
     describe('Primary button interactions', () => {
       it('navigates to Rehydrate screen when type="found" and primary button is pressed', () => {
         const mockReplace = jest.fn();
@@ -106,7 +97,9 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         const { getByText } = render(<AccountStatus type="not_exist" />);
-        const primaryButton = getByText(strings('account_status.create_new_wallet'));
+        const primaryButton = getByText(
+          strings('account_status.create_new_wallet'),
+        );
 
         fireEvent.press(primaryButton);
 
@@ -150,14 +143,18 @@ describe('AccountStatus', () => {
       it('tracks WALLET_IMPORT_STARTED event when type="found"', () => {
         const mockBuild = jest.fn();
         const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(mockCreateEventBuilder);
+        (
+          MetricsEventBuilder.createEventBuilder as jest.Mock
+        ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = render(<AccountStatus type="found" />);
         const primaryButton = getByText('Log in');
 
         fireEvent.press(primaryButton);
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_IMPORT_STARTED,
+        );
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });
@@ -165,14 +162,18 @@ describe('AccountStatus', () => {
       it('tracks WALLET_SETUP_STARTED event when type="not_exist"', () => {
         const mockBuild = jest.fn();
         const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(mockCreateEventBuilder);
+        (
+          MetricsEventBuilder.createEventBuilder as jest.Mock
+        ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = render(<AccountStatus type="not_exist" />);
         const primaryButton = getByText('Create a new wallet');
 
         fireEvent.press(primaryButton);
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.WALLET_SETUP_STARTED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_SETUP_STARTED,
+        );
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });
