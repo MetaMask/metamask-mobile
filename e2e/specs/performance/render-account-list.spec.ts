@@ -97,7 +97,7 @@ const createUserProfileTests = (
           platform: device.getPlatform().toUpperCase(),
           navigationTime: result.navigationTime || 0,
           renderTime: result.renderTime || 0,
-          totalTime: duration,
+          totalTime: result.totalTime || 0,
           status: 'PASSED',
           timestamp: new Date().toISOString(),
           thresholds: result.thresholds || {
@@ -564,6 +564,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           result = {
             navigationTime,
             renderTime,
+            totalTime,
             thresholds: {
               navigation: PERFORMANCE_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST,
               render: PERFORMANCE_THRESHOLDS.ACCOUNT_LIST_RENDER,
@@ -617,17 +618,18 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             'Starting heavy load test with 50 tokens (Profile Syncing Disabled)...',
           );
 
+          const startNavigationTime = Date.now();
           await WalletView.tapIdenticon();
           await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+          const navigationTime = Date.now() - startNavigationTime;
           console.log('✅ Account list became visible');
 
           const startTime = Date.now();
-          await AccountListBottomSheet.tapAccountByName('Account 3');
-          await Assertions.checkIfNotVisible(
-            AccountListBottomSheet.accountList,
-          );
+          await Assertions.checkIfTextIsDisplayed('Account 1');
+
           const endTime = Date.now();
-          const totalTime = endTime - startTime;
+          const totalRenderTime = endTime - startTime;
+          const totalTime = navigationTime + totalRenderTime;
 
           console.log(
             '========== HEAVY LOAD TEST RESULTS (PROFILE SYNCING DISABLED) ==========',
@@ -635,7 +637,9 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           console.log(
             `Configuration: 11 accounts, popular networks, 50 tokens`,
           );
-          console.log(`Total time to render account list: ${totalTime}ms`);
+          console.warn(`⏱️  Navigation Time: ${navigationTime}ms`);
+          console.warn(`🎨 Render Time: ${totalRenderTime}ms`);
+          console.warn(`📊 Total Time: ${navigationTime + totalRenderTime}ms`);
           console.log(
             '=====================================================================',
           );
@@ -653,11 +657,12 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           console.log('✅ Heavy load test passed!');
 
           result = {
-            navigationTime: 0, // No navigation in this specific test
-            renderTime: totalTime,
+            navigationTime,
+            renderTime: totalRenderTime,
+            totalTime,
             thresholds: {
-              navigation: 0,
-              render: maxHeavyLoadTime,
+              navigation: HEAVY_LOAD_THRESHOLDS.NAVIGATION_TO_ACCOUNT_LIST,
+              render: HEAVY_LOAD_THRESHOLDS.ACCOUNT_LIST_RENDER,
               total: maxHeavyLoadTime,
             },
           };
@@ -708,16 +713,27 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
           console.log('Starting baseline test with minimal load...');
 
-          const startTime = Date.now();
+          const startNavigationTime = Date.now();
           await WalletView.tapIdenticon();
           await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-          const endTime = Date.now();
+          const endNavigationTime = Date.now();
 
-          const totalTime = endTime - startTime;
+          const navigationTime = endNavigationTime - startNavigationTime;
+
+          console.log('✅ Account list became visible');
+
+          const startTime = Date.now();
+          await Assertions.checkIfTextIsDisplayed('Account 1');
+
+          const endTime = Date.now();
+          const totalRenderTime = endTime - startTime;
+          const totalTime = navigationTime + totalRenderTime;
 
           console.log('========== BASELINE TEST RESULTS ==========');
           console.log(`Configuration: 2 accounts, default network, 2 tokens`);
-          console.log(`Total time to render account list: ${totalTime}ms`);
+          console.warn(`⏱️  Navigation Time: ${navigationTime}ms`);
+          console.warn(`🎨 Render Time: ${totalRenderTime}ms`);
+          console.warn(`📊 Total Time: ${navigationTime + totalRenderTime}ms`);
           console.log('==========================================');
 
           // Baseline should be very fast
@@ -731,12 +747,13 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           await AccountListBottomSheet.swipeToDismissAccountsModal();
 
           result = {
-            navigationTime: 0, // No navigation in this specific test
-            renderTime: totalTime,
+            navigationTime,
+            renderTime: totalRenderTime,
+            totalTime,
             thresholds: {
-              navigation: 0,
+              navigation: 1500,
               render: 3000, // Baseline threshold
-              total: 3000,
+              total: 4500,
             },
           };
         },
