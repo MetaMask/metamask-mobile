@@ -1823,9 +1823,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-base64 (2.0.8):
+  - react-native-quick-base64 (2.2.0):
     - React-Core
-  - react-native-quick-crypto (0.7.15):
+  - react-native-quick-crypto (0.7.13):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3339,8 +3339,8 @@ SPEC CHECKSUMS:
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: 037f840721979489b44aed1432f9382556e46781
   react-native-performance: f443f41ed04425e16a4f9b3f680f9d9e7fe09959
-  react-native-quick-base64: daf67f19ee076b77f0755bf4056f3425f164e1d8
-  react-native-quick-crypto: 7a9ba486072f5081c908d487d520aba218409f76
+  react-native-quick-base64: 17dc4b8daee50e680d5f57cc3ee6773b6ee0110a
+  react-native-quick-crypto: 361ecda861e23138ce68fea4b820cbc058688fb5
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: c68127652d8b9a26a28ac9597167a3ad90bcd713
