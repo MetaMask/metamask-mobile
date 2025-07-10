@@ -357,6 +357,27 @@
   "PermissionController": {
     "subjects": {}
   },
+  "PerpsController": {
+    "activeProvider": "hyperliquid",
+    "isTestnet": false,
+    "connectionStatus": "disconnected",
+    "positions": [],
+    "accountState": null,
+    "pendingOrders": [],
+    "depositStatus": "idle",
+    "depositFlowType": null,
+    "currentDepositTxHash": null,
+    "depositError": null,
+    "requiresModalDismissal": false,
+    "depositSteps": {
+      "totalSteps": 0,
+      "currentStep": 0,
+      "stepNames": [],
+      "stepTxHashes": []
+    },
+    "lastError": null,
+    "lastUpdateTimestamp": 0
+  },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}

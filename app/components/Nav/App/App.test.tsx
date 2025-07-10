@@ -30,6 +30,24 @@ const initialState: DeepPartial<RootState> = {
   },
 };
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+    Soft: 'soft',
+    Rigid: 'rigid',
+  },
+  selectionAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
 }));

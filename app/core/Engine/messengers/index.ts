@@ -36,6 +36,7 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
+import { getPerpsControllerMessenger } from './perps-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -134,6 +135,10 @@ export const CONTROLLER_MESSENGERS = {
   ///: END:ONLY_INCLUDE_IF
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PerpsController: {
+    getMessenger: getPerpsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
