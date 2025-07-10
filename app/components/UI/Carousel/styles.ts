@@ -40,7 +40,7 @@ export const styleSheet = (params: {
       height: CAROUSEL_HEIGHT,
     },
     slideContainer: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       height: CAROUSEL_HEIGHT,
       borderWidth: 1,
@@ -51,7 +51,7 @@ export const styleSheet = (params: {
       overflow: 'hidden',
     },
     slideContainerPressed: {
-      backgroundColor: colors.background.alternativePressed,
+      backgroundColor: colors.background.mutedPressed,
     },
     slideContent: {
       width: '100%',
