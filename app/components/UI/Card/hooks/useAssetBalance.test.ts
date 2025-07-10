@@ -8,12 +8,10 @@ import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { formatWithThreshold } from '../../../../util/assets';
 import { isTestNet } from '../../../../util/networks';
 
-// Mock useSelector
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock utility functions
 jest.mock('../../Tokens/util', () => ({
   deriveBalanceFromAssetMarketDetails: jest.fn(),
 }));
@@ -26,7 +24,6 @@ jest.mock('../../../../util/networks', () => ({
   isTestNet: jest.fn(),
 }));
 
-// Mock selectors
 jest.mock('../../../../selectors/multichain', () => ({
   makeSelectAssetByAddressAndChainId: jest.fn(() => jest.fn()),
   makeSelectNonEvmAssetById: jest.fn(() => jest.fn()),
@@ -58,7 +55,6 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
   selectSingleTokenBalance: jest.fn(),
 }));
 
-// Mock localization
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: { [key: string]: string } = {
@@ -130,9 +126,7 @@ describe('useAssetBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup default mock implementations
     mockUseSelector.mockImplementation((selector: any) => {
-      // Return appropriate mock data based on selector function
       if (
         selector.toString().includes('selectSelectedInternalAccountAddress')
       ) {
@@ -160,9 +154,8 @@ describe('useAssetBalance', () => {
       if (selector.name === 'selectNonEvmAsset') {
         return mockNonEvmAsset;
       }
-      // Handle dynamic selectors created by makeSelectAssetByAddressAndChainId and makeSelectNonEvmAssetById
       if (typeof selector === 'function' && selector.length === 2) {
-        return mockEvmAsset; // Default to EVM asset for dynamic selectors
+        return mockEvmAsset;
       }
       return defaultMockState.exchangeRates;
     });
@@ -325,7 +318,6 @@ describe('useAssetBalance', () => {
 
     expect(result.current.asset).toBeDefined();
     expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
-    // The hook still returns secondaryBalance even on testnets when ETH is primary currency
     expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
   });
 
@@ -349,7 +341,6 @@ describe('useAssetBalance', () => {
 
     const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    // The hook checks evmAsset.hasBalanceError but returns derived balance when not in error state
     expect(result.current.mainBalance).toBe('$1,000.00');
     expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
   });
@@ -402,11 +393,9 @@ describe('useAssetBalance', () => {
       if (selector.toString().includes('selectSelectedInternalAccount')) {
         return defaultMockState.selectedAccount;
       }
-      // The hook calls selectNonEvmAsset when token and selectedAccount.id exist
       if (selector.name === 'selectNonEvmAsset') {
         return mockNonEvmAsset;
       }
-      // This handles the selector returned by makeSelectNonEvmAssetById()
       if (
         typeof selector === 'function' &&
         selector.name !== 'selectEvmAsset'
@@ -461,7 +450,6 @@ describe('useAssetBalance', () => {
     const { result } = renderHook(() => useAssetBalance(mockToken));
 
     expect(result.current.asset).toBeDefined();
-    // Should use TOKEN_BALANCE_LOADING when balanceFiat is missing
     expect(mockFormatWithThreshold).not.toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
@@ -494,7 +482,6 @@ describe('useAssetBalance', () => {
     const { result } = renderHook(() => useAssetBalance(mockToken));
 
     expect(result.current.asset).toBeDefined();
-    // Should use TOKEN_BALANCE_LOADING when balance is missing
   });
 
   it('should handle missing selectedInternalAccountAddress', () => {
@@ -508,9 +495,8 @@ describe('useAssetBalance', () => {
         return true;
       }
       if (selector.toString().includes('primaryCurrency')) {
-        return 'USD'; // fiat primary currency
+        return 'USD';
       }
-      // Return mockEvmAsset for the asset selector
       if (typeof selector === 'function' && selector.length === 2) {
         return mockEvmAsset;
       }
@@ -519,15 +505,12 @@ describe('useAssetBalance', () => {
 
     const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    // The hook still returns asset with partial data even when selectedInternalAccountAddress is null
     expect(result.current.asset).toEqual({
       balanceFiat: '$1,000.00',
       isStaked: undefined,
       price: 2000,
     });
-    // The hook returns the balanceFiat from the derived balance calculation
     expect(result.current.balanceFiat).toBe('$1,000.00');
-    // When selectedInternalAccountAddress is null but asset exists, mainBalance shows the fiat value
     expect(result.current.mainBalance).toBe('$1,000.00');
   });
 
@@ -561,8 +544,6 @@ describe('useAssetBalance', () => {
 
     const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    // When balanceFiat is undefined and we're on testnet with fiat disabled,
-    // the hook falls back to 'Unable to find conversion rate'
     expect(result.current.mainBalance).toBe('Unable to find conversion rate');
     expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
   });

@@ -5,17 +5,14 @@ import { AllowanceState } from '../types';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useSelector } from 'react-redux';
 
-// Mock the useCardSDK hook
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-// Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock console.error to suppress error logs in tests
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
 
 describe('useGetAllowances', () => {
@@ -64,7 +61,7 @@ describe('useGetAllowances', () => {
   };
 
   const mockAddress = '0x1234567890123456789012345678901234567890';
-  const mockChainId = '0x1'; // Ethereum mainnet
+  const mockChainId = '0x1';
 
   const createMockToken = (
     address: string,
@@ -88,7 +85,6 @@ describe('useGetAllowances', () => {
     mockConsoleError.mockClear();
     mockGetSupportedTokensAllowances.mockReset();
 
-    // Set up default useSelector mock to return chainId
     (useSelector as jest.Mock).mockImplementation(() => mockChainId);
   });
 
@@ -140,7 +136,6 @@ describe('useGetAllowances', () => {
     const allowances = result.current.allowances;
     expect(allowances).not.toBeNull();
 
-    // Check first token (uses globalAllowance since usAllowance is zero)
     expect(allowances?.[0]).toEqual({
       allowanceState: AllowanceState.Unlimited,
       address: '0xToken1',
@@ -153,7 +148,6 @@ describe('useGetAllowances', () => {
       chainId: mockChainId,
     });
 
-    // Check second token (uses usAllowance since it's non-zero)
     expect(allowances?.[1]).toEqual({
       allowanceState: AllowanceState.Limited,
       address: '0xToken2',
@@ -166,7 +160,6 @@ describe('useGetAllowances', () => {
       chainId: mockChainId,
     });
 
-    // Check third token (uses globalAllowance since usAllowance is zero)
     expect(allowances?.[2]).toEqual({
       allowanceState: AllowanceState.NotActivated,
       address: '0xToken3',
@@ -326,7 +319,6 @@ describe('useGetAllowances', () => {
   it('should refetch allowances when SDK becomes available', async () => {
     const mockTokens = [createMockToken('0xToken1', '1000000', '0')];
 
-    // Start with no SDK
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
     const { result, rerender } = renderHook(() =>
       useGetAllowances(mockAddress, false),
@@ -335,7 +327,6 @@ describe('useGetAllowances', () => {
     expect(result.current.allowances).toBeNull();
     expect(mockGetSupportedTokensAllowances).not.toHaveBeenCalled();
 
-    // SDK becomes available - set up mock for successful call
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokens);
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
     rerender();
@@ -360,7 +351,6 @@ describe('useGetAllowances', () => {
 
     const { result } = renderHook(() => useGetAllowances(mockAddress));
 
-    // First fetch
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensSets[0]);
     await act(async () => {
       await result.current.fetchAllowances();
@@ -370,7 +360,6 @@ describe('useGetAllowances', () => {
       AllowanceState.Limited,
     );
 
-    // Second fetch
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensSets[1]);
     await act(async () => {
       await result.current.fetchAllowances();
@@ -380,7 +369,6 @@ describe('useGetAllowances', () => {
       AllowanceState.NotActivated,
     );
 
-    // Third fetch
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensSets[2]);
     await act(async () => {
       await result.current.fetchAllowances();
@@ -425,7 +413,6 @@ describe('useGetAllowances', () => {
     expect(result.current.isLoading).toBe(false);
     expect(mockGetSupportedTokensAllowances).not.toHaveBeenCalled();
 
-    // Change autoFetch to true
     rerender({ autoFetch: true });
 
     await waitForNextUpdate();
@@ -449,7 +436,6 @@ describe('useGetAllowances', () => {
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
 
-    // Set up mock for first address before rendering
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensAddress1);
 
     const { result, rerender, waitForNextUpdate } = renderHook(
@@ -459,14 +445,12 @@ describe('useGetAllowances', () => {
       },
     );
 
-    // Wait for first address fetch
     await waitForNextUpdate();
 
     expect(result.current.allowances).toHaveLength(1);
     expect(result.current.allowances?.[0].address).toBe('0xToken1');
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledWith(address1);
 
-    // Set up mock for second address and rerender
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensAddress2);
     rerender({ address: address2 });
 
@@ -480,8 +464,8 @@ describe('useGetAllowances', () => {
 
   it('should filter out tokens not found in supportedTokens', async () => {
     const mockTokens = [
-      createMockToken('0xToken1', '1000000', '0'), // This exists in supportedTokens
-      createMockToken('0xUnknownToken', '1000000', '0'), // This doesn't exist in supportedTokens
+      createMockToken('0xToken1', '1000000', '0'),
+      createMockToken('0xUnknownToken', '1000000', '0'),
     ];
 
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokens);
@@ -493,7 +477,6 @@ describe('useGetAllowances', () => {
       await result.current.fetchAllowances();
     });
 
-    // Should only have the token that exists in supportedTokens
     expect(result.current.allowances).toHaveLength(1);
     expect(result.current.allowances?.[0].address).toBe('0xToken1');
     expect(result.current.allowances?.[0].symbol).toBe('TKN1');

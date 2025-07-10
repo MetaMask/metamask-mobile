@@ -32,6 +32,7 @@ describe('ManageCardListItem Component', () => {
     const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem title="Test Title" description="Test description" />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -45,6 +46,7 @@ describe('ManageCardListItem Component', () => {
         onPress={mockOnPress}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -61,6 +63,7 @@ describe('ManageCardListItem Component', () => {
         description={customDescription}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -87,6 +90,7 @@ describe('ManageCardListItem Component', () => {
         description="Should use ArrowRight icon"
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -98,6 +102,7 @@ describe('ManageCardListItem Component', () => {
         rightIcon={IconName.Edit}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -127,7 +132,6 @@ describe('ManageCardListItem Component', () => {
 
     const item = getByTestId('no-onpress-item');
 
-    // Should not throw an error
     expect(() => fireEvent.press(item)).not.toThrow();
   });
 });

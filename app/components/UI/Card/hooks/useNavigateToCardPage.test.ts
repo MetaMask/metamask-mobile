@@ -8,7 +8,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { BrowserTab } from '../../Tokens/types';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -78,7 +77,6 @@ describe('useNavigateToCardPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup default mocks
     (useSelector as jest.Mock).mockReturnValue(mockBrowserTabs);
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -217,7 +215,6 @@ describe('useNavigateToCardPage', () => {
 
     const { result } = renderHook(() => useNavigateToCardPage(mockNavigation));
 
-    // Should not throw an error
     expect(() => {
       act(() => {
         result.current.navigateToCardPage();
@@ -230,7 +227,6 @@ describe('useNavigateToCardPage', () => {
 
     const { result } = renderHook(() => useNavigateToCardPage(mockNavigation));
 
-    // Should not throw an error
     expect(() => {
       act(() => {
         result.current.navigateToCardPage();
@@ -246,7 +242,6 @@ describe('useNavigateToCardPage', () => {
       result.current.navigateToCardPage();
     });
 
-    // Advance time slightly for the second call
     jest.spyOn(Date, 'now').mockReturnValue(firstCallTime + 100);
 
     act(() => {
@@ -262,9 +257,6 @@ describe('useNavigateToCardPage', () => {
     expect(secondCall.params.timestamp).toBeGreaterThan(
       firstCall.params.timestamp,
     );
-
-    // Restore original Date.now
-    jest.restoreAllMocks();
   });
 
   it('should handle isCardUrl function throwing an error', () => {
@@ -274,7 +266,6 @@ describe('useNavigateToCardPage', () => {
 
     const { result } = renderHook(() => useNavigateToCardPage(mockNavigation));
 
-    // Should throw the error since it's not handled in the hook
     expect(() => {
       act(() => {
         result.current.navigateToCardPage();
@@ -283,7 +274,6 @@ describe('useNavigateToCardPage', () => {
   });
 
   it('should use correct URL from AppConstants', () => {
-    // Ensure no existing card tabs to force new tab creation
     (useSelector as jest.Mock).mockReturnValue([]);
     (isCardUrl as jest.Mock).mockReturnValue(false);
 
@@ -319,11 +309,9 @@ describe('useNavigateToCardPage', () => {
   it('should handle tabs with missing properties gracefully', () => {
     const incompleteTab = {
       id: 'incomplete-tab',
-      // Missing url property
     } as BrowserTab;
 
     (useSelector as jest.Mock).mockReturnValue([incompleteTab]);
-    // Override the default mock to handle undefined URL
     (isCardUrl as jest.Mock).mockImplementation((url: string) => {
       if (!url) return false;
       return url.includes('card.metamask.io');
@@ -331,7 +319,6 @@ describe('useNavigateToCardPage', () => {
 
     const { result } = renderHook(() => useNavigateToCardPage(mockNavigation));
 
-    // Should not throw an error and create a new tab
     expect(() => {
       act(() => {
         result.current.navigateToCardPage();
@@ -352,7 +339,6 @@ describe('useNavigateToCardPage', () => {
       useNavigateToCardPage(mockNavigation),
     );
 
-    // First call with no card tabs
     (useSelector as jest.Mock).mockReturnValue([]);
     (isCardUrl as jest.Mock).mockReturnValue(false);
 
@@ -371,7 +357,6 @@ describe('useNavigateToCardPage', () => {
       },
     );
 
-    // Update to have card tabs
     (useSelector as jest.Mock).mockReturnValue(mockBrowserTabs);
     (isCardUrl as jest.Mock).mockImplementation(
       (url: string) => url === 'https://card.metamask.io/dashboard',

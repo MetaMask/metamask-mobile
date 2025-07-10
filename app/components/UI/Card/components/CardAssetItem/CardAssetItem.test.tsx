@@ -16,7 +16,7 @@ jest.mock(
 );
 jest.mock('../../util/mapAllowanceStateToLabel');
 
-import useAssetBalance from '../../hooks/useAssetBalance';
+import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
 import {
   isTestNet,
@@ -100,6 +100,7 @@ describe('CardAssetItem Component', () => {
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -112,6 +113,7 @@ describe('CardAssetItem Component', () => {
         onPress={mockOnPress}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -123,6 +125,7 @@ describe('CardAssetItem Component', () => {
         onPress={mockOnPress}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -134,7 +137,6 @@ describe('CardAssetItem Component', () => {
       isNative: false,
       address: '0xa0b86a33e6c8e2c3c5b5f7ae5f7c5b5f7ae5f7c5b5f',
     };
-
     mockUseAssetBalance.mockReturnValue({
       ...mockAssetBalance,
       asset: nonNativeAsset,
@@ -149,6 +151,7 @@ describe('CardAssetItem Component', () => {
         privacyMode={false}
       />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -157,12 +160,12 @@ describe('CardAssetItem Component', () => {
       ...mockAssetKey,
       tag: AllowanceState.Limited,
     };
-
     mockMapAllowanceStateToLabel.mockReturnValue('Expired');
 
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={assetKeyWithTag} privacyMode={false} />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -171,10 +174,10 @@ describe('CardAssetItem Component', () => {
       ...mockAssetKey,
       tag: undefined,
     };
-
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={assetKeyWithoutTag} privacyMode={false} />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -187,7 +190,6 @@ describe('CardAssetItem Component', () => {
       />
     ));
 
-    // The TouchableOpacity in AssetElement has testID based on the asset symbol
     const assetElement = getByTestId('asset-ETH');
     fireEvent.press(assetElement);
 
@@ -227,6 +229,7 @@ describe('CardAssetItem Component', () => {
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={mockAssetKey} privacyMode={false} disabled />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -239,6 +242,7 @@ describe('CardAssetItem Component', () => {
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
     ));
+
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -255,7 +259,6 @@ describe('CardAssetItem Component', () => {
       ...mockAsset,
       name: '',
     };
-
     mockUseAssetBalance.mockReturnValue({
       ...mockAssetBalance,
       asset: assetWithoutName,

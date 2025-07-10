@@ -6,7 +6,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { isSwapsAllowed } from '../../Swaps/utils';
 
-// Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -54,14 +53,13 @@ describe('useNavigateToAddFunds', () => {
     build: jest.fn(),
   };
 
-  const mockChainId = '0x1'; // Ethereum mainnet
+  const mockChainId = '0x1';
   const mockDestinationTokenAddress =
     '0x1234567890123456789012345678901234567890';
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup default mocks
     (useSelector as jest.Mock).mockReturnValue(mockChainId);
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -84,7 +82,6 @@ describe('useNavigateToAddFunds', () => {
   });
 
   it('should disable swaps when AppConstants.SWAPS.ACTIVE is false', () => {
-    // Test the case where isSwapsAllowed returns false (which effectively disables swaps)
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
     const { result } = renderHook(() =>
@@ -93,9 +90,6 @@ describe('useNavigateToAddFunds', () => {
 
     expect(result.current.isSwapEnabled).toBe(false);
     expect(isSwapsAllowed).toHaveBeenCalledWith(mockChainId);
-
-    // Reset for other tests
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
   });
 
   it('should disable swaps when isSwapsAllowed returns false', () => {
@@ -174,9 +168,6 @@ describe('useNavigateToAddFunds', () => {
 
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     expect(mockTrackEvent).not.toHaveBeenCalled();
-
-    // Reset for other tests
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
   });
 
   it('should handle navigation prop being undefined', () => {
@@ -187,14 +178,12 @@ describe('useNavigateToAddFunds', () => {
       ),
     );
 
-    // Should not throw an error
     expect(() => {
       act(() => {
         result.current.navigateToAddFunds();
       });
     }).not.toThrow();
 
-    // Should still track the event even if navigation is undefined
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
@@ -205,8 +194,7 @@ describe('useNavigateToAddFunds', () => {
 
     expect(result.current.isSwapEnabled).toBe(true);
 
-    // Change chainId to one where swaps are not allowed
-    (useSelector as jest.Mock).mockReturnValue('0x89'); // Polygon
+    (useSelector as jest.Mock).mockReturnValue('0x89');
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
     rerender();
@@ -267,10 +255,10 @@ describe('useNavigateToAddFunds', () => {
 
   it('should work with different chain IDs that support swaps', () => {
     const testCases = [
-      { chainId: '0x1', shouldAllow: true }, // Ethereum
-      { chainId: '0x89', shouldAllow: true }, // Polygon
-      { chainId: '0xa', shouldAllow: true }, // Optimism
-      { chainId: '0xa4b1', shouldAllow: true }, // Arbitrum
+      { chainId: '0x1', shouldAllow: true },
+      { chainId: '0x89', shouldAllow: true },
+      { chainId: '0xa', shouldAllow: true },
+      { chainId: '0xa4b1', shouldAllow: true },
     ];
 
     testCases.forEach(({ chainId, shouldAllow }) => {
