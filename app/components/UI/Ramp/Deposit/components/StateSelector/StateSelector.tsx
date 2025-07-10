@@ -13,6 +13,7 @@ import Icon, {
 import { createStateSelectorModalNavigationDetails } from '../../Views/Modals/StateSelectorModal';
 import { US_STATES } from '../../constants';
 import { createStateSelectorStyles } from './StateSelector.styles';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface StateSelectorProps {
   label: string;
@@ -72,7 +73,9 @@ const StateSelector: React.FC<StateSelectorProps> = ({
             }
             numberOfLines={1}
           >
-            {selectedStateName || defaultValue || 'Select a state'}
+            {selectedStateName ||
+              defaultValue ||
+              strings('deposit.enter_address.select_a_state')}
           </Text>
           <Icon
             name={IconName.ArrowDown}
