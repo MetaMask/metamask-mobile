@@ -867,6 +867,31 @@ describe('Authentication', () => {
       createWalletSpy.mockRestore();
       newWalletSpy.mockRestore();
     });
+
+    it('throws error when no keyring metadata found', async () => {
+      const Engine = jest.requireMock('../Engine');
+
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+      };
+
+      Engine.context.KeyringController.state.keyrings = [{ metadata: {} }];
+
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        Authentication.createAndBackupSeedPhrase('test-password'),
+      ).rejects.toThrow('No keyring metadata found');
+
+      createWalletSpy.mockRestore();
+    });
   });
 
   describe('resetPassword', () => {
@@ -1079,6 +1104,17 @@ describe('Authentication', () => {
       expect(Logger.error).toHaveBeenCalledWith(error);
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should throw an error if first seed phrase is falsy', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSeedPhrases as jest.Mock
+      ).mockResolvedValueOnce([null, mockSeedPhrase2]);
+
+      await expect(
+        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+      ).rejects.toThrow('No seed phrase found');
     });
   });
 
