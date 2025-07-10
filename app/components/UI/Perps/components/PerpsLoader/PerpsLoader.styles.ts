@@ -1,6 +1,11 @@
 import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (_theme: Theme) => ({
+export const createStyles = ({
+  theme: _theme,
+}: {
+  theme: Theme;
+  vars: Record<string, never>;
+}) => ({
   container: {
     flex: 1,
     justifyContent: 'center' as const,
