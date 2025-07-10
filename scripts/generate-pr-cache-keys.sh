@@ -55,8 +55,25 @@ else
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
         # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
-        MERGE_BASE_WITH_MAIN=$(git merge-base main "$CURRENT_COMMIT_FULL" 2>/dev/null || git merge-base origin/main "$CURRENT_COMMIT_FULL" 2>/dev/null || echo "main")
-        echo "Merge base with main: $MERGE_BASE_WITH_MAIN"
+        # Try different approaches to find merge-base
+        MERGE_BASE_WITH_MAIN=""
+        if git rev-parse --verify main >/dev/null 2>&1; then
+            MERGE_BASE_WITH_MAIN=$(git merge-base main "$CURRENT_COMMIT_FULL" 2>/dev/null)
+            echo "Attempted merge-base with 'main': $MERGE_BASE_WITH_MAIN"
+        fi
+        
+        if [[ -z "$MERGE_BASE_WITH_MAIN" ]] && git rev-parse --verify origin/main >/dev/null 2>&1; then
+            MERGE_BASE_WITH_MAIN=$(git merge-base origin/main "$CURRENT_COMMIT_FULL" 2>/dev/null)
+            echo "Attempted merge-base with 'origin/main': $MERGE_BASE_WITH_MAIN"
+        fi
+        
+        # If merge-base fails, compare against last successful commit instead
+        if [[ -z "$MERGE_BASE_WITH_MAIN" ]]; then
+            echo "Warning: Could not find merge-base with main branch, using last successful commit for comparison"
+            MERGE_BASE_WITH_MAIN="$LAST_SUCCESSFUL_COMMIT"
+        fi
+        
+        echo "Final merge base: $MERGE_BASE_WITH_MAIN"
         echo "Comparing changes: ${MERGE_BASE_WITH_MAIN}..${CURRENT_COMMIT_FULL}"
         
         # Get files that changed in this PR branch only (excluding main branch changes)
