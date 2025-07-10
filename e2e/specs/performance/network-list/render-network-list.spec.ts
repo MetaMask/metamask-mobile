@@ -177,7 +177,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
               .withUserProfileKeyRing(userState)
               .withUserProfileSnapUnencryptedState(userState)
               .withUserProfileSnapPermissions(userState)
-              .withTokens(heavyTokenLoad)
+              .withTokensForAllPopularNetworks(heavyTokenLoad)
               .build(),
             restartDevice: true,
           },
