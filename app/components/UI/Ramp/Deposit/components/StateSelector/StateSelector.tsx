@@ -1,11 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleProp,
-  ViewStyle,
-  StyleSheet,
-} from 'react-native';
+import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Label from '../../../../../../component-library/components/Form/Label';
@@ -16,9 +10,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { Theme } from '../../../../../../util/theme/models';
 import { createStateSelectorModalNavigationDetails } from '../../Views/Modals/StateSelectorModal';
 import { US_STATES } from '../../constants';
+import { createStateSelectorStyles } from './StateSelector.styles';
 
 interface StateSelectorProps {
   label: string;
@@ -30,52 +24,6 @@ interface StateSelectorProps {
   testID?: string;
 }
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
-    label: {
-      marginBottom: 6,
-    },
-    field: {
-      flexDirection: 'column',
-      marginBottom: 16,
-    },
-    error: {
-      color: theme.colors.error.default,
-      fontSize: 12,
-      marginTop: 4,
-    },
-    selectorContainer: {
-      position: 'relative',
-    },
-    selectorTouchable: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderWidth: 1,
-      borderColor: theme.colors.border.default,
-      borderRadius: 8,
-      backgroundColor: theme.colors.background.default,
-      minHeight: 48,
-    },
-    selectorText: {
-      flex: 1,
-      color: theme.colors.text.default,
-      fontSize: 16,
-    },
-    placeholderText: {
-      color: theme.colors.text.muted,
-      fontSize: 16,
-    },
-    icon: {
-      marginLeft: 8,
-    },
-  });
-};
-
 const StateSelector: React.FC<StateSelectorProps> = ({
   label,
   selectedValue,
@@ -86,7 +34,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   testID,
 }) => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(createStateSelectorStyles, {});
 
   const selectedStateName = US_STATES.find(
     (state) => state.code === selectedValue,

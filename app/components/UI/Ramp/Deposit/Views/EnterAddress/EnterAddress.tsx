@@ -31,6 +31,7 @@ import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
+import { VALIDATION_REGEX } from '../../constants/constants';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -91,51 +92,39 @@ const EnterAddress = (): JSX.Element => {
       errors.addressLine1 = strings(
         'deposit.enter_address.address_line_1_required',
       );
-    } else {
-      const addressLine1Regex = /^(?!\s+$)(?=.*[a-zA-Z]).{3,50}$/;
-      if (!addressLine1Regex.test(data.addressLine1)) {
-        errors.addressLine1 = strings(
-          'deposit.enter_address.address_line_1_invalid',
-        );
-      }
+    } else if (!VALIDATION_REGEX.addressLine1.test(data.addressLine1)) {
+      errors.addressLine1 = strings(
+        'deposit.enter_address.address_line_1_invalid',
+      );
     }
 
-    if (data.addressLine2.trim()) {
-      const addressLine2Regex = /^(?=.*[a-zA-Z]).{0,50}$|^\s*$/;
-      if (!addressLine2Regex.test(data.addressLine2)) {
-        errors.addressLine2 = strings(
-          'deposit.enter_address.address_line_2_invalid',
-        );
-      }
+    if (
+      data.addressLine2.trim() &&
+      !VALIDATION_REGEX.addressLine2.test(data.addressLine2)
+    ) {
+      errors.addressLine2 = strings(
+        'deposit.enter_address.address_line_2_invalid',
+      );
     }
 
     if (!data.city.trim()) {
       errors.city = strings('deposit.enter_address.city_required');
-    } else {
-      const cityRegex = /^(?!\s+$)(?=.*[a-zA-Z]).{2,25}$/;
-      if (!cityRegex.test(data.city)) {
-        errors.city = strings('deposit.enter_address.city_invalid');
-      }
+    } else if (!VALIDATION_REGEX.city.test(data.city)) {
+      errors.city = strings('deposit.enter_address.city_invalid');
     }
 
     if (selectedRegion?.isoCode === 'US') {
       if (!data.state.trim()) {
         errors.state = strings('deposit.enter_address.state_required');
-      } else {
-        const stateRegex = /^(?!\s+$)(?=.*[a-zA-Z]).{2,100}$/;
-        if (!stateRegex.test(data.state)) {
-          errors.state = strings('deposit.enter_address.state_invalid');
-        }
+      } else if (!VALIDATION_REGEX.state.test(data.state)) {
+        errors.state = strings('deposit.enter_address.state_invalid');
       }
     }
 
     if (!data.postCode.trim()) {
       errors.postCode = strings('deposit.enter_address.postal_code_required');
-    } else {
-      const postCodeRegex = /^(?!s*$).+/;
-      if (!postCodeRegex.test(data.postCode)) {
-        errors.postCode = strings('deposit.enter_address.postal_code_required');
-      }
+    } else if (!VALIDATION_REGEX.postCode.test(data.postCode)) {
+      errors.postCode = strings('deposit.enter_address.postal_code_required');
     }
 
     return errors;

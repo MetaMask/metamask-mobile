@@ -21,6 +21,7 @@ import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
+import { VALIDATION_REGEX } from '../../constants/constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -72,44 +73,28 @@ const BasicInfo = (): JSX.Element => {
 
     if (!formData.firstName.trim()) {
       errors.firstName = strings('deposit.basic_info.first_name_required');
-    } else {
-      const firstNameRegex = /^(?!\s+$).{1,35}$/;
-      if (!firstNameRegex.test(formData.firstName)) {
-        errors.firstName = strings('deposit.basic_info.first_name_invalid');
-      }
+    } else if (!VALIDATION_REGEX.firstName.test(formData.firstName)) {
+      errors.firstName = strings('deposit.basic_info.first_name_invalid');
     }
 
     if (!formData.lastName.trim()) {
       errors.lastName = strings('deposit.basic_info.last_name_required');
-    } else {
-      const lastNameRegex = /^(?!\s+$).{1,35}$/;
-      if (!lastNameRegex.test(formData.lastName)) {
-        errors.lastName = strings('deposit.basic_info.last_name_invalid');
-      }
+    } else if (!VALIDATION_REGEX.lastName.test(formData.lastName)) {
+      errors.lastName = strings('deposit.basic_info.last_name_invalid');
     }
 
     if (!formData.mobileNumber.trim()) {
       errors.mobileNumber = strings(
         'deposit.basic_info.mobile_number_required',
       );
-    } else {
-      const mobileNumberRegex = /^\+(?:[0-9]●?){6,14}[0-9]$/;
-      if (!mobileNumberRegex.test(formData.mobileNumber)) {
-        errors.mobileNumber = strings(
-          'deposit.basic_info.mobile_number_invalid',
-        );
-      }
+    } else if (!VALIDATION_REGEX.mobileNumber.test(formData.mobileNumber)) {
+      errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
     if (!formData.dob.trim()) {
       errors.dob = strings('deposit.basic_info.dob_required');
-    } else {
-      const dobRegex =
-        /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/;
-
-      if (!dobRegex.test(formData.dob)) {
-        errors.dob = strings('deposit.basic_info.dob_invalid');
-      }
+    } else if (!VALIDATION_REGEX.dateOfBirth.test(formData.dob)) {
+      errors.dob = strings('deposit.basic_info.dob_invalid');
     }
 
     if (selectedRegion?.isoCode === 'US' && !formData.ssn?.trim()) {
