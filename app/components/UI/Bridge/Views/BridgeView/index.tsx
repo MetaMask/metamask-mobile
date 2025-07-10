@@ -63,6 +63,7 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
+import { useDeepLinkParams } from '../../hooks/useDeepLinkParams';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -79,6 +80,10 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
+  // Deep link parameters for pre-filling the view
+  from?: string; // CAIP-19 format asset identifier for source token
+  to?: string; // CAIP-19 format asset identifier for destination token
+  amount?: string; // Amount in minimal divisible units (hex or decimal string)
 }
 
 const BridgeView = () => {
@@ -135,6 +140,14 @@ const BridgeView = () => {
   const updateQuoteParams = useBridgeQuoteRequest();
 
   const initialSourceToken = route.params?.token;
+
+  // Handle deep link parameters for pre-filling the view
+  useDeepLinkParams({
+    from: route.params?.from,
+    to: route.params?.to,
+    amount: route.params?.amount,
+  });
+
   useInitialSourceToken(initialSourceToken);
   useInitialDestToken(initialSourceToken);
 
@@ -245,13 +258,7 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    bridgeViewMode,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
 
   // Update isErrorBannerVisible when input focus changes
   useEffect(() => {
@@ -288,13 +295,19 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (validationResult.error || validationResult.result.validation.reason) {
-            const isValidationError = !!validationResult.result.validation.reason;
+          if (
+            validationResult.error ||
+            validationResult.result.validation.reason
+          ) {
+            const isValidationError =
+              !!validationResult.result.validation.reason;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError ? validationResult.result.validation.reason : validationResult.error,
+                errorMessage: isValidationError
+                  ? validationResult.result.validation.reason
+                  : validationResult.error,
               },
             });
             return;
@@ -408,9 +421,7 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              isHardwareAddress
+              hasInsufficientBalance || isSubmittingTx || isHardwareAddress
             }
           />
           <Button

@@ -10,7 +10,7 @@ interface HandleSwapUrlParams {
 }
 
 /**
- * Handles deeplinks for swaps
+ * Handles deeplinks for the unified swap/bridge experience
  * Expected format: https://metamask.app.link/swap?from=0x...&to=0x...&value=1
  *
  * @param params Object containing the swap path and navigation object
@@ -25,7 +25,9 @@ interface HandleSwapUrlParams {
  * Where:
  * - from: CAIP-19 format for source token
  * - to: CAIP-19 format for destination token
- * - value: Hexadecimal amount (e.g., "0x38d7ea4c68000")
+ * - value: Hexadecimal amount in minimal divisible units (e.g., "0x38d7ea4c68000")
+ *
+ * This will navigate to the unified Bridge view and pre-fill the form with the provided parameters.
  */
 export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
   try {
@@ -37,15 +39,21 @@ export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
     const amount = urlParams.get('value');
 
     if (!isCaipAssetType(fromCaip) || !isCaipAssetType(toCaip)) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
+      NavigationService.navigation.navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourcePage: 'deeplink',
+        },
       });
       return;
     }
 
     if (!fromCaip || !toCaip) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
+      NavigationService.navigation.navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourcePage: 'deeplink',
+        },
       });
       return;
     }
@@ -55,23 +63,30 @@ export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
     const toAddress = parseCaipAssetType(toCaip).assetReference;
 
     if (!fromAddress || !toAddress) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
+      NavigationService.navigation.navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourcePage: 'deeplink',
+        },
       });
       return;
     }
 
-    NavigationService.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+    NavigationService.navigation.navigate('Bridge', {
+      screen: 'BridgeView',
       params: {
-        sourceToken: fromAddress,
-        destinationToken: toAddress,
-        amount: amount && isHexString(amount) ? amount : '0',
+        from: fromCaip,
+        to: toCaip,
+        amount: amount && isHexString(amount) ? amount : undefined,
+        sourcePage: 'deeplink',
       },
     });
   } catch (_) {
-    NavigationService.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+    NavigationService.navigation.navigate('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourcePage: 'deeplink',
+      },
     });
   }
 };
