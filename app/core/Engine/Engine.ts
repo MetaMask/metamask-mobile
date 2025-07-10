@@ -1443,7 +1443,6 @@ export class Engine {
             'TokensController:getState',
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
-            'TokensController:addTokens',
           ],
           allowedEvents: [
             'KeyringController:lock',
