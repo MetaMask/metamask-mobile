@@ -25,6 +25,7 @@ import {
 } from '../components/PerpsMarketListView/PerpsMarketListView.types';
 import { useNavigation } from '@react-navigation/native';
 import PerpsMarketRowItem from '../components/PerpsMarketRowItem';
+import { usePerpsMarkets } from '../hooks/usePerpsMarkets';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -77,60 +78,41 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
 
   const navigation = useNavigation();
 
-  // const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
-  //   enablePolling: false,
-  // });
+  const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
+    enablePolling: false,
+  });
 
-  // useEffect(() => {
-  //   if (markets.length > 0) {
-  //     Animated.timing(fadeAnimation, {
-  //       toValue: 1,
-  //       duration: 300,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   }
-  // }, [markets.length, fadeAnimation]);
-
-  // const handleMarketPress = (market: PerpsMarketData) => {
-  //   onMarketSelect?.(market);
-  // };
-
-  // const handleRefresh = () => {
-  //   if (!isRefreshing) {
-  //     refresh();
-  //   }
-  // };
-
-  // const handleClose = () => {
-  //   if (navigation.canGoBack()) {
-  //     navigation.goBack();
-  //   }
-  // };
-
-  // const filteredMarkets = useMemo(() => {
-  //   if (!searchQuery.trim()) {
-  //     return markets;
-  //   }
-  //   const query = searchQuery.toLowerCase().trim();
-  //   return markets.filter(
-  //     (market: PerpsMarketData) =>
-  //       market.symbol.toLowerCase().includes(query) ||
-  //       market.name.toLowerCase().includes(query),
-  //   );
-  // }, [markets, searchQuery]);
-
-  const filteredMarkets: PerpsMarketData[] = [];
-  const isLoading = false;
-  const error = null;
-  const isRefreshing = false;
-
-  const handleRefresh = () => {
-    // TODO: Implement refresh
-  };
+  useEffect(() => {
+    if (markets.length > 0) {
+      Animated.timing(fadeAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [markets.length, fadeAnimation]);
 
   const handleMarketPress = (market: PerpsMarketData) => {
-    // TODO: Implement market press
+    onMarketSelect?.(market);
   };
+
+  const handleRefresh = () => {
+    if (!isRefreshing) {
+      refresh();
+    }
+  };
+
+  const filteredMarkets = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return markets;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return markets.filter(
+      (market: PerpsMarketData) =>
+        market.symbol.toLowerCase().includes(query) ||
+        market.name.toLowerCase().includes(query),
+    );
+  }, [markets, searchQuery]);
 
   const handleClose = () => {
     if (navigation.canGoBack()) {
