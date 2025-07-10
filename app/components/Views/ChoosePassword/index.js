@@ -253,13 +253,14 @@ class ChoosePassword extends PureComponent {
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
-  oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
 
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), this.props.saveOnboardingEvent);
   };
+
+  getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
 
   headerLeft = () => {
     const { navigation } = this.props;
@@ -407,7 +408,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      authType.oauth2Login = this.oauth2LoginSuccess;
+      authType.oauth2Login = this.getOauth2LoginSuccess();
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -518,7 +519,7 @@ class ChoosePassword extends PureComponent {
       false,
     );
 
-    const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+    const oauth2LoginSuccess = this.getOauth2LoginSuccess();
     newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
@@ -730,12 +731,17 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-             {!this.oauth2LoginSuccess && <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('choose_password.steps', {
-                  currentStep: 1,
-                  totalSteps: 3,
-                })}
-              </Text>}
+              {!this.getOauth2LoginSuccess() && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.steps', {
+                    currentStep: 1,
+                    totalSteps: 3,
+                  })}
+                </Text>
+              )}
 
               <View
                 style={styles.passwordContainer}
@@ -892,7 +898,9 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {this.oauth2LoginSuccess ? strings('import_from_seed.learn_more_social_login') : strings('import_from_seed.learn_more')}
+                        {this.getOauth2LoginSuccess()
+                          ? strings('import_from_seed.learn_more_social_login')
+                          : strings('import_from_seed.learn_more')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}

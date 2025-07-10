@@ -100,6 +100,8 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
+      // Log the error but don't let it crash the import process
+      console.error('Failed to backup seed phrase:', errorMessage);
 
       bufferedTrace({
         name: TraceName.OnboardingAddSrpError,

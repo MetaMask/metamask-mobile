@@ -1,26 +1,27 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 const styles = StyleSheet.create({
+  scrollView: {
+    marginBottom: 0,
+  },
   root: {
-    flex: 1,
-    flexDirection: 'column',
     height: '100%',
-    padding: 24,
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: Platform.select({
+      ios: 0,
+      android: 32,
+    }),
   },
   content: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    rowGap: 16,
+    paddingBottom: 24,
   },
   walletReadyImage: {
     marginHorizontal: 'auto',
-    marginVertical: 20,
     alignSelf: 'center',
-    width: 340,
-    height: 286,
+    marginVertical: 16,
   },
   description: {
     fontSize: 14,
@@ -34,8 +35,15 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     rowGap: 20,
   },
-  secondaryButton: {
-    marginTop: 16,
+  buttonContainer: {
+    flexDirection: 'column',
+    display: 'flex',
+    rowGap: 16,
+    marginBottom: Platform.select({
+      ios: 16,
+      android: 24,
+    }),
+    marginTop: 'auto',
   },
 });
 

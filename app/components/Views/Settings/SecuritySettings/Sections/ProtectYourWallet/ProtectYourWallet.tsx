@@ -24,7 +24,11 @@ import Banner, {
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../../../../selectors/seedlessOnboardingController';
+import { capitalize } from '../../../../../../util/general';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -42,6 +46,7 @@ const ProtectYourWallet = ({
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -100,14 +105,7 @@ const ProtectYourWallet = ({
         color={TextColor.Alternative}
         style={styles.desc}
       >
-        {
-          // TODO: add oauth flow's protect desc here later this week
-          strings(
-            srpBackedup
-              ? 'app_settings.protect_desc'
-              : 'app_settings.protect_desc_no_backup',
-          )
-        }
+        {strings('app_settings.protect_desc')}
       </Text>
       {!oauthFlow && !srpBackedup && (
         <Button
@@ -164,19 +162,27 @@ const ProtectYourWallet = ({
             testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
           />
         ))}
-      {
-        oauthFlow && (
-          <Button
-            label={strings('app_settings.protect_title')}
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            onPress={onProtectYourWalletPressed}
-            style={styles.accessory}
-            testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
-          />
-        )
-      }
+      {oauthFlow && authConnection && (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Success}
+          title={strings('app_settings.banner_social_login_enabled', {
+            authConnection: capitalize(authConnection),
+          })}
+          style={styles.accessory}
+        />
+      )}
+      {oauthFlow && (
+        <Button
+          label={strings('app_settings.manage_recovery_method')}
+          width={ButtonWidthTypes.Full}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={onProtectYourWalletPressed}
+          style={styles.accessory}
+          testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
+        />
+      )}
     </View>
   );
 };

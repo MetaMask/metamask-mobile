@@ -76,7 +76,12 @@ const SRPListItem = ({
         <View style={styles.srpItemContent}>
           <View>
             <View style={styles.srpItemIconContainer}>
-              <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {name}
+              </Text>
               <View style={styles.srpIconContainer}>
                 {Boolean(showArrowName) && (
                   <Text
@@ -97,11 +102,6 @@ const SRPListItem = ({
             <Button
               testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
               variant={ButtonVariants.Link}
-              label={`${strings(
-                !showAccounts
-                  ? 'accounts.show_accounts'
-                  : 'accounts.hide_accounts',
-              )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
               onPress={() => {
                 trackEvent(
                   createEventBuilder(
@@ -114,6 +114,20 @@ const SRPListItem = ({
                 );
                 setShowAccounts(!showAccounts);
               }}
+              label={
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Primary}
+                >
+                  {`${strings(
+                    !showAccounts
+                      ? 'accounts.show_accounts'
+                      : 'accounts.hide_accounts',
+                  )} ${keyring.accounts.length} ${strings(
+                    'accounts.accounts',
+                  )}`}
+                </Text>
+              }
             />
           </View>
           {showAccounts && (

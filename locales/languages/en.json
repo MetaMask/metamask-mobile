@@ -154,7 +154,7 @@
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
     "sign_in_with_apple": "Sign in with Apple",
-    "your_wallet": "Your wallet was successfully reset",
+    "your_wallet": "You successfully reset your wallet!",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase"
@@ -315,7 +315,7 @@
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     
-    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}} seconds.",
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use another method",
@@ -521,10 +521,10 @@
     },
     "unsupported_region_modal": {
       "title": "Region not supported",
-      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
-      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
-      "select_different_region": "Select a different region",
-      "exit_to_wallet_home": "Exit to wallet home"
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
       "title": "Top up your wallet with USDC",
@@ -588,11 +588,14 @@
       "postal_code": "Postal/Zip Code",
       "country": "Country"
     },
+    "privacy_section":{
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
+    },
     "kyc_processing": {
       "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
       "error_heading": "We were unable to verify your identity.",
       "error_description": "Try uploading your documents again and resubmit for verification.",
       "error_button": "Retry verification",
@@ -1211,6 +1214,8 @@
     "clear": "CLEAR",
     "protect_cta": "Protect",
     "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "Video Failed to Load.",
     "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
@@ -1338,9 +1343,6 @@
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
-    "ses_heading": "Code Lockdown",
-    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
-    "ses_link": "Learn more",
     "general_heading": "General",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
@@ -1390,9 +1392,9 @@
     "check_status_button": "Check Status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
     "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
-    "delete_wallet_data_title": "Delete wallet",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
-    "delete_wallet_data_button": "Delete wallet",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "Deletion Task Status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
@@ -1519,6 +1521,9 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
     "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
@@ -4449,11 +4454,11 @@
     "recipient": "Recipient"
   },
   "account_status": {
-    "account_already_exists": "Account already exists",
-    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
     "log_in": "Log in",
-    "account_not_found": "Account not found",
-    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this login?",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method"
   },
@@ -4549,7 +4554,7 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "add_account": "Add account",
+      "create_account": "Create account",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
