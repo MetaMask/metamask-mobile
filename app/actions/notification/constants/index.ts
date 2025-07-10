@@ -16,7 +16,6 @@ export enum notificationsErrors {
   ENABLE_NOTIFICATIONS_SERVICES = 'Error while trying to enable notifications services',
   DISABLE_NOTIFICATIONS_SERVICES = 'Error while trying to disable notifications services',
   DELETE_STORAGE_KEY = 'Error while trying to delete storage key',
-  DUMMY_TEST = 'Dummy test error for notifications',
 }
 
 export default notificationsErrors;

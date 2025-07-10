@@ -55,38 +55,27 @@ else
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
         # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
-        # Try different approaches to find merge-base with main
+        # Find merge-base with main branch (with fallback logic)
         MERGE_BASE_WITH_MAIN=""
+        git fetch origin main >/dev/null 2>&1
         
-        # First, try to fetch origin to ensure we have the latest main
-        echo "Attempting to fetch origin/main..."
-        git fetch origin main >/dev/null 2>&1 || echo "Note: Could not fetch origin/main"
-        
-        # Try various main branch references
-        for main_ref in "origin/main" "main" "refs/remotes/origin/main" "HEAD~0"; do
+        # Try to find merge-base with main branch
+        for main_ref in "origin/main" "main"; do
             if git rev-parse --verify "$main_ref" >/dev/null 2>&1; then
                 MERGE_BASE_WITH_MAIN=$(git merge-base "$main_ref" "$CURRENT_COMMIT_FULL" 2>/dev/null)
                 if [[ -n "$MERGE_BASE_WITH_MAIN" ]]; then
-                    echo "Successfully found merge-base using '$main_ref': $MERGE_BASE_WITH_MAIN"
+                    echo "Merge base with main: $MERGE_BASE_WITH_MAIN"
                     break
-                else
-                    echo "Failed to get merge-base with '$main_ref'"
                 fi
-            else
-                echo "'$main_ref' does not exist"
             fi
         done
         
-        # If all merge-base attempts fail, fall back to last successful commit
+        # Fallback to last successful commit if merge-base fails
         if [[ -z "$MERGE_BASE_WITH_MAIN" ]]; then
-            echo "ERROR: Could not find merge-base with any main branch reference"
-            echo "Available git references:"
-            git branch -a 2>/dev/null || echo "Could not list branches"
-            echo "Falling back to last successful commit comparison (may include main branch changes)"
+            echo "Warning: Could not find merge-base with main, comparing against last successful commit"
             MERGE_BASE_WITH_MAIN="$LAST_SUCCESSFUL_COMMIT"
         fi
         
-        echo "Final merge base: $MERGE_BASE_WITH_MAIN"
         echo "Comparing changes: ${MERGE_BASE_WITH_MAIN}..${CURRENT_COMMIT_FULL}"
         
         # Get files that changed in this PR branch only (excluding main branch changes)
