@@ -12,7 +12,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
-import { logOut } from '../../actions/user';
 import AuthenticationError from './AuthenticationError';
 import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -27,6 +26,7 @@ import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-cont
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import { logOut } from '../../actions/user';
 
 jest.useFakeTimers();
 
@@ -612,6 +612,23 @@ describe('Authentication', () => {
             getState: () => ({ security: { allowLoginWithRememberMe: true } }),
           } as unknown as ReduxStore);
 
+          const Engine = jest.requireMock('../Engine');
+
+          jest
+            .spyOn(
+              Authentication as unknown as {
+                checkIsSeedlessPasswordOutdated: (
+                  skipCache?: boolean,
+                ) => Promise<boolean | undefined>;
+              },
+              'checkIsSeedlessPasswordOutdated',
+            )
+            .mockResolvedValue(false);
+
+          Engine.context.KeyringController.setLocked.mockResolvedValue(
+            undefined,
+          );
+
           // Mock getGenericPassword to return null to trigger error
           SecureKeychain.getGenericPassword = jest.fn().mockReturnValue(null);
 
@@ -619,7 +636,6 @@ describe('Authentication', () => {
             await Authentication.appTriggeredAuth();
             throw new Error('Expected an error to be thrown');
           } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -627,6 +643,9 @@ describe('Authentication', () => {
             expect((error as AuthenticationError).message).toBe(
               AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
             );
+            await Promise.resolve();
+            jest.runAllTimers();
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
           }
         });
 
@@ -663,6 +682,21 @@ describe('Authentication', () => {
 
           const Engine = jest.requireMock('../Engine');
 
+          jest
+            .spyOn(
+              Authentication as unknown as {
+                checkIsSeedlessPasswordOutdated: (
+                  skipCache?: boolean,
+                ) => Promise<boolean | undefined>;
+              },
+              'checkIsSeedlessPasswordOutdated',
+            )
+            .mockResolvedValue(false);
+
+          Engine.context.KeyringController.setLocked.mockResolvedValue(
+            undefined,
+          );
+
           // Mock KeyringController.createNewVaultAndRestore to throw an error
           Engine.context.KeyringController.createNewVaultAndRestore.mockRejectedValueOnce(
             new Error('Wallet creation failed'),
@@ -677,7 +711,6 @@ describe('Authentication', () => {
             );
             throw new Error('Expected an error to be thrown');
           } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -685,6 +718,9 @@ describe('Authentication', () => {
             expect((error as AuthenticationError).message).toBe(
               'Wallet creation failed',
             );
+            await Promise.resolve();
+            jest.runAllTimers();
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
           }
         });
 
@@ -697,6 +733,23 @@ describe('Authentication', () => {
 
           const Engine = jest.requireMock('../Engine');
 
+          // Mock checkIsSeedlessPasswordOutdated to resolve immediately
+          jest
+            .spyOn(
+              Authentication as unknown as {
+                checkIsSeedlessPasswordOutdated: (
+                  skipCache?: boolean,
+                ) => Promise<boolean | undefined>;
+              },
+              'checkIsSeedlessPasswordOutdated',
+            )
+            .mockResolvedValue(false);
+
+          // Ensure KeyringController.setLocked resolves immediately
+          Engine.context.KeyringController.setLocked.mockResolvedValue(
+            undefined,
+          );
+
           // Mock KeyringController.createNewVaultAndKeychain to throw an error
           Engine.context.KeyringController.createNewVaultAndKeychain.mockRejectedValueOnce(
             new Error('Keychain creation failed'),
@@ -708,7 +761,6 @@ describe('Authentication', () => {
             });
             throw new Error('Expected an error to be thrown');
           } catch (error) {
-            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -716,6 +768,10 @@ describe('Authentication', () => {
             expect((error as AuthenticationError).message).toBe(
               'Keychain creation failed',
             );
+            // Wait for async lockApp operations to complete
+            await Promise.resolve();
+            jest.runAllTimers();
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
           }
         });
       });
