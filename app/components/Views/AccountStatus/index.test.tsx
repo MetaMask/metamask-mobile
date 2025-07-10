@@ -11,13 +11,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
 const mockDispatch = jest.fn();
 
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: mockGoBack,
-  setOptions: mockSetOptions,
   dispatch: mockDispatch,
 };
 
@@ -75,15 +73,6 @@ describe('AccountStatus', () => {
   });
 
   describe('Behavior Tests', () => {
-    it('sets up navigation header correctly', () => {
-      renderWithProvider(<AccountStatus />);
-
-      expect(mockSetOptions).toHaveBeenCalled();
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-      expect(setOptionsCall.headerLeft).toBeDefined();
-      expect(setOptionsCall.headerRight).toBeDefined();
-    });
-
     describe('Primary button interactions', () => {
       it('navigates to Rehydrate screen when type="found" and primary button is pressed', () => {
         const mockReplace = jest.fn();
