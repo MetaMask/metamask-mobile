@@ -22,6 +22,12 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
+import {
+  formatPrice,
+  formatChange,
+  formatPercentage,
+  formatVolume,
+} from '../../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
@@ -577,6 +583,76 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return meta.universe.map((asset) => adaptMarketFromSDK(asset));
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get market data with prices, volumes, and 24h changes
+   */
+  async getMarketDataWithPrices(): Promise<
+    {
+      symbol: string;
+      name: string;
+      maxLeverage: string;
+      price: string;
+      change24h: string;
+      change24hPercent: string;
+      volume: string;
+    }[]
+  > {
+    try {
+      DevLogger.log('Getting market data with prices via HyperLiquid SDK');
+
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+
+      // Fetch all required data in parallel for better performance
+      const [perpsMeta, allMids] = await Promise.all([
+        infoClient.meta(),
+        infoClient.allMids(),
+      ]);
+
+      if (!perpsMeta?.universe || !allMids) {
+        throw new Error('Failed to fetch market data - no data received');
+      }
+
+      // Also fetch asset contexts for additional data like volume and previous day prices
+      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
+      const assetCtxs = metaAndCtxs?.[1] || [];
+
+      // Transform to UI-friendly format using the same logic as the marketDataTransform utility
+      return perpsMeta.universe.map((asset, index) => {
+        const symbol = asset.name;
+        const currentPrice = parseFloat(allMids[symbol] || '0');
+
+        // Get the corresponding asset context using array index
+        const assetCtx = assetCtxs[index];
+
+        // Calculate 24h change
+        const prevDayPrice = assetCtx
+          ? parseFloat(assetCtx.prevDayPx || '0')
+          : 0;
+        const change24h = currentPrice - prevDayPrice;
+        const change24hPercent =
+          prevDayPrice > 0 ? (change24h / prevDayPrice) * 100 : 0;
+
+        // Format volume (dayNtlVlm is daily notional volume)
+        const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm || '0') : 0;
+
+        return {
+          symbol,
+          name: symbol, // HyperLiquid uses symbol as name
+          maxLeverage: `${asset.maxLeverage}x`,
+          price: formatPrice(currentPrice),
+          change24h: formatChange(change24h),
+          change24hPercent: formatPercentage(change24hPercent),
+          volume: formatVolume(volume),
+        };
+      });
+    } catch (error) {
+      DevLogger.log('Error getting market data with prices:', error);
       return [];
     }
   }

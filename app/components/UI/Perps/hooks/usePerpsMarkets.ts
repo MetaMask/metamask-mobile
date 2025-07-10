@@ -74,29 +74,17 @@ export const usePerpsMarkets = (
       try {
         Logger.log('Perps: Fetching market data from HyperLiquid...');
 
-        // For now, use the existing getMarkets method
-        // TODO: Add a new method to get raw market data with prices and volumes
+        // Get the HyperLiquid provider via PerpsController
         const controller = Engine.context.PerpsController;
-        const marketInfos = await controller.getMarkets();
+        const provider = controller.getActiveProvider();
 
-        // Convert MarketInfo[] to PerpsMarketData[] with placeholder data
-        // This is a temporary solution until we can access the raw HyperLiquid data
-        const transformedMarkets: PerpsMarketData[] = marketInfos.map(
-          (market) => ({
-            symbol: market.name,
-            name: market.name,
-            maxLeverage: `${market.maxLeverage}x`,
-            price: '$0.00', // Placeholder - need real price data
-            change24h: '$0.00', // Placeholder - need real change data
-            change24hPercent: '0.00%', // Placeholder - need real percentage data
-            volume: '$0', // Placeholder - need real volume data
-          }),
-        );
+        // Get markets with price data directly from the provider
+        const marketDataWithPrices = await provider.getMarketDataWithPrices();
 
-        setMarkets(transformedMarkets);
+        setMarkets(marketDataWithPrices);
 
         Logger.log('Perps: Successfully fetched and transformed market data', {
-          marketCount: transformedMarkets.length,
+          marketCount: marketDataWithPrices.length,
         });
       } catch (err) {
         const errorMessage =

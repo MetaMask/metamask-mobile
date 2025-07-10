@@ -266,6 +266,17 @@ export interface IPerpsProvider {
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(): Promise<MarketInfo[]>;
+  getMarketDataWithPrices(): Promise<
+    {
+      symbol: string;
+      name: string;
+      maxLeverage: string;
+      price: string;
+      change24h: string;
+      change24hPercent: string;
+      volume: string;
+    }[]
+  >;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
 

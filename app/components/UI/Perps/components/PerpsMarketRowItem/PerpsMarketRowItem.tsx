@@ -18,6 +18,8 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
+  console.log(market);
+
   const handlePress = () => {
     onPress?.(market);
   };

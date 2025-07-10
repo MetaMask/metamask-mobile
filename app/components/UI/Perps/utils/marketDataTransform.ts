@@ -46,7 +46,7 @@ export function transformMarketData(
 /**
  * Format price with appropriate decimal places
  */
-function formatPrice(price: number): string {
+export function formatPrice(price: number): string {
   if (price === 0) return '$0.00';
 
   if (price >= 1000) {
@@ -67,7 +67,7 @@ function formatPrice(price: number): string {
 /**
  * Format 24h change with sign
  */
-function formatChange(change: number): string {
+export function formatChange(change: number): string {
   if (change === 0) return '$0.00';
 
   const sign = change > 0 ? '+' : '';
@@ -91,7 +91,7 @@ function formatChange(change: number): string {
 /**
  * Format percentage change with sign
  */
-function formatPercentage(percent: number): string {
+export function formatPercentage(percent: number): string {
   if (percent === 0) return '0.00%';
 
   const sign = percent > 0 ? '+' : '';
@@ -101,7 +101,7 @@ function formatPercentage(percent: number): string {
 /**
  * Format volume with appropriate units
  */
-function formatVolume(volume: number): string {
+export function formatVolume(volume: number): string {
   if (volume === 0) return '$0';
 
   if (volume >= 1e9) {
