@@ -32,6 +32,7 @@ import StateSelector from '../../components/StateSelector';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import { VALIDATION_REGEX } from '../../constants/constants';
+import Logger from '../../../../../../util/Logger';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -223,7 +224,7 @@ const EnterAddress = (): JSX.Element => {
     } catch (submissionError) {
       setLoading(false);
       setError('Unexpected error.');
-      console.error('Unexpected error during form submission:', error);
+      Logger.error(submissionError as Error, 'Unexpected error during form submission');
     } finally {
       setLoading(false);
     }
