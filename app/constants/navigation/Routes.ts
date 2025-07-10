@@ -260,6 +260,11 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  CARD: {
+    ROOT: 'CardScreens',
+    HOME: 'CardHome',
+    SPENDING_LIMIT: 'CardSpendingLimit',
+  },
 };
 
 export default Routes;
