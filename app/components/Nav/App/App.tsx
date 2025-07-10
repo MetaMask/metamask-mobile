@@ -813,9 +813,6 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -922,7 +919,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, isMetaMetricsUISeen, isSeedlessOnboardingLoginFlow]);
+  }, [navigation, isSeedlessOnboardingLoginFlow]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {

@@ -105,6 +105,7 @@ const EmptyRecordConstant = {};
  */
 const Login: React.FC = () => {
   const [disabledInput, setDisabledInput] = useState(false);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -282,7 +283,7 @@ const Login: React.FC = () => {
       OPTIN_META_METRICS_UI_SEEN,
     );
 
-    if (!isOptinMetaMetricsUISeen) {
+    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
       navigation.reset({
         routes: [
           {
