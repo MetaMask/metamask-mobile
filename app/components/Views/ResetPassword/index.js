@@ -349,7 +349,7 @@ class ResetPassword extends PureComponent {
     confirmPassword: '',
     secureTextEntry: true,
     biometryType: null,
-    biometryChoice: true,
+    biometryChoice: false,
     rememberMe: false,
     loading: false,
     error: null,
@@ -389,14 +389,11 @@ class ResetPassword extends PureComponent {
 
   unlockWithBiometrics = async () => {
     // Try to use biometrics to unlock
-    const { availableBiometryType } = await Authentication.getType();
-    if (availableBiometryType) {
-      const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
-      if (biometryChoice) {
-        const credentials = await Authentication.getPassword();
-        if (credentials) {
-          this.tryUnlockWithPassword(credentials.password);
-        }
+    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+    if (biometryChoice) {
+      const credentials = await Authentication.getPassword();
+      if (credentials) {
+        this.tryUnlockWithPassword(credentials.password);
       }
     }
   };
@@ -420,9 +417,12 @@ class ResetPassword extends PureComponent {
         ),
       });
     else if (authData.availableBiometryType) {
+      const biometryChoiceState = !(
+        previouslyDisabled && previouslyDisabled === TRUE
+      );
       this.setState({
         biometryType: authData.availableBiometryType,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+        biometryChoice: biometryChoiceState,
       });
       this.unlockWithBiometrics();
     }
@@ -747,6 +747,7 @@ class ResetPassword extends PureComponent {
                 onSubmitEditing={this.tryUnlock}
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
+                autoComplete="current-password"
               />
               {this.renderWarningText(warningIncorrectPassword, styles)}
             </View>
@@ -857,6 +858,7 @@ class ResetPassword extends PureComponent {
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
+                    autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     endAccessory={
@@ -904,6 +906,7 @@ class ResetPassword extends PureComponent {
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                     returnKeyType={'done'}
+                    autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     endAccessory={
@@ -921,7 +924,6 @@ class ResetPassword extends PureComponent {
                         }
                       />
                     }
-                    isDisabled={!password}
                   />
                   {this.renderErrorText()}
                 </View>
