@@ -224,12 +224,14 @@ const EnterAddress = (): JSX.Element => {
     } catch (submissionError) {
       setLoading(false);
       setError('Unexpected error.');
-      Logger.error(submissionError as Error, 'Unexpected error during form submission');
+      Logger.error(
+        submissionError as Error,
+        'Unexpected error during form submission',
+      );
     } finally {
       setLoading(false);
     }
   }, [
-    error,
     validateFormData,
     basicInfoFormData,
     formData,
