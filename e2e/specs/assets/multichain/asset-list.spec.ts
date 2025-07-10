@@ -45,7 +45,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.checkIfVisible(eth);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
     await Assertions.checkIfVisible(avax);
-    await WalletView.scrollDownOnTokensTab();
+    await WalletView.scrollToToken(BNB_NAME);
     const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(bnb);
   });
@@ -85,7 +85,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.scrollDownOnTokensTab();
+    await WalletView.scrollToToken('BNB');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
@@ -101,12 +101,14 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   });
 
 
-
   it('should allows clicking into the asset details page of native token on another network', async () => {
     await TokenOverview.tapBackButton();
 
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+    if (device.getPlatform() === 'ios') {
+      await WalletView.scrollToToken('AVAX', 'up');
+    }
     await WalletView.tapOnToken('AVAX');
 
     await Assertions.checkIfVisible(TokenOverview.container);

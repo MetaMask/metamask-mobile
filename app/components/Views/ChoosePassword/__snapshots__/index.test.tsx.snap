@@ -522,12 +522,13 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
                   "opacity": 0.5,
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }

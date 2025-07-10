@@ -168,7 +168,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -484,12 +484,13 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -682,7 +683,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -990,14 +991,15 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -1006,7 +1008,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1036,12 +1038,13 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -1161,11 +1164,12 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#4459ff",
+              "backgroundColor": "#121314",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -1360,7 +1364,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -1676,12 +1680,13 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -1874,7 +1879,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -2190,12 +2195,13 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
