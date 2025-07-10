@@ -378,7 +378,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                   'PerpsPositionDetails: Position closed successfully',
                   result,
                 );
-                await triggerSuccessHaptic();
+                // await triggerSuccessHaptic();
 
                 // Refresh positions to update the store
                 try {
@@ -416,7 +416,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 'PerpsPositionDetails: Error closing position',
                 err,
               );
-              await triggerErrorHaptic();
+              // await triggerErrorHaptic();
             } finally {
               setIsClosing(false);
             }
