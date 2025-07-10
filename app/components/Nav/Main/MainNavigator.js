@@ -100,6 +100,7 @@ import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import WalletRecovery from '../../Views/WalletRecovery';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -394,6 +395,11 @@ const SettingsFlow = () => (
       name="ResetPassword"
       component={ResetPassword}
       options={ResetPassword.navigationOptions}
+    />
+    <Stack.Screen
+      name="WalletRecovery"
+      component={WalletRecovery}
+      options={WalletRecovery.navigationOptions}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
