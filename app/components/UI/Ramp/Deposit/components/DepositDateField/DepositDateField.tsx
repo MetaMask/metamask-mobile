@@ -35,6 +35,15 @@ const formatDateForValue = (date: Date): string => {
 };
 
 const getValidDate = (dateString: string): Date => {
+  const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+  const match = dateString.match(dateRegex);
+
+  if (match) {
+    const [, month, day, year] = match;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return isNaN(date.getTime()) ? DEFAULT_DATE : date;
+  }
+
   const date = new Date(dateString);
   return isNaN(date.getTime()) ? DEFAULT_DATE : date;
 };
@@ -97,7 +106,6 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
   ) => {
     const { styles, theme } = useStyles(styleSheet, {});
     const [showDatePicker, setShowDatePicker] = useState(false);
-    // staging state for iOS date selection
     const [pendingDateSelection, setPendingDateSelection] =
       useState<Date | null>(null);
     const fieldRef = useRef<TextInput>(null);
@@ -120,6 +128,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     const preventModalDismissal = () => {
       // Prevents touch events from bubbling up to the outer TouchableWithoutFeedback
+      // This is a workaround to prevent the modal from being dismissed when the user taps on the date picker
     };
 
     return (

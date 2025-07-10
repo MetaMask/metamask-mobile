@@ -12,7 +12,9 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import { toFormattedAddress, areAddressesEqual } from '../util/address';
+import ReduxService from './redux';
+import { areAddressesEqual } from '../util/address';
+import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 
 /**
  * Restore the given serialized QR keyring.
@@ -211,6 +213,21 @@ export const recreateVaultWithNewPassword = async (
 
   // START: Restoring keyrings
 
+  const { SeedlessOnboardingController } = Engine.context;
+  let seedlessChangePasswordError = null;
+  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+    try {
+      await SeedlessOnboardingController.changePassword(newPassword, password);
+    } catch (error) {
+      Logger.error(error);
+      await KeyringController.createNewVaultAndRestore(
+        password,
+        primaryKeyringSeedPhrase,
+      );
+      seedlessChangePasswordError = error;
+    }
+  }
+
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
   }
@@ -272,6 +289,12 @@ export const recreateVaultWithNewPassword = async (
       )
     ) {
       Engine.setSelectedAddress(selectedAddress);
+
+      // If seedless change password failed, throw the error message
+      // note the vault is recreated successfully, but the password is not changed
+      if (seedlessChangePasswordError) {
+        throw seedlessChangePasswordError;
+      }
       return;
     }
   }
