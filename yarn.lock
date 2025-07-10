@@ -4915,17 +4915,16 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@^32.0.0":
-  version "32.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-32.0.0.tgz#35088e94687cae2e9b4bad8e7f7ac3ef571d5723"
-  integrity sha512-0VROLDVGtTH6LnJqGA2TiT2KhnDrEve1Ci0uLRAlyMssfTO2datCzOh11KNP/+sANrDtVmcVipfD2mDMJC5DTA==
+"@metamask/bridge-status-controller@^34.0.0":
+  version "34.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-34.0.0.tgz#ebe5f15ec0a320722dea7c1c1507641f291f25a8"
+  integrity sha512-EGcUd2tzm0rSmb+ue/V6uXrD5TjxemkUEOfjBtLpnZxvnrpzKVbg0/shJSZpEqDRqoAIhsASVuuimnNtpe8PBA==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/user-operation-controller" "^37.0.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     uuid "^8.3.2"
@@ -6203,23 +6202,6 @@
     bn.js "^5.2.1"
     eth-method-registry "^4.0.0"
     fast-json-patch "^3.1.1"
-    lodash "^4.17.21"
-    uuid "^8.3.2"
-
-"@metamask/user-operation-controller@^37.0.0":
-  version "37.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/user-operation-controller/-/user-operation-controller-37.0.0.tgz#c93e75932a628c3b50a4f2cbdc02b0a94358b15f"
-  integrity sha512-u89x5sh+NSQ3raj8UuCdoRuDLkec5/rI8E1S3eMUGG5rqEE+iMHZz+eR4mMcBM0YY7WmP+Un4eHU8nf3Kxv84Q==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/polling-controller" "^14.0.0"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.2.0"
-    bn.js "^5.2.1"
-    immer "^9.0.6"
     lodash "^4.17.21"
     uuid "^8.3.2"
 
