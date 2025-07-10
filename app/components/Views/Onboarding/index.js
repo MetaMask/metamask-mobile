@@ -90,7 +90,8 @@ const createStyles = (colors) =>
       lineHeight: 40,
       textAlign: 'center',
       paddingHorizontal: 60,
-      fontFamily: 'MM Sans Regular',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
       width: '100%',
       marginVertical: 16,

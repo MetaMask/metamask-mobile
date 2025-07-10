@@ -78,10 +78,8 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       flexDirection: 'column',
       justifyContent: 'space-between',
       paddingBottom: 16,
-      paddingTop: Platform.select({
-        android: Math.max(safeAreaInsets.top + 8, 32),
-        ios: 0,
-      }),
+      paddingTop:
+        Platform.OS === 'android' ? Math.max(safeAreaInsets.top + 8, 32) : 0,
     },
     title: {
       fontSize: 40,
@@ -89,7 +87,8 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 24,
-      fontFamily: 'MM Sans Regular',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
     },
     subtitle: {
       textAlign: 'center',
