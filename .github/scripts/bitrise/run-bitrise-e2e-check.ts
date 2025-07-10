@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github';
-import {printTime, determineE2ERunFlags, getOctokitInstance, shouldRunBitriseE2E, getCommitHash, isMergeQueue, getMergeQueueCommitHash, getBitriseCommentForCommit} from './bitrise-utils';
+import {printTime, determineE2ERunFlags, getOctokitInstance, shouldRunBitriseE2E, getCommitHash, isMergeQueue, getMergeQueueCommitHash, getBitriseCommentForCommit, getBitriseCommentTags} from './bitrise-utils';
 import {
   CompletedConclusionType,
   PullRequestTriggerType,
@@ -48,11 +48,8 @@ async function main(): Promise<void> {
   const statusCheckName = process.env.STATUS_CHECK_NAME || 'Bitrise E2E Status';
   const statusCheckTitle = 'Bitrise E2E Smoke Test Run';
 
-  // Define Bitrise comment tags
-  const bitriseTag = '<!-- BITRISE_TAG -->';
-  const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
-  const bitriseSuccessTag = '<!-- BITRISE_SUCCESS_TAG -->';
-  const bitriseFailTag = '<!-- BITRISE_FAIL_TAG -->';
+  // Get pipeline-specific Bitrise comment tags
+  const { bitriseTag, bitrisePendingTag, bitriseSuccessTag, bitriseFailTag } = getBitriseCommentTags(e2ePipeline);
 
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found');
@@ -175,9 +172,10 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    const latestCommitTag = `<!-- ${latestCommitHash} -->`;
+    const latestCommitTag = `<!-- ${latestCommitHash}-${e2ePipeline} -->`;
     const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-    const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n${latestCommitTag}`;
+    const commitLink = `https://github.com/${owner}/${repo}/commit/${latestCommitHash}`;
+    const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: [${latestCommitHash}](${commitLink})\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n${latestCommitTag}`;
 
     if (bitriseBuildResponse.status === 201) {
       console.log(
@@ -196,7 +194,7 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    const bitriseComment = await getBitriseCommentForCommit(latestCommitHash);
+    const bitriseComment = await getBitriseCommentForCommit(latestCommitHash, e2ePipeline);
 
     // Reopen conversation in case it's locked
     const unlockConvoResponse = await octokit.rest.issues.unlock({
@@ -312,9 +310,9 @@ async function main(): Promise<void> {
   }
 
   // Bitrise comment does exist, update status check based on Bitrise comment status
-  // This regex matches a 40-character hexadecimal string enclosed within <!-- and -->
+  // This regex matches a 40-character hexadecimal string followed by pipeline ID enclosed within <!-- and -->
   let bitriseCommentBody = bitriseComment.body || '';
-  const commitTagRegex = /<!--\s*([0-9a-f]{40})\s*-->/i;
+  const commitTagRegex = new RegExp(`<!--\\s*([0-9a-f]{40})-${e2ePipeline}\\s*-->`, 'i');
   const hashMatch = bitriseCommentBody.match(commitTagRegex);
   let bitriseCommentCommitHash = hashMatch && hashMatch[1] ? hashMatch[1] : '';
 

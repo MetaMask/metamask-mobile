@@ -1,11 +1,16 @@
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
-  // Define Bitrise comment tags
-  const bitriseTag = '<!-- BITRISE_TAG -->';
-  const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
-  const bitriseSuccessTag = '<!-- BITRISE_SUCCESS_TAG -->';
-  const bitriseFailTag = '<!-- BITRISE_FAIL_TAG -->';
+// Define Bitrise comment tags with pipeline support
+export function getBitriseCommentTags(pipelineId?: string) {
+  const suffix = pipelineId ? `_${pipelineId}` : '';
+  return {
+    bitriseTag: `<!-- BITRISE_TAG${suffix} -->`,
+    bitrisePendingTag: `<!-- BITRISE_PENDING_TAG${suffix} -->`,
+    bitriseSuccessTag: `<!-- BITRISE_SUCCESS_TAG${suffix} -->`,
+    bitriseFailTag: `<!-- BITRISE_FAIL_TAG${suffix} -->`,
+  };
+}
 
 
 let octokitInstance: InstanceType<typeof GitHub> | null = null;
@@ -194,11 +199,13 @@ export async function getLatestAssociatedBitriseComment(commitHashes: string[]):
   return undefined;
 }
 
-export async function getBitriseTestStatus(bitriseComment: GithubComment): Promise<BitriseTestStatus> {
+export async function getBitriseTestStatus(bitriseComment: GithubComment, pipelineId?: string): Promise<BitriseTestStatus> {
 
   if (!bitriseComment) {
     return BitriseTestStatus.NotFound;
   }
+
+  const { bitriseSuccessTag, bitrisePendingTag, bitriseFailTag } = getBitriseCommentTags(pipelineId);
 
   if (bitriseComment.body?.includes(bitriseSuccessTag)) {
     return BitriseTestStatus.Success;
@@ -256,8 +263,9 @@ export function getMergeQueueCommitHash() : string {
   return context.payload?.merge_group?.head_sha;
 }
 
-export async function getAllBitriseComments(): Promise<GithubComment[]> {
+export async function getAllBitriseComments(pipelineId?: string): Promise<GithubComment[]> {
   const { owner, repo, number: pullRequestNumber } = context.issue;
+  const { bitriseTag } = getBitriseCommentTags(pipelineId);
 
   let allComments: InternalGithubComment[] = [];
 
@@ -309,10 +317,10 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
 }
 
 
-export async function getBitriseCommentForCommit(commitHash: string): Promise<GithubComment | undefined> {
+export async function getBitriseCommentForCommit(commitHash: string, pipelineId?: string): Promise<GithubComment | undefined> {
 
-  const commitTag = `<!-- ${commitHash} -->`;
-  const comments = await getAllBitriseComments();
+  const commitTag = pipelineId ? `<!-- ${commitHash}-${pipelineId} -->` : `<!-- ${commitHash} -->`;
+  const comments = await getAllBitriseComments(pipelineId);
 
   // Check for existing Bitrise comment with commit tag.
   const bitriseComment = comments.find(({ body }) => body?.includes(commitTag));
