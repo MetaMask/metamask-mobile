@@ -284,13 +284,6 @@ buildAndroidRun(){
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-buildAndroidDevBuild(){
-	prebuild_android
-
-	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
-}
-
 # Builds the Main APK for local development
 buildAndroidMainLocal(){
 	prebuild_android
@@ -326,27 +319,6 @@ buildAndroidRunFlask(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
 	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
-}
-
-buildIosDevBuild(){
-	remapEnvVariableLocal
-	prebuild_ios
-
-	echo "Setting up env vars...";
-	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-	echo "Build started..."
-	brew install watchman
-	cd ios
-
-	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
-	scheme="MetaMask"
-
-	echo "exportOptionsPlist: $exportOptionsPlist"
-  	echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-	echo "Generating ipa for $scheme"
-	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
-	cd ..
 }
 
 buildIosSimulator(){
@@ -705,7 +677,7 @@ buildAndroid() {
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
 	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidDevBuild
+		buildAndroidMainLocal
 	else
 		buildAndroidRun
 	fi
@@ -762,7 +734,7 @@ buildIos() {
 			buildIosSimulatorFlask
 		fi
 	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosDevBuild
+		buildIosMainLocal
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
