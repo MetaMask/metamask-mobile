@@ -1682,7 +1682,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokensForAllPopularNetworks(tokens) {
+  withTokensForAllPopularNetworks(tokens, userState = null) {
     // Get all popular network chain IDs using proper constants
     const popularChainIds = [
       CHAIN_IDS.MAINNET, // Ethereum Mainnet
@@ -1696,11 +1696,21 @@ class FixtureBuilder {
       CHAIN_IDS.SEI, // Sei Network
     ];
 
-    const accountsData =
-      MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
-    const allAccountAddresses = Object.values(accountsData).map(
-      (account) => account.address,
-    );
+    // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
+    let allAccountAddresses;
+    if (userState && userState.KEYRING_CONTROLLER_STATE) {
+      // Extract all account addresses from the user state keyring
+      allAccountAddresses = userState.KEYRING_CONTROLLER_STATE.keyrings.flatMap(
+        (keyring) => keyring.accounts,
+      );
+    } else {
+      // Fallback to the hardcoded accounts
+      const accountsData =
+        MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
+      allAccountAddresses = Object.values(accountsData).map(
+        (account) => account.address,
+      );
+    }
 
     // Create tokens object for all accounts
     const accountTokens = {};

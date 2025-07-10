@@ -176,8 +176,8 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               .withUserProfileSnapUnencryptedState(userState)
               .withUserProfileSnapPermissions(userState)
               .withPopularNetworks()
-              .withTokensForAllPopularNetworks(heavyTokenLoad)
-              .build(),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .withTokensForAllPopularNetworks(heavyTokenLoad, userState as any)              .build(),
             restartDevice: true,
           },
           async () => {
