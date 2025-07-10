@@ -171,6 +171,9 @@ export abstract class MultichainWalletSnapClient {
    * @throws Error if account discovery or addition fails
    */
   async addDiscoveredAccounts(entropySource: EntropySourceId) {
+
+    let totalDiscoveredAccounts = 0;
+
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
         [this.getScope()],
@@ -217,11 +220,14 @@ export abstract class MultichainWalletSnapClient {
               setSelectedAccount: false,
             },
           );
+          totalDiscoveredAccounts += 1;
         } catch (error) {
           captureException(new Error(`Failed to create account ${error}`));
         }
       }
     }
+
+    return totalDiscoveredAccounts;
   }
 }
 

@@ -13,7 +13,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectNetworkConfigurationByChainId,
+} from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -29,6 +32,7 @@ import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import { Hex } from '@metamask/utils';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -48,6 +52,10 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
+  );
+
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
   const { getEarnToken } = useEarnTokens();
@@ -95,9 +103,12 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         .addProperties({
           chain_id: getDecimalChainId(chainId),
           location: EVENT_LOCATIONS.HOME_SCREEN,
-          text: 'Stake',
-          token_symbol: asset.symbol,
+          action_type: 'deposit',
+          text: 'Earn',
+          token: asset.symbol,
+          network: network?.name,
           url: AppConstants.STAKE.URL,
+          experience: EARN_EXPERIENCES.POOLED_STAKING,
         })
         .build(),
     );
@@ -120,6 +131,19 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
     await Engine.context.NetworkController.setActiveNetwork(networkClientId);
 
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
+        .addProperties({
+          action_type: 'deposit',
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          network: network?.name,
+          text: 'Earn',
+          token: asset.symbol,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
@@ -140,7 +164,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   if (
     areEarnExperiencesDisabled ||
-    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0')
+    (!earnToken?.isETH && earnToken?.balanceMinimalUnit === '0') ||
+    (earnToken?.isETH && !isPooledStakingEnabled)
   )
     return <></>;
 

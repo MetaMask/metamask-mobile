@@ -12,6 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
+  EARN_CONTRACT_INTERACTION_TYPES,
   MMM_ORIGIN,
   REDESIGNED_APPROVE_TYPES,
   REDESIGNED_TRANSFER_TYPES,
@@ -104,17 +105,6 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
-      if (
-        transactionType === TransactionType.contractInteraction ||
-        isBatched
-      ) {
-        return {
-          title: strings('confirm.title.contract_interaction'),
-          subTitle: isBatched
-            ? ''
-            : strings('confirm.sub_title.contract_interaction'),
-        };
-      }
       if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.transfer'),
@@ -125,7 +115,16 @@ const getTitleAndSubTitle = (
           title: strings('confirm.title.approve'),
         };
       }
-      return {};
+
+      // Default to contract interaction
+      const shouldHideSubTitle =
+        isBatched || EARN_CONTRACT_INTERACTION_TYPES.includes(transactionType);
+      return {
+        title: strings('confirm.title.contract_interaction'),
+        subTitle: shouldHideSubTitle
+          ? undefined
+          : strings('confirm.sub_title.contract_interaction'),
+      };
     }
     case ApprovalType.TransactionBatch: {
       const isWalletInitiated = approvalRequest?.origin === MMM_ORIGIN;

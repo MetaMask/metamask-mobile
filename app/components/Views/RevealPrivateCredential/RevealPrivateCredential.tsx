@@ -21,6 +21,7 @@ import ScrollableTabView, {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
 import StorageWrapper from '../../../store/storage-wrapper';
+import { store } from '../../../store';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -64,6 +65,8 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/AccountInfo/AccountInfo';
@@ -162,6 +165,17 @@ const RevealPrivateCredential = ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { KeyringController } = Engine.context as any;
       const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
+
+      // This will trigger after the user hold-pressed the button, we want to trace the actual
+      // keyring operation of extracting the credential
+      const traceName = isPrivateKeyReveal
+        ? TraceName.RevealPrivateKey
+        : TraceName.RevealSrp;
+      trace({
+        name: traceName,
+        op: TraceOperation.RevealPrivateCredential,
+        tags: getTraceTags(store.getState()),
+      });
 
       try {
         let privateCredential;
@@ -573,33 +587,33 @@ const RevealPrivateCredential = ({
     <Text style={styles.normalText}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
       <Text
-        style={[styles.blueText, styles.link]}
+        color={colors.primary.default}
         onPress={() => Linking.openURL(SRP_GUIDE_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text style={styles.boldText}>
-        {strings('reveal_credential.seed_phrase_explanation')[3]}
-      </Text>
+      <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
       {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
       <Text
-        style={[styles.blueText, styles.link]}
+        color={colors.primary.default}
         onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
       </Text>
       {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text style={styles.boldText}>
-        {strings('reveal_credential.seed_phrase_explanation')[7]}
-      </Text>
+      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
     </Text>
   );
 
   const renderWarning = (privCredentialName: string) => (
     <View style={[styles.rowWrapper, styles.warningWrapper]}>
       <View style={[styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
+        <Icon
+          color={colors.error.default}
+          name={IconName.EyeSlash}
+          size={IconSize.Lg}
+        />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(
@@ -647,7 +661,7 @@ const RevealPrivateCredential = ({
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
       >
-        <>
+        <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -669,7 +683,6 @@ const RevealPrivateCredential = ({
               </>
             )}
           </View>
-
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
@@ -677,7 +690,7 @@ const RevealPrivateCredential = ({
               {renderPasswordEntry()}
             </View>
           )}
-        </>
+        </ScrollView>
       </ActionView>
       {renderModal(isPrivateKey)}
 

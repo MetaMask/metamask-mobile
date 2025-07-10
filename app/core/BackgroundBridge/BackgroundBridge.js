@@ -244,7 +244,7 @@ export class BackgroundBridge extends EventEmitter {
     // so that messages sent before BackgroundBridge's EIP-1193 JSON-RPC pipeline was
     // fully initialized can be retried
     if (!this.isRemoteConn && !this.isWalletConnect) {
-      this.notifyChainChanged()
+      this.notifyChainChanged();
     }
 
     if (this.isRemoteConn) {
@@ -256,7 +256,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   get origin() {
-    return this.isMMSDK ? this.channelId : this.hostname;
+    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.hostname;
   }
 
   onUnlock() {
@@ -360,11 +360,8 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(
         `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
-      if (this.isWalletConnect) {
-        approvedAccounts = getPermittedAccounts(this.url);
-      } else {
-        approvedAccounts = getPermittedAccounts(this.channelId);
-      }
+      approvedAccounts = getPermittedAccounts(this.origin);
+
       // Check if selectedAddress is approved
       const found = approvedAccounts.some((addr) =>
         areAddressesEqual(addr, selectedAddress),
@@ -762,7 +759,8 @@ export class BackgroundBridge extends EventEmitter {
         handleNonEvmRequestForOrigin: (params) =>
           Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
             ...params,
-            origin,
+            // The MultichainRouter expects a proper origin value.
+            origin: new URL(this.url).origin,
           }),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,

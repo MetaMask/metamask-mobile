@@ -12,14 +12,16 @@ import OriginRow from '../../rows/origin-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/advanced-details-row';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
+import { isDappOrigin } from '../../../utils/origin';
 
 const ContractInteraction = () => {
   const transactionMetadata = useTransactionMetadataRequest();
-
   const { trackPageViewedEvent } = useConfirmationMetricEvents();
   const { isBatchedUpgrade } = use7702TransactionType();
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  const isDappInteraction = isDappOrigin(transactionMetadata?.origin);
 
   return (
     <View testID={ConfirmationInfoComponentIDs.CONTRACT_INTERACTION}>
@@ -27,10 +29,10 @@ const ContractInteraction = () => {
       {isBatchedUpgrade && <SwitchAccountTypeInfoRow />}
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
-        enableMetrics={false}
+        enableMetrics
         isTransactionsRedesign
       />
-      <OriginRow isSignatureRequest={false} />
+      {isDappInteraction && <OriginRow isSignatureRequest={false} />}
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>

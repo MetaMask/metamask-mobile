@@ -44,7 +44,7 @@ const ConfirmationLocationMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
         return CONFIRMATION_EVENT_LOCATIONS.APPROVE;
       default:
-        return undefined;
+        return CONFIRMATION_EVENT_LOCATIONS.CONTRACT_INTERACTION;
     }
   },
 };

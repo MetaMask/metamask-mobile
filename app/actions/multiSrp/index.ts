@@ -65,15 +65,19 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
+  let discoveredAccountsCount = 0;
+
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
 
-  await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(newKeyring.id);
   ///: END:ONLY_INCLUDE_IF
 
-  return Engine.setSelectedAddress(newAccountAddress);
+  Engine.setSelectedAddress(newAccountAddress);
+
+  return { address: newAccountAddress, discoveredAccountsCount };
 }
 
 export async function createNewSecretRecoveryPhrase() {

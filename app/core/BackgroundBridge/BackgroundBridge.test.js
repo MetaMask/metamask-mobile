@@ -146,14 +146,15 @@ describe('BackgroundBridge', () => {
   describe('constructor', () => {
     it('creates Eip1193MethodMiddleware with expected hooks', async () => {
       const url = 'https:www.mock.io';
-      const origin = new URL(url).hostname;
       const bridge = setupBackgroundBridge(url);
+      const origin = bridge.hostname;
+
       const eip1193MethodMiddlewareHooks =
         createEip1193MethodMiddleware.mock.calls[0][0];
 
       // Assert getAccounts
       eip1193MethodMiddlewareHooks.getAccounts();
-      expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.channelId);
+      expect(getPermittedAccounts).toHaveBeenCalledWith(origin);
 
       // Assert getCaip25PermissionFromLegacyPermissionsForOrigin
       const requestedPermissions = { somePermission: true };
@@ -221,7 +222,7 @@ describe('BackgroundBridge', () => {
 
       // Assert getAccounts
       ethAccountsMethodMiddlewareHooks.getAccounts();
-      expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.channelId);
+      expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.hostname);
     });
 
     it('requests getProviderNetworkState from origin getter when network state is updated', async () => {
@@ -244,7 +245,7 @@ describe('BackgroundBridge', () => {
       await bridge.onStateUpdate();
       await mmBridge.onStateUpdate();
       // Verify the spy was called with the correct URL
-      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
+      expect(getProviderSpy).toHaveBeenCalledWith(bridge.hostname);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
     });
 

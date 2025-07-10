@@ -227,6 +227,7 @@ export async function switchToNetwork({
   origin,
   autoApprove = false,
   hooks,
+  dappUrl = origin,
 }) {
   const {
     getCaveat,
@@ -281,7 +282,7 @@ export async function switchToNetwork({
     ticker: networkConfiguration.ticker || 'ETH',
     chainColor: networkConfiguration.color,
     pageMeta: {
-      url: origin,
+      url: dappUrl ?? origin,
     },
   };
 
