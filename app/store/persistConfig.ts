@@ -144,7 +144,7 @@ const persistConfig = {
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, { 
-    debug: true, // Enable debug logging for migrations
+    debug: false, 
   }),
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
