@@ -22,13 +22,18 @@ else
     
     # Use current commit SHA as the cache key identifier
     if git rev-parse --git-dir > /dev/null 2>&1; then
-        CURRENT_COMMIT_SHORT=$(git rev-parse HEAD 2>/dev/null | cut -c1-8)
+        CURRENT_COMMIT_FULL=$(git rev-parse HEAD 2>/dev/null)
+        CURRENT_COMMIT_SHORT=$(echo "$CURRENT_COMMIT_FULL" | cut -c1-8)
+        echo "Current commit being checked: $CURRENT_COMMIT_FULL"
     else
         # Fallback when git is not available - use Bitrise env vars
+        CURRENT_COMMIT_FULL=${BITRISE_GIT_COMMIT}
         CURRENT_COMMIT_SHORT=${BITRISE_GIT_COMMIT:0:8}
+        echo "Current commit being checked: $CURRENT_COMMIT_FULL (from BITRISE_GIT_COMMIT)"
         if [[ -z "$CURRENT_COMMIT_SHORT" ]]; then
             # Last resort - use a timestamp-based identifier
             CURRENT_COMMIT_SHORT=$(date +%s | tail -c 8)
+            echo "Warning: No commit hash available, using timestamp: $CURRENT_COMMIT_SHORT"
         fi
     fi
     
