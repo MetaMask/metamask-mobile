@@ -1221,11 +1221,6 @@ export class Engine {
       updateTransactionFn: (
         ...args: Parameters<typeof this.transactionController.updateTransaction>
       ) => this.transactionController.updateTransaction(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
       traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
