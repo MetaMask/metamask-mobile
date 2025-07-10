@@ -19,9 +19,8 @@ describe(SmokePerformance('Network List Load Testing'), () => {
   const reporter = new PerformanceTestReporter('Network List Load Testing');
 
   const userStates = [
-    { name: 'POWER_USER', state: POWER_USER_STATE },
     { name: 'CORE_USER', state: CORE_USER_STATE },
-    // { name: 'CASUAL_USER', state: CASUAL_USER_STATE },
+    { name: 'POWER_USER', state: POWER_USER_STATE },
   ];
 
   function registerPerformanceTests() {
