@@ -39,7 +39,7 @@ describe('usePaymentMethods', () => {
   it('excludes Apple Pay on non-iOS devices', () => {
     (Device.isIos as jest.Mock).mockReturnValue(false);
     const { result } = renderHook(usePaymentMethods);
-    expect(result).not.toContainEqual(APPLE_PAY_PAYMENT_METHOD);
+    expect(result.current).not.toContainEqual(APPLE_PAY_PAYMENT_METHOD);
   });
 
   it('excludes wire for EU selected region', () => {
