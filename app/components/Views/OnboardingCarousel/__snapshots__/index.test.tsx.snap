@@ -481,6 +481,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -833,6 +835,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1185,6 +1189,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1537,6 +1543,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1889,6 +1897,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2241,6 +2251,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2593,6 +2605,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2945,6 +2959,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -3297,6 +3313,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -3649,6 +3667,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
+                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"

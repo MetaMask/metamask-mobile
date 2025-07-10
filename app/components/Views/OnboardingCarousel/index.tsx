@@ -320,7 +320,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Alternative}
-                          style={appStartTime ? styles.metricsData : {}}
+                          style={styles.metricsData}
                           testID={
                             OnboardingCarouselSelectorIDs.APP_START_TIME_ID
                           }
