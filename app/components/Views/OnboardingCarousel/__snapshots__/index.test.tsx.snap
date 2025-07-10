@@ -3108,7 +3108,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
       style={
         {
           "flexDirection": "column",
-          "paddingBottom": 40,
+          "paddingBottom": 20,
           "paddingHorizontal": 16,
           "paddingTop": 16,
         }
