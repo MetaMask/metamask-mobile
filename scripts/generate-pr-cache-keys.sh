@@ -55,10 +55,13 @@ else
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
         # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
-        MERGE_BASE_WITH_MAIN=$(git merge-base main HEAD 2>/dev/null || git merge-base origin/main HEAD 2>/dev/null || echo "main")
+        MERGE_BASE_WITH_MAIN=$(git merge-base main "$CURRENT_COMMIT_FULL" 2>/dev/null || git merge-base origin/main "$CURRENT_COMMIT_FULL" 2>/dev/null || echo "main")
+        echo "Merge base with main: $MERGE_BASE_WITH_MAIN"
+        echo "Comparing changes: ${MERGE_BASE_WITH_MAIN}..${CURRENT_COMMIT_FULL}"
         
         # Get files that changed in this PR branch only (excluding main branch changes)
-        CHANGED_FILES=$(git diff --name-only ${MERGE_BASE_WITH_MAIN}..HEAD 2>/dev/null)
+        CHANGED_FILES=$(git diff --name-only ${MERGE_BASE_WITH_MAIN}.."$CURRENT_COMMIT_FULL" 2>/dev/null)
+        echo "Total files changed in PR: $(echo "$CHANGED_FILES" | wc -l | tr -d ' ')"
         
         # Filter for app code files that affect the build
         APP_CODE_FILES=$(echo "$CHANGED_FILES" | grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' || true)
