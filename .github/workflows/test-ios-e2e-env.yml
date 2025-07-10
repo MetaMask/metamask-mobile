@@ -16,7 +16,6 @@ jobs:
           platform: ios
           setup-simulator: true
           xcode-version: 15.2
-          ios-device: iPhone 15
 
       - name: Print tool versions
         run: |
@@ -27,4 +26,3 @@ jobs:
           xcrun simctl list | grep Booted
 
 
-          
