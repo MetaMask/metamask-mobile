@@ -2,11 +2,11 @@ import type { MockttpServer } from 'mockttp';
 import TestHelpers from '../../helpers';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import {
-  mockNotificationServices,
-} from './utils/mocks';
+import { mockNotificationServices } from './utils/mocks';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../fixtures/fixture-builder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -25,7 +25,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         testSpecificMock: {},
         permissions: {
           notifications: 'YES',
-        }
+        },
       },
       async ({ mockServer }: { mockServer: MockttpServer }) => {
         // Setup: Mock notification services and login
@@ -42,63 +42,36 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
 
         // Enable main notification toggle
-        await NotificationSettingsView.tapNotificationToggle();
-
-        // Verify sub-settings are enabled by default
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.pushNotificationsToggle,
-        );
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.featureAnnonucementsToggle,
-        );
-        await Assertions.expectElementToBeVisible(
-          NotificationSettingsView.accountActivitySection,
-        );
+        await NotificationSettingsView.tapNotificationToggleAndVerifyState('on');
 
         // Test push notifications toggle functionality
-        await NotificationSettingsView.tapPushNotificationsToggle();
-        await Assertions.expectToggleToBeOff(
-          NotificationSettingsView.pushNotificationsToggle,
-        );
-        await NotificationSettingsView.tapPushNotificationsToggle();
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.pushNotificationsToggle,
-        );
+        await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('off');
+        await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('on');
 
         // Test feature announcements toggle functionality
-        await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-        await Assertions.expectToggleToBeOff(
-          NotificationSettingsView.featureAnnonucementsToggle,
-        );
-        await NotificationSettingsView.tapFeatureAnnouncementsToggle();
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.featureAnnonucementsToggle,
-        );
+        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState('off');
+        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState('on');
 
         // Test account notifications toggle functionality
-        await NotificationSettingsView.tapAccountNotificationsToggle(
+        await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
           DEFAULT_FIXTURE_ACCOUNT,
+          'off',
         );
-        await Assertions.expectToggleToBeOff(
-          NotificationSettingsView.accountNotificationToggle(DEFAULT_FIXTURE_ACCOUNT),
-        );
-        await NotificationSettingsView.tapAccountNotificationsToggle(
+        await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
           DEFAULT_FIXTURE_ACCOUNT,
-        );
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.accountNotificationToggle(DEFAULT_FIXTURE_ACCOUNT),
+          'on',
         );
 
         // Disable main toggle and verify all sub-settings are hidden
-        await NotificationSettingsView.tapNotificationToggle();
+        await NotificationSettingsView.tapNotificationToggleAndVerifyState('off');
         await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.pushNotificationsToggle as Promise<IndexableNativeElement>,
+          NotificationSettingsView.pushNotificationsToggle,
         );
         await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.featureAnnonucementsToggle as Promise<IndexableNativeElement>,
+          NotificationSettingsView.featureAnnouncementsToggle,
         );
         await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.accountActivitySection as Promise<IndexableNativeElement>,
+          NotificationSettingsView.accountActivitySection,
         );
       },
     );
