@@ -57,7 +57,6 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
       }
@@ -125,7 +124,6 @@ exports[`ApprovalTagUrl renders origin when only origin is provided 1`] = `
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
         "fontSize": 16,
-        "fontWeight": "400",
         "letterSpacing": 0,
         "lineHeight": 24,
       }

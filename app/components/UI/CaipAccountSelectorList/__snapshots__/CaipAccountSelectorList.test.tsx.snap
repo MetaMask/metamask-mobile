@@ -277,7 +277,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -322,7 +321,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -355,7 +353,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -680,7 +677,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -725,7 +721,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -758,7 +753,6 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -1117,7 +1111,6 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1162,7 +1155,6 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1482,7 +1474,6 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1527,7 +1518,6 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1879,7 +1869,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1924,7 +1913,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -1957,7 +1945,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -2282,7 +2269,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -2327,7 +2313,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -2360,7 +2345,6 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -2718,7 +2702,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -2763,7 +2746,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -2796,7 +2778,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",
@@ -3121,7 +3102,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -3166,7 +3146,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -3199,7 +3178,6 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                           "textAlign": "right",

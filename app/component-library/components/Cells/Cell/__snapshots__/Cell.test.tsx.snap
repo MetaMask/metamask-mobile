@@ -189,7 +189,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -206,7 +205,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -222,7 +220,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -251,7 +248,6 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -498,7 +494,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -515,7 +510,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -531,7 +525,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -560,7 +553,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -771,7 +763,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -788,7 +779,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -804,7 +794,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -833,7 +822,6 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

@@ -61,7 +61,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -139,7 +138,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                 "color": "#1c7e33",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -199,7 +197,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -251,7 +248,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -266,7 +262,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -326,7 +321,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -404,7 +398,6 @@ exports[`RewardsCard render matches snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -481,7 +474,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -559,7 +551,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                 "color": "#1c7e33",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -619,7 +610,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -671,7 +661,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -686,7 +675,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -746,7 +734,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -824,7 +811,6 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -901,7 +887,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -979,7 +964,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                 "color": "#1c7e33",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1039,7 +1023,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1091,7 +1074,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1106,7 +1088,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1166,7 +1147,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1244,7 +1224,6 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }

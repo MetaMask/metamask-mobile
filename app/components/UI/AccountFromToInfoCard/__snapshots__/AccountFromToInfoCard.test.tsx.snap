@@ -309,7 +309,6 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -333,7 +332,6 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 16,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -352,7 +350,6 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginLeft": "auto",
@@ -368,7 +365,6 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Bold",
                 "fontSize": 16,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }

@@ -169,7 +169,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -193,7 +192,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -493,7 +491,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -509,7 +506,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -534,7 +530,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -552,7 +547,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -779,7 +773,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -813,7 +806,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -863,7 +855,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -896,7 +887,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -942,7 +932,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -993,7 +982,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1026,7 +1014,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1087,7 +1074,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1120,7 +1106,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1172,7 +1157,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1207,7 +1191,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -1260,7 +1243,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1293,7 +1275,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1354,7 +1335,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1387,7 +1367,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1656,7 +1635,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1680,7 +1658,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1998,7 +1975,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -2014,7 +1990,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -2039,7 +2014,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -2057,7 +2031,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -2284,7 +2257,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2318,7 +2290,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2368,7 +2339,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2401,7 +2371,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2447,7 +2416,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -2498,7 +2466,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2531,7 +2498,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2592,7 +2558,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2625,7 +2590,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2677,7 +2641,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2712,7 +2675,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -2765,7 +2727,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2798,7 +2759,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2859,7 +2819,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -2892,7 +2851,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3161,7 +3119,6 @@ exports[`OrderDetails renders a created order 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3185,7 +3142,6 @@ exports[`OrderDetails renders a created order 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3533,7 +3489,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -3558,7 +3513,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -3576,7 +3530,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -3803,7 +3756,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3837,7 +3789,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3887,7 +3838,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3920,7 +3870,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -3966,7 +3915,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -4017,7 +3965,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4050,7 +3997,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4111,7 +4057,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4144,7 +4089,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4196,7 +4140,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4231,7 +4174,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -4284,7 +4226,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4317,7 +4258,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4378,7 +4318,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4411,7 +4350,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -4627,7 +4565,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4651,7 +4588,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -4951,7 +4887,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -4967,7 +4902,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -4992,7 +4926,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -5010,7 +4943,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -5237,7 +5169,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5271,7 +5202,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5321,7 +5251,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5354,7 +5283,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5400,7 +5328,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -5451,7 +5378,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5484,7 +5410,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5545,7 +5470,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5578,7 +5502,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5630,7 +5553,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5665,7 +5587,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -5718,7 +5639,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5751,7 +5671,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5812,7 +5731,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -5845,7 +5763,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6114,7 +6031,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -6138,7 +6054,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -6486,7 +6401,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -6511,7 +6425,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -6529,7 +6442,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -6756,7 +6668,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6790,7 +6701,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6840,7 +6750,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6873,7 +6782,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -6919,7 +6827,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -6970,7 +6877,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7003,7 +6909,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7064,7 +6969,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7097,7 +7001,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7149,7 +7052,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7184,7 +7086,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -7237,7 +7138,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7270,7 +7170,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7331,7 +7230,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7364,7 +7262,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -7580,7 +7477,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -7604,7 +7500,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -8014,7 +7909,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8038,7 +7932,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -8655,7 +8548,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8679,7 +8571,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -9027,7 +8918,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -9043,7 +8933,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -9068,7 +8957,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -9086,7 +8974,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -9313,7 +9200,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9347,7 +9233,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9397,7 +9282,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9430,7 +9314,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9476,7 +9359,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -9527,7 +9409,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9560,7 +9441,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9621,7 +9501,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9654,7 +9533,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9706,7 +9584,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9741,7 +9618,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -9794,7 +9670,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9827,7 +9702,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9888,7 +9762,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -9921,7 +9794,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10203,7 +10075,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -10227,7 +10098,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -10545,7 +10415,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -10561,7 +10430,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -10586,7 +10454,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -10604,7 +10471,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -10632,7 +10498,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               "color": "#4459ff",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -10859,7 +10724,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10893,7 +10757,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10943,7 +10806,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -10976,7 +10838,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11022,7 +10883,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -11040,7 +10900,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                       "textDecorationLine": "underline",
@@ -11093,7 +10952,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11126,7 +10984,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11187,7 +11044,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11220,7 +11076,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11272,7 +11127,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11307,7 +11161,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -11360,7 +11213,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11393,7 +11245,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11454,7 +11305,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11487,7 +11337,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -11756,7 +11605,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -11780,7 +11628,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -12128,7 +11975,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -12153,7 +11999,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -12171,7 +12016,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -12398,7 +12242,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12432,7 +12275,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12482,7 +12324,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12515,7 +12356,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12561,7 +12401,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -12612,7 +12451,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12645,7 +12483,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12706,7 +12543,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12739,7 +12575,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12791,7 +12626,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12826,7 +12660,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -12879,7 +12712,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12912,7 +12744,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -12973,7 +12804,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13006,7 +12836,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13222,7 +13051,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -13246,7 +13074,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -13594,7 +13421,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -13610,7 +13436,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               "color": "#686e7d",
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
-                                              "fontWeight": "400",
                                               "letterSpacing": 0,
                                               "lineHeight": 22,
                                               "textAlign": "center",
@@ -13635,7 +13460,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             "color": "#121314",
                                             "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
-                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 32,
                                             "textAlign": "center",
@@ -13653,7 +13477,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                             "textAlign": "center",
@@ -13880,7 +13703,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13914,7 +13736,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13964,7 +13785,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -13997,7 +13817,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14043,7 +13862,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                   }
@@ -14094,7 +13912,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14127,7 +13944,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14188,7 +14004,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14221,7 +14036,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14273,7 +14087,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 14,
-                                                        "fontWeight": "400",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14308,7 +14121,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                         "color": "#121314",
                                                         "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
-                                                        "fontWeight": "700",
                                                         "letterSpacing": 0,
                                                         "lineHeight": 22,
                                                       }
@@ -14361,7 +14173,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14394,7 +14205,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14455,7 +14265,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -14488,7 +14297,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "color": "#121314",
                                                       "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 14,
-                                                      "fontWeight": "700",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }

@@ -252,7 +252,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 18,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -268,7 +267,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -524,7 +522,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -539,7 +536,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -571,7 +567,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "textAlign": "right",
@@ -612,7 +607,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                         "color": "#4459ff",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "marginTop": 8,
@@ -698,7 +692,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -731,7 +724,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -745,7 +737,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -947,7 +938,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -1017,7 +1007,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -1050,7 +1039,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1063,7 +1051,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -1152,7 +1139,6 @@ exports[`AccountConnect renders correctly with base request 1`] = `
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -1568,7 +1554,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 18,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1584,7 +1569,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1840,7 +1824,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1855,7 +1838,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1887,7 +1869,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "textAlign": "right",
@@ -1928,7 +1909,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         "color": "#4459ff",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "marginTop": 8,
@@ -2014,7 +1994,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -2047,7 +2026,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -2061,7 +2039,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -2263,7 +2240,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -2333,7 +2309,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -2366,7 +2341,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -2379,7 +2353,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -2468,7 +2441,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -2884,7 +2856,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 18,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -2900,7 +2871,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -3156,7 +3126,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3171,7 +3140,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -3203,7 +3171,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "textAlign": "right",
@@ -3244,7 +3211,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         "color": "#4459ff",
                         "fontFamily": "CentraNo1-Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                         "marginTop": 8,
@@ -3330,7 +3296,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -3363,7 +3328,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -3377,7 +3341,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -3579,7 +3542,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -3649,7 +3611,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -3682,7 +3643,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -3695,7 +3655,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }
@@ -3784,7 +3743,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               "color": "#4459ff",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }

@@ -66,7 +66,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               "color": "#686e7d",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -99,7 +98,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
                   "fontSize": 32,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 40,
                 }
@@ -114,7 +112,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "color": "#686e7d",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -139,7 +136,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                   "marginBottom": -4,
@@ -246,7 +242,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                   "marginBottom": -4,
@@ -395,7 +390,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "flexWrap": "wrap",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "gap": 1,
                   "justifyContent": "flex-start",
                   "letterSpacing": 0,
@@ -413,7 +407,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -428,7 +421,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "color": "#4459ff",
                       "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -474,7 +466,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "flex": 1,
                       "fontFamily": "CentraNo1-Medium",
                       "fontSize": 18,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -549,7 +540,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     "color": "#ffffff",
                     "fontFamily": "CentraNo1-Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

@@ -169,7 +169,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -193,7 +192,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -833,7 +831,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -857,7 +854,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1497,7 +1493,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1521,7 +1516,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -2161,7 +2155,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2185,7 +2178,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3100,7 +3092,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3124,7 +3115,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3764,7 +3754,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3788,7 +3777,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -4703,7 +4691,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4727,7 +4714,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -5367,7 +5353,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -5391,7 +5376,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -5770,7 +5754,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "flexShrink": 1,
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 5,
@@ -5843,7 +5826,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 0,
@@ -5889,7 +5871,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -6036,7 +6017,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -6202,7 +6182,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -6222,7 +6201,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -6302,7 +6280,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
                                               }
@@ -6486,7 +6463,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -6518,7 +6494,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 8,
@@ -6625,7 +6600,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -8337,7 +8311,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8361,7 +8334,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -9276,7 +9248,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -9300,7 +9271,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -9940,7 +9910,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -9964,7 +9933,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -10879,7 +10847,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -10903,7 +10870,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -11282,7 +11248,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "flexShrink": 1,
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 5,
@@ -11355,7 +11320,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 0,
@@ -11401,7 +11365,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -11548,7 +11511,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -11714,7 +11676,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -11734,7 +11695,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -11814,7 +11774,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
                                               }
@@ -11998,7 +11957,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -12030,7 +11988,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 8,
@@ -12137,7 +12094,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -13895,7 +13851,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -13919,7 +13874,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -14298,7 +14252,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "flexShrink": 1,
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 5,
@@ -14371,7 +14324,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginHorizontal": 0,
@@ -14441,7 +14393,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "color": "#121314",
                                           "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 18,
-                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -14485,7 +14436,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -14632,7 +14582,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -14798,7 +14747,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -14818,7 +14766,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 8,
@@ -14898,7 +14845,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 32,
                                               }
@@ -14931,7 +14877,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "color": "#ca3542",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -14960,7 +14905,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 8,
@@ -15067,7 +15011,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -16890,7 +16833,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -16914,7 +16856,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -17554,7 +17495,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -17578,7 +17518,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }

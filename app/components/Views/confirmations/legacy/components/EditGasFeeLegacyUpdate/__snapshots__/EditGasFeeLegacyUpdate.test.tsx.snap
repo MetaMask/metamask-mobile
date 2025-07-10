@@ -87,7 +87,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
                   "fontSize": 16,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -176,7 +175,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   "color": "#9a6300",
                   "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 20,
                   "marginHorizontal": 4,
@@ -218,7 +216,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Bold",
                     "fontSize": 32,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                   }
@@ -241,7 +238,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     "color": "#686e7d",
                     "fontFamily": "CentraNo1-Medium",
                     "fontSize": 18,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -282,7 +278,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Bold",
                           "fontSize": 16,
-                          "fontWeight": "700",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -647,7 +642,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Bold",
                           "fontSize": 16,
-                          "fontWeight": "700",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -663,7 +657,6 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }

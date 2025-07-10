@@ -972,7 +972,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 18,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -1053,7 +1052,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1070,7 +1068,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1115,7 +1112,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 18,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -1196,7 +1192,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1213,7 +1208,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1308,7 +1302,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1325,7 +1318,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1420,7 +1412,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1437,7 +1428,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1532,7 +1522,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1549,7 +1538,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1644,7 +1632,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1661,7 +1648,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1756,7 +1742,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1773,7 +1758,6 @@ exports[`RegionModal render matches snapshot when visible 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2300,7 +2284,6 @@ exports[`RegionModal render matches snapshot with empty search results 1`] = `
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Medium",
                             "fontSize": 18,
-                            "fontWeight": "500",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                           }
@@ -3304,7 +3287,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 18,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -3385,7 +3367,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3402,7 +3383,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3447,7 +3427,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Medium",
                               "fontSize": 18,
-                              "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -3528,7 +3507,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3545,7 +3523,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3640,7 +3617,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3657,7 +3633,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3752,7 +3727,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3769,7 +3743,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3864,7 +3837,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3881,7 +3853,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3976,7 +3947,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3993,7 +3963,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4088,7 +4057,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4105,7 +4073,6 @@ exports[`RegionModal render matches snapshot with popular regions section 1`] = 
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4710,7 +4677,6 @@ exports[`RegionModal render matches snapshot with search results 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4727,7 +4693,6 @@ exports[`RegionModal render matches snapshot with search results 1`] = `
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }

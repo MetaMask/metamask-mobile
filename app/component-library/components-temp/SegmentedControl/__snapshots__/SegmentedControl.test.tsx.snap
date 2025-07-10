@@ -54,7 +54,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -100,7 +99,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -146,7 +144,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -192,7 +189,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -254,7 +250,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -300,7 +295,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -346,7 +340,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -392,7 +385,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
