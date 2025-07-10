@@ -1,4 +1,6 @@
+import { SolScope } from '@metamask/keyring-api';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { isCaipChainId } from '@metamask/utils';
 
 /**
  * Session result structure from multichain test dapp
@@ -68,6 +70,18 @@ export default class MultichainUtilities {
   }
 
   /**
+   * Gets the CAIP-25 chain ID for a given chain
+   * @param chainId - Chain ID (e.g., 'solana')
+   * @returns CAIP-25 chain ID (e.g., 'solana:mainnet')
+   */
+  static getScope(chainId: string): string {
+    if (isCaipChainId(chainId)) {
+      return chainId;
+    }
+    return this.getEIP155Scope(chainId);
+  }
+
+  /**
    * Network chain IDs in decimal format for dapp usage
    */
   static get CHAIN_IDS() {
@@ -101,6 +115,16 @@ export default class MultichainUtilities {
       BASE: this.getEIP155Scope(chainIds.BASE),
       BSC: this.getEIP155Scope(chainIds.BSC),
       LOCALHOST: this.getEIP155Scope(chainIds.LOCALHOST),
+    };
+  }
+
+  /**
+   * CAIP-25 scope identifiers
+   */
+  static SCOPES() {
+    return {
+      ...this.EIP155_SCOPES,
+      SOLANA_MAINNET: SolScope.Mainnet,
     };
   }
 

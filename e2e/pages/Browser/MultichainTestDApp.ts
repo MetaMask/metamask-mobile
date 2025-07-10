@@ -827,7 +827,7 @@ class MultichainTestDApp {
    */
   async invokeMethodOnChain(chainId: string, method: string): Promise<boolean> {
     const webview = this.getWebView();
-    const scope = MultichainUtilities.getEIP155Scope(chainId);
+    const scope = MultichainUtilities.getScope(chainId);
     const escapedScope = scope.replace(/:/g, '-');
     const directButtonId = `${MultichainTestDappViewSelectorsIDs.DIRECT_INVOKE_PREFIX}${escapedScope}-${method}`;
 
@@ -856,7 +856,7 @@ class MultichainTestDApp {
     index = 0,
   ): Promise<string | null> {
     const webview = this.getWebView();
-    const scope = MultichainUtilities.getEIP155Scope(chainId);
+    const scope = MultichainUtilities.getScope(chainId);
     const escapedScope = scope.replace(/:/g, '-');
 
     try {
