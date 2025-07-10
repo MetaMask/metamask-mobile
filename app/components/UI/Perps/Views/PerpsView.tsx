@@ -23,8 +23,7 @@ import {
   usePerpsTrading,
 } from '../hooks';
 
-// Import preview market data component
-import PreviewMarketData from '../components/PreviewMarketData';
+// Preview market data component removed for minimal PR
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -249,8 +248,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             </Text>
           )}
         </View>
-
-        <PreviewMarketData />
 
         <View style={styles.buttonContainer}>
           {/* Core functionality buttons */}

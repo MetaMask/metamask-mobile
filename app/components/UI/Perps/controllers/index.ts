@@ -12,10 +12,10 @@
  *
  * Usage:
  * ```typescript
- * import { usePerpsController, usePerpsPrices } from './controllers';
+ * import { usePerpsController } from './controllers';
  *
  * const { placeOrder, getPositions } = usePerpsController();
- * const prices = usePerpsPrices(['ETH', 'BTC']);
+ * // Live prices hooks removed with Live Market Prices component
  *
  * // Place a market order
  * await placeOrder({
@@ -95,5 +95,7 @@ export {
   usePerpsTrading,
   usePerpsNetworkConfig,
   usePerpsNetwork,
-  usePerpsPrices,
 } from '../hooks';
+
+// Removed with Live Market Prices component:
+// - usePerpsPrices

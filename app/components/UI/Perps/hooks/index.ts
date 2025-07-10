@@ -10,7 +10,7 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 export { usePerpsAccount } from './usePerpsAccount';
 
 // Live data hooks (WebSocket subscriptions)
-export { usePerpsPrices } from './usePerpsPrices';
+// - usePerpsPrices (removed with Live Market Prices component)
 
 // Removed for minimal PR:
 // - usePerpsPositions (positions management)
