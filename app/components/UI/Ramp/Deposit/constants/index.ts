@@ -28,4 +28,4 @@ export {
 
 export type { DepositRegion } from './regions.ts';
 
-export { DEPOSIT_REGIONS } from './regions.ts';
+export { DEPOSIT_REGIONS, US_STATES } from './regions.ts';
