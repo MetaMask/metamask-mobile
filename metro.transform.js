@@ -60,7 +60,6 @@ function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
-    // TODO: Decide if QA target should use the same feature set as main
     case 'qa':
     case 'main':
       // TODO: Refactor this once we've abstracted environment away from build type
