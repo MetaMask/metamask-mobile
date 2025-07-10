@@ -49,8 +49,10 @@ else
         
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
+        # Use merge-base with last successful commit to exclude changes from merged main branch commits
+        MERGE_BASE_WITH_LAST=$(git merge-base ${LAST_SUCCESSFUL_COMMIT} HEAD 2>/dev/null || echo "${LAST_SUCCESSFUL_COMMIT}")
         if git rev-parse --git-dir > /dev/null 2>&1 && \
-           git diff --name-only ${LAST_SUCCESSFUL_COMMIT}..HEAD 2>/dev/null | \
+           git diff --name-only ${MERGE_BASE_WITH_LAST}..HEAD 2>/dev/null | \
            grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | \
            grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
             echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
