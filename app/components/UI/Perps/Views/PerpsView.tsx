@@ -308,6 +308,15 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
+            label="View Markets"
+            onPress={() => navigation.navigate('PerpsMarketListView')}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
             label="Order History"
             onPress={() => navigation.navigate('PerpsOrderHistory')}
             style={styles.button}

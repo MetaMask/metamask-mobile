@@ -14,6 +14,7 @@ import PerpsOrderDetailsView from '../Views/PerpsOrderDetailsView';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
+import PerpsMarketListView from '../Views/PerpsMarketListView';
 
 const Stack = createStackNavigator();
 
@@ -81,6 +82,14 @@ const PerpsScreenStack = () => (
         component={PerpsPositionsView}
         options={{
           title: strings('perps.position.title'),
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.PERPS.MARKETS}
+        component={PerpsMarketListView}
+        options={{
+          title: strings('perps.markets.title'),
           headerShown: false,
         }}
       />
