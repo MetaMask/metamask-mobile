@@ -13,7 +13,6 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -71,7 +70,14 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector((state: RootState) => {
+    // For non-EVM chains like Solana, always return true since they handle swaps differently
+    if (chainId && chainId.includes(':') && !chainId.startsWith('eip155:')) {
+      return true;
+    }
+    // For EVM chains, check the swaps state
+    return state.swaps?.[chainId]?.isLive || false;
+  });
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
