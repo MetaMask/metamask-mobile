@@ -28,9 +28,11 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
+import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -145,7 +147,12 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
 
-  await OnboardingView.tapImportWalletFromSeedPhrase();
+  await OnboardingView.tapHaveAnExistingWallet();
+
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.checkIfVisible(OnboardingSheet.container);
+    await OnboardingSheet.tapImportSeedButton();
+  }
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -212,6 +219,11 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await OnboardingCarouselView.tapOnGetStartedButton();
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
+
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.checkIfVisible(OnboardingSheet.container);
+    await OnboardingSheet.tapImportSeedButton();
+  }
 
   await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.enterPassword(validAccount.password);
