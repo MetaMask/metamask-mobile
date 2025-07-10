@@ -25,7 +25,7 @@ jest.mock('../../../../selectors/networkController', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeature: jest.fn(),
+  selectCardFeatureFlag: jest.fn(),
 }));
 
 // Mock react-redux hooks

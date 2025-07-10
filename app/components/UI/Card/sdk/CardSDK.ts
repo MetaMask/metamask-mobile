@@ -186,7 +186,7 @@ export class CardSDK {
     const spenderTopics = spenders.map((s) =>
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
-    const fromBlock = -500000; // Check from the last 500,000 blocks
+    const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
     const tokenAddressesList =
       nonZeroBalanceTokens ?? this.supportedTokensAddresses;
 
@@ -195,7 +195,7 @@ export class CardSDK {
         this.ethersProvier
           .getLogs({
             address: tokenAddress,
-            fromBlock,
+            fromBlock: spendersDeployedBlock,
             toBlock: 'latest',
             topics: [approvalTopic, ownerTopic, spenderTopics],
           })
@@ -246,10 +246,10 @@ export class CardSDK {
 
   private mapSupportedTokenToCardToken(token: SupportedToken): CardToken {
     return {
-      address: token.address as `0x${string}`,
-      decimals: token.decimals as number,
-      symbol: token.symbol as string,
-      name: token.name as string,
+      address: token.address || null,
+      decimals: token.decimals || null,
+      symbol: token.symbol || null,
+      name: token.name || null,
     };
   }
 }
