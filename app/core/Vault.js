@@ -247,7 +247,6 @@ export const recreateVaultWithNewPassword = async (
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
   }
-  console.log('serializedLedgerKeyring', serializedLedgerKeyring);
   if (serializedLedgerKeyring !== undefined) {
     await restoreLedgerKeyring(serializedLedgerKeyring);
   }
