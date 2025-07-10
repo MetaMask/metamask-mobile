@@ -980,10 +980,7 @@ const App: React.FC = () => {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      // Only process if uri is provided to avoid duplicate processing
-      if (opts.uri) {
-        getBranchDeeplink(opts.uri);
-      }
+      getBranchDeeplink(opts.uri);
     });
   }, [dispatch, handleDeeplink, navigation]);
 
