@@ -25,7 +25,6 @@ import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-import { ethers } from 'ethers';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -36,7 +35,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   let mockServer: Mockttp;
   let localNode: Ganache;
-  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
 
   beforeAll(async (): Promise<void> => {
     localNode = new Ganache();
@@ -60,7 +58,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       },
     });
     await loginToApp();
-    await prepareSwapsTestEnvironment(wallet);
+    await prepareSwapsTestEnvironment();
   });
 
   afterAll(async (): Promise<void> => {
@@ -75,7 +73,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   it.each`
     type        | quantity | sourceTokenSymbol | destTokenSymbol | chainId
-    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${'0x1'}
+    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
+    ${'wrap'}   | ${'1'}   | ${'ETH'}          | ${'WETH'}       | ${'0x1'}
   `(
     "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }): Promise<void> => {
