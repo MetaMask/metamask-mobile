@@ -113,6 +113,10 @@ pipelines:
   expo_flask_pipeline:
     stages:
       - create_build_flask_expo: {}
+  #QA expo pipeline
+  expo_qa_pipeline:
+    stages:
+      - create_build_qa_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -201,6 +205,11 @@ stages:
       - build_android_flask_devbuild: {}
       - build_ios_flask_devbuild: {}
       - build_ios_flask_simbuild: {}
+  create_build_qa_expo:
+    workflows:
+      - build_android_qa_devbuild: {}
+      - build_ios_qa_devbuild: {}
+      - build_ios_qa_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -1668,7 +1677,7 @@ workflows:
                 set -ex
 
                 # Set base paths for release builds
-                           if [ "$IS_DEV_BUILD" = "true" ]; then
+                if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
                 else
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
@@ -2030,6 +2039,19 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
       - BUILD_COMMAND: 'yarn build:android:flask:local'
+    after_run:
+      - _android_e2e_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'qa'
+      - BUILD_COMMAND: 'yarn build:android:qa:local'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2579,6 +2601,16 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
+  build_ios_qa_devbuild:
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+      - YARN_COMMAND: 'build:ios:qa:local'
+    after_run:
+      - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
@@ -2587,6 +2619,16 @@ workflows:
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:local'
+    after_run:
+      - _ios_build_template
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+      - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
   build_ios_qa:
@@ -2817,10 +2859,13 @@ app:
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      BRIDGE_USE_DEV_APIS: false
+      BRIDGE_USE_DEV_APIS: true
     - opts:
         is_expand: false
       MM_BRIDGE_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android

@@ -75,7 +75,9 @@ describe('OnboardingSheet', () => {
     describe('Google button interactions', () => {
       it('calls onPressContinueWithGoogle with createWallet=false when import mode', () => {
         const { getByText } = render(<OnboardingSheet {...defaultProps} />);
-        const googleButton = getByText(strings('onboarding.sign_in_with_google'));
+        const googleButton = getByText(
+          strings('onboarding.sign_in_with_google'),
+        );
         fireEvent.press(googleButton);
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledWith(false);
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledTimes(1);
@@ -98,8 +100,12 @@ describe('OnboardingSheet', () => {
             },
           },
         };
-        const { getByText } = render(<OnboardingSheet {...propsWithCreateWallet} />);
-        const googleButton = getByText(strings('onboarding.continue_with_google'));
+        const { getByText } = render(
+          <OnboardingSheet {...propsWithCreateWallet} />,
+        );
+        const googleButton = getByText(
+          strings('onboarding.continue_with_google'),
+        );
         fireEvent.press(googleButton);
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledWith(true);
         expect(mockOnPressContinueWithGoogle).toHaveBeenCalledTimes(1);
@@ -114,8 +120,12 @@ describe('OnboardingSheet', () => {
             },
           },
         };
-        const { getByText } = render(<OnboardingSheet {...propsWithCreateWallet} />);
-        const appleButton = getByText(strings('onboarding.continue_with_apple'));
+        const { getByText } = render(
+          <OnboardingSheet {...propsWithCreateWallet} />,
+        );
+        const appleButton = getByText(
+          strings('onboarding.continue_with_apple'),
+        );
         fireEvent.press(appleButton);
         expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(true);
         expect(mockOnPressContinueWithApple).toHaveBeenCalledTimes(1);
@@ -142,7 +152,9 @@ describe('OnboardingSheet', () => {
             },
           },
         };
-        const { getByText } = render(<OnboardingSheet {...propsWithCreateWallet} />);
+        const { getByText } = render(
+          <OnboardingSheet {...propsWithCreateWallet} />,
+        );
         const srpButton = getByText(strings('onboarding.continue_with_srp'));
 
         fireEvent.press(srpButton);
