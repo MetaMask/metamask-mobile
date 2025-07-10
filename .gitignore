@@ -111,7 +111,7 @@ browserstack.err
 e2e/reports
 
 # Performance test results
-e2e/specs/performance/*-performance-results.json
+e2e/specs/performance/reports/*-performance-results.json
 
 # anvil binaries
 .metamask/*
