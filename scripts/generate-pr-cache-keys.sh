@@ -55,21 +55,34 @@ else
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
         # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
-        # Try different approaches to find merge-base
+        # Try different approaches to find merge-base with main
         MERGE_BASE_WITH_MAIN=""
-        if git rev-parse --verify main >/dev/null 2>&1; then
-            MERGE_BASE_WITH_MAIN=$(git merge-base main "$CURRENT_COMMIT_FULL" 2>/dev/null)
-            echo "Attempted merge-base with 'main': $MERGE_BASE_WITH_MAIN"
-        fi
         
-        if [[ -z "$MERGE_BASE_WITH_MAIN" ]] && git rev-parse --verify origin/main >/dev/null 2>&1; then
-            MERGE_BASE_WITH_MAIN=$(git merge-base origin/main "$CURRENT_COMMIT_FULL" 2>/dev/null)
-            echo "Attempted merge-base with 'origin/main': $MERGE_BASE_WITH_MAIN"
-        fi
+        # First, try to fetch origin to ensure we have the latest main
+        echo "Attempting to fetch origin/main..."
+        git fetch origin main >/dev/null 2>&1 || echo "Note: Could not fetch origin/main"
         
-        # If merge-base fails, compare against last successful commit instead
+        # Try various main branch references
+        for main_ref in "origin/main" "main" "refs/remotes/origin/main" "HEAD~0"; do
+            if git rev-parse --verify "$main_ref" >/dev/null 2>&1; then
+                MERGE_BASE_WITH_MAIN=$(git merge-base "$main_ref" "$CURRENT_COMMIT_FULL" 2>/dev/null)
+                if [[ -n "$MERGE_BASE_WITH_MAIN" ]]; then
+                    echo "Successfully found merge-base using '$main_ref': $MERGE_BASE_WITH_MAIN"
+                    break
+                else
+                    echo "Failed to get merge-base with '$main_ref'"
+                fi
+            else
+                echo "'$main_ref' does not exist"
+            fi
+        done
+        
+        # If all merge-base attempts fail, fall back to last successful commit
         if [[ -z "$MERGE_BASE_WITH_MAIN" ]]; then
-            echo "Warning: Could not find merge-base with main branch, using last successful commit for comparison"
+            echo "ERROR: Could not find merge-base with any main branch reference"
+            echo "Available git references:"
+            git branch -a 2>/dev/null || echo "Could not list branches"
+            echo "Falling back to last successful commit comparison (may include main branch changes)"
             MERGE_BASE_WITH_MAIN="$LAST_SUCCESSFUL_COMMIT"
         fi
         
