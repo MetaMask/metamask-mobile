@@ -174,7 +174,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1986,7 +1986,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3798,7 +3798,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5610,7 +5610,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -7403,7 +7403,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -9195,7 +9195,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -10988,7 +10988,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
@@ -12781,7 +12781,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Build Quote
+                  Deposit
                 </Text>
               </TouchableOpacity>
             </View>
