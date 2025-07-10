@@ -45,16 +45,7 @@ export const recreateVaultWithNewPassword = async (
 
   let seedlessChangePasswordError = null;
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-    try {
-      await SeedlessOnboardingController.changePassword(newPassword, password);
-    } catch (error) {
-      Logger.error(error);
-      await KeyringController.createNewVaultAndRestore(
-        password,
-        primaryKeyringSeedPhrase,
-      );
-      seedlessChangePasswordError = error;
-    }
+    await SeedlessOnboardingController.changePassword(newPassword, password);
   }
 
   setSelectedAddress(selectedAddress);
