@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import {
@@ -239,6 +238,7 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
+
   const skipAccountModalSecureNow = () => {
     props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
       screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
