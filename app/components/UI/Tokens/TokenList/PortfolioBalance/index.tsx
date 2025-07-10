@@ -24,6 +24,7 @@ import SensitiveText, {
 import Icon, {
   IconSize,
   IconName,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -49,7 +50,7 @@ export const PortfolioBalance = React.memo(() => {
 
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
-    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
@@ -144,7 +145,7 @@ export const PortfolioBalance = React.memo(() => {
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Long}
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayLG}
               >
                 {selectedAccountMultichainBalance.displayBalance}
               </SensitiveText>
@@ -156,7 +157,7 @@ export const PortfolioBalance = React.memo(() => {
                   style={styles.privacyIcon}
                   name={privacyMode ? IconName.EyeSlash : IconName.Eye}
                   size={IconSize.Md}
-                  color={colors.text.muted}
+                  color={IconColor.Default}
                   testID={
                     privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID
                   }
