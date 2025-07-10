@@ -31,8 +31,6 @@ const Routes = {
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
-    KYC_WEBVIEW: 'KycWebview',
-    PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',
@@ -42,6 +40,8 @@ const Routes = {
       REGION_SELECTOR: 'DepositRegionSelectorModal',
       PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
       UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+      WEBVIEW: 'DepositWebviewModal',
+      KYC_WEBVIEW: 'DepositKycWebviewModal',
     },
   },
   HW: {

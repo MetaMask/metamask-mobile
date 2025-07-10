@@ -25,6 +25,7 @@ export {
   EUR_CURRENCY,
   TRANSAK_NETWORKS,
   TRANSAK_SUPPORT_URL,
+  KycStatus,
 } from './constants.ts';
 
 export type { DepositRegion } from './regions.ts';

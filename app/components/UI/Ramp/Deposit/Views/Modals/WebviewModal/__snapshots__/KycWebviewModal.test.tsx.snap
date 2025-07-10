@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`KycWebview Component render matches snapshot 1`] = `
+exports[`KycWebviewModal render matches snapshot 1`] = `
 <View
   style={
     {
@@ -124,7 +124,7 @@ exports[`KycWebview Component render matches snapshot 1`] = `
                   }
                 }
               >
-                KYC Verification
+                DepositKycWebviewModal
               </Text>
             </View>
           </View>
@@ -242,7 +242,7 @@ exports[`KycWebview Component render matches snapshot 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={1}
+              handlerTag={-1}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -312,48 +312,7 @@ exports[`KycWebview Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "flex": 1,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <WebView
-                            allowsInlineMediaPlayback={true}
-                            enableApplePay={true}
-                            mediaPlaybackRequiresUserAction={false}
-                            onHttpError={[Function]}
-                            source={
-                              {
-                                "uri": "https://example.com/kyc",
-                              }
-                            }
-                          />
-                        </View>
-                      </View>
-                    </RCTSafeAreaView>
+                    WebviewModal
                   </View>
                 </View>
               </View>
