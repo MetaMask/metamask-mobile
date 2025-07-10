@@ -235,11 +235,11 @@ describe('App', () => {
                     routes: [
                       {
                         name: 'OnboardingCarousel',
-                        params: {}
-                      }
-                    ]
-                  }
-                }
+                        params: {},
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -260,52 +260,9 @@ describe('App', () => {
 
       const { getByText } = render(<App />, { wrapper: Providers });
 
-      expect(getByText(strings('onboarding_carousel.get_started'))).toBeTruthy();
-    });
-  });
-
-  describe('OnboardingRootNav', () => {
-    it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
-      const routeState = {
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            state: {
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.NAV,
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: 'OnboardingCarousel',
-                        params: {}
-                      }
-                    ]
-                  }
-                }
-              ],
-            },
-          },
-        ],
-      };
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer initialState={routeState}>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      const { getByText } = render(<App />, { wrapper: Providers });
-
-      expect(getByText(strings('onboarding_carousel.get_started'))).toBeTruthy();
+      expect(
+        getByText(strings('onboarding_carousel.get_started')),
+      ).toBeTruthy();
     });
   });
 });

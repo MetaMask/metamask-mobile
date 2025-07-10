@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import Text, {
@@ -98,13 +98,13 @@ const SocialLinked = ({
     },
   });
 
-  const getMaskedEmail = (emailValue: string) => {
-    if (!emailValue.includes('@')) {
-      return emailValue;
+  const maskedEmail = useMemo(() => {
+    if (!email.includes('@')) {
+      return email;
     }
-    const [firstPart, secondPart] = emailValue.split('@');
+    const [firstPart, secondPart] = email.split('@');
     return `${firstPart.slice(0, 1)}********@${secondPart}`;
-  };
+  }, [email]);
 
   return (
     <View style={styles.socialDetailsBoxRoot}>
@@ -134,7 +134,7 @@ const SocialLinked = ({
           </Text>
           {!!email && (
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {getMaskedEmail(email)}
+              {maskedEmail}
             </Text>
           )}
         </View>
@@ -150,7 +150,6 @@ const WalletRecovery = () => {
   const userEmail = useSelector(selectSeedlessOnboardingUserEmail);
   const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const styles = StyleSheet.create({
     root: {
       flex: 1,
