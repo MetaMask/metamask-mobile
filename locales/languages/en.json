@@ -379,7 +379,7 @@
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "New Password",
+    "password": "New password",
     "confirm_password": "Confirm password",
     "reset_button": "Reset password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -400,15 +400,18 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "password_updated": "Password updated",
+    "password_updated": "New password saved",
     "successfully_changed": "Your password has been successfully changed",
     "new_password_placeholder": "Use at least 8 characters",
     "confirm_password_placeholder": "Re-enter your password",
-    "confirm_btn": "Confirm",
-    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
-    "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
     "warning_password_change_button": "Confirm",
-    "warning_password_cancel_button": "Cancel"
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Import a wallet",
