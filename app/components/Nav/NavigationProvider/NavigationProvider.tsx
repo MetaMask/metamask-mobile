@@ -30,6 +30,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const dispatch = useDispatch();
   const hasInitialized = useRef(false);
 
+
   // Start trace when navigation provider is initialized
   if (!hasInitialized.current) {
     trace({
