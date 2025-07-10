@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { Octokit } = require('@octokit/rest');
+import { Octokit } from '@octokit/rest';
 
 // Environment variables from Bitrise
 const GITHUB_TOKEN = process.env.GITHUB_ACCESS_TOKEN;

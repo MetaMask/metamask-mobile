@@ -546,7 +546,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 cd "$BITRISE_SOURCE_DIR"
-                node scripts/update-bitrise-pr-comment.js
+                node scripts/update-bitrise-pr-comment.mjs
       - script@1:
           is_always_run: true
           title: Label PR with success
@@ -593,7 +593,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 cd "$BITRISE_SOURCE_DIR"
-                node scripts/update-bitrise-pr-comment.js
+                node scripts/update-bitrise-pr-comment.mjs
   bump_version_code:
     before_run:
       - _get_workflow_info
