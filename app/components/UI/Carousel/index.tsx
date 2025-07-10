@@ -1,12 +1,5 @@
 import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  Linking,
-  Image,
-  FlatList,
-} from 'react-native';
+import { View, Pressable, Linking, Image, FlatList } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { styleSheet } from './styles';
@@ -16,7 +9,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
@@ -56,7 +48,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   );
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
-  const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
@@ -258,13 +249,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         </View>
       </Pressable>
     ),
-    [
-      styles,
-      handleSlideClick,
-      handleClose,
-      colors.icon.default,
-      pressedSlideId,
-    ],
+    [styles, handleSlideClick, handleClose, pressedSlideId],
   );
 
   // Track banner display events when visible slides change
