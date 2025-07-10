@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import useNavigateToAddFunds from './useNavigateToAddFunds';
+import { useNavigateToAddFunds } from './useNavigateToAddFunds';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { isSwapsAllowed } from '../../Swaps/utils';

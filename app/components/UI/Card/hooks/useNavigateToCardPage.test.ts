@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import useNavigateToCardPage from './useNavigateToCardPage';
+import { useNavigateToCardPage } from './useNavigateToCardPage';
 import { isCardUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';

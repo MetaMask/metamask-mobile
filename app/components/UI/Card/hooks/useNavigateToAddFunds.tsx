@@ -7,7 +7,7 @@ import { useMemo, useCallback } from 'react';
 import { isSwapsAllowed } from '../../Swaps/utils';
 import { selectChainId } from '../../../../selectors/networkController';
 
-const useNavigateToAddFunds = (
+export const useNavigateToAddFunds = (
   navigation: NavigationProp<ParamListBase>,
   destinationTokenAddress: string,
 ) => {
@@ -46,5 +46,3 @@ const useNavigateToAddFunds = (
     isSwapEnabled,
   };
 };
-
-export default useNavigateToAddFunds;

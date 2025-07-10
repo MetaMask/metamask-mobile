@@ -30,6 +30,7 @@ const AssetListBottomSheet: React.FC<AssetListBottomSheetProps> = ({
     onClose={() => {
       setOpenAssetListBottomSheet(false);
     }}
+    testID="asset-list-bottom-sheet"
   >
     <BottomSheetHeader onClose={() => setOpenAssetListBottomSheet(false)}>
       <Text variant={TextVariant.HeadingMD}>

@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import Icon, {
   IconName,
@@ -10,7 +16,11 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -27,7 +37,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Loader from '../../../../../component-library/components-temp/Loader';
 import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
 import CardImage from '../../assets/card.svg';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -36,16 +45,12 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { useGetAllowances } from '../../hooks/useGetAllowances';
 import { strings } from '../../../../../../locales/i18n';
-import useAssetBalance from '../../hooks/useAssetBalance';
-import useNavigateToCardPage from '../../hooks/useNavigateToCardPage';
-import useNavigateToAddFunds from '../../hooks/useNavigateToAddFunds';
+import { useAssetBalance } from '../../hooks/useAssetBalance';
+import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
+import { useNavigateToAddFunds } from '../../hooks/useNavigateToAddFunds';
 import { CardTokenAllowance } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
-
-interface ICardHomeProps {
-  navigation: NavigationProp<ParamListBase>;
-}
 
 /**
  * CardHome Component
@@ -59,7 +64,8 @@ interface ICardHomeProps {
  * @param props - Component props
  * @returns JSX element representing the card home screen
  */
-const CardHome = ({ navigation }: ICardHomeProps) => {
+const CardHome = () => {
+  const navigation = useNavigation();
   const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
     null,
   );
@@ -73,12 +79,6 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   const { width: deviceWidth } = Dimensions.get('window');
   const styles = createStyles(theme, itemHeight, deviceWidth);
 
-  const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const { navigateToAddFunds, isSwapEnabled } = useNavigateToAddFunds(
-    navigation,
-    priorityToken?.address || '',
-  );
-
   const currentAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -91,8 +91,12 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   );
   const { fetchPriorityToken, isLoading: isLoadingPriorityToken } =
     useGetPriorityCardToken(currentAddress);
-
   const { mainBalance, secondaryBalance } = useAssetBalance(priorityToken);
+  const { navigateToCardPage } = useNavigateToCardPage(navigation);
+  const { navigateToAddFunds, isSwapEnabled } = useNavigateToAddFunds(
+    navigation,
+    priorityToken?.address || '',
+  );
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -132,7 +136,11 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
   if (isLoadingAllowances || isLoadingPriorityToken) {
     return (
       <View style={styles.wrapper}>
-        <Loader />
+        <ActivityIndicator
+          size="large"
+          color={theme.colors.primary.default}
+          testID="loader"
+        />
       </View>
     );
   }
@@ -195,6 +203,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
                 onPress={navigateToAddFunds}
                 disabled={!isSwapEnabled}
                 width={ButtonWidthTypes.Full}
+                testID="add-funds-button"
               />
             </View>
           )}
@@ -214,6 +223,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
         onPress={() => {
           setOpenAssetListBottomSheet(true);
         }}
+        testID="change-asset-item"
       />
       <ManageCardListItem
         title={strings(
@@ -222,6 +232,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
         description={strings(
           'card.card_home.manage_card_options.manage_spending_limit_description',
         )}
+        testID="manage-spending-limit-item"
       />
       <ManageCardListItem
         title={strings(
@@ -232,6 +243,7 @@ const CardHome = ({ navigation }: ICardHomeProps) => {
         )}
         rightIcon={IconName.Export}
         onPress={navigateToCardPage}
+        testID="advanced-card-management-item"
       />
 
       {openAssetListBottomSheet && renderAssetListBottomSheet()}

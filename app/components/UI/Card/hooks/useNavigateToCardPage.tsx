@@ -7,7 +7,9 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
-const useNavigateToCardPage = (navigation: NavigationProp<ParamListBase>) => {
+export const useNavigateToCardPage = (
+  navigation: NavigationProp<ParamListBase>,
+) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -52,5 +54,3 @@ const useNavigateToCardPage = (navigation: NavigationProp<ParamListBase>) => {
     navigateToCardPage,
   };
 };
-
-export default useNavigateToCardPage;

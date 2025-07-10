@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import useAssetBalance from './useAssetBalance';
+import { useAssetBalance } from './useAssetBalance';
 import { FlashListAssetKey } from '../../Tokens/TokenList';
 import { TOKEN_RATE_UNDEFINED } from '../../Tokens/constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';

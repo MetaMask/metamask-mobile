@@ -31,7 +31,7 @@ import { TokenI } from '../../Tokens/types';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 // Validate if it's necessary or if it can be simplified further.
-const useAssetBalance = (
+export const useAssetBalance = (
   token: FlashListAssetKey | null | undefined,
 ): {
   asset: TokenI | undefined;
@@ -208,5 +208,3 @@ const useAssetBalance = (
     secondaryBalance,
   };
 };
-
-export default useAssetBalance;

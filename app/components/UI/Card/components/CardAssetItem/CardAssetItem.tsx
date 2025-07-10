@@ -32,7 +32,7 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 import { View } from 'react-native';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { AllowanceState } from '../../types';
-import useAssetBalance from '../../hooks/useAssetBalance';
+import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
 
 interface CardAssetItemProps {
