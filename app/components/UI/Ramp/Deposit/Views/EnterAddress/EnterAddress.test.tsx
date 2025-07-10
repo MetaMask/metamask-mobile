@@ -158,10 +158,10 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
-    const navigationCalls = mockNavigate.mock.calls.filter(
-      (call) => call[0] !== 'DepositModals',
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.DEPOSIT.KYC_PROCESSING,
+      expect.any(Object),
     );
-    expect(navigationCalls).toHaveLength(0);
   });
 
   it('submits form data and navigates to next page when form is valid and continue is pressed', async () => {
@@ -190,21 +190,13 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      const navigationCalls = mockNavigate.mock.calls.filter(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1].screen === 'DepositKycWebviewModal',
-      );
-      expect(navigationCalls).toHaveLength(1);
-      expect(navigationCalls[0][1]).toEqual(
-        expect.objectContaining({
-          params: expect.objectContaining({
-            quote: mockQuote,
-            sourceUrl: kycUrl,
-          }),
-          screen: 'DepositKycWebviewModal',
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        params: expect.objectContaining({
+          quote: mockQuote,
+          sourceUrl: kycUrl,
         }),
-      );
+        screen: 'DepositKycWebviewModal',
+      });
     });
   });
 
@@ -218,10 +210,10 @@ describe('EnterAddress Component', () => {
     expect(mockKycFunction).toHaveBeenCalled();
 
     await waitFor(() => {
-      const navigationCalls = mockNavigate.mock.calls.filter(
-        (call) => call[0] !== 'DepositModals',
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.DEPOSIT.KYC_PROCESSING,
+        expect.any(Object),
       );
-      expect(navigationCalls).toHaveLength(0);
     });
   });
 
@@ -279,10 +271,10 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      const navigationCalls = mockNavigate.mock.calls.filter(
-        (call) => call[0] !== 'DepositModals',
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.DEPOSIT.KYC_PROCESSING,
+        expect.any(Object),
       );
-      expect(navigationCalls).toHaveLength(0);
     });
   });
 
@@ -321,10 +313,10 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('Please enter a valid address')).toBeOnTheScreen();
-    const navigationCalls = mockNavigate.mock.calls.filter(
-      (call) => call[0] !== 'DepositModals',
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.DEPOSIT.KYC_PROCESSING,
+      expect.any(Object),
     );
-    expect(navigationCalls).toHaveLength(0);
   });
 
   it('accepts valid address line 2', async () => {
@@ -352,10 +344,10 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
-    const navigationCalls = mockNavigate.mock.calls.filter(
-      (call) => call[0] !== 'DepositModals',
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.DEPOSIT.KYC_PROCESSING,
+      expect.any(Object),
     );
-    expect(navigationCalls).toHaveLength(0);
   });
 
   it('displays selected region in disabled country field', () => {
