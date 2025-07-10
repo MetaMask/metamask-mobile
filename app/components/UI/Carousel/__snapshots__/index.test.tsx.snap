@@ -172,7 +172,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -360,7 +360,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -548,7 +548,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -736,7 +736,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -888,7 +888,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -1076,7 +1076,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -1264,7 +1264,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
@@ -1452,7 +1452,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderColor": "#b7bbc866",
                   "borderRadius": 8,
                   "borderWidth": 1,
