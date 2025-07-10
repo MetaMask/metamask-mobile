@@ -203,8 +203,9 @@ jest.mock('./Ledger/Ledger', () => ({
 }));
 const mockWithLedgerKeyring = jest.mocked(withLedgerKeyring);
 
+const mockLoggerError = jest.fn();
 jest.mock('../util/Logger', () => ({
-  error: jest.fn(),
+  error: (...args: unknown[]) => mockLoggerError(...args),
 }));
 
 const mockMultichainWalletSnapClient = {
@@ -257,7 +258,7 @@ describe('Vault', () => {
 
       await restoreQRKeyring(mockSerializedQrKeyring);
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         error,
         'error while trying to get qr accounts on recreate vault',
       );
@@ -295,7 +296,7 @@ describe('Vault', () => {
 
       await restoreLedgerKeyring(mockSerializedLedgerKeyring);
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         error,
         'error while trying to restore Ledger accounts on recreate vault',
       );
@@ -308,7 +309,7 @@ describe('Vault', () => {
 
       await restoreLedgerKeyring(mockSerializedLedgerKeyring);
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         error,
         'error while trying to restore Ledger accounts on recreate vault',
       );
@@ -333,7 +334,7 @@ describe('Vault', () => {
 
       await restoreSnapAccounts(SolAccountType.DataAccount, 'entropy-source');
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         error,
         'error while trying to restore snap accounts on recreate vault',
       );
@@ -362,7 +363,7 @@ describe('Vault', () => {
 
       await restoreImportedSrp('seed-phrase', 5);
 
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         error,
         'error while trying to restore imported srp accounts on recreate vault',
       );
@@ -585,7 +586,7 @@ describe('Vault', () => {
       );
 
       // Verify that Logger.error was called with the error
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(mockLoggerError).toHaveBeenNthCalledWith(1, error);
 
       // Verify that createNewVaultAndRestore was called again to restore the original state
       expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith('password', [
