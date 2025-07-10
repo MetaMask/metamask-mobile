@@ -396,7 +396,7 @@ const EarnLendingDepositConfirmationView = () => {
           trace({
             name: TraceName.EarnDepositTxConfirmed,
             data: {
-              chainId: outputToken?.chainId || '',
+              chainId: earnToken?.chainId || '',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             },
           });
@@ -445,7 +445,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
+    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot, earnToken?.chainId],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -639,7 +639,7 @@ const EarnLendingDepositConfirmationView = () => {
     trace({
       name: TraceName.EarnDepositConfirmationScreen,
       data: {
-        chainId: outputToken?.chainId || '',
+        chainId: earnToken?.chainId || '',
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
     });
