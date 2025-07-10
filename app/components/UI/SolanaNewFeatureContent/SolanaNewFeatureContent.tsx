@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import LottieView, { type AnimationObject } from 'lottie-react-native';
 
-import SolanaFoxAnimation from '../../../animations/Searching_Fox.json';
+import SolanaFoxAnimation from '../../../animations/Solana_Fox.json';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
