@@ -468,7 +468,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
         async () => {
           await MultichainTestDApp.setupAndNavigateToTestDapp();
 
-          const chainId = '1337';
+          const chainId = MultichainUtilities.CHAIN_IDS.LOCALHOST;
           await MultichainTestDApp.createSessionWithNetworks([chainId]);
 
           const method = 'wallet_sendCalls';
