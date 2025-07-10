@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image, Linking } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -84,15 +84,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       Clipboard.setString(providerOrderId);
     }
   }, [providerOrderId]);
-
-  const handleViewInTransak = useCallback(() => {
-    if (
-      hasDepositOrderField(order?.data, 'providerOrderLink') &&
-      order.data.providerOrderLink
-    ) {
-      Linking.openURL(order.data.providerOrderLink);
-    }
-  }, [order?.data]);
 
   const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
   const totalAmount =
@@ -237,23 +228,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </Text>
         </View>
       </View>
-
-      {hasDepositOrderField(order.data, 'providerOrderLink') &&
-      order.data.providerOrderLink ? (
-        <TouchableOpacity
-          style={styles.transakLink}
-          onPress={handleViewInTransak}
-        >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-            {strings('deposit.order_processing.view_order_details_in_transak')}
-          </Text>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            color={theme.colors.primary.default}
-          />
-        </TouchableOpacity>
-      ) : null}
     </>
   );
 };
