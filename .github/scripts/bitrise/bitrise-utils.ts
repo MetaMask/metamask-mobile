@@ -143,10 +143,10 @@ export function isMergeFromMainBranch(commitMessage: string): boolean {
   return commitMessage.startsWith(mergeFromMainCommitMessagePrefix);
 }
 
-export async function getLatestAssociatedBitriseComment(commitHashes: string[]): Promise<GithubComment | undefined> {
+export async function getLatestAssociatedBitriseComment(commitHashes: string[], pipelineId?: string): Promise<GithubComment | undefined> {
 
-  // Get all Bitrise comments
-  const comments = await getAllBitriseComments();
+  // Get all Bitrise comments for the specific pipeline (defaults to smoke pipeline for gate workflow)
+  const comments = await getAllBitriseComments(pipelineId || 'pr_smoke_e2e_pipeline');
 
   // Log all the comments and their commit sha
   comments.forEach((comment) => {

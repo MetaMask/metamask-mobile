@@ -44,18 +44,19 @@ async function main(): Promise<void> {
     // If the E2E tests should run, check the Bitrise test status
     if (shouldRun) {
 
-        // Get the Bitrise comment for the commit
-        const bitriseComment = await getLatestAssociatedBitriseComment(recentCommits);
+        // Get the Bitrise comment for the commit (smoke pipeline only for gate workflow)
+        const smokePipeline = 'pr_smoke_e2e_pipeline';
+        const bitriseComment = await getLatestAssociatedBitriseComment(recentCommits, smokePipeline);
 
         // If no Bitrise comment is found, set the status to not found
         if (!bitriseComment) {
-            console.log(`No Bitrise comment found for the recent commits.`);
-            core.setFailed(`No Bitrise comment found for the recent commits.`);
+            console.log(`No smoke E2E Bitrise comment found for the recent commits.`);
+            core.setFailed(`No smoke E2E Bitrise comment found for the recent commits.`);
             return;
         }
         
         const associatedCommit = bitriseComment.commitSha
-        const status = await getBitriseTestStatus(bitriseComment);
+        const status = await getBitriseTestStatus(bitriseComment, smokePipeline);
 
         switch (status) {
             case BitriseTestStatus.Pending:
