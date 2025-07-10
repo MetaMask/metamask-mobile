@@ -140,6 +140,18 @@ const BuildQuote = () => {
     }
   }, [selectedRegion?.currency]);
 
+  useEffect(() => {
+    if (selectedRegion && paymentMethods.length > 0) {
+      const isPaymentMethodSupported = paymentMethods.some(
+        (method) => method.id === paymentMethod.id,
+      );
+
+      if (!isPaymentMethodSupported) {
+        setPaymentMethod(paymentMethods[0]);
+      }
+    }
+  }, [selectedRegion, paymentMethods, paymentMethod]);
+
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
