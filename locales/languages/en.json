@@ -145,6 +145,15 @@
     "scan_step_3": "Click on “Sync with Mobile”",
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
     "your_wallet": "Your wallet was successfully reset",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
@@ -305,6 +314,12 @@
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
+    
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
@@ -364,7 +379,7 @@
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "New Password",
+    "password": "New password",
     "confirm_password": "Confirm password",
     "reset_button": "Reset password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -385,8 +400,18 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "password_updated": "Password updated",
-    "successfully_changed": "Your password has been successfully changed"
+    "password_updated": "New password saved",
+    "successfully_changed": "Your password has been successfully changed",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -477,7 +502,8 @@
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "kycFormsFetchError": "Failed to fetch KYC forms.",
+      "title": "Deposit"
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -520,7 +546,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
-      "validation_error": "Please enter a valid email address"
+      "validation_error": "Please enter a valid email address",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Enter six-digit code",
@@ -534,7 +561,8 @@
       "resend_code_error": "Error resending code.",
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
-      "contact_support": "Contact support"
+      "contact_support": "Contact support",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -565,11 +593,14 @@
       "postal_code": "Postal/Zip Code",
       "country": "Country"
     },
+    "privacy_section":{
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
+    },
     "kyc_processing": {
       "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
       "error_heading": "We were unable to verify your identity.",
       "error_description": "Try uploading your documents again and resubmit for verification.",
       "error_button": "Retry verification",
@@ -578,8 +609,7 @@
       "success_button": "Complete your order"
     },
     "provider_webview": {
-      "title": "Deposit",
-      "webview_received_error": "Webview received error: %{code}"
+      "title": "Deposit"
     },
     "kyc_webview": {
       "title": "Verifying your identity",
@@ -608,7 +638,9 @@
       "cancel_order_button": "Cancel order"
     },
     "order_details": {
-      "title": "Deposit Order"
+      "title": "Deposit Order",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
     },
     "bank_details": {
       "title": "{{paymentMethod}} bank transfer",
@@ -633,6 +665,9 @@
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
       "cancel_order_error": "We were unable to cancel your order. Please try again."
     },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
       "deposit_failed_description": "Verify your payment method and card support",
@@ -642,6 +677,11 @@
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
       "deposit_pending_description": "This should only take a few minutes..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -1315,9 +1355,6 @@
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
-    "ses_heading": "Code Lockdown",
-    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
-    "ses_link": "Learn more",
     "general_heading": "General",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
@@ -4322,13 +4359,13 @@
         "payToken": "Pay with any token, any time",
         "payTokenDescription": "Use the tokens you already have to cover network fees.",
         "reject": "No",
-        "requestFor": "Request for",
         "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?",
-        "upgradeBannerDescription": "Same address. Smarter features.",
-        "upgradeBannerTitle": "Switch to smart account"
+        "splashTitle": "Use smart account?"
       },
-      "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",
@@ -4429,6 +4466,55 @@
     "bridge_to_chain": "Bridge to {{chainName}}",
     "recipient": "Recipient"
   },
+  "account_status": {
+    "account_already_exists": "Account already exists",
+    "account_already_exists_description": "A wallet using {{accountName}} already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Account not found",
+    "account_not_found_description": "We couldn’t find a wallet for {{accountName}}. Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Protect your wallet",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "GOOGLE OR APPLE RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "This email and your MetaMask password will help you recover your account and recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "Backup and sync",
     "description": "Back up your accounts and sync settings.",
@@ -4481,7 +4567,7 @@
     "wallet_details": {
       "wallet_name": "Wallet Name",
       "balance": "Balance",
-      "add_account": "Add account",
+      "create_account": "Create account",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },

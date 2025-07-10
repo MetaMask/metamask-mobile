@@ -21,6 +21,7 @@ import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { selectIsBridgeEnabledSource, selectIsUnifiedSwapsEnabled, setBridgeViewMode } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import { trace, TraceName } from '../../../../../util/trace';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -110,6 +111,10 @@ export const useSwapBridgeNavigation = ({
           })
           .build(),
       );
+      trace({
+        name: TraceName.SwapViewLoaded,
+        startTime: Date.now(),
+      });
     },
     [
       navigation,

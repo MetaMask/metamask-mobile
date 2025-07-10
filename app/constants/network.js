@@ -9,6 +9,7 @@ export const SEPOLIA = 'sepolia';
 export const LINEA_GOERLI = 'linea-goerli';
 export const LINEA_SEPOLIA = 'linea-sepolia';
 export const LINEA_MAINNET = 'linea-mainnet';
+export const BASE_MAINNET = 'base-mainnet';
 export const MEGAETH_TESTNET = 'megaeth-testnet';
 export const MONAD_TESTNET = 'monad-testnet';
 

@@ -26,7 +26,8 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -126,11 +127,26 @@ const BasicInfo = (): JSX.Element => {
     }
   }, [navigation, validateFormData, formData, quote, kycUrl]);
 
-  const handleSubmitEditing = useCallback(
+  const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
     },
     [],
+  );
+
+  const handleFieldChange = useCallback(
+    (field: keyof BasicInfoFormData, nextAction?: () => void) =>
+      (value: string) => {
+        const currentValue = formData[field];
+        const isAutofill = value.length - currentValue.length > 1;
+
+        handleFormDataChange(field)(value);
+
+        if (isAutofill && nextAction) {
+          nextAction();
+        }
+      },
+    [formData, handleFormDataChange],
   );
 
   return (
@@ -151,7 +167,10 @@ const BasicInfo = (): JSX.Element => {
                 label={strings('deposit.basic_info.first_name')}
                 placeholder="John"
                 value={formData.firstName}
-                onChangeText={handleFormDataChange('firstName')}
+                onChangeText={handleFieldChange(
+                  'firstName',
+                  focusNextField(lastNameInputRef),
+                )}
                 error={errors.firstName}
                 returnKeyType="next"
                 testID="first-name-input"
@@ -160,14 +179,17 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="given-name"
                 textContentType="givenName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
+                onSubmitEditing={focusNextField(lastNameInputRef)}
               />
 
               <DepositTextField
                 label={strings('deposit.basic_info.last_name')}
                 placeholder="Smith"
                 value={formData.lastName}
-                onChangeText={handleFormDataChange('lastName')}
+                onChangeText={handleFieldChange(
+                  'lastName',
+                  focusNextField(phoneInputRef),
+                )}
                 error={errors.lastName}
                 returnKeyType="next"
                 testID="last-name-input"
@@ -176,27 +198,36 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="family-name"
                 textContentType="familyName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(phoneInputRef)}
+                onSubmitEditing={focusNextField(phoneInputRef)}
               />
             </View>
 
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
               value={formData.mobileNumber}
-              onChangeText={handleFormDataChange('mobileNumber')}
+              onChangeText={handleFieldChange(
+                'mobileNumber',
+                focusNextField(dateInputRef),
+              )}
               error={errors.mobileNumber}
               ref={phoneInputRef}
-              onSubmitEditing={handleSubmitEditing(dateInputRef)}
+              onSubmitEditing={focusNextField(dateInputRef)}
             />
 
             <DepositDateField
               label={strings('deposit.basic_info.date_of_birth')}
               value={formData.dob}
-              onChangeText={handleFormDataChange('dob')}
+              onChangeText={handleFieldChange('dob', () => {
+                if (selectedRegion?.isoCode === 'US') {
+                  focusNextField(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              })}
               error={errors.dob}
               onSubmitEditing={() => {
                 if (selectedRegion?.isoCode === 'US') {
-                  handleSubmitEditing(ssnInputRef)();
+                  focusNextField(ssnInputRef)();
                 } else {
                   Keyboard.dismiss();
                 }
@@ -211,7 +242,7 @@ const BasicInfo = (): JSX.Element => {
                 label={strings('deposit.basic_info.social_security_number')}
                 placeholder="XXX-XX-XXXX"
                 value={formData.ssn}
-                onChangeText={handleFormDataChange('ssn')}
+                onChangeText={handleFieldChange('ssn')}
                 error={errors.ssn}
                 returnKeyType="done"
                 testID="ssn-input"
@@ -223,7 +254,6 @@ const BasicInfo = (): JSX.Element => {
                 maxLength={11}
                 onSubmitEditing={() => {
                   Keyboard.dismiss();
-                  handleOnPressContinue();
                 }}
               />
             )}
@@ -233,6 +263,7 @@ const BasicInfo = (): JSX.Element => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection />
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}

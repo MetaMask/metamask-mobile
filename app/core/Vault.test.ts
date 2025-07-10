@@ -19,6 +19,7 @@ import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
 } from '../util/test/accountsControllerTestUtils';
+import ReduxService, { ReduxStore } from './redux';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -189,6 +190,9 @@ jest.mock('./Engine', () => ({
     AccountsController: {
       listMultichainAccounts: () => mockListMultichainAccounts(),
     },
+    SeedlessOnboardingController: {
+      changePassword: jest.fn(),
+    },
   },
   setSelectedAddress: jest.fn(),
 }));
@@ -219,6 +223,20 @@ jest.mock('./SnapKeyring/MultichainWalletSnapClient', () => ({
 describe('Vault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock ReduxService store
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: jest.fn().mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+            },
+          },
+        },
+      }),
+      dispatch: jest.fn(),
+    } as unknown as ReduxStore);
   });
   describe('restoreQRKeyring', () => {
     it('should restore QR keyring if it exists', async () => {
@@ -469,6 +487,110 @@ describe('Vault', () => {
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockHdAccount1.address,
       );
+    });
+
+    it('SeedlessOnboardingController.changePassword is called when vault exists', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const mockChangePassword = jest.fn().mockResolvedValue(undefined);
+
+      // Mock ReduxService to return a vault
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: jest.fn().mockReturnValue({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing-vault',
+              },
+            },
+          },
+        }),
+        dispatch: jest.fn(),
+      } as unknown as ReduxStore);
+
+      // Use the existing SeedlessOnboardingController mock from Engine.context
+      const mockChangePasswordSpy = jest
+        .spyOn(Engine.context.SeedlessOnboardingController, 'changePassword')
+        .mockImplementation(mockChangePassword);
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+      mockAddNewAccount.mockResolvedValue('');
+      mockRestoreQRKeyring.mockResolvedValue(null);
+      mockRestoreLedgerKeyring.mockResolvedValue(null);
+      mockWithKeyring.mockResolvedValue(null);
+      mockExportAccount.mockResolvedValue('');
+
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
+
+      // Verify that changePassword was called with the correct parameters
+      expect(mockChangePasswordSpy).toHaveBeenCalledWith(
+        newPassword,
+        'password',
+      );
+    });
+
+    it('SeedlessOnboardingController.changePassword called when password change fails', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const error = new Error('Password change failed');
+      const mockChangePassword = jest.fn().mockRejectedValue(error);
+
+      // Mock ReduxService to return a vault
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: jest.fn().mockReturnValue({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing-vault',
+              },
+            },
+          },
+        }),
+        dispatch: jest.fn(),
+      } as unknown as ReduxStore);
+
+      // Use the existing SeedlessOnboardingController mock from Engine.context
+      const mockChangePasswordSpy = jest
+        .spyOn(Engine.context.SeedlessOnboardingController, 'changePassword')
+        .mockImplementation(mockChangePassword);
+
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockListMultichainAccounts.mockReturnValue([mockHdAccount1]);
+      mockCreateNewVaultAndRestore.mockResolvedValue(null);
+      mockAddNewAccount.mockResolvedValue('');
+      mockRestoreQRKeyring.mockResolvedValue(null);
+      mockRestoreLedgerKeyring.mockResolvedValue(null);
+      mockWithKeyring.mockResolvedValue(null);
+      mockExportAccount.mockResolvedValue('');
+
+      // Expect the function to throw an error
+      await expect(
+        recreateVaultWithNewPassword(
+          'password',
+          newPassword,
+          mockHdAccount1.address,
+        ),
+      ).rejects.toThrow('Password change failed');
+
+      // Verify that changePassword was called
+      expect(mockChangePasswordSpy).toHaveBeenCalledWith(
+        newPassword,
+        'password',
+      );
+
+      // Verify that Logger.error was called with the error
+      expect(Logger.error).toHaveBeenCalledWith(error);
+
+      // Verify that createNewVaultAndRestore was called again to restore the original state
+      expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith('password', [
+        primarySeedPhrase,
+      ]);
     });
   });
 });
