@@ -342,7 +342,7 @@ export default class Utilities {
 
         if (attempt === 1) {
           const retryMessage = [
-            `⚠️  ${action}, failed (attempt ${attempt})`,
+            `⚠️  ${action} failed (attempt ${attempt})`,
             ` on element`,
             elemDescription ? `: ${elemDescription}` : '',
             `. Retrying... (timeout: ${timeout}ms)`,
