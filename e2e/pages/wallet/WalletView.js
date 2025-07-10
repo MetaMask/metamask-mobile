@@ -174,7 +174,9 @@ class WalletView {
   }
 
   async tapBellIcon() {
-    await Gestures.waitAndTap(this.notificationBellIcon);
+    await Gestures.waitAndTap(this.notificationBellIcon, {
+      elemDescription: 'Notification Bell Icon',
+    });
   }
 
   async tapNetworksButtonOnNavBar() {
