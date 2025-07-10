@@ -18,10 +18,6 @@ const createStyles = (vars: StyleSheetVars) => {
       alignItems: 'center',
       paddingVertical: 30,
     },
-    image: {
-      alignSelf: 'center',
-      width: isLargeDevice ? 300 : 220,
-    },
     largeFoxWrapper: {
       alignItems: 'center',
       paddingTop: isLargeDevice ? 30 : 20,

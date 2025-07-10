@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { Linking, useWindowDimensions, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
-import LottieView, { type AnimationObject } from 'lottie-react-native';
 
-import SolanaFoxAnimation from '../../../animations/Solana_Fox.json';
+import FoxVipers from '../../../images/Fox_vipers.svg';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
@@ -67,8 +66,6 @@ const SolanaNewFeatureContent = () => {
     Linking.openURL(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
   };
 
-  const lottieSrc = useMemo(() => SolanaFoxAnimation as AnimationObject, []);
-
   return (
     <View
       style={[
@@ -110,13 +107,7 @@ const SolanaNewFeatureContent = () => {
             </Text>
 
             <View style={styles.largeFoxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={lottieSrc}
-                resizeMode="contain"
-              />
+              <FoxVipers name="fox-vipers" height={350} />
             </View>
 
             <View style={styles.createWrapper}>
