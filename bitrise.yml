@@ -535,6 +535,7 @@ workflows:
   # Send a Slack message when workflow succeeds
   notify_success:
     before_run:
+      - prep_environment
       - _get_workflow_info
     steps:
       # Update pipeline-specific Bitrise comment in PR with success status
@@ -582,6 +583,7 @@ workflows:
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
+      - prep_environment
       - _get_workflow_info
     steps:
       # Update pipeline-specific Bitrise comment in PR with failure status
