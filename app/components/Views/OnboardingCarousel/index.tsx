@@ -89,10 +89,7 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       justifyContent: 'center',
       textAlign: 'center',
       paddingHorizontal: 24,
-      fontFamily: Platform.select({
-        android: 'MM Sans Regular',
-        ios: 'MMSans-Regular',
-      }),
+      fontFamily: 'MM Sans Regular',
     },
     subtitle: {
       textAlign: 'center',

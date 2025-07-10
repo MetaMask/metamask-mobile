@@ -180,7 +180,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -532,7 +532,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -884,7 +884,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -1236,7 +1236,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -1588,7 +1588,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -1940,7 +1940,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -2292,7 +2292,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -2644,7 +2644,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -2996,7 +2996,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -3348,7 +3348,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
@@ -3700,7 +3700,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "MMSans-Regular",
+                            "fontFamily": "MM Sans Regular",
                             "fontSize": 40,
                             "justifyContent": "center",
                             "letterSpacing": 0,
