@@ -750,6 +750,8 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
+    engine.push(createAsyncWalletMiddleware());
+
     engine.push(async (req, res, _next, end) => {
       const { provider } = NetworkController.getNetworkClientById(
         req.networkClientId,

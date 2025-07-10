@@ -516,6 +516,11 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
     "payment_modal": {
       "select_a_payment_method": "Select a Payment Method"
     },
@@ -581,7 +586,16 @@
       "date_of_birth": "Date of Birth",
       "social_security_number": "Social Security Number",
       "enter_phone_number": "Enter phone number",
-      "select_region": "Select region"
+      "select_region": "Select region",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "Enter your address",
@@ -592,7 +606,17 @@
       "state": "State/Region",
       "city": "City",
       "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "country": "Country",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
     },
     "privacy_section":{
       "transak": "Transak encrypts and stores this information.",
