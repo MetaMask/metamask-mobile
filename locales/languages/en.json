@@ -499,7 +499,8 @@
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "kycFormsFetchError": "Failed to fetch KYC forms.",
+      "title": "Deposit"
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -557,7 +558,8 @@
       "resend_code_error": "Error resending code.",
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
-      "contact_support": "Contact support"
+      "contact_support": "Contact support",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -604,8 +606,7 @@
       "success_button": "Complete your order"
     },
     "provider_webview": {
-      "title": "Deposit",
-      "webview_received_error": "Webview received error: %{code}"
+      "title": "Deposit"
     },
     "kyc_webview": {
       "title": "Verifying your identity",
@@ -660,6 +661,9 @@
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
       "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
     },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",

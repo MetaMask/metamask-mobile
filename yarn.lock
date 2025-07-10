@@ -1484,10 +1484,10 @@
   resolved "https://registry.yarnpkg.com/@contentful/rich-text-types/-/rich-text-types-16.8.5.tgz#832c8b428612f5181908bc1033c6ef9f48f1ce83"
   integrity sha512-q18RJuJCOuYveGiCIjE5xLCQc5lZ3L2Qgxrlg/H2YEobDFqdtmklazRi1XwEWaK3tMg6yVXBzKKkQfLB4qW14A==
 
-"@craftzdog/react-native-buffer@^6.0.5":
-  version "6.0.5"
-  resolved "https://registry.yarnpkg.com/@craftzdog/react-native-buffer/-/react-native-buffer-6.0.5.tgz#0d4fbe0dd104186d2806655e3c0d25cebdae91d3"
-  integrity sha512-Av+YqfwA9e7jhgI9GFE/gTpwl/H+dRRLmZyJPOpKTy107j9Oj7oXlm3/YiMNz+C/CEGqcKAOqnXDLs4OL6AAFw==
+"@craftzdog/react-native-buffer@^6.0.5", "@craftzdog/react-native-buffer@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@craftzdog/react-native-buffer/-/react-native-buffer-6.1.0.tgz#101d09d4eb5fa06b12453313b173d5036d96462f"
+  integrity sha512-lJXdjZ7fTllLbzDrwg/FrJLjQ5sBcAgwcqgAB6OPpXTHdCenEhHZblQpfmBLLe7/S7m0yKXL3kN3jpwOEkpjGg==
   dependencies:
     ieee754 "^1.2.1"
     react-native-quick-base64 "^2.0.5"
@@ -27584,17 +27584,15 @@ react-native-qrcode-svg@5.1.2:
     prop-types "^15.5.10"
     qrcode "^1.2.0"
 
-react-native-quick-base64@^2.0.5, react-native-quick-base64@^2.0.8:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/react-native-quick-base64/-/react-native-quick-base64-2.0.8.tgz#7a75ea8bd85ca3c5bb38a814c1d63e0688e19531"
-  integrity sha512-2kMlnLSy0qz4NA0KXMGugd3qNB5EAizxZ6ghEVNGIxAOlc9CGvC8miv35wgpFbSKeiaBRfcPfkdTM/5Erb/6SQ==
-  dependencies:
-    base64-js "^1.5.1"
+react-native-quick-base64@^2.0.5, react-native-quick-base64@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-quick-base64/-/react-native-quick-base64-2.2.0.tgz#fa417d1339a6df0bfa103b45b7e8a3dc73adc999"
+  integrity sha512-r7/BRsRl8QKEhS0JsHW6QX9+8LrC6NNWlwNnBnZ69h2kbcfABYsUILT71obrs9fqElEIMzuYSI5aHID955akyQ==
 
-react-native-quick-crypto@^0.7.15:
-  version "0.7.15"
-  resolved "https://registry.yarnpkg.com/react-native-quick-crypto/-/react-native-quick-crypto-0.7.15.tgz#127b6958d74fd05964817f9313c674af523f24ee"
-  integrity sha512-7xtGusZr/5OYeiSJ/o1v52LhwlKNhK3E2/orS4UxIpowxE5//CC6BBlRZvkbpWGlx9/fSKukIhhZRQmAVBEjag==
+react-native-quick-crypto@^0.7.13:
+  version "0.7.13"
+  resolved "https://registry.yarnpkg.com/react-native-quick-crypto/-/react-native-quick-crypto-0.7.13.tgz#e6ceacf84042cedcd0094f7cb72dbffb063c9b96"
+  integrity sha512-9EmXvvBW64gt/hUgeDUGl6KHjDVmtEdC/CbmlyLOTNXxvkOhNI/LhLK9ss6jDqRX3tYTM/DL0uk/+kXSTZQeKA==
   dependencies:
     "@craftzdog/react-native-buffer" "^6.0.5"
     events "^3.3.0"
