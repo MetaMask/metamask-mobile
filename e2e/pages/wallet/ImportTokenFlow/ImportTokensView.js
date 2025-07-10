@@ -1,5 +1,6 @@
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
+import TestHelpers from '../../../helpers';
 import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
@@ -44,8 +45,16 @@ class ImportTokensView {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
   }
 
+  get nextButtonByText() {
+    return Matchers.getElementByText('Next');
+  }
+
   async tapSymbolInput() {
     await Gestures.waitAndTap(this.symbolInput);
+  }
+
+  async typeSymbol(symbol) {
+    await Gestures.typeTextAndHideKeyboard(this.symbolInput, symbol);
   }
 
   async tapTokenSymbolText() {
@@ -58,6 +67,26 @@ class ImportTokensView {
 
   async typeTokenAddress(address) {
     await Gestures.typeTextAndHideKeyboard(this.addressInput, address);
+  }
+  async scrollDownOnAddressInput() {
+    await Gestures.swipe(this.addressInput, 'up', 'slow', 0.8);
+    await TestHelpers.delay(1000);
+  }
+
+  async replaceTextInFieldTokenAddress(address) {
+    await Gestures.replaceTextInField(this.addressInput, address);
+  }
+
+  async tapOnNextButtonWithFallback() {
+    try {
+      await Gestures.tapAtIndex(this.nextButtonByText);
+    } catch (error) {
+      try {
+        await Gestures.tapAtIndex(this.nextButtonByText, 1);
+      } catch (secondError) {
+        await Gestures.waitAndTap(this.nextButtonByText);
+      }
+    }
   }
 
   async switchToCustomTab() {
