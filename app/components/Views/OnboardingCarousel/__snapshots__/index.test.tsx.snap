@@ -26,6 +26,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -40,9 +41,9 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -111,6 +112,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -124,6 +127,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
+                            "paddingVertical": 16,
                             "textAlign": "center",
                           }
                         }
@@ -137,6 +141,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -148,6 +154,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -159,10 +166,12 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -176,7 +185,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -192,7 +201,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -228,6 +236,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -285,6 +294,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -299,9 +309,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -371,6 +380,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -385,9 +395,9 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -456,6 +466,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -469,7 +481,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -482,6 +493,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -493,6 +506,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -504,10 +518,12 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -521,7 +537,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -537,7 +553,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -573,6 +588,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -630,6 +646,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -644,9 +661,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -716,6 +732,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -730,9 +747,9 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -801,6 +818,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -814,7 +833,6 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -827,6 +845,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -838,6 +858,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -849,10 +870,12 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -866,7 +889,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -882,7 +905,6 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -918,6 +940,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -975,6 +998,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -989,9 +1013,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -1061,6 +1084,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -1075,9 +1099,9 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1146,6 +1170,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1159,7 +1185,6 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1172,6 +1197,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -1183,6 +1210,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -1194,10 +1222,12 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -1211,7 +1241,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -1227,7 +1257,6 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -1263,6 +1292,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -1320,6 +1350,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -1334,9 +1365,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -1406,6 +1436,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -1420,9 +1451,9 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1491,6 +1522,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1504,7 +1537,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1517,6 +1549,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -1528,6 +1562,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -1539,10 +1574,12 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -1556,7 +1593,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -1572,7 +1609,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -1608,6 +1644,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -1665,6 +1702,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -1679,9 +1717,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -1751,6 +1788,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -1765,9 +1803,9 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -1836,6 +1874,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -1849,7 +1889,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -1862,6 +1901,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -1873,6 +1914,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -1884,10 +1926,12 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -1901,7 +1945,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -1917,7 +1961,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -1953,6 +1996,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -2010,6 +2054,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -2024,9 +2069,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -2096,6 +2140,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -2110,9 +2155,9 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2181,6 +2226,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2194,7 +2241,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2207,6 +2253,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -2218,6 +2266,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -2229,10 +2278,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -2246,7 +2297,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -2262,7 +2313,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -2298,6 +2348,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -2355,6 +2406,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -2369,9 +2421,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -2441,6 +2492,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -2455,9 +2507,9 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2526,6 +2578,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2539,7 +2593,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2552,6 +2605,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -2563,6 +2618,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -2574,10 +2630,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -2591,7 +2649,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -2607,7 +2665,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -2643,6 +2700,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -2700,6 +2758,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -2714,9 +2773,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -2786,6 +2844,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -2800,9 +2859,9 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -2871,6 +2930,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -2884,7 +2945,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -2897,6 +2957,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -2908,6 +2970,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -2919,10 +2982,12 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -2936,7 +3001,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -2952,7 +3017,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -2988,6 +3052,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -3045,6 +3110,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           "flexDirection": "column",
           "paddingBottom": 40,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -3059,9 +3125,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -3131,6 +3196,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -3145,9 +3211,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3216,6 +3282,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -3229,7 +3297,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -3242,6 +3309,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -3253,6 +3322,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -3264,10 +3334,12 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -3281,7 +3353,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -3297,7 +3369,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -3333,6 +3404,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -3390,6 +3462,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -3404,9 +3477,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
@@ -3476,6 +3548,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
       contentContainerStyle={
         {
           "flexGrow": 1,
+          "justifyContent": "space-between",
         }
       }
       style={
@@ -3490,9 +3563,9 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
             {
               "flex": 1,
               "flexDirection": "column",
-              "justifyContent": "space-around",
-              "paddingVertical": 24,
-              "rowGap": 24,
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 0,
             }
           }
           testID="welcome-screen-carousel-container-id"
@@ -3561,6 +3634,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       style={
                         {
                           "marginHorizontal": 16,
+                          "minHeight": 30,
+                          "position": "relative",
                         }
                       }
                       testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
@@ -3574,7 +3649,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             "fontSize": 14,
                             "letterSpacing": 0,
                             "lineHeight": 22,
-                            "textAlign": "center",
                           }
                         }
                         testID="app-start-time-id"
@@ -3587,6 +3661,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                           "flex": 1,
                           "flexDirection": "row",
                           "justifyContent": "center",
+                          "minHeight": 200,
+                          "paddingHorizontal": 16,
                         }
                       }
                     >
@@ -3598,6 +3674,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             {},
                             {
                               "height": 750,
+                              "resizeMode": "contain",
                               "width": 600,
                             },
                           ]
@@ -3609,10 +3686,12 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       style={
                         {
                           "alignItems": "center",
-                          "flex": 1,
+                          "flex": 2,
                           "flexDirection": "column",
+                          "gap": 16,
                           "justifyContent": "center",
-                          "rowGap": 24,
+                          "paddingHorizontal": 16,
+                          "paddingVertical": 16,
                         }
                       }
                     >
@@ -3626,7 +3705,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
-                            "paddingHorizontal": 40,
+                            "paddingHorizontal": 24,
                             "textAlign": "center",
                           }
                         }
@@ -3642,7 +3721,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             "fontSize": 16,
                             "letterSpacing": 0,
                             "lineHeight": 24,
-                            "paddingHorizontal": 16,
                             "textAlign": "center",
                           }
                         }
@@ -3678,6 +3756,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               {
                 "alignSelf": "center",
                 "flexDirection": "row",
+                "paddingTop": 16,
               }
             }
           >
@@ -3735,6 +3814,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           "flexDirection": "column",
           "paddingBottom": 20,
           "paddingHorizontal": 16,
+          "paddingTop": 16,
         }
       }
     >
@@ -3749,9 +3829,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#1C1E21",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
-            "color": "rgba(255, 255, 255, 0.7)",
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
