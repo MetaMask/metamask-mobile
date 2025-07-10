@@ -956,13 +956,13 @@ describe('Authentication', () => {
       expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         mockAuthData,
-        mockMnemonic1,
+        'mnemonic-1',
         false,
       );
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: mockMnemonic2,
+        mnemonic: 'mnemonic-2',
         numberOfAccounts: 1,
       });
       expect(
