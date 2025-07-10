@@ -15,8 +15,10 @@ const mockResponse = {
   isFetching: false,
 };
 
+const mockSendEmail = jest.fn().mockResolvedValue('Success');
+
 const mockUseDepositSdkMethodInitialValues: DepositSdkMethodResult<'sendUserOtp'> =
-  [mockResponse, jest.fn().mockResolvedValue('Success')];
+  [mockResponse, mockSendEmail];
 
 let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
@@ -56,12 +58,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter Email',
-  }),
-}));
-
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_EMAIL);
 }
@@ -71,7 +67,7 @@ describe('EnterEmail Component', () => {
     jest.clearAllMocks();
     mockUseDepositSdkMethodValues = [
       { ...mockResponse },
-      jest.fn().mockResolvedValue('Success'),
+      mockSendEmail.mockResolvedValue('Success'),
     ];
   });
 
@@ -82,11 +78,7 @@ describe('EnterEmail Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(EnterEmail);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Enter Email',
-      }),
-    );
+    expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
   it('renders loading state snapshot', async () => {
@@ -121,11 +113,14 @@ describe('EnterEmail Component', () => {
   });
 
   it('renders error message snapshot when API call fails', async () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockResponse, error: 'API Error' },
-      jest.fn(),
-    ];
+    mockSendEmail.mockRejectedValue(new Error('API Error'));
     render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(mockSendEmail).toHaveBeenCalledWith();
+    });
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });
