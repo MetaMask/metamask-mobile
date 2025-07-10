@@ -78,7 +78,7 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   },
   '0x144': {
     symbol: 'USDT',
-    name: 'USD Coin',
+    name: 'Tether USD',
     address: '0x493257fd37edb34451f62edf8d2a0c418852ba4c',
     decimals: 6,
     image:
