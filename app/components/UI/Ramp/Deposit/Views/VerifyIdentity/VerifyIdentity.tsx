@@ -3,7 +3,6 @@ import { Image, TouchableOpacity } from 'react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './VerifyIdentity.styles';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -16,6 +15,12 @@ import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
 import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 export interface VerifyIdentityParams {
   quote: BuyQuote;
@@ -66,15 +71,15 @@ const VerifyIdentity = () => {
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleSubmit}
-            accessibilityRole="button"
-            accessible
-          >
-            {strings('deposit.verify_identity.button')}
-          </StyledButton>
+            label={strings('deposit.verify_identity.button')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

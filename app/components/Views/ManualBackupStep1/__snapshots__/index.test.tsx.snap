@@ -276,7 +276,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#00000066"
+                      color="#3f434a66"
                       fill="currentColor"
                       height={32}
                       name="EyeSlash"

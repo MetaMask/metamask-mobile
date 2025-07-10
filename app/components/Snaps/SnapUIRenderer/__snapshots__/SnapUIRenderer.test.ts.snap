@@ -121,14 +121,15 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1146,14 +1147,15 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1192,6 +1194,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1396,14 +1399,15 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -1442,6 +1446,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -2065,14 +2070,15 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -2111,6 +2117,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

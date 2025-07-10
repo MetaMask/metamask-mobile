@@ -973,7 +973,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1523,6 +1523,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2009,7 +2010,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3112,7 +3113,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4930,7 +4931,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -5630,6 +5631,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -6116,7 +6118,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6870,7 +6872,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -7624,7 +7626,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -8378,7 +8380,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",

@@ -151,14 +151,18 @@ describe('AccountStatus', () => {
       it('tracks WALLET_IMPORT_STARTED event when type="found"', () => {
         const mockBuild = jest.fn();
         const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(mockCreateEventBuilder);
+        (
+          MetricsEventBuilder.createEventBuilder as jest.Mock
+        ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = renderWithProvider(<AccountStatus type="found" />);
         const primaryButton = getByText('Log in');
 
         fireEvent.press(primaryButton);
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_IMPORT_STARTED,
+        );
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });
@@ -166,14 +170,18 @@ describe('AccountStatus', () => {
       it('tracks WALLET_SETUP_STARTED event when type="not_exist"', () => {
         const mockBuild = jest.fn();
         const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(mockCreateEventBuilder);
+        (
+          MetricsEventBuilder.createEventBuilder as jest.Mock
+        ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = renderWithProvider(<AccountStatus type="not_exist" />);
         const primaryButton = getByText('Create a new wallet');
 
         fireEvent.press(primaryButton);
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.WALLET_SETUP_STARTED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_SETUP_STARTED,
+        );
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });

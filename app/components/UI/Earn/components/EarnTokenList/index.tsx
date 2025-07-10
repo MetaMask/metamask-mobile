@@ -48,6 +48,7 @@ import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
 import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
+import { trace, TraceName } from '../../../../../util/trace';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -127,6 +128,7 @@ const EarnTokenList = () => {
   );
 
   const redirectToDepositScreen = async (token: TokenI) => {
+    trace({ name: TraceName.EarnDepositScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -136,6 +138,7 @@ const EarnTokenList = () => {
   };
 
   const redirectToWithdrawalScreen = (token: TokenI) => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.UNSTAKE,

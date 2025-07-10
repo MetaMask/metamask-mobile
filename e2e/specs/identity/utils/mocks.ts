@@ -12,15 +12,36 @@ interface MockResponse {
   response: unknown;
 }
 
-export async function mockIdentityServices(server: Mockttp) {
-  // Auth
+/**
+ * Sets up authentication service mocks (nonce, login, access token)
+ * @param server - The Mockttp server instance
+ */
+export async function mockAuthServices(server: Mockttp) {
   await mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   await mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
   await mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
+}
 
-  // Storage
-  const userStorageMockttpControllerInstance =
-    new UserStorageMockttpController();
+/**
+ * Creates a new UserStorageMockttpController instance
+ * @returns A new controller instance for user storage mocking
+ */
+export function createUserStorageController(): UserStorageMockttpController {
+  return new UserStorageMockttpController();
+}
+
+/**
+ * Sets up complete identity services (auth + storage) with default storage features
+ * This is the original function, kept for backward compatibility
+ * @param server - The Mockttp server instance
+ * @returns An object containing the user storage controller instance
+ */
+export async function mockIdentityServices(server: Mockttp) {
+  // Set up auth services
+  await mockAuthServices(server);
+
+  // Create and set up storage controller with default features
+  const userStorageMockttpControllerInstance = createUserStorageController();
 
   await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.accounts,

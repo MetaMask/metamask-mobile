@@ -4,7 +4,6 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -22,14 +21,22 @@ import {
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
   email: string;
+  paymentMethodId: string;
+  cryptoCurrencyChainId: string;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -59,8 +66,15 @@ const ResendButton: FC<{
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { setAuthToken } = useDepositSDK();
-  const { quote, email } = useParams<OtpCodeParams>();
+  const { setAuthToken, selectedWalletAddress } = useDepositSDK();
+  const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
+    useParams<OtpCodeParams>();
+
+  const { routeAfterAuthentication } = useDepositRouting({
+    selectedWalletAddress,
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport' | 'resendError'
   >('resend');
@@ -108,17 +122,19 @@ const OtpCode = () => {
         try {
           await setAuthToken(response);
 
-          // TODO: We should check KYC status here and navigate accordingly
-
-          navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
+          // Use the shared routing logic to check KYC status and navigate accordingly
+          await routeAfterAuthentication(quote);
         } catch (e) {
-          console.error('Failed to store auth token:', e);
+          console.error(
+            'Failed to store auth token or route after authentication:',
+            e,
+          );
         }
       }
     };
 
     saveTokenAndNavigate();
-  }, [response, setAuthToken, navigation, quote]);
+  }, [response, setAuthToken, navigation, quote, routeAfterAuthentication]);
 
   useEffect(() => {
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
@@ -225,18 +241,18 @@ const OtpCode = () => {
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            size={ButtonSize.Lg}
             onPress={handleSubmit}
-            accessibilityRole="button"
-            accessible
-            disabled={loading || value.length !== CELL_COUNT}
-          >
-            {loading
-              ? strings('deposit.otp_code.loading')
-              : strings('deposit.otp_code.submit_button')}
-          </StyledButton>
+            label={strings('deposit.otp_code.submit_button')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            loading={loading}
+            isDisabled={loading || value.length !== CELL_COUNT}
+            testID="otp-code-submit-button"
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

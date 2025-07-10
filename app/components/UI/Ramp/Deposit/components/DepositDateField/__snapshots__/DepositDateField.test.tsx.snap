@@ -326,7 +326,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "flex": 1,
           "justifyContent": "flex-end",
         }

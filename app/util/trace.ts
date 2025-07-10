@@ -95,6 +95,14 @@ export enum TraceName {
   OnboardingOAuthProviderLoginError = 'Onboarding - OAuth Provider Login Error',
   OnboardingOAuthBYOAServerGetAuthTokensError = 'Onboarding - OAuth BYOA Server Get Auth Tokens Error',
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
+  SwapViewLoaded = 'Swap View Loaded',
+  BridgeBalancesUpdated = 'Bridge Balances Updated',
+  // Earn
+  EarnDepositScreen = 'Earn Deposit Screen',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
+  EarnEarnings = 'Earn Earnings',
+  EarnFaq = 'Earn FAQ',
+  EarnFaqApys = 'Earn FAQ APYs',
 }
 
 export enum TraceOperation {

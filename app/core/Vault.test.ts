@@ -19,7 +19,7 @@ import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
 } from '../util/test/accountsControllerTestUtils';
-import ReduxService from './redux/ReduxService';
+import ReduxService from './redux';
 import { RootState } from '../reducers';
 import {
   bufferedEndTrace,
@@ -196,6 +196,9 @@ jest.mock('./Engine', () => ({
     },
     AccountsController: {
       listMultichainAccounts: () => mockListMultichainAccounts(),
+    },
+    SeedlessOnboardingController: {
+      changePassword: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),

@@ -4,6 +4,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { ApproveComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApproveTransactionData } from '../../../hooks/useApproveTransactionData';
 import { TokenStandard } from '../../../types/token';
@@ -21,10 +22,13 @@ const NFTInfoRow: React.FC<NFTInfoRowProps> = ({ transactionMetadata }) => {
   return (
     <InfoRow label={strings('confirm.nfts')}>
       <View style={styles.amountAndAddressContainer}>
-        <Pill text={strings('confirm.all')} />
+        <Pill
+          testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+          text={strings('confirm.all')}
+        />
         <Address
-          address={transactionMetadata?.txParams?.to ?? ''}
-          chainId={transactionMetadata?.chainId ?? ''}
+          address={transactionMetadata?.txParams?.to as string}
+          chainId={transactionMetadata.chainId}
         />
       </View>
     </InfoRow>
@@ -41,10 +45,7 @@ const PermissionFromInfoRow: React.FC<PermissionFromInfoRowProps> = ({
   transactionMetadata,
 }) => (
   <InfoRow label={strings('confirm.permission_from')}>
-    <Address
-      address={spender ?? ''}
-      chainId={transactionMetadata?.chainId ?? ''}
-    />
+    <Address address={spender ?? ''} chainId={transactionMetadata.chainId} />
   </InfoRow>
 );
 interface SpenderInfoRowProps {
@@ -57,16 +58,14 @@ const SpenderInfoRow: React.FC<SpenderInfoRowProps> = ({
   transactionMetadata,
 }) => (
   <InfoRow label={strings('confirm.spender')}>
-    <Address
-      address={spender ?? ''}
-      chainId={transactionMetadata?.chainId ?? ''}
-    />
+    <Address address={spender ?? ''} chainId={transactionMetadata.chainId} />
   </InfoRow>
 );
 
 export const SetApprovalForAll = () => {
   const { tokenStandard, isRevoke, spender } = useApproveTransactionData();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const transactionMetadata =
+    useTransactionMetadataRequest() as TransactionMeta;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
   const isERC1155 = tokenStandard === TokenStandard.ERC1155;
   const shouldShow = isERC721 || isERC1155;
@@ -78,12 +77,10 @@ export const SetApprovalForAll = () => {
   if (isRevoke) {
     return (
       <>
-        <NFTInfoRow
-          transactionMetadata={transactionMetadata as TransactionMeta}
-        />
+        <NFTInfoRow transactionMetadata={transactionMetadata} />
         <PermissionFromInfoRow
           spender={spender}
-          transactionMetadata={transactionMetadata as TransactionMeta}
+          transactionMetadata={transactionMetadata}
         />
       </>
     );
@@ -91,12 +88,10 @@ export const SetApprovalForAll = () => {
 
   return (
     <>
-      <NFTInfoRow
-        transactionMetadata={transactionMetadata as TransactionMeta}
-      />
+      <NFTInfoRow transactionMetadata={transactionMetadata} />
       <SpenderInfoRow
         spender={spender}
-        transactionMetadata={transactionMetadata as TransactionMeta}
+        transactionMetadata={transactionMetadata}
       />
     </>
   );

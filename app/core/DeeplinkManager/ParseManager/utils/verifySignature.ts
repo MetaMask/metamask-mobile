@@ -3,19 +3,21 @@ import {
   CryptoKey,
   SubtleAlgorithm,
 } from 'react-native-quick-crypto/lib/typescript/src/keys';
+import { toByteArray } from 'react-native-quick-base64'; // Import the Base64 decoding function
 import AppConstants from '../../../../core/AppConstants';
 
-function base64StringToBytes(unpaddedBase64: string) {
-  let standardB64 = unpaddedBase64.replace(/-/gu, '+').replace(/_/gu, '/');
-  const pad = standardB64.length % 4;
-  if (pad === 2) {
-    standardB64 += '==';
-  } else if (pad === 3) {
-    standardB64 += '=';
-  }
+function normalizeBase64(base64String: string): string {
+  // Normalize URL-safe Base64
+  const standardBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
 
-  const buffer = Buffer.from(standardB64, 'base64');
-  return new Uint8Array(buffer);
+  // Add padding if necessary
+  const pad = standardBase64.length % 4;
+  if (pad === 2) {
+    return standardBase64 + '==';
+  } else if (pad === 3) {
+    return standardBase64 + '=';
+  }
+  return standardBase64;
 }
 
 function getKeyData() {
@@ -92,7 +94,9 @@ export const verifyDeeplinkSignature = async (
   }
 
   try {
-    const signature = base64StringToBytes(signatureStr);
+    // Normalize and decode the Base64 string
+    const normalizedBase64 = normalizeBase64(signatureStr);
+    const signature = toByteArray(normalizedBase64);
 
     if (signature.length !== 64) {
       return INVALID;

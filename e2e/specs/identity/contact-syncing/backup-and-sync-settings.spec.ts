@@ -12,7 +12,7 @@ import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
@@ -24,18 +24,17 @@ import { arrangeTestUtils } from '../utils/helpers';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
-  SmokeWalletPlatform('Contact syncing - backup and sync settings'),
+  SmokeIdentity('Contact syncing - backup and sync settings'),
   () => {
     const NEW_CONTACT_NAME = 'New Test Contact';
     const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8007;
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const contactsSyncMockResponse = await getContactsSyncMockResponse();
 
@@ -55,7 +54,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
     });
 
@@ -107,7 +106,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
 
       await importWalletWithRecoveryPhrase({

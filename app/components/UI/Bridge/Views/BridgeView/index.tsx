@@ -75,6 +75,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
+import { endTrace, TraceName } from '../../../../../util/trace.ts';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -137,6 +138,11 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.token;
   useInitialSourceToken(initialSourceToken);
   useInitialDestToken(initialSourceToken);
+
+  // End trace when component mounts
+  useEffect(() => {
+    endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
+  }, []);
 
   // Set slippage to undefined for Solana swaps
   useEffect(() => {

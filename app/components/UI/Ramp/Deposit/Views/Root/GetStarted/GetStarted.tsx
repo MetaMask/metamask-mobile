@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../../StyledButton';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
 import styleSheet from './GetStarted.styles';
@@ -12,7 +11,16 @@ import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../../Navbar';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import getStartedIcon from '../../../assets/deposit-get-started-illustration.png';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
+
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 
 const bulletPoints = [
   {
@@ -60,27 +68,23 @@ const GetStarted: React.FC = () => {
               <Image source={getStartedIcon} style={styles.getStartedImage} />
             </View>
           </ScreenLayout.Content>
+
           <ScreenLayout.Content>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings('deposit.get_started.title')}
             </Text>
-          </ScreenLayout.Content>
-          <ScreenLayout.Content>
             {bulletPoints.map((bulletPoint, index) => (
               <View key={index} style={styles.bulletPointContainer}>
-                <IonicIcon
-                  size={24}
-                  name="checkmark"
-                  style={styles.checkIcon}
+                <Icon
+                  name={IconName.Check}
+                  color={theme.colors.success.default}
+                  size={IconSize.Lg}
                 />
                 <View style={styles.bulletPointContent}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={styles.bulletPointTitle}
-                  >
+                  <Text variant={TextVariant.BodyMDBold}>
                     {bulletPoint.title}
                   </Text>
-                  <Text variant={TextVariant.BodySM}>
+                  <Text variant={TextVariant.BodyMD}>
                     {bulletPoint.description}
                   </Text>
                 </View>
@@ -92,9 +96,13 @@ const GetStarted: React.FC = () => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <StyledButton type={'confirm'} onPress={handleOnPress}>
-            {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
-          </StyledButton>
+          <Button
+            size={ButtonSize.Lg}
+            onPress={handleOnPress}
+            label={strings('fiat_on_ramp_aggregator.onboarding.get_started')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

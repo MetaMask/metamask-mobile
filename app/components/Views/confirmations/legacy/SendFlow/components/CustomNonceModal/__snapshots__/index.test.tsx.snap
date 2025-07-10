@@ -7,7 +7,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={600}
   avoidKeyboard={false}
-  backdropColor="#00000066"
+  backdropColor="#3f434a66"
   backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
@@ -46,7 +46,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
   }
   swipeDirection="down"
   swipeThreshold={100}
-  useNativeDriver={false}
+  useNativeDriver={true}
 >
   <KeyboardAwareScrollView
     contentContainerStyle={

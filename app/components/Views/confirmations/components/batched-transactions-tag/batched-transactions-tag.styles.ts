@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.alternative,
       borderColor: theme.colors.border.default,
       borderWidth: 1,
-      marginTop: 16,
+      marginTop: 8,
     },
   });
 };

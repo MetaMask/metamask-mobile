@@ -529,6 +529,8 @@ export function deriveSentryEnvironment(
         return 'main-beta';
       case 'rc':
         return 'main-rc';
+      case 'exp':
+        return 'main-exp';
       default:
         return metamaskEnvironment;
     }

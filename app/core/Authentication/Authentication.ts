@@ -570,17 +570,18 @@ class AuthenticationService {
 
   createAndBackupSeedPhrase = async (password: string): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
-    // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
+    // submit password to unlock keyring ?
+    await KeyringController.submitPassword(password);
     try {
-      const keyring = KeyringController.state.keyrings.at(0);
-      if (!keyring) {
+      const keyringId = KeyringController.state.keyrings[0]?.metadata.id;
+      if (!keyringId) {
         throw new Error('No keyring metadata found');
       }
-      const keyringMetadata = keyring.metadata;
+
       const seedPhrase = await KeyringController.exportSeedPhrase(
         password,
-        keyringMetadata.id,
+        keyringId,
       );
 
       Logger.log(
@@ -597,7 +598,7 @@ class AuthenticationService {
         await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
           password,
           seedPhrase,
-          keyringMetadata.id,
+          keyringId,
         );
         createKeyAndBackupSrpSuccess = true;
       } catch (error) {
@@ -630,11 +631,6 @@ class AuthenticationService {
       SeedlessOnboardingController.clearState();
       throw error;
     }
-
-    Logger.log(
-      'SeedlessOnboardingController state',
-      SeedlessOnboardingController.state,
-    );
   };
 
   rehydrateSeedPhrase = async (

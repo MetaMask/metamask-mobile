@@ -1,5 +1,5 @@
 import React, { Fragment, useMemo } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
+import { FlatList, ImageSourcePropType, View } from 'react-native';
 import { PositionTypes } from './position-types';
 import styleSheet from './DeFiProtocolPositionGroups.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
@@ -73,32 +73,36 @@ const DeFiProtocolPositionGroups: React.FC<
 
   return (
     <View style={styles.protocolDetailsPositionsWrapper}>
-      {positionGroups.map((positionGroup) => (
-        <Fragment key={positionGroup.positionType}>
-          {positionGroup.positions.map((position, index, positions) => {
-            const isLast = index === positions.length - 1;
-            return (
-              <Fragment
-                key={`${positionGroup.positionType}-${position.protocolTokenAddress}`}
-              >
-                <DeFiProtocolPositionGroupTokens
-                  positionType={positionGroup.positionType}
-                  tokens={position.underlyings}
-                  networkIconAvatar={networkIconAvatar}
-                  privacyMode={privacyMode}
-                />
-                <DeFiProtocolPositionGroupTokens
-                  positionType={'reward'}
-                  tokens={position.underlyingRewards}
-                  networkIconAvatar={networkIconAvatar}
-                  privacyMode={privacyMode}
-                />
-                {!isLast && <Summary.Separator />}
-              </Fragment>
-            );
-          })}
-        </Fragment>
-      ))}
+      <FlatList
+        data={positionGroups}
+        renderItem={({ item: positionGroup }) => (
+          <Fragment key={positionGroup.positionType}>
+            {positionGroup.positions.map((position, index, positions) => {
+              const isLast = index === positions.length - 1;
+              return (
+                <Fragment
+                  key={`${positionGroup.positionType}-${position.protocolTokenAddress}`}
+                >
+                  <DeFiProtocolPositionGroupTokens
+                    positionType={positionGroup.positionType}
+                    tokens={position.underlyings}
+                    networkIconAvatar={networkIconAvatar}
+                    privacyMode={privacyMode}
+                  />
+                  <DeFiProtocolPositionGroupTokens
+                    positionType={'reward'}
+                    tokens={position.underlyingRewards}
+                    networkIconAvatar={networkIconAvatar}
+                    privacyMode={privacyMode}
+                  />
+                  {!isLast && <Summary.Separator />}
+                </Fragment>
+              );
+            })}
+          </Fragment>
+        )}
+        keyExtractor={(positionGroup) => `${positionGroup.positionType}`}
+      />
     </View>
   );
 };

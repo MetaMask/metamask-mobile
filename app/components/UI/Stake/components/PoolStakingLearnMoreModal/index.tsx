@@ -39,6 +39,8 @@ import {
 } from '../../utils/value';
 import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -128,6 +130,17 @@ const PoolStakingLearnMoreModal = () => {
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
+
+  useEffect(() => {
+    trace({ name: TraceName.EarnFaqApys, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+    endTrace({ name: TraceName.EarnFaq });
+  }, []);
+
+  useEffect(() => {
+    if (Boolean(reversedVaultApys.length) && activeTimespanApyAverage) {
+      endTrace({ name: TraceName.EarnFaqApys });
+    }
+  }, [activeTimespanApyAverage, reversedVaultApys]);
 
   const redirectToLearnMore = () => {
     navigate('Webview', {

@@ -68,6 +68,8 @@ import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
+import { trace, TraceName } from '../../../../../util/trace';
+import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -170,11 +172,14 @@ const EarnInputView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  
+  useEndTraceOnMount(TraceName.EarnDepositScreen);
 
   const navigateToLearnMoreModal = () => {
     const tokenExperience = earnToken?.experience?.type;
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -182,6 +187,7 @@ const EarnInputView = () => {
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: earnToken },
