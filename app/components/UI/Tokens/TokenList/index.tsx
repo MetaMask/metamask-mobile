@@ -28,10 +28,8 @@ export interface FlashListAssetKey {
 interface TokenListProps {
   tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
-  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
-  goToAddToken: () => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
 }
@@ -39,10 +37,8 @@ interface TokenListProps {
 const TokenListComponent = ({
   tokenKeys,
   refreshing,
-  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
-  goToAddToken,
   showPercentageChange = true,
   setShowScamWarningModal,
 }: TokenListProps) => {
@@ -112,12 +108,7 @@ const TokenListComponent = ({
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}
-      ListFooterComponent={
-        <TokenListFooter
-          isAddTokenEnabled={isAddTokenEnabled}
-          goToAddToken={goToAddToken}
-        />
-      }
+      ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl
           colors={[colors.primary.default]}

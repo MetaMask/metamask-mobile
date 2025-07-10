@@ -35,15 +35,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { RootState } from '../../../../../reducers';
 ///: END:ONLY_INCLUDE_IF
 
-interface TokenListFooterProps {
-  isAddTokenEnabled?: boolean;
-  goToAddToken?: () => void;
-}
-
-export const TokenListFooter = ({
-  isAddTokenEnabled: _isAddTokenEnabled,
-  goToAddToken: _goToAddToken,
-}: TokenListFooterProps = {}) => {
+export const TokenListFooter = () => {
   const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { colors } = useTheme();
