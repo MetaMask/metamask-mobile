@@ -367,55 +367,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const handleOAuthLoginSuccess = async (onboardingWizard: string | null) => {
-    track(MetaMetricsEvents.REHYDRATION_PASSWORD_COMPLETED, {
-      account_type: 'social',
-      biometrics: biometryChoice,
-      failed_attempts: rehydrationFailedAttempts,
-    });
-
-    if (onboardingWizard) {
-      setOnboardingWizardStep(1);
-    }
-    if (passwordLoginAttemptTraceCtxRef.current) {
-      bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-      passwordLoginAttemptTraceCtxRef.current = null;
-    }
-    bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
-    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
-
-    if (isMetricsEnabled()) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-    } else {
-      navigation.navigate('OnboardingRootNav', {
-        screen: 'OnboardingNav',
-        params: {
-          screen: 'OptinMetrics',
-          params: {
-            onContinue: () => {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-              });
-            },
-          },
-        },
-      });
-    }
-  };
-
-  const handleRegularLogin = async (onboardingWizard: string | null) => {
-    if (onboardingWizard) {
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } else {
-      setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    }
-  };
-
   const handlePasswordError = (loginErrorMessage: string, newFailedAttempts: number) => {
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
