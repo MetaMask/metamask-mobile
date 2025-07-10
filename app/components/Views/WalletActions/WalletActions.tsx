@@ -61,6 +61,7 @@ import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -86,6 +87,7 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
     useSwapBridgeNavigation({
       location: SwapBridgeNavigationLocation.TabBar,
@@ -413,7 +415,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && (
+        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && !isUnifiedSwapsEnabled && (
           <WalletAction
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
