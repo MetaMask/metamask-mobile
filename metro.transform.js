@@ -61,6 +61,8 @@ function getBuildTypeFeatures() {
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
     case 'qa':
+    // TODO: Remove uppercase QA once we've consolidated build types
+    case 'QA':
     case 'main':
       // TODO: Refactor this once we've abstracted environment away from build type
       if (envType === 'exp') {
