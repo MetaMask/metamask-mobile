@@ -111,7 +111,7 @@ function StateSelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [handleOnStatePressCallback, selectedState, styles.state, styles.stateCode],
+    [handleOnStatePressCallback, selectedState, styles.state],
   );
 
   const renderEmptyList = useCallback(

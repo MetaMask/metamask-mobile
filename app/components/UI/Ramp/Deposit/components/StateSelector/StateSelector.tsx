@@ -27,6 +27,7 @@ interface StateSelectorProps {
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
   defaultValue?: string;
+  testID?: string;
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -82,6 +83,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   error,
   containerStyle,
   defaultValue,
+  testID,
 }) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -112,6 +114,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
           ]}
           onPress={handlePress}
           activeOpacity={0.7}
+          testID={testID}
         >
           <Text
             style={

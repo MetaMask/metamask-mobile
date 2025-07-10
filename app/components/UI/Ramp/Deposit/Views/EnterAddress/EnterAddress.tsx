@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -58,6 +58,8 @@ const EnterAddress = (): JSX.Element => {
     kycUrl,
   } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
@@ -78,18 +80,24 @@ const EnterAddress = (): JSX.Element => {
     const errors: Record<string, string> = {};
 
     if (!data.addressLine1.trim()) {
-      errors.addressLine1 = strings('deposit.enter_address.address_line_1_required');
+      errors.addressLine1 = strings(
+        'deposit.enter_address.address_line_1_required',
+      );
     } else {
       const addressLine1Regex = /^(?!\s+$)(?=.*[a-zA-Z]).{3,50}$/;
       if (!addressLine1Regex.test(data.addressLine1)) {
-        errors.addressLine1 = strings('deposit.enter_address.address_line_1_invalid');
+        errors.addressLine1 = strings(
+          'deposit.enter_address.address_line_1_invalid',
+        );
       }
     }
 
     if (data.addressLine2.trim()) {
       const addressLine2Regex = /^(?=.*[a-zA-Z]).{0,50}$|^\s*$/;
       if (!addressLine2Regex.test(data.addressLine2)) {
-        errors.addressLine2 = strings('deposit.enter_address.address_line_2_invalid');
+        errors.addressLine2 = strings(
+          'deposit.enter_address.address_line_2_invalid',
+        );
       }
     }
 
@@ -148,6 +156,7 @@ const EnterAddress = (): JSX.Element => {
   const handleFieldChange = useCallback(
     (field: keyof AddressFormData, nextAction?: () => void) =>
       (value: string) => {
+        setError(null);
         const currentValue = formData[field];
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -160,25 +169,26 @@ const EnterAddress = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  const [{ error: kycError, isFetching: kycIsFetching }, postKycForm] =
-    useDepositSdkMethod({
-      method: 'patchUser',
-      onMount: false,
-    });
+  const [, postKycForm] = useDepositSdkMethod({
+    method: 'patchUser',
+    onMount: false,
+    throws: true,
+  });
 
-  const [
-    { error: purposeError, isFetching: purposeIsFetching },
-    submitPurpose,
-  ] = useDepositSdkMethod(
+  const [, submitPurpose] = useDepositSdkMethod(
     {
       method: 'submitPurposeOfUsageForm',
       onMount: false,
+      throws: true,
     },
     ['Buying/selling crypto for investments'],
   );
 
-  const [{ error: ssnError, isFetching: ssnIsFetching }, submitSsnDetails] =
-    useDepositSdkMethod({ method: 'submitSsnDetails', onMount: false });
+  const [, submitSsnDetails] = useDepositSdkMethod({
+    method: 'submitSsnDetails',
+    onMount: false,
+    throws: true,
+  });
 
   useEffect(() => {
     navigation.setOptions(
@@ -194,59 +204,44 @@ const EnterAddress = (): JSX.Element => {
     if (!validateFormData()) return;
 
     try {
+      setLoading(true);
       const combinedFormData = {
         ...basicInfoFormData,
         ...formData,
       };
-      await postKycForm(combinedFormData);
 
-      if (kycError) {
-        console.error('KYC form submission failed:', kycError);
-        return;
-      }
+      await postKycForm(combinedFormData);
 
       if (basicInfoFormData.ssn) {
         await submitSsnDetails(basicInfoFormData.ssn);
-
-        if (ssnError) {
-          console.error('SSN submission failed:', ssnError);
-          return;
-        }
       }
 
       await submitPurpose();
-
-      if (purposeError) {
-        console.error('Purpose submission failed:', purposeError);
-        return;
-      }
 
       if (kycUrl) {
         navigation.navigate(...createKycWebviewNavDetails({ quote, kycUrl }));
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
-    } catch (error) {
+    } catch (submissionError) {
+      setLoading(false);
+      setError('Unexpected error.');
       console.error('Unexpected error during form submission:', error);
+    } finally {
+      setLoading(false);
     }
   }, [
+    error,
     validateFormData,
     basicInfoFormData,
     formData,
     postKycForm,
-    kycError,
     submitPurpose,
-    purposeError,
     navigation,
     quote,
     kycUrl,
     submitSsnDetails,
-    ssnError,
   ]);
-
-  const countryFlagAccessory = (
-    <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
-  );
 
   return (
     <ScreenLayout>
@@ -324,6 +319,7 @@ const EnterAddress = (): JSX.Element => {
                   error={errors.state}
                   containerStyle={styles.nameInputContainer}
                   defaultValue={strings('deposit.enter_address.select_state')}
+                  testID="state-input"
                 />
               ) : (
                 <DepositTextField
@@ -362,24 +358,24 @@ const EnterAddress = (): JSX.Element => {
                 autoComplete="postal-code"
                 textContentType="postalCode"
                 keyboardType="number-pad"
-                onSubmitEditing={() => {
-                  Keyboard.dismiss();
-                }}
+                onSubmitEditing={() => Keyboard.dismiss()}
               />
 
               <DepositTextField
                 label={strings('deposit.enter_address.country')}
                 placeholder={strings('deposit.enter_address.country')}
                 value={selectedRegion?.name || ''}
-                onChangeText={() => {}}
                 error={errors.countryCode}
                 returnKeyType="done"
                 testID="country-input"
                 containerStyle={styles.nameInputContainer}
-                isDisabled={true}
-                startAccessory={countryFlagAccessory}
+                isDisabled
+                startAccessory={
+                  <Text style={styles.countryFlag}>{selectedRegion?.flag}</Text>
+                }
               />
             </View>
+            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
         <ScreenLayout.Footer>
@@ -391,8 +387,8 @@ const EnterAddress = (): JSX.Element => {
               label={strings('deposit.enter_address.continue')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
-              isDisabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
-              loading={kycIsFetching || purposeIsFetching || ssnIsFetching}
+              isDisabled={loading || !!error}
+              loading={loading}
               testID="address-continue-button"
             />
             <PoweredByTransak name="powered-by-transak-logo" />
