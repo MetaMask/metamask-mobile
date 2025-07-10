@@ -866,7 +866,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-HELLO"
+                                    testID="asset-0x1-HELLO"
                                   >
                                     <View
                                       alignItems="center"
@@ -1158,7 +1158,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-TOKEN1"
+                                    testID="asset-0x1-TOKEN1"
                                   >
                                     <View
                                       alignItems="center"
@@ -1450,7 +1450,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-ETH"
+                                    testID="asset-0x1-ETH"
                                   >
                                     <View
                                       alignItems="center"
