@@ -22,7 +22,7 @@ const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-describe('Migration 086', () => {
+describe('Migration 089', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
