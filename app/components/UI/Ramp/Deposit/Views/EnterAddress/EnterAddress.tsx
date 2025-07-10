@@ -125,7 +125,7 @@ const EnterAddress = (): JSX.Element => {
     if (!data.postCode.trim()) {
       errors.postCode = strings('deposit.enter_address.postal_code_required');
     } else if (!VALIDATION_REGEX.postCode.test(data.postCode)) {
-      errors.postCode = strings('deposit.enter_address.postal_code_required');
+      errors.postCode = strings('deposit.enter_address.postal_code_invalid');
     }
 
     return errors;
