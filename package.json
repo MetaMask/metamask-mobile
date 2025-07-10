@@ -45,7 +45,6 @@
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:qa:local": "./scripts/build.sh android qa local",
     "build:android:devbuild": "./scripts/build.sh android devBuild",
-    "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",
