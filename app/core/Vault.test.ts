@@ -19,7 +19,7 @@ import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
 } from '../util/test/accountsControllerTestUtils';
-import ReduxService, { ReduxStore } from './redux';
+import ReduxService from './redux';
 import { RootState } from '../reducers';
 import {
   bufferedEndTrace,
@@ -250,20 +250,6 @@ jest.mock('./SnapKeyring/MultichainWalletSnapClient', () => ({
 describe('Vault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Mock ReduxService store
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: jest.fn().mockReturnValue({
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: undefined,
-            },
-          },
-        },
-      }),
-      dispatch: jest.fn(),
-    } as unknown as ReduxStore);
   });
   describe('restoreQRKeyring', () => {
     it('should restore QR keyring if it exists', async () => {
