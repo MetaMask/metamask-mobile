@@ -65,6 +65,8 @@ const carouselSize = {
   width: DEVICE_WIDTH - IMG_PADDING,
   height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_RATIO,
 };
+
+const ctaIosPaddingBottom = Device.isIphoneX() ? 40 : 20;
 const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
   StyleSheet.create({
     scroll: {
@@ -101,9 +103,7 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       paddingBottom:
         Platform.OS === 'android'
           ? Math.max(safeAreaInsets.bottom + 16, 24)
-          : Device.isIphoneX()
-          ? 40
-          : 20,
+          : ctaIosPaddingBottom,
       flexDirection: 'column',
     },
     carouselImage: {},
