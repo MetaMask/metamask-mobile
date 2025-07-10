@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -16,12 +15,19 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import Row from '../../../Aggregator/components/Row';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import PrivacySection from '../../components/PrivacySection';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -49,6 +55,13 @@ const EnterAddress = (): JSX.Element => {
     quote,
     kycUrl,
   } = useParams<EnterAddressParams>();
+
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+
+  const { navigateToKycWebview } = useDepositRouting({
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -160,7 +173,7 @@ const EnterAddress = (): JSX.Element => {
       }
 
       if (kycUrl) {
-        navigation.navigate(...createKycWebviewNavDetails({ quote, kycUrl }));
+        navigateToKycWebview(quote, kycUrl);
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
@@ -175,9 +188,10 @@ const EnterAddress = (): JSX.Element => {
     kycError,
     submitPurpose,
     purposeError,
-    navigation,
-    quote,
     kycUrl,
+    navigateToKycWebview,
+    quote,
+    navigation,
     submitSsnDetails,
     ssnError,
   ]);
@@ -259,17 +273,19 @@ const EnterAddress = (): JSX.Element => {
           </View>
         </ScreenLayout.Content>
         <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <Row>
-              <StyledButton
-                type="confirm"
-                onPress={handleOnPressContinue}
-                testID="address-continue-button"
-                disabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
-              >
-                {strings('deposit.enter_address.continue')}
-              </StyledButton>
-            </Row>
+          <ScreenLayout.Content style={styles.footerContent}>
+            <PrivacySection />
+            <Button
+              size={ButtonSize.Lg}
+              onPress={handleOnPressContinue}
+              label={strings('deposit.enter_address.continue')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              isDisabled={kycIsFetching || purposeIsFetching || ssnIsFetching}
+              loading={kycIsFetching || purposeIsFetching || ssnIsFetching}
+              testID="address-continue-button"
+            />
+            <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout.Body>

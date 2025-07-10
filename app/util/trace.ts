@@ -66,6 +66,23 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  SwapViewLoaded = 'Swap View Loaded',
+  BridgeBalancesUpdated = 'Bridge Balances Updated',
+  // Earn
+  EarnDepositScreen = 'Earn Deposit Screen',
+  EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
+  EarnDepositReviewScreen = 'Earn Deposit Review Screen',
+  EarnDepositConfirmationScreen = 'Earn Deposit Confirmation Screen',
+  EarnDepositTxConfirmed = 'Earn Deposit Tx Confirmed',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
+  EarnWithdrawReviewScreen = 'Earn Withdraw Review Screen',
+  EarnWithdrawConfirmationScreen = 'Earn Withdraw Confirmation Screen',
+  EarnWithdrawTxConfirmed = 'Earn Withdraw Tx Confirmed',
+  EarnEarnings = 'Earn Earnings',
+  EarnFaq = 'Earn FAQ',
+  EarnFaqApys = 'Earn FAQ APYs',
+  EarnTokenList = 'Earn Token List',
+  EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
 }
 
 export enum TraceOperation {
@@ -87,7 +104,7 @@ export enum TraceOperation {
   CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
-  DiscoverAccounts = 'discover.accounts',
+  DiscoverAccounts = 'discover.accounts'
 }
 
 const ID_DEFAULT = 'default';

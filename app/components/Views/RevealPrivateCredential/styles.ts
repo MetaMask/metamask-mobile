@@ -129,7 +129,7 @@ export const createStyles = (theme: Theme) =>
       fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
-      marginBottom: 20,
+      marginBottom: 24,
     },
     tabBar: {
       borderColor: theme.colors.border.muted,
