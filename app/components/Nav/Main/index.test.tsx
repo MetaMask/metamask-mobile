@@ -10,24 +10,6 @@ import { MetaMetricsEvents } from '../../hooks/useMetrics';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: {
-    Light: 'light',
-    Medium: 'medium',
-    Heavy: 'heavy',
-    Soft: 'soft',
-    Rigid: 'rigid',
-  },
-  selectionAsync: jest.fn(),
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
-}));
-
 jest.mock('../../../core/Engine', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
