@@ -93,15 +93,7 @@ export type {
 export {
   usePerpsAccount,
   usePerpsTrading,
-  usePerpsDeposit,
   usePerpsNetworkConfig,
-  usePerpsPositions,
   usePerpsNetwork,
   usePerpsPrices,
-  usePerpsLivePositions,
-  usePerpsOrderFills,
-  usePerpsPositionPnL,
-  usePerpsReadiness,
-  usePerpsOrderManagement,
-  useStableArray,
 } from '../hooks';

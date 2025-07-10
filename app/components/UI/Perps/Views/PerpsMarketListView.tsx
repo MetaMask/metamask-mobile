@@ -8,7 +8,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
 
-interface PerpsPositionsViewProps {}
+interface PerpsMarketListViewProps {}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
   };
 };
 
-const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
+const PerpsMarketListView: React.FC<PerpsMarketListViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -39,7 +39,7 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
       <View style={styles.content}>
         <View style={styles.container}>
           <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Positions View
+            Market List View
           </Text>
         </View>
       </View>
@@ -47,4 +47,4 @@ const PerpsPositionsView: React.FC<PerpsPositionsViewProps> = () => {
   );
 };
 
-export default PerpsPositionsView;
+export default PerpsMarketListView;
