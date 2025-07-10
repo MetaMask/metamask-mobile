@@ -67,7 +67,7 @@ const ResendButton: FC<{
 const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { setAuthToken, selectedWalletAddress } = useDepositSDK();
+  const { setAuthToken } = useDepositSDK();
   const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
     useParams<OtpCodeParams>();
 
@@ -76,7 +76,6 @@ const OtpCode = () => {
   >(null);
 
   const { routeAfterAuthentication } = useDepositRouting({
-    selectedWalletAddress,
     cryptoCurrencyChainId,
     paymentMethodId,
   });
