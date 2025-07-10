@@ -98,6 +98,7 @@ export function useSwitchNetworks({
         PopularList.some((network) => network.chainId === chainId);
       const { PreferencesController } = Engine.context;
       if (!isAllNetwork && isPopularNetwork) {
+        // TODO: Do I need to set the enabled network in this instance?
         PreferencesController.setTokenNetworkFilter({
           [chainId]: true,
         });
@@ -146,7 +147,8 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled())) dismissModal?.();
+      if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
+        dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -201,6 +203,7 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
+        // TODO: Do I need to set the enabled network in this instance?
         setTokenNetworkFilter(networkConfiguration.chainId);
         await MultichainNetworkController.setActiveNetwork(clientId);
 

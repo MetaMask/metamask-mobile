@@ -42,6 +42,10 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -84,6 +88,10 @@ const NetworkManager = () => {
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
+
+  const { selectedCount } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -243,6 +251,13 @@ const NetworkManager = () => {
     [buttonConfigs.delete, confirmRemoveRpc],
   );
 
+  const defaultTabIndex = useMemo(() => {
+    // If no popular networks are selected, default to custom tab (index 1)
+    // Otherwise, show popular tab (index 0)
+    const hasSelectedPopularNetworks = selectedCount > 0;
+    return hasSelectedPopularNetworks ? 0 : 1;
+  }, [selectedCount]);
+
   return (
     <ReusableModal ref={sheetRef} style={containerStyle}>
       <View style={styles.sheet}>
@@ -258,6 +273,7 @@ const NetworkManager = () => {
           <ScrollableTabView
             renderTabBar={renderTabBar}
             onChangeTab={onChangeTab}
+            initialPage={defaultTabIndex}
           >
             <NetworkMultiSelector {...defaultTabProps} openModal={openModal} />
             <CustomNetworkSelector {...customTabProps} openModal={openModal} />

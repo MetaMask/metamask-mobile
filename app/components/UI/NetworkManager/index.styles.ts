@@ -15,7 +15,6 @@ const TITLE_MARGIN_TOP = 4;
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
 const TAB_PADDING_VERTICAL = 8;
-const TAB_MARGIN_BOTTOM = 8;
 const DELETE_CONTAINER_PADDING_LEFT = 16;
 const DELETE_CONTAINER_PADDING_RIGHT = 8;
 
@@ -75,7 +74,6 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
-      marginBottom: TAB_MARGIN_BOTTOM,
     },
     // edit network menu
     editNetworkMenu: {

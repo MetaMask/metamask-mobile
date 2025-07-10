@@ -90,15 +90,22 @@ export const useNetworkSelection = ({
     enableNetwork,
   ]);
 
-  const resetCustomNetworks = useCallback(() => {
-    if (customNetworksToReset.length === 0) {
-      return;
-    }
+  const resetCustomNetworks = useCallback(
+    (excludeChainId?: CaipChainId) => {
+      const networksToDisable = excludeChainId
+        ? customNetworksToReset.filter((chainId) => chainId !== excludeChainId)
+        : customNetworksToReset;
 
-    customNetworksToReset.forEach((chainId) => {
-      disableNetwork(chainId as CaipChainId);
-    });
-  }, [customNetworksToReset, disableNetwork]);
+      if (networksToDisable.length === 0) {
+        return;
+      }
+
+      networksToDisable.forEach((chainId) => {
+        disableNetwork(chainId as CaipChainId);
+      });
+    },
+    [customNetworksToReset, disableNetwork],
+  );
 
   const selectNetwork = useCallback(
     (chainId: CaipChainId) => {
@@ -106,17 +113,32 @@ export const useNetworkSelection = ({
         if (resetNetworkType === ResetNetworkType.Popular) {
           resetToPopularNetworks();
         } else if (resetNetworkType === ResetNetworkType.Custom) {
-          resetCustomNetworks();
+          // Enable the target network first to ensure at least one network is always enabled
+          enableNetwork(chainId);
+          // Then disable custom networks, excluding the newly enabled one
+          resetCustomNetworks(chainId);
+        } else {
+          // If no reset type specified, just enable the target network
+          enableNetwork(chainId);
         }
-        enableNetwork(chainId);
+
+        // For popular reset type, enable the target network after resetting
+        if (resetNetworkType === ResetNetworkType.Popular) {
+          enableNetwork(chainId);
+        }
+      } else if (resetNetworkType === ResetNetworkType.Custom) {
+        const isCurrentlyEnabled =
+          networkEnablementController.isNetworkEnabled(chainId);
+        if (!isCurrentlyEnabled) {
+          // Enable the target network first
+          enableNetwork(chainId);
+          // Then reset custom networks, excluding the newly enabled one
+          resetCustomNetworks(chainId);
+        } else {
+          // If already enabled, just toggle it (which might disable it)
+          toggleNetwork(chainId);
+        }
       } else {
-        if (resetNetworkType === ResetNetworkType.Custom) {
-          const isCurrentlyEnabled =
-            networkEnablementController.isNetworkEnabled(chainId);
-          if (!isCurrentlyEnabled) {
-            resetCustomNetworks();
-          }
-        }
         toggleNetwork(chainId);
       }
     },
@@ -133,12 +155,13 @@ export const useNetworkSelection = ({
 
   const selectAll = useCallback(() => {
     if (mode !== SelectionMode.Multi) return;
+
     networks.forEach(({ caipChainId, isSelected }) => {
       if (!isSelected) {
-        enableNetwork(caipChainId);
+        selectNetwork(caipChainId);
       }
     });
-  }, [mode, networks, enableNetwork]);
+  }, [mode, networks, selectNetwork]);
 
   const deselectAll = useCallback(() => {
     if (mode !== SelectionMode.Multi) return;
@@ -150,7 +173,6 @@ export const useNetworkSelection = ({
 
   const toggleAll = useCallback(() => {
     if (mode !== SelectionMode.Multi) return;
-
     const areAllSelected = networks.every(({ isSelected }) => isSelected);
     if (areAllSelected) {
       deselectAll();

@@ -16,7 +16,10 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement';
-import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace';
 import {
   useNetworkSelection,
   SelectionMode,
@@ -62,7 +65,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
 
   const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
-    networkType: 'popular',
+    networkType: NetworkType.Popular,
   });
   const { selectNetwork, toggleAll } = useNetworkSelection({
     mode: SelectionMode.Multi,

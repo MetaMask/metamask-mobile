@@ -46,6 +46,7 @@ import {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -107,7 +108,8 @@ import {
   selectUseTokenDetection,
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -124,6 +126,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -409,6 +412,7 @@ const Wallet = ({
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -459,17 +463,30 @@ const Wallet = ({
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
     // network as the default state instead of doing this
-    const { PreferencesController } = Engine.context;
+    const { PreferencesController, NetworkEnablementController } =
+      Engine.context;
     if (Object.keys(tokenNetworkFilter).length === 0) {
       PreferencesController.setTokenNetworkFilter({
         [chainId]: true,
       });
     }
-  }, [chainId, tokenNetworkFilter]);
+    if (
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      enabledEVMNetworks.length === 0
+    ) {
+      let caipChainId;
+      if (!isCaipChainId(chainId)) {
+        caipChainId = toEvmCaipChainId(chainId);
+      } else {
+        caipChainId = chainId;
+      }
+      NetworkEnablementController.setEnabledNetwork(caipChainId);
+    }
+  }, [chainId, tokenNetworkFilter, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();
-  }, [chainId, handleNetworkFilter]);
+  }, [chainId, handleNetworkFilter, enabledEVMNetworks]);
 
   /**
    * Check to see if notifications are enabled

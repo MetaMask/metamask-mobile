@@ -971,6 +971,7 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
+    // TODO: Do I need to set the enabled network in this instance?
     // Set tokenNetworkFilter
     if (isPortfolioViewEnabled()) {
       const { PreferencesController } = Engine.context;

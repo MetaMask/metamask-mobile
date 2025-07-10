@@ -19,7 +19,10 @@ export interface ProcessedNetwork {
   networkTypeOrRpcUrl?: string;
 }
 
-export type NetworkType = 'popular' | 'custom';
+export enum NetworkType {
+  Popular = 'popular',
+  Custom = 'custom',
+}
 
 interface UseNetworksByNamespaceOptions {
   networkType: NetworkType;
@@ -44,14 +47,14 @@ export const useNetworksByNamespace = ({
 
   const networkConfigurations = useMemo(
     () =>
-      networkType === 'popular'
+      networkType === NetworkType.Popular
         ? popularNetworkConfigurations
         : customNetworkConfigurations,
     [networkType, popularNetworkConfigurations, customNetworkConfigurations],
   );
 
   const filteredNetworkConfigurations = useMemo(() => {
-    if (networkType === 'popular') {
+    if (networkType === NetworkType.Popular) {
       return Object.entries(networkConfigurations).filter(([, network]) => {
         const networkNamespace = parseCaipChainId(
           network.caipChainId,
@@ -66,7 +69,7 @@ export const useNetworksByNamespace = ({
   }, [networkConfigurations, namespace, networkType]);
 
   const processedNetworks: ProcessedNetwork[] = useMemo(() => {
-    if (networkType === 'popular') {
+    if (networkType === NetworkType.Popular) {
       return (
         filteredNetworkConfigurations as [
           string,

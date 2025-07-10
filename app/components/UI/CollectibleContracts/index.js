@@ -218,6 +218,7 @@ const CollectibleContracts = ({
   );
 
   const { namespace } = parseCaipChainId(currentCaipChainId);
+
   const collectiblesByEnabledNetworks = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
   );
@@ -613,6 +614,7 @@ const CollectibleContracts = ({
     .map(([chainId, enabled]) => ({ chainId, enabled }));
   const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
   const currentNetworkName = networksByCaipChainId[caipChainId].name;
+  const isDisabled = !isEvmSelected;
 
   return (
     <View
@@ -640,15 +642,13 @@ const CollectibleContracts = ({
                 )}
               </>
             }
-            isDisabled={isTestNet(chainId) || !isPopularNetwork}
+            isDisabled={isDisabled}
             onPress={isEvmSelected ? showFilterControls : () => null}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
-              isTestNet(chainId) || !isPopularNetwork
-                ? styles.controlButtonDisabled
-                : styles.controlButton
+              isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }
-            disabled={isTestNet(chainId) || !isPopularNetwork}
+            disabled={isDisabled}
           />
         </View>
       </View>

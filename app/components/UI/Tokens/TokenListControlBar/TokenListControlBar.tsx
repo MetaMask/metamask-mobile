@@ -4,13 +4,9 @@ import { parseCaipChainId } from '@metamask/utils';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
-import {
-  isTestNet,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 import { useSelector } from 'react-redux';
 import {
-  selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkConfigurationsByCaipChainId,
@@ -49,7 +45,6 @@ export const TokenListControlBar = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const currentChainId = useSelector(selectChainId);
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -69,8 +64,6 @@ export const TokenListControlBar = ({
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
 
-  const isDisabled = isTestNet(currentChainId) || !isAllPopularEVMNetworks;
-
   const handleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       navigation.navigate(...createNetworkManagerNavDetails({}));
@@ -84,12 +77,14 @@ export const TokenListControlBar = ({
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+
   // TODO: Come back to refactor this logic is used in several places
   const enabledNetworks = Object.entries(networksByNameSpace[namespace])
     .filter(([_key, value]) => value)
     .map(([chainId, enabled]) => ({ chainId, enabled }));
   const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
-  const currentNetworkName = networksByCaipChainId[caipChainId].name;
+  const currentNetworkName = networksByCaipChainId[caipChainId]?.name;
+  const isDisabled = !isEvmSelected;
 
   return (
     <View style={styles.actionBarWrapper}>

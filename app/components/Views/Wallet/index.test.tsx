@@ -86,6 +86,11 @@ jest.mock('../../../core/Engine', () => {
       TokensController: {
         addTokens: jest.fn(),
       },
+      NetworkEnablementController: {
+        setEnabledNetwork: jest.fn(),
+        setDisabledNetwork: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+      },
     },
   };
 });

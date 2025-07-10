@@ -442,7 +442,11 @@ export const selectEvmTokens = createDeepEqualSelector(
       const token = currToken as TokenI & { chainId: string };
 
       // Skip tokens if they are on a test network and the current chain is not a test network
-      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+      if (
+        isTestNet(token.chainId) &&
+        !isTestNet(currentChainId) &&
+        !isRemoveGlobalNetworkSelectorEnabled()
+      ) {
         continue;
       }
 

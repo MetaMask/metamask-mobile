@@ -28,7 +28,10 @@ import Text, {
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
-import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace';
 import {
   ResetNetworkType,
   useNetworkSelection,
@@ -50,7 +53,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
 
   // Use custom hooks for network management
   const { networks } = useNetworksByNamespace({
-    networkType: 'custom',
+    networkType: NetworkType.Custom,
   });
   const { selectNetwork } = useNetworkSelection({
     mode: SelectionMode.Single,
@@ -71,7 +74,9 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      const handlePress = () => selectNetwork(caipChainId);
+      const handlePress = () => {
+        selectNetwork(caipChainId);
+      };
 
       const handleMenuPress = () => {
         openModal({
