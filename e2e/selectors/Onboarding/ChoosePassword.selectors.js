@@ -11,4 +11,6 @@ export const ChoosePasswordSelectorsIDs = {
   CHECKBOX_TEXT_ID: 'checkbox-text',
   LEARN_MORE_LINK_ID: 'learn-more-link',
   PASSWORD_STRENGTH_ID: 'password-strength',
+  NEW_PASSWORD_SHOW_ICON_ID: 'new-password-show-hide-id',
+  CONFIRM_PASSWORD_SHOW_ICON_ID: 'confirm-password-show-hide-id',
 };
