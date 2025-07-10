@@ -13,24 +13,6 @@ jest.mock('react-native-safe-area-context', () => ({
     .mockImplementation(() => <MockView testID={MOCK_CHILD_ID} />),
 }));
 
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: {
-    Light: 'light',
-    Medium: 'medium',
-    Heavy: 'heavy',
-    Soft: 'soft',
-    Rigid: 'rigid',
-  },
-  selectionAsync: jest.fn(),
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
-}));
-
 jest.mock('../../../core/SecureKeychain', () => ({
   init: jest.fn(),
 }));

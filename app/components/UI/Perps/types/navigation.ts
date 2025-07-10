@@ -53,7 +53,9 @@ export interface PerpsNavigationParamList extends ParamListBase {
     finalBalance?: string;
   };
 
-  // Position management routes
+  // Market and position management routes
+  PerpsMarketList: undefined;
+
   PerpsPositions: undefined;
 
   PerpsPositionDetails: {

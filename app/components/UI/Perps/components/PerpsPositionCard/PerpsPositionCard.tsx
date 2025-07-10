@@ -25,7 +25,6 @@ import {
   formatPositionSize,
 } from '../../utils/formatUtils';
 import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
-import { triggerSelectionHaptic } from '../../utils/hapticUtils';
 import { createStyles } from './PerpsPositionCard.styles';
 
 interface PerpsPositionCardProps {
@@ -54,7 +53,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   // Format numbers for display - using shared utilities
 
   const handleCardPress = async () => {
-    await triggerSelectionHaptic();
+    // await triggerSelectionHaptic();
     navigation.navigate('PerpsPositionDetails', {
       position,
       action: 'view',
@@ -63,7 +62,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleClosePress = async (event: GestureResponderEvent) => {
     event.stopPropagation();
-    await triggerSelectionHaptic();
+    // await triggerSelectionHaptic();
     if (onClose) {
       onClose(position);
     } else {
@@ -77,7 +76,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleEditPress = async (event: GestureResponderEvent) => {
     event.stopPropagation();
-    await triggerSelectionHaptic();
+    // await triggerSelectionHaptic();
     if (onEdit) {
       onEdit(position);
     } else {

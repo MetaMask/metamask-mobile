@@ -34,7 +34,6 @@ import type { Colors } from '../../../../util/theme/models';
 import type { ClosePositionParams, Position } from '../controllers/types';
 import { usePerpsTrading } from '../hooks';
 import { formatPercentage, formatPrice } from '../utils/formatUtils';
-import { triggerErrorHaptic, triggerSuccessHaptic } from '../utils/hapticUtils';
 import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
@@ -471,14 +470,14 @@ const PerpsPositionDetailsView: React.FC = () => {
       //   await triggerSuccessHaptic();
       // }
 
-      await triggerErrorHaptic();
+      // await triggerErrorHaptic();
       setError('TP/SL updates are not yet implemented');
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to update TP/SL';
       setError(errorMessage);
       DevLogger.log('PerpsPositionDetails: Error updating TP/SL', err);
-      await triggerErrorHaptic();
+      // await triggerErrorHaptic();
     } finally {
       setIsUpdatingTPSL(false);
     }
