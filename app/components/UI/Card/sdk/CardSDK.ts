@@ -145,14 +145,14 @@ export class CardSDK {
         spenders,
       );
 
-    return this.supportedTokens.map((token, index) => {
+    return this.supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
         spendersAllowancesForTokens[index];
       const globalAllowance = ethers.BigNumber.from(globalAllowanceTuple[1]);
       const usAllowance = ethers.BigNumber.from(usAllowanceTuple[1]);
 
       return {
-        address: token.address as `0x${string}`,
+        address: tokenAddress,
         usAllowance,
         globalAllowance,
       };
@@ -167,19 +167,65 @@ export class CardSDK {
       throw new Error('Card feature is not enabled for this chain');
     }
 
-    if (nonZeroBalanceTokens.length === 1) {
-      const tokenAddress = nonZeroBalanceTokens[0];
-      const match = this.supportedTokens.find(
-        (supportedToken) =>
-          supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
-      );
-
-      return match ? this.mapSupportedTokenToCardToken(match) : null;
+    // Handle simple cases first
+    if (nonZeroBalanceTokens.length === 0) {
+      return this.getFirstSupportedTokenOrNull();
     }
 
+    if (nonZeroBalanceTokens.length === 1) {
+      return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
+    }
+
+    // Handle complex case with multiple tokens
+    return this.findPriorityTokenFromApprovalLogs(
+      address,
+      nonZeroBalanceTokens,
+    );
+  };
+
+  private getFirstSupportedTokenOrNull(): CardToken | null {
+    return this.supportedTokens.length > 0
+      ? this.mapSupportedTokenToCardToken(this.supportedTokens[0])
+      : null;
+  }
+
+  private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
+    const match = this.supportedTokens.find(
+      (supportedToken) =>
+        supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
+    );
+
+    return match ? this.mapSupportedTokenToCardToken(match) : null;
+  }
+
+  private async findPriorityTokenFromApprovalLogs(
+    address: string,
+    nonZeroBalanceTokens: string[],
+  ): Promise<CardToken | null> {
+    const approvalLogs = await this.getApprovalLogs(
+      address,
+      nonZeroBalanceTokens,
+    );
+
+    if (approvalLogs.length === 0) {
+      return this.getFirstSupportedTokenOrNull();
+    }
+
+    const lastNonZeroApprovalToken =
+      this.findLastNonZeroApprovalToken(approvalLogs);
+    return lastNonZeroApprovalToken
+      ? this.findSupportedTokenByAddress(lastNonZeroApprovalToken)
+      : null;
+  }
+
+  private async getApprovalLogs(
+    address: string,
+    nonZeroBalanceTokens: string[],
+  ): Promise<(ethers.providers.Log & { tokenAddress: string })[]> {
     const approvalInterface = new ethers.utils.Interface([
       'event Approval(address indexed owner,address indexed spender,uint256 value)',
     ]);
+
     const approvalTopic = approvalInterface.getEventTopic('Approval');
     const ownerTopic = ethers.utils.hexZeroPad(address.toLowerCase(), 32);
     const spenders = [FOXCONNECT_GLOBAL_ADDRESS, FOXCONNECT_US_ADDRESS];
@@ -187,8 +233,10 @@ export class CardSDK {
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const tokenAddressesList =
-      nonZeroBalanceTokens ?? this.supportedTokensAddresses;
+
+    const tokenAddressesList = nonZeroBalanceTokens.length
+      ? nonZeroBalanceTokens
+      : this.supportedTokensAddresses;
 
     const logsPerToken = await Promise.all(
       tokenAddressesList.map((tokenAddress) =>
@@ -209,40 +257,36 @@ export class CardSDK {
     );
 
     const allLogs = logsPerToken.flat();
-    // If there are no logs, return first supported token or null
-    // This might need to change if we want to handle cases where no logs are found
-    if (allLogs.length === 0) {
-      if (this.supportedTokens.length > 0) {
-        return this.mapSupportedTokenToCardToken(this.supportedTokens[0]);
-      }
 
-      return null;
-    }
-
-    // sort chronologically
+    // Sort chronologically
     allLogs.sort((a, b) =>
       a.blockNumber === b.blockNumber
         ? a.logIndex - b.logIndex
         : a.blockNumber - b.blockNumber,
     );
 
-    // find the last non-zero Approval
-    for (let i = allLogs.length - 1; i >= 0; i--) {
-      const { args } = approvalInterface.parseLog(allLogs[i]);
-      const value = args.value as ethers.BigNumber;
-      if (!value.isZero()) {
-        const match = this.supportedTokens.find(
-          (supportedToken) =>
-            supportedToken.address?.toLowerCase() ===
-            allLogs[i].tokenAddress.toLowerCase(),
-        );
+    return allLogs;
+  }
 
-        return match ? this.mapSupportedTokenToCardToken(match) : null;
+  private findLastNonZeroApprovalToken(
+    logs: (ethers.providers.Log & { tokenAddress: string })[],
+  ): string | null {
+    const approvalInterface = new ethers.utils.Interface([
+      'event Approval(address indexed owner,address indexed spender,uint256 value)',
+    ]);
+
+    // Find the last non-zero approval by iterating backwards
+    for (let i = logs.length - 1; i >= 0; i--) {
+      const { args } = approvalInterface.parseLog(logs[i]);
+      const value = args.value as ethers.BigNumber;
+
+      if (!value.isZero()) {
+        return logs[i].tokenAddress;
       }
     }
 
     return null;
-  };
+  }
 
   private mapSupportedTokenToCardToken(token: SupportedToken): CardToken {
     return {
