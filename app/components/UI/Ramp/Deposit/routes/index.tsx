@@ -15,8 +15,6 @@ import VerifyIdentity from '../Views/VerifyIdentity';
 import BasicInfo from '../Views/BasicInfo';
 import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
-import ProviderWebview from '../Views/ProviderWebview';
-import KycWebview from '../Views/KycWebview';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
 
@@ -25,6 +23,7 @@ import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
 import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
 import StateSelectorModal from '../Views/Modals/StateSelectorModal';
+import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -95,18 +94,8 @@ const MainRoutes = () => (
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.KYC_WEBVIEW}
-      component={KycWebview}
-      options={getAnimationOptions}
-    />
-    <Stack.Screen
       name={Routes.DEPOSIT.KYC_PROCESSING}
       component={KycProcessing}
-      options={getAnimationOptions}
-    />
-    <Stack.Screen
-      name={Routes.DEPOSIT.PROVIDER_WEBVIEW}
-      component={ProviderWebview}
       options={getAnimationOptions}
     />
     <Stack.Screen
@@ -146,6 +135,14 @@ const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.STATE_SELECTOR}
       component={StateSelectorModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.WEBVIEW}
+      component={WebviewModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.KYC_WEBVIEW}
+      component={KycWebviewModal}
     />
   </ModalsStack.Navigator>
 );

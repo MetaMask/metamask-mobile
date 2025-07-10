@@ -139,7 +139,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -940,12 +940,14 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               <View
                 alignItems="center"
                 flexDirection="row"
+                gap={8}
                 justifyContent="space-between"
                 style={
                   [
                     {
                       "alignItems": "center",
                       "flexDirection": "row",
+                      "gap": 8,
                       "justifyContent": "space-between",
                     },
                     {
@@ -1165,7 +1167,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1417,7 +1419,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2088,7 +2090,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,

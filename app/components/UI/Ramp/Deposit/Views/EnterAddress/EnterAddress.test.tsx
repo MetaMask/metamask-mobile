@@ -31,7 +31,6 @@ let mockUseParamsReturnValue: {
   quote: mockQuote,
 };
 
-// Create a mock useDepositSDK function that can be controlled
 let mockUseDepositSDKReturnValue = {
   selectedRegion: { isoCode: 'US', name: 'United States', flag: '🇺🇸' },
 };
@@ -129,9 +128,7 @@ function fillFormAndSubmit({
 describe('EnterAddress Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the mock useParams to default values
     mockUseParamsReturnValue = { formData: mockFormData, quote: mockQuote };
-    // Reset the mock useDepositSDK to default values
     mockUseDepositSDKReturnValue = {
       selectedRegion: { isoCode: 'US', name: 'United States', flag: '🇺🇸' },
     };
@@ -183,7 +180,6 @@ describe('EnterAddress Component', () => {
   it('navigates to KYC webview when kycUrl is provided', async () => {
     const kycUrl = 'https://example.com/kyc';
 
-    // Set the mock to return kycUrl
     mockUseParamsReturnValue = {
       formData: mockFormData,
       quote: mockQuote,
@@ -195,11 +191,19 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('KycWebview'),
+      const navigationCalls = mockNavigate.mock.calls.filter(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1].screen === 'DepositKycWebviewModal',
+      );
+      expect(navigationCalls).toHaveLength(1);
+      expect(navigationCalls[0][1]).toEqual(
         expect.objectContaining({
-          quote: mockQuote,
-          kycUrl,
+          params: expect.objectContaining({
+            quote: mockQuote,
+            sourceUrl: kycUrl,
+          }),
+          screen: 'DepositKycWebviewModal',
         }),
       );
     });
@@ -249,10 +253,8 @@ describe('EnterAddress Component', () => {
       lastName: 'Doe',
       mobileNumber: '+1234567890',
       dob: '01/01/1990',
-      // ssn field is optional, so we can omit it entirely
     };
 
-    // Set the mock to return formData without SSN
     mockUseParamsReturnValue = {
       formData: formDataWithoutSsn,
       quote: mockQuote,
@@ -279,7 +281,6 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      // Clear the state selector navigation call and check that no other navigation occurred
       const navigationCalls = mockNavigate.mock.calls.filter(
         (call) => call[0] !== 'DepositModals',
       );
@@ -304,7 +305,6 @@ describe('EnterAddress Component', () => {
   });
 
   it('shows text input for state when region is not US', () => {
-    // Set the mock to return non-US region
     mockUseDepositSDKReturnValue = {
       selectedRegion: { isoCode: 'FR', name: 'France', flag: '🇫🇷' },
     };
@@ -316,16 +316,13 @@ describe('EnterAddress Component', () => {
   it('validates address line 2 when provided', () => {
     render(EnterAddress);
 
-    // Fill required fields
     fillFormAndSubmit();
 
-    // Enter invalid address line 2 (only numbers)
     fireEvent.changeText(screen.getByTestId('address-line-2-input'), '12345');
 
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('Please enter a valid address')).toBeOnTheScreen();
-    // Clear the state selector navigation call and check that no other navigation occurred
     const navigationCalls = mockNavigate.mock.calls.filter(
       (call) => call[0] !== 'DepositModals',
     );
@@ -335,7 +332,6 @@ describe('EnterAddress Component', () => {
   it('accepts valid address line 2', async () => {
     render(EnterAddress);
 
-    // Fill required fields
     fillFormAndSubmit({ addressLine2: 'Apt 4B' });
 
     await waitFor(() => {
@@ -353,13 +349,11 @@ describe('EnterAddress Component', () => {
       '123 Main St',
     );
     fireEvent.changeText(screen.getByTestId('city-input'), 'San Francisco');
-    // Don't select state
     fireEvent.changeText(screen.getByTestId('postal-code-input'), '10001');
 
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
-    // Clear the state selector navigation call and check that no other navigation occurred
     const navigationCalls = mockNavigate.mock.calls.filter(
       (call) => call[0] !== 'DepositModals',
     );
@@ -399,10 +393,8 @@ describe('EnterAddress Component', () => {
       lastName: 'Doe',
       mobileNumber: '+1234567890',
       dob: '01/01/1990',
-      // ssn field is optional, so we can omit it entirely
     };
 
-    // Set the mock to return formData without SSN
     mockUseParamsReturnValue = {
       formData: formDataWithoutSsn,
       quote: mockQuote,

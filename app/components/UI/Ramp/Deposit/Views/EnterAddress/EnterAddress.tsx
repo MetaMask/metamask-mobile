@@ -19,7 +19,6 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
@@ -30,6 +29,8 @@ import Button, {
 import PrivacySection from '../../components/PrivacySection';
 import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -66,6 +67,13 @@ const EnterAddress = (): JSX.Element => {
   const cityInputRef = useRef<TextInput>(null);
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
+
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+
+  const { navigateToKycWebview } = useDepositRouting({
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -219,7 +227,7 @@ const EnterAddress = (): JSX.Element => {
       await submitPurpose();
 
       if (kycUrl) {
-        navigation.navigate(...createKycWebviewNavDetails({ quote, kycUrl }));
+        navigateToKycWebview(quote, kycUrl);
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
@@ -240,6 +248,7 @@ const EnterAddress = (): JSX.Element => {
     navigation,
     quote,
     kycUrl,
+    navigateToKycWebview,
     submitSsnDetails,
   ]);
 

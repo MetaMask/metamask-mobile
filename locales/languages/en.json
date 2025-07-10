@@ -379,7 +379,7 @@
   "reset_password": {
     "title": "Change password",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "New Password",
+    "password": "New password",
     "confirm_password": "Confirm password",
     "reset_button": "Reset password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -400,15 +400,18 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "password_updated": "Password updated",
+    "password_updated": "New password saved",
     "successfully_changed": "Your password has been successfully changed",
     "new_password_placeholder": "Use at least 8 characters",
     "confirm_password_placeholder": "Re-enter your password",
-    "confirm_btn": "Confirm",
-    "warning_password_change_title": "Warning: Wallets will be locked from all devices",
-    "warning_password_change_description": "For safety, this action will lock wallet access on any other device you're currently signed into. To regain access, you'll need to log in again with your new password.",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
     "warning_password_change_button": "Confirm",
-    "warning_password_cancel_button": "Cancel"
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -499,7 +502,8 @@
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "kycFormsFetchError": "Failed to fetch KYC forms.",
+      "title": "Deposit"
     },
     "token_modal": {
       "select_a_token": "Select a Token",
@@ -547,7 +551,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
-      "validation_error": "Please enter a valid email address"
+      "validation_error": "Please enter a valid email address",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Enter six-digit code",
@@ -561,7 +566,8 @@
       "resend_code_error": "Error resending code.",
       "resend_code_button": "Resend it",
       "resend_cooldown": "Resend code in {{seconds}} seconds",
-      "contact_support": "Contact support"
+      "contact_support": "Contact support",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -626,8 +632,7 @@
       "success_button": "Complete your order"
     },
     "provider_webview": {
-      "title": "Deposit",
-      "webview_received_error": "Webview received error: %{code}"
+      "title": "Deposit"
     },
     "kyc_webview": {
       "title": "Verifying your identity",
@@ -656,7 +661,9 @@
       "cancel_order_button": "Cancel order"
     },
     "order_details": {
-      "title": "Deposit Order"
+      "title": "Deposit Order",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
     },
     "bank_details": {
       "title": "{{paymentMethod}} bank transfer",
@@ -681,6 +688,9 @@
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
       "cancel_order_error": "We were unable to cancel your order. Please try again."
     },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
     "notifications": {
       "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
       "deposit_failed_description": "Verify your payment method and card support",
@@ -690,6 +700,11 @@
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
       "deposit_pending_description": "This should only take a few minutes..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
     }
   },
   "receive": {
@@ -4367,13 +4382,13 @@
         "payToken": "Pay with any token, any time",
         "payTokenDescription": "Use the tokens you already have to cover network fees.",
         "reject": "No",
-        "requestFor": "Request for",
         "sameAccount": "Same account, smarter features.",
-        "splashTitle": "Use smart account?",
-        "upgradeBannerDescription": "Same address. Smarter features.",
-        "upgradeBannerTitle": "Switch to smart account"
+        "splashTitle": "Use smart account?"
       },
-      "includes_transaction": "Includes {{transactionCount}} transactions"
+      "includes_transaction": "Includes {{transactionCount}} transactions",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
       "no_zero_error": "Spending cap cannot be 0",
