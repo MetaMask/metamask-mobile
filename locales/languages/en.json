@@ -396,7 +396,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Password must be {{number}} characters",
+    "must_be_at_least": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -724,14 +724,6 @@
     "multisrp": {
       "title": "Add multiple Secret Recovery Phrases",
       "subtitle": "Import and use multiple wallets in MetaMask"
-    },
-    "secure": {
-      "title": "A new way to secure your wallet",
-      "subtitle": "Link your Apple or Google account."
-    },
-    "backupAndSync": {
-      "title": "Introducing backup and sync",
-      "subtitle": "Back up your accounts and sync settings."
     },
     "solana": {
       "title": "Solana is now supported",
@@ -1232,10 +1224,8 @@
     "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
     "protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
     "learn_more": "Learn more.",
-    "seedphrase_not_backed_up": "Back up Secret Recovery Phrase",
+    "seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
     "seedphrase_backed_up": "Secret Recovery Phrase backed up",
-    "social_login_linked": "Logged in with",
-    "social_login_not_linked": "Link your wallet to an Apple or Google account",
     "back_up_now": "Back up now",
     "back_up_again": "Back up again",
     "view_hint": "View hint",
