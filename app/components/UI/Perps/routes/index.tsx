@@ -1,9 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import PerpsView from '../Views/PerpsView';
-import PerpsMarketListView from '../Views/PerpsMarketListView';
-import PerpsPositionsView from '../Views/PerpsPositionsView';
-import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
@@ -23,36 +20,11 @@ const PerpsScreenStack = () => (
         }}
       />
 
-      {/* Follow-up screens for future PRs - simplified hello world versions */}
-      <Stack.Screen
-        name="PerpsMarketList"
-        component={PerpsMarketListView}
-        options={{
-          title: 'Market List',
-          headerShown: true,
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PERPS.POSITIONS}
-        component={PerpsPositionsView}
-        options={{
-          title: 'Positions',
-          headerShown: true,
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PERPS.POSITION_DETAILS}
-        component={PerpsPositionDetailsView}
-        options={{
-          title: 'Position Details',
-          headerShown: true,
-        }}
-      />
-
       {/* 
         Removed for minimal PR (can be added back in future PRs):
+        - PerpsMarketListView (Market list)
+        - PerpsPositionsView (Positions list)
+        - PerpsPositionDetailsView (Position details)
         - PerpsOrderView (Order placement)
         - PerpsOrderSuccessView (Order success)
         - PerpsDepositAmountView (Deposit flow)

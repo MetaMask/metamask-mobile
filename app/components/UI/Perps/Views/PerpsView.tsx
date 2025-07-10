@@ -1,4 +1,3 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Button, {
@@ -23,10 +22,6 @@ import {
   usePerpsNetworkConfig,
   usePerpsTrading,
 } from '../hooks';
-
-// Import navigation types
-import type { PerpsNavigationParamList } from '../types/navigation';
-import type { Position } from '../controllers/types';
 
 // Import preview market data component
 import PreviewMarketData from '../components/PreviewMarketData';
@@ -73,7 +68,6 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
@@ -279,48 +273,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
-            style={styles.button}
-          />
-
-          {/* Follow-up screen navigation buttons for testing */}
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Market List"
-            onPress={() => navigation.navigate('PerpsMarketList')}
-            style={styles.button}
-          />
-
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Positions"
-            onPress={() => navigation.navigate('PerpsPositions')}
-            style={styles.button}
-          />
-
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label="Position Details"
-            onPress={() =>
-              navigation.navigate('PerpsPositionDetails', {
-                position: {
-                  coin: 'BTC',
-                  size: '0.1',
-                  entryPrice: '50000',
-                  liquidationPrice: '45000',
-                  unrealizedPnl: '500',
-                  positionValue: '5000',
-                  marginUsed: '1000',
-                  leverage: { value: 5 },
-                  returnOnEquity: '10',
-                } as Position, // Mock position for hello world navigation
-              })
-            }
             style={styles.button}
           />
         </View>

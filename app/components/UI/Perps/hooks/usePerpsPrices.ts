@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PriceUpdate } from '../controllers/types';
-import { useStableArray } from './useStableArray';
+// import { useStableArray } from './useStableArray';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsConnection } from './index';
 
@@ -22,17 +22,17 @@ export function usePerpsPrices(symbols: string[]): Record<string, PriceUpdate> {
     });
   }, []);
 
-  const stableSymbols = useStableArray(symbols);
+  // const stableSymbols = useStableArray(symbols);
 
   useEffect(() => {
-    if (stableSymbols.length === 0 || !isInitialized) return;
+    if (symbols.length === 0 || !isInitialized) return;
 
     const unsubscribe = subscribeToPrices({
-      symbols: stableSymbols,
+      symbols,
       callback: memoizedCallback,
     });
     return unsubscribe;
-  }, [stableSymbols, subscribeToPrices, memoizedCallback, isInitialized]);
+  }, [symbols, subscribeToPrices, memoizedCallback, isInitialized]);
 
   return prices;
 }

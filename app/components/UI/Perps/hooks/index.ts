@@ -12,9 +12,6 @@ export { usePerpsAccount } from './usePerpsAccount';
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPrices } from './usePerpsPrices';
 
-// Utility hooks
-export { useStableArray } from './useStableArray';
-
 // Removed for minimal PR:
 // - usePerpsPositions (positions management)
 // - usePerpsDeposit (deposit flows)
@@ -25,3 +22,4 @@ export { useStableArray } from './useStableArray';
 // - usePerpsPositionPnL (P&L calculations)
 // - usePerpsReadiness (readiness checks)
 // - usePerpsOrderManagement (order workflows)
+// - useStableArray (utility hook for stable array references)
