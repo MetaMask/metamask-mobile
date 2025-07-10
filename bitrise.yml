@@ -108,6 +108,10 @@ pipelines:
   expo_main_pipeline:
     stages:
       - create_build_main_expo: {}
+  #Flask expo pipeline
+  expo_flask_pipeline:
+    stages:
+      - create_build_flask_expo: {}
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -191,6 +195,11 @@ stages:
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
+  create_build_flask_expo:
+    workflows:
+      - build_android_flask_devbuild: {}
+      - build_ios_flask_devbuild: {}
+      - build_ios_flask_simbuild: {}
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -241,6 +250,8 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -262,6 +273,8 @@ stages:
       - run_tag_smoke_identity_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -289,6 +302,8 @@ stages:
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
       - run_tag_smoke_multichain_api_ios: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
 
   report_results_stage:
     workflows:
@@ -970,6 +985,20 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeIdentity'
     after_run:
       - android_e2e_test
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     envs:
       - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -1420,6 +1449,8 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
+
                 # Set base paths for release builds
                            if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
@@ -1449,8 +1480,10 @@ workflows:
                 mv "$OLD_APK" "$NEW_APK"
 
                 # Rename AAB
-                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                mv "$OLD_AAB" "$NEW_AAB"
+                if [ -n "$BUNDLE_DIR" ]; then
+                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                    mv "$OLD_AAB" "$NEW_AAB"
+                fi
 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
@@ -1538,7 +1571,7 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'local'}
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" $BUILD_COMMAND
       - save-gradle-cache@1: {}
@@ -1710,13 +1743,12 @@ workflows:
   build_android_flask_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
+      - BUILD_COMMAND: 'yarn build:android:flask:local'
     after_run:
-      - _android_build_template
+      - _android_e2e_build_template
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2068,7 +2100,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -2085,6 +2117,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
@@ -2092,7 +2125,7 @@ workflows:
                   BINARY_EXTENSION=".app"
                 else
                   BUILD_DIR="ios/build/output"
-                  DEVICE_TYPE="physical"
+                  DEVICE_TYPE="device"
                   BINARY_EXTENSION=".ipa"
                 fi
 
@@ -2256,25 +2289,21 @@ workflows:
       - _ios_build_template
   build_ios_flask_devbuild:
     envs:
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
   build_ios_qa:

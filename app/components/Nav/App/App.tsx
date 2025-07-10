@@ -149,8 +149,8 @@ import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
-import { RootState } from '../../../reducers';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -660,6 +660,21 @@ const ModalSwitchAccountType = () => (
   </Stack.Navigator>
 );
 
+const ModalSmartAccountOptIn = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen
+      name={Routes.SMART_ACCOUNT_OPT_IN}
+      component={SmartAccountUpdateModal}
+    />
+  </Stack.Navigator>
+);
+
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
@@ -799,6 +814,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
+      />
+      <Stack.Screen
+        name={Routes.SMART_ACCOUNT_OPT_IN}
+        component={ModalSmartAccountOptIn}
       />
     </Stack.Navigator>
   );
