@@ -49,16 +49,26 @@ else
         
         # Check if there are any app code changes since the last successful commit
         # Include all files that affect the built app for E2E testing
-        # Use merge-base with last successful commit to exclude changes from merged main branch commits
-        MERGE_BASE_WITH_LAST=$(git merge-base ${LAST_SUCCESSFUL_COMMIT} HEAD 2>/dev/null || echo "${LAST_SUCCESSFUL_COMMIT}")
-        if git rev-parse --git-dir > /dev/null 2>&1 && \
-           git diff --name-only ${MERGE_BASE_WITH_LAST}..HEAD 2>/dev/null | \
-           grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | \
-           grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
-            echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
+        # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
+        MERGE_BASE_WITH_MAIN=$(git merge-base main HEAD 2>/dev/null || git merge-base origin/main HEAD 2>/dev/null || echo "main")
+        
+        # Get files that changed in this PR branch only (excluding main branch changes)
+        CHANGED_FILES=$(git diff --name-only ${MERGE_BASE_WITH_MAIN}..HEAD 2>/dev/null)
+        
+        # Filter for app code files that affect the build
+        APP_CODE_FILES=$(echo "$CHANGED_FILES" | grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' || true)
+        
+        if [[ -n "$APP_CODE_FILES" ]]; then
+            echo "App code changes found in this PR branch - need fresh build"
+            echo "Files that triggered cache invalidation:"
+            echo "$APP_CODE_FILES" | sed 's/^/  - /'
             APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
         else
-            echo "No app code changes since commit ${LAST_COMMIT_SHORT} - reusing cache"
+            echo "No app code changes in this PR branch - reusing cache from commit ${LAST_COMMIT_SHORT}"
+            if [[ -n "$CHANGED_FILES" ]]; then
+                echo "Non-app files changed (cache not invalidated):"
+                echo "$CHANGED_FILES" | sed 's/^/  - /'
+            fi
             APP_CODE_HASH="$LAST_COMMIT_SHORT"
         fi
     else
