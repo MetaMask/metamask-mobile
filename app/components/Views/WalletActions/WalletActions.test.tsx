@@ -1,9 +1,10 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { fireEvent } from '@testing-library/react-native';
+import '../../UI/Bridge/_mocks_/initialState';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import { selectChainId } from '../../../selectors/networkController';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -523,7 +524,6 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
-        bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
           address: ethers.constants.AddressZero,

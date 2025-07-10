@@ -1193,6 +1193,7 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',

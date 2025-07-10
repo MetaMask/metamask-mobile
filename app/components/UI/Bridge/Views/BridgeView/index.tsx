@@ -40,6 +40,7 @@ import {
   selectIsSolanaToEvm,
   selectDestAddress,
   selectIsSolanaSourced,
+  selectBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -62,8 +63,6 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
-import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
-import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -80,7 +79,6 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
 }
 
 const BridgeView = () => {
@@ -106,6 +104,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
   const {
     activeQuote,
     isLoading,
@@ -220,8 +219,8 @@ const BridgeView = () => {
   );
 
   useEffect(() => {
-    navigation.setOptions(getBridgeNavbar(navigation, route, colors));
-  }, [navigation, route, colors]);
+    navigation.setOptions(getBridgeNavbar(navigation, bridgeViewMode, colors));
+  }, [navigation, bridgeViewMode, colors]);
 
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
@@ -231,7 +230,7 @@ const BridgeView = () => {
       hasTrackedPageView.current = true;
       trackEvent(
         createEventBuilder(
-          route.params.bridgeViewMode === BridgeViewMode.Bridge
+          bridgeViewMode === BridgeViewMode.Bridge
             ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
             : MetaMetricsEvents.SWAP_PAGE_VIEWED,
         )
@@ -251,7 +250,7 @@ const BridgeView = () => {
     destToken,
     trackEvent,
     createEventBuilder,
-    route.params.bridgeViewMode,
+    bridgeViewMode,
   ]);
 
   // Update isErrorBannerVisible when input focus changes
@@ -326,24 +325,18 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: route.params.bridgeViewMode,
-      } as BridgeSourceTokenSelectorRouteParams,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: route.params.bridgeViewMode,
-      } as BridgeDestTokenSelectorRouteParams,
     });
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
+    const isSwap = sourceToken?.chainId === destToken?.chainId;
     return isSwap
       ? strings('bridge.confirm_swap')
       : strings('bridge.confirm_bridge');
