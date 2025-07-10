@@ -1,10 +1,12 @@
 // Third party dependencies.
 import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
+import { isFaviconSVG } from '../../../../../../util/favicon';
 import { isIPFSUri } from '../../../../../../util/general';
 import AvatarBase from '../../foundation/AvatarBase';
 import Text from '../../../../Texts/Text';
@@ -53,10 +55,14 @@ const AvatarToken = ({
     ? !isIpfsGatewayEnabled && isIPFSUri(imageUri.uri)
     : false;
 
+  const imageSVG = imageSource ? isFaviconSVG(imageSource) : undefined;
+
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
         <Text style={styles.label}>{tokenNameFirstLetter}</Text>
+      ) : imageSVG ? (
+        <SvgUri uri={imageSVG} width={size} height={size} onError={onError} />
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}
