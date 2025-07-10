@@ -408,6 +408,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
+      const provider = this.props.route.params?.provider;
       authType.oauth2Login = this.getOauth2LoginSuccess();
 
       Logger.log('previous_screen', previous_screen);

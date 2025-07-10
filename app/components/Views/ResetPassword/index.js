@@ -826,4 +826,7 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ResetPassword);
