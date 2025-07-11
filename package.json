@@ -97,7 +97,6 @@
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
     "update-changelog": "./scripts/auto-changelog.sh",
     "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" && ./scripts/changelog-csv.sh }; wrap ",
-    "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
@@ -569,7 +568,6 @@
     "react-dom": "18.2.0",
     "react-native-launch-arguments": "^4.0.1",
     "react-native-performance": "^5.1.2",
-    "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.3.1",
@@ -587,17 +585,6 @@
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
     "yarn-deduplicate": "^6.0.2"
-  },
-  "config": {
-    "react-native-storybook-loader": {
-      "searchDir": [
-        "./app/component-library/components",
-        "./app/components",
-        "./app/component-library/components-temp"
-      ],
-      "pattern": "**/*.stories.@(js|tsx)",
-      "outputFile": "./storybook/storyLoader.js"
-    }
   },
   "engines": {
     "node": "^20.18.0",
