@@ -31,10 +31,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 17500, // 17.5 seconds max for Android
+              TOTAL_TIME: 5000, // 17.5 seconds max for Android
             }
           : {
-              TOTAL_TIME: 7500, // 7.5 seconds max for iOS
+              TOTAL_TIME: 5000, // 5 seconds max for iOS
             };
 
         console.log(
@@ -124,10 +124,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const HEAVY_LOAD_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 17500, // 17.5 seconds max for Android
+              TOTAL_TIME: 5000, // 17.5 seconds max for Android
             }
           : {
-              TOTAL_TIME: 7500, // 7.5 seconds max for iOS
+              TOTAL_TIME: 5000, // 5 seconds max for iOS
             };
 
         let result: Partial<TestResult> = {};
@@ -193,10 +193,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const BASELINE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 45000, // 45 seconds max for Android
+              TOTAL_TIME: 5000, // 5 seconds max for Android
             }
           : {
-              TOTAL_TIME: 15000, // 15 seconds max for iOS
+              TOTAL_TIME: 5000, // 5 seconds max for iOS
             };
         // Baseline test with minimal tokens for comparison
         const minimalTokens = [
@@ -245,7 +245,6 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             const totalTime = endTime - startTime;
 
             console.log('========== BASELINE TEST RESULTS ==========');
-            console.log(`Configuration: 2 accounts, default network, 2 tokens`);
             console.warn(`⏱️  Total Time: ${totalTime}ms`);
             console.log('==========================================');
 

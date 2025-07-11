@@ -53,7 +53,7 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
 
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              DISMISS_ACCOUNT_LIST: 5000, // 5 seconds max for Android
+              DISMISS_ACCOUNT_LIST: 4000, // 4 seconds max for Android
             }
           : {
               DISMISS_ACCOUNT_LIST: 4000, // 4 seconds max for iOS
