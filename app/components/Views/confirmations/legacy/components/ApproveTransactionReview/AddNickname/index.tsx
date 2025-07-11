@@ -5,7 +5,6 @@ import EthereumAddress from '../../../../../../UI/EthereumAddress';
 import Engine from '../../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 
-import { toChecksumAddress } from 'ethereumjs-util';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../../../../../../UI/StyledButton';
 import Text from '../../../../../../../component-library/components/Texts/Text';
@@ -24,6 +23,7 @@ import { AddNicknameProps } from './types';
 import {
   validateAddressOrENS,
   shouldShowBlockExplorer,
+  toChecksumAddress,
 } from '../../../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import {
