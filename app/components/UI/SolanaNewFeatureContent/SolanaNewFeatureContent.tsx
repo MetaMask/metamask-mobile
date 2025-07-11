@@ -1,9 +1,9 @@
 import React from 'react';
-import { Linking, View } from 'react-native';
+import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import FoxVipers from '../../../images/Fox_vipers.svg';
+import FoxVipers from '../../../images/Fox_Vipers.png';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Text, {
   TextVariant,
@@ -106,7 +106,7 @@ const SolanaNewFeatureContent = () => {
             </Text>
 
             <View style={styles.largeFoxWrapper}>
-              <FoxVipers name="fox-vipers" height={350} />
+              <Image source={FoxVipers} style={styles.foxImage} resizeMode="contain" />
             </View>
 
             <View style={styles.createWrapper}>

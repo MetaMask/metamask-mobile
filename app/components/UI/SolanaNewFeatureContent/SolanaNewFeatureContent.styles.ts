@@ -28,6 +28,9 @@ const createStyles = () => {
       fontSize: 16,
       fontFamily: 'MMSans-Regular',
     },
+    foxImage: {
+      height: 350,
+    },
     ctas: {
       flex: 1,
       position: 'relative',
