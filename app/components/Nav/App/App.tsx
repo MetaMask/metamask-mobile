@@ -595,7 +595,7 @@ const MultichainAccountDetails = () => {
 const MultichainAccountDetailsActions = () => {
   const route = useRoute();
 
-  // This will allow the modals to show the AccountDetails screen
+  // Configure transparent background to show AccountDetails screen beneath modal overlays
   const commonScreenOptions = {
     //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
     cardStyle: { backgroundColor: importedColors.transparent },
