@@ -140,7 +140,7 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableRelease() {
+remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
@@ -166,14 +166,6 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-}
-
-remapEnvVariableProduction() {
-  	echo "Remapping Production env variable names to match Production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
 }
 
 remapEnvVariableBeta() {
@@ -414,31 +406,16 @@ generateArchivePackages() {
   xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 }
 
-buildIosRelease(){
-  if [ "$MODE" != "main" ]; then
-    # For main Mode variables are already remapped
-  	remapEnvVariableRelease
-  fi
-
+# Builds the Main binary for production
+buildIosMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask"
 }
 
 buildIosFlaskRelease(){
@@ -538,36 +515,23 @@ buildAndroidQA(){
 	#  fi
 }
 
-buildAndroidRelease(){
-    if [ "$MODE" != "main" ]; then
-      # For main Mode variables are already remapped
-    	remapEnvVariableRelease
-    fi
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
-	fi
-
+# Builds the Main APK for production
+buildAndroidMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew assembleProdRelease --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleProdRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum
-	fi
+	# Generate checksum
+	yarn build:android:checksum
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
 buildAndroidFlaskRelease(){
@@ -609,7 +573,11 @@ buildAndroidQAE2E(){
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		buildAndroidRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidMainLocal
+		else
+			buildAndroidMainProduction
+		fi
 	elif [ "$MODE" == "flask" ] ; then
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
@@ -644,7 +612,11 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		buildIosRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosMainLocal
+		else
+			buildIosMainProduction
+		fi
 	elif [ "$MODE" == "flask" ] ; then
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
@@ -722,22 +694,26 @@ checkParameters "$@"
 printTitle
 loadJSEnv
 
-echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
-echo "TARGET = $TARGET"
-
-if [ "$MODE" == "main" ] && { [ "$TARGET" == "production" ] || [ "$TARGET" == "beta" ] || [ "$TARGET" == "rc" ]; }; then
-  export METAMASK_BUILD_TYPE="$MODE"
-  export METAMASK_ENVIRONMENT="$TARGET"
-  export GENERATE_BUNDLE=true # Used only for Android
-  export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-  if [ "$TARGET" == "production" ]; then
-    remapEnvVariableProduction
-  elif [ "$TARGET" == "beta" ]; then
-    remapEnvVariableBeta
-  elif [ "$TARGET" == "rc" ]; then
-    remapEnvVariableReleaseCandidate
-  fi
+# Map environment variables based on mode.
+# TODO: MODE should be renamed to TARGET
+if [ "$MODE" == "main" ]; then
+	export GENERATE_BUNDLE=true # Used only for Android
+	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+	if [ "$ENVIRONMENT" == "production" ]; then
+		remapEnvVariableProduction
+	elif [ "$ENVIRONMENT" == "beta" ]; then
+		remapEnvVariableBeta
+	elif [ "$ENVIRONMENT" == "rc" ]; then
+		remapEnvVariableReleaseCandidate
+	elif [ "$ENVIRONMENT" == "exp" ]; then
+		remapEnvVariableExperimental
+	fi
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+	# TODO: Map environment variables based on environment
+	remapFlaskEnvVariables
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
+	# TODO: Map environment variables based on environment
+	remapEnvVariableQA
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
