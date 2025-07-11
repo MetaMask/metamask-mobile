@@ -147,6 +147,9 @@ import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import useInterval from '../../hooks/useInterval';
+import { Duration } from '@metamask/utils';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
@@ -838,6 +841,10 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -853,12 +860,38 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  // periodically check seedless password outdated when app UI is open
+  useInterval(
+    async () => {
+      if (isSeedlessOnboardingLoginFlow) {
+        await Authentication.checkIsSeedlessPasswordOutdated();
+      }
+    },
+    {
+      delay: Duration.Minute * 30,
+    },
+  );
+
   useEffect(() => {
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          if (isSeedlessOnboardingLoginFlow) {
+            // check if the seedless password is outdated at app init
+            // if app is locked, check skip cache to ensure user need to input latest global password
+            try {
+              const isOutdated =
+                await Authentication.checkIsSeedlessPasswordOutdated(true);
+              Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
+            } catch (error) {
+              Logger.error(
+                error as Error,
+                'App: Error in checkIsSeedlessPasswordOutdated',
+              );
+            }
+          }
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -914,7 +947,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation]);
+  }, [navigation, isSeedlessOnboardingLoginFlow]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {

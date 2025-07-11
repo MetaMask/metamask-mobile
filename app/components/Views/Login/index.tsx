@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -92,6 +92,8 @@ import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@met
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../hooks/useMetrics';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -102,6 +104,7 @@ const EmptyRecordConstant = {};
  */
 const Login: React.FC = () => {
   const [disabledInput, setDisabledInput] = useState(false);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -133,6 +136,16 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+  useEffect(() => {
+    // first error if seedless password is outdated
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+    }
+  }, [isSeedlessPasswordOutdated]);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
   const track = (
@@ -269,7 +282,7 @@ const Login: React.FC = () => {
       OPTIN_META_METRICS_UI_SEEN,
     );
 
-    if (!isOptinMetaMetricsUISeen) {
+    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
       navigation.reset({
         routes: [
           {
@@ -354,7 +367,12 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      if (oauthLoginSuccess) {
+      if (isSeedlessPasswordOutdated) {
+        await Authentication.submitLatestGlobalSeedlessPassword(
+          password,
+          authType,
+        );
+      } else if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {
         await trace(

@@ -22,6 +22,13 @@ import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { VAULT_ERROR } from './constants';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import { useMetrics } from '../../hooks/useMetrics';
+import {
+  OPTIN_META_METRICS_UI_SEEN,
+  ONBOARDING_WIZARD,
+  BIOMETRY_CHOICE_DISABLED,
+  TRUE,
+} from '../../../constants/storage';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -96,7 +103,7 @@ jest.mock('../../../store/storage-wrapper', () => ({
 // Mock setOnboardingWizardStep action
 jest.mock('../../../actions/wizard', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: jest.fn(() => ({ type: 'SET_ONBOARDING_WIZARD_STEP' })),
 }));
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
@@ -146,6 +153,12 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  withMetricsAwareness: jest.fn((Component) => Component),
+  MetaMetricsEvents: {},
+}));
+
 describe('Login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -169,6 +182,9 @@ describe('Login', () => {
       if (callback) await callback();
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    (useMetrics as jest.Mock).mockReturnValue({
+      isEnabled: () => false,
+    });
   });
 
   it('renders matching snapshot', () => {
@@ -194,6 +210,204 @@ describe('Login', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    describe('checkMetricsUISeen', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+      });
+
+      it('should navigate to opt-in metrics when UI not seen and metrics disabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => false,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
+              params: {
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.OPTIN_METRICS,
+                },
+              },
+            },
+          ],
+        });
+      });
+
+      it('should navigate to home when UI not seen but metrics enabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => true,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+
+      it('should navigate to home when UI seen and metrics disabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN)
+            return Promise.resolve('true');
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => false,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+
+      it('should navigate to home when UI seen and metrics enabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN)
+            return Promise.resolve('true');
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => true,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
     });
   });
@@ -263,6 +477,81 @@ describe('Login', () => {
       });
 
       expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
+    });
+  });
+
+  describe('Biometric Authentication Setup', () => {
+    beforeEach(() => {
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    it('biometric authentication is setup when availableBiometryType is present', async () => {
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should render biometric button when biometric is available
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeTruthy();
+    });
+
+    it('biometric button is not shown when device is locked', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: true,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when device is locked
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+    });
+
+    it('biometric button is not shown when previously disabled', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when previously disabled
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
   });
 
@@ -559,6 +848,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      (StorageWrapper.getItem as jest.Mock).mockReset();
     });
 
     afterEach(() => {
@@ -589,15 +879,17 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
-        routes: [{
-          name: Routes.ONBOARDING.ROOT_NAV, 
-          params: {
-            screen: Routes.ONBOARDING.NAV,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
             params: {
-              screen: Routes.ONBOARDING.OPTIN_METRICS
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
             },
           },
-        }],
+        ],
       });
     });
 
@@ -626,9 +918,7 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
-      // The component should still show biometric option after failure
       expect(biometryButton).toBeTruthy();
     });
   });
 });
-

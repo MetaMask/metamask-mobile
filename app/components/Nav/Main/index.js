@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
 import {
@@ -91,8 +90,10 @@ import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { Authentication } from '../../../core';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 
 const Stack = createStackNavigator();
@@ -118,6 +119,35 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      // show seedless password outdated modal and force user to lock app
+      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
+          primaryButtonLabel: strings(
+            'login.seedless_password_outdated_modal_confirm',
+          ),
+          type: 'error',
+          icon: IconName.Danger,
+          isInteractable: false,
+          onPrimaryButtonPress: async () => {
+            await Authentication.lockApp({ locked: true });
+          },
+          closeOnPrimaryButtonPress: true,
+        },
+      });
+    }
+  }, [isSeedlessPasswordOutdated, props.navigation]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
@@ -208,24 +238,6 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
-  const skipAccountModalSecureNow = () => {
-    props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
-      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
-      params: { backupFlow: true },
-    });
-  };
-
-  const navigation = useNavigation();
-
-  const toggleRemindLater = () => {
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: () => navigation.goBack(),
-        onCancel: skipAccountModalSecureNow,
-      },
-    });
-  };
 
   /**
    * Current network
@@ -434,10 +446,6 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
