@@ -8,7 +8,7 @@ const styleSheet = () =>
       gap: 12,
     },
     listItemContainer: {
-      padding: 16,
+      paddingVertical: 16,
     },
   });
 

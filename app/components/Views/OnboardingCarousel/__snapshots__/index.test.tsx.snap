@@ -120,9 +120,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -174,7 +173,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -190,9 +188,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -318,9 +315,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -468,9 +464,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -522,7 +517,6 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -538,9 +532,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -666,9 +659,8 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -816,9 +808,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -870,7 +861,6 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -886,9 +876,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -1014,9 +1003,8 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1164,9 +1152,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -1218,7 +1205,6 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -1234,9 +1220,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -1362,9 +1347,8 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1512,9 +1496,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -1566,7 +1549,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -1582,9 +1564,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -1710,9 +1691,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -1860,9 +1840,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -1914,7 +1893,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -1930,9 +1908,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -2058,9 +2035,8 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2208,9 +2184,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -2262,7 +2237,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -2278,9 +2252,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -2406,9 +2379,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2556,9 +2528,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -2610,7 +2581,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -2626,9 +2596,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -2754,9 +2723,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2904,9 +2872,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -2958,7 +2925,6 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -2974,9 +2940,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -3102,9 +3067,8 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3252,9 +3216,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -3306,7 +3269,6 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -3322,9 +3284,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -3450,9 +3411,8 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -3600,9 +3560,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 14,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 22,
                             "textAlign": "center",
@@ -3654,7 +3613,6 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                             "color": "#190066",
                             "fontFamily": "MMSans-Regular",
                             "fontSize": 40,
-                            "fontWeight": "400",
                             "justifyContent": "center",
                             "letterSpacing": 0,
                             "lineHeight": 40,
@@ -3670,9 +3628,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         style={
                           {
                             "color": "#190066",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "paddingHorizontal": 16,
@@ -3798,9 +3755,8 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

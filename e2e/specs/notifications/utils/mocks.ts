@@ -78,17 +78,17 @@ export function getMockFeatureAnnouncementItemId() {
  */
 export async function mockNotificationServices(server: Mockttp) {
   // Trigger Config
-  new MockttpNotificationTriggerServer().setupServer(server);
+  await new MockttpNotificationTriggerServer().setupServer(server);
 
   // Notifications
-  mockAPICall(server, mockFeatureAnnouncementResponse);
-  mockAPICall(server, mockListNotificationsResponse);
-  mockAPICall(server, getMockMarkNotificationsAsReadResponse());
+  await mockAPICall(server, mockFeatureAnnouncementResponse);
+  await mockAPICall(server, mockListNotificationsResponse);
+  await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
-  mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
-  mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
-  mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
+  await mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
+  await mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
+  await mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
 }
 
 interface ResponseParam {
@@ -97,7 +97,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-function mockAPICall(server: Mockttp, response: ResponseParam) {
+async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -116,7 +116,7 @@ function mockAPICall(server: Mockttp, response: ResponseParam) {
     requestRuleBuilder = server.forDelete('/proxy');
   }
 
-  requestRuleBuilder
+  await requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return url.includes(String(response.url));

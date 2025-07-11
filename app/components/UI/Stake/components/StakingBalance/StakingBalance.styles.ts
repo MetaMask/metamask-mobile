@@ -15,7 +15,7 @@ const styleSheet = () =>
     balances: {
       flex: 1,
       justifyContent: 'center',
-      marginLeft: 20,
+      marginLeft: 16,
       alignSelf: 'center',
     },
     ethLogo: {

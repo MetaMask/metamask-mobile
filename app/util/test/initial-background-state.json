@@ -189,6 +189,8 @@
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
     "showTestNetworks": false,
+    "smartAccountOptIn": true,
+    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
@@ -209,7 +211,8 @@
       "0x504": true,
       "0x507": true,
       "0x505": true,
-      "0x64": true
+      "0x64": true,
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -357,6 +360,9 @@
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
+  },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
     "domains": {}

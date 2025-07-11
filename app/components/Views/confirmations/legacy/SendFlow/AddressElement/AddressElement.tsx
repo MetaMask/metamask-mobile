@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 
 // Third-Party dependencies
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
-// Exgernal dependencies
+// External dependencies
 import {
   renderShortAddress,
   getLabelTextByAddress,
@@ -22,6 +22,18 @@ import Icon, {
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { useSelector } from 'react-redux';
+
+import { Hex } from '@metamask/utils';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const AddressElement: React.FC<AddressElementProps> = ({
   name,
@@ -31,11 +43,40 @@ const AddressElement: React.FC<AddressElementProps> = ({
   onIconPress,
   isAmbiguousAddress,
   chainId,
+  displayNetworkBadge,
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
   const { colors } = useTheme();
   const styles = styleSheet(colors);
+
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const addressElementNetwork = allNetworks[chainId];
+
+  const shouldDisplayNetworkBadge = useMemo(
+    () => isRemoveGlobalNetworkSelectorEnabled() && displayNetworkBadge,
+    [displayNetworkBadge],
+  );
+
+  const renderIdenticon = useCallback(() => {
+    if (shouldDisplayNetworkBadge) {
+      return (
+        <BadgeWrapper
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={NetworkBadgeSource(chainId as Hex)}
+              name={addressElementNetwork?.name}
+            />
+          }
+          badgePosition={BadgePosition.BottomRight}
+        >
+          <Identicon address={address} diameter={28} />
+        </BadgeWrapper>
+      );
+    }
+    return <Identicon address={address} diameter={28} />;
+  }, [address, chainId, addressElementNetwork, shouldDisplayNetworkBadge]);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
@@ -64,9 +105,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       style={styles.addressElementWrapper}
       {...props}
     >
-      <View style={styles.addressIdenticon}>
-        <Identicon address={address} diameter={28} />
-      </View>
+      <View style={styles.addressIdenticon}>{renderIdenticon()}</View>
       <View style={styles.addressElementInformation}>
         <View style={styles.accountNameLabel}>
           <Text

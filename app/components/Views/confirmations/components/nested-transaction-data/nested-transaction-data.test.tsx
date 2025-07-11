@@ -35,6 +35,7 @@ describe('NestedTransactionData', () => {
     );
     fireEvent.press(getByText('Transaction 1'));
     expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('< 0.000001 SepoliaETH')).toBeTruthy();
     expect(getByText('Data')).toBeTruthy();
     expect(
       getByText(upgradeAccountConfirmation.nestedTransactions?.[0]?.data ?? ''),

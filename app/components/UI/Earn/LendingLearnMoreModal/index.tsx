@@ -47,6 +47,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
+import { ScrollView } from 'react-native-gesture-handler';
+import useEarnToken from '../hooks/useEarnToken';
+import { Hex } from 'viem';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -85,7 +88,6 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
             )}
           </Text>
           <Text color={TextColor.Alternative}>
-            {' '}
             {strings(
               'earn.market_historic_apr_modal.get_asset_back_in_your_wallet_instantly',
               { tokenSymbol: assetSymbol },
@@ -135,7 +137,7 @@ const CHART_HEIGHT = 300; // Adjust to your chart's height
 
 export const LendingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
-
+  const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
   const route = useRoute<EarnLendingLearnMoreModalRouteProp>();
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -153,6 +155,36 @@ export const LendingLearnMoreModal = () => {
   } = useLendingMarketApys({
     asset: route?.params?.asset,
   });
+
+  const {
+    earnTokenPair: { outputToken, earnToken },
+    getTokenSnapshot,
+    tokenSnapshot,
+  } = useEarnToken(route?.params?.asset);
+
+  useEffect(() => {
+    if (!earnToken?.symbol) {
+      getTokenSnapshot(
+        outputToken?.chainId as Hex,
+        outputToken?.experience?.market?.underlying.address as Hex,
+      );
+    }
+  }, [
+    route?.params?.asset,
+    earnToken?.symbol,
+    outputToken?.chainId,
+    outputToken?.experience?.market?.underlying.address,
+    getTokenSnapshot,
+  ]);
+  useEffect(() => {
+    if (tokenSnapshot?.token?.symbol) {
+      setAssetSymbol(tokenSnapshot?.token?.symbol);
+    } else if (earnToken?.symbol || earnToken?.ticker) {
+      setAssetSymbol(earnToken?.symbol || earnToken?.ticker || null);
+    } else {
+      setAssetSymbol(null);
+    }
+  }, [tokenSnapshot?.token?.symbol, earnToken?.symbol, earnToken?.ticker]);
 
   const reversedMarketApys = useMemo(
     () => (marketApys?.length ? [...marketApys].reverse() : []),
@@ -243,9 +275,9 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <View>
+      <ScrollView style={styles.scrollView}>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
+          <Text variant={TextVariant.HeadingMD}>
             {strings('earn.how_it_works')}
           </Text>
         </BottomSheetHeader>
@@ -306,13 +338,13 @@ export const LendingLearnMoreModal = () => {
           )}
         </Animated.View>
         <BodyText
-          assetSymbol={route?.params?.asset?.symbol}
+          assetSymbol={assetSymbol || ''}
           protocol={
             route?.params?.asset?.experience?.market
               ?.protocol as LendingProtocol
           }
         />
-      </View>
+      </ScrollView>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}

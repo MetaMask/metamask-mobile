@@ -29,6 +29,7 @@ export const ConfirmationUIType = {
 export const ConfirmationRowComponentIDs = {
   ACCOUNT_NETWORK: 'account-network',
   ADVANCED_DETAILS: 'advanced-details',
+  APPROVE_ROW: 'approve-row',
   FROM_TO: 'from-to',
   GAS_FEES_DETAILS: 'gas-fees-details',
   MESSAGE: 'message',
@@ -63,3 +64,10 @@ export const AlertModalSelectorsText = {
 export const AlertTypeIDs = {
   INLINE_ALERT: 'inline-alert',
 } as const; 
+
+export const ApproveComponentIDs = {
+  SPENDING_CAP_VALUE: 'spending-cap-value',
+  EDIT_SPENDING_CAP_BUTTON: 'edit-spending-cap-button',
+  EDIT_SPENDING_CAP_INPUT: 'edit-spending-cap-input',
+  EDIT_SPENDING_CAP_SAVE_BUTTON: 'edit-spending-cap-save-button',
+} as const;

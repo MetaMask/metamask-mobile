@@ -142,6 +142,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -173,12 +174,18 @@ const ImportFromSecretRecoveryPhrase = ({
     setError('');
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
+    setHasStartedTyping(false);
   }, []);
 
   const handleSeedPhraseChangeAtIndex = useCallback(
     (seedPhraseText, index) => {
       try {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
+
+        // Set hasStartedTyping to true when user starts typing
+        if (text.length > 0 && !hasStartedTyping) {
+          setHasStartedTyping(true);
+        }
 
         if (text.includes(SPACE_CHAR)) {
           const isEndWithSpace = text.at(-1) === SPACE_CHAR;
@@ -214,7 +221,12 @@ const ImportFromSecretRecoveryPhrase = ({
         Logger.error('Error handling seed phrase change:', error);
       }
     },
-    [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
+    [
+      setSeedPhrase,
+      setNextSeedPhraseInputFocusedIndex,
+      seedPhrase,
+      hasStartedTyping,
+    ],
   );
 
   const handleSeedPhraseChange = useCallback(
@@ -224,6 +236,24 @@ const ImportFromSecretRecoveryPhrase = ({
       const updatedTrimmedText = trimmedText
         .split(' ')
         .filter((word) => word !== '');
+
+      // Set hasStartedTyping to true when user starts typing
+      if (text.length > 0 && !hasStartedTyping) {
+        setHasStartedTyping(true);
+
+        // Handle the case where user is typing a partial word
+        const words = text.split(' ');
+        const lastWord = words[words.length - 1];
+
+        // If the text doesn't end with a space, focus on the last input field
+        // This means the user is still typing the current word
+        if (!text.endsWith(' ') && lastWord.length > 0) {
+          setNextSeedPhraseInputFocusedIndex(Math.max(0, words.length - 1));
+        } else {
+          // If it ends with a space, focus on the next input field
+          setNextSeedPhraseInputFocusedIndex(words.length);
+        }
+      }
 
       if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
         setSeedPhrase(updatedTrimmedText);
@@ -240,7 +270,7 @@ const ImportFromSecretRecoveryPhrase = ({
         seedPhraseInputRefs.current[lastRef]?.blur();
       }
     },
-    [handleSeedPhraseChangeAtIndex, setSeedPhrase],
+    [handleSeedPhraseChangeAtIndex, setSeedPhrase, hasStartedTyping],
   );
 
   const checkForWordErrors = useCallback(
@@ -269,6 +299,14 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   }, [seedPhrase, checkForWordErrors]);
 
+  // Check if all seed phrase fields are empty and switch back to TextArea
+  useEffect(() => {
+    const allEmpty = seedPhrase.every((word) => !word.trim());
+    if (allEmpty && hasStartedTyping) {
+      setHasStartedTyping(false);
+    }
+  }, [seedPhrase, hasStartedTyping]);
+
   const onQrCodePress = useCallback(() => {
     let shouldHideSRP = true;
     if (!hideSeedPhraseInput) {
@@ -282,6 +320,8 @@ const ImportFromSecretRecoveryPhrase = ({
       onScanSuccess: ({ seed = undefined }) => {
         if (seed) {
           handleClear();
+          setHasStartedTyping(true);
+          setNextSeedPhraseInputFocusedIndex(0);
           handleSeedPhraseChange(seed);
         } else {
           Alert.alert(
@@ -466,6 +506,8 @@ const ImportFromSecretRecoveryPhrase = ({
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
+      setHasStartedTyping(true);
+      setNextSeedPhraseInputFocusedIndex(0);
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
@@ -669,7 +711,14 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
-    seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
+    if (nextSeedPhraseInputFocusedIndex !== null) {
+      // Add a small delay to ensure the component has re-rendered
+      const timer = setTimeout(() => {
+        seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
@@ -745,17 +794,16 @@ const ImportFromSecretRecoveryPhrase = ({
                 <View style={styles.seedPhraseRoot}>
                   <View style={styles.seedPhraseContainer}>
                     <View style={styles.seedPhraseInnerContainer}>
-                      {seedPhrase.length <= 1 ? (
+                      {!hasStartedTyping ? (
                         <TextInput
                           ref={(ref) => {
                             seedPhraseInputRefs.current[0] = ref;
                           }}
                           textAlignVertical="top"
-                          label={strings('import_from_seed.srp')}
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
                           )}
-                          value={seedPhrase?.[0] || ''}
+                          value={seedPhrase.join(' ')}
                           onChangeText={(text) => handleSeedPhraseChange(text)}
                           style={styles.seedPhraseDefaultInput}
                           placeholderTextColor={colors.text.alternative}
@@ -865,14 +913,14 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                       <Button
                         label={
-                          seedPhrase.length >= 1
+                          hasStartedTyping && seedPhrase.length >= 1
                             ? strings('import_from_seed.clear_all')
                             : strings('import_from_seed.paste')
                         }
                         variant={ButtonVariants.Link}
                         style={styles.pasteButton}
                         onPress={() => {
-                          if (seedPhrase.length >= 1) {
+                          if (hasStartedTyping && seedPhrase.length >= 1) {
                             handleClear();
                           } else {
                             handlePaste();

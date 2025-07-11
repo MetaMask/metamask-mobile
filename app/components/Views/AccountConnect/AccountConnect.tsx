@@ -921,7 +921,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
-    renderAddNewAccount
+    renderAddNewAccount,
   ]);
 
   return (

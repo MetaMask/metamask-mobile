@@ -92,7 +92,7 @@ export const useConfirmActions = () => {
     onRequestConfirm,
     isSignatureReq,
     isFullScreenConfirmation,
-    shouldUseSmartTransaction,
+    shouldUseSmartTransaction
   ]);
 
   return { onConfirm, onReject };

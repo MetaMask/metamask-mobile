@@ -22,9 +22,8 @@ exports[`OrderListItem should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -82,9 +81,8 @@ exports[`OrderListItem should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -97,9 +95,8 @@ exports[`OrderListItem should render correctly 1`] = `
         style={
           {
             "color": "#1c7e33",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -131,9 +128,8 @@ exports[`OrderListItem should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -148,9 +144,8 @@ exports[`OrderListItem should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -185,9 +180,8 @@ exports[`OrderListItem should render correctly 2`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -245,9 +239,8 @@ exports[`OrderListItem should render correctly 2`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -260,9 +253,8 @@ exports[`OrderListItem should render correctly 2`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -294,9 +286,8 @@ exports[`OrderListItem should render correctly 2`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -311,9 +302,8 @@ exports[`OrderListItem should render correctly 2`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -348,9 +338,8 @@ exports[`OrderListItem should render correctly 3`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -408,9 +397,8 @@ exports[`OrderListItem should render correctly 3`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -423,9 +411,8 @@ exports[`OrderListItem should render correctly 3`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -457,9 +444,8 @@ exports[`OrderListItem should render correctly 3`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -474,9 +460,8 @@ exports[`OrderListItem should render correctly 3`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -511,9 +496,8 @@ exports[`OrderListItem should render correctly 4`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -571,9 +555,8 @@ exports[`OrderListItem should render correctly 4`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -586,9 +569,8 @@ exports[`OrderListItem should render correctly 4`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -620,9 +602,8 @@ exports[`OrderListItem should render correctly 4`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -637,9 +618,8 @@ exports[`OrderListItem should render correctly 4`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -674,9 +654,8 @@ exports[`OrderListItem should render correctly 5`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -734,9 +713,8 @@ exports[`OrderListItem should render correctly 5`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -749,9 +727,8 @@ exports[`OrderListItem should render correctly 5`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -783,9 +760,8 @@ exports[`OrderListItem should render correctly 5`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -800,9 +776,8 @@ exports[`OrderListItem should render correctly 5`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -837,9 +812,8 @@ exports[`OrderListItem should render correctly 6`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -897,9 +871,8 @@ exports[`OrderListItem should render correctly 6`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -912,9 +885,8 @@ exports[`OrderListItem should render correctly 6`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -946,9 +918,8 @@ exports[`OrderListItem should render correctly 6`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -963,9 +934,8 @@ exports[`OrderListItem should render correctly 6`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -1000,9 +970,8 @@ exports[`OrderListItem should render correctly 7`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -1060,9 +1029,8 @@ exports[`OrderListItem should render correctly 7`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1075,9 +1043,8 @@ exports[`OrderListItem should render correctly 7`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -1109,9 +1076,8 @@ exports[`OrderListItem should render correctly 7`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1126,9 +1092,8 @@ exports[`OrderListItem should render correctly 7`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -1163,9 +1128,8 @@ exports[`OrderListItem should render correctly 8`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 14,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 22,
         }
@@ -1223,9 +1187,8 @@ exports[`OrderListItem should render correctly 8`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1238,9 +1201,8 @@ exports[`OrderListItem should render correctly 8`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -1272,9 +1234,8 @@ exports[`OrderListItem should render correctly 8`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -1289,9 +1250,8 @@ exports[`OrderListItem should render correctly 8`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

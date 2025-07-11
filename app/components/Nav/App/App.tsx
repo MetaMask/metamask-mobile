@@ -144,6 +144,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import { RootState } from '../../../reducers';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -472,7 +474,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen name={Routes.MODAL.DEEP_LINK_MODAL} component={DeepLinkModal} />
+    <Stack.Screen
+      name={Routes.MODAL.DEEP_LINK_MODAL}
+      component={DeepLinkModal}
+    />
   </Stack.Navigator>
 );
 
@@ -575,6 +580,25 @@ const MultichainAccountDetails = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
         component={RevealSRP}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const MultichainWalletDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={WalletDetails}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -691,6 +715,10 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
+      />
+      <Stack.Screen
         options={{
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
@@ -764,6 +792,10 @@ const App: React.FC = () => {
 
   const isFirstRender = useRef(true);
 
+  const isMetaMetricsUISeen = useSelector(
+    (state: RootState) => state.user.isMetaMetricsUISeen,
+  );
+
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -795,8 +827,25 @@ const App: React.FC = () => {
               await Authentication.appTriggeredAuth();
             },
           );
-          // we need to reset the navigator here so that the user cannot go back to the login screen
-          navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+
+          if (!isMetaMetricsUISeen) {
+            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: () =>
+                    navigation.reset({
+                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+                    }),
+                },
+              },
+            });
+          } else {
+            navigation.reset({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            });
+          }
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
@@ -817,7 +866,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, queueOfHandleDeeplinkFunctions]);
+  }, [navigation, queueOfHandleDeeplinkFunctions, isMetaMetricsUISeen]);
 
   const handleDeeplink = useCallback(
     ({

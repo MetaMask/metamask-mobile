@@ -10,6 +10,7 @@ export type SlideId =
   | 'multisrp'
   | 'backupAndSync'
   | 'solana'
+  | 'smartAccount'
   | `contentful-${string}`;
 
 interface NavigationParams {

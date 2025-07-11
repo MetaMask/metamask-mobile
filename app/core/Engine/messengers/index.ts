@@ -16,6 +16,7 @@ import {
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
   getSnapsRegistryMessenger,
+  getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -32,6 +33,9 @@ import { getNotificationServicesControllerMessenger } from './notifications/noti
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
+import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
+
+import { getApprovalControllerMessenger } from './approval-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -42,6 +46,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ApprovalController: {
+    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionController: {
@@ -101,6 +109,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getNotificationServicesPushControllerMessenger,
     getInitMessenger: noop,
   },
+  WebSocketService: {
+    getMessenger: getWebSocketServiceMessenger,
+    getInitMessenger: noop,
+  },
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainAssetsController: {
@@ -120,4 +132,8 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
+  SeedlessOnboardingController: {
+    getMessenger: getSeedlessOnboardingControllerMessenger,
+    getInitMessenger: noop,
+  },
 } as const;

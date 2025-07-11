@@ -9,7 +9,11 @@ import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import Icon, {
   IconColor,
   IconName,
@@ -35,6 +39,8 @@ import {
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
+import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
+import { StatusResponse } from '@metamask/bridge-status-controller';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -92,11 +98,56 @@ interface BridgeTransactionDetailsProps {
   };
 }
 
-const StatusToColorMap: Record<StatusTypes, TextColor> = {
+const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.PENDING]: TextColor.Warning,
   [StatusTypes.COMPLETE]: TextColor.Success,
   [StatusTypes.FAILED]: TextColor.Error,
   [StatusTypes.UNKNOWN]: TextColor.Error,
+};
+
+const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
+  [TransactionStatus.submitted]: TextColor.Warning,
+  [TransactionStatus.confirmed]: TextColor.Success,
+  [TransactionStatus.failed]: TextColor.Error,
+  [TransactionStatus.unapproved]: TextColor.Warning,
+  [TransactionStatus.approved]: TextColor.Warning,
+  [TransactionStatus.signed]: TextColor.Warning,
+  [TransactionStatus.dropped]: TextColor.Error,
+  [TransactionStatus.rejected]: TextColor.Error,
+  [TransactionStatus.cancelled]: TextColor.Error,
+};
+
+const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
+  'submitted': TextColor.Warning,
+  'confirmed': TextColor.Success,
+  'unconfirmed': TextColor.Warning,
+  'failed': TextColor.Error,
+};
+
+const getStatusColor = ({
+  isBridge,
+  isSwap,
+  multiChainTx,
+  bridgeStatus,
+  evmTxMeta,
+}: {
+  isBridge: boolean;
+  isSwap: boolean;
+  multiChainTx?: Transaction;
+  bridgeStatus?: StatusResponse;
+  evmTxMeta?: TransactionMeta;
+}) => {
+  if (isBridge && bridgeStatus) {
+    return BridgeStatusToColorMap[bridgeStatus.status];
+  }
+  if (isSwap && evmTxMeta) {
+    return SwapStatusToColorMap[evmTxMeta.status as TransactionStatus];
+  }
+  if (multiChainTx) {
+    return MultichainTxStatusToColorMap[multiChainTx.status];
+  }
+
+  return TextColor.Error;
 };
 
 export const BridgeTransactionDetails = (
@@ -112,6 +163,12 @@ export const BridgeTransactionDetails = (
     multiChainTx,
   });
 
+  // Get source chain explorer data for swaps
+  const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
+    chainId: bridgeTxHistoryItem?.quote.srcChainId,
+    txHash: evmTxMeta?.hash,
+  });
+
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
   useEffect(() => {
@@ -123,7 +180,10 @@ export const BridgeTransactionDetails = (
     return null;
   }
 
-  const { quote, status, startTime } = bridgeTxHistoryItem;
+  const { quote, status: bridgeStatus, startTime } = bridgeTxHistoryItem;
+
+  const isSwap = quote.srcChainId === quote.destChainId;
+  const isBridge = !isSwap;
 
   // Create token objects directly from the quote data
   const sourceChainId = isSolanaChainId(quote.srcChainId)
@@ -206,6 +266,7 @@ export const BridgeTransactionDetails = (
             token={sourceToken}
             tokenAmount={sourceTokenAmount}
             chainId={sourceChainId}
+            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
           />
           <Box style={styles.arrowContainer}>
             <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
@@ -214,6 +275,7 @@ export const BridgeTransactionDetails = (
             token={destinationToken}
             tokenAmount={destinationTokenAmount}
             chainId={destinationChainId}
+            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
           />
         </Box>
         <Box style={styles.detailRow}>
@@ -227,39 +289,49 @@ export const BridgeTransactionDetails = (
           >
             <Text
               variant={TextVariant.BodyMDMedium}
-              color={StatusToColorMap[status.status]}
+              color={getStatusColor({
+                isBridge,
+                isSwap,
+                multiChainTx,
+                bridgeStatus,
+                evmTxMeta,
+              })}
               style={styles.textTransform}
             >
-              {status.status}
+              {isBridge ? bridgeStatus.status : null}
+              {isSwap ? evmTxMeta?.status : null}
+              {multiChainTx ? multiChainTx.status : null}
             </Text>
           </Box>
         </Box>
-        {status.status === StatusTypes.PENDING && estimatedCompletionString && (
-          <Box style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge_transaction_details.estimated_completion')}{' '}
-            </Text>
-            <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
-              <Text>
-                {estimatedCompletionString}
+        {isBridge &&
+          bridgeStatus.status === StatusTypes.PENDING &&
+          estimatedCompletionString && (
+            <Box style={styles.detailRow}>
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('bridge_transaction_details.estimated_completion')}{' '}
               </Text>
-              <TouchableOpacity
-                onPress={() => setIsStepListExpanded(!isStepListExpanded)}
+              <Box
+                flexDirection={FlexDirection.Row}
+                gap={4}
+                alignItems={AlignItems.center}
               >
-                <Icon
-                  name={
-                    isStepListExpanded
-                      ? IconName.ArrowUp
-                      : IconName.ArrowDown
-                  }
-                  color={IconColor.Muted}
-                  size={IconSize.Sm}
-                />
-              </TouchableOpacity>
+                <Text>{estimatedCompletionString}</Text>
+                <TouchableOpacity
+                  onPress={() => setIsStepListExpanded(!isStepListExpanded)}
+                >
+                  <Icon
+                    name={
+                      isStepListExpanded ? IconName.ArrowUp : IconName.ArrowDown
+                    }
+                    color={IconColor.Muted}
+                    size={IconSize.Sm}
+                  />
+                </TouchableOpacity>
+              </Box>
             </Box>
-          </Box>
-        )}
-        {status.status !== StatusTypes.COMPLETE && isStepListExpanded && (
+          )}
+        {bridgeStatus.status !== StatusTypes.COMPLETE && isStepListExpanded && (
           <Box style={styles.detailRow}>
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
@@ -305,13 +377,25 @@ export const BridgeTransactionDetails = (
           variant={ButtonVariants.Secondary}
           label={strings('bridge_transaction_details.view_on_block_explorer')}
           onPress={() => {
-            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-              screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-              params: {
-                evmTxMeta: props.route.params.evmTxMeta,
-                multiChainTx: props.route.params.multiChainTx,
-              },
-            });
+            // For swaps, go directly to block explorer web view
+            if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+              navigation.navigate(Routes.BROWSER.HOME, {
+                screen: Routes.BROWSER.VIEW,
+                params: {
+                  newTabUrl: swapSrcExplorerData.explorerTxUrl,
+                  timestamp: Date.now(),
+                },
+              });
+            } else {
+              // For bridges, show the modal with both explorers
+              navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+                params: {
+                  evmTxMeta: props.route.params.evmTxMeta,
+                  multiChainTx: props.route.params.multiChainTx,
+                },
+              });
+            }
           }}
         />
       </Box>

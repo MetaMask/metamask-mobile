@@ -803,6 +803,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: real time dapp scanning BrowserTab ([#14515](https://github.com/MetaMask/metamask-mobile/pull/14515))
 - feat(multi-srp): add new srp pills labels ([#14829](https://github.com/MetaMask/metamask-mobile/pull/14829))
 - feat: feat: AccountConnect and AccountApproval use dapp scanning ([#14514](https://github.com/MetaMask/metamask-mobile/pull/14514/))
+- feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
+- feat: add migration 082 to reset PhishingController phishingLists [#16067](https://github.com/MetaMask/metamask-mobile/pull/16067)
+- feat:  fetch all tokens for bridge input [#16029](https://github.com/MetaMask/metamask-mobile/pull/16029)
+- feat: add insufficient balance check for Soala swaps [#15509](https://github.com/MetaMask/metamask-mobile/pull/15509)
+- feat: add red styling for insufficient balance on solana swaps [#15501](https://github.com/MetaMask/metamask-mobile/pull/15501)
+- feat: cleaned up Vault Sentry logs [#15458](https://github.com/MetaMask/metamask-mobile/pull/15458)
+- feat: Solana dapp connectivity announcement toast (cherry pick from #15224) [#15339](https://github.com/MetaMask/metamask-mobile/pull/15339)
+- feat: add "hardware wallets not supported" error when attempting Solana [#15743](https://github.com/MetaMask/metamask-mobile/pull/15743)
 
 ### Changed
 
@@ -815,7 +823,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
-
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
