@@ -19,31 +19,28 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
       ]
     }
   >
-    <RCTScrollView
-      collapsable={false}
-      handlerTag={-1}
-      handlerType="NativeViewGestureHandler"
-      onGestureHandlerEvent={[Function]}
-      onGestureHandlerStateChange={[Function]}
-      refreshControl={
-        <RefreshControlMock
-          colors={
-            [
-              "#4459ff",
-            ]
-          }
-          onRefresh={[Function]}
-          refreshing={false}
-          tintColor="#121314"
-        />
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
-      <RCTRefreshControl />
-      <View>
+      <RCTSafeAreaView
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
         <View
           style={
             [
               {
+                "backgroundColor": "#ffffff",
                 "flex": 1,
               },
               undefined,
@@ -57,7 +54,12 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                   "padding": 15,
                 },
                 undefined,
-                undefined,
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 16,
+                  "justifyContent": "center",
+                },
               ]
             }
           >
@@ -65,384 +67,76 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
               style={
                 {
                   "alignItems": "center",
-                  "marginBottom": 24,
+                  "backgroundColor": "#ca35421a",
+                  "borderRadius": 28,
+                  "height": 56,
+                  "justifyContent": "center",
+                  "width": 56,
                 }
               }
             >
-              <View
+              <SvgMock
+                color="#ca3542"
+                fill="currentColor"
+                height={32}
+                name="Close"
                 style={
                   {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "marginBottom": 20,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "height": 40,
-                      "justifyContent": "center",
-                      "padding": 4,
-                      "width": 40,
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "bottom": 0,
-                        "justifyContent": "center",
-                        "left": 0,
-                        "position": "absolute",
-                        "right": 0,
-                        "top": 0,
-                      }
-                    }
-                  >
-                    <ActivityIndicator
-                      color="#4459ff"
-                      size="large"
-                    />
-                  </View>
-                </View>
-              </View>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
-                    "fontSize": 40,
-                    "fontWeight": "700",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                    "marginBottom": 16,
-                    "textAlign": "center",
-                  }
-                }
-              >
-                0.05
-                 
-                ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "textAlign": "center",
-                  }
-                }
-              >
-                Card purchases typically take a few minutes
-              </Text>
+                width={32}
+              />
             </View>
-            <View
+            <Text
+              accessibilityRole="text"
               style={
                 {
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc866",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "marginBottom": 16,
-                  "paddingHorizontal": 16,
-                  "paddingVertical": 8,
+                  "color": "#ca3542",
+                  "fontFamily": "Geist Bold",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
                 }
               }
             >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginVertical": 8,
-                  }
+              There was an error with your deposit order
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "center",
                 }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Account
-                </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 36,
-                      "flexDirection": "row",
-                      "gap": 4,
-                      "paddingLeft": 4,
-                      "paddingRight": 8,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  />
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Network
-                </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "gap": 4,
-                    }
-                  }
-                >
-                  <Image
-                    source={1}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "borderRadius": 10,
-                        "height": 16,
-                        "justifyContent": "center",
-                        "width": 16,
-                      }
-                    }
-                  />
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Order ID
-                </Text>
-                <TouchableOpacity
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "gap": 3,
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      }
-                    }
-                  >
-                    ..
-                    123456
-                  </Text>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Copy"
-                    style={
-                      {
-                        "height": 24,
-                        "width": 24,
-                      }
-                    }
-                    width={24}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View
-                style={
-                  {
-                    "backgroundColor": "#b7bbc866",
-                    "height": 1,
-                    "marginHorizontal": -16,
-                    "marginVertical": 8,
-                  }
-                }
-              />
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Fees
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  $2.50
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "marginVertical": 8,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Total
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  $102.50
-                </Text>
-              </View>
-            </View>
+              }
+            >
+              Test error message
+            </Text>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
               onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
                   "flexDirection": "row",
-                  "gap": 8,
+                  "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
                 }
               }
             >
@@ -450,35 +144,21 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
               >
-                View order details in Transak
+                Try again
               </Text>
-              <SvgMock
-                color="#4459ff"
-                fill="currentColor"
-                height={16}
-                name="Export"
-                style={
-                  {
-                    "height": 16,
-                    "width": 16,
-                  }
-                }
-                width={16}
-              />
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-    </RCTScrollView>
+      </RCTSafeAreaView>
+    </View>
   </View>
 </RCTSafeAreaView>
 `;
@@ -595,9 +275,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -614,9 +293,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -654,9 +332,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -668,7 +345,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -682,9 +359,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -707,9 +383,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -743,9 +418,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -770,9 +444,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -795,9 +468,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -846,9 +518,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -861,9 +532,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -887,9 +557,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -902,9 +571,8 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -914,46 +582,6 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                  "justifyContent": "center",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                View order details in Transak
-              </Text>
-              <SvgMock
-                color="#4459ff"
-                fill="currentColor"
-                height={16}
-                name="Export"
-                style={
-                  {
-                    "height": 16,
-                    "width": 16,
-                  }
-                }
-                width={16}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -1147,9 +775,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -1166,9 +793,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -1206,9 +832,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1220,7 +845,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -1234,9 +859,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1259,9 +883,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1295,9 +918,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1322,9 +944,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1347,9 +968,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1398,9 +1018,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1413,9 +1032,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1439,9 +1057,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1454,9 +1071,8 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1466,46 +1082,6 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                  "justifyContent": "center",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                View order details in Transak
-              </Text>
-              <SvgMock
-                color="#4459ff"
-                fill="currentColor"
-                height={16}
-                name="Export"
-                style={
-                  {
-                    "height": 16,
-                    "width": 16,
-                  }
-                }
-                width={16}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -1626,9 +1202,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 40,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                     "marginBottom": 16,
@@ -1645,9 +1220,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 14,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                     "textAlign": "center",
@@ -1685,9 +1259,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1699,7 +1272,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#3c4d9d1a",
                       "borderRadius": 36,
                       "flexDirection": "row",
                       "gap": 4,
@@ -1713,9 +1286,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1738,9 +1310,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1774,9 +1345,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1801,9 +1371,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1826,9 +1395,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -1877,9 +1445,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1892,9 +1459,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1918,9 +1484,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1933,9 +1498,8 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1945,46 +1509,6 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "gap": 8,
-                  "justifyContent": "center",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                View order details in Transak
-              </Text>
-              <SvgMock
-                color="#4459ff"
-                fill="currentColor"
-                height={16}
-                name="Export"
-                style={
-                  {
-                    "height": 16,
-                    "width": 16,
-                  }
-                }
-                width={16}
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>

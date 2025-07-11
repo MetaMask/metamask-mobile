@@ -14,9 +14,7 @@ if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
 
 module.exports = {
   rootDir: '..',
-  testMatch: [
-    '<rootDir>/e2e/specs/**/*.spec.{js,ts}',
-  ],
+  testMatch: ['<rootDir>/e2e/specs/**/*.spec.{js,ts}'],
   testTimeout: 500000,
   maxWorkers:workers,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],

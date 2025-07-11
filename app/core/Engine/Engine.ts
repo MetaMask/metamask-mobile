@@ -129,6 +129,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
   handleFetch,
+  type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
   ///: END:ONLY_INCLUDE_IF
@@ -185,6 +186,7 @@ import {
   swapsSupportedChainIds,
 } from './constants';
 import { getGlobalChainId } from '../../util/networks/global-network';
+import { trace } from '../../util/trace';
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
@@ -228,9 +230,8 @@ import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
-///: END:ONLY_INCLUDE_IF
+import { perpsControllerInit } from './controllers/perps-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1117,6 +1118,7 @@ export class Engine {
         this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+      trace: trace as TraceCallback,
     });
 
     const tokenSearchDiscoveryDataController =
@@ -1179,6 +1181,7 @@ export class Engine {
           .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
+      traceFn: trace as TraceCallback,
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1190,11 +1193,13 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
           'SnapController:handleRequest',
           'TransactionController:getState',
+          'RemoteFeatureFlagController:getState',
         ],
         allowedEvents: [
           'TransactionController:transactionConfirmed',
@@ -1216,6 +1221,7 @@ export class Engine {
         this.userOperationController?.addUserOperationFromTransaction?.(
           ...args,
         ),
+      traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
@@ -1262,9 +1268,8 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        ///: END:ONLY_INCLUDE_IF
+        PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1278,10 +1283,9 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
-    ///: END:ONLY_INCLUDE_IF
+    const perpsController = controllersByName.PerpsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1636,9 +1640,8 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
+      PerpsController: perpsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2359,10 +2362,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2415,10 +2417,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
     };
   },
 

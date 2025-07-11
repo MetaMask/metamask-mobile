@@ -281,6 +281,8 @@ export const NETWORK_CHAIN_ID: {
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
   readonly ABSTRACT: '0xab5';
+  readonly OMNI: '0xa6';
+  readonly XRPLEVM: '0x15f900';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -304,6 +306,8 @@ export const NETWORK_CHAIN_ID: {
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
   ABSTRACT: '0xab5',
+  OMNI: '0xa6',
+  XRPLEVM: '0x15f900',
   ...CHAIN_IDS,
 };
 
@@ -332,4 +336,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
+  [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
+  [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
 };

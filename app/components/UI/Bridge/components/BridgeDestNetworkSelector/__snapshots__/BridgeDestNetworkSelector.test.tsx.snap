@@ -334,7 +334,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -506,9 +506,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                         {
                                           "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 18,
-                                          "fontWeight": "700",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -671,9 +670,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontFamily": "Geist Medium",
                                                 "fontSize": 18,
-                                                "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }

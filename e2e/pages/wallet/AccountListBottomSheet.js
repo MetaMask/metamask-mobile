@@ -5,13 +5,15 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
 
 class AccountListBottomSheet {
   get accountList() {
-    return Matchers.getElementByID(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
   }
 
   get accountTypeLabel() {
@@ -66,7 +68,10 @@ class AccountListBottomSheet {
   }
 
   getMultiselectElement(index) {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
+    return Matchers.getElementByID(
+      CellComponentSelectorsIDs.MULTISELECT,
+      index,
+    );
   }
 
   /**
@@ -78,17 +83,14 @@ class AccountListBottomSheet {
    * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
    */
   getSelectWithMenuElementName(index) {
-    return Matchers.getElementByID(
-      CellComponentSelectorsIDs.BASE_TITLE,
-      index,
-    );
+    return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    const accountActionsButton = Matchers.getElementByID(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+    await Gestures.tapAtIndex(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
+      index,
     );
-    await Gestures.waitAndTap(accountActionsButton);
   }
 
   async accountNameInList(accountName) {
@@ -99,7 +101,9 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElementName(index));
+    await Gestures.tap(this.getSelectWithMenuElementName(index), {
+      checkEnabled: false,
+    });
   }
 
   async longPressAccountAtIndex(index) {
@@ -132,9 +136,20 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName) {
-    const name=  Matchers.getElementByText(accountName);
+    const name = Matchers.getElementByText(accountName);
 
     await Gestures.waitAndTap(name);
+  }
+
+  async scrollToAccount(index) {
+    await Gestures.scrollToElement(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
+      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+    );
+  }
+
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'fast');
   }
 }
 

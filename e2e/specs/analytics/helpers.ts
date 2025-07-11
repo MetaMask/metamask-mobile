@@ -22,7 +22,7 @@ export const getEventsPayloads = async (
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
-      
+
       // Filter out infrastructure endpoints that are always pending
       // Only include endpoints that have received requests (analytics endpoints)
       const endpointChecks = await Promise.all(
@@ -31,7 +31,7 @@ export const getEventsPayloads = async (
           return { endpoint, hasRequests: seenRequests.length > 0 };
         })
       );
-      
+
       const analyticsEndpoints = endpointChecks
         .filter(({ hasRequests }) => hasRequests)
         .map(({ endpoint }) => endpoint);
@@ -114,7 +114,10 @@ export const onboardingEvents = {
   ANALYTICS_PREFERENCE_SELECTED: 'Analytics Preference Selected',
   WELCOME_MESSAGE_VIEWED: 'Welcome Message Viewed',
   WELCOME_SCREEN_ENGAGEMENT: 'Welcome Screen Engagement',
+  ONBOARDING_TOUR_STARTED: 'Onboarding Tour Started',
   ONBOARDING_STARTED: 'Onboarding Started',
+  ONBOARDING_TOUR_STEP_COMPLETED: 'Onboarding Tour Step Completed',
+  ONBOARDING_TOUR_STEP_REVISITED: 'Onboarding Tour Step Revisited',
   WALLET_IMPORTED: 'Wallet Imported',
   WALLET_SETUP_STARTED: 'Wallet Setup Started',
   WALLET_IMPORT_STARTED: 'Wallet Import Started',

@@ -62,6 +62,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   setSelectedAddress: jest.fn(),
+  context: {
+    PreferencesController: {
+      state: {},
+    },
+  },
 }));
 
 jest.mock('../../../util/theme', () => ({
@@ -236,36 +241,41 @@ describe('Carousel', () => {
       fifthSlide,
       sixthSlide,
       seventhSlide,
+      eighthSlide,
     ] = slides;
 
     // Test solana banner
     fireEvent.press(firstSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test card banner
+    // Test smart account
     fireEvent.press(secondSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test card banner
+    fireEvent.press(thirdSlide);
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/card',
     );
 
     // Test fund banner
-    fireEvent.press(thirdSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test cashout banner
     fireEvent.press(fourthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test aggregated banner
+    // Test cashout banner
     fireEvent.press(fifthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test multisrp banner
+    // Test aggregated banner
     fireEvent.press(sixthSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test backup and sync banner
+    // Test multisrp banner
     fireEvent.press(seventhSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test backup and sync banner
+    fireEvent.press(eighthSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 

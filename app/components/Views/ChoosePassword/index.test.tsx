@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
-import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
 import {
   ONBOARDING,
@@ -18,7 +17,17 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
+import { EVENT_NAME } from '../../../core/Analytics';
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+
+import ChoosePassword from './';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -63,6 +72,17 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
 }));
 
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
+}));
+
+const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockMetricsIsEnabled,
+  }),
+}));
+
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -100,6 +120,7 @@ interface ChoosePasswordProps {
       [ONBOARDING]?: boolean;
       [PROTECT]?: boolean;
       [PREVIOUS_SCREEN]?: string;
+      oauthLoginSuccess?: boolean;
     };
   };
   navigation?: {
@@ -108,6 +129,10 @@ interface ChoosePasswordProps {
     navigate: jest.Mock;
     push: jest.Mock;
     replace: jest.Mock;
+    reset?: jest.Mock;
+  };
+  metrics: {
+    isEnabled: jest.Mock;
   };
 }
 
@@ -118,6 +143,7 @@ const mockNavigation = {
   push: jest.fn(),
   replace: jest.fn(),
   setParams: jest.fn(),
+  reset: jest.fn(),
 };
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -127,18 +153,22 @@ const renderWithProviders = (ui: React.ReactElement) =>
     </Provider>,
   );
 
+const defaultProps: ChoosePasswordProps = {
+  route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
+  navigation: mockNavigation,
+  metrics: {
+    isEnabled: mockMetricsIsEnabled,
+  },
+};
+
 describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrackOnboarding.mockClear();
   });
 
   it('render matches snapshot', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -148,12 +178,7 @@ describe('ChoosePassword', () => {
 
   it('render loading state while creating password', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -203,12 +228,7 @@ describe('ChoosePassword', () => {
   });
 
   it('error message is shown when passwords do not match', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -255,12 +275,7 @@ describe('ChoosePassword', () => {
   });
 
   it('render header left button on press, navigates to previous screen', async () => {
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
-
-    renderWithProviders(<ChoosePassword {...props} />);
+    renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -310,12 +325,7 @@ describe('ChoosePassword', () => {
       return Promise.resolve(null);
     });
 
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     // Wait for componentDidMount to complete
     await act(async () => {
@@ -363,12 +373,7 @@ describe('ChoosePassword', () => {
       return Promise.resolve(null);
     });
 
-    const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true } },
-      navigation: mockNavigation,
-    };
-
-    const component = renderWithProviders(<ChoosePassword {...props} />);
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     // Wait for componentDidMount to complete
     await act(async () => {
@@ -405,10 +410,15 @@ describe('ChoosePassword', () => {
     );
 
     const props: ChoosePasswordProps = {
-      route: { params: { [ONBOARDING]: true, [PREVIOUS_SCREEN]: ONBOARDING } },
-      navigation: mockNavigation,
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        },
+      },
     };
-
     const component = renderWithProviders(<ChoosePassword {...props} />);
 
     // Wait for initial render and componentDidMount
@@ -470,6 +480,380 @@ describe('ChoosePassword', () => {
     expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1');
 
     // // Clean up mock
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('confirm password input is cleared when password input is cleared', async () => {
+    const props: ChoosePasswordProps = {
+      route: { params: { [ONBOARDING]: true } },
+      navigation: mockNavigation,
+      metrics: {
+        isEnabled: jest.fn(),
+      },
+    };
+
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+    });
+
+    expect(passwordInput.props.value).toBe('StrongPassword123!@#');
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, 'StrongPassword123!@');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('StrongPassword123!@#');
+
+    await act(async () => {
+      fireEvent.changeText(passwordInput, '');
+    });
+
+    expect(confirmPasswordInput.props.value).toBe('');
+  });
+
+  it('should track failure when password requirements are not met', async () => {
+    mockTrackOnboarding.mockClear();
+
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    // Use short password that will fail passwordRequirementsMet
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, '123');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, '123');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    // Should not proceed with wallet creation
+    expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+    // Should track the failure
+    expect(mockTrackOnboarding).toHaveBeenCalled();
+    const trackingEvent = mockTrackOnboarding.mock.calls[0][0];
+    expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
+    expect(trackingEvent.properties).toEqual({
+      wallet_setup_type: 'import',
+      error_type: strings('choose_password.password_length_error'),
+    });
+  });
+
+  it('should track failure and return when passwords do not match on submit', async () => {
+    mockTrackOnboarding.mockClear();
+
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    // Enter mismatched passwords
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'DifferentPassword123');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    // Should not proceed with wallet creation
+    expect(Authentication.newWalletAndKeychain).not.toHaveBeenCalled();
+    // Should track the failure
+    expect(mockTrackOnboarding).toHaveBeenCalled();
+    const trackingEvent = mockTrackOnboarding.mock.calls[0][0];
+    expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
+    expect(trackingEvent.properties).toEqual({
+      wallet_setup_type: 'import',
+      error_type: strings('choose_password.password_dont_match'),
+    });
+  });
+
+  it('should handle rejected OS biometric prompt', async () => {
+    jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+    // Mock newWalletAndKeychain to throw error first, then succeed
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain
+      .mockRejectedValueOnce(new Error('User rejected biometric prompt'))
+      .mockResolvedValueOnce(undefined);
+
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        },
+      },
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    // Should handle the rejection and create wallet with fallback method
+    expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(2);
+
+    jest.spyOn(Device, 'isIos').mockRestore();
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('should show alert when passcode not set error occurs', async () => {
+    jest.spyOn(Device, 'isIos').mockReturnValue(false);
+    const mockComponentAuthenticationType = jest.spyOn(
+      Authentication,
+      'componentAuthenticationType',
+    );
+    mockComponentAuthenticationType.mockRejectedValueOnce(
+      new Error('Passcode not set.'),
+    );
+
+    const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      strings('choose_password.security_alert_title'),
+      strings('choose_password.security_alert_message'),
+    );
+
+    jest.spyOn(Device, 'isIos').mockRestore();
+    mockComponentAuthenticationType.mockClear();
+  });
+
+  it('should navigate to success screen when oauth2Login is true and metrics enabled', async () => {
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockResolvedValue(undefined);
+    mockMetricsIsEnabled.mockReturnValueOnce(true);
+
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    expect(mockNavigation.reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: 'OnboardingSuccess',
+          params: { showPasswordHint: true },
+        },
+      ],
+    });
+
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('should navigate to OptinMetrics when oauth2Login is true and metrics disabled', async () => {
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockResolvedValue(undefined);
+    mockMetricsIsEnabled.mockReturnValueOnce(false);
+
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('OptinMetrics', {
+      onContinue: expect.any(Function),
+    });
+
     mockNewWalletAndKeychain.mockRestore();
   });
 });

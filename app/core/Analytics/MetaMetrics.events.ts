@@ -261,7 +261,28 @@ enum EVENT_NAME {
   OFFRAMP_SEND_TRANSACTION_REJECTED = 'Off-ramp Send Transaction Rejected',
 
   // Deposit
-  DEPOSIT_BUTTON_CLICKED = 'Deposit Button Clicked',
+  RAMP_PAYMENT_METHOD_CLICKED = 'Ramp Payment Method Clicked',
+  RAMPS_BUTTON_CLICKED = 'Ramps Button Clicked',
+  RAMPS_DEPOSIT_CASH_BUTTON_CLICKED = 'Ramps Deposit Cash Button Clicked',
+  RAMPS_PAYMENT_METHOD_SELECTED = 'Ramps Payment Method Selected',
+  RAMPS_TOKEN_SELECTED = 'Ramps Token Selected',
+  RAMPS_REGION_SELECTED = 'Ramps Region Selected',
+  RAMPS_ORDER_PROPOSED = 'Ramps Order Proposed',
+  RAMPS_ORDER_SELECTED = 'Ramps Order Selected',
+  RAMPS_ORDER_FAILED = 'Ramps Order Failed',
+  RAMPS_EMAIL_SUBMITTED = 'Ramps Email Submitted',
+  RAMPS_OTP_CONFIRMED = 'Ramps OTP Confirmed',
+  RAMPS_OTP_FAILED = 'Ramps OTP Failed',
+  RAMPS_OTP_RESENT = 'Ramps OTP Resent',
+  RAMPS_KYC_STARTED = 'Ramps KYC Started',
+  RAMPS_BASIC_INFO_ENTERED = 'Ramps Basic Info Entered',
+  RAMPS_ADDRESS_ENTERED = 'Ramps Address Entered',
+  RAMPS_TRANSACTION_CONFIRMED = 'Ramps Transaction Confirmed',
+  RAMPS_TRANSACTION_COMPLETED = 'Ramps Transaction Completed',
+  RAMPS_TRANSACTION_FAILED = 'Ramps Transaction Failed',
+  RAMPS_KYC_APPLICATION_FAILED = 'Ramps KYC Application Failed',
+  RAMPS_KYC_APPLICATION_APPROVED = 'Ramps KYC Application Approved',
+  RAMPS_PAYMENT_METHOD_ADDED = 'Ramps Payment Method Added',
 
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',
@@ -292,8 +313,7 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
-  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
-  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
+  SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -404,8 +424,7 @@ enum EVENT_NAME {
   // Tab Bar Actions
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
-  SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
-  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
+  SWAP_BUTTON_CLICKED = 'Unified SwapBridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -445,6 +464,9 @@ enum EVENT_NAME {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
+
+  // Smart account opt in
+  SMART_ACCOUNT_OPT_IN = 'Smart Account Opt In',
 
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED = 'Dismiss smart account suggestion enabled',
@@ -824,7 +846,28 @@ const events = {
   ),
 
   // Deposit
-  DEPOSIT_BUTTON_CLICKED: generateOpt(EVENT_NAME.DEPOSIT_BUTTON_CLICKED),
+  RAMP_PAYMENT_METHOD_CLICKED: generateOpt(EVENT_NAME.RAMP_PAYMENT_METHOD_CLICKED),
+  RAMPS_BUTTON_CLICKED: generateOpt(EVENT_NAME.RAMPS_BUTTON_CLICKED),
+  RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: generateOpt(EVENT_NAME.RAMPS_DEPOSIT_CASH_BUTTON_CLICKED),
+  RAMPS_PAYMENT_METHOD_SELECTED: generateOpt(EVENT_NAME.RAMPS_PAYMENT_METHOD_SELECTED),
+  RAMPS_TOKEN_SELECTED: generateOpt(EVENT_NAME.RAMPS_TOKEN_SELECTED),
+  RAMPS_REGION_SELECTED: generateOpt(EVENT_NAME.RAMPS_REGION_SELECTED),
+  RAMPS_ORDER_PROPOSED: generateOpt(EVENT_NAME.RAMPS_ORDER_PROPOSED),
+  RAMPS_ORDER_SELECTED: generateOpt(EVENT_NAME.RAMPS_ORDER_SELECTED),
+  RAMPS_ORDER_FAILED: generateOpt(EVENT_NAME.RAMPS_ORDER_FAILED),
+  RAMPS_EMAIL_SUBMITTED: generateOpt(EVENT_NAME.RAMPS_EMAIL_SUBMITTED),
+  RAMPS_OTP_CONFIRMED: generateOpt(EVENT_NAME.RAMPS_OTP_CONFIRMED),
+  RAMPS_OTP_FAILED: generateOpt(EVENT_NAME.RAMPS_OTP_FAILED),
+  RAMPS_OTP_RESENT: generateOpt(EVENT_NAME.RAMPS_OTP_RESENT),
+  RAMPS_KYC_STARTED: generateOpt(EVENT_NAME.RAMPS_KYC_STARTED),
+  RAMPS_BASIC_INFO_ENTERED: generateOpt(EVENT_NAME.RAMPS_BASIC_INFO_ENTERED),
+  RAMPS_ADDRESS_ENTERED: generateOpt(EVENT_NAME.RAMPS_ADDRESS_ENTERED),
+  RAMPS_TRANSACTION_CONFIRMED: generateOpt(EVENT_NAME.RAMPS_TRANSACTION_CONFIRMED),
+  RAMPS_TRANSACTION_COMPLETED: generateOpt(EVENT_NAME.RAMPS_TRANSACTION_COMPLETED),
+  RAMPS_TRANSACTION_FAILED: generateOpt(EVENT_NAME.RAMPS_TRANSACTION_FAILED),
+  RAMPS_KYC_APPLICATION_FAILED: generateOpt(EVENT_NAME.RAMPS_KYC_APPLICATION_FAILED),
+  RAMPS_KYC_APPLICATION_APPROVED: generateOpt(EVENT_NAME.RAMPS_KYC_APPLICATION_APPROVED),
+  RAMPS_PAYMENT_METHOD_ADDED: generateOpt(EVENT_NAME.RAMPS_PAYMENT_METHOD_ADDED),
 
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
@@ -926,11 +969,10 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
-  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
-  
+
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
 
@@ -961,6 +1003,9 @@ const events = {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
+
+  // User opt in for smart account upgrade
+  SMART_ACCOUNT_OPT_IN: generateOpt(EVENT_NAME.SMART_ACCOUNT_OPT_IN),
 
   // Dismiss smart account upgrade suggestion
   DISMISS_SMART_ACCOUNT_SUGGESTION_ENABLED: generateOpt(
@@ -1170,7 +1215,6 @@ const events = {
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 
   // Bridge
-  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 
   // RPC Failover
@@ -1272,7 +1316,7 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
-  // Send Flow
+  // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
   SEND_FLOW_ADJUSTS_TRANSACTION_FEE = `Adjusts transaction fee`,
