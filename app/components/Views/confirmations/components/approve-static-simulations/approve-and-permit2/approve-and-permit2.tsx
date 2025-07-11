@@ -41,6 +41,8 @@ export const ApproveAndPermit2 = () => {
     return null;
   }
 
+  console.log('>>>>> ApproveAndPermit2 render')
+
   if (isRevoke) {
     return (
       <>
