@@ -33,7 +33,12 @@ class AuthTokenHandler {
       },
     );
 
-    return response.json();
+    const refreshTokenData = await response.json();
+    const idToken = refreshTokenData.id_token;
+
+    return {
+      idTokens: [idToken],
+    };
   }
 
   async revokeRefreshToken(params: {
@@ -58,7 +63,11 @@ class AuthTokenHandler {
       },
     );
 
-    return response.json();
+    const responseData = await response.json();
+    return {
+      newRefreshToken: responseData.refresh_token,
+      newRevokeToken: responseData.revoke_token,
+    };
   }
 }
 
