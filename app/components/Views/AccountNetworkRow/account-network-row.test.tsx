@@ -1,12 +1,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { RootState } from '../../../../../../../reducers';
-import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
-import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import { SmartAccountIds } from '../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { RootState } from '../../../reducers';
+import { mockTransaction } from '../../../util/test/confirm-data-helpers';
+import { EIP7702NetworkConfiguration } from '../confirmations/hooks/7702/useEIP7702Networks';
+import Routes from '../../../constants/navigation/Routes';
 import AccountNetworkRow from './account-network-row';
 
 const MOCK_NETWORK = {
@@ -32,7 +32,7 @@ const MOCK_ADDRESS = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
 
 const mockDowngradeAccount = jest.fn().mockResolvedValue(undefined);
 const mockUpgradeAccount = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../hooks/7702/useEIP7702Accounts', () => ({
+jest.mock('../confirmations/hooks/7702/useEIP7702Accounts', () => ({
   useEIP7702Accounts: () => ({
     downgradeAccount: mockDowngradeAccount,
     upgradeAccount: mockUpgradeAccount,
@@ -41,7 +41,7 @@ jest.mock('../../../../hooks/7702/useEIP7702Accounts', () => ({
 
 const mockMultichainAccountsState1Enabled = jest.fn().mockReturnValue(false);
 jest.mock(
-  '../../../../../../../selectors/featureFlagController/multichainAccounts',
+  '../../../selectors/featureFlagController/multichainAccounts',
   () => ({
     selectMultichainAccountsState1Enabled: () =>
       mockMultichainAccountsState1Enabled(),
@@ -60,7 +60,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockUseBatchAuthorizationRequests = jest.fn();
-jest.mock('../../../../hooks/7702/useBatchAuthorizationRequests', () => ({
+jest.mock('../confirmations/hooks/7702/useBatchAuthorizationRequests', () => ({
   useBatchAuthorizationRequests: () => mockUseBatchAuthorizationRequests(),
 }));
 
