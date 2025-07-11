@@ -251,28 +251,22 @@ export const generateThemeParameters = (
     colors.background.default,
     colors.background.alternative,
     colors.background.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
+  ].join(',');
 
   const textColors = [
     colors.text.default,
-    colors.text.default,
+    colors.primary.inverse, // Button text color (primary buttons)
     colors.text.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
+  ].join(',');
 
   const borderColors = [
     colors.border.default,
     colors.border.muted,
     colors.border.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
+  ].join(',');
 
   return {
-    themeColor: encodeURIComponent(colors.icon.default),
+    themeColor: colors.icon.default,
     colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
     backgroundColors,
     textColors,

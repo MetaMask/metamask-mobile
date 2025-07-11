@@ -357,25 +357,23 @@ describe('generateThemeParameters', () => {
     const colors = lightTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
-      themeColor: encodeURIComponent(colors.icon.default),
+      themeColor: colors.icon.default,
       colorMode: 'LIGHT',
       backgroundColors: [
         colors.background.default,
         colors.background.alternative,
         colors.background.muted,
-      ]
-        .map(encodeURIComponent)
-        .join(','),
-      textColors: [colors.text.default, colors.text.default, colors.text.muted]
-        .map(encodeURIComponent)
-        .join(','),
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.primary.inverse,
+        colors.text.muted,
+      ].join(','),
       borderColors: [
         colors.border.default,
         colors.border.muted,
         colors.border.muted,
-      ]
-        .map(encodeURIComponent)
-        .join(','),
+      ].join(','),
     });
   });
 
@@ -384,25 +382,23 @@ describe('generateThemeParameters', () => {
     const colors = darkTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
-      themeColor: encodeURIComponent(colors.icon.default),
+      themeColor: colors.icon.default,
       colorMode: 'DARK',
       backgroundColors: [
         colors.background.default,
         colors.background.alternative,
         colors.background.muted,
-      ]
-        .map(encodeURIComponent)
-        .join(','),
-      textColors: [colors.text.default, colors.text.default, colors.text.muted]
-        .map(encodeURIComponent)
-        .join(','),
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.primary.inverse,
+        colors.text.muted,
+      ].join(','),
       borderColors: [
         colors.border.default,
         colors.border.muted,
         colors.border.muted,
-      ]
-        .map(encodeURIComponent)
-        .join(','),
+      ].join(','),
     });
   });
 });
