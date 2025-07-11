@@ -592,6 +592,8 @@ class AuthenticationService {
         keyringId,
       );
 
+      await this.syncKeyringEncryptionKey();
+
       this.dispatchOauthReset();
     } catch (error) {
       await this.newWalletAndKeychain(`${Date.now()}`, {
@@ -651,6 +653,8 @@ class AuthenticationService {
           }
         }
 
+        await this.syncKeyringEncryptionKey();
+
         this.dispatchLogin();
         this.dispatchPasswordSet();
         this.dispatchOauthReset();
@@ -709,6 +713,8 @@ class AuthenticationService {
       });
       await this.resetPassword();
 
+      await this.syncKeyringEncryptionKey();
+
       // check password outdated again skip cache to reset the cache after successful syncing
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache: true,
@@ -740,6 +746,20 @@ class AuthenticationService {
         skipCache,
       });
     return isSeedlessPasswordOutdated;
+  };
+
+  /**
+   * Syncs the keyring encryption key with the seedless onboarding controller.
+   *
+   * @returns {Promise<void>}
+   */
+  syncKeyringEncryptionKey = async (): Promise<void> => {
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    // store the keyring encryption key in the seedless onboarding controller
+    const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
+    await SeedlessOnboardingController.storeKeyringEncryptionKey(
+      keyringEncryptionKey,
+    );
   };
 }
 
