@@ -17,7 +17,8 @@ jobs:
           platform: android
           setup-emulator: true
 
-      - name: Print Android tool versions
+        
+      - name: Print Android Environment Info
         run: |
           echo "🔧 Node.js Version:"
           node -v || echo "Node not found"
@@ -34,6 +35,14 @@ jobs:
           echo "🖥️ Emulator Version:"
           emulator -version || echo "emulator not found"
 
+          echo "🧱 NDK Info:"
+          echo "NDK Dir: $ANDROID_SDK_ROOT/ndk/${NDK_VERSION:-unknown}"
+          if [ -n "${NDK_VERSION}" ] && [ -f "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" ]; then
+            grep "Pkg.Revision" "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" || echo "NDK version info not found"
+          else
+            echo "NDK not found or NDK_VERSION not set"
+          fi
+
           echo "🔧 Checking for ndk-build:"
           command -v ndk-build || echo "ndk-build not found in PATH"
 
@@ -46,9 +55,16 @@ jobs:
           echo "📱 Available AVD Devices:"
           avdmanager list device || echo "avdmanager not found"
 
+          echo "📱 Available System Images:"
+          sdkmanager --list | grep "system-images;" || echo "No system images listed"
+
+          echo "🟢 Emulator Processes:"
+          pgrep -fl emulator || echo "No running emulator processes"
+
+          echo "📱 Connected Android Devices:"
+          adb devices || echo "adb devices failed"
         shell: bash
 
-  
 
 
 
