@@ -21,7 +21,7 @@ export interface SupportedToken {
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const cardFeatureFlag = remoteFeatureFlags?.cardFeatureFlag;
+    const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
     return (cardFeatureFlag ?? null) as CardFeatureFlag | null;
   },
 );
