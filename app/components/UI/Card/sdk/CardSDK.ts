@@ -76,7 +76,7 @@ export class CardSDK {
 
     try {
       // 1. Check if the address is a card holder by calling the balance scanner contract and verify if the FoxConnect contracts has allowances on supported tokens.
-      const spenders = this.supportedTokens.map(() => [
+      const spenders = this.supportedTokensAddresses.map(() => [
         FOXCONNECT_GLOBAL_ADDRESS,
         FOXCONNECT_US_ADDRESS,
       ]);
