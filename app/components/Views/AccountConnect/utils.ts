@@ -298,7 +298,13 @@ export function getDefaultSelectedChainIds({
   origin: string;
   requestedNamespaces: CaipNamespace[];
 }): CaipChainId[] {
-  const existingCaveat = getCaip25Caveat(origin);
+  let existingCaveat;
+  try {
+    existingCaveat = getCaip25Caveat(origin);
+  } catch (e) {
+    existingCaveat = undefined;
+  }
+
   const existingChainIds = existingCaveat?.value
     ? getAllScopesFromCaip25CaveatValue(existingCaveat.value)
     : [];
