@@ -46,10 +46,10 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              DISMISS_NETWORK_LIST: 2.5, // 2.5 seconds max for Android
+              DISMISS_NETWORK_LIST: 2500, // 2.5 seconds max for Android
             }
           : {
-              DISMISS_NETWORK_LIST: 1.5, // 1.5 seconds max for iOS
+              DISMISS_NETWORK_LIST: 1500, // 1.5 seconds max for iOS
             };
 
         let result: Partial<TestResult> = {};
