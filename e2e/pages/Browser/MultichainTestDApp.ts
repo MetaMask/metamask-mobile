@@ -577,8 +577,11 @@ class MultichainTestDApp {
    * @returns Escaped chain ID for HTML element ID (e.g., 'eip155-1')
    */
   private escapeChainIdForHtml(chainId: string): string {
-    if (isCaipChainId(chainId)) return chainId.replace(/:/g, '-');
-    return `eip155:${chainId}`.replace(/:/g, '-');
+    if (isCaipChainId(chainId)) {
+      return chainId.replace(/:/g, '-');
+    }
+
+    return `eip155-${chainId}`;
   }
 
   /**
@@ -891,14 +894,61 @@ class MultichainTestDApp {
   }
 
   /**
+   * Replace the parameters for a method
+   * @param {string} method - The method name
+   * @param {object} params - The parameters to fill in
+   * @returns {Promise<void>}
+   */
+  async replaceParams(
+    scope: string,
+    method: string,
+    params: object,
+  ): Promise<void> {
+    const webview = this.getWebView();
+    const escapedScope = this.escapeChainIdForHtml(scope);
+
+    const textareaElement = webview.element(
+      by.web.cssSelector(
+        `[data-testid="${escapedScope}-collapsible-content-textarea"]`,
+      ),
+    );
+
+    await textareaElement.scrollToView();
+
+    const request = {
+      method: 'wallet_invokeMethod',
+      params: {
+        scope,
+        request: {
+          method,
+          params,
+        },
+      },
+    };
+
+    const requestText = JSON.stringify(request);
+
+    // Handles updating the textarea value and triggering a change event
+    // on a React controlled component
+    await textareaElement.runScript(`
+      (el) => {
+        Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')
+          .set.call(el, ${JSON.stringify(requestText)});
+        
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    `);
+  }
+
+  /**
    * Attempt to invoke a method using the invoke button (used for testing after revoke)
-   * @param {string} chainId - The chain ID
+   * @param {string} scope - The scope of the method
    * @returns {Promise<boolean>} True if button was clicked, false otherwise
    */
-  async attemptInvokeMethodWithButton(chainId: string): Promise<boolean> {
+  async attemptInvokeMethodWithButton(scope: string): Promise<boolean> {
     try {
       const webview = this.getWebView();
-      const scopeId = `eip155:${chainId}`;
+      const scopeId = this.escapeChainIdForHtml(scope);
       const invokeButtonId = `invoke-method-${scopeId}-btn`;
 
       const invokeButton = webview.element(by.web.id(invokeButtonId));
@@ -911,6 +961,41 @@ class MultichainTestDApp {
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Invoke a method on a specific chain
+   * @param {string} scope - The scope of the method (e.g., 'eip155:1')
+   * @param {string} method - The method to select (e.g., 'wallet_getCallsStatus')
+   * @param {object} params - The method parameters to override default values
+   * @returns {Promise<void>}
+   */
+  async invokeMethod(
+    scope: string,
+    method: string,
+    params?: object,
+  ): Promise<void> {
+    const webview = this.getWebView();
+    const escapedScope = this.escapeChainIdForHtml(scope);
+    const selectId = `method-select-${escapedScope}`;
+
+    const selectElement = webview.element(by.web.id(selectId));
+    await selectElement.scrollToView();
+
+    await selectElement.runScript(`
+    (el) => {
+      el.value = '${method}';
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  `);
+
+    if (params) {
+      await this.replaceParams(scope, method, params);
+    }
+
+    await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
+
+    await this.attemptInvokeMethodWithButton(scope);
   }
 }
 

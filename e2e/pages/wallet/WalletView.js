@@ -12,10 +12,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
-  get portfolioButton() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
-  }
-
   get earnButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
@@ -78,12 +74,6 @@ class WalletView {
 
   get importTokensButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
-  }
-
-  get importTokensFooterLink() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
-    );
   }
 
   get networkName() {
@@ -235,10 +225,6 @@ class WalletView {
     await Gestures.waitAndTap(this.importTokensButton);
   }
 
-  async tapImportTokensFooterLink() {
-    await Gestures.waitAndTap(this.importTokensFooterLink);
-  }
-
   async tapOnNFTInWallet(nftName) {
     const elem = Matchers.getElementByText(nftName);
     await Gestures.waitAndTap(elem);
@@ -270,10 +256,6 @@ class WalletView {
 
   async tapNewTokensFound() {
     await Gestures.waitAndTap(this.tokenDetectionLinkButton);
-  }
-
-  async tapPortfolio() {
-    await Gestures.waitAndTap(this.portfolioButton);
   }
 
   async tapTokenNetworkFilter() {
