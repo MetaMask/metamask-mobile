@@ -68,7 +68,6 @@ const GetStarted: React.FC = () => {
               <Image source={getStartedIcon} style={styles.getStartedImage} />
             </View>
           </ScreenLayout.Content>
-
           <ScreenLayout.Content>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings('deposit.get_started.title')}

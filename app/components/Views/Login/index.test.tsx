@@ -26,6 +26,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockRoute = jest.fn();
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -35,14 +38,30 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
     cancel: jest.fn(),
   };
 });
+
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
+// mock useNavigation
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      replace: mockReplace,
+    }),
+    useRoute: () => mockRoute(),
+  };
+});
 
-const mockRoute = jest.fn();
+// mock useRoutee
+
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
+
 // mock useNavigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
