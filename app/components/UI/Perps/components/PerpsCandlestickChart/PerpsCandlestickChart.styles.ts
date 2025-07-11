@@ -135,5 +135,56 @@ export const styleSheet = (params: { theme: Theme }) => {
     intervalTabTextInactive: {
       color: colors.text.muted,
     },
+    chartLoadingContainer: {
+      height: 300,
+      width: '100%' as const,
+      backgroundColor: 'transparent',
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    // Add new styles for inline styles
+    relativeContainer: {
+      position: 'relative' as const,
+    },
+    noDataContainer: {
+      backgroundColor: 'transparent',
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    gridLineStyle: {
+      position: 'absolute' as const,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+    },
+    majorGridLineStyle: {
+      position: 'absolute' as const,
+      left: 0,
+      right: 0,
+      height: 2,
+      zIndex: 10,
+      backgroundColor: colors.border.muted,
+      opacity: 0.8,
+    },
+    minorGridLineStyle: {
+      position: 'absolute' as const,
+      left: 0,
+      right: 0,
+      height: 1,
+      zIndex: 10,
+      backgroundColor: colors.border.muted,
+      opacity: 0.6,
+    },
+    // Function to create complete grid line style with position
+    getGridLineStyle: (isEdge: boolean, position: number) => ({
+      position: 'absolute' as const,
+      left: 0,
+      right: 0,
+      top: position,
+      height: isEdge ? 2 : 1,
+      zIndex: 10,
+      backgroundColor: colors.border.muted,
+      opacity: isEdge ? 0.8 : 0.6,
+    }),
   };
 };

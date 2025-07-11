@@ -90,7 +90,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       const isEdgeLine = i === 0 || i === gridLineCount - 1;
 
       lines.push({
-        price: price,
+        price,
         isEdge: isEdgeLine,
         position: (i / (gridLineCount - 1)) * (height - 120), // Direct pixel positioning
       });
@@ -103,16 +103,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
-        <View style={{ position: 'relative' }}>
-          <View
-            style={{
-              height: height - 120,
-              width: chartWidth,
-              backgroundColor: 'transparent',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <View style={styles.relativeContainer}>
+          <View style={styles.chartLoadingContainer}>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Muted}
@@ -164,15 +156,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
-        <View style={{ position: 'relative' }}>
+        <View style={styles.relativeContainer}>
           <View
-            style={{
-              height: height - 120,
-              width: chartWidth,
-              backgroundColor: 'transparent',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={[
+              styles.noDataContainer,
+              {
+                height: height - 120,
+                width: chartWidth,
+              },
+            ]}
           >
             <Text
               variant={TextVariant.BodyMD}
@@ -225,26 +217,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     <CandlestickChart.Provider data={transformedData}>
       <View style={styles.chartContainer}>
         {/* Chart with Custom Grid Lines */}
-        <View style={{ position: 'relative' }}>
+        <View style={styles.relativeContainer}>
           {/* Custom Horizontal Grid Lines */}
           <View style={styles.gridContainer}>
             {gridLines.map((line, index) => (
               <View
                 key={`grid-${index}`}
-                style={{
-                  position: 'absolute',
-                  top: line.position,
-                  left: 0,
-                  right: 0, // Leave space for price label
-                  height: line.isEdge ? 2 : 1,
-                  backgroundColor: line.isEdge
-                    ? styles.majorGridLine.color
-                    : styles.gridLine.color,
-                  opacity: line.isEdge
-                    ? styles.majorGridLine.opacity
-                    : styles.gridLine.opacity,
-                  zIndex: 10,
-                }}
+                style={styles.getGridLineStyle(line.isEdge, line.position)}
               />
             ))}
           </View>
