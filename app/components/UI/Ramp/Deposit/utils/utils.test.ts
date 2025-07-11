@@ -351,7 +351,7 @@ describe('hasDepositOrderField', () => {
   });
 });
 
-describe.only('generateThemeParameters', () => {
+describe('generateThemeParameters', () => {
   it('should generate correct theme parameters for light mode', () => {
     const themeAppearance = AppThemeKey.light;
     const colors = lightTheme.colors;
