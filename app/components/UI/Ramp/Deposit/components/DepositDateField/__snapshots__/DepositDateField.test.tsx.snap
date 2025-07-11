@@ -747,7 +747,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
               "paddingVertical": 0,
             }
           }
-          value="01/16/2023"
+          value="01/02/2024"
         />
       </View>
     </View>

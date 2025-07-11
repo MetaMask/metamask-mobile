@@ -24,8 +24,9 @@ describe('DepositDateField', () => {
   });
 
   it('render matches snapshot with a value', () => {
+    const value = new Date(2024, 0, 2).getTime().toString();
     const { toJSON } = render(
-      <DepositDateField {...defaultProps} value="1673886669608" />,
+      <DepositDateField {...defaultProps} value={value} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
