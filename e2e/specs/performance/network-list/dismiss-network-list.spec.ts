@@ -7,7 +7,6 @@ import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../fixtures/fixture-helper';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
 import {
   PerformanceTestReporter,
@@ -46,12 +45,12 @@ describe(SmokePerformance('Network List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
 
         const PERFORMANCE_THRESHOLDS = isAndroid
-        ? {
-            DISMISS_NETWORK_LIST: 2.5, // 2.5 seconds max for Android
-          }
-        : {
-            DISMISS_NETWORK_LIST: 1.5, // 1.5 seconds max for iOS
-          };
+          ? {
+              DISMISS_NETWORK_LIST: 2.5, // 2.5 seconds max for Android
+            }
+          : {
+              DISMISS_NETWORK_LIST: 1.5, // 1.5 seconds max for iOS
+            };
 
         let result: Partial<TestResult> = {};
 
@@ -84,7 +83,10 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             const timeToDismissNetworkList = endTime - startTime;
 
             // Baseline should be very fast
-            if (timeToDismissNetworkList > PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST) {
+            if (
+              timeToDismissNetworkList >
+              PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST
+            ) {
               console.warn(
                 `⚠️  BASELINE WARNING: Network switching took ${timeToDismissNetworkList}ms`,
               );
@@ -93,13 +95,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             console.log('Network switching test completed!');
 
             result = {
-                navigationTime: -1, // Indicates no navigation time measured
-                renderTime: -1, // Indicates no render time measured
-                totalTime: timeToDismissNetworkList,
+              totalTime: timeToDismissNetworkList,
               thresholds: {
-                navigation: -1, // Indicates no navigation time measured
-                render: -1, // Indicates no render time measured
-                total: PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST,
+                totalTime: PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST,
               },
             };
           },
@@ -115,7 +113,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
   registerPerformanceTests();
 
   beforeAll(async () => {
-    jest.setTimeout(300000); // 5 minutes timeout for load testing
+    jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();
     reporter.initializeSuite();
   });

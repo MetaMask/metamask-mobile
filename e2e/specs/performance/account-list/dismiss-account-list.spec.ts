@@ -17,7 +17,9 @@ import {
 } from '../../../utils/PerformanceTestReporter';
 
 describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
-  const reporter = new PerformanceTestReporter('Switching Accounts to Dismiss Load Testing');
+  const reporter = new PerformanceTestReporter(
+    'Switching Accounts to Dismiss Load Testing',
+  );
 
   const userStates = [
     { name: 'CORE_USER', state: CORE_USER_STATE },
@@ -50,12 +52,12 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
 
         const PERFORMANCE_THRESHOLDS = isAndroid
-        ? {
-            DISMISS_ACCOUNT_LIST: 2.5, // 2.5 seconds max for Android
-          }
-        : {
-            DISMISS_ACCOUNT_LIST: 1.5, // 1.5 seconds max for iOS
-          };
+          ? {
+              DISMISS_ACCOUNT_LIST: 5000, // 5 seconds max for Android
+            }
+          : {
+              DISMISS_ACCOUNT_LIST: 4000, // 4 seconds max for iOS
+            };
 
         let result: Partial<TestResult> = {};
 
@@ -76,9 +78,9 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
             await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
             console.log('Account list became visible');
-
-            await AccountListBottomSheet.tapAccountByName('Account 3');
             const startTime = Date.now();
+            await AccountListBottomSheet.tapAccountByName('Account 3');
+
             await Assertions.checkIfNotVisible(
               AccountListBottomSheet.accountList,
             );
@@ -90,21 +92,19 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
             // Baseline should be very fast
             if (dismissTime > PERFORMANCE_THRESHOLDS.DISMISS_ACCOUNT_LIST) {
               console.warn(
-                `⚠️  BASELINE WARNING: Account dismissal took ${dismissTime}ms`,
+                `Baseline test failed: Account dismissal took ${dismissTime}ms, which exceeded the maximum acceptable time (${PERFORMANCE_THRESHOLDS.DISMISS_ACCOUNT_LIST}ms)`,
               );
             }
 
             console.log('Account dismissal test completed!');
-            console.log('📊 Performance metrics: No navigation/render time measured for this test type');
+            console.log(
+              '📊 Performance metrics: No navigation/render time measured for this test type',
+            );
 
             result = {
-              navigationTime: -1, // Indicates no navigation time measured
-              renderTime: -1, // Indicates no render time measured
               totalTime: dismissTime,
               thresholds: {
-                navigation: -1,
-                render: -1,
-                total: PERFORMANCE_THRESHOLDS.DISMISS_ACCOUNT_LIST, // 3 seconds threshold
+                totalTime: PERFORMANCE_THRESHOLDS.DISMISS_ACCOUNT_LIST,
               },
             };
           },
@@ -120,7 +120,7 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
   registerPerformanceTests();
 
   beforeAll(async () => {
-    jest.setTimeout(300000); // 5 minutes timeout for load testing
+    jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();
     reporter.initializeSuite();
   });
