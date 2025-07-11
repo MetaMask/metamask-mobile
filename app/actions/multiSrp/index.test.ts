@@ -190,8 +190,7 @@ describe('MultiSRP Actions', () => {
       });
 
       it('handles error when seed phrase backup fails and traces error', async () => {
-        const backupError = new Error('Backup failed');
-        mockAddNewSeedPhraseBackup.mockRejectedValue(backupError);
+        mockAddNewSeedPhraseBackup.mockRejectedValue(new Error('Backup failed'));
 
         await expect(
           async () => await importNewSecretRecoveryPhrase(testMnemonic),
