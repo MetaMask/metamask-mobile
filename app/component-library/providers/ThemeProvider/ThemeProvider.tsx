@@ -26,22 +26,3 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default ThemeProvider;
-
-/**
- * Usage in components:
- *
- * import { useTailwind } from '@metamask/design-system-twrnc-preset';
- *
- * const MyComponent = () => {
- *   const { tw } = useTailwind();
- *
- *   return (
- *     <View style={tw`bg-primary-default p-4 rounded-lg`}>
- *       <Text style={tw`text-text-default font-medium`}>
- *         This text will use design system colors that automatically
- *         switch between light and dark themes!
- *       </Text>
- *     </View>
- *   );
- * };
- */
