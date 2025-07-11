@@ -1,6 +1,6 @@
 import { LoginViewSelectors } from '../../selectors/wallet/LoginView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class LoginView {
   get container() {
