@@ -1,8 +1,8 @@
 import React from 'react';
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
-import { initialState } from '../../_mocks_/initialState';
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();

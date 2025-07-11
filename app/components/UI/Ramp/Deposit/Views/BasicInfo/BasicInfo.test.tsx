@@ -99,6 +99,7 @@ describe('BasicInfo Component', () => {
       screen.getByPlaceholderText('XXX-XX-XXXX'),
       '123456789',
     );
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
