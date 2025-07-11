@@ -563,6 +563,9 @@ buildAndroidMainProduction(){
 
 	# Generate APK for production
 	cd android && ./gradlew assembleProdRelease --build-cache --parallel && cd ..
+
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
 }
 
 buildAndroidFlaskRelease(){
