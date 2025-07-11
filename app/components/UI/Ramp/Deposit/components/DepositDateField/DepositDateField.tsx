@@ -113,7 +113,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
     const fieldRef = useRef<TextInput>(null);
 
     const handleOpenPicker = () => {
-      handleOnPress?.()
+      handleOnPress?.();
       setShowDatePicker(true);
     };
 
