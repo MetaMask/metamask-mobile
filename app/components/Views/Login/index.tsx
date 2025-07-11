@@ -144,6 +144,7 @@ const Login: React.FC = () => {
     );
   };
 
+
   const handleBackPress = () => {
     Authentication.lockApp();
     return false;
