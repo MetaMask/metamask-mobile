@@ -1,14 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 
-interface StyleSheetVars {
-  screenHeight: number;
-}
-
-const createStyles = (vars: StyleSheetVars) => {
-  const { screenHeight } = vars;
-  const isLargeDevice = screenHeight > 736;
-
+const createStyles = () => {
   return StyleSheet.create({
     scroll: {
       flex: 1,
@@ -20,8 +13,7 @@ const createStyles = (vars: StyleSheetVars) => {
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: isLargeDevice ? 30 : 20,
-      paddingBottom: isLargeDevice ? 50 : 30,
+      paddingTop: 10,
     },
     title: {
       fontSize: 60,

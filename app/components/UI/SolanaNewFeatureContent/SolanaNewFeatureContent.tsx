@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Linking, useWindowDimensions, View } from 'react-native';
+import React from 'react';
+import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -27,9 +27,8 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
-  const { height: screenHeight } = useWindowDimensions();
 
-  const styles = createStyles({ screenHeight });
+  const styles = createStyles();
 
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');

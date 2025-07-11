@@ -37,7 +37,7 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
         await TestHelpers.reverseServerPort();
         await loginToApp();
 
-        await SolanaNewFeatureSheet.tapCreateAccountButton();
+        await SolanaNewFeatureSheet.tapAddAccountButton();
         await AddNewHdAccountComponent.tapConfirm();
 
         await TabBarComponent.tapBrowser();
