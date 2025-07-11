@@ -72,6 +72,7 @@ export const selectWalletById = createDeepEqualSelector(
  * @param multichainAccountsState1Enabled - Whether multichain accounts feature is enabled
  * @returns Selector function that takes an account ID and returns the containing wallet or null
  **/
+// TODO: Use reverse mapping once available, for fast indexing.
 export const selectWalletByAccount = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
   (accountTreeState, multichainAccountsState1Enabled) =>

@@ -4,14 +4,16 @@ import {
   selectWalletByAccount,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
+import { AccountTreeControllerState } from '@metamask/account-tree-controller';
+import { DeepPartial } from 'redux';
 
-const WALLET_ID_1 = 'keyring:wallet1';
-const WALLET_ID_2 = 'keyring:wallet2';
-const WALLET_ID_A = 'keyring:wallet-a';
-const WALLET_ID_B = 'keyring:wallet-b';
-const WALLET_ID_NONEXISTENT = 'keyring:nonexistent';
-const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups';
-const WALLET_ID_EMPTY = 'keyring:empty-wallet';
+const WALLET_ID_1 = 'keyring:wallet1' as const;
+const WALLET_ID_2 = 'keyring:wallet2' as const;
+const WALLET_ID_A = 'keyring:wallet-a' as const;
+const WALLET_ID_B = 'keyring:wallet-b' as const;
+const WALLET_ID_NONEXISTENT = 'keyring:nonexistent' as const;
+const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups' as const;
+const WALLET_ID_EMPTY = 'keyring:empty-wallet' as const;
 
 const ACCOUNT_ID_1 = 'account1';
 const ACCOUNT_ID_2 = 'account2';
@@ -22,7 +24,9 @@ const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
  * Helper function to create a base mock state with RemoteFeatureFlagController
  */
 const createMockState = (
-  accountTreeController: Record<string, unknown> = {},
+  accountTreeController:
+    | DeepPartial<AccountTreeControllerState>
+    | undefined = {},
   multichainAccountsEnabled: boolean = true,
 ): RootState =>
   ({
@@ -54,7 +58,7 @@ describe('AccountTreeController Selectors', () => {
     it('returns null when accountTree.wallets is null', () => {
       const mockState = createMockState({
         accountTree: {
-          wallets: null,
+          wallets: {},
         },
       });
 
@@ -63,11 +67,6 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns wallet sections with accounts when wallets exist', () => {
-      const mockAccounts = [
-        { id: 'account1', address: '0x123', name: 'Account 1' },
-        { id: 'account2', address: '0x456', name: 'Account 2' },
-      ];
-
       const mockState = createMockState({
         accountTree: {
           wallets: {
@@ -76,11 +75,11 @@ describe('AccountTreeController Selectors', () => {
                 name: 'Wallet 1',
               },
               groups: {
-                group1: {
-                  accounts: [mockAccounts[0]],
+                'keyring:1:ethereum': {
+                  accounts: ['account1'],
                 },
-                group2: {
-                  accounts: [mockAccounts[1]],
+                'keyring:2:ethereum': {
+                  accounts: ['account2'],
                 },
               },
             },
@@ -89,7 +88,7 @@ describe('AccountTreeController Selectors', () => {
                 name: 'Wallet 2',
               },
               groups: {
-                group3: {
+                'keyring:3:ethereum': {
                   accounts: [],
                 },
               },
@@ -104,36 +103,24 @@ describe('AccountTreeController Selectors', () => {
           title: 'Wallet 1',
           wallet: {
             groups: {
-              group1: {
-                accounts: [
-                  {
-                    address: '0x123',
-                    id: 'account1',
-                    name: 'Account 1',
-                  },
-                ],
+              'keyring:1:ethereum': {
+                accounts: ['account1'],
               },
-              group2: {
-                accounts: [
-                  {
-                    address: '0x456',
-                    id: 'account2',
-                    name: 'Account 2',
-                  },
-                ],
+              'keyring:2:ethereum': {
+                accounts: ['account2'],
               },
             },
             metadata: {
               name: 'Wallet 1',
             },
           },
-          data: mockAccounts,
+          data: ['account1', 'account2'],
         },
         {
           title: 'Wallet 2',
           wallet: {
             groups: {
-              group3: {
+              'keyring:3:ethereum': {
                 accounts: [],
               },
             },
@@ -193,8 +180,8 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          group1: {
-            accounts: [{ id: 'account1', address: '0x123', name: 'Account 1' }],
+          'keyring:1:ethereum': {
+            accounts: ['account1'],
           },
         },
       };
@@ -235,10 +222,10 @@ describe('AccountTreeController Selectors', () => {
       expect(result).toEqual(null);
     });
 
-    it('returns null when wallets is null', () => {
+    it('returns null when wallets is empty', () => {
       const mockState = createMockState({
         accountTree: {
-          wallets: null,
+          wallets: {},
         },
       });
 
@@ -253,7 +240,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'First Wallet' },
         groups: {
           'keyring:1:ethereum': {
-            accounts: [{ id: 'eth1', address: '0x123', name: 'ETH Account 1' }],
+            accounts: ['eth1'],
           },
         },
       };
@@ -263,9 +250,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Second Wallet' },
         groups: {
           'snap:solana:mainnet': {
-            accounts: [
-              { id: 'sol1', address: 'sol123', name: 'SOL Account 1' },
-            ],
+            accounts: ['sol1'],
           },
         },
       };
@@ -296,15 +281,10 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Test Wallet with Groups' },
         groups: {
           'keyring:1:ethereum': {
-            accounts: [
-              { id: 'eth1', address: '0x123', name: 'ETH Account 1' },
-              { id: 'eth2', address: '0x456', name: 'ETH Account 2' },
-            ],
+            accounts: ['eth1', 'eth2'],
           },
           'snap:solana:mainnet': {
-            accounts: [
-              { id: 'sol1', address: 'sol123', name: 'SOL Account 1' },
-            ],
+            accounts: ['sol1'],
           },
         },
       };
@@ -394,7 +374,7 @@ describe('AccountTreeController Selectors', () => {
                 id: WALLET_ID_1,
                 metadata: { name: 'Wallet 1' },
                 groups: {
-                  group1: {
+                  'keyring:1:ethereum': {
                     accounts: [ACCOUNT_ID_1],
                   },
                 },
@@ -410,10 +390,10 @@ describe('AccountTreeController Selectors', () => {
       expect(result).toEqual(null);
     });
 
-    it('returns null when wallets is null', () => {
+    it('returns null when wallets is empty', () => {
       const mockState = createMockState({
         accountTree: {
-          wallets: null,
+          wallets: {},
         },
       });
 
@@ -430,7 +410,7 @@ describe('AccountTreeController Selectors', () => {
               id: WALLET_ID_1,
               metadata: { name: 'Wallet 1' },
               groups: {
-                group1: {
+                'keyring:1:ethereum': {
                   accounts: [ACCOUNT_ID_1],
                 },
               },
@@ -449,7 +429,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          group1: {
+          'keyring:1:ethereum': {
             accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
           },
         },
@@ -567,7 +547,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          group1: {
+          'keyring:1:ethereum': {
             accounts: [],
           },
         },
@@ -577,7 +557,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_2,
         metadata: { name: 'Wallet 2' },
         groups: {
-          group2: {
+          'keyring:2:ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
         },
@@ -602,7 +582,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_A,
         metadata: { name: 'Wallet A' },
         groups: {
-          group1: {
+          'keyring:1:ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
         },
@@ -612,7 +592,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_B,
         metadata: { name: 'Wallet B' },
         groups: {
-          group2: {
+          'keyring:2:ethereum': {
             accounts: [ACCOUNT_ID_2, ACCOUNT_ID_3],
           },
         },
