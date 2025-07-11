@@ -24,7 +24,7 @@ describe(Regression('Term of Use Modal'), () => {
     await TestHelpers.relaunchApp();
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
-    
+
     await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
 
@@ -33,7 +33,7 @@ describe(Regression('Term of Use Modal'), () => {
     await TermsOfUseModal.tapAgreeCheckBox();
     await TermsOfUseModal.tapAcceptButton();
     await Assertions.checkIfNotVisible(TermsOfUseModal.container);
-    
+
     await Assertions.checkIfVisible(OnboardingView.container);
   });
 
@@ -41,7 +41,7 @@ describe(Regression('Term of Use Modal'), () => {
     await TestHelpers.relaunchApp();
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
-    
+
     await Assertions.checkIfNotVisible(TermsOfUseModal.container);
     await Assertions.checkIfVisible(OnboardingView.container);
   });
