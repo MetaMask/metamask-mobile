@@ -306,7 +306,7 @@ export async function getAllBitriseComments(pipelineId?: string): Promise<Github
   // Filter and modify comments as before
   const bitriseComments = allComments.filter(({ body }) => body?.includes(bitriseTag));
   const modifiedComments = bitriseComments.map(comment => {
-    const commitSha = comment.body?.match(/<!-- ([a-f0-9]{40}) -->/)?.[1];
+    const commitSha = comment.body?.match(/<!-- ([a-f0-9]{40})(?:-[^>]+)? -->/)?.[1];
     return {
       ...comment,
       commitSha: commitSha || ""
