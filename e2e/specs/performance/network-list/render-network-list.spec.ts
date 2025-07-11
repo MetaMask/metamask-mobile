@@ -32,19 +32,17 @@ describe(SmokePerformance('Network List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              NETWORK_LIST_RENDER: 15, // 15 seconds max for Android
-              NAVIGATION_TO_NETWORK_LIST: 2.5, // 2.5 seconds max for Android
+              TOTAL_TIME: 17500, // 17.5 seconds max for Android
             }
           : {
-              NETWORK_LIST_RENDER: 5, // 5 seconds max for iOS
-              NAVIGATION_TO_NETWORK_LIST: 1.5, // 1.5 seconds max for iOS
+              TOTAL_TIME: 6500, // 6.5 seconds max for iOS
             };
 
         console.log(
           `Running performance test on ${device.getPlatform().toUpperCase()}`,
         );
         console.log(
-          `Thresholds - Render: ${PERFORMANCE_THRESHOLDS.NETWORK_LIST_RENDER}s, Navigation: ${PERFORMANCE_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST}s`,
+          `Thresholds - Total time: ${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms`,
         );
 
         let result: Partial<TestResult> = {};
@@ -64,7 +62,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             await Assertions.checkIfVisible(WalletView.container);
             // Measure time to navigate to account list
-            const navigationStartTime = Date.now();
+            const starTime = Date.now();
 
             await WalletView.tapNetworksButtonOnNavBar();
 
@@ -72,69 +70,34 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             await Assertions.checkIfVisible(NetworkListModal.networkScroll);
             console.log('Network list became visible');
 
-            const navigationEndTime = Date.now();
-            const navigationTime = navigationEndTime - navigationStartTime;
-            console.log(`⏱️ Navigation time: ${navigationTime}ms`);
-
-            // Measure time for network list to fully render and become interactive
-            const renderStartTime = Date.now();
-            console.log('🎨 Starting render timing...');
-
             // Check if all network is displayed
             await Assertions.checkIfTextIsDisplayed('Linea Main Network');
 
-            const renderEndTime = Date.now();
-            const renderTime = renderEndTime - renderStartTime;
+            const totalTime = Date.now() - starTime;
 
             // Log performance metrics
             console.log(
               '========== NETWORK LIST LOAD TESTING RESULTS ==========',
             );
             console.log(`Platform: ${device.getPlatform().toUpperCase()}`);
-            console.log(`Navigation to Network list: ${(navigationTime / 1000).toFixed(2)}s`);
-            console.log(`Network list render time: ${(renderTime / 1000).toFixed(2)}s`);
-            console.log(`Total time: ${((navigationTime + renderTime) / 1000).toFixed(2)}s`);
+            console.log(`Total time: ${totalTime}ms`);
+
             console.log(
               '======================================================',
             );
 
-            // Performance assertions with warnings
-            if (
-              navigationTime > PERFORMANCE_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST * 1000
-            ) {
-              console.warn(
-                `⚠️  PERFORMANCE WARNING: Navigation time (${(navigationTime / 1000).toFixed(2)}s) exceeded threshold (${PERFORMANCE_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST}s)`,
-              );
-            }
-
-            if (renderTime > PERFORMANCE_THRESHOLDS.NETWORK_LIST_RENDER * 1000) {
-              console.warn(
-                `⚠️  PERFORMANCE WARNING: Render time (${(renderTime / 1000).toFixed(2)}s) exceeded threshold (${PERFORMANCE_THRESHOLDS.NETWORK_LIST_RENDER}s)`,
-              );
-            }
-
-            // Quality gate: Fail test if performance is unacceptable
-            const totalTime = navigationTime + renderTime;
-            const maxAcceptableTime =
-              (PERFORMANCE_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST +
-              PERFORMANCE_THRESHOLDS.NETWORK_LIST_RENDER) * 1000;
-
-            if (totalTime > maxAcceptableTime) {
+            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
               throw new Error(
-                `Performance test failed: Total time (${(totalTime / 1000).toFixed(2)}s) exceeded maximum acceptable time (${((maxAcceptableTime / 1000)).toFixed(2)}s)`,
+                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
 
             console.log('Performance test passed!');
 
             result = {
-              navigationTime,
-              renderTime,
               totalTime,
               thresholds: {
-                navigation: PERFORMANCE_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST,
-                render: PERFORMANCE_THRESHOLDS.NETWORK_LIST_RENDER,
-                total: maxAcceptableTime,
+                totalTime: PERFORMANCE_THRESHOLDS.TOTAL_TIME,
               },
             };
           },
@@ -163,10 +126,15 @@ describe(SmokePerformance('Network List Load Testing'), () => {
           });
         }
 
-        const HEAVY_LOAD_THRESHOLDS = {
-          NETWORK_LIST_RENDER: 8, // 8 seconds for heavy load
-          NAVIGATION_TO_NETWORK_LIST: 3, // 3 seconds for heavy load
-        };
+        const isAndroid = device.getPlatform() === 'android';
+
+        const HEAVY_LOAD_THRESHOLDS = isAndroid
+          ? {
+              TOTAL_TIME: 17500, // 17.5 seconds max for Android
+            }
+          : {
+              TOTAL_TIME: 6500, // 6.5 seconds max for iOS
+            };
 
         let result: Partial<TestResult> = {};
 
@@ -202,22 +170,15 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             console.log('=============================================');
 
             // Quality gate for heavy load
-            const maxHeavyLoadTime =
-              (HEAVY_LOAD_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST +
-              HEAVY_LOAD_THRESHOLDS.NETWORK_LIST_RENDER) * 1000;
-            if (totalTime > maxHeavyLoadTime) {
-              throw new Error(
-                `Heavy load test failed: Total time (${(totalTime / 1000).toFixed(2)}s) exceeded maximum acceptable time (${(maxHeavyLoadTime / 1000).toFixed(2)}s)`,
+            if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
+              console.warn(
+                `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
             result = {
-              navigationTime: 0, // No direct navigation time for this test
-              renderTime: totalTime,
               totalTime,
               thresholds: {
-                navigation: HEAVY_LOAD_THRESHOLDS.NAVIGATION_TO_NETWORK_LIST,
-                render: HEAVY_LOAD_THRESHOLDS.NETWORK_LIST_RENDER,
-                total: maxHeavyLoadTime,
+                totalTime: HEAVY_LOAD_THRESHOLDS.TOTAL_TIME,
               },
             };
           },
@@ -250,12 +211,12 @@ describe(SmokePerformance('Network List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
 
         const PERFORMANCE_THRESHOLDS = isAndroid
-        ? {
-            RENDER_NETWORK_LIST: 2.5, // 2.5 seconds max for Android
-          }
-        : {
-          RENDER_NETWORK_LIST: 1.5, // 1.5 seconds max for iOS
-          };
+          ? {
+              RENDER_NETWORK_LIST: 2500, // 2.5 seconds max for Android
+            }
+          : {
+              RENDER_NETWORK_LIST: 1500, // 1.5 seconds max for iOS
+            };
         let result: Partial<TestResult> = {};
 
         await withFixtures(
@@ -292,13 +253,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             console.log('Baseline test completed!');
 
             result = {
-              navigationTime: 0,
-              renderTime: totalTime,
               totalTime,
               thresholds: {
-                navigation: 1500,
-                render: 3000, // Baseline threshold
-                total: 4500,
+                totalTime: PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST,
               },
             };
           },

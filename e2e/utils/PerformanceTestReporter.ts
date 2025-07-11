@@ -7,25 +7,17 @@ export interface TestResult {
   testName: string;
   userProfile: string;
   platform: string;
-  navigationTime?: number | string; // Can be number or descriptive text
-  renderTime?: number | string; // Can be number or descriptive text
   totalTime: number;
   status: 'PASSED' | 'FAILED';
   error?: string;
   timestamp: string;
   thresholds: {
-    navigation: number;
-    render: number;
-    total: number;
+    totalTime: number;
   };
   metadata?: {
-    noNavigationTime?: boolean;
-    noRenderTime?: boolean;
     testType?: string;
     measuredMetrics?: {
       totalTime: boolean;
-      navigationTime?: boolean;
-      renderTime?: boolean;
     };
   };
 }
@@ -61,7 +53,9 @@ export class PerformanceTestReporter {
    * Initialize the test suite
    */
   initializeSuite(): void {
-    console.warn(`\n🚀 STARTING ${this.testSuiteResults.suiteName.toUpperCase()}`);
+    console.warn(
+      `\n🚀 STARTING ${this.testSuiteResults.suiteName.toUpperCase()}`,
+    );
     console.warn(`📱 Platform: ${this.testSuiteResults.platform}`);
     console.warn(`⏰ Start Time: ${this.testSuiteResults.startTime}`);
     console.warn('='.repeat(60));
@@ -73,7 +67,9 @@ export class PerformanceTestReporter {
   finalizeSuite(): void {
     this.testSuiteResults.endTime = new Date().toISOString();
     this.saveTestResults();
-    console.warn(`\n🏁 FINISHED ${this.testSuiteResults.suiteName.toUpperCase()}`);
+    console.warn(
+      `\n🏁 FINISHED ${this.testSuiteResults.suiteName.toUpperCase()}`,
+    );
     console.warn(`⏰ End Time: ${this.testSuiteResults.endTime}`);
     console.warn('='.repeat(60));
   }
@@ -95,38 +91,18 @@ export class PerformanceTestReporter {
     _duration: number,
   ): void {
     // Handle tests that don't measure navigation/render times
-    const hasNavigationTime = result.navigationTime !== undefined && result.navigationTime !== -1;
-    const hasRenderTime = result.renderTime !== undefined && result.renderTime !== -1;
 
     const testResult: TestResult = {
       testName,
       userProfile,
       platform: this.testSuiteResults.platform,
-      navigationTime: hasNavigationTime ? this.msToSeconds(result.navigationTime as number || 0) : 'Navigation time not measured for this test type',
-      renderTime: hasRenderTime ? this.msToSeconds(result.renderTime as number || 0) : 'Render time not measured for this test type',
       totalTime: this.msToSeconds(result.totalTime || 0),
       status: 'PASSED',
       timestamp: new Date().toISOString(),
       thresholds: {
-        navigation: this.msToSeconds(result.thresholds?.navigation || 0),
-        render: this.msToSeconds(result.thresholds?.render || 0),
-        total: this.msToSeconds(result.thresholds?.total || 0),
+        totalTime: this.msToSeconds(result.thresholds?.totalTime || 0),
       },
     };
-
-    // Add metadata for tests that don't measure navigation/render times
-    if (!hasNavigationTime || !hasRenderTime) {
-      testResult.metadata = {
-        noNavigationTime: !hasNavigationTime,
-        noRenderTime: !hasRenderTime,
-        testType: 'action-only', // Indicates this test only measures action time
-        measuredMetrics: {
-          totalTime: true,
-          ...(hasNavigationTime && { navigationTime: true }),
-          ...(hasRenderTime && { renderTime: true }),
-        },
-      };
-    }
 
     this.testSuiteResults.results.push(testResult);
     this.testSuiteResults.passedTests++;
@@ -150,7 +126,7 @@ export class PerformanceTestReporter {
       status: 'FAILED',
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-      thresholds: { navigation: 0, render: 0, total: 0 },
+      thresholds: { totalTime: 0 },
     };
 
     this.testSuiteResults.results.push(testResult);
@@ -166,7 +142,9 @@ export class PerformanceTestReporter {
     const reportsDir = path.join(performanceDir, 'reports');
     const outputFile = path.join(
       reportsDir,
-      `${this.testSuiteResults.suiteName.toLowerCase().replace(/\s+/g, '-')}-performance-results.json`,
+      `${this.testSuiteResults.suiteName
+        .toLowerCase()
+        .replace(/\s+/g, '-')}-performance-results.json`,
     );
 
     try {
@@ -175,7 +153,10 @@ export class PerformanceTestReporter {
         fs.mkdirSync(reportsDir, { recursive: true });
       }
 
-      fs.writeFileSync(outputFile, JSON.stringify(this.testSuiteResults, null, 2));
+      fs.writeFileSync(
+        outputFile,
+        JSON.stringify(this.testSuiteResults, null, 2),
+      );
       console.warn(`📊 Test results saved to: ${outputFile}`);
     } catch (error) {
       console.error(`Failed to save test results: ${error}`);
@@ -248,4 +229,4 @@ export const createUserProfileTests = (
       }
     });
   });
-}; 
+};
