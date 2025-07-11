@@ -24,3 +24,6 @@ jobs:
           pod --version
           xcode-select -p
           xcrun simctl list | grep Booted
+
+
+          
