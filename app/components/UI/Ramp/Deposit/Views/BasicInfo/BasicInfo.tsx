@@ -21,6 +21,7 @@ import DepositDateField from '../../components/DepositDateField';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
+import { VALIDATION_REGEX } from '../../constants/constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -42,7 +43,7 @@ export interface BasicInfoFormData {
   lastName: string;
   mobileNumber: string;
   dob: string;
-  ssn: string;
+  ssn?: string;
 }
 
 const BasicInfo = (): JSX.Element => {
@@ -69,24 +70,35 @@ const BasicInfo = (): JSX.Element => {
     formData: BasicInfoFormData,
   ): Record<string, string> => {
     const errors: Record<string, string> = {};
+
     if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = strings('deposit.basic_info.first_name_required');
+    } else if (!VALIDATION_REGEX.firstName.test(formData.firstName)) {
+      errors.firstName = strings('deposit.basic_info.first_name_invalid');
     }
 
     if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = strings('deposit.basic_info.last_name_required');
+    } else if (!VALIDATION_REGEX.lastName.test(formData.lastName)) {
+      errors.lastName = strings('deposit.basic_info.last_name_invalid');
     }
 
     if (!formData.mobileNumber.trim()) {
-      errors.mobileNumber = 'Phone number is required';
+      errors.mobileNumber = strings(
+        'deposit.basic_info.mobile_number_required',
+      );
+    } else if (!VALIDATION_REGEX.mobileNumber.test(formData.mobileNumber)) {
+      errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
     if (!formData.dob.trim()) {
-      errors.dob = 'Date of birth is required';
+      errors.dob = strings('deposit.basic_info.dob_required');
+    } else if (!VALIDATION_REGEX.dateOfBirth.test(formData.dob)) {
+      errors.dob = strings('deposit.basic_info.dob_invalid');
     }
 
-    if (selectedRegion?.isoCode === 'US' && !formData.ssn.trim()) {
-      errors.ssn = 'Social security number is required';
+    if (selectedRegion?.isoCode === 'US' && !formData.ssn?.trim()) {
+      errors.ssn = strings('deposit.basic_info.ssn_required');
     }
 
     return errors;
@@ -137,7 +149,7 @@ const BasicInfo = (): JSX.Element => {
   const handleFieldChange = useCallback(
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
-        const currentValue = formData[field];
+        const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
         handleFormDataChange(field)(value);
@@ -232,6 +244,13 @@ const BasicInfo = (): JSX.Element => {
                   Keyboard.dismiss();
                 }
               }}
+              handleOnPress={() => {
+                Keyboard.dismiss();
+                firstNameInputRef.current?.blur();
+                lastNameInputRef.current?.blur();
+                phoneInputRef.current?.blur();
+                ssnInputRef.current?.blur();
+              }}
               ref={dateInputRef}
               textFieldProps={{
                 testID: 'date-of-birth-input',
@@ -241,7 +260,7 @@ const BasicInfo = (): JSX.Element => {
               <DepositTextField
                 label={strings('deposit.basic_info.social_security_number')}
                 placeholder="XXX-XX-XXXX"
-                value={formData.ssn}
+                value={formData.ssn || ''}
                 onChangeText={handleFieldChange('ssn')}
                 error={errors.ssn}
                 returnKeyType="done"
