@@ -635,6 +635,7 @@ describe('Authentication', () => {
             await Authentication.appTriggeredAuth();
             throw new Error('Expected an error to be thrown');
           } catch (error) {
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -699,6 +700,7 @@ describe('Authentication', () => {
             );
             throw new Error('Expected an error to be thrown');
           } catch (error) {
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -737,6 +739,7 @@ describe('Authentication', () => {
             });
             throw new Error('Expected an error to be thrown');
           } catch (error) {
+            expect(mockDispatch).toHaveBeenCalledWith(logOut());
             expect(error).toBeInstanceOf(AuthenticationError);
             expect((error as AuthenticationError).customErrorMessage).toBe(
               AUTHENTICATION_FAILED_WALLET_CREATION,
