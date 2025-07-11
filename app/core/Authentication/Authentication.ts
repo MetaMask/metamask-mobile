@@ -553,15 +553,14 @@ class AuthenticationService {
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
-    try {
-      // check seedless password outdated skip cache when app lock
-      await this.checkIsSeedlessPasswordOutdated(true);
-    } catch (err) {
+    // async check seedless password outdated skip cache when app lock
+    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
       Logger.error(
-        err as Error,
+        err,
         'Error in lockApp: checking seedless password outdated',
       );
-    }
+    });
+
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
     NavigationService.navigation?.reset({
@@ -722,7 +721,7 @@ class AuthenticationService {
    * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache = false,
+    skipCache: boolean = false,
   ): Promise<boolean | undefined> => {
     const { SeedlessOnboardingController } = Engine.context;
     // If vault is not created, user is not using social login, return undefined

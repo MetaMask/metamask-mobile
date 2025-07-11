@@ -624,17 +624,6 @@ describe('Authentication', () => {
 
           const Engine = jest.requireMock('../Engine');
 
-          jest
-            .spyOn(
-              Authentication as unknown as {
-                checkIsSeedlessPasswordOutdated: (
-                  skipCache?: boolean,
-                ) => Promise<boolean | undefined>;
-              },
-              'checkIsSeedlessPasswordOutdated',
-            )
-            .mockResolvedValue(false);
-
           Engine.context.KeyringController.setLocked.mockResolvedValue(
             undefined,
           );
@@ -692,17 +681,6 @@ describe('Authentication', () => {
 
           const Engine = jest.requireMock('../Engine');
 
-          jest
-            .spyOn(
-              Authentication as unknown as {
-                checkIsSeedlessPasswordOutdated: (
-                  skipCache?: boolean,
-                ) => Promise<boolean | undefined>;
-              },
-              'checkIsSeedlessPasswordOutdated',
-            )
-            .mockResolvedValue(false);
-
           Engine.context.KeyringController.setLocked.mockResolvedValue(
             undefined,
           );
@@ -742,18 +720,6 @@ describe('Authentication', () => {
           } as unknown as ReduxStore);
 
           const Engine = jest.requireMock('../Engine');
-
-          // Mock checkIsSeedlessPasswordOutdated to resolve immediately
-          jest
-            .spyOn(
-              Authentication as unknown as {
-                checkIsSeedlessPasswordOutdated: (
-                  skipCache?: boolean,
-                ) => Promise<boolean | undefined>;
-              },
-              'checkIsSeedlessPasswordOutdated',
-            )
-            .mockResolvedValue(false);
 
           // Ensure KeyringController.setLocked resolves immediately
           Engine.context.KeyringController.setLocked.mockResolvedValue(
