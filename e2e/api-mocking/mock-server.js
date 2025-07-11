@@ -10,9 +10,11 @@ import { device } from 'detox';
  * @param {string} method - The HTTP method
  * @param {Headers} headers - Request headers
  * @param {Object} requestBody - The request body object
+ * @param {string} [proxyUrl] - Optional proxy URL to forward the request to
  * @returns {Promise<{statusCode: number, body: string}>} Response object
  */
 const handleDirectFetch = async (url, method, headers, requestBody) => {
+  // console.log(`Forwarding request to: ${url}`);
   try {
     const response = await global.fetch(url, {
       method,
@@ -67,6 +69,19 @@ export const startMockServer = async (events, port) => {
       );
 
       if (matchingEvent) {
+        // If proxyUrl is provided, proxy the request to proxyUrl
+        if (matchingEvent.proxyUrl) {
+          // console.log(`Proxying ${matchingEvent.urlEndpoint} to ${matchingEvent.proxyUrl}`);
+          return handleDirectFetch(
+            matchingEvent.proxyUrl,
+            method,
+            request.headers,
+            ['POST', 'PUT', 'PATCH'].includes(method)
+              ? await request.body.getText()
+              : undefined,
+          );
+        }
+
         console.log(`Mocking ${method} request to: ${urlEndpoint}`);
         console.log(`Response status: ${matchingEvent.responseCode}`);
         console.log('Response:', matchingEvent.response);
@@ -91,7 +106,7 @@ export const startMockServer = async (events, port) => {
           const ignoreFields = matchingEvent.ignoreFields || [];
 
           // Remove ignored fields from both objects for comparison
-          ignoreFields.forEach(field => {
+          ignoreFields.forEach((field) => {
             _.unset(requestToCheck, field);
             _.unset(expectedRequest, field);
           });
@@ -145,17 +160,23 @@ export const startMockServer = async (events, port) => {
         updatedUrl,
         method,
         request.headers,
-        method === 'POST' ? await request.body.getText() : undefined
+        ['POST', 'PUT', 'PATCH'].includes(method)
+          ? await request.body.getText()
+          : undefined,
       );
     });
 
   // In case any other requests are made, pass them through to the actual endpoint
-  await mockServer.forUnmatchedRequest().thenCallback(async (request) => handleDirectFetch(
-      request.url,
-      request.method,
-      request.headers,
-      await request.body.getText()
-    ));
+  await mockServer
+    .forUnmatchedRequest()
+    .thenCallback(async (request) =>
+      handleDirectFetch(
+        request.url,
+        request.method,
+        request.headers,
+        await request.body.getText(),
+      ),
+    );
 
   return mockServer;
 };

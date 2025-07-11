@@ -14,6 +14,7 @@ const tags = {
   SmokeWalletPlatform: 'WalletPlatform:',
   SmokeNetworkExpansion: 'NetworkExpansion:',
   smokeStake: 'SmokeStake:',
+  smokeEarn: 'SmokeEarn:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
@@ -29,6 +30,7 @@ const SmokeConfirmationsRedesigned = (testName) =>
   `${tags.smokeConfirmationsRedesigned} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
+const SmokeEarn = (testName) => `${tags.smokeEarn} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
 const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
@@ -40,16 +42,15 @@ const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
 
-
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
-const SmokeWalletPlatform = (testName) => `${tags.SmokeWalletPlatform} ${testName}`;
+const SmokeWalletPlatform = (testName) =>
+  `${tags.SmokeWalletPlatform} ${testName}`;
 
 const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
-const FlaskBuildTests = (testName) => 
-  `${tags.FlaskBuildTests} ${testName}`;
+const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 
 export {
   FlaskBuildTests,
@@ -60,6 +61,7 @@ export {
   SmokeConfirmationsRedesigned,
   SmokeSwaps,
   SmokeStake,
+  SmokeEarn,
   SmokeAssets,
   SmokeIdentity,
   SmokeMultiChainPermissions,
