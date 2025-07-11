@@ -30,8 +30,8 @@ import {
 global.crypto = {
   ...crypto,
   ...global.crypto,
-  randomUUID: randomUUID,
-  getRandomValues: getRandomValues,
+  randomUUID,
+  getRandomValues,
 };
 
 Performance.setupPerformanceObservers();
