@@ -35,6 +35,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { TraceName, bufferedEndTrace } from '../../../util/trace';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -72,7 +73,6 @@ const ManualBackupStep2 = ({
     ),
     [colors, navigation, styles.headerLeft],
   );
-
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
@@ -138,6 +138,9 @@ const ManualBackupStep2 = ({
               },
             ],
           });
+          bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+
           if (isMetricsEnabled()) {
             navigation.dispatch(resetAction);
           } else {

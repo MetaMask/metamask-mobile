@@ -920,10 +920,18 @@ describe('Authentication', () => {
     });
 
     it('should rehydrate with multiple seed phrases', async () => {
+      let mockMnemonic1 = 'mnemonic-1';
+      let mockMnemonic2 = 'mnemonic-2';
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSeedPhrases as jest.Mock
       ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
+      (mockUint8ArrayToMnemonic as jest.Mock).mockReturnValueOnce(
+        mockMnemonic1,
+      );
+      (mockUint8ArrayToMnemonic as jest.Mock).mockReturnValueOnce(
+        mockMnemonic2,
+      );
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -935,8 +943,8 @@ describe('Authentication', () => {
 
       await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
 
-      const mockMnemonic1 = uint8ArrayToMnemonic(mockSeedPhrase1, []);
-      const mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
+      mockMnemonic1 = uint8ArrayToMnemonic(mockSeedPhrase1, []);
+      mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
 
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
@@ -948,13 +956,13 @@ describe('Authentication', () => {
       expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         mockAuthData,
-        mockMnemonic1,
+        'mnemonic-1',
         false,
       );
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: mockMnemonic2,
+        mnemonic: 'mnemonic-2',
         numberOfAccounts: 1,
       });
       expect(

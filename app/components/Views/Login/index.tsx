@@ -54,7 +54,15 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  bufferedTrace,
+  bufferedEndTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  endTrace,
+} from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -97,6 +105,12 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 // using a constant will prevent this
 const EmptyRecordConstant = {};
 
+interface LoginRouteParams {
+  locked: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: unknown;
+}
+
 /**
  * View where returning users can authenticate
  */
@@ -117,13 +131,7 @@ const Login: React.FC = () => {
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route =
-    useRoute<
-      RouteProp<
-        { params: { locked: boolean; oauthLoginSuccess?: boolean } },
-        'params'
-      >
-    >();
+  const route = useRoute<RouteProp< { params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -133,6 +141,7 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
   const track = (
@@ -156,6 +165,20 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
+    trace({
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+    });
+
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      passwordLoginAttemptTraceCtxRef.current = bufferedTrace({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+    }
+
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
 
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
@@ -205,10 +228,7 @@ const Login: React.FC = () => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
-    if (!passwordRequirementsMet(password)) {
-      setError(strings('login.invalid_password'));
-      return;
-    }
+    // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
@@ -339,6 +359,8 @@ const Login: React.FC = () => {
   };
 
   const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
+
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
@@ -369,6 +391,13 @@ const Login: React.FC = () => {
       }
 
       Keyboard.dismiss();
+
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
+      bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
+      bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
       await checkMetricsUISeen();
 
@@ -401,18 +430,7 @@ const Login: React.FC = () => {
         containsErrorMessage(loginError, VAULT_ERROR) ||
         containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
-        try {
-          await handleVaultCorruption();
-        } catch (vaultCorruptionErr: unknown) {
-          const vaultCorruptionError = vaultCorruptionErr as Error;
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(
-            vaultCorruptionError,
-            'Failed to handle vault corruption',
-          );
-          setLoading(false);
-          setError(strings('login.clean_vault_error'));
-        }
+        await handleVaultCorruption();
       } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
@@ -428,6 +446,18 @@ const Login: React.FC = () => {
         setError(loginErrorMessage);
       }
       Logger.error(loginError, 'Failed to unlock');
+
+      // Check if we are in the onboarding flow
+      const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtxFromRoute) {
+        bufferedTrace({
+          name: TraceName.OnboardingPasswordLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage: loginErrorMessage },
+          parentContext: onboardingTraceCtxFromRoute,
+        });
+        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginError });
+      }
     }
   };
 

@@ -20,6 +20,12 @@ import {
 } from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
+import {
+  bufferedTrace,
+  bufferedEndTrace,
+  TraceName,
+  TraceOperation,
+} from '../util/trace';
 
 /**
  * Restore the given serialized QR keyring.
@@ -221,9 +227,27 @@ export const recreateVaultWithNewPassword = async (
   const { SeedlessOnboardingController } = Engine.context;
   let seedlessChangePasswordError = null;
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+    let specificTraceSucceeded = false;
     try {
+      bufferedTrace({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.changePassword(newPassword, password);
+      specificTraceSucceeded = true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      bufferedTrace({
+        name: TraceName.OnboardingResetPasswordError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      bufferedEndTrace({
+        name: TraceName.OnboardingResetPasswordError,
+      });
+
       Logger.error(error);
       await KeyringController.createNewVaultAndRestore(
         password,
@@ -233,6 +257,11 @@ export const recreateVaultWithNewPassword = async (
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
+    } finally {
+      bufferedEndTrace({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: specificTraceSucceeded },
+      });
     }
   }
 

@@ -313,9 +313,10 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
+      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', expect.objectContaining({
         [PREVIOUS_SCREEN]: ONBOARDING,
-      });
+        onboardingTraceCtx: expect.any(Object),
+      }));
     });
   });
 
@@ -383,7 +384,10 @@ describe('Onboarding', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        { [PREVIOUS_SCREEN]: ONBOARDING },
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        })
       );
     });
   });
@@ -568,13 +572,12 @@ describe('Onboarding', () => {
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
-      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
-        'mockGoogleHandler',
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith('mockGoogleHandler');
+      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', expect.objectContaining({
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
-      });
+        onboardingTraceCtx: expect.any(Object),
+      }));
     });
 
     it('should call Apple OAuth login for import wallet flow', async () => {
@@ -613,13 +616,12 @@ describe('Onboarding', () => {
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
-      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
-        'mockAppleHandler',
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', {
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith('mockAppleHandler');
+      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', expect.objectContaining({
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
-      });
+        onboardingTraceCtx: expect.any(Object),
+      }));
     });
 
     it('should handle OAuth login error with user cancellation', async () => {
@@ -751,10 +753,11 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', {
+      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', expect.objectContaining({
         accountName: 'existing@example.com',
         oauthLoginSuccess: true,
-      });
+        onboardingTraceCtx: expect.any(Object),
+      }));
     });
 
     it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
@@ -792,10 +795,11 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', {
+      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', expect.objectContaining({
         accountName: 'newuser@icloud.com',
         oauthLoginSuccess: true,
-      });
+        onboardingTraceCtx: expect.any(Object),
+      }));
     });
   });
 });
