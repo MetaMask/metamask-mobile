@@ -4,13 +4,15 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { AppThemeKey, type Colors } from '../../../../../util/theme/models';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
-import { getCryptoCurrencyFromTransakId } from '../utils';
+import {
+  generateThemeParameters,
+  getCryptoCurrencyFromTransakId,
+} from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
@@ -25,43 +27,6 @@ export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
 }
-
-const generateThemeParameters = (
-  themeAppearance: AppThemeKey,
-  colors: Colors,
-) => {
-  const backgroundColors = [
-    colors.background.default,
-    colors.background.alternative,
-    colors.background.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
-
-  const textColors = [
-    colors.text.default,
-    colors.text.default,
-    colors.text.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
-
-  const borderColors = [
-    colors.border.default,
-    colors.border.muted,
-    colors.border.muted,
-  ]
-    .map((color) => encodeURIComponent(color))
-    .join(',');
-
-  return {
-    themeColor: encodeURIComponent(colors.icon.default),
-    colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
-    backgroundColors,
-    textColors,
-    borderColors,
-  };
-};
 
 export const useDepositRouting = ({
   cryptoCurrencyChainId,

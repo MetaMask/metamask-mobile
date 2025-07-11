@@ -1,3 +1,4 @@
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 import {
   DepositCryptoCurrency,
   DepositFiatCurrency,
@@ -9,7 +10,7 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { renderNumber } from '../../../../../util/number';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { AppThemeKey, Colors } from '../../../../../util/theme/models';
 
 const emailRegex =
   /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
@@ -240,4 +241,41 @@ export const hasDepositOrderField = (
   const depositOrder = data as Record<string, unknown>;
 
   return field in depositOrder && depositOrder[field] !== undefined;
+};
+
+export const generateThemeParameters = (
+  themeAppearance: AppThemeKey,
+  colors: Colors,
+) => {
+  const backgroundColors = [
+    colors.background.default,
+    colors.background.alternative,
+    colors.background.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  const textColors = [
+    colors.text.default,
+    colors.text.default,
+    colors.text.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  const borderColors = [
+    colors.border.default,
+    colors.border.muted,
+    colors.border.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  return {
+    themeColor: encodeURIComponent(colors.icon.default),
+    colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
+    backgroundColors,
+    textColors,
+    borderColors,
+  };
 };
