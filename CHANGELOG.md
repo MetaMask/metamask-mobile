@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [7.50.0]
 
-### Uncategorized
+## [7.50.1]
+
+### Fixed
+- fix: default to main code fence and opt-in for beta ([#16599](https://github.com/MetaMask/metamask-mobile/pull/16599))/
+
+## [7.50.0]
 
 ### Added
 
@@ -839,10 +843,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.45.1]
 
 ### Fixed
-
 - fix: update patch to use old AccountTrackerController data structures ([dfc076c](https://github.com/MetaMask/metamask-mobile/commit/dfc076cee12aab974720b2dd1e8a145b3fafd484))
 
 ## [7.45.0]
+
+### Changed
+
+- fix(multi-srp): display errors only after all the words are have been entered ([#14607](https://github.com/MetaMask/metamask-mobile/pull/14607))
+- fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Added
 
