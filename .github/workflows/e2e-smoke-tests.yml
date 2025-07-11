@@ -92,7 +92,7 @@ jobs:
           distribution: 'temurin'
       - name: Setup Ruby (iOS)
         if: matrix.platform == 'ios'
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
@@ -159,7 +159,7 @@ jobs:
           distribution: 'temurin'
       - name: Setup Ruby (iOS)
         if: matrix.test-suite.platform == 'ios'
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
