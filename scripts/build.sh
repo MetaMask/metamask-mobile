@@ -567,6 +567,9 @@ buildAndroidMainProduction(){
 	# Generate AAB bundle for production
 	./gradlew bundleProdRelease
 
+	# Generate checksum
+	yarn build:android:checksum
+
 	# Change directory back out
 	cd ..
 }
