@@ -20,6 +20,7 @@ import {
 } from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
+import { Authentication } from './Authentication/Authentication';
 
 /**
  * Restore the given serialized QR keyring.
@@ -226,7 +227,13 @@ export const recreateVaultWithNewPassword = async (
     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
   ) {
     try {
-      await SeedlessOnboardingController.changePassword(newPassword, password);
+      const keyringEncryptionKey =
+        await KeyringController.exportEncryptionKey();
+      await SeedlessOnboardingController.changePassword({
+        oldPassword: password,
+        newPassword,
+        newKeyringEncryptionKey: keyringEncryptionKey,
+      });
     } catch (error) {
       Logger.error(error);
       Logger.error(
@@ -241,6 +248,8 @@ export const recreateVaultWithNewPassword = async (
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
+    } finally {
+      await Authentication.syncKeyringEncryptionKey();
     }
   }
 

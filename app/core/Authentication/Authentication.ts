@@ -46,8 +46,7 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { recreateVaultWithNewPassword } from '../Vault';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -586,11 +585,14 @@ class AuthenticationService {
         password,
         keyringId,
       );
+
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
         keyringId,
       );
+
+      await this.syncKeyringEncryptionKey();
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -609,14 +611,18 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+      const result = await SeedlessOnboardingController.fetchAllSecretData(
         password,
       );
 
-      if (result.length > 0) {
+      const allSRPs = result
+        .filter((item) => item.type === SecretType.Mnemonic)
+        .map((item) => item.data);
+
+      if (allSRPs.length > 0) {
         const { KeyringController } = Engine.context;
 
-        const [firstSeedPhrase, ...restOfSeedPhrases] = result;
+        const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
         if (!firstSeedPhrase) {
           throw new Error('No seed phrase found');
         }
@@ -637,7 +643,8 @@ class AuthenticationService {
               );
               SeedlessOnboardingController.updateBackupMetadataState({
                 keyringId: keyringMetadata.id,
-                seedPhrase: item,
+                data: item,
+                type: SecretType.Mnemonic,
               });
             } catch (error) {
               // catch error to prevent unable to login
@@ -646,9 +653,16 @@ class AuthenticationService {
           }
         }
 
+        await this.syncKeyringEncryptionKey();
+
         this.dispatchLogin();
         this.dispatchPasswordSet();
         this.dispatchOauthReset();
+
+        // Try to complete any pending Solana account discovery
+        ///: BEGIN:ONLY_INCLUDE_IF(solana)
+        this.retrySolanaDiscoveryIfPending();
+        ///: END:ONLY_INCLUDE_IF
       } else {
         throw new Error('No account data found');
       }
@@ -666,9 +680,8 @@ class AuthenticationService {
    */
   submitLatestGlobalSeedlessPassword = async (
     globalPassword: string,
-    authType: AuthData,
   ): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // If vault is not created, user is not using social login, return undefined
     if (!SeedlessOnboardingController.state.vault) {
       // this is only available for seedless onboarding flow
@@ -677,31 +690,30 @@ class AuthenticationService {
       );
     }
 
-    // recover the current device password
-    const { password: currentDevicePassword } =
-      await SeedlessOnboardingController.recoverCurrentDevicePassword({
-        globalPassword,
-      });
-    // use current device password to unlock the keyringController vault
-    await this.userEntryAuth(currentDevicePassword, authType);
+    // recover the current keyring encryption key
+    await SeedlessOnboardingController.submitGlobalPassword({
+      globalPassword,
+    });
+    const keyringEncryptionKey =
+      await SeedlessOnboardingController.loadKeyringEncryptionKey();
+
+    // use encryption key to unlock the keyringController vault
+    await KeyringController.submitEncryptionKey(keyringEncryptionKey);
 
     try {
       // update seedlessOnboardingController to use latest global password
       await SeedlessOnboardingController.syncLatestGlobalPassword({
-        oldPassword: currentDevicePassword,
         globalPassword,
       });
 
       // update vault password to global password
-      await recreateVaultWithNewPassword(
-        currentDevicePassword,
+      await KeyringController.changePassword(globalPassword);
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
-        selectSelectedInternalAccountFormattedAddress(
-          ReduxService.store.getState(),
-        ),
-        true,
-      );
+      });
       await this.resetPassword();
+
+      await this.syncKeyringEncryptionKey();
 
       // check password outdated again skip cache to reset the cache after successful syncing
       await SeedlessOnboardingController.checkIsPasswordOutdated({
@@ -734,6 +746,20 @@ class AuthenticationService {
         skipCache,
       });
     return isSeedlessPasswordOutdated;
+  };
+
+  /**
+   * Syncs the keyring encryption key with the seedless onboarding controller.
+   *
+   * @returns {Promise<void>}
+   */
+  syncKeyringEncryptionKey = async (): Promise<void> => {
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    // store the keyring encryption key in the seedless onboarding controller
+    const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
+    await SeedlessOnboardingController.storeKeyringEncryptionKey(
+      keyringEncryptionKey,
+    );
   };
 }
 

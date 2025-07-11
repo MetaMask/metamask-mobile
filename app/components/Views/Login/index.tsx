@@ -368,10 +368,7 @@ const Login: React.FC = () => {
       );
 
       if (isSeedlessPasswordOutdated) {
-        await Authentication.submitLatestGlobalSeedlessPassword(
-          password,
-          authType,
-        );
+        await Authentication.submitLatestGlobalSeedlessPassword(password);
       } else if (oauthLoginSuccess) {
         await Authentication.rehydrateSeedPhrase(password, authType);
       } else {

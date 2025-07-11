@@ -5365,10 +5365,10 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@^22.0.1":
-  version "22.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.0.1.tgz#a672c97a8640bf3dc96ec316fa315cc9a50b2e7b"
-  integrity sha512-LJqqrOPKZOWk3zDLrEDwFHB58qn1wGX1b56aduUpO2HVnpIwWt5b8W2sNbCqqfdL5vKqDhIB0QAMIMqiGu4DxQ==
+"@metamask/keyring-controller@^22.1.0":
+  version "22.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.1.0.tgz#3211634e05d969593c023578dc4666b511a3adc0"
+  integrity sha512-iwIjAbfbZiMyTJ53wKHbswSyG5bnb3r8snNxuceDHqGOnWM28LX33QZoHa04xOEe5cIxh1r7/vRw9w943PyX3w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
@@ -5877,15 +5877,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-1.0.0.tgz#af218ca329cc71a92a423174693050bc709aa45a"
-  integrity sha512-7Pi2t7ZhHcUmd/tyGSKHQcbLMafhwviKjsEPW3TGkzwkX9rVlYLjNWz/SNS5gIbuykl5HILkdQ5aZLKqQQjAnQ==
+"@metamask/seedless-onboarding-controller@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.0.1.tgz#25265dc6c33e69a65a90bd55470e56aa7d1fc5de"
+  integrity sha512-8xRVpcVHlfdTc5zfVp09cpw1Zzq5KubF/uTcQQHSfJ7mIp+JIe0lfaBYkZkv/hVvBT0FWM/AJslTiYl/Nyal9g==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/toprf-secure-backup" "^0.3.1"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/toprf-secure-backup" "^0.4.0"
+    "@metamask/utils" "^11.4.2"
     async-mutex "^0.5.0"
 
 "@metamask/selected-network-controller@^22.1.0":
@@ -6174,10 +6174,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/toprf-secure-backup@^0.3.1":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.3.2.tgz#0fe6c7455e29622dec43b2d2621206f39e7ab565"
-  integrity sha512-FRa2PcH5cf3bRNQVx07yxbvJbyt74BeRTJ1lSy+fLJng+h08jANXqy5r4DFoTcjKD9sROCSEh8IBg95T1QqDxw==
+"@metamask/toprf-secure-backup@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.4.0.tgz#8ae7f047c6f7b520009991cb62befeec5d9d4106"
+  integrity sha512-20TTLqnknsfRTDRQTfQuHOISQcRdirzDpJKGnK7maOqO9O/rHs7RhkBnYNBoqOr+5rl6i7NYQDKMMBJMplbfMQ==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
     "@noble/ciphers" "^1.2.1"

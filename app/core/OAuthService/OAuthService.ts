@@ -111,6 +111,8 @@ export class OAuthService {
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
+          refreshToken: data.refresh_token,
+          revokeToken: data.revoke_token,
         });
       Logger.log('handleCodeFlow: result', result);
       return {
