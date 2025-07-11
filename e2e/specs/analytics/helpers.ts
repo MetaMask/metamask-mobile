@@ -22,7 +22,7 @@ export const getEventsPayloads = async (
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
-      
+
       // Filter out infrastructure endpoints that are always pending
       // Only include endpoints that have received requests (analytics endpoints)
       const endpointChecks = await Promise.all(
@@ -31,7 +31,7 @@ export const getEventsPayloads = async (
           return { endpoint, hasRequests: seenRequests.length > 0 };
         })
       );
-      
+
       const analyticsEndpoints = endpointChecks
         .filter(({ hasRequests }) => hasRequests)
         .map(({ endpoint }) => endpoint);
