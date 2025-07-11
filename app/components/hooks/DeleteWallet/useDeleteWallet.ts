@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import StorageWrapper from '../../../store/storage-wrapper';
+import { useDispatch } from 'react-redux';
 import Logger from '../../../util/Logger';
-import { EXISTING_USER } from '../../../constants/storage';
+import { setExistingUser } from '../../../actions/user';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { clearAllVaultBackups } from '../../../core/BackupVault';
@@ -10,6 +10,8 @@ import Engine from '../../../core/Engine';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
+  const dispatch = useDispatch();
+
   const resetWalletState = useCallback(async () => {
     try {
       await Authentication.newWalletAndKeychain(`${Date.now()}`, {
@@ -20,9 +22,7 @@ const useDeleteWallet = () => {
 
       await clearAllVaultBackups();
       await Authentication.lockApp();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);
     }
@@ -30,12 +30,10 @@ const useDeleteWallet = () => {
 
   const deleteUser = async () => {
     try {
-      await StorageWrapper.removeItem(EXISTING_USER);
+      dispatch(setExistingUser(false));
       await metrics.createDataDeletionTask();
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const errorMsg = `Failed to remove key: ${EXISTING_USER} from MMKV`;
+    } catch (error) {
+      const errorMsg = `Failed to reset existingUser state in Redux`;
       Logger.log(error, errorMsg);
     }
   };
