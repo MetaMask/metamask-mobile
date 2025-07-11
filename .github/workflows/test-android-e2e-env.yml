@@ -3,6 +3,7 @@ name: Test Android E2E Setup
 on:
   push:
 
+    
   
 jobs:
   android-e2e:
