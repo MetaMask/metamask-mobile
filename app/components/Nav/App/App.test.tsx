@@ -235,11 +235,11 @@ describe('App', () => {
                     routes: [
                       {
                         name: 'OnboardingCarousel',
-                        params: {}
-                      }
-                    ]
-                  }
-                }
+                        params: {},
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -260,7 +260,9 @@ describe('App', () => {
 
       const { getByText } = render(<App />, { wrapper: Providers });
 
-      expect(getByText(strings('onboarding_carousel.get_started'))).toBeTruthy();
+      expect(
+        getByText(strings('onboarding_carousel.get_started')),
+      ).toBeTruthy();
     });
   });
 

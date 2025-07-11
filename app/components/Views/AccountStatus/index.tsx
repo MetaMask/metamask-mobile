@@ -1,5 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, Image, ScrollView, Dimensions, SafeAreaView } from 'react-native';
+import React, { useEffect }  from 'react';
+import {
+  View,
+  Image,
+  ScrollView,
+  Dimensions,
+  SafeAreaView,
+} from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,

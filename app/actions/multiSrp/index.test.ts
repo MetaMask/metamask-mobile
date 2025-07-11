@@ -9,6 +9,8 @@ import {
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
+import ReduxService from '../../core/redux/ReduxService';
+import { RootState } from '../../reducers';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -60,6 +62,17 @@ jest.mock('../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
 }));
+
+const createMockState = (hasVault: boolean) => ({
+  engine: {
+    backgroundState: {
+      SeedlessOnboardingController: {
+        vault: hasVault ? 'encrypted-vault-data' : undefined,
+        socialBackupsMetadata: [],
+      },
+    },
+  },
+});
 
 jest.mock('../../core/redux/ReduxService', () => ({
   store: {
@@ -206,6 +219,22 @@ describe('MultiSRP Actions', () => {
           data: { success: false },
         });
       });
+    });  
+    
+    it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+
+      jest
+        .spyOn(ReduxService.store, 'getState')
+        .mockReturnValue(createMockState(true) as unknown as RootState);
+
+      await importNewSecretRecoveryPhrase(testMnemonic);
+
+      expect(mockAddNewSeedPhraseBackup).toHaveBeenCalledWith(expect.any(Uint8Array), 'test-keyring-id');
     });
   });
 

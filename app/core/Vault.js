@@ -14,6 +14,11 @@ import {
 } from '@metamask/keyring-api';
 import ReduxService from './redux';
 import { areAddressesEqual } from '../util/address';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from './Engine/controllers/seedless-onboarding-controller/error';
+
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import {
   bufferedTrace,
@@ -244,8 +249,14 @@ export const recreateVaultWithNewPassword = async (
       });
 
       Logger.error(error);
-      await KeyringController.createNewVaultAndRestore(password, primaryKeyringSeedPhrase);
-      seedlessChangePasswordError = error;
+      await KeyringController.createNewVaultAndRestore(
+        password,
+        primaryKeyringSeedPhrase,
+      );
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error || 'Password change failed',
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
     } finally {
       bufferedEndTrace({
         name: TraceName.OnboardingResetPassword,

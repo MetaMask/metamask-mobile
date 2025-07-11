@@ -260,11 +260,11 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
+        "paddingHorizontal": 16,
       }
     }
     testID="asset-ADAI"
@@ -436,7 +436,6 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }
