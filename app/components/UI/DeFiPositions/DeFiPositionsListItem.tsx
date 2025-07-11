@@ -23,6 +23,7 @@ import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import AppConstants from '../../../core/AppConstants';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -100,7 +101,10 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         variant: AvatarVariant.Token,
         name: token.name,
         imageSource: {
-          uri: token.iconUrl,
+          uri:
+            token.address === AppConstants.ZERO_ADDRESS
+              ? token.iconUrl
+              : 'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/app/images/eth-logo-new.png',
         },
       })),
       tokenNames: tokenStr(),
