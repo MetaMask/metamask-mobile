@@ -211,7 +211,9 @@ const QuoteDetailsCard = () => {
               alignItems={AlignItems.center}
               gap={8}
             >
-              <Text variant={TextVariant.BodyMD}>Included</Text>
+              <Text variant={TextVariant.BodyMD}>
+                {strings('bridge.included') || 'Included'}
+              </Text>
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.strikethroughText}

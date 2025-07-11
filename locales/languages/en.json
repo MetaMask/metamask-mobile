@@ -4579,6 +4579,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network Fee",
+    "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "quote_details": "Quote Details",
