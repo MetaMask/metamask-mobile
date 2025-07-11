@@ -1,0 +1,370 @@
+name: E2E Smoke Tests
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  merge_group:
+    types: [checks_requested]
+
+env:
+  E2E_LABEL: 'Run Smoke E2E'
+  NO_E2E_LABEL: 'No E2E Smoke Needed'
+  NODE_VERSION: '18'
+  JAVA_VERSION: '17'
+  RUBY_VERSION: '3.1.6'
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check if E2E tests should run
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = github;
+            const labels = context.payload.pull_request?.labels?.map(l => l.name) || [];
+            const hasE2ELabel = labels.includes(process.env.E2E_LABEL);
+            const hasNoE2ELabel = labels.includes(process.env.NO_E2E_LABEL);
+            
+            if (hasNoE2ELabel) {
+              console.log('E2E tests skipped due to "No E2E Smoke Needed" label');
+              core.setOutput('should-run', 'false');
+            } else if (hasE2ELabel) {
+              console.log('E2E tests triggered by "Run Smoke E2E" label');
+              core.setOutput('should-run', 'true');
+            } else {
+              console.log('No E2E labels found, skipping tests');
+              core.setOutput('should-run', 'false');
+            }
+
+  cache-check:
+    needs: check-labels
+    if: needs.check-labels.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "key=e2e-builds-${{ runner.os }}-${{ hashFiles('**/package.json', '**/yarn.lock', 'android/**', 'ios/**') }}" >> $GITHUB_OUTPUT
+      - name: Check build cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk
+            ios/build
+          key: ${{ steps.cache-key.outputs.key }}
+          lookup-only: true
+
+  build:
+    needs: [check-labels, cache-check]
+    if: needs.check-labels.outputs.should-run == 'true' && needs.cache-check.outputs.cache-hit != 'true'
+    strategy:
+      matrix:
+        platform: [ios, android]
+        include:
+          - platform: ios
+            runner: macos-14
+            build-command: yarn test:e2e:ios:build:qa-release
+          - platform: android
+            runner: ubuntu-latest
+            build-command: yarn test:e2e:android:build:qa-release
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - name: Setup Java (Android)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+      - name: Setup Ruby (iOS)
+        if: matrix.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: ios
+      - name: Install dependencies
+        run: yarn setup
+      - name: Build ${{ matrix.platform }} app
+        run: ${{ matrix.build-command }}
+        env:
+          IS_TEST: 'true'
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.platform == 'android' && 'android/app/build/outputs/apk' || 'ios/build' }}
+          key: ${{ needs.cache-check.outputs.cache-key }}-${{ matrix.platform }}
+      - name: Upload ${{ matrix.platform }} build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-build
+          path: |
+            ${{ matrix.platform == 'android' && 'android/app/build/outputs/apk' || 'ios/build' }}
+          retention-days: 1
+
+  test:
+    needs: [check-labels, cache-check, build]
+    if: always() && needs.check-labels.outputs.should-run == 'true' && (needs.cache-check.outputs.cache-hit == 'true' || needs.build.result == 'success')
+    strategy:
+      fail-fast: false  # Soft fail implementation
+      matrix:
+        test-suite:
+          - { name: 'api-specs', tag: 'api-specs', platform: 'ios' }
+          - { name: 'trade-ios', tag: '.*SmokeTrade.*', platform: 'ios' }
+          - { name: 'trade-android', tag: '.*SmokeTrade.*', platform: 'android' }
+          - { name: 'network-abstraction-ios', tag: '.*SmokeNetworkAbstraction.*', platform: 'ios' }
+          - { name: 'network-abstraction-android', tag: '.*SmokeNetworkAbstraction.*', platform: 'android' }
+          - { name: 'network-expansion-ios', tag: '.*NetworkExpansion.*', platform: 'ios' }
+          - { name: 'network-expansion-android', tag: '.*NetworkExpansion.*', platform: 'android' }
+          - { name: 'wallet-platform-ios', tag: '.*SmokeWalletPlatform.*', platform: 'ios' }
+          - { name: 'wallet-platform-android', tag: '.*SmokeWalletPlatform.*', platform: 'android' }
+          - { name: 'confirmations-ios', tag: 'SmokeConfirmations', platform: 'ios' }
+          - { name: 'confirmations-android', tag: 'SmokeConfirmations', platform: 'android' }
+          - { name: 'identity-ios', tag: 'SmokeIdentity', platform: 'ios' }
+          - { name: 'identity-android', tag: 'SmokeIdentity', platform: 'android' }
+          - { name: 'confirmations-redesigned-ios', tag: 'SmokeConfirmationsRedesigned', platform: 'ios' }
+          - { name: 'multichain-api-ios', tag: '.*SmokeMultiChainAPI.*', platform: 'ios' }
+          - { name: 'accounts-ios', tag: 'SmokeAccounts', platform: 'ios' }
+          - { name: 'accounts-android', tag: 'SmokeAccounts', platform: 'android' }
+    runs-on: ${{ matrix.test-suite.platform == 'ios' && 'macos-14' || 'ubuntu-latest' }}
+    continue-on-error: true  # Soft fail implementation
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - name: Setup Java (Android)
+        if: matrix.test-suite.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+      - name: Setup Ruby (iOS)
+        if: matrix.test-suite.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: ios
+      - name: Install dependencies
+        run: yarn setup
+      - name: Restore build cache
+        if: needs.cache-check.outputs.cache-hit == 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk
+            ios/build
+          key: ${{ needs.cache-check.outputs.cache-key }}
+      - name: Download build artifacts
+        if: needs.cache-check.outputs.cache-hit != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.test-suite.platform }}-build
+          path: ${{ matrix.test-suite.platform == 'android' && 'android/app/build/outputs/apk' || 'ios/build' }}
+      - name: Install applesimutils (iOS)
+        if: matrix.test-suite.platform == 'ios'
+        run: |
+          brew tap wix/brew
+          brew install applesimutils
+      - name: Setup Android AVD (Android)
+        if: matrix.test-suite.platform == 'android'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          script: echo "AVD started"
+      - name: Run ${{ matrix.test-suite.name }} tests
+        run: |
+          if [ "${{ matrix.test-suite.tag }}" = "api-specs" ]; then
+            yarn test:api-specs
+          else
+            TEST_SUITE_TAG="${{ matrix.test-suite.tag }}" ./scripts/run-e2e-tags.sh
+          fi
+        env:
+          IS_TEST: 'true'
+          METAMASK_ENVIRONMENT: 'local'
+          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+          GITHUB_ACTIONS_WORKFLOW_ID: ${{ github.workflow }}
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-suite.name }}
+          path: |
+            e2e/reports/
+            artifacts/
+          retention-days: 7
+      - name: Upload test screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots-${{ matrix.test-suite.name }}
+          path: |
+            artifacts/
+          retention-days: 7
+
+  results-summary:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate test summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = github;
+            const testJobs = ${{ toJson(needs.test.result) }};
+            
+            let summary = '## 🧪 E2E Smoke Tests Results\n\n';
+            summary += '| Test Suite | Platform | Status |\n';
+            summary += '|------------|----------|--------|\n';
+            
+            const testMatrix = [
+              { name: 'api-specs', platform: 'ios' },
+              { name: 'trade-ios', platform: 'ios' },
+              { name: 'trade-android', platform: 'android' },
+              { name: 'network-abstraction-ios', platform: 'ios' },
+              { name: 'network-abstraction-android', platform: 'android' },
+              { name: 'network-expansion-ios', platform: 'ios' },
+              { name: 'network-expansion-android', platform: 'android' },
+              { name: 'wallet-platform-ios', platform: 'ios' },
+              { name: 'wallet-platform-android', platform: 'android' },
+              { name: 'confirmations-ios', platform: 'ios' },
+              { name: 'confirmations-android', platform: 'android' },
+              { name: 'identity-ios', platform: 'ios' },
+              { name: 'identity-android', platform: 'android' },
+              { name: 'confirmations-redesigned-ios', platform: 'ios' },
+              { name: 'multichain-api-ios', platform: 'ios' },
+              { name: 'accounts-ios', platform: 'ios' },
+              { name: 'accounts-android', platform: 'android' }
+            ];
+            
+            let passedCount = 0;
+            let failedCount = 0;
+            let totalCount = testMatrix.length;
+            
+            for (const test of testMatrix) {
+              const result = testJobs === 'success' ? 'success' : 'failure';
+              const status = result === 'success' ? '✅ Passed' : '❌ Failed';
+              const platformIcon = test.platform === 'ios' ? '🍎' : '🤖';
+              
+              summary += `| ${test.name} | ${platformIcon} ${test.platform} | ${status} |\n`;
+              
+              if (result === 'success') {
+                passedCount++;
+              } else {
+                failedCount++;
+              }
+            }
+            
+            summary += `\n### 📊 Summary\n`;
+            summary += `- **Total Tests**: ${totalCount}\n`;
+            summary += `- **✅ Passed**: ${passedCount}\n`;
+            summary += `- **❌ Failed**: ${failedCount}\n`;
+            summary += `- **Success Rate**: ${Math.round((passedCount / totalCount) * 100)}%\n`;
+            
+            summary += '\n> **Note**: These tests are configured to soft fail and will not block the pipeline.\n';
+            
+            if (failedCount > 0) {
+              summary += '\n> **⚠️ Warning**: Some E2E tests failed. Please check the individual test results for more details.\n';
+            }
+            
+            core.summary.addRaw(summary);
+            await core.summary.write();
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = github;
+            const testJobs = ${{ toJson(needs.test.result) }};
+            
+            const testMatrix = [
+              { name: 'api-specs', platform: 'ios' },
+              { name: 'trade-ios', platform: 'ios' },
+              { name: 'trade-android', platform: 'android' },
+              { name: 'network-abstraction-ios', platform: 'ios' },
+              { name: 'network-abstraction-android', platform: 'android' },
+              { name: 'network-expansion-ios', platform: 'ios' },
+              { name: 'network-expansion-android', platform: 'android' },
+              { name: 'wallet-platform-ios', platform: 'ios' },
+              { name: 'wallet-platform-android', platform: 'android' },
+              { name: 'confirmations-ios', platform: 'ios' },
+              { name: 'confirmations-android', platform: 'android' },
+              { name: 'identity-ios', platform: 'ios' },
+              { name: 'identity-android', platform: 'android' },
+              { name: 'confirmations-redesigned-ios', platform: 'ios' },
+              { name: 'multichain-api-ios', platform: 'ios' },
+              { name: 'accounts-ios', platform: 'ios' },
+              { name: 'accounts-android', platform: 'android' }
+            ];
+            
+            let passedCount = 0;
+            let failedCount = 0;
+            
+            for (const test of testMatrix) {
+              const result = testJobs === 'success' ? 'success' : 'failure';
+              if (result === 'success') {
+                passedCount++;
+              } else {
+                failedCount++;
+              }
+            }
+            
+            const successRate = Math.round((passedCount / testMatrix.length) * 100);
+            const emoji = successRate >= 90 ? '🎉' : successRate >= 70 ? '⚠️' : '❌';
+            
+            const comment = \`## \${emoji} E2E Smoke Tests Results
+            
+            **Summary**: \${passedCount}/\${testMatrix.length} tests passed (\${successRate}%)
+            
+            \${successRate < 100 ? '⚠️ Some tests failed, but this will not block the pipeline due to soft fail configuration.' : '✅ All tests passed!'}
+            
+            [View detailed results in the Actions tab](\${context.payload.pull_request.html_url.replace('/pull/', '/actions/runs/')})\`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.body.includes('E2E Smoke Tests Results') && comment.user.type === 'Bot'
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            } 
