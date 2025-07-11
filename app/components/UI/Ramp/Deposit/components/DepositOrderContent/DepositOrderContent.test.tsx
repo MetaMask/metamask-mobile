@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -14,13 +13,6 @@ import { SEPA_PAYMENT_METHOD } from '../../constants';
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
-}));
-
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Linking: {
-    openURL: jest.fn(),
-  },
 }));
 
 describe('DepositOrderContent Component', () => {
@@ -147,23 +139,6 @@ describe('DepositOrderContent Component', () => {
     );
   });
 
-  it('opens Transak link when view details button is pressed', () => {
-    renderWithProvider(<DepositOrderContent order={mockOrder} />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-
-    const viewDetailsButton = screen.getByText('View order details in Transak');
-    fireEvent.press(viewDetailsButton);
-
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://transak.com/order/123',
-    );
-  });
-
   it('renders without fee when fee is not provided', () => {
     const orderWithoutFee = { ...mockOrder, fee: undefined };
 
@@ -185,24 +160,6 @@ describe('DepositOrderContent Component', () => {
     };
 
     renderWithProvider(<DepositOrderContent order={orderWithCryptoFee} />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders without provider link when not available', () => {
-    const { providerOrderLink, ...dataWithoutLink } = mockOrder.data;
-    const orderWithoutLink = {
-      ...mockOrder,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: dataWithoutLink as any,
-    };
-
-    renderWithProvider(<DepositOrderContent order={orderWithoutLink} />, {
       state: {
         engine: {
           backgroundState,

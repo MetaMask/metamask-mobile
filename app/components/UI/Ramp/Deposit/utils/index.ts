@@ -37,6 +37,7 @@ const TRANSAK_PAYMENT_METHOD_IDS: Record<string, string> = {
   credit_debit_card: 'credit_debit_card',
   sepa_bank_transfer: 'sepa_bank_transfer',
   apple_pay: 'apple_pay',
+  wire_transfer: 'pm_wire',
 };
 
 /**
