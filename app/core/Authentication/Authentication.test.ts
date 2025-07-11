@@ -22,7 +22,10 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
 } from '../../constants/error';
-import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-controller';
+import {
+  SecretType,
+  SeedlessOnboardingController,
+} from '@metamask/seedless-onboarding-controller';
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
@@ -954,8 +957,13 @@ describe('Authentication', () => {
     it('should rehydrate with a single seed phrase', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
-      ).mockResolvedValueOnce([mockSeedPhrase1]);
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+      ]);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -963,7 +971,7 @@ describe('Authentication', () => {
       await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
 
       expect(
-        Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
       expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
@@ -982,8 +990,17 @@ describe('Authentication', () => {
     it('should rehydrate with multiple seed phrases', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
-      ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockSeedPhrase2,
+          type: SecretType.Mnemonic,
+        },
+      ]);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -999,7 +1016,7 @@ describe('Authentication', () => {
       const mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
 
       expect(
-        Engine.context.SeedlessOnboardingController.fetchAllSeedPhrases,
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
       expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
@@ -1030,7 +1047,7 @@ describe('Authentication', () => {
     it('should throw an error if no seed phrases are found', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
+          .fetchAllSecretData as jest.Mock
       ).mockResolvedValueOnce([]);
       await expect(
         Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
@@ -1041,7 +1058,7 @@ describe('Authentication', () => {
       const error = new Error('Fetch failed');
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
+          .fetchAllSecretData as jest.Mock
       ).mockRejectedValueOnce(error);
       await expect(
         Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
@@ -1051,8 +1068,17 @@ describe('Authentication', () => {
     it('should handle errors when adding new keyrings and continue', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
-      ).mockResolvedValueOnce([mockSeedPhrase1, mockSeedPhrase2]);
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockSeedPhrase2,
+          type: SecretType.Mnemonic,
+        },
+      ]);
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -1078,8 +1104,17 @@ describe('Authentication', () => {
     it('should throw an error if first seed phrase is falsy', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSeedPhrases as jest.Mock
-      ).mockResolvedValueOnce([null, mockSeedPhrase2]);
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: null,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockSeedPhrase2,
+          type: SecretType.Mnemonic,
+        },
+      ]);
 
       await expect(
         Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
@@ -1166,10 +1201,7 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController.state.vault = undefined;
 
       await expect(
-        Authentication.submitLatestGlobalSeedlessPassword(
-          mockGlobalPassword,
-          mockAuthType,
-        ),
+        Authentication.submitLatestGlobalSeedlessPassword(mockGlobalPassword),
       ).rejects.toThrow(
         'This method is only available for seedless onboarding flow',
       );
@@ -1178,7 +1210,7 @@ describe('Authentication', () => {
     it('successfully syncs latest global seedless password', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .recoverCurrentDevicePassword as jest.Mock
+          .submitGlobalPassword as jest.Mock
       ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
       (
         Engine.context.SeedlessOnboardingController
@@ -1192,12 +1224,10 @@ describe('Authentication', () => {
 
       await Authentication.submitLatestGlobalSeedlessPassword(
         mockGlobalPassword,
-        mockAuthType,
       );
 
       expect(
-        Engine.context.SeedlessOnboardingController
-          .recoverCurrentDevicePassword,
+        Engine.context.SeedlessOnboardingController.submitGlobalPassword,
       ).toHaveBeenCalledWith({ globalPassword: mockGlobalPassword });
       expect(Authentication.userEntryAuth).toHaveBeenCalledWith(
         mockCurrentDevicePassword,
@@ -1224,7 +1254,7 @@ describe('Authentication', () => {
     it('lock app and throw error if vault recreation fails', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .recoverCurrentDevicePassword as jest.Mock
+          .submitGlobalPassword as jest.Mock
       ).mockResolvedValueOnce({ password: mockCurrentDevicePassword });
       (
         Engine.context.SeedlessOnboardingController
@@ -1235,10 +1265,7 @@ describe('Authentication', () => {
       recreateVaultWithNewPassword.mockRejectedValueOnce(vaultError);
 
       await expect(
-        Authentication.submitLatestGlobalSeedlessPassword(
-          mockGlobalPassword,
-          mockAuthType,
-        ),
+        Authentication.submitLatestGlobalSeedlessPassword(mockGlobalPassword),
       ).rejects.toThrow('Vault recreation failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });

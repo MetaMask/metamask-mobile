@@ -10,6 +10,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -145,8 +146,10 @@ describe('MultiSRP Actions', () => {
       await importNewSecretRecoveryPhrase(testMnemonic);
 
       expect(
-        Engine.context.SeedlessOnboardingController.addNewSeedPhraseBackup,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), 'test-keyring-id');
+        Engine.context.SeedlessOnboardingController.addNewSecretData,
+      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.Mnemonic, {
+        keyringId: 'test-keyring-id',
+      });
     });
   });
 

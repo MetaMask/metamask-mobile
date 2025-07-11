@@ -46,8 +46,7 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { recreateVaultWithNewPassword } from '../Vault';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -586,6 +585,12 @@ class AuthenticationService {
         password,
         keyringId,
       );
+
+      Logger.log(
+        'SeedlessOnboardingController state',
+        SeedlessOnboardingController.state,
+      );
+
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
@@ -609,14 +614,18 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+      const result = await SeedlessOnboardingController.fetchAllSecretData(
         password,
       );
 
-      if (result.length > 0) {
+      const allSRPs = result
+        .filter((item) => item.type === SecretType.Mnemonic)
+        .map((item) => item.data);
+
+      if (allSRPs.length > 0) {
         const { KeyringController } = Engine.context;
 
-        const [firstSeedPhrase, ...restOfSeedPhrases] = result;
+        const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
         if (!firstSeedPhrase) {
           throw new Error('No seed phrase found');
         }
@@ -637,7 +646,8 @@ class AuthenticationService {
               );
               SeedlessOnboardingController.updateBackupMetadataState({
                 keyringId: keyringMetadata.id,
-                seedPhrase: item,
+                data: item,
+                type: SecretType.Mnemonic,
               });
             } catch (error) {
               // catch error to prevent unable to login
@@ -666,9 +676,8 @@ class AuthenticationService {
    */
   submitLatestGlobalSeedlessPassword = async (
     globalPassword: string,
-    authType: AuthData,
   ): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // If vault is not created, user is not using social login, return undefined
     if (!SeedlessOnboardingController.state.vault) {
       // this is only available for seedless onboarding flow
@@ -677,30 +686,27 @@ class AuthenticationService {
       );
     }
 
-    // recover the current device password
-    const { password: currentDevicePassword } =
-      await SeedlessOnboardingController.recoverCurrentDevicePassword({
-        globalPassword,
-      });
-    // use current device password to unlock the keyringController vault
-    await this.userEntryAuth(currentDevicePassword, authType);
+    // recover the current keyring encryption key
+    await SeedlessOnboardingController.submitGlobalPassword({
+      globalPassword,
+    });
+    const keyringEncryptionKey =
+      await SeedlessOnboardingController.loadKeyringEncryptionKey();
+
+    // use encryption key to unlock the keyringController vault
+    await KeyringController.submitEncryptionKey(keyringEncryptionKey);
 
     try {
       // update seedlessOnboardingController to use latest global password
       await SeedlessOnboardingController.syncLatestGlobalPassword({
-        oldPassword: currentDevicePassword,
         globalPassword,
       });
 
       // update vault password to global password
-      await recreateVaultWithNewPassword(
-        currentDevicePassword,
+      await KeyringController.changePassword(globalPassword);
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
-        selectSelectedInternalAccountFormattedAddress(
-          ReduxService.store.getState(),
-        ),
-        true,
-      );
+      });
       await this.resetPassword();
 
       // check password outdated again skip cache to reset the cache after successful syncing
