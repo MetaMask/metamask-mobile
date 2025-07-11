@@ -8,11 +8,9 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import Button, {
@@ -630,74 +628,6 @@ const PerpsPositionDetailsView: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* TP/SL Edit Modal */}
-      <Modal
-        visible={isEditingTPSL}
-        animationType="fade"
-        transparent
-        onRequestClose={handleCancelTPSLEdit}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Take Profit & Stop Loss</Text>
-
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
-                Take Profit Price (Optional)
-              </Text>
-              <TextInput
-                style={styles.textInput}
-                value={takeProfitPrice}
-                onChangeText={setTakeProfitPrice}
-                placeholder={`Enter TP price (Current: ${formatPrice(
-                  position.entryPrice,
-                )})`}
-                keyboardType="numeric"
-                placeholderTextColor={colors.text.muted}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Stop Loss Price (Optional)</Text>
-              <TextInput
-                style={styles.textInput}
-                value={stopLossPrice}
-                onChangeText={setStopLossPrice}
-                placeholder={`Enter SL price (Current: ${formatPrice(
-                  position.entryPrice,
-                )})`}
-                keyboardType="numeric"
-                placeholderTextColor={colors.text.muted}
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Md}
-                label="Cancel"
-                onPress={handleCancelTPSLEdit}
-                style={styles.modalButton}
-              />
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Md}
-                label="Update TP/SL"
-                onPress={handleUpdateTPSL}
-                loading={isUpdatingTPSL}
-                style={styles.modalButton}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
