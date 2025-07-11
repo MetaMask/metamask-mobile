@@ -4,36 +4,36 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { strings } from '../../../../../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../../../component-library/components/Avatars/Avatar';
+} from '../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../../../constants/navigation/Routes';
+} from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
-import Spinner, { SpinnerSize } from '../../../../../../UI/AnimatedSpinner';
-import { useStyles } from '../../../../../../hooks/useStyles';
-import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
-import { useBatchAuthorizationRequests } from '../../../../hooks/7702/useBatchAuthorizationRequests';
-import { useEIP7702Accounts } from '../../../../hooks/7702/useEIP7702Accounts';
+} from '../../../component-library/components/Texts/Text';
+import { getNetworkImageSource } from '../../../util/networks';
+import Spinner, { SpinnerSize } from '../../UI/AnimatedSpinner';
+import { useStyles } from '../../hooks/useStyles';
+import { EIP7702NetworkConfiguration } from '../confirmations/hooks/7702/useEIP7702Networks';
+import { useBatchAuthorizationRequests } from '../confirmations/hooks/7702/useBatchAuthorizationRequests';
+import { useEIP7702Accounts } from '../confirmations/hooks/7702/useEIP7702Accounts';
 import styleSheet from './account-network-row.styles';
 import { useSelector } from 'react-redux';
 import {
   AlignItems,
   FlexDirection,
   JustifyContent,
-} from '../../../../../../UI/Box/box.types';
-import { Box } from '../../../../../../UI/Box/Box';
-import { useTheme } from '../../../../../../../util/theme';
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
-import { selectMultichainAccountsState1Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts';
+} from '../../UI/Box/box.types';
+import { Box } from '../../UI/Box/Box';
+import { useTheme } from '../../../util/theme';
+import { SmartAccountIds } from '../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const AccountNetworkRow = ({
   address,
