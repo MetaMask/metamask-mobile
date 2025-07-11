@@ -8,132 +8,114 @@ This document outlines the performance thresholds (quality gates) for MetaMask M
 - **iOS**: Lower thresholds leveraging platform optimizations
 - **Quality Gates**: Hard limits that cause test failures if exceeded
 
+## 📊 Test Reporting
+
+Performance tests automatically generate detailed reports using the `PerformanceTestReporter` utility:
+- **JSON Reports**: Structured performance data for analysis
+- **Test Results**: Include timing metrics, thresholds, and pass/fail status
+- **User Profile Testing**: Tests run across different user states (CORE_USER, POWER_USER)
+
 ---
 
 ## 🏠 Account List Performance Tests
 
-### Test: `render account list efficiently with multiple accounts and networks w/profile syncing`
-**Configuration**: 16 accounts, popular networks, profile syncing enabled
+### Test: `render account list efficiently with multiple accounts and networks`
+**Configuration**: Multiple accounts, popular networks, profile syncing enabled
 
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Android** | 2,500ms | 35,000ms | 37,500ms |
-| **iOS** | 1,500ms | 5,000ms | 6,500ms |
-
----
-
-### Test: `handle account list performance with heavy token load w/profile syncing`
-**Configuration**: 16 accounts, popular networks, 50 tokens, profile syncing enabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Android** | 2,500ms | 35,000ms | 37,500ms |
-| **iOS** | 3,000ms | 8,000ms | 11,000ms |
+| Platform | Total Max Time | Notes |
+|----------|----------------|--------|
+| **Android** | 17,500ms | 17.5 seconds maximum |
+| **iOS** | 7,500ms | 7.5 seconds maximum |
 
 ---
 
-### Test: `render account list efficiently with multiple accounts and networks (profile syncing disabled)`
-**Configuration**: 11 accounts, popular networks, profile syncing disabled
+### Test: `handle account list performance with heavy token load`
+**Configuration**: Multiple accounts, popular networks, 10 tokens for stress testing
 
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Android** | 2,500ms | 15,000ms | 17,500ms |
-| **iOS** | 1,500ms | 5,000ms | 6,500ms |
-
----
-
-### Test: `handle account list performance with heavy token load (profile syncing disabled)`
-**Configuration**: 11 accounts, popular networks, 50 tokens, profile syncing disabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Both** | 3,000ms | 8,000ms | 11,000ms |
+| Platform | Total Max Time | Notes |
+|----------|----------------|--------|
+| **Android** | 17,500ms | 17.5 seconds maximum |
+| **iOS** | 7,500ms | 7.5 seconds maximum |
 
 ---
 
 ### Test: `benchmark account list with minimal load`
-**Configuration**: 2 accounts, default network, 2 tokens
+**Configuration**: Minimal accounts, default network, 2 tokens (baseline measurement)
 
 | Platform | Total Max Time | Notes |
 |----------|----------------|--------|
-| **Both** | 3,000ms | Baseline measurement |
+| **Android** | 45,000ms | 45 seconds maximum |
+| **iOS** | 15,000ms | 15 seconds maximum |
+
+---
+
+### Test: `benchmark switching accounts from the account list`
+**Configuration**: Account switching/dismissal performance
+
+| Platform | Dismissal Max Time | Notes |
+|----------|-------------------|--------|
+| **Android** | 5,000ms | 5 seconds maximum |
+| **iOS** | 4,000ms | 4 seconds maximum |
 
 ---
 
 ## 🌐 Network List Performance Tests
 
-### Test: `render network list efficiently with multiple accounts and all popular networks w/profile syncing`
-**Configuration**: 16 accounts, popular networks, profile syncing enabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Android** | 2,500ms | 15,000ms | 17,500ms |
-| **iOS** | 1,500ms | 5,000ms | 6,500ms |
-
----
-
-### Test: `render network list efficiently with multiple accounts and all popular networks (profile syncing disabled)`
-**Configuration**: 11 accounts, popular networks, profile syncing disabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Android** | 2,500ms | 15,000ms | 17,500ms |
-| **iOS** | 1,500ms | 5,000ms | 6,500ms |
-
----
-
-### Test: `handle network list performance with heavy token load on all popular networks w/profile syncing`
-**Configuration**: 16 accounts, popular networks, 50 tokens, profile syncing enabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Both** | 3,000ms | 8,000ms | 11,000ms |
-
----
-
-### Test: `handle network list performance with heavy token load on all popular networks (without profile syncing)`
-**Configuration**: 4 accounts, popular networks, 50 tokens, profile syncing disabled
-
-| Platform | Navigation Time | Render Time | Total Max Time |
-|----------|----------------|-------------|----------------|
-| **Both** | 3,000ms | 8,000ms | 11,000ms |
-
----
-
-### Test: `benchmark network list with minimal load w/profile syncing`
-**Configuration**: 16 accounts, popular networks, 2 tokens, profile syncing enabled
+### Test: `render network list efficiently with multiple accounts and all popular networks`
+**Configuration**: Multiple accounts, all popular networks
 
 | Platform | Total Max Time | Notes |
 |----------|----------------|--------|
-| **Both** | 3,000ms | Baseline measurement |
+| **Android** | 17,500ms | 17.5 seconds maximum |
+| **iOS** | 6,500ms | 6.5 seconds maximum |
 
 ---
 
-### Test: `benchmark network list with minimal load (without profile syncing)`
-**Configuration**: 2 accounts, popular networks, 2 tokens, profile syncing disabled
+### Test: `handle network list performance with heavy token load on all popular networks`
+**Configuration**: Multiple accounts, popular networks, 10 tokens for stress testing
 
 | Platform | Total Max Time | Notes |
 |----------|----------------|--------|
-| **Both** | 3,000ms | Baseline measurement |
+| **Android** | 17,500ms | 17.5 seconds maximum |
+| **iOS** | 6,500ms | 6.5 seconds maximum |
+
+---
+
+### Test: `benchmark network list with minimal load`
+**Configuration**: Minimal tokens, popular networks (baseline measurement)
+
+| Platform | Render Max Time | Notes |
+|----------|----------------|--------|
+| **Android** | 2,500ms | 2.5 seconds maximum |
+| **iOS** | 1,500ms | 1.5 seconds maximum |
+
+---
+
+### Test: `benchmark switching networks from the network list`
+**Configuration**: Network switching/dismissal performance
+
+| Platform | Dismissal Max Time | Notes |
+|----------|-------------------|--------|
+| **Android** | 2,500ms | 2.5 seconds maximum |
+| **iOS** | 1,500ms | 1.5 seconds maximum |
 
 ---
 
 ## 📊 Test Summary
 
-### Account List Tests (6 tests)
-- ✅ **Standard Load + Profile Sync**: 16 accounts, popular networks
-- ✅ **Heavy Load + Profile Sync**: 16 accounts, 50 tokens, popular networks  
-- ✅ **Standard Load - No Profile Sync**: 11 accounts, popular networks
-- ✅ **Heavy Load - No Profile Sync**: 11 accounts, 50 tokens, popular networks
-- ✅ **Baseline Test**: 2 accounts, 2 tokens, default network
+### Account List Tests (4 tests)
+- ✅ **Standard Load**: Multiple accounts, popular networks
+- ✅ **Heavy Load**: Multiple accounts, 10 tokens, popular networks  
+- ✅ **Baseline Test**: Minimal accounts, 2 tokens, default network
+- ✅ **Dismissal Test**: Account switching performance
 
-### Network List Tests (6 tests)
-- ✅ **Standard Load + Profile Sync**: 16 accounts, popular networks
-- ✅ **Standard Load - No Profile Sync**: 11 accounts, popular networks
-- ✅ **Heavy Load + Profile Sync**: 16 accounts, 50 tokens, popular networks
-- ✅ **Heavy Load - No Profile Sync**: 4 accounts, 50 tokens, popular networks
-- ✅ **Baseline + Profile Sync**: 16 accounts, 2 tokens, popular networks
-- ✅ **Baseline - No Profile Sync**: 2 accounts, 2 tokens, popular networks
+### Network List Tests (4 tests)
+- ✅ **Standard Load**: Multiple accounts, popular networks
+- ✅ **Heavy Load**: Multiple accounts, 10 tokens, popular networks
+- ✅ **Baseline Test**: Minimal tokens, popular networks
+- ✅ **Dismissal Test**: Network switching performance
+
+**Total**: 8 performance tests across critical user flows
 
 ---
 
@@ -143,9 +125,31 @@ This document outlines the performance thresholds (quality gates) for MetaMask M
 Tests fail immediately when total time exceeds the maximum acceptable time for any scenario.
 
 ### Performance Patterns
-- **Profile Syncing**: Generally increases render times, especially on Android (to be confirmed)
-- **Heavy Token Load**: Increases both navigation and render times (to be confirmed)
-- **Platform Differences**: iOS consistently performs better than Android (to be confirmed)
-- **Baseline Tests**: Should complete within 3 seconds regardless of configuration (to be confirmed)
+- **Heavy Token Load**: Increases render times but maintains same thresholds as standard load
+- **Platform Differences**: iOS consistently performs better than Android
+- **Baseline Tests**: Should complete quickly but have generous thresholds for stability
+- **Dismissal Tests**: Focus on UI responsiveness during state transitions
+
+### User Profile Testing
+Tests run across different user states:
+- **CORE_USER**: Standard user configuration
+- **POWER_USER**: Enhanced user configuration with more data
+
+---
+
+## 📈 Reporting Features
+
+### Automated Reports
+- **JSON Output**: Structured performance data for CI/CD integration
+- **Test Metrics**: Total time measurements and performance thresholds
+- **Threshold Tracking**: Pass/fail status with actual vs. expected performance
+- **User Profile Results**: Separate results for different user configurations
+
+### Report Usage
+Performance reports can be used for:
+- Continuous integration quality gates
+- Performance regression detection
+- Platform-specific optimization insights
+- User experience benchmarking
 
 ---
