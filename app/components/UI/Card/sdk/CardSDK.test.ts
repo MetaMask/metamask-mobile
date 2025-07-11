@@ -6,13 +6,6 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { CardToken } from '../types';
 import Logger from '../../../../util/Logger';
-import {
-  BALANCE_SCANNER_ABI,
-  BALANCE_SCANNER_CONTRACT_ADDRESS,
-  FOXCONNECT_GLOBAL_ADDRESS,
-  FOXCONNECT_US_ADDRESS,
-  ON_RAMP_API_URL,
-} from '../constants';
 
 // Mock ethers
 jest.mock('ethers', () => ({
@@ -82,6 +75,12 @@ describe('CardSDK', () => {
     mockCardFeatureFlag = {
       'eip155:59144': {
         enabled: true,
+        balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+        foxConnectAddresses: {
+          global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+          us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+        },
+        onRampApi: 'https://on-ramp.uat-api.cx.metamask.io',
         tokens: mockSupportedTokens,
       },
     };
@@ -173,10 +172,10 @@ describe('CardSDK', () => {
 
   describe('supportedTokensAddresses', () => {
     it('should return valid token addresses', () => {
-      const addresses = cardSDK.supportedTokensAddresses;
+      const addresses = cardSDK.supportedTokens;
       expect(addresses).toHaveLength(2);
-      expect(addresses).toContain(mockSupportedTokens[0].address);
-      expect(addresses).toContain(mockSupportedTokens[1].address);
+      expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
+      expect(addresses[1].address).toBe(mockSupportedTokens[1].address);
     });
 
     it('should filter out invalid addresses', () => {
@@ -184,31 +183,9 @@ describe('CardSDK', () => {
         (address: string) => address === mockSupportedTokens[0].address,
       );
 
-      const addresses = cardSDK.supportedTokensAddresses;
+      const addresses = cardSDK.supportedTokens;
       expect(addresses).toHaveLength(1);
-      expect(addresses).toContain(mockSupportedTokens[0].address);
-    });
-  });
-
-  describe('ethersProvier', () => {
-    it('should create JsonRpcProvider with correct URL', () => {
-      // Access the provider to trigger the getter
-      expect(cardSDK.ethersProvider).toBeDefined();
-      expect(ethers.providers.JsonRpcProvider).toHaveBeenCalledWith(
-        expect.stringContaining('linea-mainnet'),
-      );
-    });
-  });
-
-  describe('balanceScannerInstance', () => {
-    it('should create contract with correct parameters', () => {
-      // Access the contract to trigger the getter
-      expect(cardSDK.balanceScannerInstance).toBeDefined();
-      expect(ethers.Contract).toHaveBeenCalledWith(
-        BALANCE_SCANNER_CONTRACT_ADDRESS,
-        BALANCE_SCANNER_ABI,
-        mockProvider,
-      );
+      expect(addresses[0].address).toBe(mockSupportedTokens[0].address);
     });
   });
 
@@ -249,10 +226,16 @@ describe('CardSDK', () => {
 
       expect(mockContract.spendersAllowancesForTokens).toHaveBeenCalledWith(
         testAddress,
-        cardSDK.supportedTokensAddresses,
+        cardSDK.supportedTokens.map((token) => token.address as `0x${string}`),
         expect.arrayContaining([
-          [FOXCONNECT_GLOBAL_ADDRESS, FOXCONNECT_US_ADDRESS],
-          [FOXCONNECT_GLOBAL_ADDRESS, FOXCONNECT_US_ADDRESS],
+          [
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.global,
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.us,
+          ],
+          [
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.global,
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.us,
+          ],
         ]),
       );
     });
@@ -297,7 +280,10 @@ describe('CardSDK', () => {
       const result = await cardSDK.getGeoLocation();
       expect(result).toBe(mockGeolocation);
       expect(global.fetch).toHaveBeenCalledWith(
-        new URL('geolocation', ON_RAMP_API_URL),
+        new URL(
+          'geolocation',
+          mockCardFeatureFlag['eip155:59144']?.onRampApi || '',
+        ),
       );
     });
 

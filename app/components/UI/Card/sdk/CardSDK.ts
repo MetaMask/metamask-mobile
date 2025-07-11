@@ -6,13 +6,7 @@ import {
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
-import {
-  BALANCE_SCANNER_ABI,
-  BALANCE_SCANNER_CONTRACT_ADDRESS,
-  FOXCONNECT_GLOBAL_ADDRESS,
-  FOXCONNECT_US_ADDRESS,
-  ON_RAMP_API_URL,
-} from '../constants';
+import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import { CardToken } from '../types';
 
@@ -44,28 +38,67 @@ export class CardSDK {
       return [];
     }
 
-    return this.cardFeatureFlag[`eip155:${this.chainId}`]?.tokens || [];
+    const tokens = this.cardFeatureFlag[`eip155:${this.chainId}`]?.tokens;
+
+    if (!tokens) {
+      return [];
+    }
+
+    return tokens.filter(
+      (token): token is SupportedToken =>
+        token &&
+        typeof token.address === 'string' &&
+        ethers.utils.isAddress(token.address) &&
+        token.enabled !== false,
+    );
   }
 
-  get supportedTokensAddresses(): `0x${string}`[] {
-    return this.supportedTokens
-      .map((token) => token.address)
-      .filter((tokenAddress): tokenAddress is `0x${string}` =>
-        tokenAddress ? ethers.utils.isAddress(tokenAddress) : false,
+  private get foxConnectAddresses() {
+    const foxConnect =
+      this.cardFeatureFlag[`eip155:${this.chainId}`]?.foxConnectAddresses;
+
+    if (!foxConnect?.global || !foxConnect?.us) {
+      throw new Error(
+        'FoxConnect addresses are not defined for the current chain',
       );
+    }
+
+    return {
+      global: foxConnect.global || null,
+      us: foxConnect.us || null,
+    };
   }
 
-  get ethersProvider() {
+  private get ethersProvider() {
     // Default RPC URL for LINEA mainnet
     return new ethers.providers.JsonRpcProvider(LINEA_DEFAULT_RPC_URL);
   }
 
-  get balanceScannerInstance() {
+  private get balanceScannerInstance() {
+    const balanceScannerAddress =
+      this.cardFeatureFlag[`eip155:${this.chainId}`]?.balanceScannerAddress;
+
+    if (!balanceScannerAddress) {
+      throw new Error(
+        'Balance scanner address is not defined for the current chain',
+      );
+    }
+
     return new ethers.Contract(
-      BALANCE_SCANNER_CONTRACT_ADDRESS,
+      balanceScannerAddress,
       BALANCE_SCANNER_ABI,
       this.ethersProvider,
     );
+  }
+
+  private get rampApiUrl() {
+    const onRampApi = this.cardFeatureFlag[`eip155:${this.chainId}`]?.onRampApi;
+
+    if (!onRampApi) {
+      throw new Error('On Ramp API URL is not defined for the current chain');
+    }
+
+    return onRampApi;
   }
 
   // NOTE: This is a temporary implementation until we have the Platform API ready.
@@ -75,16 +108,19 @@ export class CardSDK {
     }
 
     try {
+      const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
+        this.foxConnectAddresses;
+
       // 1. Check if the address is a card holder by calling the balance scanner contract and verify if the FoxConnect contracts has allowances on supported tokens.
-      const spenders = this.supportedTokensAddresses.map(() => [
-        FOXCONNECT_GLOBAL_ADDRESS,
-        FOXCONNECT_US_ADDRESS,
+      const spenders = this.supportedTokens.map(() => [
+        foxConnectGlobalAddress,
+        foxConnectUsAddress,
       ]);
 
       const spendersAllowancesForTokens: [boolean, string][][] =
         await this.balanceScannerInstance.spendersAllowancesForTokens(
           address,
-          this.supportedTokensAddresses,
+          this.supportedTokens.map((token) => token.address),
           spenders,
         );
 
@@ -107,7 +143,7 @@ export class CardSDK {
 
   getGeoLocation = async (): Promise<string> => {
     try {
-      const url = new URL('geolocation', ON_RAMP_API_URL);
+      const url = new URL('geolocation', this.rampApiUrl);
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -134,25 +170,37 @@ export class CardSDK {
       throw new Error('Card feature is not enabled for this chain');
     }
 
-    const spenders: string[][] = this.supportedTokensAddresses.map(() => [
-      FOXCONNECT_GLOBAL_ADDRESS,
-      FOXCONNECT_US_ADDRESS,
+    const supportedTokensAddresses = this.supportedTokens.map(
+      (token) => token.address,
+    );
+
+    if (supportedTokensAddresses.length === 0) {
+      return [];
+    }
+
+    const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
+      this.foxConnectAddresses;
+
+    const spenders: string[][] = supportedTokensAddresses.map(() => [
+      foxConnectGlobalAddress,
+      foxConnectUsAddress,
     ]);
+
     const spendersAllowancesForTokens: [boolean, string][][] =
       await this.balanceScannerInstance.spendersAllowancesForTokens(
         address,
-        this.supportedTokensAddresses,
+        supportedTokensAddresses,
         spenders,
       );
 
-    return this.supportedTokensAddresses.map((tokenAddress, index) => {
+    return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
         spendersAllowancesForTokens[index];
       const globalAllowance = ethers.BigNumber.from(globalAllowanceTuple[1]);
       const usAllowance = ethers.BigNumber.from(usAllowanceTuple[1]);
 
       return {
-        address: tokenAddress,
+        address: tokenAddress as `0x${string}`,
         usAllowance,
         globalAllowance,
       };
@@ -220,26 +268,24 @@ export class CardSDK {
 
   private async getApprovalLogs(
     address: string,
-    nonZeroBalanceTokens: string[],
+    nonZeroBalanceTokensAddresses: string[],
   ): Promise<(ethers.providers.Log & { tokenAddress: string })[]> {
     const approvalInterface = new ethers.utils.Interface([
       'event Approval(address indexed owner,address indexed spender,uint256 value)',
     ]);
+    const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
+      this.foxConnectAddresses;
 
     const approvalTopic = approvalInterface.getEventTopic('Approval');
     const ownerTopic = ethers.utils.hexZeroPad(address.toLowerCase(), 32);
-    const spenders = [FOXCONNECT_GLOBAL_ADDRESS, FOXCONNECT_US_ADDRESS];
+    const spenders = [foxConnectGlobalAddress, foxConnectUsAddress];
     const spenderTopics = spenders.map((s) =>
       ethers.utils.hexZeroPad(s.toLowerCase(), 32),
     );
     const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
 
-    const tokenAddressesList = nonZeroBalanceTokens.length
-      ? nonZeroBalanceTokens
-      : this.supportedTokensAddresses;
-
     const logsPerToken = await Promise.all(
-      tokenAddressesList.map((tokenAddress) =>
+      nonZeroBalanceTokensAddresses.map((tokenAddress) =>
         this.ethersProvider
           .getLogs({
             address: tokenAddress,

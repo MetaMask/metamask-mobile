@@ -7,6 +7,12 @@ export interface CardFeatureFlag {
 
 export interface SupportedChain {
   enabled?: boolean | null;
+  balanceScannerAddress?: `0x${string}` | null;
+  foxConnectAddresses?: {
+    global?: `0x${string}` | null;
+    us?: `0x${string}` | null;
+  };
+  onRampApi?: string | null;
   tokens?: SupportedToken[] | null;
 }
 
