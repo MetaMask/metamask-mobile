@@ -172,7 +172,7 @@ const EarnInputView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   useEndTraceOnMount(TraceName.EarnDepositScreen);
 
   const navigateToLearnMoreModal = () => {

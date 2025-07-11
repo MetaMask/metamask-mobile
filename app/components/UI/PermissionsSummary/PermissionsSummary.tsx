@@ -124,7 +124,7 @@ const PermissionsSummary = ({
   const hostname = useMemo(
     () => {
       try {
-        return new URL(currentPageInformation.url).hostname
+        return new URL(currentPageInformation.url).hostname;
       } catch {
         return currentPageInformation.url;
       }

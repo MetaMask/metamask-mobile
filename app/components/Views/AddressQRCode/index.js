@@ -139,7 +139,7 @@ class AddressQRCode extends PureComponent {
     const colors = theme.colors;
     const styles = createStyles(theme);
 
-    const qrValue = isEthAddress(this.props.selectedAddress) 
+    const qrValue = isEthAddress(this.props.selectedAddress)
       ? `ethereum:${this.props.selectedAddress}`
       : this.props.selectedAddress;
 
