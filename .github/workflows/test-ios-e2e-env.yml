@@ -15,14 +15,24 @@ jobs:
         with:
           platform: ios
           setup-simulator: true
-          xcode-version: 15.2
 
-      - name: Print ios tool versions
+      - name: Print iOS tool versions
         run: |
-          node -v
-          yarn -v
-          pod --version
-          xcode-select -p
-          xcrun simctl list | grep Booted
+            echo "🔧 Node.js Version:"
+            node -v || echo "Node not found"
+
+            echo "🧶 Yarn Version:"
+            yarn -v || echo "Yarn not found"
+
+            echo "📦 CocoaPods Version:"
+            pod --version || echo "CocoaPods not found"
+
+            echo "🛠️ Xcode Path:"
+            xcode-select -p || echo "Xcode not found"
+
+            echo "📱 Booted iOS Simulators:"
+            xcrun simctl list | grep Booted || echo "No booted simulators found"
+        shell: bash
+
 
 
