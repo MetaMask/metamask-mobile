@@ -67,15 +67,15 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       useState<Date | null>(null);
     const fieldRef = useRef<TextInput>(null);
 
-    const handleOpenPicker = () => {
+    const handleOpenPicker = useCallback(() => {
       handleOnPress?.();
       setShowDatePicker(true);
-    };
+    }, [handleOnPress]);
 
-    const handleClosePicker = () => {
+    const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
       setPendingDateSelection(null);
-    };
+    }, []);
 
     const processSelectedDate = useCallback(
       (date?: Date | null) => {
@@ -160,7 +160,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       mode="date"
                       display="spinner"
                       onChange={(_, date) =>
-                        setPendingDateSelection(date ?? DEFAULT_DATE)
+                        setPendingDateSelection(date ?? null)
                       }
                       maximumDate={MAXIMUM_DATE}
                       minimumDate={MINIMUM_DATE}
