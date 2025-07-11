@@ -17,7 +17,11 @@ import {
   ONBOARDING_WIZARD,
 } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  NavigationState,
+  PartialState,
+} from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
@@ -384,7 +388,9 @@ describe('App', () => {
       }));
     });
 
-    const renderAppWithRouteState = (routeState: any) => {
+    const renderAppWithRouteState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
       const mockStore = configureMockStore();
       const store = mockStore(mockLoggedInState);
 
