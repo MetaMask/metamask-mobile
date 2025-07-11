@@ -6,7 +6,8 @@ on:
 
 jobs:
   ios-e2e:
-    runs-on: macos-14
+    #runs-on: macos-14
+    runs-on: macos-latest-large
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
