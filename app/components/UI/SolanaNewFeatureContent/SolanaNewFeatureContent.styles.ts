@@ -1,8 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = () => {
-  return StyleSheet.create({
+const createStyles = () => StyleSheet.create({
     scroll: {
       flex: 1,
     },
@@ -62,6 +61,5 @@ const createStyles = () => {
       borderColor: importedColors.transparent,
     },
   });
-};
 
-export default createStyles;
+  export default createStyles;

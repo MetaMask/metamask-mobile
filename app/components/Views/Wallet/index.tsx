@@ -345,9 +345,7 @@ const Wallet = ({
       );
 
       if (hasSeenModal !== 'true') {
-        navigate(Routes.SOLANA_NEW_FEATURE_CONTENT, {
-          screen: Routes.SOLANA_NEW_FEATURE_CONTENT,
-        });
+        navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
       }
     };
 
