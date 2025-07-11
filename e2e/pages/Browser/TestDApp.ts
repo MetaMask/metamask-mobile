@@ -341,4 +341,4 @@ class TestDApp {
   }
 }
 
-export default new TestDApp(); 
+export default new TestDApp();

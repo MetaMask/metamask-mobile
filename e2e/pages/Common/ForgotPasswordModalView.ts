@@ -80,4 +80,4 @@ class ForgotPasswordModalView {
   }
 }
 
-export default new ForgotPasswordModalView(); 
+export default new ForgotPasswordModalView();
