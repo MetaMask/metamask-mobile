@@ -13,15 +13,14 @@ jobs:
       - name: Setup E2E iOS Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
-          platform: ios
-          setup-simulator: true
-          xcode-version: 15.2
+          platform: android
 
-      - name: Print tool versions
+      - name: Print android tool versions
         run: |
           node -v
           yarn -v
-          pod --version
-          xcode-select -p
-          xcrun simctl list | grep Booted
+          sdkmanager --version
+          adb version
+          emulator -version
+          avdmanager list device
 
