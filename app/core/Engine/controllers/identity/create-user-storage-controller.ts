@@ -12,7 +12,6 @@ export const createUserStorageController = (props: {
     typeof UserStorageController
   >['0']['nativeScryptCrypto'];
   config?: ConstructorParameters<typeof UserStorageController>['0']['config'];
-  env?: ConstructorParameters<typeof UserStorageController>['0']['env'];
   trace?: TraceCallback;
 }): UserStorageController => {
   const userStorageController = new UserStorageController({
@@ -20,7 +19,6 @@ export const createUserStorageController = (props: {
     state: props.initialState,
     nativeScryptCrypto: props.nativeScryptCrypto,
     config: props.config,
-    env: props.env,
     ...(props.trace && { trace: props.trace }),
   } as ConstructorParameters<typeof UserStorageController>[0]);
   return userStorageController;
