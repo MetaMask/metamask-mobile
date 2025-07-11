@@ -74,6 +74,7 @@ export interface AuthResponse {
   indexes: number[];
   endpoints: Record<string, string>;
   refresh_token?: string;
+  revoke_token?: string;
 }
 
 export interface LoginHandler {

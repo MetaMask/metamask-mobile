@@ -586,11 +586,6 @@ class AuthenticationService {
         keyringId,
       );
 
-      Logger.log(
-        'SeedlessOnboardingController state',
-        SeedlessOnboardingController.state,
-      );
-
       await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
         password,
         seedPhrase,
@@ -659,6 +654,11 @@ class AuthenticationService {
         this.dispatchLogin();
         this.dispatchPasswordSet();
         this.dispatchOauthReset();
+
+        // Try to complete any pending Solana account discovery
+        ///: BEGIN:ONLY_INCLUDE_IF(solana)
+        this.retrySolanaDiscoveryIfPending();
+        ///: END:ONLY_INCLUDE_IF
       } else {
         throw new Error('No account data found');
       }
