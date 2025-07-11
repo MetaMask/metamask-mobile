@@ -17,9 +17,9 @@ import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
+import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
@@ -56,22 +56,24 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should create Solana account directly from new feature announcement sheet', async () => {
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.sheetContainer,
-    );
-    await Assertions.checkIfVisible(
-      SolanaNewFeatureSheet.learnMoreButton,
-    );
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
+  it('should create a Solana account from the bottom sheet', async () => {
+    await SolanaNewFeatureSheet.tapNotNowButton();
+  
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  
+    await AccountListBottomSheet.tapAddAccountButton();
+    await TestHelpers.delay(4000);
+    await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
     await TestHelpers.delay(4000);
-    await WalletView.tapIdenticon();
-    // Check if the Solana account is created
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
   });
 
   it('should create another Solana account from the bottom sheet', async () => {
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
     await AccountListBottomSheet.tapAddAccountButton();
     await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();

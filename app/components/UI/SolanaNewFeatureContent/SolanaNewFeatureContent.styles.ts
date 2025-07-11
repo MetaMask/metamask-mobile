@@ -1,44 +1,65 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = (colors: {
-  background: { default: string };
-  text: { default: string };
-  primary: { default: string };
-}) =>
-  StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
+const createStyles = () => StyleSheet.create({
+    scroll: {
+      flex: 1,
     },
     wrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      padding: 24,
-      paddingBottom: Device.isAndroid() ? 24 : 0,
+      flex: 1,
       alignItems: 'center',
+      paddingVertical: 30,
+    },
+    largeFoxWrapper: {
+      alignItems: 'center',
+      paddingTop: 10,
     },
     title: {
-      ...fontStyles.bold,
-      fontSize: 18,
-      color: colors.text.default,
-      marginTop: 20,
-      marginBottom: 20,
+      fontSize: 60,
+      lineHeight: 60,
       textAlign: 'center',
+      paddingTop: 60,
+      fontFamily: 'MMPoly-Regular',
     },
-    featureList: {
+    titleDescription: {
+      paddingTop: 20,
+      textAlign: 'center',
+      fontSize: 16,
+      fontFamily: 'MMSans-Regular',
+    },
+    foxImage: {
+      height: 350,
+    },
+    ctas: {
+      flex: 1,
+      position: 'relative',
       width: '100%',
-      marginBottom: 24,
+      paddingHorizontal: 30,
     },
-    cancelButton: {
-      marginTop: 12,
+    createWrapper: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      rowGap: 5,
+      marginBottom: 16,
     },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      marginBottom: 12,
+    learnMoreButton: {
+      textDecorationLine: 'underline',
+      fontFamily: 'MMSans-Regular',
+      color: importedColors.gettingStartedTextColor,
+      textAlign: 'center',
+      paddingTop: 10,
+    },
+    importWalletButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.gettingStartedTextColor,
+    },
+    notNowButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.transparent,
+      borderWidth: 1,
+      borderColor: importedColors.transparent,
     },
   });
 
-export default createStyles;
+  export default createStyles;
