@@ -4,7 +4,6 @@ on:
   push:
 
 
-    
 jobs:
   android-e2e:
     runs-on: ubuntu-latest
