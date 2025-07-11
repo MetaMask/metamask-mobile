@@ -4,8 +4,8 @@ on:
   push:
 
 jobs:
-  ios-e2e:
-    runs-on: macos-14
+  android-e2e:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -45,5 +45,5 @@ jobs:
         shell: bash
 
 
-        
+
 
