@@ -87,16 +87,22 @@ export const ApproveAndPermit2 = () => {
                 spendingCap: rawAmount ?? '',
                 onSpendingCapUpdate,
               }}
+            >
+              <PillAndAddress
+                amount={amount}
+                isERC20
+                tokenId={tokenId}
+                transactionMetadata={transactionMetadata}
+              />
+            </EditSpendingCapButton>
+          )}
+          {!isERC20 && (
+            <PillAndAddress
+              isERC20={isERC20}
+              tokenId={tokenId}
+              transactionMetadata={transactionMetadata}
             />
           )}
-          <Pill
-            testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
-            text={isERC20 ? amount ?? '' : `#${tokenId}`}
-          />
-          <Address
-            address={transactionMetadata?.txParams?.to as string}
-            chainId={transactionMetadata.chainId}
-          />
         </View>
       </InfoRow>
       <InfoRow label={strings('confirm.spender')}>
@@ -108,3 +114,30 @@ export const ApproveAndPermit2 = () => {
     </>
   );
 };
+
+interface PillAndAddressProps {
+  amount?: string;
+  isERC20: boolean;
+  tokenId?: string;
+  transactionMetadata: TransactionMeta;
+}
+
+function PillAndAddress({
+  amount,
+  isERC20,
+  tokenId,
+  transactionMetadata,
+}: PillAndAddressProps) {
+  return (
+    <>
+      <Pill
+        testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
+        text={isERC20 ? amount ?? '' : `#${tokenId}`}
+      />
+      <Address
+        address={transactionMetadata?.txParams?.to as string}
+        chainId={transactionMetadata.chainId}
+      />
+    </>
+  );
+}
