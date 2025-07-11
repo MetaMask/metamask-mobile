@@ -97,7 +97,6 @@
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
     "update-changelog": "./scripts/auto-changelog.sh",
     "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" && ./scripts/changelog-csv.sh }; wrap ",
-    "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
