@@ -4,6 +4,7 @@ on:
   push:
 
 
+    
 jobs:
   android-e2e:
     runs-on: ubuntu-latest
@@ -11,7 +12,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-        
+
       - name: Setup E2E iOS Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
