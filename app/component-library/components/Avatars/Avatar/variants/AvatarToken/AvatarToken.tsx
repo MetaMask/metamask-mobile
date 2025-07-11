@@ -1,4 +1,5 @@
 // Third party dependencies.
+import { isNumber } from 'lodash';
 import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 import { SvgUri } from 'react-native-svg';
@@ -6,7 +7,6 @@ import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
-import { isFaviconSVG } from '../../../../../../util/favicon';
 import { isIPFSUri } from '../../../../../../util/general';
 import AvatarBase from '../../foundation/AvatarBase';
 import Text from '../../../../Texts/Text';
@@ -55,16 +55,20 @@ const AvatarToken = ({
     ? !isIpfsGatewayEnabled && isIPFSUri(imageUri.uri)
     : false;
 
-  const imageSVG = imageSource ? isFaviconSVG(imageSource) : undefined;
-
   const tokenImage = () => {
     let innerImage: React.ReactNode;
     if (showFallback || isIpfsDisabledAndUriIsIpfs) {
       innerImage = <Text style={styles.label}>{tokenNameFirstLetter}</Text>;
-    } else if (imageSVG) {
+    } else if (
+      imageSource &&
+      !isNumber(imageSource) &&
+      'uri' in imageSource &&
+      (imageSource.uri?.endsWith('.svg') ||
+        imageSource.uri?.startsWith('data:image/svg+xml'))
+    ) {
       innerImage = (
         <SvgUri
-          uri={imageSVG}
+          uri={imageSource.uri}
           width={size}
           height={size}
           onError={onError}
