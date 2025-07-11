@@ -13,6 +13,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Print system resources
+        run: |
+            echo "🧠 Memory info:"
+            vm_stat
+
+            echo ""
+            echo "💻 CPU info:"
+            sysctl -n hw.ncpu
+            sysctl -n hw.memsize | awk '{ byte =$1 /1024/1024/1024; print byte " GB" }'
+        shell: bash
+
+
       - name: Setup E2E iOS Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
