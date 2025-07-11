@@ -57,11 +57,12 @@ const AvatarToken = ({
 
   const imageSVG = imageSource ? isFaviconSVG(imageSource) : undefined;
 
-  const tokenImage = () => (
-    <AvatarBase size={size} style={styles.base} {...props}>
-      {showFallback || isIpfsDisabledAndUriIsIpfs ? (
-        <Text style={styles.label}>{tokenNameFirstLetter}</Text>
-      ) : imageSVG ? (
+  const tokenImage = () => {
+    let innerImage: React.ReactNode;
+    if (showFallback || isIpfsDisabledAndUriIsIpfs) {
+      innerImage = <Text style={styles.label}>{tokenNameFirstLetter}</Text>;
+    } else if (imageSVG) {
+      innerImage = (
         <SvgUri
           uri={imageSVG}
           width={size}
@@ -69,7 +70,9 @@ const AvatarToken = ({
           onError={onError}
           testID={AVATARTOKEN_IMAGE_TESTID}
         />
-      ) : (
+      );
+    } else {
+      innerImage = (
         <Image
           source={imageSource as ImageSourcePropType}
           style={styles.image}
@@ -77,9 +80,15 @@ const AvatarToken = ({
           testID={AVATARTOKEN_IMAGE_TESTID}
           resizeMode={'contain'}
         />
-      )}
-    </AvatarBase>
-  );
+      );
+    }
+
+    return (
+      <AvatarBase size={size} style={styles.base} {...props}>
+        {innerImage}
+      </AvatarBase>
+    );
+  };
 
   return !isHaloEnabled || showFallback || isIpfsDisabledAndUriIsIpfs ? (
     tokenImage()
