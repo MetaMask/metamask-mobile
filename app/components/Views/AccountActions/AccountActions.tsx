@@ -429,12 +429,15 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {(networkSupporting7702Present &&
-          !isHardwareAccount(selectedAddress)) && (
+        {networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress) && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
               onPress={goToSwitchAccountType}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT
+              }
             />
           )}
       </View>
