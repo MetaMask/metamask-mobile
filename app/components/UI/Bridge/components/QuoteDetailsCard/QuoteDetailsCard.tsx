@@ -214,7 +214,7 @@ const QuoteDetailsCard = () => {
               <Text variant={TextVariant.BodyMD}>Included</Text>
               <Text
                 variant={TextVariant.BodyMD}
-                style={{ textDecorationLine: 'line-through' }}
+                style={styles.strikethroughText}
               >
                 {networkFee}
               </Text>

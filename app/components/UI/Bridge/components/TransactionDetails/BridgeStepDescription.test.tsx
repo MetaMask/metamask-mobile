@@ -12,7 +12,6 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { CaipChainId } from '@metamask/utils';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
