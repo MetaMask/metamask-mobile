@@ -53,9 +53,8 @@ else
         LAST_COMMIT_SHORT=$(echo "$LAST_SUCCESSFUL_COMMIT" | cut -c1-8)
         
         # Check if there are any app code changes since the last successful commit
-        # Include all files that affect the built app for E2E testing
-        # Use merge-base with main to exclude changes that were already in main at the time of last successful commit
-        # Find merge-base with main branch (with fallback logic)
+        # We need to exclude changes that came from main branch merges
+        # First, find merge-base with main to identify what was already in main
         MERGE_BASE_WITH_MAIN=""
         git fetch origin main >/dev/null 2>&1
         
@@ -70,16 +69,29 @@ else
             fi
         done
         
-        # Fallback to last successful commit if merge-base fails
-        if [[ -z "$MERGE_BASE_WITH_MAIN" ]]; then
-            echo "Warning: Could not find merge-base with main, comparing against last successful commit"
-            MERGE_BASE_WITH_MAIN="$LAST_SUCCESSFUL_COMMIT"
+        if [[ -n "$MERGE_BASE_WITH_MAIN" ]]; then
+            # Get all files changed since last successful build
+            echo "Comparing changes since last successful build: ${LAST_SUCCESSFUL_COMMIT}..${CURRENT_COMMIT_FULL}"
+            ALL_CHANGED_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$CURRENT_COMMIT_FULL" 2>/dev/null)
+            
+            # Get files that were changed in main branch (to exclude them)
+            echo "Getting main branch changes to exclude: ${LAST_SUCCESSFUL_COMMIT}..${MERGE_BASE_WITH_MAIN}"
+            MAIN_BRANCH_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$MERGE_BASE_WITH_MAIN" 2>/dev/null || true)
+            
+            # Filter out main branch changes from our changed files
+            if [[ -n "$MAIN_BRANCH_FILES" ]]; then
+                echo "Excluding main branch changes:"
+                echo "$MAIN_BRANCH_FILES" | sed 's/^/  - /'
+                # Use comm to exclude main branch files from changed files
+                CHANGED_FILES=$(comm -23 <(echo "$ALL_CHANGED_FILES" | sort) <(echo "$MAIN_BRANCH_FILES" | sort) 2>/dev/null || echo "$ALL_CHANGED_FILES")
+            else
+                CHANGED_FILES="$ALL_CHANGED_FILES"
+            fi
+        else
+            echo "Warning: Could not find merge-base with main, comparing directly against last successful commit"
+            echo "Comparing changes: ${LAST_SUCCESSFUL_COMMIT}..${CURRENT_COMMIT_FULL}"
+            CHANGED_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$CURRENT_COMMIT_FULL" 2>/dev/null)
         fi
-        
-        echo "Comparing changes: ${MERGE_BASE_WITH_MAIN}..${CURRENT_COMMIT_FULL}"
-        
-        # Get files that changed in this PR branch only (excluding main branch changes)
-        CHANGED_FILES=$(git diff --name-only ${MERGE_BASE_WITH_MAIN}.."$CURRENT_COMMIT_FULL" 2>/dev/null)
         echo "Total files changed in PR: $(echo "$CHANGED_FILES" | wc -l | tr -d ' ')"
         
         # Filter for app code files that affect the build
