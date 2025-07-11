@@ -555,36 +555,14 @@ buildAndroidQA(){
 	#  fi
 }
 
-buildAndroidRelease(){
-    if [ "$MODE" != "main" ]; then
-      # For main Mode variables are already remapped
-    	remapEnvVariableProduction
-    fi
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
-	fi
-
+# Builds the Main APK for production
+buildAndroidMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
-
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleProdRelease
-	fi
-
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum
-	fi
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
-	fi
+	# Generate APK for production
+	cd android && ./gradlew assembleProdRelease --build-cache --parallel && cd ..
 }
 
 buildAndroidFlaskRelease(){
@@ -629,7 +607,7 @@ buildAndroid() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidMainLocal
 		else
-			buildAndroidRelease
+			buildAndroidMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
