@@ -28,22 +28,22 @@ const createTransaction = (
 
 describe('filterDuplicateOutgoingTransactions', () => {
   describe('Edge Cases', () => {
-    it('should return the same array when input is empty', () => {
+    it('returns the same array when input is empty', () => {
       const result = filterDuplicateOutgoingTransactions([]);
       expect(result).toEqual([]);
     });
 
-    it('should return null when input is null', () => {
+    it('returns null when input is null', () => {
       const result = filterDuplicateOutgoingTransactions(null as unknown as TransactionMeta[]);
       expect(result).toBeNull();
     });
 
-    it('should return undefined when input is undefined', () => {
+    it('returns undefined when input is undefined', () => {
       const result = filterDuplicateOutgoingTransactions(undefined as unknown as TransactionMeta[]);
       expect(result).toBeUndefined();
     });
 
-    it('should return the same array when there is only one transaction', () => {
+    it('returns the same array when there is only one transaction', () => {
       const transactions = [createTransaction('1', 'incoming', HASH_1, '100')];
       const result = filterDuplicateOutgoingTransactions(transactions);
       expect(result).toEqual(transactions);
@@ -51,7 +51,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
   });
 
   describe('Normal Functionality', () => {
-    it('should filter out incoming transaction when followed by bridge transaction with same hash', () => {
+    it('filters incoming transaction when followed by bridge transaction with same hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', HASH_1, '100'),
@@ -64,7 +64,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result[0].type).toBe('bridge');
     });
 
-    it('should not filter incoming transaction when bridge transaction has different hash', () => {
+    it('does not filter incoming transaction when bridge transaction has different hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', HASH_2, '100'),
@@ -75,10 +75,22 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result).toHaveLength(2);
       expect(result).toEqual(transactions);
     });
+
+    it('handles hashes with different casing as duplicates', () => {
+    const transactions = [
+      createTransaction('1', 'incoming', '0xABCDEF1234', '100'),
+      createTransaction('2', 'bridge', '0xabcdef1234', '100'),
+    ];
+
+    const result = filterDuplicateOutgoingTransactions(transactions);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('2'); // Keeps the later one
+  });
   });
 
   describe('Multiple Transactions', () => {
-    it('should filter multiple redundant incoming transactions', () => {
+    it('filters multiple redundant incoming transactions', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', HASH_1, '100'),
@@ -93,7 +105,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result[1].id).toBe('4');
     });
 
-    it('should preserve non-redundant transactions in mixed scenario', () => {
+    it('preserves non-redundant transactions in mixed scenario', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', HASH_1, '100'),
@@ -110,7 +122,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
   });
 
   describe('Missing Properties', () => {
-    it('should not filter when incoming transaction has no hash', () => {
+    it('does not filter when incoming transaction has no hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', undefined, '100'),
         createTransaction('2', 'bridge', HASH_1, '100'),
@@ -122,7 +134,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result).toEqual(transactions);
     });
 
-    it('should not filter when bridge transaction has no hash', () => {
+    it('does not filter when bridge transaction has no hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', undefined, '100'),
@@ -136,7 +148,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
   });
 
   describe('Value Comparison', () => {
-    it('should handle string value comparison correctly', () => {
+    it('handles string value comparison correctly', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'bridge', HASH_1, '100'),
@@ -150,7 +162,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
   });
 
   describe('Additional Cases', () => {
-    it('should filter when incoming transaction is not immediately followed by outgoing transaction with same hash', () => {
+    it('filters when incoming transaction is not immediately followed by outgoing transaction with same hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'outgoing', HASH_2, '200'),
@@ -163,7 +175,7 @@ describe('filterDuplicateOutgoingTransactions', () => {
       expect(result).toEqual([transactions[1], transactions[2]]);
     });
 
-    it('should filter only redundant incoming transactions when multiple transactions have the same hash', () => {
+    it('filters only redundant incoming transactions when multiple transactions have the same hash', () => {
       const transactions = [
         createTransaction('1', 'incoming', HASH_1, '100'),
         createTransaction('2', 'incoming', HASH_1, '100'),

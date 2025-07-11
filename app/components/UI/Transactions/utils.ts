@@ -22,7 +22,7 @@ export const filterDuplicateOutgoingTransactions = (
     // Check if a transaction with the same hash exists later in the array
     const laterIndex = transactions.findIndex(
       (tx, index) =>
-        tx.hash === currentTx.hash &&
+        tx.hash?.toLowerCase() === currentTx.hash?.toLowerCase() &&
         index > currentIndex
     );
 
