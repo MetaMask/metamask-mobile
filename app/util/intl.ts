@@ -54,7 +54,7 @@ export function getIntlNumberFormatter(
  * // Before: new Intl.DateTimeFormat(locale, options).format(date)
  * // After:  getIntlDateFormatter(locale, options).format(date)
  */
-export function getIntlDateFormatter(
+export function getIntlDateTimeFormatter(
   locale: string,
   options?: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormat {

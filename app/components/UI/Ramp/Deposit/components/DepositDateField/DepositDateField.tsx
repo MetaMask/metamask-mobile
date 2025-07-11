@@ -18,7 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import DepositTextField from '../DepositTextField';
 import { useStyles } from '../../../../../hooks/useStyles';
 import I18n from '../../../../../../../locales/i18n';
-import { getIntlDateFormatter } from '../../../../../../util/intl';
+import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import styleSheet from './DespostDateField.styles';
 import Icon, {
   IconSize,
@@ -30,7 +30,7 @@ const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
 const formatDateForDisplay = (date: Date, locale = I18n.locale): string =>
-  getIntlDateFormatter(locale, {
+  getIntlDateTimeFormatter(locale, {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
