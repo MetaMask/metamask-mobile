@@ -6,6 +6,7 @@ import {
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
+  timestampToTransakFormat,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -46,7 +47,6 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          logo: 'usdc-logo',
           iconUrl: 'usdc-icon',
           name: 'USD Coin',
           chainId: 'eip155:1',
@@ -61,7 +61,6 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-          logo: 'usdt-logo',
           iconUrl: 'usdt-icon',
           name: 'Tether USD',
           chainId: 'eip155:1',
@@ -76,7 +75,6 @@ describe('Transak Utils', () => {
       expect(() =>
         getTransakCryptoCurrencyId({
           assetId: 'unsupported',
-          logo: 'unsupported-logo',
           iconUrl: 'unsupported-icon',
           name: 'Unsupported',
           chainId: 'eip155:1',
@@ -349,4 +347,21 @@ describe('hasDepositOrderField', () => {
     expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
   });
+});
+
+describe('timestampToTransakFormat', () => {
+  it.each([
+    [new Date(2021, 6, 4).getTime().toString(), '04-07-2021'],
+    [new Date(2015, 4, 10).getTime().toString(), '10-05-2015'],
+    [new Date(1998, 3, 6).getTime().toString(), '06-04-1998'],
+    [new Date(1958, 2, 31).getTime().toString(), '31-03-1958'],
+    [new Date(2025, 11, 31).getTime().toString(), '31-12-2025'],
+    [new Date(2010, 9, 10).getTime().toString(), '10-10-2010'],
+    [new Date(1996, 0, 1).getTime().toString(), '01-01-1996'],
+  ])(
+    'should return correct Transak format for timestamp %s',
+    (timestamp, expected) => {
+      expect(timestampToTransakFormat(timestamp)).toBe(expected);
+    },
+  );
 });

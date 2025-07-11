@@ -972,13 +972,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       if (!urlToCheck) return;
       const hostname = new URLParse(urlToCheck).hostname;
       const permissionsControllerState = Engine.context.PermissionController.state;
-  
+
       // Get permitted accounts specifically for the target hostname
       const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
         permissionsControllerState,
         hostname,
       );
-  
+
       // Only send account information if the target URL has explicit permissions
       if (permittedAccountsForTarget.length > 0) {
         notifyAllConnections({
@@ -988,7 +988,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       }
     } catch (err) {
       Logger.log(err as Error, 'Error in sendActiveAccount');
-      return
+      return;
     }
     // Use the target URL if provided, otherwise use current resolved URL
 

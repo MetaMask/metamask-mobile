@@ -817,6 +817,6 @@ describe('network-utils', () => {
 
     it('returns false if the chainId is not Mainnet, Linea Mainnet, MegaETH Testnet and the network nickname is different with network name', () => {
       expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Some other nickname')).toBe(false);
-    })
+    });
   });
 });
