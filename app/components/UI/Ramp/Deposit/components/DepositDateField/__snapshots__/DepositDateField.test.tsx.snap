@@ -79,30 +79,19 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           }
           testID="textfield-startacccessory"
         >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Calendar"
             style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 20,
-                },
-                {
-                  "color": "#121314",
-                  "marginRight": 8,
-                },
-                {
-                  "fontFamily": "Ionicons",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
+              {
+                "height": 20,
+                "width": 20,
+              }
             }
-          >
-            
-          </Text>
+            width={20}
+          />
         </View>
         <View
           style={
@@ -235,30 +224,19 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           }
           testID="textfield-startacccessory"
         >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Calendar"
             style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 20,
-                },
-                {
-                  "color": "#121314",
-                  "marginRight": 8,
-                },
-                {
-                  "fontFamily": "Ionicons",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
+              {
+                "height": 20,
+                "width": 20,
+              }
             }
-          >
-            
-          </Text>
+            width={20}
+          />
         </View>
         <View
           style={
@@ -548,30 +526,19 @@ exports[`DepositDateField render matches snapshot 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
@@ -690,30 +657,19 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
@@ -832,30 +788,19 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
