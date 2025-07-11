@@ -131,9 +131,16 @@ Tests fail immediately when total time exceeds the maximum acceptable time for a
 - **Dismissal Tests**: Focus on UI responsiveness during state transitions
 
 ### User Profile Testing
-Tests run across different user states:
-- **CORE_USER**: Standard user configuration
-- **POWER_USER**: Enhanced user configuration with more data
+Tests run across different user states with varying account complexity:
+
+#### User Profile Definitions
+- **CASUAL_USER**: 2 EVM accounts from 1 SRP *(currently not used in tests)*
+- **CORE_USER**: 5 EVM accounts and 5 Solana accounts from 1 SRP
+- **POWER_USER**: 15 EVM accounts from 2 SRPs + 5 Solana accounts
+
+#### Current Test Coverage
+- **CORE_USER**: Standard user configuration for baseline performance
+- **POWER_USER**: Enhanced user configuration with maximum account complexity
 
 ---
 
