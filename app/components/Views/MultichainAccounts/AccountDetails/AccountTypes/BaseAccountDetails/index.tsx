@@ -101,78 +101,75 @@ export const BaseAccountDetails = ({
             type={accountAvatarType}
           />
         </Box>
-        <View style={styles.accountName}>
+        <TouchableOpacity
+          style={styles.accountName}
+          testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
+          onPress={handleEditAccountName}
+        >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_name')}
           </Text>
-          <TouchableOpacity
-            testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
-            onPress={handleEditAccountName}
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
           >
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                {account.metadata.name}
-              </Text>
-              <Icon
-                name={IconName.Edit}
-                size={IconSize.Md}
-                color={colors.text.alternative}
-              />
-            </Box>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.accountAddress}>
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {account.metadata.name}
+            </Text>
+            <Icon
+              name={IconName.Edit}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.accountAddress}
+          testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
+          onPress={handleShareAddress}
+        >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_address')}
           </Text>
-          <TouchableOpacity
-            testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
-            onPress={handleShareAddress}
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
           >
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                {formatAddress(account.address, 'short')}
-              </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Md}
-                color={colors.text.alternative}
-              />
-            </Box>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.wallet}>
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {formatAddress(account.address, 'short')}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.wallet}
+          testID={AccountDetailsIds.WALLET_NAME_LINK}
+          onPress={handleEditWalletName}
+        >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.wallet')}
           </Text>
-          <TouchableOpacity
-            testID={AccountDetailsIds.WALLET_NAME_LINK}
-            onPress={handleEditWalletName}
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
           >
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-                {walletName}
-              </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Md}
-                color={colors.text.alternative}
-              />
-            </Box>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {walletName}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
+        </TouchableOpacity>
         {children}
       </View>
     </SafeAreaView>
