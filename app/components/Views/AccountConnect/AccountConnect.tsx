@@ -77,6 +77,7 @@ import {
   getCaip25PermissionsResponse,
   getDefaultAccounts,
   getRequestedCaip25CaveatValue,
+  getDefaultSelectedChainIds,
 } from './utils';
 import {
   getPhishingTestResultAsync,
@@ -102,7 +103,6 @@ import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
-import { SolScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 
@@ -158,7 +158,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname } = hostInfo.metadata;
+  const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -171,44 +171,27 @@ const AccountConnect = (props: AccountConnectProps) => {
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
-  const { isEip1193Request } = hostInfo.metadata;
-
-  const defaultSelectedChainIds = useMemo(() => {
-    // For an incoming EIP-1193 request, if we have a persisted Solana permission
-    if (
-      // TODO: [ffmcgee] --> this will not scale when we add Bitcoin and other non EVM stuff to the mix... if I have Bitcoin and Solana persisted permissions
-      // and an EIP-1193 request is incoming, without a specific EIP-155 compatible chain, supportedRequestedCaipChainIds.length will be > than 1, and we would return supportedRequestedCaipChainIds
-      // which we do not want. Think about a scaling solution for this check (Bitcoin and Solana persisted + EIP-1193 request is incoming, without a specific EIP-155 compatible chain, should return allNetworksList)
-      supportedRequestedCaipChainIds.includes(SolScope.Mainnet) &&
-      isEip1193Request
-    ) {
-      // we return all networks if the request does not specify an EIP-155 compatible chain
-      // or if an EIP-155 compatible chain is specified, we return supported requested CAIP chain IDs
-      return supportedRequestedCaipChainIds.length === 1
-        ? allNetworksList
-        : supportedRequestedCaipChainIds;
-    }
-
-    // For EIP-1193 requests (injected Ethereum provider requests) or WalletConnect or MMSDK Remote Conn,
-    // we only want to show EIP-155 (Ethereum) compatible chains
-    if (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) {
-      return allNetworksList.filter((chain) =>
-        chain.includes(KnownCaipNamespace.Eip155),
-      );
-    }
-
-    // Default fallback logic, where if we have supported requested CAIP chain IDs, we use those
-    // otherwise, use all available networks
-    return supportedRequestedCaipChainIds.length > 0
-      ? supportedRequestedCaipChainIds
-      : allNetworksList;
-  }, [
-    isEip1193Request,
-    allNetworksList,
-    isOriginWalletConnect,
-    isOriginMMSDKRemoteConn,
-    supportedRequestedCaipChainIds,
-  ]);
+  const defaultSelectedChainIds = useMemo(
+    () =>
+      getDefaultSelectedChainIds({
+        isEip1193Request: !!isEip1193Request,
+        isOriginWalletConnect: !!isOriginWalletConnect,
+        isOriginMMSDKRemoteConn: !!isOriginMMSDKRemoteConn,
+        origin: channelIdOrHostname,
+        allNetworksList,
+        supportedRequestedCaipChainIds,
+        requestedNamespaces,
+      }),
+    [
+      isEip1193Request,
+      isOriginWalletConnect,
+      isOriginMMSDKRemoteConn,
+      channelIdOrHostname,
+      allNetworksList,
+      supportedRequestedCaipChainIds,
+      requestedNamespaces,
+    ],
+  );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
     defaultSelectedChainIds,

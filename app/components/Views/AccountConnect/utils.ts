@@ -3,6 +3,8 @@ import {
   CaipChainId,
   CaipNamespace,
   parseCaipAccountId,
+  parseCaipChainId,
+  KnownCaipNamespace,
 } from '@metamask/utils';
 import {
   Caip25CaveatType,
@@ -12,7 +14,9 @@ import {
   getCaipAccountIdsFromCaip25CaveatValue,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
+  getPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import { SolScope } from '@metamask/keyring-api';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
 import { getCaip25Caveat } from '../../../core/Permissions';
 
@@ -262,4 +266,123 @@ export function getDefaultAccounts(
   }
 
   return defaultAccounts;
+}
+
+/**
+ * Gets the default selected chain IDs for a connection request.
+ *
+ * @param params - The parameters for determining default chain IDs.
+ * @param params.isEip1193Request - Whether this is an EIP-1193 request.
+ * @param params.allNetworksList - List of all available networks.
+ * @param params.isOriginWalletConnect - Whether the origin is WalletConnect.
+ * @param params.isOriginMMSDKRemoteConn - Whether the origin is MM SDK remote connection.
+ * @param params.supportedRequestedCaipChainIds - The supported requested chain IDs.
+ * @param params.origin - The origin of the request.
+ * @param params.requestedNamespaces - The requested namespaces.
+ * @returns The default selected chain IDs.
+ */
+export function getDefaultSelectedChainIds({
+  isEip1193Request,
+  allNetworksList,
+  isOriginWalletConnect,
+  isOriginMMSDKRemoteConn,
+  supportedRequestedCaipChainIds,
+  origin,
+  requestedNamespaces,
+}: {
+  isEip1193Request: boolean;
+  allNetworksList: CaipChainId[];
+  isOriginWalletConnect: boolean;
+  isOriginMMSDKRemoteConn: boolean;
+  supportedRequestedCaipChainIds: CaipChainId[];
+  origin: string;
+  requestedNamespaces: CaipNamespace[];
+}): CaipChainId[] {
+  const existingCaveat = getCaip25Caveat(origin);
+  const existingChainIds = existingCaveat?.value
+    ? getAllScopesFromCaip25CaveatValue(existingCaveat.value)
+    : [];
+
+  const requestedNamespaceSet = new Set(requestedNamespaces);
+  const hasSpecificChainsRequested = supportedRequestedCaipChainIds.length > 0;
+
+  // Filter EVM chains from any chain list
+  const filterEvmChains = (chains: CaipChainId[]) =>
+    chains.filter((chain) => {
+      try {
+        return parseCaipChainId(chain).namespace === KnownCaipNamespace.Eip155;
+      } catch {
+        return false;
+      }
+    });
+
+  const allEvmChains = filterEvmChains(allNetworksList);
+  const isEvmOnlyRequest =
+    (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) &&
+    (requestedNamespaces.length === 0 ||
+      (requestedNamespaces.length === 1 &&
+        requestedNamespaces[0] === KnownCaipNamespace.Eip155));
+
+  let chainIds: CaipChainId[] = [];
+
+  // EVM-only request with specific chains
+  if (isEvmOnlyRequest && hasSpecificChainsRequested) {
+    chainIds = filterEvmChains(supportedRequestedCaipChainIds);
+  }
+
+  // EVM-only request without specific chains
+  if (isEvmOnlyRequest && !hasSpecificChainsRequested) {
+    chainIds = [...allEvmChains];
+
+    // Include existing non-EVM permissions
+    if (existingChainIds.length > 0 && existingCaveat) {
+      const existingEvmChainIds = getPermittedEthChainIds(
+        existingCaveat.value,
+      ).map(
+        (chainId) =>
+          `${KnownCaipNamespace.Eip155}:${parseInt(
+            chainId,
+            16,
+          )}` as CaipChainId,
+      );
+      chainIds.push(
+        ...existingChainIds.filter(
+          (chain) => !existingEvmChainIds.includes(chain),
+        ),
+      );
+    }
+  }
+
+  // Multi-chain request with specific chains
+  if (!isEvmOnlyRequest && hasSpecificChainsRequested) {
+    chainIds = [...supportedRequestedCaipChainIds];
+
+    // Add all EVM chains if Eip155 requested but no specific EVM chains provided
+    if (
+      requestedNamespaceSet.has(KnownCaipNamespace.Eip155) &&
+      filterEvmChains(supportedRequestedCaipChainIds).length === 0
+    ) {
+      chainIds.push(...allEvmChains);
+    }
+  }
+
+  // Multi-chain request without specific chains
+  if (!isEvmOnlyRequest && !hasSpecificChainsRequested) {
+    requestedNamespaceSet.forEach((namespace) => {
+      if (namespace === KnownCaipNamespace.Eip155) {
+        chainIds.push(...allEvmChains);
+      }
+      if (namespace === KnownCaipNamespace.Solana) {
+        chainIds.push(SolScope.Mainnet);
+      }
+    });
+
+    // Use all available if no specific namespaces requested
+    if (chainIds.length === 0) {
+      chainIds = [...allNetworksList];
+    }
+  }
+
+  // Merge existing permissions and deduplicate
+  return Array.from(new Set([...chainIds, ...existingChainIds]));
 }

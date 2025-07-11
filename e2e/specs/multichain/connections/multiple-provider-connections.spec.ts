@@ -39,7 +39,6 @@ async function callRequestPermissionsScript({
   const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   const bodyElement = webView.element(by.web.tag('body'));
 
-  // Execute the injection
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
     method: 'wallet_requestPermissions',
@@ -55,9 +54,6 @@ async function callRequestPermissionsScript({
   await bodyElement.runScript(
     `(el) => { window.ethereum.request(${requestPermissionsRequest}); }`,
   );
-
-  // Wait a moment for the async operation to complete
-  await TestHelpers.delay(1000);
 }
 
 describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
@@ -193,6 +189,11 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         // Validate Solana Chain Permissions still exists
         await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.SOLANA_NETWORK_NAME,
+        );
+
+        // Validate Ethereum Mainnet Permissions now exists
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
         );
       },
     );
