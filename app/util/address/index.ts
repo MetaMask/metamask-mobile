@@ -4,7 +4,12 @@ import {
   isValidChecksumAddress,
   isHexPrefixed,
 } from 'ethereumjs-util';
-import { getChecksumAddress, type Hex, isHexString } from '@metamask/utils';
+import {
+  getChecksumAddress,
+  type Hex,
+  isHexString,
+  isStrictHexString,
+} from '@metamask/utils';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
@@ -477,9 +482,27 @@ export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
+export function toChecksumAddress(address: string) {
+  try {
+    return getChecksumAddress(address as Hex);
+  } catch (error) {
+    // This is necessary for backward compatibility with the old behavior of
+    // `ethereumjs-util` which would return the original string if the address
+    // was invalid. This should happen only in tests which uses invalid addresses
+    // like 0x1, 0x2 etc.
+    if (error instanceof Error && error.message === 'Invalid hex address.') {
+      if (isStrictHexString(address)) {
+        return address as Hex;
+      }
+      throw new Error('Invalid hex address.');
+    }
+    throw error;
+  }
+}
+
 export function safeToChecksumAddress(address?: string) {
   if (!address) return undefined;
-  return getChecksumAddress(address as Hex);
+  return toChecksumAddress(address);
 }
 
 /**
@@ -612,7 +635,7 @@ export async function validateAddressOrENS(
         internalAccounts,
       );
     }
-    const checksummedAddress = getChecksumAddress(toAccount as Hex);
+    const checksummedAddress = toChecksumAddress(toAccount);
     addressReady = true;
     const ens = await doENSReverseLookup(checksummedAddress);
     if (ens) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Hex, getChecksumAddress } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../locales/i18n';
 import AccountBalance from '../../../../../../component-library/components-temp/Accounts/AccountBalance';
@@ -11,6 +11,7 @@ import { selectAccountsByChainId } from '../../../../../../selectors/accountTrac
 import {
   getLabelTextByAddress,
   renderAccountName,
+  toChecksumAddress,
 } from '../../../../../../util/address';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import {
@@ -57,7 +58,7 @@ const ApproveTransactionHeader = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = getChecksumAddress(from as Hex);
+  const activeAddress = toChecksumAddress(from);
 
   const networkName = networkConfiguration?.name;
 

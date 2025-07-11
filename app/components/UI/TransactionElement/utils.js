@@ -16,6 +16,7 @@ import {
   renderFullAddress,
   areAddressesEqual,
   toFormattedAddress,
+  toChecksumAddress,
 } from '../../../util/address';
 import {
   decodeTransferData,
@@ -24,7 +25,6 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
-import { getChecksumAddress } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import Engine from '../../../core/Engine';
@@ -242,7 +242,7 @@ export function decodeIncomingTransfer(args) {
     : undefined;
   const exchangeRate =
     token && contractExchangeRates
-      ? contractExchangeRates[getChecksumAddress(token.address)]?.price
+      ? contractExchangeRates[toChecksumAddress(token.address)]?.price
       : undefined;
 
   let renderTokenFiatAmount, renderTokenFiatNumber;

@@ -1,18 +1,18 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex, getChecksumAddress } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import useAddressBalance from '../../../../components/hooks/useAddressBalance/useAddressBalance';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { renderAccountName } from '../../../../util/address';
+import { renderAccountName, toChecksumAddress } from '../../../../util/address';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 
 const useAccountInfo = (address: string, chainId: Hex) => {
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress = getChecksumAddress(address as Hex);
+  const activeAddress = toChecksumAddress(address as Hex);
   const { addressBalance: accountBalance } = useAddressBalance(
     undefined,
     address,

@@ -11,7 +11,6 @@ import {
   FORMATTED_PERCENTAGE_TEST_ID,
 } from './AggregatedPercentage.constants';
 import { zeroAddress } from 'ethereumjs-util';
-import { getChecksumAddress, Hex } from '@metamask/utils';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   MarketDataMapping,
@@ -19,6 +18,8 @@ import {
 } from '../../../../components/hooks/useGetFormattedTokensPerChain';
 import { getFormattedAmountChange, getPercentageTextColor } from './utils';
 import { AggregatedPercentageCrossChainsProps } from './AggregatedPercentageCrossChains.types';
+import { toChecksumAddress } from '../../../../util/address';
+
 export const getCalculatedTokenAmount1dAgo = (
   tokenFiatBalance: number,
   tokenPricePercentChange1dAgo: number,
@@ -48,9 +49,7 @@ const AggregatedPercentageCrossChains = ({
       const totalPerChain1dAgoERC20 = tokensWithBalances.reduce(
         (total1dAgo: number, item: { address: string }, idx: number) => {
           const found =
-            crossChainMarketData?.[chainId]?.[
-              getChecksumAddress(item.address as Hex)
-            ];
+            crossChainMarketData?.[chainId]?.[toChecksumAddress(item.address)];
 
           const tokenFiat1dAgo = getCalculatedTokenAmount1dAgo(
             tokenFiatBalances[idx],

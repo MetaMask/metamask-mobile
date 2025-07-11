@@ -1,4 +1,4 @@
-import { getChecksumAddress, add0x } from '@metamask/utils';
+import { add0x } from '@metamask/utils';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
@@ -17,7 +17,7 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress } from '../address';
+import { safeToChecksumAddress, toChecksumAddress } from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -412,7 +412,7 @@ export async function isSmartContractAddress(
 ) {
   if (!address) return false;
 
-  address = getChecksumAddress(address);
+  address = toChecksumAddress(address);
 
   // If in contract map we don't need to cache it
   if (
@@ -644,11 +644,11 @@ export function getTransactionToName({
   }
 
   const networkAddressBook = addressBook[chainId];
-  const checksummedToAddress = getChecksumAddress(toAddress);
+  const checksummedToAddress = toChecksumAddress(toAddress);
 
   // Convert internalAccounts array to a map for quick lookup
   const internalAccountsMap = internalAccounts.reduce((acc, account) => {
-    acc[getChecksumAddress(account.address)] = account;
+    acc[toChecksumAddress(account.address)] = account;
     return acc;
   }, {});
 

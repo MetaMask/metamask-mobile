@@ -1,8 +1,7 @@
 import { useSelector } from 'react-redux';
-import { getChecksumAddress, Hex } from '@metamask/utils';
 
 import { selectInternalAccounts } from '../../selectors/accountsController';
-import { areAddressesEqual } from '../../util/address';
+import { areAddressesEqual, toChecksumAddress } from '../../util/address';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
@@ -36,7 +35,7 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
   if (!address || !isEvmSelected) return;
 
   // TODO: [SOLANA] Revisit this before shipping, Address Book controller should support non evm networks
-  const checksummedAddress = getChecksumAddress(address as Hex);
+  const checksummedAddress = toChecksumAddress(address);
 
   const matchingAddressBookEntry: AddressBookEntry | undefined =
     filteredAddressBook?.[checksummedAddress];

@@ -26,8 +26,8 @@ jest.mock('ethereumjs-util', () => ({
   zeroAddress: jest.fn(() => '0x0000000000000000000000000000000000000000'),
 }));
 
-jest.mock('@metamask/utils', () => ({
-  getChecksumAddress: jest.fn((address) => address),
+jest.mock('../../../../util/address', () => ({
+  toChecksumAddress: jest.fn((address) => address),
 }));
 
 describe('AggregatedPercentageCrossChains', () => {

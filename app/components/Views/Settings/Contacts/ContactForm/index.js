@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
-import { getChecksumAddress } from '@metamask/utils';
+import { toChecksumAddress } from '@metamask/utils';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -335,12 +335,12 @@ class ContactForm extends PureComponent {
     if (wasChainIdChanged) {
       AddressBookController.delete(
         originalContactChainId,
-        getChecksumAddress(address),
+        toChecksumAddress(address),
       );
     }
 
     AddressBookController.set(
-      getChecksumAddress(toEnsAddress || address),
+      toChecksumAddress(toEnsAddress || address),
       name,
       contactChainId || chainId,
       memo,

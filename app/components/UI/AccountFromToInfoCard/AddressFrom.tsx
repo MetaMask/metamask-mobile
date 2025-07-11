@@ -1,4 +1,3 @@
-import { getChecksumAddress, Hex } from '@metamask/utils';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -16,6 +15,7 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
+  toChecksumAddress,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
@@ -62,7 +62,7 @@ const AddressFrom = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
-  const activeAddress = getChecksumAddress(from as Hex);
+  const activeAddress = toChecksumAddress(from);
 
   const networkName = useSelector(selectEvmNetworkName);
   const networkImage = useSelector(selectEvmNetworkImageSource);
