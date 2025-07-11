@@ -141,6 +141,25 @@ export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleServi
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 [Firebase Project Quickstart](https://firebaseopensource.com/projects/firebase/quickstart-js/messaging/readme/#getting_started)
 
+##### Intercom SDK Setup
+
+MetaMask uses Intercom SDK for the "Contact Support" feature. To integrate Intercom, you'll need to configure the app with your Intercom credentials.
+
+###### Configuration Instructions
+
+1. Replace the placeholder keys in the following files with your actual Intercom credentials:
+   - `app.config.js`: Replace `androidApiKey` and `iosApiKey` placeholders
+   - `android/app/src/main/java/io/metamask/MainApplication.kt`: Replace Intercom initialization keys
+   - `ios/MetaMask/AppDelegate.m`: Replace Intercom initialization keys
+
+2. Intercom SDK is already included as a dependency in `package.json` with version `@intercom/intercom-react-native@^8.6.0`
+
+3. The integration enables the "Contact Support" feature in the app's Settings screen, which opens the Intercom messenger when tapped.
+
+[!NOTE]
+
+> For security reasons, never commit actual Intercom API keys to the repository. Always use placeholder values in the codebase.
+
 ##### Install dependencies
 
 ```bash
