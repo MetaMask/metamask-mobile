@@ -12,6 +12,8 @@ export const WalletViewSelectorsIDs = {
   STAKE_BUTTON: 'stake-button',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
+  DEPOSIT_BUTTON: 'deposit-button',
+  WITHDRAW_BUTTON: 'withdraw-button',
   STAKE_MORE_BUTTON: 'stake-more-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
@@ -70,6 +72,8 @@ export const WalletViewSelectorsIDs = {
     `carousel-slide-${id}-title`,
   CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string =>
     `carousel-slide-${id}-close-button`,
+  TOKEN_ASSET: (id: string | number): string => `asset-${id}`,
+  TOKEN_CTA_ASSET: (id: string | number): string => `asset-apr-text-${id}`,
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
