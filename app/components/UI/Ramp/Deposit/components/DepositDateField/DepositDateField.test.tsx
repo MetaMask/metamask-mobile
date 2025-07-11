@@ -9,7 +9,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const defaultProps = {
   label: 'Date of Birth',
-  value: '',
+  value: new Date(2024, 0, 1).getTime().toString(),
   onChangeText: jest.fn(),
 };
 

@@ -9,7 +9,7 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { timestampToTransakFormat } from '../../utils';
 
-const FIXED_DATE = new Date('2024-01-01T00:00:00.000Z');
+const FIXED_DATE = new Date(2024, 0, 1);
 const FIXED_TIMESTAMP = FIXED_DATE.getTime();
 
 const mockQuote = {

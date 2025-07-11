@@ -1049,7 +1049,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="12/31/2023"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
@@ -2363,7 +2363,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="12/31/2023"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
@@ -3722,7 +3722,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="12/31/2023"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
