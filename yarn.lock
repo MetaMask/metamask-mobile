@@ -1369,12 +1369,7 @@
     pirates "^4.0.6"
     source-map-support "^0.5.16"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.8", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.13", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.1", "@babel/runtime@^7.25.0", "@babel/runtime@^7.26.9", "@babel/runtime@^7.6.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.9.2":
-  version "7.27.1"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.27.1.tgz#9fce313d12c9a77507f264de74626e87fd0dc541"
-  integrity sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog==
-
-"@babel/runtime@^7.24.0":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.8", "@babel/runtime@^7.20.0", "@babel/runtime@^7.20.13", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.0", "@babel/runtime@^7.24.1", "@babel/runtime@^7.25.0", "@babel/runtime@^7.26.9", "@babel/runtime@^7.6.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.9.2":
   version "7.27.6"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.27.6.tgz#ec4070a04d76bae8ddbb10770ba55714a417b7c6"
   integrity sha512-vbavdySgbTTrmFE+EsiqUTzlOr5bzlnJtUv9PynGCAKvfQqjIXbvFdumPM/GxMDfyuGMJaJAU6TO4zc1Jf1i8Q==
@@ -4664,17 +4659,7 @@
     "@ledgerhq/hw-transport" "^6.31.6"
     "@ledgerhq/logs" "^6.13.0"
 
-"@ledgerhq/hw-transport@^6.31.4", "@ledgerhq/hw-transport@^6.31.5":
-  version "6.31.5"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.31.5.tgz#985122b018fa30e92fcf23261d6e7c077774a9bf"
-  integrity sha512-P7nyHU2EnotdWfN9XUKvCw4sllbERNmzb7ruyljqyiBuUfdDvzLJVFgVhu6j+8Y9cGxPysf3i3QtImFsZwKkdQ==
-  dependencies:
-    "@ledgerhq/devices" "8.4.5"
-    "@ledgerhq/errors" "^6.21.0"
-    "@ledgerhq/logs" "^6.12.0"
-    events "^3.3.0"
-
-"@ledgerhq/hw-transport@^6.31.6":
+"@ledgerhq/hw-transport@^6.31.4", "@ledgerhq/hw-transport@^6.31.5", "@ledgerhq/hw-transport@^6.31.6":
   version "6.31.6"
   resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.31.6.tgz#2c61811da87d222b0d3399e5e8e54c2d7e96bd3b"
   integrity sha512-wXycgy21wdwdr9s2fz7K96aDqnsPXPT15E6GlNrYJ0C36tAQcHOtI+XWZ1A8J4cMlRRh6siGWsEymziOdFBPCQ==
@@ -5647,20 +5632,7 @@
     immer "^9.0.6"
     nanoid "^3.3.8"
 
-"@metamask/phishing-controller@^12.5.0":
-  version "12.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.5.0.tgz#b65502a32e5be891a7edfde5d5dbdb78b904557c"
-  integrity sha512-h34Gfh0gnZ5cf+hE7HaCpVWEdtDDDx3XoMd15nT+R4kW50mJNNWSo6ptZ9uaxJFlbW53wII9vzvurKZPIOMZFg==
-  dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.7.0"
-    "@noble/hashes" "^1.4.0"
-    "@types/punycode" "^2.1.0"
-    ethereum-cryptography "^2.1.2"
-    fastest-levenshtein "^1.0.16"
-    punycode "^2.1.1"
-
-"@metamask/phishing-controller@^12.6.0":
+"@metamask/phishing-controller@^12.5.0", "@metamask/phishing-controller@^12.6.0":
   version "12.6.0"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.6.0.tgz#ebc339e352d9f10acec563cddeabd7db9205e770"
   integrity sha512-BycDk5eVgISEhMnqvjBuzylZXS+HZiR6gfVBa3uQXsiri17N5MVfERyN3+DqyQ3PmHfl12LhUKYFJjaHcnh1NA==
