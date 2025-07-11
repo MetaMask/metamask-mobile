@@ -138,6 +138,7 @@ const Main = (props) => {
             'login.seedless_password_outdated_modal_confirm',
           ),
           icon: IconName.RichDanger,
+          type: 'error',
           isInteractable: false,
           onPrimaryButtonPress: async () => {
             await Authentication.lockApp({ locked: true });
