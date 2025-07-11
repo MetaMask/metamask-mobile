@@ -275,7 +275,7 @@ class WalletView {
   }
 
   async tapOnEarnButton() {
-    await Gestures.waitAndTap(this.earnButton);
+    await Gestures.waitAndTap(this.earnButton, { delayBeforeTap: 1000 });
   }
 
   async tapOnStakedEthereum() {
