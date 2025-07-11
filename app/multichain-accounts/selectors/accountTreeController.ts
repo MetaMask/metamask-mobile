@@ -5,6 +5,7 @@ import {
   AccountWallet,
   AccountWalletId,
 } from '@metamask/account-tree-controller';
+import { AccountId } from '@metamask/accounts-controller';
 
 /**
  * Get the AccountTreeController state
@@ -23,7 +24,8 @@ export const selectAccountSections = createDeepEqualSelector(
   (accountTreeState, multichainAccountsState1Enabled) => {
     if (
       !multichainAccountsState1Enabled ||
-      !accountTreeState?.accountTree?.wallets
+      !accountTreeState?.accountTree?.wallets ||
+      Object.keys(accountTreeState.accountTree.wallets).length === 0
     ) {
       return null;
     }
@@ -60,5 +62,43 @@ export const selectWalletById = createDeepEqualSelector(
           walletId as keyof typeof accountTreeState.accountTree.wallets
         ] || null
       );
+    },
+);
+
+/**
+ * Get a wallet by account ID from AccountTreeController
+ * Returns a selector function that can be called with an account ID to find the wallet containing that account
+ * @param state - Root redux state
+ * @param multichainAccountsState1Enabled - Whether multichain accounts feature is enabled
+ * @returns Selector function that takes an account ID and returns the containing wallet or null
+ **/
+// TODO: Use reverse mapping once available, for fast indexing.
+export const selectWalletByAccount = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
+  (accountTreeState, multichainAccountsState1Enabled) =>
+    (accountId: AccountId): AccountWallet | null => {
+      if (
+        !multichainAccountsState1Enabled ||
+        !accountTreeState?.accountTree?.wallets
+      ) {
+        return null;
+      }
+
+      const accountWallets = Object.values(
+        accountTreeState.accountTree.wallets,
+      ).map((wallet) => ({
+        walletId: wallet.id,
+        accounts: Object.values(wallet.groups).flatMap(
+          (group) => group.accounts,
+        ),
+      }));
+
+      const accountWallet = accountWallets.find((wallet) =>
+        wallet.accounts.some((account) => account === accountId),
+      );
+
+      return accountWallet
+        ? accountTreeState.accountTree.wallets[accountWallet.walletId]
+        : null;
     },
 );
