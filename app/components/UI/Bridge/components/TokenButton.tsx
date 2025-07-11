@@ -42,8 +42,9 @@ const createStyles = (params: StylesParams) => {
     pillContainer: {
       backgroundColor: theme.colors.background.default,
       borderRadius: 100,
+      paddingLeft: 8,
       paddingVertical: 8,
-      paddingHorizontal: 12,
+      paddingRight: 11,
       ...shadows.size.xs,
     },
     tokenSymbol: {
