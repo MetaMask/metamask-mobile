@@ -12,6 +12,7 @@ const mockInitialState = {
 const mockTokens = [
   {
     key: 'token1',
+    address: '0x1',
     name: 'Token 1',
     symbol: 'TKN1',
     iconUrl: 'https://example.com/tkn1.png',
@@ -20,6 +21,7 @@ const mockTokens = [
   },
   {
     key: 'token2',
+    address: '0x2',
     name: 'Token 2',
     symbol: 'TKN2',
     iconUrl: 'https://example.com/tkn2.png',
