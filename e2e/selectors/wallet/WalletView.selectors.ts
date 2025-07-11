@@ -64,8 +64,10 @@ export const WalletViewSelectorsIDs = {
   CAROUSEL_CONTAINER: 'carousel-container',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,
-  CAROUSEL_SLIDE_TITLE: (id: string | number): string => `carousel-slide-${id}-title`,
-  CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string => `carousel-slide-${id}-close-button`,
+  CAROUSEL_SLIDE_TITLE: (id: string | number): string =>
+    `carousel-slide-${id}-title`,
+  CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string =>
+    `carousel-slide-${id}-close-button`,
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
@@ -83,11 +85,12 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
-  DEFI_NO_POSITIONS: enContent.defi_positions.no_positions,
+  DEFI_NO_VISIBLE_POSITIONS: enContent.defi_positions.no_visible_positions,
+  DEFI_NOT_SUPPORTED: enContent.defi_positions.not_supported,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;
 
 // Type definitions for the selectors
 export type WalletViewSelectorsIDsType = typeof WalletViewSelectorsIDs;
-export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText; 
+export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText;
