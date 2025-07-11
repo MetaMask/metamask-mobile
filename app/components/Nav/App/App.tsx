@@ -229,12 +229,21 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={{ headerShown: false }}
     />
-    <Stack.Screen name="AccountStatus" component={AccountStatus} />
+    <Stack.Screen
+      name="AccountStatus"
+      component={AccountStatus}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="AccountAlreadyExists"
       component={AccountAlreadyExists}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen
+      name="AccountNotFound"
+      component={AccountNotFound}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Rehydrate"
       component={Login}

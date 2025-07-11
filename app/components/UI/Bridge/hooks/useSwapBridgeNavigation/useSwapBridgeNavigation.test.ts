@@ -2,13 +2,13 @@ import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
+import { selectIsBridgeEnabledSource, selectIsUnifiedSwapsEnabled } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 
 // Mock dependencies
@@ -21,6 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
   selectIsBridgeEnabledSource: jest.fn(() => true),
+  selectIsUnifiedSwapsEnabled: jest.fn(() => false),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -99,7 +100,6 @@ describe('useSwapBridgeNavigation', () => {
           chainId: mockChainId,
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -130,7 +130,6 @@ describe('useSwapBridgeNavigation', () => {
       params: {
         token: mockToken,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -152,7 +151,6 @@ describe('useSwapBridgeNavigation', () => {
       params: {
         token: mockNativeAsset,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -260,9 +258,34 @@ describe('useSwapBridgeNavigation', () => {
     });
   });
 
+  describe('Unified', () => {
+    it('navigates to Bridge when goToSwaps is called and unified swaps is enabled', () => {
+      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(true);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          token: mockNativeAsset,
+          sourcePage: mockSourcePage,
+        },
+      });
+    });
+  });
+
   describe('Solana', () => {
     it('navigates to Bridge when goToSwaps is called and token chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
+      (selectChainId as unknown as jest.Mock).mockReturnValueOnce(
         SolScope.Mainnet,
       );
 
@@ -289,13 +312,12 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });
 
     it('navigates to Bridge when goToSwaps is called and selected chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
+      (selectChainId as unknown as jest.Mock).mockReturnValueOnce(
         SolScope.Mainnet,
       );
 
@@ -322,7 +344,6 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });

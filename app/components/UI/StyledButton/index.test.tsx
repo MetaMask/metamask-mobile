@@ -4,7 +4,18 @@ import StyledButtonIOS from './index.ios';
 import StyledButtonAndroid from './index.android';
 
 describe('StyledButton', () => {
-  const buttonTypes = ['normal', 'confirm', 'orange', 'cancel'];
+  const buttonTypes = [
+    'normal',
+    'confirm',
+    'orange',
+    'cancel',
+    'secondary',
+    'onOverlay',
+    'danger',
+    'info',
+    'transparent',
+    'inverse-transparent',
+  ];
 
   buttonTypes.forEach((type) => {
     it(`should render correctly on iOS the button with type ${type}`, () => {

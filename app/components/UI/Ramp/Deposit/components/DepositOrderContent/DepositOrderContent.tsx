@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image, Linking } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -35,6 +35,11 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
 import { SEPA_PAYMENT_METHOD } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -84,15 +89,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       Clipboard.setString(providerOrderId);
     }
   }, [providerOrderId]);
-
-  const handleViewInTransak = useCallback(() => {
-    if (
-      hasDepositOrderField(order?.data, 'providerOrderLink') &&
-      order.data.providerOrderLink
-    ) {
-      Linking.openURL(order.data.providerOrderLink);
-    }
-  }, [order?.data]);
 
   const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
   const totalAmount =
@@ -149,10 +145,21 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             )}
           </View>
           {cryptoToken ? (
-            <Image
-              source={{ uri: cryptoToken.logo }}
-              style={styles.cryptoIcon}
-            />
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <BadgeNetwork
+                  name={networkName}
+                  imageSource={getNetworkImageSource({ chainId })}
+                />
+              }
+            >
+              <AvatarToken
+                name={cryptoToken.name}
+                imageSource={{ uri: cryptoToken.iconUrl }}
+                size={AvatarSize.Lg}
+              />
+            </BadgeWrapper>
           ) : null}
         </View>
 
@@ -237,23 +244,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           </Text>
         </View>
       </View>
-
-      {hasDepositOrderField(order.data, 'providerOrderLink') &&
-      order.data.providerOrderLink ? (
-        <TouchableOpacity
-          style={styles.transakLink}
-          onPress={handleViewInTransak}
-        >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-            {strings('deposit.order_processing.view_order_details_in_transak')}
-          </Text>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            color={theme.colors.primary.default}
-          />
-        </TouchableOpacity>
-      ) : null}
     </>
   );
 };
