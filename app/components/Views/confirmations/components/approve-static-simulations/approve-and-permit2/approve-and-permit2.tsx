@@ -26,6 +26,7 @@ export const ApproveAndPermit2 = () => {
     tokenBalance,
     tokenId,
     tokenStandard,
+    tokenSymbol,
     rawAmount,
     spender,
   } = useApproveTransactionData();
@@ -84,8 +85,9 @@ export const ApproveAndPermit2 = () => {
                 approveMethod: approveMethod as ApproveMethod,
                 balance: tokenBalance ?? '0',
                 decimals: decimals ?? 1,
-                spendingCap: rawAmount ?? '',
                 onSpendingCapUpdate,
+                spendingCap: rawAmount ?? '',
+                tokenSymbol,
               }}
             >
               <PillAndAddress

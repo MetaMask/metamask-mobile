@@ -85,8 +85,16 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders loading state when fetching token details', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      details: { decimalsNumber: undefined, standard: undefined },
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
+      details: {
+        decimalsNumber: undefined,
+        standard: undefined,
+        symbol: undefined,
+      },
       isPending: true,
     });
 
@@ -118,8 +126,16 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders no value display if no value was loaded', () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      details: { decimalsNumber: undefined, standard: undefined },
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
+      details: {
+        decimalsNumber: undefined,
+        standard: undefined,
+        symbol: undefined,
+      },
       isPending: false,
     });
 
