@@ -1,1 +1,1 @@
-export { default } from './StateSelector'; 
+export { default } from './StateSelector';
