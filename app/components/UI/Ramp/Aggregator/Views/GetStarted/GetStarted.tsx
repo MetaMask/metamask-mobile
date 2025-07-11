@@ -15,7 +15,7 @@ import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { RampIntent } from '../../types';
+import { RampIntent, areChainIdsEqual } from '../../types';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
@@ -90,7 +90,7 @@ const GetStarted: React.FC = () => {
       // and continues the intent with any additional params (like token and amount).
       if (
         !isNetworkRampSupported ||
-        (params?.chainId && params.chainId !== selectedChainId)
+        (params?.chainId && !areChainIdsEqual(params.chainId, selectedChainId))
       ) {
         navigation.reset({
           index: 0,
