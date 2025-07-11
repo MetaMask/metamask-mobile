@@ -1250,11 +1250,15 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens: Record<string, unknown>) {
+  withTokens(
+    tokens: Record<string, unknown>,
+    chainId: string = CHAIN_IDS.MAINNET,
+    account: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
-        [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        [chainId]: {
+          [account]: tokens,
         },
       },
     });

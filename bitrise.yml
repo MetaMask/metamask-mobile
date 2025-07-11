@@ -83,6 +83,8 @@ pipelines:
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
+    envs:
+      - MM_STABLECOIN_LENDING_UI_ENABLED: true
     stages:
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
@@ -1586,6 +1588,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                echo "--> MM_STABLECOIN_LENDING_UI_ENABLED: $MM_STABLECOIN_LENDING_UI_ENABLED"
                 brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
@@ -3224,6 +3227,9 @@ app:
     - opts:
         is_expand: false
       MM_UNIFIED_SWAPS_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_STABLECOIN_LENDING_UI_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
