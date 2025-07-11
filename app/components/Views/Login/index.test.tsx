@@ -26,6 +26,8 @@ import { useMetrics } from '../../hooks/useMetrics';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   ONBOARDING_WIZARD,
+  BIOMETRY_CHOICE_DISABLED,
+  TRUE,
 } from '../../../constants/storage';
 
 const mockNavigate = jest.fn();
@@ -478,6 +480,81 @@ describe('Login', () => {
     });
   });
 
+  describe('Biometric Authentication Setup', () => {
+    beforeEach(() => {
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    it('biometric authentication is setup when availableBiometryType is present', async () => {
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should render biometric button when biometric is available
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeTruthy();
+    });
+
+    it('biometric button is not shown when device is locked', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: true,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when device is locked
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+    });
+
+    it('biometric button is not shown when previously disabled', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when previously disabled
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+    });
+  });
+
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
       (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
@@ -771,6 +848,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      (StorageWrapper.getItem as jest.Mock).mockReset();
     });
 
     afterEach(() => {
@@ -840,7 +918,6 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
-      // The component should still show biometric option after failure
       expect(biometryButton).toBeTruthy();
     });
   });
