@@ -548,19 +548,15 @@ workflows:
                 case "${BITRISEIO_PIPELINE_TITLE}" in
                   "pr_smoke_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Smoke E2E"
-                    envman add --key PIPELINE_STATUS --value "**BLOCKING** - This pipeline must pass for PR to be merged"
                     ;;
                   "pr_regression_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Regression E2E"
-                    envman add --key PIPELINE_STATUS --value "**NON-BLOCKING** - This pipeline is informational and won't block PR merging"
                     ;;
                   "flask_smoke_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Flask E2E"
-                    envman add --key PIPELINE_STATUS --value "**NON-BLOCKING** - This pipeline is informational and won't block PR merging"
                     ;;
                   *)
                     envman add --key PIPELINE_LABEL --value "appropriate label"
-                    envman add --key PIPELINE_STATUS --value ""
                     ;;
                 esac
       # Update pipeline-specific Bitrise comment in PR with success status
@@ -576,8 +572,6 @@ workflows:
 
                 Commit hash: ${GITHUB_PR_HASH}
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
-
-                **Pipeline Status:** ${PIPELINE_STATUS}
 
                 >[!NOTE]
                 >- Build completed for pipeline `${BITRISEIO_PIPELINE_TITLE}`
@@ -638,19 +632,15 @@ workflows:
                 case "${BITRISEIO_PIPELINE_TITLE}" in
                   "pr_smoke_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Smoke E2E"
-                    envman add --key PIPELINE_STATUS --value "**BLOCKING** - This pipeline must pass for PR to be merged"
                     ;;
                   "pr_regression_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Regression E2E"
-                    envman add --key PIPELINE_STATUS --value "**NON-BLOCKING** - This pipeline is informational and won't block PR merging"
                     ;;
                   "flask_smoke_e2e_pipeline")
                     envman add --key PIPELINE_LABEL --value "Run Flask E2E"
-                    envman add --key PIPELINE_STATUS --value "**NON-BLOCKING** - This pipeline is informational and won't block PR merging"
                     ;;
                   *)
                     envman add --key PIPELINE_LABEL --value "appropriate label"
-                    envman add --key PIPELINE_STATUS --value ""
                     ;;
                 esac
       # Update pipeline-specific Bitrise comment in PR with failure status
@@ -666,8 +656,6 @@ workflows:
 
                 Commit hash: ${GITHUB_PR_HASH}
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
-
-                **Pipeline Status:** ${PIPELINE_STATUS}
 
                 >[!NOTE]
                 >- You can rerun any failed steps by opening the Bitrise build, tapping `Rebuild` on the upper right then `Rebuild unsuccessful Workflows`
