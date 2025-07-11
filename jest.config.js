@@ -24,6 +24,11 @@ const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/app/.*/__snapshots__/.*',
+    '<rootDir>/.*\\.snap$',
+  ],
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|expo-file-system)))',
   ],
