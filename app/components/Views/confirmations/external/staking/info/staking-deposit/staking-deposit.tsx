@@ -12,6 +12,8 @@ import StakingContractInteractionDetails from '../../components/staking-contract
 import StakingDetails from '../../components/staking-details/staking-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
+import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
+import { TraceName } from '../../../../../../../util/trace';
 
 const StakingDeposit = () => {
   useNavbar(strings('stake.stake'));
@@ -44,6 +46,8 @@ const StakingDeposit = () => {
       },
     });
   }, [trackPageViewedEvent, setConfirmationMetric]);
+
+  useEndTraceOnMount(TraceName.EarnDepositConfirmationScreen);
 
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });
