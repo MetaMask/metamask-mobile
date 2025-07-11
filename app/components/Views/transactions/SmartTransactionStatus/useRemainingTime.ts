@@ -39,24 +39,36 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
         const secondsAfterStxSubmission = Math.round(
           (Date.now() - creationTime) / 1000,
         );
-        if (secondsAfterStxSubmission > stxDeadlineSec) {
+        
+        // Calculate current deadline inside the function
+        const currentDeadline = isStxPastEstimatedDeadline
+          ? stxMaxDeadlineSec
+          : stxEstimatedDeadlineSec;
+
+        if (secondsAfterStxSubmission > currentDeadline) {
           if (isStxPastEstimatedDeadline) {
             setTimeLeftForPendingStxInSec(0);
             clearInterval(intervalId);
             return;
           }
           setIsStxPastEstimatedDeadline(true);
+          // After setting the state, recalculate with the new deadline
+          const newDeadline = stxMaxDeadlineSec;
+          const newTimeLeft = newDeadline - secondsAfterStxSubmission;
+          setTimeLeftForPendingStxInSec(newTimeLeft > 0 ? newTimeLeft : 0);
+          return;
         }
         setTimeLeftForPendingStxInSec(
-          stxDeadlineSec - secondsAfterStxSubmission,
+          currentDeadline - secondsAfterStxSubmission,
         );
       };
       intervalId = setInterval(calculateRemainingTime, 1000);
       calculateRemainingTime();
     }
-
+  
     return () => clearInterval(intervalId);
-  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStxPending, creationTime]);
 
   return {
     timeLeftForPendingStxInSec,
