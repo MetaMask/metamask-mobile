@@ -307,31 +307,34 @@ const BuildQuote = () => {
           </View>
 
           <View style={styles.centerGroup}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.mainAmount}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {formatCurrency(amountAsNumber, fiatCurrency.id, {
-                currencyDisplay: 'narrowSymbol',
-              })}
-            </Text>
+            <View>
+              <Text
+                variant={TextVariant.HeadingLG}
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, fiatCurrency.id, {
+                  currencyDisplay: 'narrowSymbol',
+                  maximumFractionDigits: 0,
+                })}
+              </Text>
 
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.convertedAmount}
-            >
-              {isLoadingTokenAmount || errorLoadingTokenAmount ? (
-                ' '
-              ) : (
-                <>
-                  {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                  {cryptoCurrency.symbol}
-                </>
-              )}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.convertedAmount}
+              >
+                {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                  ' '
+                ) : (
+                  <>
+                    {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                    {cryptoCurrency.symbol}
+                  </>
+                )}
+              </Text>
+            </View>
 
             <TouchableOpacity onPress={handleCryptoPress}>
               <View style={styles.cryptoPill}>

@@ -35,6 +35,11 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
 import { SEPA_PAYMENT_METHOD } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -140,10 +145,21 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             )}
           </View>
           {cryptoToken ? (
-            <Image
-              source={{ uri: cryptoToken.logo }}
-              style={styles.cryptoIcon}
-            />
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <BadgeNetwork
+                  name={networkName}
+                  imageSource={getNetworkImageSource({ chainId })}
+                />
+              }
+            >
+              <AvatarToken
+                name={cryptoToken.name}
+                imageSource={{ uri: cryptoToken.iconUrl }}
+                size={AvatarSize.Lg}
+              />
+            </BadgeWrapper>
           ) : null}
         </View>
 
