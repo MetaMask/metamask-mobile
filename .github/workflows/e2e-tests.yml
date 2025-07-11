@@ -1,0 +1,465 @@
+name: E2E Tests
+
+on:
+  # Manual dispatch with inputs
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - 'smoke'
+          - 'regression'
+          - 'performance'
+          - 'app-upgrade'
+          - 'api-specs'
+          - 'flask'
+          - 'all'
+      platforms:
+        description: 'Platforms to test'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - 'ios'
+          - 'android'
+          - 'both'
+      use_cached_builds:
+        description: 'Use cached builds if available'
+        required: false
+        default: true
+        type: boolean
+
+  # PR events
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+  # Push to main and release branches
+  push:
+    branches:
+      - main
+      - 'release/*'
+
+# Cancel in-progress runs for the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.18.0'
+  DETOX_VERSION: '20.35.0'
+  IS_TEST: 'true'
+  METAMASK_ENVIRONMENT: 'local'
+
+jobs:
+  # Initial setup and validation job
+  setup:
+    runs-on: ubuntu-latest
+    # Continue on error to avoid blocking the pipeline (soft fail mode)
+    continue-on-error: true
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    outputs:
+      should_run_ios: ${{ steps.determine_platforms.outputs.should_run_ios }}
+      should_run_android: ${{ steps.determine_platforms.outputs.should_run_android }}
+      test_suite: ${{ steps.determine_test_suite.outputs.test_suite }}
+      use_cached_builds: ${{ steps.determine_inputs.outputs.use_cached_builds }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Determine platforms to test
+        id: determine_platforms
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms || 'both' }}"
+          
+          if [[ "$PLATFORMS" == "ios" || "$PLATFORMS" == "both" ]]; then
+            echo "should_run_ios=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run_ios=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "$PLATFORMS" == "android" || "$PLATFORMS" == "both" ]]; then
+            echo "should_run_android=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run_android=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Selected platforms: $PLATFORMS"
+
+      - name: Determine test suite
+        id: determine_test_suite
+        run: |
+          # Determine test suite based on trigger type
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TEST_SUITE="${{ github.event.inputs.test_suite }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Check for E2E labels
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run Smoke E2E') }}" == "true" ]]; then
+              TEST_SUITE="smoke"
+            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run Regression E2E') }}" == "true" ]]; then
+              TEST_SUITE="regression"
+            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run Performance E2E') }}" == "true" ]]; then
+              TEST_SUITE="performance"
+            else
+              TEST_SUITE="smoke"  # Default for PRs
+            fi
+          else
+            TEST_SUITE="smoke"  # Default for push events
+          fi
+          
+          echo "test_suite=$TEST_SUITE" >> $GITHUB_OUTPUT
+          echo "Selected test suite: $TEST_SUITE"
+
+      - name: Determine other inputs
+        id: determine_inputs
+        run: |
+          USE_CACHED_BUILDS="${{ github.event.inputs.use_cached_builds || 'true' }}"
+          echo "use_cached_builds=$USE_CACHED_BUILDS" >> $GITHUB_OUTPUT
+          echo "Use cached builds: $USE_CACHED_BUILDS"
+
+  # Environment setup and dependency installation
+  setup-environment:
+    runs-on: ubuntu-latest
+    needs: setup
+    continue-on-error: true
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: |
+          yarn --immutable
+          yarn setup
+          echo "✅ Dependencies installed successfully"
+
+      - name: Setup E2E environment
+        run: |
+          yarn setup:e2e
+          echo "✅ E2E environment setup completed"
+
+      - name: Validate Detox configuration
+        run: |
+          # Check if detox configuration is valid
+          if [[ -f ".detoxrc.js" ]]; then
+            echo "✅ Detox configuration found"
+          else
+            echo "❌ Detox configuration missing"
+            exit 1
+          fi
+
+  # iOS E2E Tests
+  ios-e2e-tests:
+    runs-on: macos-latest
+    needs: [setup, setup-environment]
+    if: needs.setup.outputs.should_run_ios == 'true'
+    continue-on-error: true
+    timeout-minutes: 60
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: |
+          yarn --immutable
+          yarn setup
+
+      - name: Setup Ruby and CocoaPods
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
+        with:
+          ruby-version: '3.1.6'
+          bundler-cache: true
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          bundle exec pod install --verbose
+
+      - name: Setup iOS Simulator
+        run: |
+          # List available simulators
+          xcrun simctl list devices available
+          
+          # Create or boot iOS simulator if needed
+          SIMULATOR_ID=$(xcrun simctl create "iPhone 15 Pro Test" "iPhone 15 Pro" "iOS17.2" 2>/dev/null || echo "")
+          if [[ -n "$SIMULATOR_ID" ]]; then
+            echo "Created simulator: $SIMULATOR_ID"
+          fi
+
+      - name: Build iOS app for testing
+        run: |
+          echo "Building iOS app for test suite: ${{ needs.setup.outputs.test_suite }}"
+          
+          # Use cached build if available and requested
+          if [[ "${{ needs.setup.outputs.use_cached_builds }}" == "true" ]]; then
+            echo "Attempting to use cached build..."
+            # TODO: Implement caching logic
+          fi
+          
+          # Build app for testing
+          yarn test:e2e:ios:debug:build
+
+      - name: Run iOS E2E tests
+        run: |
+          echo "Running iOS E2E tests - Suite: ${{ needs.setup.outputs.test_suite }}"
+          
+          case "${{ needs.setup.outputs.test_suite }}" in
+            "smoke")
+              echo "Running iOS smoke tests..."
+              # TODO: Implement smoke test execution
+              ;;
+            "regression")
+              echo "Running iOS regression tests..."
+              # TODO: Implement regression test execution
+              ;;
+            "performance")
+              echo "Running iOS performance tests..."
+              # TODO: Implement performance test execution
+              ;;
+            "api-specs")
+              echo "Running iOS API specs tests..."
+              yarn test:api-specs
+              ;;
+            *)
+              echo "Running default iOS tests..."
+              # TODO: Implement default test execution
+              ;;
+          esac
+
+      - name: Upload iOS test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results-${{ needs.setup.outputs.test_suite }}
+          path: |
+            e2e/reports/**
+            artifacts/**
+            ios-test-results.xml
+          retention-days: 30
+
+  # Android E2E Tests
+  android-e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [setup, setup-environment]
+    if: needs.setup.outputs.should_run_android == 'true'
+    continue-on-error: true
+    timeout-minutes: 60
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: |
+          yarn --immutable
+          yarn setup
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Android dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: android-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            android-${{ runner.os }}-
+
+      - name: Setup Android Emulator
+        run: |
+          # Create AVD
+          echo "Creating Android Virtual Device..."
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            -n test_emulator \
+            -k "system-images;android-34;google_apis;x86_64" \
+            -d "pixel_5" \
+            --force
+
+          # Start emulator
+          echo "Starting Android emulator..."
+          $ANDROID_HOME/emulator/emulator -avd test_emulator -no-window -no-audio -no-boot-anim &
+          
+          # Wait for emulator to boot
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          echo "Android emulator started successfully"
+
+      - name: Build Android app for testing
+        run: |
+          echo "Building Android app for test suite: ${{ needs.setup.outputs.test_suite }}"
+          
+          # Use cached build if available and requested
+          if [[ "${{ needs.setup.outputs.use_cached_builds }}" == "true" ]]; then
+            echo "Attempting to use cached build..."
+            # TODO: Implement caching logic
+          fi
+          
+          # Build app for testing
+          yarn test:e2e:android:debug:build
+
+      - name: Run Android E2E tests
+        run: |
+          echo "Running Android E2E tests - Suite: ${{ needs.setup.outputs.test_suite }}"
+          
+          case "${{ needs.setup.outputs.test_suite }}" in
+            "smoke")
+              echo "Running Android smoke tests..."
+              # TODO: Implement smoke test execution
+              ;;
+            "regression")
+              echo "Running Android regression tests..."
+              # TODO: Implement regression test execution
+              ;;
+            "performance")
+              echo "Running Android performance tests..."
+              # TODO: Implement performance test execution
+              ;;
+            *)
+              echo "Running default Android tests..."
+              # TODO: Implement default test execution
+              ;;
+          esac
+
+      - name: Upload Android test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-results-${{ needs.setup.outputs.test_suite }}
+          path: |
+            e2e/reports/**
+            artifacts/**
+            android-test-results.xml
+          retention-days: 30
+
+  # Test results summary and reporting
+  test-results:
+    runs-on: ubuntu-latest
+    needs: [setup, ios-e2e-tests, android-e2e-tests]
+    if: always()
+    continue-on-error: true
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: test-results
+
+      - name: Generate test summary
+        run: |
+          echo "## E2E Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Suite**: ${{ needs.setup.outputs.test_suite }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Platforms**: iOS: ${{ needs.setup.outputs.should_run_ios }}, Android: ${{ needs.setup.outputs.should_run_android }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Job status summary
+          echo "### Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| iOS | ${{ needs.ios-e2e-tests.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Android | ${{ needs.android-e2e-tests.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Note about soft fail mode
+          echo "**Note**: This workflow is running in soft-fail mode during migration. Test failures will not block the pipeline." >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.issue.number;
+            
+            const testSuite = '${{ needs.setup.outputs.test_suite }}';
+            const iosResult = '${{ needs.ios-e2e-tests.result || 'Skipped' }}';
+            const androidResult = '${{ needs.android-e2e-tests.result || 'Skipped' }}';
+            
+            const comment = `## 🧪 E2E Test Results (GitHub Actions)
+            
+            **Test Suite**: ${testSuite}
+            **Status**: ⚠️ Soft-fail mode (migration in progress)
+            
+            | Platform | Status |
+            |----------|--------|
+            | iOS | ${iosResult} |
+            | Android | ${androidResult} |
+            
+            > **Note**: This is running in parallel with BitRise during migration. Results are for validation purposes only.
+            
+            [View full results](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+  # Cleanup job
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [test-results]
+    if: always()
+    continue-on-error: true
+    permissions:
+      pull-requests: write
+      contents: write
+      checks: write
+    steps:
+      - name: Cleanup artifacts
+        run: |
+          echo "Cleaning up temporary artifacts..."
+          # TODO: Implement cleanup logic if needed
+          echo "✅ Cleanup completed" 
