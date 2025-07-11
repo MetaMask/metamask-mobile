@@ -40,7 +40,7 @@ const generateThemeParameters = (
 
   const textColors = [
     colors.text.default,
-    colors.text.alternative,
+    colors.text.default,
     colors.text.muted,
   ]
     .map((color) => encodeURIComponent(color))
