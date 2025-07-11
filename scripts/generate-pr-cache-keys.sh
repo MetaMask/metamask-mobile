@@ -5,14 +5,9 @@ echo "=== PR Build Cache Check ==="
 SKIP_IOS_BUILD="false"
 SKIP_ANDROID_BUILD="false"
 
-# Check if this is a manual trigger or not from a PR
-# Manual triggers and non-PR builds should skip caching entirely
-if [[ "$BITRISE_TRIGGERED_BY_TAG" == "true" ]] || [[ -z "$GITHUB_PR_NUMBER" ]]; then
-    if [[ "$BITRISE_TRIGGERED_BY_TAG" == "true" ]]; then
-        echo "Manual tag trigger detected, skipping cache entirely and proceeding with both builds"
-    else
-        echo "No PR number found, skipping cache check and proceeding with both builds"
-    fi
+# Check if we have PR number
+if [[ -z "$GITHUB_PR_NUMBER" ]]; then
+    echo "No PR number found, skipping cache check and proceeding with both builds"
     # Set empty cache keys to prevent restore attempts
     envman add --key IOS_PR_BUILD_CACHE_KEY --value ""
     envman add --key ANDROID_PR_BUILD_CACHE_KEY --value ""
@@ -27,18 +22,13 @@ else
     
     # Use current commit SHA as the cache key identifier
     if git rev-parse --git-dir > /dev/null 2>&1; then
-        CURRENT_COMMIT_FULL=$(git rev-parse HEAD 2>/dev/null)
-        CURRENT_COMMIT_SHORT=$(echo "$CURRENT_COMMIT_FULL" | cut -c1-8)
-        echo "Current commit being checked: $CURRENT_COMMIT_FULL"
+        CURRENT_COMMIT_SHORT=$(git rev-parse HEAD 2>/dev/null | cut -c1-8)
     else
         # Fallback when git is not available - use Bitrise env vars
-        CURRENT_COMMIT_FULL=${BITRISE_GIT_COMMIT}
         CURRENT_COMMIT_SHORT=${BITRISE_GIT_COMMIT:0:8}
-        echo "Current commit being checked: $CURRENT_COMMIT_FULL (from BITRISE_GIT_COMMIT)"
         if [[ -z "$CURRENT_COMMIT_SHORT" ]]; then
             # Last resort - use a timestamp-based identifier
             CURRENT_COMMIT_SHORT=$(date +%s | tail -c 8)
-            echo "Warning: No commit hash available, using timestamp: $CURRENT_COMMIT_SHORT"
         fi
     fi
     
@@ -58,61 +48,15 @@ else
         LAST_COMMIT_SHORT=$(echo "$LAST_SUCCESSFUL_COMMIT" | cut -c1-8)
         
         # Check if there are any app code changes since the last successful commit
-        # We need to exclude changes that came from main branch merges
-        # First, find merge-base with main to identify what was already in main
-        MERGE_BASE_WITH_MAIN=""
-        git fetch origin main >/dev/null 2>&1
-        
-        # Try to find merge-base with main branch
-        for main_ref in "origin/main" "main"; do
-            if git rev-parse --verify "$main_ref" >/dev/null 2>&1; then
-                MERGE_BASE_WITH_MAIN=$(git merge-base "$main_ref" "$CURRENT_COMMIT_FULL" 2>/dev/null)
-                if [[ -n "$MERGE_BASE_WITH_MAIN" ]]; then
-                    echo "Merge base with main: $MERGE_BASE_WITH_MAIN"
-                    break
-                fi
-            fi
-        done
-        
-        if [[ -n "$MERGE_BASE_WITH_MAIN" ]]; then
-            # Get all files changed since last successful build
-            echo "Comparing changes since last successful build: ${LAST_SUCCESSFUL_COMMIT}..${CURRENT_COMMIT_FULL}"
-            ALL_CHANGED_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$CURRENT_COMMIT_FULL" 2>/dev/null)
-            
-            # Get files that were changed in main branch (to exclude them)
-            echo "Getting main branch changes to exclude: ${LAST_SUCCESSFUL_COMMIT}..${MERGE_BASE_WITH_MAIN}"
-            MAIN_BRANCH_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$MERGE_BASE_WITH_MAIN" 2>/dev/null || true)
-            
-            # Filter out main branch changes from our changed files
-            if [[ -n "$MAIN_BRANCH_FILES" ]]; then
-                echo "Excluding main branch changes:"
-                echo "$MAIN_BRANCH_FILES" | sed 's/^/  - /'
-                # Use comm to exclude main branch files from changed files
-                CHANGED_FILES=$(comm -23 <(echo "$ALL_CHANGED_FILES" | sort) <(echo "$MAIN_BRANCH_FILES" | sort) 2>/dev/null || echo "$ALL_CHANGED_FILES")
-            else
-                CHANGED_FILES="$ALL_CHANGED_FILES"
-            fi
-        else
-            echo "Warning: Could not find merge-base with main, comparing directly against last successful commit"
-            echo "Comparing changes: ${LAST_SUCCESSFUL_COMMIT}..${CURRENT_COMMIT_FULL}"
-            CHANGED_FILES=$(git diff --name-only "${LAST_SUCCESSFUL_COMMIT}".."$CURRENT_COMMIT_FULL" 2>/dev/null)
-        fi
-        echo "Total files changed in PR: $(echo "$CHANGED_FILES" | wc -l | tr -d ' ')"
-        
-        # Filter for app code files that affect the build
-        APP_CODE_FILES=$(echo "$CHANGED_FILES" | grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' || true)
-        
-        if [[ -n "$APP_CODE_FILES" ]]; then
-            echo "App code changes found in this PR branch - need fresh build"
-            echo "Files that triggered cache invalidation:"
-            echo "$APP_CODE_FILES" | sed 's/^/  - /'
+        # Include all files that affect the built app for E2E testing
+        if git rev-parse --git-dir > /dev/null 2>&1 && \
+           git diff --name-only ${LAST_SUCCESSFUL_COMMIT}..HEAD 2>/dev/null | \
+           grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | \
+           grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
+            echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
             APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
         else
-            echo "No app code changes in this PR branch - reusing cache from commit ${LAST_COMMIT_SHORT}"
-            if [[ -n "$CHANGED_FILES" ]]; then
-                echo "Non-app files changed (cache not invalidated):"
-                echo "$CHANGED_FILES" | sed 's/^/  - /'
-            fi
+            echo "No app code changes since commit ${LAST_COMMIT_SHORT} - reusing cache"
             APP_CODE_HASH="$LAST_COMMIT_SHORT"
         fi
     else
