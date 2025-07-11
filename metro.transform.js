@@ -64,7 +64,6 @@ function getBuildTypeFeatures() {
     case 'qa':
     case 'QA':
     case 'main':
-    case 'release':
       // TODO: Refactor this once we've abstracted environment away from build type
       if (envType === 'exp') {
         // Only include experimental features in experimental environment
