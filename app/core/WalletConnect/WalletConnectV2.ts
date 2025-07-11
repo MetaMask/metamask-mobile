@@ -390,7 +390,7 @@ export class WC2Manager {
     const { id, params } = proposal;
 
     const pairingTopic = proposal.params.pairingTopic;
-    const channelId = `${pairingTopic}`
+    const channelId = `${pairingTopic}`;
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,
