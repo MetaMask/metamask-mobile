@@ -3,6 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey, type Colors } from '../../../../../util/theme/models';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
@@ -24,6 +26,43 @@ export interface UseDepositRoutingParams {
   paymentMethodId: string;
 }
 
+const generateThemeParameters = (
+  themeAppearance: AppThemeKey,
+  colors: Colors,
+) => {
+  const backgroundColors = [
+    colors.background.default,
+    colors.background.alternative,
+    colors.background.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  const textColors = [
+    colors.text.default,
+    colors.text.alternative,
+    colors.text.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  const borderColors = [
+    colors.border.default,
+    colors.border.muted,
+    colors.border.muted,
+  ]
+    .map((color) => encodeURIComponent(color))
+    .join(',');
+
+  return {
+    themeColor: encodeURIComponent(colors.icon.default),
+    colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
+    backgroundColors,
+    textColors,
+    borderColors,
+  };
+};
+
 export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
@@ -32,6 +71,7 @@ export const useDepositRouting = ({
   const handleNewOrder = useHandleNewOrder();
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
+  const { themeAppearance, colors } = useTheme();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -175,6 +215,7 @@ export const useDepositRouting = ({
             ottResponse.token,
             quote,
             selectedWalletAddress,
+            { ...generateThemeParameters(themeAppearance, colors) },
           );
 
           if (!paymentUrl) {
@@ -206,6 +247,8 @@ export const useDepositRouting = ({
       requestOtt,
       generatePaymentUrl,
       handleNavigationStateChange,
+      themeAppearance,
+      colors,
     ],
   );
 
