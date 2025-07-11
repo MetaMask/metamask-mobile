@@ -305,8 +305,11 @@ export async function getAllBitriseComments(pipelineId?: string): Promise<Github
 
   // Filter and modify comments as before
   const bitriseComments = allComments.filter(({ body }) => body?.includes(bitriseTag));
+  console.log(`Found ${bitriseComments.length} comments with Bitrise tag: ${bitriseTag}`);
+  
   const modifiedComments = bitriseComments.map(comment => {
     const commitSha = comment.body?.match(/<!-- ([a-f0-9]{40})(?:-[^>]+)? -->/)?.[1];
+    console.log(`Processing comment ${comment.id}, extracted commit SHA: ${commitSha}`);
     return {
       ...comment,
       commitSha: commitSha || ""
@@ -322,8 +325,21 @@ export async function getBitriseCommentForCommit(commitHash: string, pipelineId?
   const commitTag = pipelineId ? `<!-- ${commitHash}-${pipelineId} -->` : `<!-- ${commitHash} -->`;
   const comments = await getAllBitriseComments(pipelineId);
 
+  console.log(`Looking for commit tag: ${commitTag}`);
+  console.log(`Found ${comments.length} Bitrise comments to search through`);
+
   // Check for existing Bitrise comment with commit tag.
-  const bitriseComment = comments.find(({ body }) => body?.includes(commitTag));
+  const bitriseComment = comments.find(({ body }) => {
+    const hasTag = body?.includes(commitTag);
+    if (hasTag) {
+      console.log(`Found matching comment with commit tag: ${commitTag}`);
+    }
+    return hasTag;
+  });
+
+  if (!bitriseComment) {
+    console.log(`No existing comment found for commit: ${commitHash} with pipeline: ${pipelineId}`);
+  }
 
   // Return the found comment or undefined if not found
   return bitriseComment;
