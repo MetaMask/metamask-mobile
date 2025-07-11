@@ -69,10 +69,11 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();

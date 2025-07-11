@@ -89,6 +89,7 @@ interface DepositDateFieldProps {
   containerStyle?: object;
   onSubmitEditing?: () => void;
   textFieldProps?: TextInputProps;
+  handleOnPress?: () => void;
 }
 
 const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
@@ -101,6 +102,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       containerStyle,
       onSubmitEditing,
       textFieldProps,
+      handleOnPress,
     },
     ref,
   ) => {
@@ -109,6 +111,11 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
     const [pendingDateSelection, setPendingDateSelection] =
       useState<Date | null>(null);
     const fieldRef = useRef<TextInput>(null);
+
+    const handleOpenPicker = () => {
+      handleOnPress?.()
+      setShowDatePicker(true);
+    };
 
     const handleClosePicker = () => {
       setShowDatePicker(false);
@@ -133,7 +140,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     return (
       <>
-        <TouchableWithoutFeedback onPress={() => setShowDatePicker(true)}>
+        <TouchableWithoutFeedback onPress={handleOpenPicker}>
           <View style={styles.touchableArea}>
             <DepositTextField
               startAccessory={
