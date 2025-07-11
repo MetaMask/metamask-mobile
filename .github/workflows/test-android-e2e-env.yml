@@ -15,12 +15,34 @@ jobs:
         with:
           platform: android
 
-      - name: Print android tool versions
+      - name: Print Android tool versions
         run: |
-          node -v
-          yarn -v
-          sdkmanager --version
-          adb version
-          emulator -version
-          avdmanager list device
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+
+          echo "📦 SDK Manager Version:"
+          sdkmanager --version || echo "sdkmanager not found"
+
+          echo "📱 ADB Version:"
+          adb version || echo "adb not found"
+
+          echo "🖥️ Emulator Version:"
+          emulator -version || echo "emulator not found"
+
+          echo "📱 Available AVD Devices:"
+          avdmanager list device || echo "avdmanager not found"
+
+          echo "🧱 NDK Version Info:"
+          NDK_PATH="$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}"
+          if [ -f "$NDK_PATH/source.properties" ]; then
+            grep "Pkg.Revision" "$NDK_PATH/source.properties"
+          else
+            echo "NDK not found at: $NDK_PATH"
+          fi
+        shell: bash
+
+
 
