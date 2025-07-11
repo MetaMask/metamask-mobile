@@ -124,6 +124,11 @@ jest.mock('../../../selectors/accountsController', () => ({
   getMemoizedInternalAccountByAddress: jest.fn(() => mockAccount),
 }));
 
+jest.mock('../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../selectors/networkController'),
+  selectChainId: jest.fn().mockReturnValue('1'),
+}));
+
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: () => mockAccount,
@@ -147,6 +152,14 @@ jest.mock(
     }),
   }),
 );
+
+jest.mock('../../../core/Multichain/networks', () => ({
+  getMultichainBlockExplorer: jest.fn().mockReturnValue({
+    url: 'https://etherscan.io/address/0x1232323',
+    title: 'Etherscan (Multichain)',
+    blockExplorerName: 'Etherscan (Multichain)',
+  }),
+}));
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
@@ -371,20 +384,7 @@ describe('App', () => {
       }));
     });
 
-    it('renders the multichain account details screen when navigated to', async () => {
-      // Navigation state that goes directly to account details
-      const routeState = {
-        index: 0,
-        routes: [
-          {
-            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
-            params: {
-              account: mockAccount,
-            },
-          },
-        ],
-      };
-
+    const renderAppWithRouteState = (routeState: any) => {
       const mockStore = configureMockStore();
       const store = mockStore(mockLoggedInState);
 
@@ -398,14 +398,74 @@ describe('App', () => {
         </NavigationContainer>
       );
 
-      const { getByTestId } = render(<App />, {
-        wrapper: Providers,
-      });
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders the multichain account details screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+            params: {
+              account: mockAccount,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeTruthy();
+      });
+    });
+
+    it('renders the multichain account edit name screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            params: {
+              screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+              params: {
+                account: mockAccount,
+              },
+            },
+          },
+        ],
+      };
+
+      const { getByText } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByText('Edit Account Name')).toBeTruthy();
+      });
+    });
+
+    it('renders the multichain account share address screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            params: {
+              screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+              params: {
+                account: mockAccount,
+              },
+            },
+          },
+        ],
+      };
+
+      const { getByText } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByText('Share Address')).toBeTruthy();
       });
     });
   });
