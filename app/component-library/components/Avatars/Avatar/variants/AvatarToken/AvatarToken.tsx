@@ -62,7 +62,13 @@ const AvatarToken = ({
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
         <Text style={styles.label}>{tokenNameFirstLetter}</Text>
       ) : imageSVG ? (
-        <SvgUri uri={imageSVG} width={size} height={size} onError={onError} />
+        <SvgUri
+          uri={imageSVG}
+          width={size}
+          height={size}
+          onError={onError}
+          testID={AVATARTOKEN_IMAGE_TESTID}
+        />
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

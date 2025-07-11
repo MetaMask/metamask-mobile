@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
@@ -65,5 +66,23 @@ describe('AvatarToken', () => {
       (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
     );
     expect(imageComponent.exists()).toBe(false);
+  });
+
+  it('renders svg image', () => {
+    const svgImageSource = {
+      uri: 'https://example.com/token.svg',
+    };
+    const wrapper = shallow(
+      <AvatarToken
+        {...SAMPLE_AVATARTOKEN_PROPS}
+        imageSource={svgImageSource}
+      />,
+    );
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
+    );
+
+    expect(imageComponent).toBeTruthy();
+    expect(imageComponent.props().uri).toBe(svgImageSource.uri);
   });
 });
