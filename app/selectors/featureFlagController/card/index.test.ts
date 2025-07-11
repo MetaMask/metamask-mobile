@@ -50,7 +50,7 @@ const mockedStateWithCardFeatureFlag = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          cardFeatureFlag: mockedCardFeatureFlag,
+          cardFeature: mockedCardFeatureFlag,
         },
         cacheTimestamp: 0,
       },
@@ -63,7 +63,7 @@ const mockedStateWithPartialCardFeatureFlag = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          cardFeatureFlag: {
+          cardFeature: {
             '1': {
               enabled: true,
               // tokens is undefined
@@ -91,13 +91,13 @@ describe('Card Feature Flag Selector', () => {
     expect(result).toEqual(null);
   });
 
-  it('returns null when cardFeatureFlag is null', () => {
+  it('returns null when cardFeature is null', () => {
     const stateWithNullCardFlag = {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardFeatureFlag: null,
+              cardFeature: null,
             },
             cacheTimestamp: 0,
           },
@@ -140,7 +140,7 @@ describe('Card Feature Flag Selector', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardFeatureFlag: {
+              cardFeature: {
                 '1': undefined,
                 '137': {
                   enabled: true,
@@ -172,7 +172,7 @@ describe('Card Feature Flag Selector', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardFeatureFlag: {
+              cardFeature: {
                 '1': {
                   enabled: true,
                   tokens: [
@@ -214,7 +214,7 @@ describe('Card Feature Flag Selector', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              cardFeatureFlag: {
+              cardFeature: {
                 '1': {
                   enabled: false,
                   tokens: null,

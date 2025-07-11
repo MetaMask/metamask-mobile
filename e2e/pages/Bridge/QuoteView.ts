@@ -67,6 +67,11 @@ class QuoteView {
     await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
   }
 
+  async tapDestToken(): Promise<void> {
+    const token = Matchers.getElementByText('USDC');
+    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
+  }
+
   async tapSwapTo(): Promise<void> {
     await Gestures.waitAndTap(this.swapTo, { delayBeforeTap: 1000 });
   }
