@@ -18,30 +18,29 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  IosAppleClientId: 'mock-ios-apple-client-id',
   AndroidGoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AuthConnectionConfig: {
-    'android': {
-      'google': {
+    android: {
+      google: {
         authConnectionId: 'mock-auth-connection-id',
         groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
       },
-      'apple': {
+      apple: {
         authConnectionId: 'mock-auth-connection-id',
         groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
       },
     },
-    'ios': {
-      'google': {
+    ios: {
+      google: {
         authConnectionId: 'mock-auth-connection-id',
         groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
       },
-      'apple': {
+      apple: {
         authConnectionId: 'mock-auth-connection-id',
         groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
       },
-    }
+    },
   },
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
 }));

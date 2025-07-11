@@ -362,7 +362,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
@@ -716,12 +716,13 @@ exports[`AddAsset component renders token view correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#4459ff",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
             "opacity": 0.5,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -989,7 +990,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#4459ff",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "color": "#4459ff",
             "flexDirection": "row",
@@ -999,6 +1000,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
             "height": 48,
             "justifyContent": "center",
             "opacity": 0.5,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
             "position": "relative",
             "width": "90%",
