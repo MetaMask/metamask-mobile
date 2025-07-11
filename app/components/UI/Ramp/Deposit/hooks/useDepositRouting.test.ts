@@ -212,6 +212,13 @@ describe('useDepositRouting', () => {
         'test-ott-token',
         mockQuote,
         '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
@@ -426,6 +433,13 @@ describe('useDepositRouting', () => {
         'test-ott-token',
         mockQuote,
         '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
