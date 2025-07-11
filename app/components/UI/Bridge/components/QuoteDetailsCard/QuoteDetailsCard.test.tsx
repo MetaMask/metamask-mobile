@@ -201,4 +201,78 @@ describe('QuoteDetailsCard', () => {
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
   });
+
+  it('displays "Included" fee when gasIncluded is true', () => {
+    // Mock the hook to return a quote with gasIncluded = true
+    const mockUseBridgeQuoteData = require('../../hooks/useBridgeQuoteData').useBridgeQuoteData;
+    mockUseBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: true,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is displayed
+    expect(getByText('Included')).toBeDefined();
+    // Verify the strikethrough network fee is displayed
+    expect(getByText('0.01')).toBeDefined();
+  });
+
+  it('displays regular network fee when gasIncluded is false', () => {
+    // Mock the hook to return a quote with gasIncluded = false
+    const mockUseBridgeQuoteData = require('../../hooks/useBridgeQuoteData').useBridgeQuoteData;
+    mockUseBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          gasIncluded: false,
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText, queryByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is NOT displayed
+    expect(queryByText('Included')).toBeNull();
+    // Verify regular network fee is displayed
+    expect(getByText('0.01')).toBeDefined();
+  });
 });
