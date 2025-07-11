@@ -232,6 +232,7 @@ stages:
       - ios_e2e_test: {}
   pr_cache_check_stage:
     abort_on_fail: true
+    run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
     workflows:
       - pr_check_build_cache: {}
   build_smoke_e2e_ios_android_stage:
@@ -1275,6 +1276,7 @@ workflows:
       - restore-cache@2:
           title: Restore last successful build commit marker
           is_skippable: true
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
             - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
       - script@1:
@@ -1428,6 +1430,7 @@ workflows:
                 ccache
       - save-cache@1:
           title: Save iOS PR Build Cache
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
             - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
             - paths: |-
@@ -1854,6 +1857,7 @@ workflows:
                 fi
       - save-cache@1:
           title: Save Android PR Build Cache
+          run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
             - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
             - paths: |-

@@ -5,9 +5,14 @@ echo "=== PR Build Cache Check ==="
 SKIP_IOS_BUILD="false"
 SKIP_ANDROID_BUILD="false"
 
-# Check if we have PR number
-if [[ -z "$GITHUB_PR_NUMBER" ]]; then
-    echo "No PR number found, skipping cache check and proceeding with both builds"
+# Check if this is a manual trigger or not from a PR
+# Manual triggers and non-PR builds should skip caching entirely
+if [[ "$BITRISE_TRIGGERED_BY_TAG" == "true" ]] || [[ -z "$GITHUB_PR_NUMBER" ]]; then
+    if [[ "$BITRISE_TRIGGERED_BY_TAG" == "true" ]]; then
+        echo "Manual tag trigger detected, skipping cache entirely and proceeding with both builds"
+    else
+        echo "No PR number found, skipping cache check and proceeding with both builds"
+    fi
     # Set empty cache keys to prevent restore attempts
     envman add --key IOS_PR_BUILD_CACHE_KEY --value ""
     envman add --key ANDROID_PR_BUILD_CACHE_KEY --value ""
