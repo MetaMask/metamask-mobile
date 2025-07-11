@@ -168,6 +168,72 @@ describe('CardSDK', () => {
 
       expect(disabledCardholderSDK.supportedTokens).toEqual([]);
     });
+
+    it('should return empty array when tokens array is undefined', () => {
+      const noTokensCardFeatureFlag: CardFeatureFlag = {
+        'eip155:59144': {
+          enabled: true,
+          // tokens property is undefined
+        },
+      };
+
+      const noTokensCardSDK = new CardSDK({
+        cardFeatureFlag: noTokensCardFeatureFlag,
+        rawChainId: '0xe708',
+      });
+
+      expect(noTokensCardSDK.supportedTokens).toEqual([]);
+    });
+  });
+
+  describe('error handling for private getters', () => {
+    it('should throw error when foxConnectAddresses are missing', async () => {
+      const missingFoxConnectFeatureFlag: CardFeatureFlag = {
+        'eip155:59144': {
+          enabled: true,
+          tokens: mockSupportedTokens,
+          // foxConnectAddresses is missing
+        },
+      };
+
+      const missingFoxConnectSDK = new CardSDK({
+        cardFeatureFlag: missingFoxConnectFeatureFlag,
+        rawChainId: '0xe708',
+      });
+
+      const testAddress = '0x1234567890123456789012345678901234567890';
+
+      // This should handle the error gracefully and return false
+      const result = await missingFoxConnectSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalled();
+    });
+
+    it('should throw error when balanceScannerAddress is missing', async () => {
+      const missingBalanceScannerFeatureFlag: CardFeatureFlag = {
+        'eip155:59144': {
+          enabled: true,
+          tokens: mockSupportedTokens,
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+          // balanceScannerAddress is missing
+        },
+      };
+
+      const missingBalanceScannerSDK = new CardSDK({
+        cardFeatureFlag: missingBalanceScannerFeatureFlag,
+        rawChainId: '0xe708',
+      });
+
+      const testAddress = '0x1234567890123456789012345678901234567890';
+
+      // This should handle the error gracefully and return false
+      const result = await missingBalanceScannerSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalled();
+    });
   });
 
   describe('supportedTokensAddresses', () => {
@@ -329,6 +395,30 @@ describe('CardSDK', () => {
       await expect(
         disabledCardholderSDK.getSupportedTokensAllowances(testAddress),
       ).rejects.toThrow('Card feature is not enabled for this chain');
+    });
+
+    it('should return empty array when no supported tokens', async () => {
+      const emptyTokensCardFeatureFlag: CardFeatureFlag = {
+        'eip155:59144': {
+          enabled: true,
+          tokens: [],
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+        },
+      };
+
+      const emptyTokensCardSDK = new CardSDK({
+        cardFeatureFlag: emptyTokensCardFeatureFlag,
+        rawChainId: '0xe708',
+      });
+
+      const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
+        testAddress,
+      );
+      expect(result).toEqual([]);
     });
 
     it('should return token allowances correctly', async () => {
