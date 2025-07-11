@@ -193,7 +193,7 @@ describe('CardSDK', () => {
   describe('ethersProvier', () => {
     it('should create JsonRpcProvider with correct URL', () => {
       // Access the provider to trigger the getter
-      expect(cardSDK.ethersProvier).toBeDefined();
+      expect(cardSDK.ethersProvider).toBeDefined();
       expect(ethers.providers.JsonRpcProvider).toHaveBeenCalledWith(
         expect.stringContaining('linea-mainnet'),
       );

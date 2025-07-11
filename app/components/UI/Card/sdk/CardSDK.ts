@@ -55,7 +55,7 @@ export class CardSDK {
       );
   }
 
-  get ethersProvier() {
+  get ethersProvider() {
     // Default RPC URL for LINEA mainnet
     return new ethers.providers.JsonRpcProvider(LINEA_DEFAULT_RPC_URL);
   }
@@ -64,7 +64,7 @@ export class CardSDK {
     return new ethers.Contract(
       BALANCE_SCANNER_CONTRACT_ADDRESS,
       BALANCE_SCANNER_ABI,
-      this.ethersProvier,
+      this.ethersProvider,
     );
   }
 
@@ -240,7 +240,7 @@ export class CardSDK {
 
     const logsPerToken = await Promise.all(
       tokenAddressesList.map((tokenAddress) =>
-        this.ethersProvier
+        this.ethersProvider
           .getLogs({
             address: tokenAddress,
             fromBlock: spendersDeployedBlock,
