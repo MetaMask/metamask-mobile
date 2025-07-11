@@ -17,6 +17,20 @@ jest.mock('../../../../../core/Engine', () => ({
     BridgeController: {
       updateBridgeQuoteRequestParams: jest.fn(),
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x1234567890123456789012345678901234567890'],
+            type: 'HD Key Tree',
+            metadata: {
+              id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
+              name: '',
+            },
+          },
+        ],
+      },
+    },
   },
 }));
 
