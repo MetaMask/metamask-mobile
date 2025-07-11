@@ -9,7 +9,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsConnectionErrorView.styles';
 
@@ -24,8 +24,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   onRetry,
   isRetrying = false,
 }) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles } = useStyles(createStyles, {});
 
   return (
     <ScreenView>
