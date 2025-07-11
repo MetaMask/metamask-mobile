@@ -155,6 +155,14 @@ class WalletView {
     );
   }
 
+  getToken(id) {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_ASSET(id));
+  }
+
+  getTokenCtaText(id) {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_CTA_ASSET(id));
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -165,6 +173,10 @@ class WalletView {
       index,
     );
     await Gestures.waitAndTap(element);
+  }
+
+  async tapTokenById(tokenId) {
+    await Gestures.waitAndTap(this.getToken(tokenId), { delayBeforeTap: 500 });
   }
 
   async tapIdenticon() {
@@ -287,6 +299,10 @@ class WalletView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapTokenCtaAprText(id) {
+    await Gestures.waitAndTap(this.getTokenCtaText(id));
   }
 
   /**
