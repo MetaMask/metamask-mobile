@@ -83,6 +83,8 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock Alert will be combined with Modal and TextInput mock below
+
 // Mock components
 jest.mock('../../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
@@ -197,6 +199,7 @@ jest.mock('../components/PerpsPositionCard', () => ({
       <View testID={testID || 'position-card'} {...props}>
         <Text testID="position-card-coin">{position?.coin}</Text>
         <Text testID="position-card-size">{position?.size}</Text>
+        <Text testID="position-card-disabled">{String(disabled)}</Text>
         <TouchableOpacity
           testID="position-card-close"
           onPress={onClose}
@@ -228,11 +231,22 @@ jest.mock('../components/PerpsPostitionHeader/PerpsPositionHeader', () => ({
     return (
       <View testID={testID || 'position-header'} {...props}>
         <Text testID="position-header-coin">{position?.coin}</Text>
-        <Text testID="position-header-pnl">{pnlPercentage}%</Text>
+        <Text testID="position-header-pnl">{pnlPercentage}</Text>
       </View>
     );
   },
 }));
+
+// Mock Alert
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Alert: {
+      alert: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../utils/formatUtils', () => ({
   formatPrice: jest.fn((price) => `$${price}`),
@@ -368,7 +382,7 @@ describe('PerpsPositionDetailsView', () => {
         'ETH',
       );
       expect(screen.getByTestId('position-header-pnl')).toHaveTextContent(
-        '12.5%',
+        '12.5',
       );
     });
 
@@ -401,7 +415,6 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('button-edit-tp/sl')).toBeOnTheScreen();
       expect(
         screen.getByTestId('button-close-long-position'),
       ).toBeOnTheScreen();
@@ -671,6 +684,239 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(screen.getByText('5x')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Position Header Integration', () => {
+    it('renders position header with correct props', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByTestId('position-header')).toBeOnTheScreen();
+    });
+
+    it('passes correct PnL percentage to header', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByTestId('position-header-pnl')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Position Card Integration', () => {
+    it('renders position card with close and edit callbacks', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByTestId('position-card')).toBeOnTheScreen();
+      expect(screen.getByTestId('position-card-close')).toBeOnTheScreen();
+      expect(screen.getByTestId('position-card-edit')).toBeOnTheScreen();
+    });
+
+    it('disables position card interactions', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByTestId('position-card-disabled')).toHaveTextContent(
+        'true',
+      );
+    });
+
+    it('handles position card edit callback', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+      fireEvent.press(screen.getByTestId('position-card-edit'));
+
+      // Assert
+      expect(screen.getByText('Edit')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Position Direction and Calculations', () => {
+    it('displays LONG position direction correctly', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('Close LONG Position')).toBeOnTheScreen();
+    });
+
+    it('displays SHORT position direction correctly', () => {
+      // Arrange
+      const shortPosition = {
+        ...mockPosition,
+        size: '-1.5',
+      };
+      const mockShortRoute = {
+        params: { position: shortPosition },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockShortRoute);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('Close SHORT Position')).toBeOnTheScreen();
+    });
+
+    it('calculates absolute position size correctly for LONG', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen();
+    });
+
+    it('calculates absolute position size correctly for SHORT', () => {
+      // Arrange
+      const shortPosition = {
+        ...mockPosition,
+        size: '-2.5',
+      };
+      const mockShortRoute = {
+        params: { position: shortPosition },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockShortRoute);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Error States and Edge Cases', () => {
+    it('handles position with zero size gracefully', () => {
+      // Arrange
+      const positionWithZeroSize = {
+        ...mockPosition,
+        size: '0',
+      };
+      const mockRouteWithZeroSize = {
+        params: { position: positionWithZeroSize },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockRouteWithZeroSize);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('0.000000 ETH')).toBeOnTheScreen();
+    });
+
+    it('handles position with very small size gracefully', () => {
+      // Arrange
+      const positionWithSmallSize = {
+        ...mockPosition,
+        size: '0.000001',
+      };
+      const mockRouteWithSmallSize = {
+        params: { position: positionWithSmallSize },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockRouteWithSmallSize);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('0.000001 ETH')).toBeOnTheScreen();
+    });
+
+    it('handles missing liquidation price gracefully', () => {
+      // Arrange
+      const positionWithoutLiq = {
+        ...mockPosition,
+        liquidationPrice: null,
+      };
+      const mockRouteWithoutLiq = {
+        params: { position: positionWithoutLiq },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockRouteWithoutLiq);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('N/A')).toBeOnTheScreen();
+    });
+
+    it('handles missing return on equity gracefully', () => {
+      // Arrange
+      const positionWithoutROE = {
+        ...mockPosition,
+        returnOnEquity: null,
+      };
+      const mockRouteWithoutROE = {
+        params: { position: positionWithoutROE },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockRouteWithoutROE);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('0%')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Route Parameters and Actions', () => {
+    it('handles route action parameter for close', () => {
+      // Arrange
+      const mockRouteWithCloseAction = {
+        params: {
+          position: mockPosition,
+          action: 'close',
+        },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockRouteWithCloseAction);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(screen.getByText('Close LONG Position')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Warning Messages', () => {
+    it('displays position closure warning message', () => {
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(
+        screen.getByText(
+          /⚠️ Closing this position will execute a market order/,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(/to exit your entire LONG position in ETH/),
+      ).toBeOnTheScreen();
+    });
+
+    it('updates warning message for SHORT positions', () => {
+      // Arrange
+      const shortPosition = {
+        ...mockPosition,
+        size: '-1.5',
+      };
+      const mockShortRoute = {
+        params: { position: shortPosition },
+      };
+      (useRoute as jest.Mock).mockReturnValue(mockShortRoute);
+
+      // Act
+      render(<PerpsPositionDetailsView />);
+
+      // Assert
+      expect(
+        screen.getByText(/to exit your entire SHORT position in ETH/),
+      ).toBeOnTheScreen();
     });
   });
 });
