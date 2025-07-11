@@ -7,10 +7,17 @@ const tags = {
   SmokeSwaps: 'SmokeSwaps:',
   SmokeRest: 'SmokeRest:',
   smokeAssets: 'smokeAssets:',
-  smokeIdentity: 'smokeIdentity:',
+  smokeIdentity: 'SmokeIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
-  smokeRamps: 'SmokeRamps:',
+  SmokeTrade: 'Trade:',
+  SmokeNetworkAbstractions: 'NetworkAbstractions:',
+  SmokeWalletPlatform: 'WalletPlatform:',
+  SmokeNetworkExpansion: 'NetworkExpansion:',
   smokeStake: 'SmokeStake:',
+  smokeNotifications: 'SmokeNotifications:',
+  smokeAnalytics: 'SmokeAnalytics:',
+  smokeMultiChainAPI: 'SmokeMultiChainAPI:',
+  FlaskBuildTests: 'FlaskBuildTests:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -25,10 +32,27 @@ const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
 const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
-
 const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
+const SmokeMultiChainAPI = (testName) =>
+  `${tags.smokeMultiChainAPI} ${testName}`;
+const SmokeNotifications = (testName) =>
+  `${tags.smokeNotifications} ${testName}`;
+const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
+
+
+const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
+const SmokeWalletPlatform = (testName) => `${tags.SmokeWalletPlatform} ${testName}`;
+
+const SmokeNetworkAbstractions = (testName) =>
+  `${tags.SmokeNetworkAbstractions} ${testName}`;
+const SmokeNetworkExpansion = (testName) =>
+  `${tags.SmokeNetworkExpansion} ${testName}`;
+const FlaskBuildTests = (testName) => 
+  `${tags.FlaskBuildTests} ${testName}`;
+
 export {
+  FlaskBuildTests,
   Regression,
   SmokeAccounts,
   SmokeCore,
@@ -39,5 +63,12 @@ export {
   SmokeAssets,
   SmokeIdentity,
   SmokeMultiChainPermissions,
+  SmokeTrade,
+  SmokeNetworkAbstractions,
+  SmokeNetworkExpansion,
+  SmokeWalletPlatform,
   SmokeRamps,
+  SmokeNotifications,
+  SmokeAnalytics,
+  SmokeMultiChainAPI,
 };

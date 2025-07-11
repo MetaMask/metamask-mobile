@@ -22,7 +22,8 @@ export const banner: UIComponentFactory<BannerElement> = ({
     mapToTemplate({ element: children as JSXElement, ...params }),
   ),
   props: {
-    title: e.props.title,
+    // The Banner component shows an empty title if we dont do this.
+    title: e.props.title.length > 0 ? e.props.title : null,
     severity: transformSeverity(e.props.severity),
   },
 });

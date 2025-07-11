@@ -6,29 +6,31 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   data={
     [
       {
+        "caipChainId": "eip155:1",
         "id": "network-1",
         "imageSource": {
           "uri": "https://ethereum.org/icon.png",
         },
         "isSelected": false,
         "name": "Ethereum Mainnet",
-        "rpcUrl": "https://mainnet.infura.io/v3",
         "yOffset": 0,
       },
       {
+        "caipChainId": "eip155:137",
         "id": "network-2",
         "imageSource": {
           "uri": "https://polygon.org/icon.png",
         },
         "isSelected": true,
         "name": "Polygon",
-        "rpcUrl": "https://polygon-rpc.com",
         "yOffset": 100,
       },
     ]
   }
   getItem={[Function]}
   getItemCount={[Function]}
+  handlerTag={-1}
+  handlerType="NativeViewGestureHandler"
   initialNumToRender={999}
   keyExtractor={[Function]}
   onContentSizeChange={[Function]}
@@ -43,7 +45,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   style={
     {
@@ -109,7 +111,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#141618",
+                      "borderColor": "#121314",
                       "borderRadius": 4,
                       "borderWidth": 2,
                       "height": 20,
@@ -181,10 +183,9 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -255,8 +256,8 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#0376c9",
-                      "borderColor": "#0376c9",
+                      "backgroundColor": "#4459ff",
+                      "borderColor": "#4459ff",
                       "borderRadius": 4,
                       "borderWidth": 2,
                       "height": 20,
@@ -267,6 +268,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                 >
                   <SvgMock
                     color="#ffffff"
+                    fill="currentColor"
                     height={20}
                     name="CheckBold"
                     onPressIn={[Function]}
@@ -343,10 +345,9 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -364,7 +365,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376C91A",
+                "backgroundColor": "#4459ff1a",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,

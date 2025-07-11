@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
@@ -16,7 +16,7 @@ export function useMainNotificationToggle() {
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const onToggle = useCallback(() => {
     // Navigate to basic functionality if content is not set.
@@ -38,7 +38,7 @@ export function useMainNotificationToggle() {
           settings_type: 'notifications',
           old_value: currentVal,
           new_value: newVal,
-          was_profile_syncing_on: currentVal ? true : isProfileSyncingEnabled,
+          was_profile_syncing_on: currentVal ? true : isBackupAndSyncEnabled,
         })
         .build(),
     );
@@ -46,7 +46,7 @@ export function useMainNotificationToggle() {
     basicFunctionalityEnabled,
     createEventBuilder,
     currentVal,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     navigation,
     onChange,
     trackEvent,

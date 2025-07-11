@@ -1,6 +1,10 @@
 // Third party dependencies.
 import { StyleSheet, TextStyle } from 'react-native';
 import { typography, ThemeColors } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 /**
  * Style sheet function for AmbiguousAddressSheet component.
@@ -17,6 +21,7 @@ export default (colors: ThemeColors) =>
     },
     heading: {
       ...(typography.sHeadingMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
       color: colors.text.default,
     },
     description: {
@@ -26,6 +31,7 @@ export default (colors: ThemeColors) =>
     },
     subtitle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       alignSelf: 'flex-start',
       paddingTop: 16,

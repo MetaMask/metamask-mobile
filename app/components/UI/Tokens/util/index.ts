@@ -1,5 +1,5 @@
 export { deriveBalanceFromAssetMarketDetails } from './deriveBalanceFromAssetMarketDetails';
 export { sortAssets } from './sortAssets';
-export { refreshEvmTokens } from './refreshEvmTokens';
+export { refreshTokens } from './refreshTokens';
 export { removeEvmToken } from './removeEvmToken';
 export { goToAddEvmToken } from './goToAddEvmToken';

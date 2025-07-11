@@ -22,7 +22,7 @@ exports[`NotificationsList renders correctly 1`] = `
     }
   >
     <ActivityIndicator
-      color="#0376c9"
+      color="#4459ff"
       size="large"
     />
   </View>
@@ -47,6 +47,7 @@ exports[`NotificationsList renders empty state 1`] = `
     contentContainerStyle={
       {
         "flexGrow": 1,
+        "paddingBottom": 100,
       }
     }
     data={[]}
@@ -73,9 +74,10 @@ exports[`NotificationsList renders empty state 1`] = `
     refreshing={false}
     removeClippedSubviews={false}
     renderItem={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     stickyHeaderIndices={[]}
     tabLabel=""
+    testID="notification-menu-scroll-view"
     viewabilityConfigCallbackPairs={[]}
   >
     <RCTRefreshControl />
@@ -91,7 +93,8 @@ exports[`NotificationsList renders empty state 1`] = `
         testID="no-notifications-container"
       >
         <SvgMock
-          color="#141618"
+          color="#121314"
+          fill="currentColor"
           height={32}
           name="Notification"
           style={
@@ -109,10 +112,9 @@ exports[`NotificationsList renders empty state 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginBottom": 8,
@@ -127,12 +129,11 @@ exports[`NotificationsList renders empty state 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginBottom": 8,
               "paddingHorizontal": 32,
               "textAlign": "center",

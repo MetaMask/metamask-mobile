@@ -41,13 +41,9 @@ const ConnectHeader: React.FC<ConnectHeaderProps> = ({ title, action }) => {
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.back} onPress={action}>
-        <IonicIcon
-          name={'ios-arrow-back'}
-          size={24}
-          color={colors.text.default}
-        />
+        <IonicIcon name={'arrow-back'} size={24} color={colors.text.default} />
       </TouchableOpacity>
-      <Text variant={TextVariant.HeadingSMRegular} style={styles.title}>
+      <Text variant={TextVariant.BodyMD} style={styles.title}>
         {title}
       </Text>
     </View>

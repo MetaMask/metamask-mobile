@@ -33,7 +33,7 @@ exports[`Step5 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -71,6 +71,7 @@ exports[`Step5 should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={16}
               name="Arrow2Left"
               style={
@@ -87,7 +88,7 @@ exports[`Step5 should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
               }
@@ -115,6 +116,7 @@ exports[`Step5 should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={16}
               name="Close"
               style={
@@ -138,7 +140,7 @@ exports[`Step5 should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "marginBottom": 20,
@@ -170,6 +172,7 @@ exports[`Step5 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -186,7 +189,7 @@ exports[`Step5 should render correctly 1`] = `
               [
                 [
                   {
-                    "borderRadius": 100,
+                    "borderRadius": 12,
                     "justifyContent": "center",
                     "padding": 15,
                   },
@@ -221,13 +224,13 @@ exports[`Step5 should render correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],
@@ -258,7 +261,7 @@ exports[`Step5 should render correctly 1`] = `
               "borderRightColor": "transparent",
               "borderRightWidth": 15,
               "borderStyle": "solid",
-              "borderTopColor": "#0376c9",
+              "borderTopColor": "#4459ff",
               "borderTopWidth": 12,
               "height": 0,
               "position": "absolute",

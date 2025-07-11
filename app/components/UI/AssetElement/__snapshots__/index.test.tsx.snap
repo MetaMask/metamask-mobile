@@ -2,15 +2,16 @@
 
 exports[`AssetElement should render correctly 1`] = `
 <TouchableOpacity
+  disabled={false}
   onLongPress={[Function]}
   onPress={[Function]}
   style={
     {
-      "alignItems": "flex-start",
+      "alignItems": "center",
       "flex": 1,
       "flexDirection": "row",
-      "paddingHorizontal": 15,
-      "paddingVertical": 10,
+      "height": 64,
+      "paddingHorizontal": 16,
     }
   }
   testID="asset-DAI"
@@ -19,8 +20,7 @@ exports[`AssetElement should render correctly 1`] = `
     style={
       {
         "alignItems": "flex-end",
-        "alignSelf": "flex-end",
-        "flex": 1,
+        "flexShrink": 0,
       }
     }
   />

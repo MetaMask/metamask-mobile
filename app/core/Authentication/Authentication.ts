@@ -6,6 +6,7 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
+  SOLANA_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -31,6 +32,20 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+import { retryWithExponentialDelay } from '../../util/exponential-retry';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
+
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import Logger from '../../util/Logger';
+import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import OAuthService from '../OAuthService/OAuthService';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -38,6 +53,7 @@ import ReduxService from '../redux';
 export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
+  oauth2Login?: boolean;
 }
 
 class AuthenticationService {
@@ -53,6 +69,10 @@ class AuthenticationService {
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
+  }
+
+  private dispatchOauthReset(): void {
+    OAuthService.resetOauthState();
   }
 
   /**
@@ -85,9 +105,63 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    this.attemptSolanaAccountDiscovery().catch((error) => {
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
+      // Store flag to retry on next unlock
+      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
+    });
+    ///: END:ONLY_INCLUDE_IF
+
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  private attemptSolanaAccountDiscovery = async (): Promise<void> => {
+    const performSolanaAccountDiscovery = async (): Promise<void> => {
+      const primaryHdKeyringId =
+        Engine.context.KeyringController.state.keyrings[0].metadata.id;
+      const client = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Solana,
+        {
+          setSelectedAccount: false,
+        },
+      );
+      await client.addDiscoveredAccounts(primaryHdKeyringId);
+
+      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
+    };
+
+    try {
+      await retryWithExponentialDelay(
+        performSolanaAccountDiscovery,
+        3, // maxRetries
+        1000, // baseDelay
+        10000, // maxDelay
+      );
+    } catch (error) {
+      console.error(
+        'Solana account discovery failed after all retries:',
+        error,
+      );
+    }
+  };
+
+  private retrySolanaDiscoveryIfPending = async (): Promise<void> => {
+    try {
+      const isPending = await StorageWrapper.getItem(SOLANA_DISCOVERY_PENDING);
+      if (isPending === 'true') {
+        await this.attemptSolanaAccountDiscovery();
+      }
+    } catch (error) {
+      console.warn('Failed to check/retry Solana discovery:', error);
+    }
+  };
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * This method creates a new wallet with all new data
@@ -101,6 +175,16 @@ class AuthenticationService {
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    this.attemptSolanaAccountDiscovery().catch((error) => {
+      console.warn(
+        'Solana account discovery failed during wallet creation:',
+        error,
+      );
+      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+    });
+    ///: END:ONLY_INCLUDE_IF
     password = this.wipeSensitiveData();
   };
 
@@ -304,10 +388,17 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      await this.createWalletVaultAndKeychain(password);
+      // check for oauth2 login
+      if (authData.oauth2Login) {
+        await this.createAndBackupSeedPhrase(password);
+      } else {
+        await this.createWalletVaultAndKeychain(password);
+      }
+
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
@@ -378,10 +469,15 @@ class AuthenticationService {
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
+
+      // Try to complete any pending Solana account discovery
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      this.retrySolanaDiscoveryIfPending();
+      ///: END:ONLY_INCLUDE_IF
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -427,6 +523,12 @@ class AuthenticationService {
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
+
+      // Try to complete any pending Solana account discovery
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      this.retrySolanaDiscoveryIfPending();
+      ///: END:ONLY_INCLUDE_IF
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -458,6 +560,93 @@ class AuthenticationService {
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
+
+  createAndBackupSeedPhrase = async (password: string): Promise<void> => {
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+    await this.createWalletVaultAndKeychain(password);
+    // submit password to unlock keyring ?
+    await KeyringController.submitPassword(password);
+    try {
+      const keyringId = KeyringController.state.keyrings[0]?.metadata.id;
+      if (!keyringId) {
+        throw new Error('No keyring metadata found');
+      }
+
+      const seedPhrase = await KeyringController.exportSeedPhrase(
+        password,
+        keyringId,
+      );
+      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+        password,
+        seedPhrase,
+        keyringId,
+      );
+
+      this.dispatchOauthReset();
+    } catch (error) {
+      await this.newWalletAndKeychain(`${Date.now()}`, {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      await clearAllVaultBackups();
+      SeedlessOnboardingController.clearState();
+      throw error;
+    }
+  };
+
+  rehydrateSeedPhrase = async (
+    password: string,
+    authData: AuthData,
+  ): Promise<void> => {
+    try {
+      const { SeedlessOnboardingController } = Engine.context;
+      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+        password,
+      );
+
+      if (result.length > 0) {
+        const { KeyringController } = Engine.context;
+
+        const [firstSeedPhrase, ...restOfSeedPhrases] = result;
+        if (!firstSeedPhrase) {
+          throw new Error('No seed phrase found');
+        }
+
+        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase, wordlist);
+        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        // add in more srps
+        if (restOfSeedPhrases.length > 0) {
+          for (const item of restOfSeedPhrases) {
+            // vault add new seedphrase
+            try {
+              const keyringMetadata = await KeyringController.addNewKeyring(
+                KeyringTypes.hd,
+                {
+                  mnemonic: uint8ArrayToMnemonic(item, wordlist),
+                  numberOfAccounts: 1,
+                },
+              );
+              SeedlessOnboardingController.updateBackupMetadataState({
+                keyringId: keyringMetadata.id,
+                seedPhrase: item,
+              });
+            } catch (error) {
+              // catch error to prevent unable to login
+              Logger.error(error as Error);
+            }
+          }
+        }
+
+        this.dispatchLogin();
+        this.dispatchPasswordSet();
+        this.dispatchOauthReset();
+      } else {
+        throw new Error('No account data found');
+      }
+    } catch (error) {
+      Logger.error(error as Error);
+      throw error;
+    }
+  };
 }
 
 export const Authentication = new AuthenticationService();

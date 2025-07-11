@@ -15,6 +15,7 @@ export function getEarnControllerMessenger(
     allowedEvents: [
       'AccountsController:selectedAccountChange',
       'NetworkController:stateChange',
+      'TransactionController:transactionConfirmed',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',

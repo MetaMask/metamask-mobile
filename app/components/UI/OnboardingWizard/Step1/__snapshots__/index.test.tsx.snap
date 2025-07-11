@@ -32,7 +32,7 @@ exports[`Step1 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -57,7 +57,7 @@ exports[`Step1 should render correctly 1`] = `
               {
                 "alignSelf": "center",
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
               }
@@ -85,6 +85,7 @@ exports[`Step1 should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={16}
               name="Close"
               style={
@@ -108,7 +109,7 @@ exports[`Step1 should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "marginBottom": 20,
@@ -137,15 +138,16 @@ exports[`Step1 should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#121314",
                 "borderColor": "#ffffff",
-                "borderRadius": 16,
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 0.5,
                 "flexDirection": "row",
                 "height": 32,
                 "justifyContent": "center",
                 "marginRight": 4,
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -156,11 +158,10 @@ exports[`Step1 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
-                  "fontWeight": "500",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -179,14 +180,15 @@ exports[`Step1 should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#0376c9",
-                "borderRadius": 16,
+                "borderColor": "transparent",
+                "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 0.5,
                 "flexDirection": "row",
                 "height": 32,
                 "justifyContent": "center",
                 "marginLeft": 4,
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -196,12 +198,11 @@ exports[`Step1 should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -229,7 +230,7 @@ exports[`Step1 should render correctly 1`] = `
               "borderRightColor": "transparent",
               "borderRightWidth": 15,
               "borderStyle": "solid",
-              "borderTopColor": "#0376c9",
+              "borderTopColor": "#4459ff",
               "borderTopWidth": 12,
               "height": 0,
               "position": "absolute",

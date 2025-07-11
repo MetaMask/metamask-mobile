@@ -291,17 +291,17 @@ describe('useSwitchNotifications - useAccountNotificationsToggle()', () => {
         listNotifications: mockListNotifications,
       });
 
-    const mockCreateNotificationsForAccount = jest
-      .spyOn(Actions, 'createNotificationsForAccount')
+    const mockEnableAccounts = jest
+      .spyOn(Actions, 'enableAccounts')
       .mockImplementation(jest.fn());
 
-    const mockDeleteNotificationsForAccount = jest
-      .spyOn(Actions, 'deleteNotificationsForAccount')
+    const mockDisableAccounts = jest
+      .spyOn(Actions, 'disableAccounts')
       .mockImplementation(jest.fn());
 
     return {
-      mockCreateNotificationsForAccount,
-      mockDeleteNotificationsForAccount,
+      mockEnableAccounts,
+      mockDisableAccounts,
       mockListNotifications,
       mockUseListNotifications,
     };
@@ -329,12 +329,10 @@ describe('useSwitchNotifications - useAccountNotificationsToggle()', () => {
     const addresses = ['0x123', '0x456'];
     const { mocks } = await arrangeAct(addresses, true);
     await waitFor(() =>
-      expect(mocks.mockCreateNotificationsForAccount).toHaveBeenCalledWith(
-        addresses,
-      ),
+      expect(mocks.mockEnableAccounts).toHaveBeenCalledWith(addresses),
     );
     await waitFor(() =>
-      expect(mocks.mockDeleteNotificationsForAccount).not.toHaveBeenCalled(),
+      expect(mocks.mockDisableAccounts).not.toHaveBeenCalled(),
     );
     await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
   });
@@ -343,12 +341,10 @@ describe('useSwitchNotifications - useAccountNotificationsToggle()', () => {
     const addresses = ['0x123', '0x456'];
     const { mocks } = await arrangeAct(addresses, false);
     await waitFor(() =>
-      expect(mocks.mockDeleteNotificationsForAccount).toHaveBeenCalledWith(
-        addresses,
-      ),
+      expect(mocks.mockDisableAccounts).toHaveBeenCalledWith(addresses),
     );
     await waitFor(() =>
-      expect(mocks.mockCreateNotificationsForAccount).not.toHaveBeenCalled(),
+      expect(mocks.mockEnableAccounts).not.toHaveBeenCalled(),
     );
     await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
   });
@@ -357,14 +353,10 @@ describe('useSwitchNotifications - useAccountNotificationsToggle()', () => {
     const addresses = ['0x123', '0x456'];
     const errorMessage = 'Failed to create notifications';
     const { mocks, hook } = await arrangeAct(addresses, true, (m) => {
-      m.mockCreateNotificationsForAccount.mockRejectedValue(
-        new Error(errorMessage),
-      );
+      m.mockEnableAccounts.mockRejectedValue(new Error(errorMessage));
     });
     await waitFor(() =>
-      expect(mocks.mockCreateNotificationsForAccount).toHaveBeenCalledWith(
-        addresses,
-      ),
+      expect(mocks.mockEnableAccounts).toHaveBeenCalledWith(addresses),
     );
     expect(hook.result.current.error).toBe(errorMessage);
   });
@@ -373,14 +365,10 @@ describe('useSwitchNotifications - useAccountNotificationsToggle()', () => {
     const addresses = ['0x123', '0x456'];
     const errorMessage = 'Failed to delete notifications';
     const { mocks, hook } = await arrangeAct(addresses, false, (m) => {
-      m.mockDeleteNotificationsForAccount.mockRejectedValue(
-        new Error(errorMessage),
-      );
+      m.mockDisableAccounts.mockRejectedValue(new Error(errorMessage));
     });
     await waitFor(() =>
-      expect(mocks.mockDeleteNotificationsForAccount).toHaveBeenCalledWith(
-        addresses,
-      ),
+      expect(mocks.mockDisableAccounts).toHaveBeenCalledWith(addresses),
     );
     expect(hook.result.current.error).toBe(errorMessage);
   });

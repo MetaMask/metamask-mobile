@@ -23,7 +23,6 @@ describe('ApprovalTagUrl', () => {
   it('renders correctly', () => {
     const { toJSON, getByTestId } = renderWithProvider(
       <ApprovalTagUrl
-        from={ADDRESS_MOCK}
         origin={DOMAIN_MOCK}
         url={`https://${DOMAIN_MOCK}/test-dapp/mock-url-query`}
         sdkDappMetadata={{ url: '', icon: '' }}
@@ -38,7 +37,6 @@ describe('ApprovalTagUrl', () => {
   it('does not render when origin is an internal origin', () => {
     const { queryByTestId } = renderWithProvider(
       <ApprovalTagUrl
-        from={ADDRESS_MOCK}
         origin={INTERNAL_ORIGINS[0]}
         url={`https://${INTERNAL_ORIGINS[0]}`}
         sdkDappMetadata={{ url: '', icon: '' }}
@@ -47,5 +45,19 @@ describe('ApprovalTagUrl', () => {
     );
 
     expect(queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeNull();
+  });
+
+  it('renders origin when only origin is provided', () => {
+    const { toJSON, getByTestId } = renderWithProvider(
+      <ApprovalTagUrl
+        origin={DOMAIN_MOCK}
+        url=""
+        sdkDappMetadata={{ url: '', icon: '' }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
   });
 });

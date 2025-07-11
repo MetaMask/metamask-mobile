@@ -23,7 +23,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -63,6 +63,9 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -70,14 +73,14 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1333,
+            "maxHeight": 5,
             "overflow": "hidden",
             "paddingBottom": 3,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -88,7 +91,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 6,
               },
             ],
           },
@@ -107,7 +110,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#BBC0C566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -127,7 +130,8 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#bf5208"
+          color="#9a6300"
+          fill="currentColor"
           height={24}
           name="Warning"
           style={
@@ -153,12 +157,11 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -187,12 +190,13 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 24,
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -203,11 +207,10 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
-                  "fontWeight": "500",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >

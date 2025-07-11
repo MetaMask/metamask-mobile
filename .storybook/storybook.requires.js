@@ -25,31 +25,10 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
-    directory: "./app/component-library/components-temp/TagColored",
+    directory: "./app/component-library/components-temp",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/TagColored(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
-  },
-  {
-    titlePrefix: "",
-    directory: "./app/component-library/components-temp/KeyValueRow",
-    files: "**/*.stories.?(ts|tsx|js|jsx)",
-    importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/KeyValueRow(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
-  },
-  {
-    titlePrefix: "",
-    directory: "./app/component-library/components-temp/Buttons/ButtonToggle",
-    files: "**/*.stories.?(ts|tsx|js|jsx)",
-    importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/Buttons\\/ButtonToggle(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
-  },
-  {
-    titlePrefix: "",
-    directory: "./app/component-library/components-temp/SegmentedControl",
-    files: "**/*.stories.?(ts|tsx|js|jsx)",
-    importPathMatcher:
-      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/SegmentedControl(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+      "^\\.[\\\\/](?:app\\/component-library\\/components-temp(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
 ];
 
@@ -128,7 +107,6 @@ const getStories = () => {
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
-    "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
     "./app/component-library/components/Skeleton/Skeleton.stories.tsx": require("../app/component-library/components/Skeleton/Skeleton.stories.tsx"),
     "./app/component-library/components/Tags/Tag/Tag.stories.tsx": require("../app/component-library/components/Tags/Tag/Tag.stories.tsx"),
@@ -138,10 +116,15 @@ const getStories = () => {
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
-    "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
-    "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
+    "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
+    "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
+    "./app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx"),
+    "./app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx": require("../app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx"),
+    "./app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx": require("../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx"),
+    "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
     "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
+    "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
   };
 };
 

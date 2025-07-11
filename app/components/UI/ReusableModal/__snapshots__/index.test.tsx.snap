@@ -17,7 +17,7 @@ exports[`ReusableModal should render correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000099",
+            "backgroundColor": "#3f434a66",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -32,6 +32,9 @@ exports[`ReusableModal should render correctly 1`] = `
     />
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       style={

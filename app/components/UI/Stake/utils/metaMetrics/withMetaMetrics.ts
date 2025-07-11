@@ -5,7 +5,7 @@ import {
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetrics } from '../../../../../core/Analytics';
 
-interface WithMetaMetricsEvent {
+export interface WithMetaMetricsEvent {
   event: IMetaMetricsEvent;
   properties?: JsonMap;
 }

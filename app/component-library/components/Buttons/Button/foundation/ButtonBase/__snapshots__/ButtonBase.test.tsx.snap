@@ -10,11 +10,12 @@ exports[`ButtonBase should render correctly 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 20,
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
@@ -33,7 +34,7 @@ exports[`ButtonBase should render correctly 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
       }
     }
     variant="sBodyMDMedium"
@@ -54,12 +55,13 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 20,
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
       "opacity": 0.5,
+      "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
@@ -78,7 +80,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
       }
     }
     variant="sBodyMDMedium"

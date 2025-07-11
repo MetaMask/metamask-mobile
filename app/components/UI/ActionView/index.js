@@ -25,7 +25,7 @@ const getStyles = (colors) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     button: {
       flex: 1,
@@ -68,6 +68,8 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
+  contentContainerStyle,
+  buttonContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -81,6 +83,7 @@ export default function ActionView({
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
+        contentContainerStyle={contentContainerStyle}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
@@ -95,13 +98,16 @@ export default function ActionView({
           {children}
         </TouchableWithoutFeedback>
 
-        <View style={styles.actionContainer}>
+        <View style={[styles.actionContainer, buttonContainerStyle]}>
           {showCancelButton && (
             <StyledButton
               testID={cancelTestID}
               type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
               onPress={onCancelPress}
-              containerStyle={[styles.button, styles.cancel]}
+              containerStyle={[
+                styles.button,
+                showConfirmButton && styles.cancel,
+              ]}
               disabled={confirmed}
             >
               {cancelText}
@@ -114,7 +120,7 @@ export default function ActionView({
               onPress={onConfirmPress}
               containerStyle={[
                 styles.button,
-                styles.confirm,
+                showCancelButton && styles.confirm,
                 confirmButtonState === ConfirmButtonState.Error
                   ? styles.confirmButtonError
                   : {},
@@ -149,6 +155,7 @@ ActionView.defaultProps = {
   cancelTestID: '',
   showCancelButton: true,
   showConfirmButton: true,
+  contentContainerStyle: undefined,
 };
 
 ActionView.propTypes = {
@@ -226,4 +233,12 @@ ActionView.propTypes = {
    * Optional TestID for the parent scroll View
    */
   scrollViewTestID: PropTypes.string,
+  /**
+   * Optional View styles. Applies to scroll view
+   */
+  contentContainerStyle: PropTypes.object,
+  /**
+   * Optional View styles. Applies to button container
+   */
+  buttonContainerStyle: PropTypes.object,
 };

@@ -150,7 +150,13 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -324,7 +334,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -364,6 +374,9 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={-1}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -371,14 +384,14 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#BBC0C566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -408,7 +421,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#BBC0C566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -439,10 +452,9 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 18,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -471,6 +483,8 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               style={
@@ -492,12 +506,11 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "textAlign": "center",
                                       }
                                     }
@@ -545,11 +558,12 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376c9",
-                                    "borderRadius": 24,
+                                    "backgroundColor": "#121314",
+                                    "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -560,11 +574,10 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
-                                      "fontWeight": "500",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >

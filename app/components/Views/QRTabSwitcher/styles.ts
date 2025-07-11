@@ -37,6 +37,7 @@ const createStyles = (theme: Theme) => {
       width: 300,
       height: 40,
       backgroundColor: theme.colors.background.alternative,
+      zIndex: 2,
     },
     segmentedControlItem: {
       flex: 1,
@@ -59,6 +60,10 @@ const createStyles = (theme: Theme) => {
     selectedText: {
       ...(theme.typography.sBodyMDMedium as TextStyle),
       color: theme.colors.primary.default,
+    },
+    header: {
+      backgroundColor: undefined,
+      zIndex: 2,
     },
   });
 };

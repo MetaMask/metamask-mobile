@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { decimalToHex } from '../../../util/conversions';
 import { RootState } from '../../../reducers';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { selectAddressBookByChain } from '../../../selectors/addressBookController';
 
 export interface UseDisplayNameParams {
@@ -39,7 +39,7 @@ export const useDisplayName = (
   const accounts = useSelector(selectInternalAccounts);
 
   const account = accounts.find((possibleAccount) =>
-    toLowerCaseEquals(possibleAccount.address, address),
+    areAddressesEqual(possibleAccount.address, address),
   );
 
   const chainAddressBook = useSelector((state: RootState) =>
@@ -50,7 +50,7 @@ export const useDisplayName = (
   );
 
   const addressBookEntry = chainAddressBook.find((contact) =>
-    toLowerCaseEquals(contact.address, address),
+    areAddressesEqual(contact.address, address),
   );
 
   return (

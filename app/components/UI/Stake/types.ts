@@ -22,6 +22,7 @@ export interface StakeNavigationParamsList extends ParamListBase {
       annualRewardsETH?: string;
       annualRewardsFiat?: string;
       annualRewardRate?: string;
+      chainId?: string;
     };
   };
 }

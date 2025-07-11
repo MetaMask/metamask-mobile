@@ -37,6 +37,10 @@ export interface TextFieldProps
    * Optional prop to replace defaulted input with custom Input.
    */
   inputElement?: React.ReactNode;
+  /**
+   * Optional test ID for the input element.
+   */
+  testID?: string;
 }
 
 /**

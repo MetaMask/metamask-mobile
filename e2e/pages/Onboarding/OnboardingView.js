@@ -1,6 +1,6 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class OnboardingView {
   get container() {
@@ -8,15 +8,11 @@ class OnboardingView {
   }
 
   get importSeedButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(OnboardingSelectorIDs.IMPORT_SEED_BUTTON)
-      : Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+    return Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
   }
 
   get newWalletButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(OnboardingSelectorIDs.NEW_WALLET_BUTTON)
-      : Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+    return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
   async tapCreateWallet() {
@@ -24,7 +20,9 @@ class OnboardingView {
   }
 
   async tapImportWalletFromSeedPhrase() {
-    await Gestures.waitAndTap(this.importSeedButton);
+    await Gestures.waitAndTap(this.importSeedButton, {
+      elemDescription: 'Onboarding Import Seed Phrase Button',
+    });
   }
 }
 

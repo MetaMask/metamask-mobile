@@ -26,7 +26,6 @@ describe('logEngineCreation', () => {
         vault: 'test-vault',
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       },
     );
 
@@ -66,7 +65,6 @@ describe('logEngineCreation', () => {
         vault: 'test-vault',
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       },
     };
 
@@ -94,7 +92,6 @@ describe('logEngineCreation', () => {
         vault: 'test-vault',
         keyrings: [],
         isUnlocked: false,
-        keyringsMetadata: [],
       },
     };
 
@@ -102,7 +99,6 @@ describe('logEngineCreation', () => {
       vault: 'backup-vault',
       keyrings: [],
       isUnlocked: false,
-      keyringsMetadata: [],
     };
 
     logEngineCreation(initialState, keyringBackup);

@@ -1,3 +1,7 @@
+# NOTE: This workflow is being migrated to GitHub Actions.
+# See .github/workflows/e2e-smoke-tests.yml for the new implementation.
+# This workflow will be deprecated once the migration is complete.
+
 name: Run Bitrise E2E Gate
 
 on:

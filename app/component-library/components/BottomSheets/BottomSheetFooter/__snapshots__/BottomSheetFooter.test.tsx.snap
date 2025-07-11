@@ -23,14 +23,15 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
-        "borderRadius": 20,
+        "backgroundColor": "#3c4d9d1a",
+        "borderColor": "transparent",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flex": 1,
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
@@ -40,12 +41,11 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#121314",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -63,14 +63,15 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 20,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flex": 1,
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
         "marginLeft": 16,
         "marginTop": 0,
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
@@ -81,11 +82,10 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

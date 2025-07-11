@@ -16,7 +16,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -31,6 +31,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
   />
   <View
     collapsable={false}
+    enabled={true}
+    handlerTag={-1}
+    handlerType="PanGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     style={
@@ -103,10 +106,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
                 "fontSize": 18,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -135,7 +137,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
               testID="whats-new-modal-close-button"
             >
               <SvgMock
-                color="#141618"
+                color="#121314"
+                fill="currentColor"
                 height={20}
                 name="Close"
                 style={
@@ -158,6 +161,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
         >
           <RCTScrollView
             collapsable={false}
+            handlerTag={-1}
+            handlerType="NativeViewGestureHandler"
             horizontal={true}
             onGestureHandlerEvent={[Function]}
             onGestureHandlerStateChange={[Function]}
@@ -175,6 +180,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
             <View>
               <RCTScrollView
                 collapsable={false}
+                handlerTag={-1}
+                handlerType="NativeViewGestureHandler"
                 onGestureHandlerEvent={[Function]}
                 onGestureHandlerStateChange={[Function]}
                 style={
@@ -212,10 +219,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Medium",
-                            "fontSize": 16,
-                            "fontWeight": "500",
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 18,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "marginBottom": 12,
@@ -254,10 +260,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -272,10 +277,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -290,10 +294,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -320,7 +323,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                             [
                               [
                                 {
-                                  "borderRadius": 100,
+                                  "borderRadius": 12,
                                   "justifyContent": "center",
                                   "padding": 15,
                                 },
@@ -345,7 +348,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                                 null,
                                 [
                                   {
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 14,
                                     "fontWeight": "600",
                                     "textAlign": "center",
@@ -369,6 +372,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
               </RCTScrollView>
               <RCTScrollView
                 collapsable={false}
+                handlerTag={-1}
+                handlerType="NativeViewGestureHandler"
                 onGestureHandlerEvent={[Function]}
                 onGestureHandlerStateChange={[Function]}
                 style={
@@ -430,10 +435,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Medium",
-                            "fontSize": 16,
-                            "fontWeight": "500",
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 18,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "marginBottom": 12,
@@ -448,10 +452,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,
@@ -466,10 +469,9 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 16,
-                            "fontWeight": "400",
                             "letterSpacing": 0,
                             "lineHeight": 20,
                             "marginBottom": 24,

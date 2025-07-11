@@ -1,339 +1,258 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SeedphraseModal should render correctly 1`] = `
-<Modal
-  animationType="none"
-  deviceHeight={null}
-  deviceWidth={null}
-  hardwareAccelerated={false}
-  hideModalContentWhileAnimating={false}
-  onBackdropPress={[Function]}
-  onModalHide={[Function]}
-  onModalWillHide={[Function]}
-  onModalWillShow={[Function]}
-  onRequestClose={[Function]}
-  panResponderThreshold={4}
-  scrollHorizontal={false}
-  scrollOffset={0}
-  scrollOffsetMax={0}
-  scrollTo={null}
-  statusBarTranslucent={false}
-  supportedOrientations={
-    [
-      "portrait",
-      "landscape",
-    ]
-  }
-  swipeDirection="down"
-  swipeThreshold={100}
-  transparent={true}
-  visible={true}
+exports[`SeedphraseModal renders matches snapshot 1`] = `
+<div
+  data-testid="mock-bottom-sheet"
 >
   <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessible={true}
-    collapsable={false}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
     style={
       {
-        "backgroundColor": "#00000099",
-        "bottom": 0,
-        "height": 1334,
-        "left": 0,
-        "opacity": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-        "width": 750,
+        "alignItems": "center",
+        "flexDirection": "column",
+        "justifyContent": "center",
+        "padding": 16,
+        "rowGap": 16,
       }
-    }
-  />
-  <View
-    onLayout={[Function]}
-    pointerEvents="box-none"
-    style={
-      [
-        [
-          {
-            "margin": 37.5,
-            "transform": [
-              {
-                "translateY": 0,
-              },
-            ],
-          },
-          {
-            "flex": 1,
-            "justifyContent": "center",
-          },
-          [
-            {
-              "margin": 0,
-              "width": "100%",
-            },
-            undefined,
-          ],
-          {
-            "margin": 0,
-          },
-        ],
-        {
-          "paddingBottom": 0,
-        },
-      ]
     }
   >
     <View
-      collapsable={false}
-      deviceHeight={null}
-      deviceWidth={null}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onMoveShouldSetResponder={[Function]}
-      onMoveShouldSetResponderCapture={[Function]}
-      onResponderEnd={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderReject={[Function]}
-      onResponderRelease={[Function]}
-      onResponderStart={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      onStartShouldSetResponderCapture={[Function]}
-      panResponderThreshold={4}
-      pointerEvents="box-none"
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
       style={
         {
-          "flex": 1,
+          "alignItems": "center",
+          "flexDirection": "row",
           "justifyContent": "center",
-          "left": 0,
-          "margin": 0,
-          "top": 0,
-          "transform": [
-            {
-              "translateY": 1334,
-            },
-          ],
-          "width": "100%",
         }
       }
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
     >
-      <View
+      <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "column",
-              "justifyContent": "center",
-              "marginHorizontal": 24,
-            },
-            null,
-          ]
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 18,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
         }
       >
+        What’s a Secret Recovery Phrase?
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Anyone with your Secret Recovery Phrase can:
+        </Text>
         <View
           style={
-            [
-              {
-                "backgroundColor": "#ffffff",
-                "borderRadius": 10,
-                "width": "100%",
-              },
-              null,
-            ]
+            {
+              "marginLeft": 10,
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                null,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+              }
             }
           >
-            <View
+            <Text
+              accessibilityRole="text"
               style={
                 {
-                  "flex": 1,
-                  "flexDirection": "column",
-                  "padding": 27,
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginRight": 10,
                 }
               }
             >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "center",
-                    "marginBottom": 16,
-                  }
+              •
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
                 }
-              >
-                <View
-                  style={
-                    {
-                      "width": 26,
-                    }
-                  }
-                />
-                <Text
-                  style={
-                    {
-                      "color": "#141618",
-                      "flex": 1,
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 18,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    }
-                  }
-                >
-                  What is a ‘Secret Recovery Phrase’
-                </Text>
-                <TouchableOpacity
-                  hitSlop={
-                    {
-                      "bottom": 10,
-                      "left": 10,
-                      "right": 10,
-                      "top": 10,
-                    }
-                  }
-                  style={
-                    {
-                      "alignItems": "flex-end",
-                      "padding": 5,
-                    }
-                  }
-                >
-                  <Text
-                    allowFontScaling={false}
-                    style={
-                      [
-                        {
-                          "color": undefined,
-                          "fontSize": 12,
-                        },
-                        {
-                          "color": "#141618",
-                          "fontSize": 16,
-                        },
-                        {
-                          "fontFamily": "FontAwesome",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <Text
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 20,
-                      "marginTop": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                >
-                  A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
-                </Text>
-                <Text
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 20,
-                      "marginTop": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                >
-                  You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.
-                </Text>
-                <Text
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 20,
-                      "marginTop": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                >
-                  Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
-                </Text>
-              </View>
-            </View>
+              }
+            >
+              Take all your money
+            </Text>
           </View>
           <View
             style={
-              [
-                {
-                  "borderTopColor": "#BBC0C566",
-                  "borderTopWidth": 1,
-                  "flexDirection": "row",
-                  "padding": 16,
-                },
-                {
-                  "borderTopWidth": 0,
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+              }
             }
-          />
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginRight": 10,
+                }
+              }
+            >
+              •
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Confirm transactions
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginRight": 10,
+                }
+              }
+            >
+              •
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Change your login information
+            </Text>
+          </View>
         </View>
       </View>
     </View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Got it
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
-</Modal>
+</div>
 `;

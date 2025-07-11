@@ -30,9 +30,9 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "paddingBottom": 10,
@@ -43,10 +43,11 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 24,
               },
               {
@@ -69,33 +70,7 @@ exports[`SelectComponent should render correctly 1`] = `
         </Text>
       </View>
     </TouchableOpacity>
-    <Modal
-      animationType="none"
-      deviceHeight={null}
-      deviceWidth={null}
-      hardwareAccelerated={false}
-      hideModalContentWhileAnimating={false}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onRequestClose={[Function]}
-      panResponderThreshold={4}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      supportedOrientations={
-        [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeThreshold={100}
-      transparent={true}
-      visible={false}
-    />
+    <View />
   </View>
 </View>
 `;

@@ -1,5 +1,9 @@
 import type { Theme } from '@metamask/design-tokens';
 import { Dimensions, StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 export const CHART_HEIGHT = Dimensions.get('screen').height * 0.44;
 
@@ -32,6 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     noDataOverlayTitle: {
       ...typography.sHeadingMD,
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
     } as TextStyle,
     noDataOverlayText: {

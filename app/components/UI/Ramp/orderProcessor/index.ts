@@ -1,8 +1,9 @@
-import { ProcessorOptions } from '..';
+import { ProcessorOptions } from '../index';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
-import { processAggregatorOrder } from './aggregator';
+import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
+import { processDepositOrder } from '../Deposit/orderProcessor';
 
 function processOrder(
   order: FiatOrder,
@@ -16,6 +17,9 @@ function processOrder(
     }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
       return processAggregatorOrder(order, options);
+    }
+    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
+      return processDepositOrder(order, options);
     }
     default: {
       const unrecognizedProviderError = new Error(

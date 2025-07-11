@@ -33,6 +33,10 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  DeFiPositionsController,
+  DeFiPositionsControllerState,
+  DeFiPositionsControllerEvents,
+  DeFiPositionsControllerActions,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -42,6 +46,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  TokenSearchDiscoveryDataController,
+  TokenSearchDiscoveryDataControllerState,
+  TokenSearchDiscoveryDataControllerActions,
+  TokenSearchDiscoveryDataControllerEvents,
   MultichainAssetsController,
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
@@ -97,7 +105,6 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -143,8 +150,6 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
@@ -161,6 +166,10 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
+  MultichainRouterActions,
+  WebSocketService,
+  WebSocketServiceActions,
+  WebSocketServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -254,10 +263,36 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+import {
+  PerpsController,
+  PerpsControllerState,
+  PerpsControllerActions,
+  PerpsControllerEvents,
+} from '../../components/UI/Perps/controllers/PerpsController';
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerEvents,
+} from '@metamask/seedless-onboarding-controller';
+import { EncryptionKey } from '../Encryptor/types';
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
+import {
+  AppMetadataController,
+  AppMetadataControllerActions,
+  AppMetadataControllerEvents,
+  AppMetadataControllerState,
+} from '@metamask/app-metadata-controller';
+import type { ErrorReportingServiceActions } from '@metamask/error-reporting-service';
+import {
+  AccountTreeController,
+  AccountTreeControllerState,
+  AccountTreeControllerActions,
+  AccountTreeControllerEvents,
+} from '@metamask/account-tree-controller';
 
 /**
  * Controllers that area always instantiated
@@ -286,14 +321,12 @@ type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
+  | PhishingControllerActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
-  | SnapsAllowedEvents;
+  | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
@@ -317,6 +350,7 @@ type GlobalActions =
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
+  | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -326,6 +360,7 @@ type GlobalActions =
   | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
+  | AccountTreeControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
   | TokenBalancesControllerActions
@@ -338,10 +373,16 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
+  | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
-  | EarnControllerActions;
+  | EarnControllerActions
+  | PerpsControllerActions
+  | AppMetadataControllerActions
+  | MultichainRouterActions
+  | DeFiPositionsControllerActions
+  | ErrorReportingServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -363,6 +404,7 @@ type GlobalEvents =
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
+  | WebSocketServiceEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -386,18 +428,17 @@ type GlobalEvents =
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
+  | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
-
-// TODO: Abstract this into controller utils for TransactionController
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
+  | EarnControllerEvents
+  | PerpsControllerEvents
+  | AppMetadataControllerEvents
+  | SeedlessOnboardingControllerEvents
+  | DeFiPositionsControllerEvents
+  | AccountTreeControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -416,8 +457,10 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
   AccountsController: AccountsController;
+  AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
+  AppMetadataController: AppMetadataController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -442,6 +485,7 @@ export type Controllers = {
   TokenRatesController: TokenRatesController;
   TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
+  DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
@@ -456,6 +500,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
+  WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -465,10 +510,13 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  PerpsController: PerpsController;
+  SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
 /**
@@ -485,6 +533,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -501,6 +550,7 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
@@ -517,6 +567,7 @@ export type EngineState = {
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
+  AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -526,10 +577,13 @@ export type EngineState = {
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  PerpsController: PerpsControllerState;
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
 /** Controller names */
@@ -566,6 +620,10 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'WebSocketService'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController'
+  | 'AppMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -573,10 +631,17 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
-  | 'CurrencyRateController'
+  | 'AccountTreeController'
   | 'AccountsController'
+  | 'ApprovalController'
+  | 'CurrencyRateController'
+  | 'DeFiPositionsController'
+  | 'GasFeeController'
   | 'MultichainNetworkController'
-  | 'TransactionController';
+  | 'SignatureController'
+  | 'SeedlessOnboardingController'
+  | 'TransactionController'
+  | 'PerpsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -673,7 +738,6 @@ export type ControllerInitFunction<
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;

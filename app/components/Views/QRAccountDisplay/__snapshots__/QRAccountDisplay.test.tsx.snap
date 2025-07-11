@@ -150,7 +150,13 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -315,28 +325,26 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                         style={
                           {
                             "alignSelf": "center",
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Medium",
-                            "fontSize": 16,
-                            "fontWeight": "500",
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 18,
                             "letterSpacing": 0,
                             "lineHeight": 24,
                             "marginBottom": 16,
                           }
                         }
                       >
-                        0xd8dA...6045
+                        0xd8dA6...96045
                       </Text>
                       <Text
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
-                            "fontWeight": "400",
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                             "textAlign": "center",
                             "width": 185,
                           }
@@ -347,12 +355,11 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#9fa6ae",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 14,
-                              "fontWeight": "400",
+                              "color": "#9ca1af",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 24,
                             }
                           }
                         >
@@ -372,17 +379,19 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                             "alignItems": "center",
                             "alignSelf": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 24,
+                            "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "overflow": "hidden",
                             "paddingHorizontal": 16,
                           }
                         }
                         testID="qr-account-display-copy-button"
                       >
                         <SvgMock
-                          color="#0376c9"
+                          color="#4459ff"
+                          fill="currentColor"
                           height={16}
                           name="Copy"
                           style={
@@ -398,12 +407,11 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#0376c9",
-                              "fontFamily": "EuclidCircularB-Medium",
-                              "fontSize": 14,
-                              "fontWeight": "500",
+                              "color": "#4459ff",
+                              "fontFamily": "Geist Medium",
+                              "fontSize": 16,
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 24,
                             }
                           }
                         >

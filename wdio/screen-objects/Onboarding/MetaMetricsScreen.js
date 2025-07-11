@@ -5,21 +5,22 @@ import {
   OPTIN_METRICS_TITLE_ID,
 } from '../testIDs/Screens/OptinMetricsScreen.testIds';
 import Selectors from '../../helpers/Selectors';
+import { MetaMetricsOptInSelectorsIDs } from '../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 
 class MetaMetricsScreen {
   get screenTitle() {
-    return Selectors.getXpathElementByResourceId(OPTIN_METRICS_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID);
   }
 
   get iAgreeButton() {
     return Selectors.getXpathElementByResourceId(
-      OPTIN_METRICS_I_AGREE_BUTTON_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID,
     );
   }
 
   get noThanksButton() {
     return Selectors.getXpathElementByResourceId(
-      OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID,
     );
   }
 

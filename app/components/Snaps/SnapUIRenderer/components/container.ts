@@ -3,6 +3,7 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
@@ -39,7 +40,9 @@ export const container: UIComponentFactory<BoxElement> = ({
         key: 'default-button',
         props: {
           onCancel,
+          variant: ButtonVariants.Secondary,
           isSnapAction: false,
+          testID: 'default-snap-footer-button',
         },
         children: t('navigation.close'),
       },
@@ -62,19 +65,25 @@ export const container: UIComponentFactory<BoxElement> = ({
     },
   };
 
+  const scrollView =  {
+    element: 'ScrollView',
+    key: 'default-scrollview',
+    children: {
+      // This is a hack to enable proper scrolling.
+      element: 'TouchableHighlight',
+      children: styledContent,
+    },
+    props: {
+      style: {
+        marginBottom: useFooter && footer ? 80 : 0,
+      },
+    },
+  };
+
   return {
     element: 'Box',
     children: [
-      {
-        element: 'ScrollView',
-        key: 'default-scrollview',
-        children: styledContent,
-        props: {
-          style: {
-            marginBottom: useFooter && footer ? 80 : 0,
-          },
-        },
-      },
+      scrollView,
       ...(footer ? [footer] : []),
     ],
     props: {

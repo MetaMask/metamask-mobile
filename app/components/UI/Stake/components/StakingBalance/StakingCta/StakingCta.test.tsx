@@ -15,7 +15,7 @@ jest.mock('@react-navigation/native', () => {
 });
 describe('StakingCta', () => {
   it('render matches snapshot', () => {
-    render(<StakingCta estimatedRewardRate="2.6%" />);
+    render(<StakingCta chainId="0x1" estimatedRewardRate="2.6%" />);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });

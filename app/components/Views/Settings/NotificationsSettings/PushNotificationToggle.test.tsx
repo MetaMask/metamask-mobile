@@ -6,9 +6,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   PushNotificationToggle,
   PUSH_NOTIFICATION_TOGGLE_TEST_ID,
-  PUSH_NOTIFICATION_TOGGLE_SWITCH_TEST_ID,
 } from './PushNotificationToggle';
 import { strings } from '../../../../../locales/i18n';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 describe('PushNotificationToggle', () => {
   const arrangeMocks = () => {
@@ -59,7 +59,7 @@ describe('PushNotificationToggle', () => {
 
     // Assert Toggle State
     const switchElement = container.getByTestId(
-      PUSH_NOTIFICATION_TOGGLE_SWITCH_TEST_ID,
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
     );
     expect(switchElement.props.disabled).toBe(false);
 
@@ -79,7 +79,7 @@ describe('PushNotificationToggle', () => {
 
     // Assert Toggle State
     const switchElement = container.getByTestId(
-      PUSH_NOTIFICATION_TOGGLE_SWITCH_TEST_ID,
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
     );
     expect(switchElement.props.disabled).toBe(true);
 

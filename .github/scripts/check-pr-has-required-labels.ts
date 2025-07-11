@@ -58,7 +58,7 @@ async function main(): Promise<void> {
       console.log(`PR contains a team label as expected: ${label}`);
       hasTeamLabel = true;
     }
-    if (label.includes('Run Smoke E2E') || label.includes('No QA Needed') || label.includes('QA Passed')  ) {
+    if (label.includes('No QA Needed') || label.includes('QA Passed')  ) {
       console.log(`PR contains a QA label as expected: ${label}`);
       hasQALabel = true;
     }
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
   }
   
   if (!hasQALabel) {
-    errorMessage += 'No \'Run E2E Smoke\' or \'No QA Needed\' or \'QA Passed\' label. ';
+    errorMessage += 'No \'No QA Needed\' or \'QA Passed\' label. ';
   }
   errorMessage += `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
   core.setFailed(errorMessage);

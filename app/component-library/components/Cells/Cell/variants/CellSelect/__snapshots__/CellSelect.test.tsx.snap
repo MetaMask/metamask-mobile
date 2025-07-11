@@ -192,10 +192,9 @@ exports[`CellSelect should render default settings correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -209,12 +208,11 @@ exports[`CellSelect should render default settings correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -225,12 +223,11 @@ exports[`CellSelect should render default settings correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -240,7 +237,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 10,
                 "borderWidth": 1,
                 "height": 24,
@@ -254,12 +251,11 @@ exports[`CellSelect should render default settings correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >

@@ -13,10 +13,9 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 16,
-        "fontWeight": "500",
+        "color": "#121314",
+        "fontFamily": "Geist Medium",
+        "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
       }
@@ -28,12 +27,11 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
-        "fontWeight": "400",
+        "color": "#686e7d",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "marginTop": 8,
       }
     }
@@ -60,7 +58,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 4,
           "borderWidth": 0,
           "padding": 16,
@@ -117,10 +115,9 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -142,7 +139,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -154,7 +151,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -162,7 +159,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             }
             testID="incoming-mainnet-toggle"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={true}
           />
         </View>
@@ -179,7 +176,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 4,
           "borderWidth": 0,
           "padding": 16,
@@ -236,10 +233,9 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -261,7 +257,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -273,7 +269,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -281,7 +277,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             }
             testID="incoming-linea-mainnet-toggle"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={true}
           />
         </View>
@@ -291,21 +287,21 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       avatarProps={
         {
           "imageSource": 1,
-          "name": "Solana Mainnet",
+          "name": "Solana",
           "variant": "Network",
         }
       }
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 4,
           "borderWidth": 0,
           "padding": 16,
         }
       }
       testID="celldisplay"
-      title="Solana Mainnet"
+      title="Solana"
     >
       <View
         style={
@@ -355,17 +351,16 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
             }
             testID="cellbase-avatar-title"
           >
-            Solana Mainnet
+            Solana
           </Text>
         </View>
         <View
@@ -380,7 +375,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -392,7 +387,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -400,7 +395,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             }
             testID="solana-incoming-transactions-toggle"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={false}
           />
         </View>

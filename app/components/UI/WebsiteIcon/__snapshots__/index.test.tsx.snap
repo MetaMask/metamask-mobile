@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`WebsiteIcon should render correctly 1`] = `
+exports[`WebsiteIcon renders correctly when only title is provided 1`] = `
 <View>
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -40,7 +40,207 @@ exports[`WebsiteIcon should render correctly 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`WebsiteIcon renders correctly when title and url are null 1`] = `
+<View>
+  <View
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      source={
+        {
+          "uri": "mockedFaviconSource.png",
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`WebsiteIcon renders correctly when title and url are provided 1`] = `
+<View>
+  <View
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      source={
+        {
+          "uri": "mockedFaviconSource.png",
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`WebsiteIcon renders correctly when title is null and url is provided 1`] = `
+<View>
+  <View
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      source={
+        {
+          "uri": "mockedFaviconSource.png",
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`WebsiteIcon renders correctly when title is null and url is undefined 1`] = `
+<View>
+  <View
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      onLoadEnd={[Function]}
+      source={
+        {
+          "uri": "mockedFaviconSource.png",
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }

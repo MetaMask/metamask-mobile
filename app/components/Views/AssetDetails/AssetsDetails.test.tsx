@@ -190,7 +190,7 @@ describe('AssetDetails', () => {
       </Provider>,
     );
 
-    const copyElement = getByText('0xAddr...ress');
+    const copyElement = getByText('0xAddre...dress');
     fireEvent.press(copyElement);
 
     await waitFor(() => {

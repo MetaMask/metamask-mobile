@@ -1,9 +1,14 @@
-import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
+import {
+  FooterElement,
+  ButtonElement,
+  JSXElement,
+} from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
-import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
-import { button as buttonFn } from './button';
+import { UIComponent, UIComponentFactory } from './types';
 import { TemplateConfirmation } from '../../SnapDialogApproval/SnapDialogApproval';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { mapTextToTemplate } from '../utils';
+import { NonEmptyArray } from '@metamask/utils';
 
 export const DEFAULT_FOOTER = {
   element: 'Box',
@@ -58,19 +63,23 @@ export const footer: UIComponentFactory<FooterElement> = ({
 
   const footerChildren: UIComponent[] = (
     providedChildren as ButtonElement[]
-  ).map((children, index) => {
-    const buttonMapped = buttonFn({
-      ...params,
-      t,
-      element: children,
-      onCancel,
-    } as UIComponentParams<ButtonElement>);
+  ).map((child, index) => {
+    const textChildren = mapTextToTemplate(
+      getJsxChildren(child) as NonEmptyArray<string | JSXElement>,
+      // We specifically use inherit here because we know this will be nested in colored Text.
+      { ...params, textColor: 'inherit' },
+    );
 
     return {
       element: 'SnapUIFooterButton',
-      key: `snap-footer-button-${buttonMapped.props?.name ?? index}`,
+      key: `snap-footer-button-${child.props?.name ?? index}`,
       props: {
-        ...buttonMapped.props,
+        form: child.props.form,
+        type: child.props.type,
+        name: child.props.name,
+        disabled: child.props.disabled,
+        loading: child.props.loading ?? false,
+        snapVariant: child.props.variant,
         variant:
           providedChildren.length === 2 && index === 0
             ? ButtonVariants.Secondary
@@ -78,7 +87,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
         isSnapAction: true,
         onCancel,
       },
-      children: buttonMapped.children,
+      children: textChildren,
     };
   });
 

@@ -50,8 +50,6 @@ const mockTrackEvent = jest.fn();
 
 describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-
     // Mock hook return value
     (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: true,
@@ -143,6 +141,47 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('logs LEDGER_HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
+    const onConfirmation = jest.fn();
+
+    const ledgerLogicToRun = jest.fn();
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
+      isSendingLedgerCommands: true,
+      isAppLaunchConfirmationNeeded: false,
+      ledgerLogicToRun,
+      error: null,
+    });
+
+    ledgerLogicToRun.mockImplementation(() => {
+      throw new Error('error');
+    });
+
+    renderWithProvider(
+      <LedgerConfirmationModal
+        onConfirmation={onConfirmation}
+        onRejection={jest.fn()}
+        deviceId={'test'}
+      />,
+    );
+
+    // eslint-disable-next-line no-empty-function
+    await act(async () => {});
+
+    expect(onConfirmation).not.toHaveBeenCalled();
+
+    expect(mockTrackEvent).toHaveBeenNthCalledWith(
+      1,
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
+      )
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+          error: 'LEDGER_ETH_APP_NOT_INSTALLED',
+        })
+        .build(),
+    );
   });
 
   it('renders SearchingForDeviceStep when not sending ledger commands', () => {
@@ -372,47 +411,6 @@ describe('LedgerConfirmationModal', () => {
     await act(async () => {});
 
     expect(onConfirmation).toHaveBeenCalled();
-  });
-
-  it('logs LEDGER_HARDWARE_WALLET_ERROR event when the ledger error occurs', async () => {
-    const onConfirmation = jest.fn();
-
-    const ledgerLogicToRun = jest.fn();
-    (useLedgerBluetooth as jest.Mock).mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun,
-      error: null,
-    });
-
-    ledgerLogicToRun.mockImplementation(() => {
-      throw new Error('error');
-    });
-
-    renderWithProvider(
-      <LedgerConfirmationModal
-        onConfirmation={onConfirmation}
-        onRejection={jest.fn()}
-        deviceId={'test'}
-      />,
-    );
-
-    // eslint-disable-next-line no-empty-function
-    await act(async () => {});
-
-    expect(onConfirmation).not.toHaveBeenCalled();
-
-    expect(mockTrackEvent).toHaveBeenNthCalledWith(
-      1,
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
-      )
-        .addProperties({
-          device_type: HardwareDeviceTypes.LEDGER,
-          error: 'LEDGER_ETH_APP_NOT_INSTALLED',
-        })
-        .build(),
-    );
   });
 
   it('calls onRejection when user refuses confirmation', async () => {

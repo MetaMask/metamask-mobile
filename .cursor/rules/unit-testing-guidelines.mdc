@@ -1,0 +1,161 @@
+---
+description: Project Guidelines for Unit Testing
+globs: *.test.*
+alwaysApply: false
+---
+- Use (the unit testing guidelines)[https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md]
+
+# Developer Best Practices
+
+- Use meaningful test names that describe the purpose, not implementation details.
+```ts
+it('displays an error when input is invalid', () => { ... });
+```
+- Structure tests using the AAA pattern (Arrange, Act, Assert) for readability and maintainability.
+```ts
+// Arrange
+const input = 'bad';
+// Act
+const result = validate(input);
+// Assert
+expect(result).toBe(false);
+```
+- Each test must cover one behavior and be isolated from others.
+```ts
+it('returns true for valid email', () => { expect(isEmail('a@b.com')).toBe(true); });
+```
+- Favor focused assertions and clear structure.
+```ts
+expect(screen.getByText('Welcome')).toBeOnTheScreen();
+```
+- Avoid duplicated or polluted tests.
+```ts
+// Only define shared mocks once, not in every test
+beforeEach(() => mockReset());
+```
+- Use mocks only when necessary.
+```ts
+jest.mock('api'); // mock only when calling real API is not feasible
+```
+- Parameterize tests to cover all values (e.g., enums) with type-safe iteration.
+```ts
+it.each(['small', 'medium', 'large'] as const)('renders %s size', (size) => {
+  expect(renderComponent(size)).toBeOnTheScreen();
+});
+```
+- Prefer comments like "Given / When / Then" for test case clarity.
+```ts
+// Given a logged out user
+// When they visit the dashboard
+// Then they should be redirected to login
+```
+
+# Test Determinism & Brittleness
+
+- Avoid brittle tests: do not test internal state or UI snapshots for logic.
+- Only test public behavior, not implementation details.
+- Mock time, randomness, and external systems to ensure consistent results.
+```ts
+jest.useFakeTimers();
+jest.setSystemTime(new Date('2024-01-01'));
+```
+- Avoid relying on global state or hardcoded values (e.g., dates) or mock it.
+
+# Reviewer Responsibilities
+
+- Validate that tests fail when the code is broken (test the test).
+```ts
+// Break the SuT and make sure this test fails
+expect(result).toBe(false);
+```
+- Ensure tests use proper matchers (`toBeOnTheScreen` vs `toBeDefined`).
+- Do not approve PRs without reviewing snapshot diffs.
+- Reject tests with complex names combining multiple logical conditions (AND/OR).
+```ts
+// OK
+it('renders button when enabled')
+
+// NOT OK
+it('renders and disables button when input is empty or invalid')
+```
+
+# Refactoring Support
+
+- Ensure tests provide safety nets during refactors and logic changes. Run the tests before pushing commits!
+- Encourage small, testable components.
+- Unit tests must act as documentation for feature expectations.
+
+# Anti-patterns to Avoid
+
+- ❌ Do not consider snapshot coverage as functional coverage.
+```ts
+expect(component).toMatchSnapshot(); // 🚫 not behavior validation
+```
+- ❌ Do not rely on code coverage percentage without real assertions.
+```ts
+// 100% lines executed, but no assertions
+```
+- ❌ Do not use weak matchers like `toBeDefined` or `toBeTruthy` to assert element presence.
+```ts
+expect(queryByText('Item')).toBeOnTheScreen(); // ✅ use strong matchers
+```
+
+# Unit tests developement workflow
+
+- Always run unit tests after making code changes.
+```shell
+yarn test:unit
+```
+- Confirm all tests are passing before commit.
+- When a snapshot update is detected, confirm the changes are expected.
+- Do not blindly update snapshots without understanding the differences.
+
+# Reference Code Examples
+
+## ✅ Proper Test Structure (AAA)
+```ts
+it('indicates expired milk when past due date', () => {
+  // Arrange
+  const today = new Date('2025-06-01');
+  const milk = { expiration: new Date('2025-05-30') };
+
+  // Act
+  const result = isMilkGood(today, milk);
+
+  // Assert
+  expect(result).toBe(false);
+});
+```
+
+## ❌ Brittle Snapshot
+```ts
+it('renders the button', () => {
+  const { container } = render(<MyButton />);
+  expect(container).toMatchSnapshot(); // 🚫 fails on minor style changes
+});
+```
+
+## ✅ Robust UI Assertion
+```ts
+it('displays error message when API fails', async () => {
+  mockApi.failOnce();
+  const { findByText } = render(<MyComponent />);
+  expect(await findByText('Something went wrong')).toBeOnTheScreen();
+});
+```
+
+## ✅ Test the Test
+```ts
+it('hides selector when disabled', () => {
+  const { queryByTestId } = render(<Selector enabled={false} />);
+  expect(queryByTestId('IPFS_GATEWAY_SELECTED')).toBeNull();
+
+  // Intentionally break: render with enabled=true and see if test fails
+});
+```
+
+# Resources
+
+- Contributor docs: https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/unit-testing.md
+- Jest Matchers: https://jestjs.io/docs/using-matchers
+- React Native Testing Library: https://testing-library.com/docs/react-native-testing-library/intro/

@@ -1,10 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, StyleSheet, TextStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
-import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -66,6 +69,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     skipText: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.primary.default,
     } as TextStyle,
   });
@@ -77,24 +81,14 @@ interface OnboardingWizardProps {
   coachmarkRef?: React.RefObject<unknown> | null;
 }
 
-interface DrawerRef {
-  dismissDrawer: () => void;
-  showDrawer: () => void;
-}
-
 const OnboardingWizard = ({
   navigation,
   coachmarkRef,
 }: OnboardingWizardProps) => {
-  const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
-
-  const isAutomaticSecurityChecksModalOpen = useSelector(
-    (state: RootState) => state.security.isAutomaticSecurityChecksModalOpen,
-  );
 
   const { step } = useSelector((state: RootState) => state.wizard);
 
@@ -149,21 +143,11 @@ const OnboardingWizard = ({
     } else if (step === 6) {
       dispatch(setOnboardingWizardStep(5));
       navigation.navigate(Routes.WALLET.HOME);
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.dismissDrawer?.();
     } else if (step === 7) {
-      (
-        drawerRef as unknown as React.RefObject<DrawerRef>
-      )?.current?.showDrawer?.();
       dispatch(setOnboardingWizardStep(6));
     }
     return setOnboardingWizardStep(step - 1);
   };
-
-  if (isAutomaticSecurityChecksModalOpen) {
-    return null;
-  }
 
   return (
     <Modal

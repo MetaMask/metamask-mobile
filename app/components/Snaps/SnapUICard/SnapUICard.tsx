@@ -7,7 +7,6 @@ import Text, {
 import { SnapUIImage } from '../SnapUIImage/SnapUIImage';
 import {
   FlexDirection,
-  TextAlign,
   JustifyContent,
   AlignItems,
 } from '../../UI/Box/box.types';
@@ -34,6 +33,7 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
     alignItems={AlignItems.center}
     // eslint-disable-next-line react-native/no-inline-styles
     style={{ flex: 1 }}
+    gap={8}
   >
     <Box
       gap={16}
@@ -41,7 +41,7 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
       alignItems={AlignItems.center}
     >
       {image && (
-        <SnapUIImage width={32} height={32} borderRadius="full" value={image} />
+        <SnapUIImage width={32} height={32} borderRadius={999} value={image} />
       )}
       <Box flexDirection={FlexDirection.Column}>
         <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
@@ -54,12 +54,22 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
         )}
       </Box>
     </Box>
-    <Box flexDirection={FlexDirection.Column} textAlign={TextAlign.right}>
-      <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
+    <Box flexDirection={FlexDirection.Column}>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        ellipsizeMode="tail"
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{ textAlign: 'right' }}
+      >
         {value}
       </Text>
       {extra && (
-        <Text color={TextColor.Alternative} ellipsizeMode="tail">
+        <Text
+          color={TextColor.Alternative}
+          ellipsizeMode="tail"
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{ textAlign: 'right' }}
+        >
           {extra}
         </Text>
       )}

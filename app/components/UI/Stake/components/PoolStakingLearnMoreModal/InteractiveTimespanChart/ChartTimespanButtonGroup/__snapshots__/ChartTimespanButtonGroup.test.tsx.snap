@@ -18,7 +18,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#3c4d9d1a",
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
@@ -31,12 +31,11 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#686e7d",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -61,12 +60,11 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#686e7d",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -91,12 +89,11 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#686e7d",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -121,12 +118,11 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#686e7d",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

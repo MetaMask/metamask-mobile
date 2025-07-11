@@ -67,29 +67,51 @@ const Actions = {
 class Gestures {
   static async waitAndTap(element) {
     const elem = await element;
-    await elem.waitForDisplayed({timeout: 25000});
-    (await elem).touchAction(Actions.TAP);
+    await elem.waitForDisplayed({ timeout: 25000 });
+    await elem.click();
   }
 
   static async tap(element, tapType = 'TAP') {
-    // simple touch action on element
     const elem = await element;
-    await elem.isDisplayed();
     switch (tapType) {
       case 'TAP':
-        (await elem).touchAction(Actions.TAP);
+        await elem.click();
         break;
       case 'LONGPRESS':
-        (await elem).touchAction(Actions.LONGPRESS);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerDown', duration: 0 },
+            { type: 'pause', duration: 1000 },
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       case 'RELEASE':
-        (await elem).touchAction(Actions.RELEASE);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       case 'WAIT':
-        (await elem).touchAction(Actions.WAIT);
+        await driver.pause(1000);
         break;
       case 'MOVETO':
-        (await elem).touchAction(Actions.MOVETO);
+        const location = await elem.getLocation();
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerMove', duration: 0, x: location.x, y: location.y }
+          ]
+        }]);
         break;
       default:
         throw new Error('Tap type not found');
@@ -101,13 +123,29 @@ class Gestures {
     await elem.waitForDisplayed();
     switch (tapType) {
       case 'TAP':
-        await elem.touchAction(Actions.TAP);
+        await elem.click();
         break;
       case 'LONGPRESS':
-        await elem.touchAction(Actions.LONGPRESS);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerDown', duration: 0 },
+            { type: 'pause', duration: 1000 },
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       case 'RELEASE':
-        await elem.touchAction(Actions.RELEASE);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       default:
         throw new Error('Tap type not found');
@@ -116,16 +154,32 @@ class Gestures {
 
   static async tapByTextContaining(text, tapType = 'TAP') {
     const elem = await Selectors.getXpathElementByTextContains(text);
-    await elem.isDisplayed();
+    await elem.waitForDisplayed();
     switch (tapType) {
       case 'TAP':
-        await elem.touchAction(Actions.TAP);
+        await elem.click();
         break;
       case 'LONGPRESS':
-        await elem.touchAction(Actions.LONGPRESS);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerDown', duration: 0 },
+            { type: 'pause', duration: 1000 },
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       case 'RELEASE':
-        await elem.touchAction(Actions.RELEASE);
+        await driver.performActions([{
+          type: 'pointer',
+          id: 'finger1',
+          parameters: { pointerType: 'touch' },
+          actions: [
+            { type: 'pointerUp', duration: 0 }
+          ]
+        }]);
         break;
       default:
         throw new Error('Tap type not found');
@@ -154,17 +208,23 @@ class Gestures {
 
   static async longPress(element, waitTime) {
     const elem = await element;
-    (await elem).touchAction([
-      Actions.PRESS,
-      { action: Actions.WAIT, ms: waitTime },
-      Actions.RELEASE,
-    ]);
+    await elem.waitForDisplayed();
+    await driver.performActions([{
+      type: 'pointer',
+      id: 'finger1',
+      parameters: { pointerType: 'touch' },
+      actions: [
+        { type: 'pointerDown', duration: 0 },
+        { type: 'pause', duration: waitTime },
+        { type: 'pointerUp', duration: 0 }
+      ]
+    }]);
   }
 
   static async typeText(element, text) {
     const elem = await element;
     await elem.waitForDisplayed();
-    (await elem).touchAction(Actions.TAP);
+    await elem.click();
     await elem.clearValue();
     await elem.setValue(text, +'\n');
   }

@@ -6,7 +6,7 @@ exports[`WarningAlert should render correctly 1`] = `
     [
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#bf5208",
+        "borderColor": "#9a6300",
         "borderRadius": 8,
         "bottom": 20,
         "left": 16,
@@ -32,8 +32,8 @@ exports[`WarningAlert should render correctly 1`] = `
           "paddingVertical": 8,
         },
         {
-          "backgroundColor": "#BF52081A",
-          "borderColor": "#bf5208",
+          "backgroundColor": "#9a63001a",
+          "borderColor": "#9a6300",
         },
         {
           "flex": 1,
@@ -51,10 +51,11 @@ exports[`WarningAlert should render correctly 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
-              "color": "#bf5208",
+              "color": "#9a6300",
               "fontSize": 20,
             },
             {
@@ -69,15 +70,15 @@ exports[`WarningAlert should render correctly 1`] = `
           ]
         }
       >
-        
+        󰋼
       </Text>
     </View>
     <Text
       style={
         [
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -109,7 +110,7 @@ exports[`WarningAlert should render correctly 1`] = `
           undefined,
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
               "fontSize": 14,
               "lineHeight": 17,
@@ -125,8 +126,8 @@ exports[`WarningAlert should render correctly 1`] = `
         style={
           [
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -142,7 +143,7 @@ exports[`WarningAlert should render correctly 1`] = `
             undefined,
             undefined,
             {
-              "color": "#141618",
+              "color": "#121314",
             },
             undefined,
             undefined,
@@ -159,7 +160,7 @@ exports[`WarningAlert should render correctly 1`] = `
               "marginVertical": 0,
             },
             {
-              "color": "#141618",
+              "color": "#121314",
               "lineHeight": 18,
               "paddingLeft": 4,
             },
@@ -189,6 +190,7 @@ exports[`WarningAlert should render correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -196,7 +198,7 @@ exports[`WarningAlert should render correctly 1`] = `
                 "fontSize": 30,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
               },
               {
                 "fontFamily": "Ionicons",
@@ -207,7 +209,7 @@ exports[`WarningAlert should render correctly 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>

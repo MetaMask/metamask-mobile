@@ -3,9 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../Texts/Text';
-import { mockTheme } from '../../../util/theme';
-import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
+import Text, { TextVariant, getFontFamily } from '../Texts/Text';
 
 // Internal dependencies.
 import RadioButton from './RadioButton';
@@ -39,11 +37,7 @@ describe('RadioButton', () => {
     const { getByRole } = render(
       <RadioButton label={'Sample RadioButton Label'} />,
     );
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT]
-        .fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(DEFAULT_RADIOBUTTON_LABEL_TEXTVARIANT);
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
@@ -56,10 +50,7 @@ describe('RadioButton', () => {
       />,
     );
 
-    const fontFamily = getFontStyleVariant(
-      mockTheme.typography[testTextVariant].fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(testTextVariant);
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
 });

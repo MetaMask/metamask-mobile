@@ -10,12 +10,11 @@ exports[`ButtonLink should render correctly 1`] = `
   style={
     {
       "backgroundColor": "transparent",
-      "color": "#141618",
-      "fontFamily": "EuclidCircularB-Regular",
-      "fontSize": 14,
-      "fontWeight": "400",
+      "color": "#121314",
+      "fontFamily": "Geist Regular",
+      "fontSize": 16,
       "letterSpacing": 0,
-      "lineHeight": 22,
+      "lineHeight": 24,
     }
   }
   suppressHighlighting={true}
@@ -24,12 +23,11 @@ exports[`ButtonLink should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#0376c9",
-        "fontFamily": "EuclidCircularB-Medium",
-        "fontSize": 14,
-        "fontWeight": "500",
+        "color": "#4459ff",
+        "fontFamily": "Geist Medium",
+        "fontSize": 16,
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

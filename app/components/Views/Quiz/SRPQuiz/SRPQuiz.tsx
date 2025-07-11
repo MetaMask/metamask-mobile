@@ -30,7 +30,24 @@ import {
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
-const SRPQuiz = () => {
+export interface SRPQuizProps {
+  route: {
+    params: {
+      keyringId?: string;
+    };
+  };
+}
+
+const SRPQuiz = (
+  props: SRPQuizProps,
+) => {
+  // It has be destructured like this because of prettier
+  // shifting the fence to the ending curly brace.
+  const {
+    route: {
+      params: { keyringId },
+    },
+  } = props;
   const modalRef = useRef<ReusableModalRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
@@ -83,8 +100,14 @@ const SRPQuiz = () => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
+      keyringId,
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    keyringId,
+  ]);
 
   const introduction = useCallback(() => {
     trackEvent(

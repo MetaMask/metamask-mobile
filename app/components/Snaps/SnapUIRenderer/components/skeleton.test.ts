@@ -25,7 +25,7 @@ describe('skeleton component', () => {
     expect(result).toEqual({
       element: 'Skeleton',
       props: {
-        width: '100%',
+        width: 96,
         height: 22,
         style: {
           borderRadius: 6,

@@ -16,6 +16,9 @@ const arrangeMockState = (
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
       },
+      KeyringController: {
+        keyrings: [],
+      },
     },
   },
 });
@@ -26,14 +29,9 @@ const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
 
   const mockPerformSignInAction = jest.spyOn(actions, 'performSignIn');
 
-  const mockDisableProfileSyncingAction = jest.spyOn(
-    actions,
-    'disableProfileSyncing',
-  );
   return {
     state,
     mockPerformSignInAction,
-    mockDisableProfileSyncingAction,
   };
 };
 

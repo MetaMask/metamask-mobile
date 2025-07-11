@@ -3,16 +3,14 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenListFooter } from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
+import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
 import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
-import { TokenI } from '../../types';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('../../../Ramp/hooks/useRampNetwork', () => jest.fn());
-jest.mock('../../../Ramp/routes/utils', () => ({
+jest.mock('../../../Ramp/Aggregator/hooks/useRampNetwork', () => jest.fn());
+jest.mock('../../../Ramp/Aggregator/routes/utils', () => ({
   createBuyNavigationDetails: jest.fn(() => ['BuyScreen']),
 }));
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
@@ -44,8 +42,36 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       TokensController: {
+        ...backgroundState.TokensController,
         tokens: [],
         detectedTokens: [],
+        allTokens: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: [
+              {
+                symbol: 'ETH',
+                address: '0x00',
+                decimals: 18,
+                isETH: true,
+                balance: '0',
+              },
+              {
+                symbol: 'BAT',
+                address: '0x01',
+                decimals: 18,
+                isETH: false,
+                balance: '0',
+              },
+              {
+                symbol: 'LINK',
+                address: '0x02',
+                decimals: 18,
+                isETH: false,
+                balance: '0',
+              },
+            ],
+          },
+        },
       },
       NetworkController: {
         ...mockNetworkState({
@@ -85,21 +111,6 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('TokenListFooter', () => {
-  const mockTokens = [
-    {
-      isETH: true,
-      symbol: 'ETH',
-      balance: '0',
-    },
-  ] as TokenI[];
-
-  const mockProps = {
-    tokens: mockTokens,
-    goToAddToken: jest.fn(),
-    showDetectedTokens: jest.fn(),
-    isAddTokenEnabled: true,
-  };
-
   beforeEach(() => {
     (useRampNetwork as jest.Mock).mockReturnValue([true, true]);
   });
@@ -108,10 +119,10 @@ describe('TokenListFooter', () => {
     jest.clearAllMocks();
   });
 
-  const renderComponent = (props = mockProps) =>
+  const renderComponent = (initialStore = store) =>
     render(
-      <Provider store={store}>
-        <TokenListFooter {...props} />
+      <Provider store={initialStore}>
+        <TokenListFooter />
       </Provider>,
     );
 
@@ -125,7 +136,9 @@ describe('TokenListFooter', () => {
 
     expect(
       getByText(
-        strings('wallet.token_is_needed_to_continue', { tokenSymbol: 'ETH' }),
+        strings('wallet.token_is_needed_to_continue', {
+          tokenSymbol: 'Ethereum',
+        }),
       ),
     ).toBeDefined();
     expect(getByText(strings('wallet.next'))).toBeDefined();
@@ -139,27 +152,5 @@ describe('TokenListFooter', () => {
     await waitFor(() => {
       expect(MetaMetricsEvents.BUY_BUTTON_CLICKED).toBeDefined();
     });
-  });
-
-  it('renders the add tokens footer link and calls goToAddToken when pressed', () => {
-    const { getByTestId } = renderComponent();
-
-    fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK),
-    );
-
-    expect(mockProps.goToAddToken).toHaveBeenCalledTimes(1);
-  });
-
-  it('disables the add tokens footer link when isAddTokenEnabled is false', () => {
-    const { getByTestId } = renderComponent({
-      ...mockProps,
-      isAddTokenEnabled: false,
-    });
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK).props
-        .disabled,
-    ).toBe(true);
   });
 });

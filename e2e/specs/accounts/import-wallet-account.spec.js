@@ -22,7 +22,11 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+    await importWalletWithRecoveryPhrase(
+      {
+        seedPhrase: process.env.MM_TEST_WALLET_SRP,
+      },
+    );
   });
 
   it('should be able to import account', async () => {

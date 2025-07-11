@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
@@ -27,6 +27,10 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
+  get notificationsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
+  }
+
   get aesCryptoTestForm() {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
@@ -43,6 +47,12 @@ class SettingsView {
   get contactSupportSectionTitle() {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
+    );
+  }
+
+  get backupAndSyncSectionButton() {
+    return Matchers.getElementByID(
+      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
     );
   }
 
@@ -97,6 +107,14 @@ class SettingsView {
     await Gestures.waitAndTap(this.networksButton);
   }
 
+  async tapNotifications() {
+    await Gestures.waitAndTap(this.notificationsButton, 
+      {
+        elemDescription: 'Settings - Notifications Button',
+      },
+    );
+  }
+
   async tapContacts() {
     await Gestures.waitAndTap(this.contactsSettingsButton);
   }
@@ -116,6 +134,10 @@ class SettingsView {
 
   async tapYesAlertButton() {
     await Gestures.tap(this.alertButton);
+  }
+
+  async tapBackupAndSync() {
+    await Gestures.tap(this.backupAndSyncSectionButton);
   }
 }
 

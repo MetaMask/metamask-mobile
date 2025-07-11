@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { SmokeWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -21,23 +21,49 @@ import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../utils/Assertions';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { mockIdentityServices } from '../identity/utils/mocks';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
+const TEST_CONTACT = {
+  address: '0x90aF68e1ec406e77C2EA0E4e6EAc9475062d6456',
+  name: 'My Contact',
+  editedName: 'My edited contact',
+  network: 'Linea Main Network',
+  editedNetwork: 'Sepolia',
+};
 const MEMO = 'Test adding ENS';
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Addressbook Tests'), () => {
+describe(SmokeWalletPlatform('Addressbook Tests'), () => {
+  let mockServer;
+
+  // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition) => (condition ? it : it.skip);
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
+
+    mockServer = await startMockServer({});
+    await mockIdentityServices(mockServer);
+
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      newInstance: true,
+      delete: true,
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: mockServer.port,
+      },
     });
     await loginToApp();
+    await TestHelpers.delay(4000);
   });
 
   beforeEach(() => {
@@ -109,18 +135,43 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
     await AddContactView.tapEditButton();
     await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-    await AddContactView.tapEditContactCTA();
+    await TestHelpers.delay(1500);
 
-    // because tapping edit contact is slow to load on bitrise
-    try {
-      await Assertions.checkIfVisible(ContactsView.container);
-    } catch {
-      await AddContactView.tapEditContactCTA();
-      await Assertions.checkIfVisible(ContactsView.container);
-    }
+    await AddContactView.tapEditContactCTA();
     await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
     await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
   });
+
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should add a contact with a different network',
+    async () => {
+      await ContactsView.tapAddContactButton();
+      await Assertions.checkIfVisible(AddContactView.container);
+      await AddContactView.typeInName(TEST_CONTACT.name);
+      await AddContactView.typeInAddress(TEST_CONTACT.address);
+      await AddContactView.selectNetwork(TEST_CONTACT.network);
+      await Assertions.checkIfVisible(AddContactView.container);
+      await AddContactView.tapAddContactButton();
+      await Assertions.checkIfVisible(ContactsView.container);
+      // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
+      await ContactsView.isContactAliasVisible(TEST_CONTACT.name);
+    },
+  );
+
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should edit a contact with a different network',
+    async () => {
+      await ContactsView.tapOnAlias(TEST_CONTACT.name);
+      await AddContactView.tapEditButton();
+      await AddContactView.typeInName(TEST_CONTACT.editedName);
+      await AddContactView.selectNetwork(TEST_CONTACT.editedNetwork);
+      await AddContactView.tapEditContactCTA();
+      await Assertions.checkIfVisible(ContactsView.container);
+      // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
+      await ContactsView.isContactAliasVisible(TEST_CONTACT.editedName);
+      await ContactsView.isContactAliasNotVisible(TEST_CONTACT.name);
+    },
+  );
 
   it('should remove a contact', async () => {
     // Tap on Moon address
@@ -141,4 +192,12 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await WalletActionsBottomSheet.tapSendButton();
     await Assertions.checkIfTextIsDisplayed('Ibrahim');
   });
+
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should display all EVM contacts in the send flow',
+    async () => {
+      await SendView.inputAddress(TEST_CONTACT.editedName[0]);
+      await Assertions.checkIfTextIsDisplayed(TEST_CONTACT.editedName);
+    },
+  );
 });

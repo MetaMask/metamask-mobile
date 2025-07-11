@@ -3,6 +3,7 @@ import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
+import { useInternalAccountNames } from './useInternalAccountNames';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -56,6 +57,25 @@ export type DisplayName =
       name: string;
     };
 
+function getVariant({
+  name,
+  accountName,
+}: {
+  name?: string;
+  accountName?: string;
+}) {
+  if (accountName) {
+    // Consider accountName as a saved name since NameController is not implemented yet
+    return DisplayNameVariant.Saved;
+  }
+
+  if (name) {
+    return DisplayNameVariant.Recognized;
+  }
+
+  return DisplayNameVariant.Unknown;
+}
+
 /**
  * Get the display name for the given value.
  *
@@ -75,6 +95,7 @@ export function useDisplayNames(
   const watchedNftNames = useWatchedNFTNames(requests);
   const erc20Tokens = useERC20Tokens(requests);
   const nftNames = useNftNames(requests);
+  const accountNames = useInternalAccountNames(requests);
 
   return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];
@@ -82,8 +103,10 @@ export function useDisplayNames(
     const erc20Token = erc20Tokens[index];
     const { name: nftCollectionName, image: nftCollectionImage } =
       nftNames[index] || {};
+    const accountName = accountNames[index];
 
     const name =
+      accountName ||
       firstPartyContractName ||
       watchedNftName ||
       erc20Token?.name ||
@@ -91,17 +114,15 @@ export function useDisplayNames(
 
     const image = erc20Token?.image || nftCollectionImage;
 
-    const isFirstPartyContractName = firstPartyContractName !== undefined &&
-      firstPartyContractName !== null;
+    const isFirstPartyContractName =
+      firstPartyContractName !== undefined && firstPartyContractName !== null;
 
     return {
       contractDisplayName: erc20Token?.name,
       image,
       name,
-      variant: name
-        ? DisplayNameVariant.Recognized
-        : DisplayNameVariant.Unknown,
-      isFirstPartyContractName
+      variant: getVariant({ name, accountName }),
+      isFirstPartyContractName,
     };
   });
 }

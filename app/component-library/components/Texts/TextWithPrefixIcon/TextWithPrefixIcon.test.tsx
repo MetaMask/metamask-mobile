@@ -23,7 +23,7 @@ describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.HeadingSMRegular}
+        variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -37,7 +37,7 @@ describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.HeadingSMRegular}
+        variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -55,7 +55,7 @@ describe('TextWithPrefixIcon', () => {
     sampleIconProps.size = testIconSize;
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariant.HeadingSMRegular}
+        variant={TextVariant.BodyMD}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}

@@ -1,12 +1,11 @@
 import React, { memo, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Box } from '../../UI/Box/Box';
 import { isEqual } from 'lodash';
 import { getMemoizedInterface } from '../../../selectors/snaps/interfaceController';
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, ViewStyle } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
@@ -21,6 +20,7 @@ interface SnapUIRendererProps {
   interfaceId: string;
   onCancel?: () => void;
   useFooter: boolean;
+  style?: ViewStyle;
   PERF_DEBUG?: boolean; // DO NOT USE IN PRODUCTION
 }
 
@@ -39,6 +39,7 @@ const SnapUIRendererComponent = ({
   interfaceId,
   onCancel,
   useFooter,
+  style,
   PERF_DEBUG,
 }: SnapUIRendererProps) => {
   const theme = useTheme();
@@ -73,19 +74,18 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
-  const { state: initialState, context } = interfaceState;
+  const { state: initialState } = interfaceState;
   return (
-    <Box style={styles.root}>
+    <View style={[styles.root, style]}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}
         initialState={initialState}
-        context={context}
       >
         <TemplateRenderer sections={sections} />
         {PERF_DEBUG && <PerformanceTracker />}
       </SnapInterfaceContextProvider>
-    </Box>
+    </View>
   );
 };
 

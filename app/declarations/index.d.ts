@@ -284,14 +284,121 @@ declare module './util/termsOfUse/termsOfUseContent.ts' {
   export default content;
 }
 
-declare module 'react-native-emoji' {
-  const emoji: React.JSX;
-  export default emoji;
-}
-
 declare module '@metamask/react-native-actionsheet' {
   const ActionSheet;
   export default ActionSheet;
 }
 
 declare module '@metamask/react-native-search-api';
+
+/**
+ * @sentry/react-native types for v^6.10.0
+ * Types are overridden to ensure captureException receives an Error type for more reliable stack traces
+ * Reference - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
+ */
+declare module '@sentry/react-native' {
+  export type {
+    Breadcrumb,
+    Request,
+    SdkInfo,
+    Event,
+    Exception,
+    SendFeedbackParams,
+    SeverityLevel,
+    Span,
+    StackFrame,
+    Stacktrace,
+    Thread,
+    User,
+    UserFeedback,
+  } from '@sentry/core';
+
+  export {
+    addBreadcrumb,
+    captureEvent,
+    captureFeedback,
+    captureMessage,
+    Scope,
+    setContext,
+    setExtra,
+    setExtras,
+    setTag,
+    setTags,
+    setUser,
+    startInactiveSpan,
+    startSpan,
+    startSpanManual,
+    getActiveSpan,
+    getRootSpan,
+    withActiveSpan,
+    suppressTracing,
+    spanToJSON,
+    spanIsSampled,
+    setMeasurement,
+    getCurrentScope,
+    getGlobalScope,
+    getIsolationScope,
+    getClient,
+    setCurrentClient,
+    addEventProcessor,
+    metricsDefault as metrics,
+    lastEventId,
+  } from '@sentry/core';
+
+  export {
+    ErrorBoundary,
+    withErrorBoundary,
+    createReduxEnhancer,
+    Profiler,
+    useProfiler,
+    withProfiler,
+  } from '@sentry/react';
+
+  export * from '@sentry/react-native/dist/js/integrations/exports';
+  export { SDK_NAME, SDK_VERSION } from '@sentry/react-native/dist/js/version';
+  export type { ReactNativeOptions } from '@sentry/react-native/dist/js/options';
+  export { ReactNativeClient } from '@sentry/react-native/dist/js/client';
+  export {
+    init,
+    wrap,
+    nativeCrash,
+    flush,
+    close,
+    captureUserFeedback,
+    withScope,
+    crashedLastRun,
+  } from '@sentry/react-native/dist/js/sdk';
+  export {
+    TouchEventBoundary,
+    withTouchEventBoundary,
+  } from '@sentry/react-native/dist/js/touchevents';
+  export {
+    reactNativeTracingIntegration,
+    getCurrentReactNativeTracingIntegration,
+    getReactNativeTracingIntegration,
+    reactNavigationIntegration,
+    reactNativeNavigationIntegration,
+    sentryTraceGesture,
+    TimeToInitialDisplay,
+    TimeToFullDisplay,
+    startTimeToInitialDisplaySpan,
+    startTimeToFullDisplaySpan,
+    startIdleNavigationSpan,
+    startIdleSpan,
+    getDefaultIdleNavigationSpanOptions,
+    createTimeToFullDisplay,
+    createTimeToInitialDisplay,
+  } from '@sentry/react-native/dist/js/tracing';
+  export type { TimeToDisplayProps } from '@sentry/react-native/dist/js/tracing';
+  export { Mask, Unmask } from '@sentry/react-native/dist/js/replay/CustomMask';
+  export { FeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidget';
+  export { showFeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidgetManager';
+  export { getDataFromUri } from '@sentry/react-native/dist/js/wrapper';
+
+  // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
+  import { ExclusiveEventHintOrCaptureContext } from '@sentry/core/build/types/utils/prepareEvent';
+  export function captureException(
+    exception: Error,
+    hint?: ExclusiveEventHintOrCaptureContext,
+  ): string;
+}

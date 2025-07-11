@@ -6,10 +6,9 @@ exports[`TestForm renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "Geist Bold",
         "fontSize": 16,
-        "fontWeight": "700",
         "letterSpacing": 0,
         "lineHeight": 24,
       }
@@ -38,11 +37,12 @@ exports[`TestForm renders correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 20,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flexDirection": "row",
         "height": 40,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
@@ -53,11 +53,10 @@ exports[`TestForm renders correctly 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

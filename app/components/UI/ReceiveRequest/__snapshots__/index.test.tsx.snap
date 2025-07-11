@@ -150,7 +150,13 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -329,7 +339,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -545,10 +555,9 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
-                                "fontWeight": "500",
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 16,
@@ -559,12 +568,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
-                                "fontWeight": "400",
+                                "color": "#121314",
+                                "fontFamily": "Geist Regular",
+                                "fontSize": 16,
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -575,12 +583,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
+                                  "color": "#9ca1af",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -600,17 +607,19 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -626,12 +635,11 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
-                                  "fontWeight": "500",
+                                  "color": "#4459ff",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -656,13 +664,13 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -688,13 +696,13 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
@@ -707,33 +715,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -897,7 +879,13 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -905,6 +893,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -981,6 +970,9 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1076,7 +1068,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -1292,10 +1284,9 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
-                                "fontWeight": "500",
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 16,
@@ -1306,12 +1297,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
-                                "fontWeight": "400",
+                                "color": "#121314",
+                                "fontFamily": "Geist Regular",
+                                "fontSize": 16,
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -1322,12 +1312,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
+                                  "color": "#9ca1af",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1347,17 +1336,19 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -1373,12 +1364,11 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
-                                  "fontWeight": "500",
+                                  "color": "#4459ff",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1403,13 +1393,13 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -1435,13 +1425,13 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
@@ -1454,33 +1444,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>
@@ -1644,7 +1608,13 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1652,6 +1622,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1728,6 +1699,9 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1823,7 +1797,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -2039,10 +2013,9 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 16,
-                                "fontWeight": "500",
+                                "color": "#121314",
+                                "fontFamily": "Geist Medium",
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 16,
@@ -2053,12 +2026,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
-                                "fontSize": 14,
-                                "fontWeight": "400",
+                                "color": "#121314",
+                                "fontFamily": "Geist Regular",
+                                "fontSize": 16,
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -2069,12 +2041,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
+                                  "color": "#9ca1af",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2094,17 +2065,19 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "center",
                                 "backgroundColor": "transparent",
-                                "borderRadius": 24,
+                                "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
+                              fill="currentColor"
                               height={16}
                               name="Copy"
                               style={
@@ -2120,12 +2093,11 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Medium",
-                                  "fontSize": 14,
-                                  "fontWeight": "500",
+                                  "color": "#4459ff",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2150,13 +2122,13 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               [
                                 [
                                   {
-                                    "borderRadius": 100,
+                                    "borderRadius": 12,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -2182,13 +2154,13 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
@@ -2201,33 +2173,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           </TouchableOpacity>
                         </View>
                       </View>
-                      <Modal
-                        animationType="none"
-                        deviceHeight={null}
-                        deviceWidth={null}
-                        hardwareAccelerated={false}
-                        hideModalContentWhileAnimating={false}
-                        onBackdropPress={[Function]}
-                        onModalHide={[Function]}
-                        onModalWillHide={[Function]}
-                        onModalWillShow={[Function]}
-                        onRequestClose={[Function]}
-                        panResponderThreshold={4}
-                        scrollHorizontal={false}
-                        scrollOffset={0}
-                        scrollOffsetMax={0}
-                        scrollTo={null}
-                        statusBarTranslucent={false}
-                        supportedOrientations={
-                          [
-                            "portrait",
-                            "landscape",
-                          ]
-                        }
-                        swipeThreshold={100}
-                        transparent={true}
-                        visible={false}
-                      />
+                      <View />
                     </RCTSafeAreaView>
                   </View>
                 </View>

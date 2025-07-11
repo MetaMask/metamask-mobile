@@ -38,7 +38,7 @@ index e717caf..8eb29c8 100644
  }
 diff --git a/node_modules/react-native-aes-crypto-forked/android/build.gradle.orig b/node_modules/react-native-aes-crypto-forked/android/build.gradle.orig
 new file mode 100644
-index 0000000..e717caf
+index 0000000..8784966
 --- /dev/null
 +++ b/node_modules/react-native-aes-crypto-forked/android/build.gradle.orig
 @@ -0,0 +1,28 @@
@@ -84,3 +84,49 @@ index 0000000..2ce2e4e
 +-    buildToolsVersion "26.0.1"
 ++    compileSdkVersion 33
 ++    buildToolsVersion "33.0.0"
+diff --git a/node_modules/react-native-aes-crypto-forked/ios/.DS_Store b/node_modules/react-native-aes-crypto-forked/ios/.DS_Store
+new file mode 100644
+index 0000000..427e223
+Binary files /dev/null and b/node_modules/react-native-aes-crypto-forked/ios/.DS_Store differ
+diff --git a/node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj/project.pbxproj b/node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj/project.pbxproj
+index 1c332b1..bccbf9b 100644
+--- a/node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj/project.pbxproj
++++ b/node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj/project.pbxproj
+@@ -118,6 +118,7 @@
+ 			developmentRegion = English;
+ 			hasScannedForEncodings = 0;
+ 			knownRegions = (
++				English,
+ 				en,
+ 			);
+ 			mainGroup = 32D980D41BE9F11C00FA27E5;
+@@ -231,9 +232,11 @@
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+@@ -247,9 +250,11 @@
+ 				HEADER_SEARCH_PATHS = (
+ 					"$(inherited)",
+ 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+-					"$(SRCROOT)/../../../react-native/React/**",
+-					"$(SRCROOT)/../../../../../node_modules/react-native/React/**",
+-					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core"
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/RCTDeprecation",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public/React-Core",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Public",
++					"$(SRCROOT)/../../../ios/Pods/Headers/Private/React-Core",
++					"$(SRCROOT)/../../react-native/React/**",
+ 				);
+ 				OTHER_LDFLAGS = "-ObjC";
+ 				PRODUCT_NAME = "$(TARGET_NAME)";

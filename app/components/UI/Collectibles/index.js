@@ -80,6 +80,10 @@ export default class Collectibles extends PureComponent {
      * Callback triggered when collectible pressed from collectibles list
      */
     onPress: PropTypes.func,
+    /**
+     * Selected network client id
+     */
+    selectedNetworkClientId: PropTypes.string,
   };
 
   state = {
@@ -133,10 +137,12 @@ export default class Collectibles extends PureComponent {
 
   refreshMetadata = () => {
     const { NftController } = Engine.context;
+    const { selectedNetworkClientId } = this.props;
 
     NftController.addNft(
       this.longPressedCollectible.current.address,
       this.longPressedCollectible.current.tokenId,
+      selectedNetworkClientId,
     );
   };
 
@@ -150,9 +156,11 @@ export default class Collectibles extends PureComponent {
 
   removeNft = () => {
     const { NftController } = Engine.context;
+    const { selectedNetworkClientId } = this.props;
     NftController.removeAndIgnoreNft(
       this.longPressedCollectible.address,
       this.longPressedCollectible.tokenId,
+      selectedNetworkClientId,
     );
     Alert.alert(
       strings('wallet.collectible_removed_title'),

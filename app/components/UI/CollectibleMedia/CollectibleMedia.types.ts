@@ -17,6 +17,7 @@ export interface Collectible {
   description?: string;
   rarityRank?: number;
   isCurrentlyOwned?: boolean;
+  chainId: number;
 }
 
 type NFTData = Omit<Nft, 'image'> & {

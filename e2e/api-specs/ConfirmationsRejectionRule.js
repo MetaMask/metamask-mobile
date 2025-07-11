@@ -1,3 +1,4 @@
+/// <reference path="../types/detox.d.ts" />
 import { device } from 'detox';
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
@@ -64,9 +65,6 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(
-              PermissionSummaryBottomSheet.container,
-            );
             await ConnectBottomSheet.tapConnectButton();
             await Assertions.checkIfNotVisible(
               PermissionSummaryBottomSheet.container,

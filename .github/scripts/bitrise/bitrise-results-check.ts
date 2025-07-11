@@ -9,9 +9,6 @@ async function main(): Promise<void> {
     console.log(`Workflow triggered actor : ${process.env.GITHUB_ACTOR}`);
     console.log(`Workflow triggered by:  ${context.eventName}`);
 
-    // Get the commit hash from the GitHub context
-    const recentCommits = await getRecentCommits();
-    console.log(`Recent commits: ${recentCommits}`);
 
     // Determine the E2E run flags
     const flags = await determineE2ERunFlags();
@@ -38,6 +35,10 @@ async function main(): Promise<void> {
 
     // Consume the label
     await removeLabel("bitrise-result-ready");
+
+    // Get the commit hash from the GitHub context
+    const recentCommits = await getRecentCommits();
+    console.log(`Recent commits: ${recentCommits}`);
 
 
     // If the E2E tests should run, check the Bitrise test status

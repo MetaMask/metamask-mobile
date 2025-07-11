@@ -19,6 +19,9 @@ exports[`BottomSheetDialog should render correctly 1`] = `
 >
   <View
     collapsable={false}
+    enabled={true}
+    handlerTag={-1}
+    handlerType="PanGestureHandler"
     onGestureHandlerEvent={[Function]}
     onGestureHandlerStateChange={[Function]}
     onLayout={[Function]}
@@ -26,14 +29,14 @@ exports[`BottomSheetDialog should render correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#BBC0C566",
+          "borderColor": "#b7bbc866",
           "borderTopLeftRadius": 8,
           "borderTopRightRadius": 8,
           "borderWidth": 1,
-          "maxHeight": 1333,
+          "maxHeight": 5,
           "overflow": "hidden",
           "paddingBottom": 3,
-          "shadowColor": "#0000001A",
+          "shadowColor": "#0000001a",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -44,7 +47,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
         {
           "transform": [
             {
-              "translateY": 1334,
+              "translateY": 6,
             },
           ],
         },
@@ -63,7 +66,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#BBC0C566",
+            "backgroundColor": "#b7bbc866",
             "borderRadius": 2,
             "height": 4,
             "width": 40,

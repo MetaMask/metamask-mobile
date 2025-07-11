@@ -2,16 +2,19 @@ import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Collectibles from '../../UI/Collectibles';
 import CollectibleContractOverview from '../../UI/CollectibleContractOverview';
 import Engine from '../../../core/Engine';
 import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import { areAddressesEqual } from '../../../util/address';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -49,6 +52,10 @@ class Collectible extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Selected network client ID
+     */
+    selectedNetworkClientId: PropTypes.string,
   };
 
   state = {
@@ -78,8 +85,11 @@ class Collectible extends PureComponent {
   onRefresh = async () => {
     this.setState({ refreshing: true });
     const { NftDetectionController } = Engine.context;
+    const chainIdsToDetectNftsFor = useNftDetectionChainIds();
     try {
-      await NftDetectionController.detectNfts();
+      trace({ name: TraceName.DetectNfts });
+      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+      endTrace({ name: TraceName.DetectNfts });
     } finally {
       this.setState({ refreshing: false });
     }
@@ -97,11 +107,11 @@ class Collectible extends PureComponent {
     } = this.props;
     const collectibleContract = params;
     const address = params.address;
-    const { collectibles } = this.props;
+    const { collectibles, selectedNetworkClientId } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const filteredCollectibles = collectibles.filter((collectible) =>
-      toLowerCaseEquals(collectible.address, address),
+      areAddressesEqual(collectible.address, address),
     );
     filteredCollectibles.map((collectible) => {
       if (!collectible.name || collectible.name === '') {
@@ -142,6 +152,7 @@ class Collectible extends PureComponent {
                 navigation={navigation}
                 collectibles={filteredCollectibles}
                 collectibleContract={collectibleContract}
+                selectedNetworkClientId={selectedNetworkClientId}
               />
             </View>
           </View>
@@ -169,6 +180,7 @@ class Collectible extends PureComponent {
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
   collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
+  selectedNetworkClientId: selectSelectedNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

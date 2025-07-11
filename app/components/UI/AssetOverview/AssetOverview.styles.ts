@@ -1,5 +1,9 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -14,6 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     warning: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.warning.default,
@@ -22,6 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
     } as TextStyle,
     warningLinks: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.primary.default,
     } as TextStyle,
     chartNavigationWrapper: {

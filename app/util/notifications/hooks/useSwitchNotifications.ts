@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   assertIsFeatureEnabled,
-  createNotificationsForAccount,
-  deleteNotificationsForAccount,
+  enableAccounts,
+  disableAccounts,
   fetchAccountNotificationSettings,
   toggleFeatureAnnouncements,
 } from '../../../actions/notification/helpers';
@@ -20,6 +20,7 @@ import {
   useListNotifications,
   useEnableNotifications,
   useDisableNotifications,
+  useContiguousLoading,
 } from './useNotifications';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { strings } from '../../../../locales/i18n';
@@ -140,9 +141,9 @@ export function useAccountNotificationsToggle() {
 
       try {
         if (state) {
-          await createNotificationsForAccount(addresses);
+          await enableAccounts(addresses);
         } else {
-          await deleteNotificationsForAccount(addresses);
+          await disableAccounts(addresses);
         }
       } catch (e) {
         const errorMessage =
@@ -179,11 +180,16 @@ export function useSwitchNotificationLoadingText(): string | undefined {
     selectIsUpdatingMetamaskNotificationsAccount,
   );
 
+  const loading = useContiguousLoading(
+    notificationsLoading,
+    pushNotificationsLoading,
+  );
+
   if (accountsLoading.length > 0) {
     return strings('app_settings.updating_account_settings');
   }
 
-  if (notificationsLoading || pushNotificationsLoading) {
+  if (notificationsLoading || pushNotificationsLoading || loading) {
     return strings('app_settings.updating_notifications');
   }
 

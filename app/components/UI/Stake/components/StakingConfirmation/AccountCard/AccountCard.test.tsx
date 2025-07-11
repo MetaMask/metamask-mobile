@@ -63,6 +63,7 @@ describe('AccountCard', () => {
       contractName: MOCK_STAKING_CONTRACT_NAME,
       primaryLabel: strings('stake.staking_from'),
       secondaryLabel: strings('stake.interacting_with'),
+      chainId: 1,
     };
 
     const { getByText, toJSON } = renderWithProvider(

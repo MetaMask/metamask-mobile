@@ -9,7 +9,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
-import { createBuyNavigationDetails } from '../../../components/UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../../../components/UI/Ramp/Aggregator/routes/utils';
 
 export const handleCustomRpcCalls = async ({
   rpc,

@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for SheetBottom component.
+ * Style sheet function for ReusableModal component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.

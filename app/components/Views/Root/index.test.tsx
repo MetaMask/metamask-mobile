@@ -21,6 +21,10 @@ jest.mock('../../../core/EntryScriptWeb3', () => ({
   init: jest.fn(),
 }));
 
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
+}));
+
 describe('Root', () => {
   it('should render correctly', () => {
     const { toJSON } = render(<Root foxCode="" />);

@@ -2,17 +2,14 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import TestHelpers from '../../helpers';
+import Assertions from '../../framework/Assertions.ts';
 
 class WalletView {
   get container() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
-  }
-
-  get portfolioButton() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
   }
 
   get earnButton() {
@@ -35,6 +32,16 @@ class WalletView {
 
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  }
+
+  get eyeSlashIcon() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
+  }
+
+  get notificationBellIcon() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+    );
   }
 
   get navbarNetworkText() {
@@ -67,12 +74,6 @@ class WalletView {
 
   get importTokensButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
-  }
-
-  get importTokensFooterLink() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
-    );
   }
 
   get networkName() {
@@ -127,48 +128,31 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
-  get carouselFirstSlide() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
-  }
-
-  get carouselFirstSlideTitle() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
-    );
-  }
-
-  get carouselSecondSlide() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
-    );
-  }
-
-  get carouselSecondSlideTitle() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
-    );
-  }
-
   get carouselProgressDots() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
     );
   }
+  get testCollectible() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+  }
 
-  get carouselFirstSlideCloseButton() {
+  getCarouselSlide(id) {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
+  }
+
+  getCarouselSlideTitle(id) {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_TITLE(id),
     );
   }
 
-  get carouselSecondSlideCloseButton() {
+  getCarouselSlideCloseButton(id) {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
+      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
     );
-  }
-
-  get carouselSlide() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
   }
 
   async tapCurrentMainWalletAccountActions() {
@@ -184,7 +168,15 @@ class WalletView {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.accountIcon);
+    await Gestures.waitAndTap(this.accountIcon, {
+      elemDescription: 'Top Account Icon',
+    });
+  }
+
+  async tapBellIcon() {
+    await Gestures.waitAndTap(this.notificationBellIcon, {
+      elemDescription: 'Notification Bell Icon',
+    });
   }
 
   async tapNetworksButtonOnNavBar() {
@@ -199,6 +191,21 @@ class WalletView {
     await Gestures.swipe(this.nftTabContainer, 'up', 'slow', 0.6);
   }
 
+  async scrollDownOnTokensTab() {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
+  }
+
+  async scrollToToken(tokenName, direction = 'down') {
+    await Gestures.scrollToElement(
+      this.tokenInWallet(tokenName),
+      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        direction,
+      },
+    );
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
@@ -207,22 +214,15 @@ class WalletView {
     await Gestures.waitAndTap(this.importNFTButton);
   }
 
-  get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
-  }
-
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.testCollectible, {
+      checkEnabled: false,
+      elemDescription: 'NFT Name',
+    });
   }
 
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
-  }
-
-  async tapImportTokensFooterLink() {
-    await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
   async tapOnNFTInWallet(nftName) {
@@ -258,10 +258,6 @@ class WalletView {
     await Gestures.waitAndTap(this.tokenDetectionLinkButton);
   }
 
-  async tapPortfolio() {
-    await Gestures.waitAndTap(this.portfolioButton);
-  }
-
   async tapTokenNetworkFilter() {
     await Gestures.waitAndTap(this.tokenNetworkFilter);
   }
@@ -294,12 +290,114 @@ class WalletView {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapCarouselCloseButton() {
-    await Gestures.tap(this.carouselCloseButton);
+  /**
+   * Swipes the carousel in the specified direction.
+   * @param {'left' | 'right'} direction - The direction to swipe ('left' or 'right').
+   */
+  async swipeCarousel(direction) {
+    await Gestures.swipe(this.carouselContainer, direction, 'slow', 0.7);
   }
 
-  async tapCarouselSlide() {
-    await Gestures.tap(this.carouselSlide);
+  /**
+   * Closes the carousel slide with the specified ID by tapping its close button.
+   *
+   * @param {string|number} id - The identifier of the carousel slide to close.
+   * @returns {Promise<void>} A promise that resolves when the slide has been closed.
+   */
+  async closeCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlideCloseButton(id));
+  }
+
+  /**
+   * Taps on a carousel slide with the specified identifier.
+   *
+   * @param {string} id - The unique identifier of the carousel slide to tap.
+   * @returns {Promise<void>} Resolves when the tap action is complete.
+   */
+  async tapCarouselSlide(id) {
+    await Gestures.tap(this.getCarouselSlide(id));
+  }
+
+  get defiTab() {
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
+  }
+
+  get defiNetworkFilter() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+    );
+  }
+
+  get defiTabContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+    );
+  }
+
+  get defiPositionDetailsContainer() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+    );
+  }
+
+  async tapOnDeFiTab() {
+    await Gestures.waitAndTap(this.defiTab);
+  }
+
+  async tapOnDeFiNetworksFilter() {
+    await Gestures.waitAndTap(this.defiNetworkFilter);
+  }
+
+  async tapOnDeFiPosition(positionName) {
+    const elem = Matchers.getElementByText(positionName);
+    await Gestures.waitAndTap(elem);
+  }
+
+  async getBalanceText() {
+    const balanceElement = this.totalBalance;
+    await Assertions.checkIfVisible(balanceElement);
+
+    const balanceAttributes = await (await balanceElement).getAttributes();
+    return balanceAttributes.text || balanceAttributes.label;
+  }
+
+  /**
+   * Toggles the balance visibility by tapping the eye slash icon.
+   * This method can be used to both hide and show the balance.
+   * @returns {Promise<void>} A promise that resolves when the balance visibility is toggled.
+   */
+  async toggleBalanceVisibility() {
+    await Gestures.waitAndTap(this.eyeSlashIcon);
+  }
+
+  /**
+   * Checks if the balance is currently visible by examining the balance text.
+   * @returns {Promise<boolean>} A promise that resolves to true if balance is visible, false if hidden.
+   */
+  async isBalanceVisible() {
+    const balanceText = await this.getBalanceText();
+    // If it shows currency symbols or numbers, it's visible
+    return !balanceText.includes('••••');
+  }
+
+  /**
+   * Hides the balance by tapping the eye slash icon only if it's currently visible.
+   * @returns {Promise<void>} A promise that resolves when the balance is hidden.
+   */
+  async hideBalance() {
+    if (await this.isBalanceVisible()) {
+      await this.toggleBalanceVisibility();
+    }
+  }
+
+  /**
+   * Shows the balance by tapping the eye slash icon only if it's currently hidden.
+   * @returns {Promise<void>} A promise that resolves when the balance is shown.
+   */
+  async showBalance() {
+    if (!(await this.isBalanceVisible())) {
+      await this.toggleBalanceVisibility();
+    }
   }
 }
 

@@ -150,7 +150,13 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -317,7 +327,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -332,6 +342,9 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -438,12 +451,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 22,
-                                        "fontWeight": "700",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -470,12 +482,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -485,12 +496,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "paddingLeft": 7,
                                       }
                                     }
@@ -501,12 +511,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "paddingLeft": 7,
                                       }
                                     }
@@ -517,12 +526,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "paddingLeft": 7,
                                       }
                                     }
@@ -533,12 +541,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "paddingLeft": 7,
                                       }
                                     }
@@ -549,12 +556,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "paddingLeft": 7,
                                       }
                                     }
@@ -570,14 +576,13 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     numberOfLines={2}
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#4459ff",
                                         "flex": 1,
                                         "flexWrap": "wrap",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 14,
-                                        "fontWeight": "400",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                         "marginLeft": 20,
                                         "marginRight": 20,
                                         "marginTop": 40,

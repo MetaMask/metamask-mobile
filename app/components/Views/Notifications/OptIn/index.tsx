@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { Image, View, Linking } from 'react-native';
+import { Image, View, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
@@ -18,6 +18,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { useHandleOptInCancel, useHandleOptInClick } from './OptIn.hooks';
+import { EnableNotificationModalSelectorsIDs } from '../../../../../e2e/selectors/Notifications/EnableNotificationModal.selectors';
 
 const OptIn = () => {
   const metrics = useMetrics();
@@ -25,15 +26,14 @@ const OptIn = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
 
-  const { enableNotifications, isEnablingNotifications } =
-    useEnableNotifications({
-      nudgeEnablePush: true,
-    });
+  const { enableNotifications, loading } = useEnableNotifications({
+    nudgeEnablePush: true,
+  });
 
   const handleOptInCancel = useHandleOptInCancel({
     navigation,
     metrics,
-    isCreatingNotifications: isEnablingNotifications,
+    isCreatingNotifications: loading,
   });
 
   const handleOptInClick = useHandleOptInClick({
@@ -53,44 +53,50 @@ const OptIn = () => {
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.textTitle}
+          testID={EnableNotificationModalSelectorsIDs.TITLE}
         >
           {strings('notifications.activation_card.title')}
         </Text>
-        <View style={styles.card}>
-          <Image
-            source={EnableNotificationsCardPlaceholder}
-            style={styles.image}
-          />
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.textSpace}
-        >
-          {strings('notifications.activation_card.description_1')}
-        </Text>
-
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.textSpace}
-        >
-          {strings('notifications.activation_card.description_2')}{' '}
+        <ScrollView>
+          <View style={styles.card}>
+            <Image
+              source={EnableNotificationsCardPlaceholder}
+              style={styles.image}
+            />
+          </View>
           <Text
             variant={TextVariant.BodyMD}
-            color={TextColor.Info}
-            onPress={goToLearnMore}
+            color={TextColor.Alternative}
+            style={styles.textSpace}
           >
-            {strings('notifications.activation_card.learn_more')}
+            {strings('notifications.activation_card.description_1')}
           </Text>
-        </Text>
 
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('notifications.activation_card.manage_preferences_1')}
-          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
-            {strings('notifications.activation_card.manage_preferences_2')}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.textSpace}
+          >
+            {strings('notifications.activation_card.description_2')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Info}
+              onPress={goToLearnMore}
+            >
+              {strings('notifications.activation_card.learn_more')}
+            </Text>
           </Text>
-        </Text>
+
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('notifications.activation_card.manage_preferences_1')}
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={TextColor.Alternative}
+            >
+              {strings('notifications.activation_card.manage_preferences_2')}
+            </Text>
+          </Text>
+        </ScrollView>
 
         <View style={styles.btnContainer}>
           <Button
@@ -98,17 +104,19 @@ const OptIn = () => {
             label={strings('notifications.activation_card.cancel')}
             onPress={handleOptInCancel}
             style={styles.ctaBtn}
+            testID={EnableNotificationModalSelectorsIDs.BUTTON_CANCEL}
           />
           <Button
             variant={ButtonVariants.Primary}
             label={strings('notifications.activation_card.cta')}
             onPress={handleOptInClick}
             style={styles.ctaBtn}
+            testID={EnableNotificationModalSelectorsIDs.BUTTON_ENABLE}
           />
         </View>
       </View>
       <SwitchLoadingModal
-        loading={isEnablingNotifications}
+        loading={loading}
         loadingText={strings('app_settings.enabling_notifications')}
       />
     </Fragment>

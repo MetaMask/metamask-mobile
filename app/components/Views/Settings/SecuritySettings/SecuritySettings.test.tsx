@@ -19,6 +19,7 @@ import {
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { strings } from '../../../../../locales/i18n';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -30,7 +31,7 @@ const initialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       UserStorageController: {
-        isProfileSyncingEnabled: false,
+        isBackupAndSyncEnabled: false,
       },
     },
   },
@@ -91,7 +92,7 @@ describe('SecuritySettings', () => {
         state: initialState,
       },
     );
-    expect(getByText('Protect your wallet')).toBeTruthy();
+    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();
@@ -106,7 +107,6 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
-    expect(getByText('Automatic security checks')).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {

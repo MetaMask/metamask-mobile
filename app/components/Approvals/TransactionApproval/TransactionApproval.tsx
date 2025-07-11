@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import Approval from '../../Views/confirmations/Approval';
-import Approve from '../../Views/confirmations/ApproveView/Approve';
+import Approval from '../../Views/confirmations/legacy/Approval';
+import Approve from '../../Views/confirmations/legacy/ApproveView/Approve';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import { IQRState } from '../../UI/QRHardware/types';
@@ -26,23 +26,18 @@ export interface TransactionApprovalProps {
 const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-  const [modalVisible, setModalVisible] = useState(false);
   const { onComplete: propsOnComplete } = props;
+  const isQRSigning = props.isSigningQRObject && !props.transactionType;
 
   const onComplete = useCallback(() => {
-    setModalVisible(false);
     propsOnComplete();
   }, [propsOnComplete]);
 
   if (
-    (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !modalVisible) ||
+    (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !isQRSigning) ||
     isRedesignedEnabled
   ) {
     return null;
-  }
-
-  if (!modalVisible) {
-    setModalVisible(true);
   }
 
   if (props.transactionType === TransactionModalType.Dapp) {
@@ -65,7 +60,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
     );
   }
 
-  if (props.isSigningQRObject && !props.transactionType) {
+  if (isQRSigning) {
     return (
       <QRSigningModal
         isVisible

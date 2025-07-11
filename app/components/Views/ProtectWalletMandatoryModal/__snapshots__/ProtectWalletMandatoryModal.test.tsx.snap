@@ -1,0 +1,497 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
+<View>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    transparent={true}
+    visible={true}
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "backgroundColor": "#3f434a66",
+          "bottom": 0,
+          "height": 1334,
+          "left": 0,
+          "opacity": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "width": 750,
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      deviceHeight={null}
+      deviceWidth={null}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      panResponderThreshold={4}
+      pointerEvents="box-none"
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      style={
+        {
+          "flex": 1,
+          "justifyContent": "flex-end",
+          "margin": 0,
+          "transform": [
+            {
+              "translateY": 1334,
+            },
+          ],
+        }
+      }
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeThreshold={100}
+    >
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "paddingBottom": 0,
+            "paddingHorizontal": 40,
+            "paddingTop": 24,
+            "paddingVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
+              "borderRadius": 28,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 56,
+              "justifyContent": "center",
+              "width": 56,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            selectable={false}
+            style={
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 20,
+                },
+                {
+                  "alignSelf": "center",
+                  "color": "#ca3542",
+                },
+                {
+                  "fontFamily": "Feather",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginVertical": 8,
+              "textAlign": "center",
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginVertical": 8,
+              "textAlign": "center",
+            }
+          }
+        >
+          Protect your wallet by setting a password and saving your Secret Recovery Phrase (required).
+        </Text>
+        <View
+          style={
+            {
+              "marginVertical": 8,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 12,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "#4459ff",
+                    "minHeight": 50,
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Protect wallet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+</View>
+`;
+
+exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
+<View>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    transparent={true}
+    visible={true}
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "backgroundColor": "#3f434a66",
+          "bottom": 0,
+          "height": 1334,
+          "left": 0,
+          "opacity": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "width": 750,
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      deviceHeight={null}
+      deviceWidth={null}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      panResponderThreshold={4}
+      pointerEvents="box-none"
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      style={
+        {
+          "flex": 1,
+          "justifyContent": "flex-end",
+          "margin": 0,
+          "transform": [
+            {
+              "translateY": 1334,
+            },
+          ],
+        }
+      }
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeThreshold={100}
+    >
+      <View
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 20,
+            "borderTopRightRadius": 20,
+            "paddingBottom": 20,
+            "paddingHorizontal": 40,
+            "paddingTop": 24,
+            "paddingVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
+              "borderRadius": 28,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 56,
+              "justifyContent": "center",
+              "width": 56,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            selectable={false}
+            style={
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 20,
+                },
+                {
+                  "alignSelf": "center",
+                  "color": "#ca3542",
+                },
+                {
+                  "fontFamily": "Feather",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginVertical": 8,
+              "textAlign": "center",
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginVertical": 8,
+              "textAlign": "center",
+            }
+          }
+        >
+          Protect your wallet by setting a password and saving your Secret Recovery Phrase (required).
+        </Text>
+        <View
+          style={
+            {
+              "marginVertical": 8,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              [
+                [
+                  {
+                    "borderRadius": 12,
+                    "justifyContent": "center",
+                    "padding": 15,
+                  },
+                  {
+                    "backgroundColor": "#4459ff",
+                    "minHeight": 50,
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#007aff",
+                    "fontSize": 17,
+                    "fontWeight": "500",
+                    "textAlign": "center",
+                  },
+                  null,
+                  [
+                    {
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              Protect wallet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+</View>
+`;

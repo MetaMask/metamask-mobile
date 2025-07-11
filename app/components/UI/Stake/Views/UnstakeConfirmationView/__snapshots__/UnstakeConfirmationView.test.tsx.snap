@@ -4,7 +4,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "height": "100%",
       "justifyContent": "space-between",
       "paddingHorizontal": 16,
@@ -25,157 +25,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
         ]
       }
     >
-      <View
-        onLayout={[Function]}
-        style={
-          {
-            "alignSelf": "center",
-            "position": "relative",
-          }
-        }
-        testID="badge-wrapper-badge"
-      >
-        <View>
-          <View
-            useNativeDriver={true}
-          >
-            <Image
-              fadeIn={true}
-              onError={[Function]}
-              onLoadEnd={[Function]}
-              source={
-                {
-                  "uri": "",
-                }
-              }
-              style={
-                [
-                  {
-                    "borderRadius": 12,
-                    "height": 24,
-                    "width": 24,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "borderRadius": 24,
-                    "height": 48,
-                    "width": 48,
-                  },
-                ]
-              }
-            />
-            <View
-              collapsable={false}
-              style={
-                {
-                  "bottom": 0,
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 24,
-                      "height": 48,
-                      "width": 48,
-                    },
-                    {
-                      "backgroundColor": "#eee",
-                    },
-                    undefined,
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "bottom": 0,
-              "height": 0,
-              "justifyContent": "center",
-              "position": "absolute",
-              "right": 0,
-              "transform": [
-                {
-                  "translateX": 0,
-                },
-                {
-                  "translateY": 0,
-                },
-              ],
-            }
-          }
-        >
-          <View
-            onLayout={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "height": "50%",
-                "justifyContent": "center",
-                "maxHeight": 24,
-                "minHeight": 8,
-                "opacity": 0,
-              }
-            }
-            testID="badgenetwork"
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#ffffff",
-                  "borderRadius": 8,
-                  "borderWidth": 2,
-                  "height": 32,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "shadowColor": "#0000001A",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 1,
-                  "shadowRadius": 4,
-                  "transform": [
-                    {
-                      "scale": 1,
-                    },
-                  ],
-                  "width": 32,
-                }
-              }
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
-                style={
-                  {
-                    "height": 32,
-                    "width": 32,
-                  }
-                }
-                testID="network-avatar-image"
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+      IGNORED_RANDOM_ELEMENT
       <View
         style={
           {
@@ -187,10 +37,9 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "Geist Bold",
               "fontSize": 24,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 32,
             }
@@ -204,12 +53,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -230,7 +78,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
         style={
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#848c96",
+            "borderColor": "#b7bbc8",
             "borderRadius": 8,
             "borderWidth": 0,
             "gap": 16,
@@ -282,12 +130,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Medium",
-                      "fontSize": 14,
-                      "fontWeight": "500",
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                   testID="label"
@@ -315,7 +162,8 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#9fa6ae"
+                    color="#9ca1af"
+                    fill="currentColor"
                     height={16}
                     name="Question"
                     style={
@@ -359,12 +207,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                   testID="label"
@@ -384,13 +231,14 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
               "backgroundColor": "#ffffff",
               "borderBottomLeftRadius": 0,
               "borderBottomRightRadius": 0,
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
               "padding": 16,
             }
           }
+          testID="account-card"
         >
           <View
             style={
@@ -436,12 +284,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                     testID="label"
@@ -476,200 +323,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     }
                   }
                 >
-                  <View
-                    accessibilityRole="none"
-                    accessible={true}
-                    onLayout={[Function]}
-                    style={
-                      {
-                        "alignSelf": "flex-start",
-                        "backgroundColor": "#0376C91A",
-                        "borderColor": "#0376c9",
-                        "borderRadius": 999,
-                        "borderWidth": 0,
-                        "color": "#0376c9",
-                        "padding": 16,
-                        "paddingHorizontal": 8,
-                        "paddingVertical": 2,
-                      }
-                    }
-                    testID="tagbase"
-                  >
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 8,
-                            "height": 16,
-                            "overflow": "hidden",
-                            "width": 16,
-                          }
-                        }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "overflow": "hidden",
-                              },
-                              {
-                                "backgroundColor": "#1593F2",
-                                "borderRadius": 8,
-                                "height": 16,
-                                "width": 16,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <RNSVGSvgView
-                            bbHeight={16}
-                            bbWidth={16}
-                            focusable={false}
-                            height={16}
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "transparent",
-                                  "borderWidth": 0,
-                                },
-                                {
-                                  "flex": 0,
-                                  "height": 16,
-                                  "width": 16,
-                                },
-                              ]
-                            }
-                            width={16}
-                          >
-                            <RNSVGGroup
-                              fill={
-                                {
-                                  "payload": 4278190080,
-                                  "type": 0,
-                                }
-                              }
-                            >
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4280574177,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.14608302856241107,
-                                    0.9892723329629884,
-                                    -0.9892723329629884,
-                                    -0.14608302856241107,
-                                    18.877507984599454,
-                                    -1.41266974682138,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294395137,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.02094241988335673,
-                                    -0.9997806834748455,
-                                    0.9997806834748455,
-                                    -0.02094241988335673,
-                                    -7.512435753557014,
-                                    20.161960644608932,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294736640,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.458649554484315,
-                                    0.8886172326549487,
-                                    -0.8886172326549487,
-                                    -0.458649554484315,
-                                    14.2400072574634,
-                                    19.300266514976617,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                            </RNSVGGroup>
-                          </RNSVGSvgView>
-                        </View>
-                      </View>
-                      <View
-                        accessible={false}
-                        style={
-                          {
-                            "width": 4,
-                          }
-                        }
-                        testID="listitem-gap"
-                      />
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#0376c9",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                          }
-                        }
-                        testID="tagbase-text"
-                      >
-                        Account 1
-                      </Text>
-                    </View>
-                  </View>
+                  IGNORED_RANDOM_ELEMENT
                 </View>
               </View>
             </View>
@@ -718,12 +372,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                     testID="label"
@@ -758,199 +411,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     }
                   }
                 >
-                  <View
-                    accessibilityRole="none"
-                    accessible={true}
-                    onLayout={[Function]}
-                    style={
-                      {
-                        "alignSelf": "flex-start",
-                        "backgroundColor": "#f2f4f6",
-                        "borderColor": "#848c96",
-                        "borderRadius": 999,
-                        "borderWidth": 0,
-                        "color": "#6a737d",
-                        "padding": 16,
-                        "paddingHorizontal": 8,
-                        "paddingVertical": 2,
-                      }
-                    }
-                    testID="tagbase"
-                  >
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 8,
-                            "height": 16,
-                            "overflow": "hidden",
-                            "width": 16,
-                          }
-                        }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "overflow": "hidden",
-                              },
-                              {
-                                "backgroundColor": "#1593F2",
-                                "borderRadius": 8,
-                                "height": 16,
-                                "width": 16,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <RNSVGSvgView
-                            bbHeight={16}
-                            bbWidth={16}
-                            focusable={false}
-                            height={16}
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "transparent",
-                                  "borderWidth": 0,
-                                },
-                                {
-                                  "flex": 0,
-                                  "height": 16,
-                                  "width": 16,
-                                },
-                              ]
-                            }
-                            width={16}
-                          >
-                            <RNSVGGroup
-                              fill={
-                                {
-                                  "payload": 4278190080,
-                                  "type": 0,
-                                }
-                              }
-                            >
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4280574177,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.14608302856241107,
-                                    0.9892723329629884,
-                                    -0.9892723329629884,
-                                    -0.14608302856241107,
-                                    18.877507984599454,
-                                    -1.41266974682138,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294395137,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.02094241988335673,
-                                    -0.9997806834748455,
-                                    0.9997806834748455,
-                                    -0.02094241988335673,
-                                    -7.512435753557014,
-                                    20.161960644608932,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294736640,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.458649554484315,
-                                    0.8886172326549487,
-                                    -0.8886172326549487,
-                                    -0.458649554484315,
-                                    14.2400072574634,
-                                    19.300266514976617,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                            </RNSVGGroup>
-                          </RNSVGSvgView>
-                        </View>
-                      </View>
-                      <View
-                        accessible={false}
-                        style={
-                          {
-                            "width": 4,
-                          }
-                        }
-                        testID="listitem-gap"
-                      />
-                      <Text
-                        accessibilityRole="text"
-                        style={
-                          {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
-                            "fontWeight": "400",
-                            "letterSpacing": 0,
-                            "lineHeight": 22,
-                          }
-                        }
-                      >
-                        MM Pooled Staking
-                      </Text>
-                    </View>
-                  </View>
+                  IGNORED_RANDOM_ELEMENT
                 </View>
               </View>
             </View>
@@ -964,7 +425,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
               "borderBottomLeftRadius": 8,
               "borderBottomRightRadius": 8,
               "borderBottomWidth": 0,
-              "borderColor": "#BBC0C566",
+              "borderColor": "#b7bbc866",
               "borderLeftWidth": 0,
               "borderRadius": 4,
               "borderRightWidth": 0,
@@ -1019,12 +480,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                     testID="label"
@@ -1073,7 +533,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 8,
+                          "borderRadius": 4,
                           "height": 16,
                           "justifyContent": "center",
                           "overflow": "hidden",
@@ -1081,29 +541,17 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
+                      IGNORED_RANDOM_ELEMENT
                     </View>
                     <Text
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
-                          "fontWeight": "400",
+                          "color": "#121314",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -1146,12 +594,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1171,12 +618,11 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1206,9 +652,9 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
-            "borderRadius": 24,
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
+            "borderRadius": 12,
             "borderWidth": 1,
             "flexBasis": 0,
             "flexDirection": "row",
@@ -1216,20 +662,21 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             "flexShrink": 0,
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
+        testID="cancel-button"
       >
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1249,28 +696,29 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#0376c9",
-            "borderRadius": 24,
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
             "flexBasis": 0,
             "flexDirection": "row",
             "flexGrow": 1,
             "flexShrink": 0,
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
+        testID="continue-button"
       >
         <Text
           accessibilityRole="text"
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

@@ -23,7 +23,7 @@ exports[`Coachmark should render correctly 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "borderBottomColor": "#0376c9",
+          "borderBottomColor": "#4459ff",
           "borderBottomWidth": 12,
           "borderLeftColor": "transparent",
           "borderLeftWidth": 15,
@@ -41,7 +41,7 @@ exports[`Coachmark should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 8,
           "padding": 20,
         },
@@ -79,6 +79,7 @@ exports[`Coachmark should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={16}
           name="Arrow2Left"
           style={
@@ -95,7 +96,7 @@ exports[`Coachmark should render correctly 1`] = `
           {
             "alignSelf": "center",
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "600",
           }
@@ -122,6 +123,7 @@ exports[`Coachmark should render correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={16}
           name="Close"
           style={
@@ -155,6 +157,7 @@ exports[`Coachmark should render correctly 1`] = `
           style={
             {
               "color": "#ffffff",
+              "fontFamily": "Geist Regular",
             }
           }
         >
@@ -171,7 +174,7 @@ exports[`Coachmark should render correctly 1`] = `
           [
             [
               {
-                "borderRadius": 100,
+                "borderRadius": 12,
                 "justifyContent": "center",
                 "padding": 15,
               },
@@ -206,13 +209,13 @@ exports[`Coachmark should render correctly 1`] = `
               null,
               [
                 {
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",
                 },
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                 },
                 undefined,
               ],

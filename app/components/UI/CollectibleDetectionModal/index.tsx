@@ -19,6 +19,10 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../../reducers/collectibles';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useMetrics } from '../../hooks/useMetrics';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -30,6 +34,8 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
+  const { addTraitsToUser } = useMetrics();
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const showToastAndEnableNFtDetection = useCallback(async () => {
     // show toast
@@ -45,14 +51,26 @@ const CollectibleDetectionModal = () => {
     const { PreferencesController, NftDetectionController } = Engine.context;
     PreferencesController.setDisplayNftMedia(true);
     PreferencesController.setUseNftDetection(true);
+    const traits = {
+      [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
+      [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
+    };
+    addTraitsToUser(traits);
     // Call detect nfts
     showNftFetchingLoadingIndicator();
     try {
-      await NftDetectionController.detectNfts();
+      trace({ name: TraceName.DetectNfts });
+      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+      endTrace({ name: TraceName.DetectNfts });
     } finally {
       hideNftFetchingLoadingIndicator();
     }
-  }, [colors.primary.inverse, toastRef]);
+  }, [
+    colors.primary.inverse,
+    toastRef,
+    addTraitsToUser,
+    chainIdsToDetectNftsFor,
+  ]);
 
   return (
     <View style={styles.alertBar}>
@@ -61,6 +79,7 @@ const CollectibleDetectionModal = () => {
         title={strings('wallet.nfts_autodetect_title')}
         description={strings('wallet.nfts_autodetection_desc')}
         actionButtonProps={{
+          testID: 'collectible-detection-modal-button',
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
           onPress: showToastAndEnableNFtDetection,

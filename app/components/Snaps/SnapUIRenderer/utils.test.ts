@@ -32,19 +32,26 @@ describe('SnapUIRenderer utils', () => {
           "children": [
             {
               "children": "Test Content",
-              "element": "RNText",
+              "element": "Text",
               "key": "87ada83862ef4cde3ca2a1f8cbfbbc38af6f971cb4d669224ab903ffc2c7d1bd_2",
               "props": {
-                "color": "inherit",
+                "color": undefined,
+                "style": {
+                  "fontWeight": "400",
+                  "textAlign": "left",
+                },
+                "variant": "sBodyMD",
               },
             },
           ],
           "element": "Text",
           "key": "87ada83862ef4cde3ca2a1f8cbfbbc38af6f971cb4d669224ab903ffc2c7d1bd_1",
           "props": {
-            "color": "inherit",
-            "fontWeight": "normal",
-            "textAlign": "left",
+            "color": undefined,
+            "style": {
+              "fontWeight": "400",
+              "textAlign": "left",
+            },
             "variant": "sBodyMD",
           },
         }
@@ -75,7 +82,7 @@ describe('SnapUIRenderer utils', () => {
       const result = mapTextToTemplate([iconElement], {
         map: {},
         theme: mockTheme,
-        size: 'sm',
+        textSize: 'sm',
       });
 
       expect(result[0]).toMatchObject({
@@ -98,7 +105,7 @@ describe('SnapUIRenderer utils', () => {
       const result = mapTextToTemplate([textElement], {
         map: {},
         theme: mockTheme,
-        size: 'sm',
+        textSize: 'sm',
       });
 
       expect(result[0]).toMatchObject({
@@ -120,7 +127,7 @@ describe('SnapUIRenderer utils', () => {
       const result = mapTextToTemplate([iconElement], {
         map: {},
         theme: mockTheme,
-        size: 'md',
+        textSize: 'md',
       });
 
       expect(result[0]).toMatchObject({

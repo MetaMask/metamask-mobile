@@ -7,9 +7,7 @@ import Engine from '../../../../core/Engine';
 const mockInitialState = {
   settings: {},
   engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
+    backgroundState,
   },
 };
 
@@ -33,7 +31,7 @@ describe('useVaultApys', () => {
           .refreshPooledStakingVaultDailyApys as jest.Mock
       ).mockRejectedValueOnce(new Error('API Error'));
 
-      const { result } = renderHookWithProvider(() => useVaultApys(), {
+      const { result } = renderHookWithProvider(() => useVaultApys(1), {
         state: mockInitialState,
       });
 

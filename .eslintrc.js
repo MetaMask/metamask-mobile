@@ -12,8 +12,13 @@ module.exports = {
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
-  plugins: ['@typescript-eslint', '@metamask/design-tokens'],
+  // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
+  plugins: ['@typescript-eslint', '@metamask/design-tokens', 'react-compiler'],
   overrides: [
+    {
+      files: ['e2e/**/*.{js,ts}'],
+      extends: ['./e2e/framework/.eslintrc.js'],
+    },
     {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
@@ -136,6 +141,8 @@ module.exports = {
   },
 
   rules: {
+    // Set to error once all warnings reported by React Compiler are resolved
+    'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
     quotes: [

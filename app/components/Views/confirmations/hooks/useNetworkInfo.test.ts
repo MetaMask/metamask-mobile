@@ -41,5 +41,6 @@ describe('useNetworkInfo', () => {
     );
     expect(result?.current?.networkName).toEqual('Ethereum Mainnet');
     expect(result?.current?.networkImage).toEqual(1);
+    expect(result?.current?.networkNativeCurrency).toEqual('ETH');
   });
 });

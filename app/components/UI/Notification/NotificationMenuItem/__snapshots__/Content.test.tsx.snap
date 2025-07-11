@@ -22,13 +22,12 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 12,
-          "fontWeight": "400",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 20,
+          "lineHeight": 22,
         }
       }
     >
@@ -38,12 +37,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#9fa6ae",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 12,
-          "fontWeight": "400",
+          "color": "#9ca1af",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 20,
+          "lineHeight": 22,
         }
       }
     >
@@ -64,13 +62,12 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -80,12 +77,11 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

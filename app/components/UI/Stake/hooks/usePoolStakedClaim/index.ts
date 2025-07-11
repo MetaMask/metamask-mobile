@@ -137,7 +137,7 @@ const usePoolStakedClaim = () => {
 
   return {
     attemptPoolStakedClaimTransaction: attemptPoolStakedClaimTransaction(
-      stakingContract,
+      stakingContract as PooledStakingContract,
       networkClientId,
     ),
   };

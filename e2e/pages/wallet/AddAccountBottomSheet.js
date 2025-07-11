@@ -1,6 +1,6 @@
 import { AddAccountBottomSheetSelectorsIDs } from '../../selectors/wallet/AddAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class AddAccountBottomSheet {
   get importAccountButton() {
@@ -12,6 +12,12 @@ class AddAccountBottomSheet {
   get createAccountButton() {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+    );
+  }
+
+  get createSolanaAccountButton() {
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
     );
   }
 
@@ -31,6 +37,10 @@ class AddAccountBottomSheet {
 
   async tapImportSrp() {
     await Gestures.waitAndTap(this.importSrpButton);
+  }
+
+  async tapAddSolanaAccount() {
+    await Gestures.waitAndTap(this.createSolanaAccountButton);
   }
 }
 

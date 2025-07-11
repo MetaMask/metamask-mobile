@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import I18n from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 type FiatFormatter = (fiatAmount: BigNumber) => string;
 
@@ -24,7 +25,7 @@ const useFiatFormatter = (): FiatFormatter => {
     const hasDecimals = !fiatAmount.isInteger();
 
     try {
-      return new Intl.NumberFormat(I18n.locale, {
+      return getIntlNumberFormatter(I18n.locale, {
         style: 'currency',
         currency: fiatCurrency,
         minimumFractionDigits: hasDecimals ? 2 : 0,

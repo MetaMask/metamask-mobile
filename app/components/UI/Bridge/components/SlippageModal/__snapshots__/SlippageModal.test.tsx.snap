@@ -34,7 +34,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
       style={
         [
           {
-            "backgroundColor": "#00000099",
+            "backgroundColor": "#3f434a66",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -74,6 +74,9 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
     >
       <View
         collapsable={false}
+        enabled={true}
+        handlerTag={-1}
+        handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
@@ -81,14 +84,14 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
           [
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#BBC0C566",
+              "borderColor": "#b7bbc866",
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -99,7 +102,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },
@@ -118,7 +121,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
           <View
             style={
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 2,
                 "height": 4,
                 "width": 40,
@@ -163,10 +166,9 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "color": "#121314",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 18,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -204,7 +206,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 }
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Close"
                   style={
@@ -232,8 +235,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -260,7 +263,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 12,
+                  "gap": 8,
                   "justifyContent": "center",
                 }
               }
@@ -269,7 +272,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -278,20 +280,21 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
-                      "backgroundColor": "#0376C91A",
-                      "borderColor": "#0376c9",
+                      "alignSelf": "flex-start",
+                      "backgroundColor": "#4459ff1a",
+                      "borderColor": "#4459ff",
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
+                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -301,12 +304,11 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#0376c9",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#4459ff",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -318,7 +320,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -327,20 +328,21 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
-                      "borderColor": "#848c96",
+                      "borderColor": "#b7bbc8",
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
+                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -350,12 +352,11 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -367,7 +368,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -376,20 +376,21 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
-                      "borderColor": "#848c96",
+                      "borderColor": "#b7bbc8",
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
+                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -399,12 +400,11 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -416,7 +416,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -425,20 +424,21 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                   accessibilityRole="button"
                   accessible={true}
                   activeOpacity={1}
-                  buttonWidth="full"
+                  buttonWidth="auto"
                   disabled={false}
                   onPress={[Function]}
                   style={
                     {
                       "alignItems": "center",
-                      "alignSelf": "stretch",
+                      "alignSelf": "flex-start",
                       "backgroundColor": "transparent",
-                      "borderColor": "#848c96",
+                      "borderColor": "#b7bbc8",
                       "borderRadius": 16,
                       "borderWidth": 1,
                       "flexDirection": "row",
-                      "height": 32,
+                      "height": 40,
                       "justifyContent": "center",
+                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -448,12 +448,11 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
-                        "fontWeight": "500",
+                        "color": "#121314",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -485,14 +484,15 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
-                  "borderRadius": 24,
+                  "backgroundColor": "#3c4d9d1a",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -502,12 +502,11 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >

@@ -16,6 +16,7 @@ const styleSheet = () =>
     },
     pills: {
       flexDirection: 'row',
+      alignItems: 'center',
       gap: 4,
     },
   });

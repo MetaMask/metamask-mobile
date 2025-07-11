@@ -2,6 +2,7 @@
 import { StyleSheet, TextStyle } from 'react-native';
 
 import { Theme } from '../../../../util/theme/models';
+import { getFontFamily, TextVariant } from '../../../components/Texts/Text';
 /**
  * Style sheet for Custom Input component.
  *
@@ -35,6 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 16,
       color: colors.text.default,
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
     } as TextStyle,
     maxValueText: {
       color: theme.colors.text.alternative,

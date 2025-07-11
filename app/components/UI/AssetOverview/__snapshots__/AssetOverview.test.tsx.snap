@@ -21,12 +21,11 @@ exports[`AssetOverview should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "color": "#686e7d",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -39,10 +38,9 @@ exports[`AssetOverview should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -89,12 +87,11 @@ exports[`AssetOverview should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -189,7 +186,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#00000014",
+            "backgroundColor": "#858b9a29",
             "borderRadius": 40,
             "justifyContent": "center",
             "paddingHorizontal": 8,
@@ -202,12 +199,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -233,12 +229,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -264,12 +259,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -295,12 +289,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -326,12 +319,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -357,12 +349,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -419,7 +410,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -431,6 +422,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Add"
               style={
@@ -447,10 +439,9 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -460,12 +451,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -475,12 +465,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -525,7 +514,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -537,6 +526,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="SwapHorizontal"
               style={
@@ -553,10 +543,9 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -566,12 +555,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -581,12 +569,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -631,7 +618,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -643,6 +630,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Bridge"
               style={
@@ -659,10 +647,9 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -672,12 +659,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -687,12 +673,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -737,7 +722,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -749,8 +734,9 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
-              name="Arrow2Upright"
+              name="Arrow2UpRight"
               style={
                 {
                   "height": 24,
@@ -765,10 +751,9 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -778,12 +763,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -793,12 +777,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -843,7 +826,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -855,6 +838,7 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="QrCode"
               style={
@@ -871,10 +855,9 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -884,12 +867,11 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -899,12 +881,11 @@ exports[`AssetOverview should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -923,10 +904,9 @@ exports[`AssetOverview should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -937,15 +917,16 @@ exports[`AssetOverview should render correctly 1`] = `
         Your balance
       </Text>
       <TouchableOpacity
+        disabled={false}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
           {
-            "alignItems": "flex-start",
+            "alignItems": "center",
             "flex": 1,
             "flexDirection": "row",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "height": 64,
+            "paddingHorizontal": 16,
           }
         }
         testID="asset-ETH"
@@ -965,10 +946,10 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
-                  "height": 32,
+                  "borderRadius": 20,
+                  "height": 40,
                   "overflow": "hidden",
-                  "width": 32,
+                  "width": 40,
                 }
               }
             >
@@ -1038,7 +1019,7 @@ exports[`AssetOverview should render correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -1070,31 +1051,14 @@ exports[`AssetOverview should render correctly 1`] = `
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "alignSelf": "center",
-              "color": "#141618",
-              "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
-            }
-          }
-        >
-          Ethereum
-        </Text>
         <View
           style={
             {
-              "alignItems": "flex-end",
-              "alignSelf": "flex-end",
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
               "flex": 1,
+              "flexDirection": "column",
+              "paddingLeft": 16,
             }
           }
         >
@@ -1102,1128 +1066,36 @@ exports[`AssetOverview should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
             }
-            testID="balance-test-id"
           >
-            0 ETH
+            Ethereum
           </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        {
-          "marginBottom": 20,
-          "paddingHorizontal": 16,
-        }
-      }
-    />
-  </View>
-</View>
-`;
-
-exports[`AssetOverview should render correctly when portfolio view is enabled 1`] = `
-<View
-  style={
-    {
-      "paddingTop": 20,
-    }
-  }
-  testID="token-asset-overview"
->
-  <View>
-    <View
-      style={
-        {
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        Ethereum
-         (
-        ETH
-        )
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 24,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 32,
-          }
-        }
-        testID="token-price"
-      >
-        <View
-          style={
-            {
-              "paddingTop": 8,
-            }
-          }
-        >
-          <View
-            onLayout={[Function]}
-          >
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 32,
-                      "width": 100,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "paddingTop": 2,
-            }
-          }
-          testID="loading-price-diff"
-        >
-          <View
-            onLayout={[Function]}
-          >
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 18,
-                      "width": 150,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "paddingHorizontal": 16,
-          "paddingTop": 10,
-          "width": 750,
-        }
-      }
-    >
-      <View
-        onLayout={[Function]}
-      >
-        <View
-          style={
-            {
-              "position": "relative",
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 6,
-                  "height": 586.96,
-                  "width": 718,
-                },
-                {
-                  "backgroundColor": "#E1E9EE",
-                  "overflow": "hidden",
-                },
-              ]
-            }
-          />
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-around",
-          "paddingHorizontal": 10,
-          "paddingTop": 20,
-        }
-      }
-    >
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#00000014",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          1D
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          1W
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          1M
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          3M
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          1Y
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderRadius": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 8,
-            "paddingLeft": 10,
-            "paddingVertical": 2,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "letterSpacing": 3,
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
-        >
-          3Y
-        </Text>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-evenly",
-          "padding": 16,
-        }
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-buy-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="Add"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
           <View>
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#ca3542",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
               }
             />
           </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Buy
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-swap-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="SwapHorizontal"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Swap
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-bridge-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="Bridge"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Bridge
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-send-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="Arrow2Upright"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Send
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-          }
-        }
-      >
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            [
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingVertical": 16,
-                "width": "100%",
-              },
-              {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "flex-start",
-                "paddingTop": 16,
-                "paddingVertical": 2,
-                "width": "100%",
-              },
-              false,
-            ]
-          }
-          testID="token-receive-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 20,
-                "height": 40,
-                "justifyContent": "center",
-                "marginHorizontal": 16,
-                "overflow": "hidden",
-                "width": 40,
-              }
-            }
-          >
-            <SvgMock
-              color="#ffffff"
-              height={24}
-              name="QrCode"
-              style={
-                {
-                  "height": 24,
-                  "width": 24,
-                }
-              }
-              width={24}
-            />
-          </View>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            />
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Receive
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingHorizontal": 15,
-            "paddingVertical": 4,
-          }
-        }
-      >
-        Your balance
-      </Text>
-      <TouchableOpacity
-        onLongPress={[Function]}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "flex-start",
-            "flex": 1,
-            "flexDirection": "row",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          }
-        }
-        testID="asset-ETH"
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignSelf": "center",
-              "position": "relative",
-            }
-          }
-          testID="badge-wrapper-badge"
-        >
-          <View>
-            <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "overflow": "hidden",
-                  "width": 32,
-                }
-              }
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={
-                  {
-                    "uri": "",
-                  }
-                }
-                style={
-                  {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
-                  }
-                }
-                testID="token-avatar-image"
-              />
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "aspectRatio": 1,
-                "bottom": 0,
-                "height": 0,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "transform": [
-                  {
-                    "translateX": 0,
-                  },
-                  {
-                    "translateY": 0,
-                  },
-                ],
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "aspectRatio": 1,
-                  "height": "50%",
-                  "justifyContent": "center",
-                  "maxHeight": 24,
-                  "minHeight": 8,
-                  "opacity": 0,
-                }
-              }
-              testID="badgenetwork"
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#ffffff",
-                    "borderRadius": 8,
-                    "borderWidth": 2,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "overflow": "hidden",
-                    "shadowColor": "#0000001A",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 1,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                    "width": 32,
-                  }
-                }
-              >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={1}
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
-            </View>
-          </View>
         </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "alignSelf": "center",
-              "color": "#141618",
-              "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
-            }
-          }
-        >
-          Ethereum
-        </Text>
         <View
           style={
             {
               "alignItems": "flex-end",
-              "alignSelf": "flex-end",
-              "flex": 1,
+              "flexShrink": 0,
             }
           }
         >
@@ -2231,10 +1103,9 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2247,14 +1118,13 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -2271,7 +1141,16 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      />
+    </View>
   </View>
 </View>
 `;
@@ -2297,12 +1176,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "color": "#686e7d",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -2315,10 +1193,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
             "fontSize": 24,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 32,
           }
@@ -2365,12 +1242,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -2465,7 +1341,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#00000014",
+            "backgroundColor": "#858b9a29",
             "borderRadius": 40,
             "justifyContent": "center",
             "paddingHorizontal": 8,
@@ -2478,12 +1354,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2509,12 +1384,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2540,12 +1414,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2571,12 +1444,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2602,12 +1474,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2633,12 +1504,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 12,
-              "fontWeight": "400",
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
               "letterSpacing": 3,
-              "lineHeight": 20,
+              "lineHeight": 22,
               "textAlign": "center",
             }
           }
@@ -2695,7 +1565,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -2707,6 +1577,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Add"
               style={
@@ -2723,10 +1594,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2736,12 +1606,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -2751,12 +1620,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -2801,7 +1669,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -2813,6 +1681,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="SwapHorizontal"
               style={
@@ -2829,10 +1698,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2842,12 +1710,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -2857,12 +1724,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -2907,7 +1773,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -2919,6 +1785,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="Bridge"
               style={
@@ -2935,10 +1802,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2948,12 +1814,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -2963,12 +1828,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -3013,7 +1877,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -3025,8 +1889,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
-              name="Arrow2Upright"
+              name="Arrow2UpRight"
               style={
                 {
                   "height": 24,
@@ -3041,10 +1906,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3054,12 +1918,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -3069,12 +1932,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -3119,7 +1981,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 20,
                 "height": 40,
                 "justifyContent": "center",
@@ -3131,6 +1993,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             <SvgMock
               color="#ffffff"
+              fill="currentColor"
               height={24}
               name="QrCode"
               style={
@@ -3147,10 +2010,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 16,
-                  "fontWeight": "500",
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -3160,12 +2022,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             />
@@ -3175,12 +2036,11 @@ exports[`AssetOverview should render native balances even if there are no accoun
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -3199,10 +2059,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
             "paddingHorizontal": 15,
@@ -3213,15 +2072,16 @@ exports[`AssetOverview should render native balances even if there are no accoun
         Your balance
       </Text>
       <TouchableOpacity
+        disabled={true}
         onLongPress={[Function]}
         onPress={[Function]}
         style={
           {
-            "alignItems": "flex-start",
+            "alignItems": "center",
             "flex": 1,
             "flexDirection": "row",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
+            "height": 64,
+            "paddingHorizontal": 16,
           }
         }
         testID="asset-ETH"
@@ -3260,14 +2120,14 @@ exports[`AssetOverview should render native balances even if there are no accoun
                     false,
                     false,
                     {
-                      "borderRadius": 16,
-                      "height": 32,
+                      "borderRadius": 20,
+                      "height": 40,
                       "overflow": "hidden",
-                      "width": 32,
+                      "width": 40,
                     },
                   ]
                 }
-                testID="PLACE HOLDER"
+                testID="Ethereum"
               />
               <View
                 collapsable={false}
@@ -3286,10 +2146,10 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   style={
                     [
                       {
-                        "borderRadius": 16,
-                        "height": 32,
+                        "borderRadius": 20,
+                        "height": 40,
                         "overflow": "hidden",
-                        "width": 32,
+                        "width": 40,
                       },
                       {
                         "backgroundColor": "#eee",
@@ -3341,14 +2201,14 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#f3f5f9",
                     "borderColor": "#ffffff",
                     "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -3368,10 +2228,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3383,31 +2242,14 @@ exports[`AssetOverview should render native balances even if there are no accoun
             </View>
           </View>
         </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "alignSelf": "center",
-              "color": "#141618",
-              "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "justifyContent": "center",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "marginLeft": 20,
-            }
-          }
-        >
-          Ethereum
-        </Text>
         <View
           style={
             {
-              "alignItems": "flex-end",
-              "alignSelf": "flex-end",
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
               "flex": 1,
+              "flexDirection": "column",
+              "paddingLeft": 16,
             }
           }
         >
@@ -3415,10 +2257,46 @@ exports[`AssetOverview should render native balances even if there are no accoun
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "flexShrink": 0,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -3431,14 +2309,13 @@ exports[`AssetOverview should render native balances even if there are no accoun
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "paddingHorizontal": 0,
-                "textTransform": "uppercase",
               }
             }
             testID="secondary-balance-test-id"
@@ -3455,7 +2332,1240 @@ exports[`AssetOverview should render native balances even if there are no accoun
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`AssetOverview should render native balances when non evm network is selected 1`] = `
+<View
+  style={
+    {
+      "paddingTop": 20,
+    }
+  }
+  testID="token-asset-overview"
+>
+  <View>
+    <View
+      style={
+        {
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Ethereum
+         (
+        ETH
+        )
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 24,
+            "letterSpacing": 0,
+            "lineHeight": 32,
+          }
+        }
+        testID="token-price"
+      >
+        $151.23
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#1c7e33",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            selectable={false}
+            style={
+              [
+                {
+                  "color": undefined,
+                  "fontSize": 16,
+                },
+                {
+                  "marginTop": 10,
+                },
+                {
+                  "fontFamily": "Feather",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+           
+          $151.23
+           (
+          +
+          Infinity
+          %)
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="price-label"
+          >
+            Today
+          </Text>
+        </Text>
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "height": 576.96,
+          "marginVertical": 10,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
+          "width": 750,
+        }
+      }
+    >
+      <View
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-around",
+          "paddingHorizontal": 10,
+          "paddingTop": 20,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#858b9a29",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 3,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          1D
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 3,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          1W
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 3,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          1M
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 3,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          3M
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 8,
+            "paddingLeft": 10,
+            "paddingVertical": 2,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "letterSpacing": 3,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          1Y
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-evenly",
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-buy-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="Add"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Buy
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-swap-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="SwapHorizontal"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Swap
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-bridge-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="Bridge"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Bridge
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-send-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="Arrow2UpRight"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Send
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
+          }
+          testID="token-receive-button"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 20,
+                "height": 40,
+                "justifyContent": "center",
+                "marginHorizontal": 16,
+                "overflow": "hidden",
+                "width": 40,
+              }
+            }
+          >
+            <SvgMock
+              color="#ffffff"
+              fill="currentColor"
+              height={24}
+              name="QrCode"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Receive
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Bold",
+            "fontSize": 18,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "paddingHorizontal": 15,
+            "paddingVertical": 4,
+          }
+        }
+      >
+        Your balance
+      </Text>
+      <TouchableOpacity
+        disabled={true}
+        onLongPress={[Function]}
+        onPress={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 64,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="asset-ETH"
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignSelf": "center",
+              "position": "relative",
+            }
+          }
+          testID="badge-wrapper-badge"
+        >
+          <View>
+            <View
+              useNativeDriver={true}
+            >
+              <Image
+                fadeIn={true}
+                onError={[Function]}
+                onLoadEnd={[Function]}
+                source={
+                  {
+                    "uri": "",
+                  }
+                }
+                style={
+                  [
+                    {
+                      "borderRadius": 12,
+                      "height": 24,
+                      "width": 24,
+                    },
+                    undefined,
+                    false,
+                    false,
+                    {
+                      "borderRadius": 20,
+                      "height": 40,
+                      "overflow": "hidden",
+                      "width": 40,
+                    },
+                  ]
+                }
+                testID="Ethereum"
+              />
+              <View
+                collapsable={false}
+                style={
+                  {
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 1,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 20,
+                        "height": 40,
+                        "overflow": "hidden",
+                        "width": 40,
+                      },
+                      {
+                        "backgroundColor": "#eee",
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "aspectRatio": 1,
+                "bottom": 0,
+                "height": 0,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "translateX": 0,
+                  },
+                  {
+                    "translateY": 0,
+                  },
+                ],
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": "50%",
+                  "justifyContent": "center",
+                  "maxHeight": 24,
+                  "minHeight": 8,
+                  "opacity": 0,
+                }
+              }
+              testID="badgenetwork"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 8,
+                    "borderWidth": 2,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "shadowColor": "#0000001a",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 1,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                    "width": 32,
+                  }
+                }
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignContent": "flex-start",
+              "alignItems": "flex-start",
+              "flex": 1,
+              "flexDirection": "column",
+              "paddingLeft": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ca3542",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "flexShrink": 0,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="balance-test-id"
+          >
+            1500
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "paddingHorizontal": 0,
+              }
+            }
+            testID="secondary-balance-test-id"
+          >
+            400 ETH
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "marginBottom": 20,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 18,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            Token details
+          </Text>
+          <View
+            style={
+              {
+                "paddingBottom": 8,
+                "paddingTop": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 4,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Token decimal
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                18
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
   </View>
 </View>
 `;

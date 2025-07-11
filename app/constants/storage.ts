@@ -61,3 +61,11 @@ export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 export const themeAppearanceLight = 'light';
 
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
+
+export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShown`;
+
+export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
+
+export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
+
+export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;

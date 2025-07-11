@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import { getIntlNumberFormatter } from '../../../util/intl';
 
 const MIN_AMOUNT = new BigNumber('0.000001');
 
@@ -20,7 +21,7 @@ export function formatAmountMaxPrecision(
   const formattedValue = bigNumberValue.toFixed(numberOfDecimals ?? 0);
 
   const [integerPart, fractionalPart] = formattedValue.split('.');
-  const formattedIntegerPart = new Intl.NumberFormat(locale).format(
+  const formattedIntegerPart = getIntlNumberFormatter(locale).format(
     integerPart as unknown as number,
   );
 
@@ -28,7 +29,6 @@ export function formatAmountMaxPrecision(
     ? `${formattedIntegerPart}.${fractionalPart}`
     : formattedIntegerPart;
 }
-
 
 /**
  * Formats the a token amount with variable precision and significant
@@ -75,7 +75,7 @@ export function formatAmount(locale: string, amount: BigNumber): string {
   }
 
   if (amount.abs().isLessThan(1)) {
-    return new Intl.NumberFormat(locale, {
+    return getIntlNumberFormatter(locale, {
       maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
     } as Intl.NumberFormatOptions).format(
       amount.dp(DEFAULT_PRECISION ?? 0).toNumber(),
@@ -92,7 +92,7 @@ export function formatAmount(locale: string, amount: BigNumber): string {
     MAX_SIGNIFICANT_DECIMAL_PLACES - digitsLeftOfDecimal + 1,
   );
 
-  return new Intl.NumberFormat(locale, {
+  return getIntlNumberFormatter(locale, {
     maximumFractionDigits,
   } as Intl.NumberFormatOptions).format(
     // string is valid parameter for format function

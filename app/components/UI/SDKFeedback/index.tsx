@@ -10,6 +10,10 @@ import Device from '../../../../app/util/device';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import StyledButton from '../StyledButton';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 interface SDKFeedbackProps {
   onConfirm: () => void;
@@ -36,11 +40,13 @@ const createStyles = (
     },
     title: {
       ...typography.lHeadingMD,
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
     } as TextStyle,
     info: {
       padding: 20,
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
     } as TextStyle,
     action: {
       marginLeft: 20,

@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
@@ -43,6 +44,8 @@ describe('SwapsAmountView', () => {
     const { getByTestId } = renderWithProvider(<SwapsAmountView />, {
       state: mockInitialState,
     });
-    expect(getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN)).toBeDefined();
+    expect(
+      getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN_SELECTOR),
+    ).toBeDefined();
   });
 });

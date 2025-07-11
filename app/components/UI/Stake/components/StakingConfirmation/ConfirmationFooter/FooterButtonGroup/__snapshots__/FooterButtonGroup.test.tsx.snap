@@ -23,9 +23,9 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#3c4d9d1a",
+        "borderColor": "transparent",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -33,20 +33,21 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#4459ff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -66,17 +67,19 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <ActivityIndicator
       color="#ffffff"
@@ -109,9 +112,9 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#3c4d9d1a",
+        "borderColor": "transparent",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -119,20 +122,21 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#4459ff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -152,17 +156,19 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <ActivityIndicator
       color="#ffffff"
@@ -195,9 +201,9 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#3c4d9d1a",
+        "borderColor": "transparent",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -205,20 +211,21 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#4459ff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -238,28 +245,29 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -292,9 +300,9 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#3c4d9d1a",
+        "borderColor": "transparent",
+        "borderRadius": 12,
         "borderWidth": 1,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -302,20 +310,21 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="cancel-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "color": "#4459ff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -335,28 +344,29 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#0376c9",
-        "borderRadius": 24,
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
         "flexGrow": 1,
         "flexShrink": 0,
         "height": 48,
         "justifyContent": "center",
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
+    testID="continue-button"
   >
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
-          "fontWeight": "500",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

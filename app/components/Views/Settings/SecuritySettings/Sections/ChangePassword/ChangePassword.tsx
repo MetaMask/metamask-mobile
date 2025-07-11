@@ -40,7 +40,7 @@ const ChangePassword = () => {
       </Text>
       <Button
         label={strings('password_reset.change_password')}
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariants.Primary}
         onPress={resetPassword}
         style={styles.confirm}
         width={ButtonWidthTypes.Full}

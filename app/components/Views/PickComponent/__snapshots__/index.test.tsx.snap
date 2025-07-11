@@ -34,7 +34,7 @@ exports[`PickComponent should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#848c96",
+            "borderColor": "#b7bbc8",
             "borderRadius": 99,
             "borderWidth": 2,
             "height": 20,
@@ -54,12 +54,11 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -93,7 +92,7 @@ exports[`PickComponent should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 99,
             "borderWidth": 2,
             "height": 20,
@@ -105,7 +104,7 @@ exports[`PickComponent should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 99,
               "height": 12,
               "width": 12,
@@ -125,12 +124,11 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

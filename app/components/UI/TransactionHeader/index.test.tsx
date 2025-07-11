@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider, { DeepPartial } from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import TransactionHeader from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
@@ -17,12 +19,14 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '200',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '200',
+        accountsByChainId: {
+          '0x1': {
+            [MOCK_ADDRESS_1]: {
+              balance: '200',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '200',
+            },
           },
         },
       },
@@ -52,7 +56,9 @@ const defaultProps = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockImplementation((callback) => callback(mockInitialState)),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 describe('TransactionHeader', () => {
@@ -72,11 +78,16 @@ describe('TransactionHeader', () => {
     const { queryByTestId } = renderWithProvider(
       <TransactionHeader
         {...defaultProps}
-        currentPageInformation={{ ...defaultProps.currentPageInformation, origin }}
+        currentPageInformation={{
+          ...defaultProps.currentPageInformation,
+          origin,
+        }}
       />,
       { state: mockInitialState },
     );
 
-    expect(queryByTestId(TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN)).toBeNull();
+    expect(
+      queryByTestId(TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN),
+    ).toBeNull();
   });
 });

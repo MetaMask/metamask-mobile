@@ -5,7 +5,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -52,10 +52,9 @@ exports[`BannerTip should render default settings correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
-          "fontWeight": "500",
+          "color": "#121314",
+          "fontFamily": "Geist Medium",
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -67,12 +66,11 @@ exports[`BannerTip should render default settings correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -87,12 +85,11 @@ exports[`BannerTip should render default settings correctly 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
       suppressHighlighting={true}
@@ -101,12 +98,11 @@ exports[`BannerTip should render default settings correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "color": "#4459ff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -141,7 +137,8 @@ exports[`BannerTip should render default settings correctly 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={

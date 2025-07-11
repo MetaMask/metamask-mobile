@@ -22,6 +22,7 @@ export interface SnapUIAddressProps {
   truncate?: boolean;
   displayName?: boolean;
   avatar?: boolean;
+  color?: string;
 }
 
 export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
@@ -30,6 +31,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
   truncate = true,
   displayName = false,
   avatar = true,
+  color,
 }) => {
   const caipIdentifier = useMemo(() => {
     if (isHexString(address)) {
@@ -58,6 +60,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
 
   const name = useDisplayName(parsed);
 
+  // TODO: This component should inherit font color, e.g. for link.
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -65,7 +68,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
       gap={8}
     >
       {avatar && <SnapUIAvatar address={caipIdentifier} size={avatarSize} />}
-      <Text variant={TextVariant.BodyMD} color="inherit">
+      <Text variant={TextVariant.BodyMD} color={color}>
         {displayName && name ? name : formattedAddress}
       </Text>
     </Box>

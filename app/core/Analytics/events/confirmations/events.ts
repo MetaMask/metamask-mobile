@@ -5,6 +5,7 @@ import {
 
 enum EVENT_NAME {
   ADVANCED_DETAILS_CLICKED = 'Confirmation Advanced Details Clicked',
+  BLOCKAID_ALERT_LINK_CLICKED = 'Blockaid Alert Link Clicked',
   TOOLTIP_CLICKED = 'Confirmation Tooltip Clicked',
   SCREEN_VIEWED = 'Confirmation Screen Viewed',
 }
@@ -25,6 +26,9 @@ const createEvent = (name: EVENT_NAME | TRANSACTION_EVENT_NAMES) =>
 
 export const CONFIRMATION_EVENTS = {
   ADVANCED_DETAILS_CLICKED: createEvent(EVENT_NAME.ADVANCED_DETAILS_CLICKED),
+  BLOCKAID_ALERT_LINK_CLICKED: createEvent(
+    EVENT_NAME.BLOCKAID_ALERT_LINK_CLICKED,
+  ),
   SCREEN_VIEWED: createEvent(EVENT_NAME.SCREEN_VIEWED),
   TOOLTIP_CLICKED: createEvent(EVENT_NAME.TOOLTIP_CLICKED),
 };

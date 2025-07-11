@@ -1,6 +1,10 @@
 import { LockManagerService } from '.';
 import { AppState, AppStateStatus } from 'react-native';
-import { interruptBiometrics, lockApp } from '../../actions/user';
+import {
+  interruptBiometrics,
+  lockApp,
+  checkForDeeplink,
+} from '../../actions/user';
 import Logger from '../../util/Logger';
 import ReduxService, { type ReduxStore } from '../redux';
 
@@ -48,7 +52,7 @@ describe('LockManagerService', () => {
 
   afterEach(() => {
     lockManagerService.stopListening();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   describe('startListening', () => {
@@ -95,7 +99,7 @@ describe('LockManagerService', () => {
         dispatch: mockDispatch,
       } as unknown as ReduxStore);
       lockManagerService.startListening();
-      mockAppStateListener('active');
+      mockAppStateListener('background');
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
@@ -110,7 +114,7 @@ describe('LockManagerService', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('should do nothing while lockTime is 0 while going from inactive to active', async () => {
+    it('should only dispatch checkForDeeplink while lockTime is 0 while going from inactive to active', async () => {
       const mockDispatch = jest.fn();
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({ settings: { lockTime: 0 } }),
@@ -119,7 +123,7 @@ describe('LockManagerService', () => {
       lockManagerService.startListening();
       mockAppStateListener('inactive');
       mockAppStateListener('active');
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
     });
 
     it('should dispatch interruptBiometrics when lockTimer is undefined, lockTime is non-zero, and app state is not active', async () => {

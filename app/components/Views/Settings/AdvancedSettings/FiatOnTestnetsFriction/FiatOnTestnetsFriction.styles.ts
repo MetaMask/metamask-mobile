@@ -1,5 +1,9 @@
 import { StyleSheet, TextStyle } from 'react-native';
 import { typography } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 export default () =>
   StyleSheet.create({
@@ -10,6 +14,7 @@ export default () =>
     },
     heading: {
       ...(typography.sHeadingMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
     },
     descriptionText: {
       marginTop: 16,

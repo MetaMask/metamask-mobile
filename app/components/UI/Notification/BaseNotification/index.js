@@ -77,7 +77,7 @@ export const getIcon = (status, colors, styles) => {
         <IonicIcon
           color={colors.success.default}
           size={36}
-          name="md-checkmark"
+          name="checkmark"
           style={styles.checkIcon}
         />
       );
@@ -96,7 +96,7 @@ export const getIcon = (status, colors, styles) => {
         <IonicIcon
           color={colors.background.default}
           size={36}
-          name="md-checkmark"
+          name="checkmark"
           style={styles.checkIcon}
         />
       );
@@ -148,8 +148,6 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       return strings('notifications.cancelled_title');
     case 'error':
       return strings('notifications.error_title');
-    case 'eth_received':
-      return strings('notifications.eth_received_title');
   }
 };
 
@@ -199,11 +197,7 @@ const BaseNotification = ({
           <View>
             {autoDismiss && (
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-                <IonicIcon
-                  name="ios-close"
-                  size={36}
-                  style={styles.closeIcon}
-                />
+                <IonicIcon name="close" size={36} style={styles.closeIcon} />
               </TouchableOpacity>
             )}
           </View>

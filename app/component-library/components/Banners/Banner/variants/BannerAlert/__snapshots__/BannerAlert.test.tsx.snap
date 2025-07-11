@@ -4,8 +4,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#0376C91A",
-      "borderColor": "#0376c9",
+      "backgroundColor": "#4459ff1a",
+      "borderColor": "#4459ff",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -23,7 +23,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
     }
   >
     <SvgMock
-      color="#0376c9"
+      color="#4459ff"
+      fill="currentColor"
       height={24}
       name="Info"
       style={
@@ -46,10 +47,9 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
-          "fontWeight": "500",
+          "color": "#121314",
+          "fontFamily": "Geist Medium",
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -61,12 +61,11 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -81,12 +80,11 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
       suppressHighlighting={true}
@@ -95,12 +93,11 @@ exports[`BannerAlert should render BannerAlert 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
+            "color": "#4459ff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -135,7 +132,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={

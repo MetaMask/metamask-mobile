@@ -18,8 +18,6 @@ import {
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
-import { isNotificationsFeatureEnabled } from '../constants';
-import ErrorMessage from '../../../components/Views/confirmations/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -46,37 +44,46 @@ export function useListNotifications() {
 }
 
 /**
- * Effect that queries for notifications on startup if notifications are enabled.
+ * Adds a tiny delay between 2 loading states to ensure that we have a smooth loading experience.
+ * It prevents any flickers while we are transitioning between the 2 loading params
+ * E.g.
+ * ```
+ * loadingParam1: true, loadingParam2: false // 1st loading
+ * loadingParam1: false, loadingParam2: false // False positive (causes UI flicker)
+ * loadingParam1: false, loadingParam2: true // 2nd loading
+ * loadingParam1: false, loadingParam2: false // Finished loading
+ * ```
+ * @param loadingParam1 boolean
+ * @param loadingParam2 boolean
  */
-export function useListNotificationsEffect() {
-  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
-  const notificationsControllerEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
+export function useContiguousLoading(
+  loadingParam1: boolean,
+  loadingParam2: boolean,
+) {
+  const [contiguousLoading, setContiguousLoading] = useState(false);
 
-  const notificationsEnabled =
-    notificationsFlagEnabled && notificationsControllerEnabled;
-
-  const { listNotifications } = useListNotifications();
-
-  // App Open Effect
   useEffect(() => {
-    const run = async () => {
-      try {
-        if (notificationsEnabled) {
-          await listNotifications();
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(ErrorMessage);
-        Logger.error(
-          new Error(`Failed to list notifications - ${errorMessage}`),
-        );
-      }
-    };
+    const isLoading = loadingParam1 || loadingParam2;
 
-    run();
-  }, [notificationsEnabled, listNotifications]);
+    // If loading is true, we set it immediately
+    if (isLoading) {
+      setContiguousLoading(isLoading);
+      return;
+    }
+
+    // Otherwise if loading has stopped, we will continue to be loading for a little bit
+    // In case the boolean params update again
+    if (!isLoading) {
+      const timeout = setTimeout(() => {
+        setContiguousLoading(false);
+      }, 100);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [loadingParam1, loadingParam2]);
+
+  return contiguousLoading;
 }
 
 /**
@@ -104,11 +111,13 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     await enableNotificationsHelper().catch((e) => setError(e));
   }, [togglePushNotification]);
 
+  const contiguousLoading = useContiguousLoading(loading, pushLoading);
+
   return {
     enableNotifications,
     isEnablingNotifications: loading,
     isEnablingPushNotifications: pushLoading,
-    loading: loading && pushLoading,
+    loading: loading || pushLoading || contiguousLoading,
     error,
     data,
   };

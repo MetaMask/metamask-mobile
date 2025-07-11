@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { connect } from 'react-redux';
 import {
   ScrollView,
   TouchableOpacity,
@@ -18,15 +19,16 @@ import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
-import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Routes from '../../../constants/navigation/Routes';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -203,21 +205,34 @@ const createStyles = (colors) =>
 const AccountBackupStep1B = (props) => {
   const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
-  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const headerLeft = useCallback(() => <View />, []);
+  const track = (event, properties) => {
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
+  };
+
   useEffect(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  }, [navigation, route, colors]);
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft,
+        },
+        colors,
+      ),
+    );
+  }, [navigation, route, colors, headerLeft]);
 
   const goNext = () => {
-    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      ).build(),
-    );
+    props.navigation.navigate('ManualBackupStep1', {
+      ...props.route.params,
+      settingsBackup: true,
+    });
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED, {});
   };
 
   const learnMore = () => {
@@ -236,8 +251,14 @@ const AccountBackupStep1B = (props) => {
   const showWhySecureWallet = () => setWhySecureWalletModal(true);
   const hideWhySecureWallet = () => setWhySecureWalletModal(false);
 
-  const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
-  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+  const showWhatIsSeedphrase = () => {
+    track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
+      location: 'account_backup_step_1b',
+    });
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SEEDPHRASE_MODAL,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
@@ -377,10 +398,6 @@ const AccountBackupStep1B = (props) => {
           </View>
         </View>
       </ActionModal>
-      <SeedphraseModal
-        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
-        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
-      />
     </SafeAreaView>
   );
 };
@@ -394,6 +411,14 @@ AccountBackupStep1B.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Action to save onboarding event
+   */
+  saveOnboardingEvent: PropTypes.func,
 };
 
-export default AccountBackupStep1B;
+const mapDispatchToProps = (dispatch) => ({
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountBackupStep1B);

@@ -6,6 +6,7 @@ export const AddContactViewSelectorsIDs = {
   DELETE_BUTTON: 'add-contact-delete-contact-button',
   MEMO_INPUT: 'add-contact-memo-input',
   NAME_INPUT: 'add-contact-name-input',
+  NETWORK_INPUT: 'add-contact-network-input',
   CONTAINER: 'add-contacts-screen',
   EDIT_BUTTON: 'edit-button',
 };

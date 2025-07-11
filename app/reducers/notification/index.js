@@ -1,3 +1,4 @@
+import { createSelector } from 'reselect';
 import { NotificationTypes } from '../../util/notifications';
 const { TRANSACTION, SIMPLE } = NotificationTypes;
 
@@ -26,8 +27,13 @@ const enqueue = (notifications, notification) => [
 ];
 const dequeue = (notifications) => notifications.slice(1);
 
-export const currentNotificationSelector = (state) =>
-  state?.notifications[0] || {};
+export const currentNotificationSelector = createSelector(
+  (
+    /** @type {import('..').RootState} */
+    state,
+  ) => state?.notifications,
+  (notifications) => notifications[0] || {},
+);
 
 const notificationReducer = (state = initialState, action) => {
   const { notifications } = state;

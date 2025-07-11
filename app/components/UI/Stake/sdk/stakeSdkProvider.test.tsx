@@ -6,7 +6,7 @@ import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 import * as useStakeContextHook from '../hooks/useStakeContext';
 import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';
-import { MOCK_POOL_STAKING_SDK } from '../__mocks__/mockData';
+import { MOCK_POOL_STAKING_SDK } from '../__mocks__/stakeMockData';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -9,40 +15,57 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  collectibleContractsSelector,
-  collectiblesSelector,
   favoritesCollectiblesSelector,
   isNftFetchingProgressSelector,
+  multichainCollectibleContractsSelector,
+  multichainCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { areAddressesEqual } from '../../../util/address';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
 import {
   selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectProviderType,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectTokenNetworkFilter,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
-import { debounce } from 'lodash';
+import { debounce, cloneDeep, isEqual } from 'lodash';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import Logger from '../../../util/Logger';
+import { prepareNftDetectionEvents } from '../../../util/assets';
+import { endTrace, trace, TraceName } from '../../../util/trace';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -50,6 +73,43 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
       marginTop: 16,
+    },
+    BarWrapper: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+    },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+    },
+    text: {
+      fontSize: 20,
+      color: colors.text.default,
+      ...fontStyles.normal,
+    },
+    controlButtonText: {
+      color: colors.text.default,
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      marginRight: 4,
+      maxWidth: '60%',
+      paddingHorizontal: 0,
+    },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      marginRight: 4,
+      maxWidth: '60%',
+      paddingHorizontal: 0,
+      opacity: 0.5,
     },
     emptyView: {
       justifyContent: 'center',
@@ -112,14 +172,67 @@ const CollectibleContracts = ({
   isIpfsGatewayEnabled,
   displayNftMedia,
 }) => {
-  const collectibles = allCollectibles.filter(
+  // Start tracing component loading
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({ name: TraceName.CollectibleContractsComponent });
+  }
+
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const allNetworkClientIds = useMemo(
+    () =>
+      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        if (isNonEvmChainId(chainId)) return [];
+        const entry = allNetworks[chainId];
+        if (!entry) {
+          return [];
+        }
+        const index = entry.defaultRpcEndpointIndex;
+        const endpoint = entry.rpcEndpoints[index];
+        return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
+      }),
+    [tokenNetworkFilter, allNetworks],
+  );
+
+  const filteredCollectibleContracts = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    const contracts = isAllNetworks
+      ? Object.values(collectibleContracts).flat()
+      : collectibleContracts[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+    return contracts;
+  }, [collectibleContracts, chainId, isAllNetworks]);
+
+  const filteredCollectibles = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles });
+    const collectibles = isAllNetworks
+      ? Object.values(allCollectibles).flat()
+      : allCollectibles[chainId] || [];
+    endTrace({ name: TraceName.LoadCollectibles });
+    return collectibles;
+  }, [allCollectibles, chainId, isAllNetworks]);
+
+  const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
   );
+
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const networkName = useSelector(selectNetworkName);
+  const showFilterControls = () => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+  };
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !useNftDetection;
@@ -235,17 +348,17 @@ const CollectibleContracts = ({
           />
         ) : null}
 
-        <Text style={styles.emptyText}>
+        <TextComponent style={styles.emptyText}>
           {strings('wallet.no_collectibles')}
-        </Text>
+        </TextComponent>
         <TouchableOpacity
           onPress={goToAddCollectible}
           disabled={!isAddNFTEnabled}
           testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
         >
-          <Text style={styles.addText}>
+          <TextComponent style={styles.addText}>
             {strings('wallet.add_collectibles')}
-          </Text>
+          </TextComponent>
         </TouchableOpacity>
       </View>
     ),
@@ -255,7 +368,7 @@ const CollectibleContracts = ({
   const renderCollectibleContract = useCallback(
     (item, index) => {
       const contractCollectibles = collectibles?.filter((collectible) =>
-        toLowerCaseEquals(collectible.address, item.address),
+        areAddressesEqual(collectible.address, item.address),
       );
       return (
         <CollectibleContractElement
@@ -290,18 +403,72 @@ const CollectibleContracts = ({
       )
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
+
+  const getNftDetectionAnalyticsParams = useCallback((nft) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(nft.chainId),
+        source: 'detected',
+      };
+    } catch (error) {
+      Logger.error(
+        error,
+        'CollectibleContracts.getNftDetectionAnalyticsParams',
+      );
+      return undefined;
+    }
+  }, []);
+
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
-      setRefreshing(true);
+      // Get initial state of NFTs before refresh
       const { NftDetectionController, NftController } = Engine.context;
+      const previousNfts = cloneDeep(
+        NftController.state.allNfts[selectedAddress.toLowerCase()],
+      );
+      trace({ name: TraceName.DetectNfts });
+
+      setRefreshing(true);
+
       const actions = [
-        NftDetectionController.detectNfts(),
-        NftController.checkAndUpdateAllNftsOwnershipStatus(),
+        NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
       ];
+      allNetworkClientIds.forEach((networkClientId) => {
+        actions.push(
+          NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
+        );
+      });
+
       await Promise.allSettled(actions);
       setRefreshing(false);
+      endTrace({ name: TraceName.DetectNfts });
+
+      // Get updated state after refresh
+      const newNfts = cloneDeep(
+        NftController.state.allNfts[selectedAddress.toLowerCase()],
+      );
+
+      const eventParams = prepareNftDetectionEvents(
+        previousNfts,
+        newNfts,
+        getNftDetectionAnalyticsParams,
+      );
+      eventParams.forEach((params) => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+            .addProperties(params)
+            .build(),
+        );
+      });
     });
-  }, [setRefreshing]);
+  }, [
+    chainIdsToDetectNftsFor,
+    createEventBuilder,
+    getNftDetectionAnalyticsParams,
+    selectedAddress,
+    trackEvent,
+    allNetworkClientIds,
+  ]);
 
   const goToLearnMore = useCallback(
     () =>
@@ -320,12 +487,12 @@ const CollectibleContracts = ({
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
-        <Text center style={styles.emptyTitleText} bold>
+        <TextComponent center style={styles.emptyTitleText} bold>
           {strings('wallet.no_nfts_yet')}
-        </Text>
-        <Text center big link onPress={goToLearnMore}>
+        </TextComponent>
+        <TextComponent center big link onPress={goToLearnMore}>
           {strings('wallet.learn_more')}
-        </Text>
+        </TextComponent>
       </View>
     ),
     [goToLearnMore, styles],
@@ -344,7 +511,7 @@ const CollectibleContracts = ({
             {renderFavoriteCollectibles()}
           </>
         }
-        data={collectibleContracts}
+        data={filteredCollectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index.toString()}
         testID={RefreshTestId}
@@ -362,7 +529,7 @@ const CollectibleContracts = ({
     ),
     [
       renderFavoriteCollectibles,
-      collectibleContracts,
+      filteredCollectibleContracts,
       colors.primary.default,
       colors.icon.default,
       refreshing,
@@ -375,11 +542,43 @@ const CollectibleContracts = ({
     ],
   );
 
+  // End trace when component has finished initial loading
+  useEffect(() => {
+    endTrace({ name: TraceName.CollectibleContractsComponent });
+    isFirstRender.current = false;
+  }, []);
+
   return (
     <View
-      style={styles.wrapper}
+      style={styles.BarWrapper}
       testID={WalletViewSelectorsIDs.NFT_TAB_CONTAINER}
     >
+      <View style={styles.actionBarWrapper}>
+        <View style={styles.controlButtonOuterWrapper}>
+          <ButtonBase
+            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            label={
+              <TextComponent
+                variant={TextVariant.BodyMDMedium}
+                numberOfLines={1}
+              >
+                {isAllNetworks && isPopularNetwork && isEvmSelected
+                  ? strings('wallet.popular_networks')
+                  : networkName ?? strings('wallet.current_network')}
+              </TextComponent>
+            }
+            isDisabled={isTestNet(chainId) || !isPopularNetwork}
+            onPress={isEvmSelected ? showFilterControls : () => null}
+            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+            style={
+              isTestNet(chainId) || !isPopularNetwork
+                ? styles.controlButtonDisabled
+                : styles.controlButton
+            }
+            disabled={isTestNet(chainId) || !isPopularNetwork}
+          />
+        </View>
+      </View>
       {renderList()}
     </View>
   );
@@ -443,8 +642,8 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   useNftDetection: selectUseNftDetection(state),
-  collectibleContracts: collectibleContractsSelector(state),
-  collectibles: collectiblesSelector(state),
+  collectibleContracts: multichainCollectibleContractsSelector(state),
+  collectibles: multichainCollectiblesSelector(state),
   isNftFetchingProgress: isNftFetchingProgressSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),

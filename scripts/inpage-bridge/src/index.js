@@ -1,8 +1,10 @@
 
 import injectInpageProvider from './provider';
+import injectSolanaWalletStandard from './solanaWalletStandard';
 
 if (shouldInject()) {
   injectInpageProvider();
+  injectSolanaWalletStandard();
   start();
 }
 

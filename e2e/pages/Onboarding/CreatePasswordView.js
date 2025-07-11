@@ -1,6 +1,7 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
+import enContent from '../../../locales/languages/en.json';
 
 class CreatePasswordView {
   get container() {
@@ -20,35 +21,58 @@ class CreatePasswordView {
   }
 
   get iUnderstandCheckbox() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID,
-        )
-      : Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID,
-        );
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+  }
+
+  get iUnderstandCheckboxNewWallet() {
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+     );
   }
 
   get submitButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)
-      : Matchers.getElementByLabel(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+  }
+
+  get passwordError() {
+    return Matchers.getElementByText(
+      enContent.import_from_seed.password_error,
+    );
+  }
+
+  async resetPasswordInputs() {
+    await Gestures.clearField(this.newPasswordInput);
+    await Gestures.clearField(this.confirmPasswordInput);
   }
 
   async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
+    await Gestures.typeText(this.newPasswordInput, password, {
+      elemDescription: 'Create Password New Password Input',
+      hideKeyboard: true,
+    });
   }
 
   async reEnterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.confirmPasswordInput, password);
+    await Gestures.typeText(this.confirmPasswordInput, password, {
+      elemDescription: 'Create Password Confirm Password Input',
+      hideKeyboard: true,
+    });
   }
 
   async tapIUnderstandCheckBox() {
-    await Gestures.waitAndTap(this.iUnderstandCheckbox);
+    await Gestures.tap(this.iUnderstandCheckbox, {
+      elemDescription: 'Create Password - I Understand Checkbox',
+    });
   }
 
   async tapCreatePasswordButton() {
-    await Gestures.waitAndTap(this.submitButton);
+    await Gestures.waitAndTap(this.submitButton, {
+      elemDescription: 'Create Password Submit Button',
+    });
   }
 }
 
