@@ -128,6 +128,7 @@ export const dismissProtectYourWalletModal = async () => {
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
  * @param {('dismiss'|'create'|'viewAccount')} [options.solanaSheetAction='dismiss'] - Action for the Solana feature sheet.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
@@ -135,16 +136,23 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  fromResetWallet = false,
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.expectElementToBeVisible(OnboardingCarouselView.container, {
+
+
+  if (!fromResetWallet) {
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container, {
     description: 'Onboarding Carousel should be visible',
+    });
+    await OnboardingCarouselView.tapOnGetStartedButton();
+    await acceptTermOfUse();
+  }
+
+  await Assertions.expectElementToBeVisible(OnboardingView.importSeedButton, {
+    description: 'Import with seed button should be visible',
   });
-
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
-
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   // should import wallet with secret recovery phrase
