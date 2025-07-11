@@ -2487,6 +2487,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
+      - YARN_COMMAND: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
   build_ios_main_prod:
@@ -2534,6 +2535,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
+      - YARN_COMMAND: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
   build_ios_rc_and_upload_sourcemaps:

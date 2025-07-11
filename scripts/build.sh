@@ -147,7 +147,7 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableRelease() {
+remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
@@ -173,14 +173,6 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-}
-
-remapEnvVariableProduction() {
-  	echo "Remapping Production env variable names to match Production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
 }
 
 remapEnvVariableBeta() {
@@ -430,31 +422,16 @@ generateIosBinary() {
 
 }
 
-buildIosRelease(){
-  if [ "$MODE" != "main" ]; then
-    # For main Mode variables are already remapped
-  	remapEnvVariableRelease
-  fi
-
+# Builds the Main binary for production
+buildIosMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateIosBinary "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask"
 }
 
 # Builds the Main binary for local development
@@ -581,7 +558,7 @@ buildAndroidQA(){
 buildAndroidRelease(){
     if [ "$MODE" != "main" ]; then
       # For main Mode variables are already remapped
-    	remapEnvVariableRelease
+    	remapEnvVariableProduction
     fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -699,7 +676,7 @@ buildIos() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosMainLocal
 		else
-			buildIosRelease
+			buildIosMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
