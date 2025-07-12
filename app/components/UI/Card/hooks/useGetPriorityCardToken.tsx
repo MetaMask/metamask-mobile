@@ -46,7 +46,7 @@ export const useGetPriorityCardToken = (address?: string) => {
           const cardTokenAllowance = cardTokenAllowances.find(
             (item) =>
               item.address.toLowerCase() ===
-              retrievedPriorityToken.address.toLowerCase(),
+              retrievedPriorityToken.address?.toLowerCase(),
           );
 
           return cardTokenAllowance || null;
