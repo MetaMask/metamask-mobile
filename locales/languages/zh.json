@@ -145,16 +145,25 @@
     "scan_step_3": "单击“与手机同步”",
     "scan_step_4": "扫描二维码开始同步",
     "success": "成功",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "重设当前钱包",
     "have_existing_wallet": "我已有一个钱包",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "使用私钥助记词导入"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "请妥善保管您的私钥助记词！",
+    "description": "如果您忘记了密码或无法登录，该私钥助记词可以帮助您重新获得访问权限。",
     "description_bold": "设置 > 安全与隐私",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": " 您可以妥善保管该助记词，以确保不会失去动用您资金的权限。",
     "learn_more": "了解更多",
     "learn_how": "了解操作方法",
     "leave_hint": "给自己留下提示？",
@@ -163,22 +172,22 @@
     "default_settings_footer": "设置经过优化，便于使用，安全性更佳。\n可随时更改设置。",
     "no_srp_title": "提醒设置完毕！",
     "no_srp_description": "如果应用程序锁定导致无法登录或使用新设备，则会失去资金。请务必在此处备份您的私钥助记词：",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "您的钱包已经准备就绪！",
+    "import_description": "如果您弄丢私钥助记词，将无法使用您的钱包。",
+    "import_description2": "您可以妥善保管该助记词，以确保不会失去动用您资金的权限。",
     "done": "已完成",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "创建密码提示",
+    "hint_title": "密码提示",
+    "hint_description": "给自己设置一个密码提示，帮助记住密码。该提示存储于您的设备上，且不会被共享。",
+    "hint_description2": "记住：如果您忘记密码，将无法使用您的钱包。",
+    "hint_button": "创建提示",
+    "hint_placeholder": "例如，妈妈的房子",
+    "hint_saved": "保存",
+    "hint_saved_toast": "密码提示已保存",
+    "remind_later": "我们稍后会提醒您",
+    "remind_later_description": "如果不备份您的私钥助记词，当应用程序被锁定或更换新设备时，您将无法动用您的资金。",
+    "remind_later_description2": "您可以备份钱包或者在下方查看您的私钥助记词：",
+    "setting_security_privacy": "设置 > 安全与隐私"
   },
   "onboarding_carousel": {
     "title1": "欢迎使用 MetaMask",
@@ -281,20 +290,20 @@
   "login": {
     "title": "欢迎回来！",
     "password": "密码",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "输入密码",
+    "unlock_button": "解锁",
     "go_back": "返回",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "忘记密码？",
     "cant_proceed": "您在输入“删除”（Delete）一词之前不能继续。通过此操作，您选择删除您当前的钱包。",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "密码错误，请重试。",
+    "type_delete": "输入“%{erase}”以确认",
+    "erase_my": "是，重设钱包",
+    "cancel": "取消",
+    "are_you_sure": "您确定吗？",
+    "your_current_wallet": "您的钱包、账户和资产将",
+    "removed_from": " 永久从该应用程序去除",
     "this_action": "此操作无法撤销。",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "只有使用创建该钱包时使用的信息（例如您的私钥助记词、Google 账户或 Apple 账户），您才能找回这个钱包。MetaMask 没有这些信息。",
     "recovery_phrase": "私钥助记词恢复此钱包",
     "metamask_does_not": "MetaMask 不拥有您的私钥助记词。",
     "i_understand": "我明白，继续",
@@ -305,20 +314,24 @@
     "clean_vault_error": "由于达到了存储限制，MetaMask 遇到错误。本地数据已损坏。请重新安装 MetaMask，并使用您的私钥助记词进行恢复。",
     "security_alert_title": "安全警报",
     "security_alert_desc": "要继续，您需要开启密码或设备支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "忘记密码？",
+    "forgot_password_desc_2": "MetaMask 无法为您找回密码。",
+    "forgot_password_point_1": "如果您已在启用了",
+    "forgot_password_point_1_bold": "生物特征识别（如面容 ID）的设备上",
+    "forgot_password_point_1_1": "登录 MetaMask，您可以在此重设密码。",
+    "forgot_password_point_2": "如果您有",
+    "forgot_password_point_2_bold": "私钥助记词，",
+    "forgot_password_point_2_1": "您可以重设当前钱包并使用私钥助记词重新导入。",
+    "reset_wallet": "重设钱包",
+    "reset_wallet_desc": "您的钱包数据将会",
+    "reset_wallet_desc_bold": "在该设备上从",
+    "reset_wallet_desc_2": "MetaMask 永久删除。此操作无法撤销。",
+    "reset_wallet_desc_login": "要恢复您的钱包，您可以使用您的私钥助记词，或您的 Google 账户/ Apple 账户密码。MetaMask 没有这些信息。",
+    "reset_wallet_desc_srp": "要恢复您的钱包，您可以使用您的私钥助记词。MetaMask 没有这些信息。"
   },
   "connect_hardware": {
     "title_select_hardware": "连接硬件钱包",
@@ -332,10 +345,10 @@
     "error": "错误"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "MetaMask 密码",
+    "description": "仅在当前设备上解锁 MetaMask。",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "Create new password",
+    "password": "创建新密码",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -357,14 +370,14 @@
     "secure": "保护钱包安全",
     "confirm": "确认私钥助记词",
     "disable_biometric_error": "您已经禁用了该应用程序的生物识别功能。更新“记住我\"设置，然后再试一次。",
-    "create_password_cta": "Create password",
+    "create_password_cta": "创建密码",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。"
   },
   "reset_password": {
     "title": "更改密码",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "新密码",
+    "password": "New password",
     "confirm_password": "确认密码",
     "reset_button": "重置密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -385,13 +398,23 @@
     "learn_more": "了解更多。",
     "secure": "保护钱包安全",
     "confirm": "确认私钥助记词",
-    "password_updated": "密码已更新",
-    "successfully_changed": "您的密码已成功更改"
+    "password_updated": "New password saved",
+    "successfully_changed": "您的密码已成功更改",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "导入钱包",
     "seed_phrase_placeholder": "在此输入您的助记词",
-    "create_new_password": "Create new password",
+    "create_new_password": "创建新密码",
     "confirm_password": "确认密码",
     "import_button": "导入",
     "cancel_button": "取消",
@@ -403,13 +426,14 @@
     "invalid_qr_code_title": "无效二维码",
     "invalid_qr_code_message": "此二维码不代表有效的私钥助记词",
     "enter_your_secret_recovery_phrase": "输入您的私钥助记词",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "MetaMask 密码",
+    "metamask_password_description": "仅在当前设备上解锁 MetaMask。",
     "seed_phrase_required": "私钥助记词为必填项",
     "re_enter_password": "重新输入您的密码",
     "use_at_least_8_characters": "使用至少 8 个字符",
     "unlock_with_face_id": "使用面容 ID 解锁？",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "如果我忘记该密码，MetaMask 无法为我找回密码。",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "私钥助记词必须包含 12、15、18、21 或 24 个单词",
     "continue": "继续",
     "clear_all": "全部清除",
@@ -419,11 +443,11 @@
     "srp": "私钥助记词",
     "srp_placeholder": "在每个单词之间加空格，并确保无人窥视 👀",
     "learn_more_link": "了解详情",
-    "create_password_cta": "Create password",
+    "create_password_cta": "创建密码",
     "pass_flow": "使用 Flow 继续",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "仅使用小写字母，检查拼写，并保持单词的原始顺序。",
     "enter_strong_password": "输入强密码"
   },
   "bottom_tab_bar": {
@@ -471,23 +495,53 @@
   },
   "deposit": {
     "title": "保证金",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "选择地区",
+    "chooseYourRegionToContinue": "选择地区以继续",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "支付方式：",
+      "unexpectedError": "发生意外错误。",
+      "quoteFetchError": "获取报价失败。",
+      "kycFormsFetchError": "获取 KYC（实名认证）表格失败。",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "选择代币",
+      "search_by_name_or_address": "按名称或地址搜索代币",
+      "no_tokens_found": "没有符合“{{searchString}}”的代币"
+    },
+    "region_modal": {
+      "select_a_region": "选择地区",
+      "search_by_country": "按国家/地区搜索",
+      "no_regions_found": "没有符合“{{searchString}}”的地区"
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "选择支付方式"
+    },
+    "payment_duration": {
+      "instant": "即时",
+      "1_to_2_days": "1 - 2 天"
+    },
+    "unsupported_region_modal": {
+      "title": "不支持此地区",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "title": "使用 USDC 为您的钱包充值",
+      "bullet_1_title": "价值由美元支撑",
+      "bullet_1_description": "由美元按 1:1 比例支撑。",
+      "bullet_2_title": "低波动性",
+      "bullet_2_description": "保持稳定价值，确保交易可靠。",
+      "bullet_3_title": "比银行更快",
+      "bullet_3_description": "快速的区块链转账胜过传统银行",
+      "button": "开始使用"
     },
     "enter_email": {
       "title": "输入您的电子邮件地址",
@@ -496,7 +550,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "发送电子邮件",
       "loading": "正在发送电子邮件......",
-      "validation_error": "请输入有效的电子邮件地址"
+      "validation_error": "请输入有效的电子邮件地址",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "输入六位代码",
@@ -504,7 +559,14 @@
       "submit_button": "提交",
       "loading": "正在验证代码......",
       "invalid_code_error": "无效代码",
-      "validation_error": "请输入有效代码"
+      "validation_error": "请输入有效代码",
+      "need_help": "需要帮助吗？",
+      "resend_code_description": "未收到验证码？",
+      "resend_code_error": "重发验证码出错。",
+      "resend_code_button": "重新发送",
+      "resend_cooldown": "{{seconds}} 秒后重新发送验证码",
+      "contact_support": "联系支持团队",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "验证您的身份",
@@ -515,7 +577,23 @@
     "basic_info": {
       "title": "输入您的基本信息",
       "continue": "继续",
-      "subtitle": "为了开始验证您的身份，我们需要一些基本信息。"
+      "subtitle": "为了开始验证您的身份，我们需要一些基本信息。",
+      "first_name": "名字",
+      "last_name": "姓氏",
+      "phone_number": "电话号码",
+      "date_of_birth": "出生日期",
+      "social_security_number": "社会安全号码",
+      "enter_phone_number": "输入电话号码",
+      "select_region": "选择地区",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "输入您的地址",
@@ -526,23 +604,189 @@
       "state": "州/地区",
       "city": "城市",
       "postal_code": "邮政编码",
-      "country": "国家/地区"
+      "country": "国家/地区",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "title": "正在验证您的身份",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "我们无法验证您的身份。",
+      "error_description": "尝试再次上传您的文件并重新提交以进行验证。",
+      "error_button": "重新尝试验证",
+      "success_heading": "身份验证成功！",
+      "success_description": "您现在可以输入支付信息并完成存款。",
+      "success_button": "完成您的订单"
+    },
+    "provider_webview": {
+      "title": "存款"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "正在验证您的身份",
+      "webview_received_error": "WebView 收到错误状态代码：{{code}}"
+    },
+    "order_processing": {
+      "title": "正在处理存款",
+      "button": "关闭",
+      "description": "卡支付通常需要几分钟时间",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "存款完成",
+      "success_description": "您的 {{amount}} {{currency}} 存款已成功！",
+      "error_title": "存款失败",
+      "error_description": "我们无法完成您的存款",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "请重试",
+      "contact_support_button": "联系支持团队",
+      "account": "账户",
+      "network": "网络",
+      "order_id": "订单 ID",
+      "fees": "费用",
+      "total": "总额",
+      "view_order_details_in_transak": "在 Transak 中查看订单详情",
+      "no_order_found": "未找到订单",
+      "back_to_wallet": "返回钱包",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "存款订单",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "{{currency}} 存款失败！请重试，给您带来不便，深表歉意！",
+      "deposit_failed_description": "验证您的支付方式和卡支持",
+      "deposit_cancelled_title": "您的存款已取消",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "您的 {{amount}} {{currency}} 存款已成功！",
+      "deposit_completed_description": "您的 {{currency}} 现已存入您的钱包",
+      "deposit_pending_title": "正在处理您的 {{currency}} 存款",
+      "deposit_pending_description": "整个过程通常只有几分钟时间..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
     }
   },
   "receive": {
@@ -597,6 +841,10 @@
     "solana": {
       "title": "Solana 现已获支持",
       "subtitle": "创建 Solana 账户以开始使用"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "备份与同步简介",
@@ -806,9 +1054,9 @@
     "action_description_1_prefix": "私密：",
     "action_description_2_prefix": "通用：",
     "action_description_3_prefix": "可选：",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "可存储应用程序的点击量和浏览量，但不会存储其他详情（如您的公钥）。",
+    "action_description_2_description": "我们暂时使用您的 IP 地址来检测一般位置（如您的国家或地区），但从来不会进行存储。",
+    "action_description_3_description": "您可以随时决定是否通过设置共享或删除您的使用数据。",
     "cta_no_thanks": "不，谢谢",
     "cta_i_agree": "我同意",
     "fine_print_1_legacy": "此数据是汇总数据，因而可以保持匿名，以遵守《通用数据保护条例》（欧盟）2016/679。",
@@ -1084,9 +1332,11 @@
     "clear_browser_cookies_desc": "清除浏览器 Cookie",
     "clear": "清除",
     "protect_cta": "保护",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "视频加载失败。",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "备份您的私钥助记词，这可确保您永远不会失去对钱包的访问权限。请务必将其存放在一个只有您能访问且不会忘记的安全位置。",
     "protect_desc_no_backup": "这是您钱包的12单词助记词。此助记词可以用来控制您当前和未来的所有账户，包括发送您钱包中资金的能力。请确保安全存储此助记词，不要与任何人分享。MetaMask 不能帮助您恢复这个密钥。",
     "learn_more": "了解更多。",
     "seedphrase_not_backed_up": "重要！私钥助记词未备份",
@@ -1147,7 +1397,7 @@
     "no_permissions_desc": "如果您将账户连接到网站或应用程序，您可在此处查看。",
     "security_title": "安全和隐私",
     "back": "返回",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "隐私设置、MetaMetrics、私钥和私钥助记词。",
     "networks_title": "网络",
     "networks_default_title": "默认网络",
     "network_delete": "如果您删除此网络，则需要再次添加此网络才能查看您在其中的资产",
@@ -1212,9 +1462,6 @@
     "invalid_password": "密码无效",
     "invalid_password_message": "密码不正确。请重试。",
     "security_heading": "安全",
-    "ses_heading": "代码锁定",
-    "ses_description": "这是一项测试功能，可以阻止未经许可对应用程序的 JavaScript 代码进行任何更改。",
-    "ses_link": "了解详情",
     "general_heading": "通用",
     "privacy_heading": "隐私",
     "failed_to_fetch_chain_id": "无法获取链 ID。您的 RPC URL 正确吗？",
@@ -1264,9 +1511,9 @@
     "check_status_button": "检查状态",
     "delete_metrics_confirm_modal_title": "要删除MetaMetrics数据吗？",
     "delete_metrics_confirm_modal_description": "我们即将删除您所有的MetaMetrics数据。您确定吗？",
-    "delete_wallet_data_title": "删除钱包",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "这将会刪除您的设备中所有与钱包关联的数据。您的账户存在于区块链上，与 MetaMask无关。您可以随时使用您的私钥助记词来恢复您的账户。",
-    "delete_wallet_data_button": "删除钱包",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "删除任务状态",
     "delete_data_status_description": "当前状态为",
     "delete_metrics_error_title": "我们现在无法删除此数据。",
@@ -1294,8 +1541,8 @@
       "add": "添加",
       "update": "更新",
       "cancel": "取消",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "退出 {{depositProviderName}}",
+      "deposit_provider_logged_out": "已退出 {{depositProviderName}}"
     },
     "request_feature": "功能请求",
     "contact_support": "联系支持团队",
@@ -1393,6 +1640,9 @@
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "dismiss_smart_account_update_heading": "关闭“切换至智能账户”建议",
     "dismiss_smart_account_update_desc": "启用此选项后，所有账户将不再显示“切换到智能账户”建议。智能账户可实现更快的交易、更低的网络费用，并为这些账户提供更灵活的支付方式。",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "智能交易",
     "smart_transactions_opt_in_desc_supported_networks": "开启智能交易，以便在支持网络上实现更加安全可靠的交易。",
     "smart_transactions_learn_more": "了解更多。",
@@ -1477,14 +1727,14 @@
     "done": "完成",
     "confirm": "下一步",
     "seed_phrase_explanation": [
-      "助记词",
-      "（SRP）",
+      "您的",
+      "私钥助记词",
       "授予",
       "对您的钱包、资金和账户的完全访问权限。\n\n",
       "MetaMask 是一个",
       "非保管钱包。",
       "这意味着，",
-      "您是您的 SRP 所有人。"
+      "您是您的私钥助记词的所有者。"
     ],
     "private_key_explanation": "将它保存在安全、秘密的地方。",
     "private_key_warning": "这是当前选定账户的私钥：{{accountName}}。请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
@@ -1537,7 +1787,7 @@
     "password_desc": "选择一个强密码来解锁您设备上的 MetaMask 应用。如果丢失密码，您将需要私钥助记词来重新导入钱包。",
     "password_learn_more": "了解更多。",
     "change_password": "更改密码",
-    "password_hint": "Password hint"
+    "password_hint": "密码提示"
   },
   "asset_overview": {
     "send_button": "发送",
@@ -1547,6 +1797,7 @@
     "receive_button": "接收",
     "portfolio_button": "Portfolio",
     "earn_button": "赚取",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
@@ -1559,7 +1810,8 @@
       "bridge": "此账户不支持跨链桥",
       "send": "此账户不支持发送",
       "action": "此账户不支持此操作",
-      "earn": "此账户不支持赚取"
+      "earn": "此账户不支持赚取",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "描述",
     "totalSupply": "总供给量",
@@ -1576,6 +1828,7 @@
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
     "earn_description": "通过您的代币赚取奖励",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "今天",
       "7d": "过去 7 天",
@@ -1949,8 +2202,8 @@
     "tx_review_staking_claim": "质押申请",
     "tx_review_staking_deposit": "质押保证金",
     "tx_review_staking_unstake": "解除质押",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "出借存款",
+    "tx_review_lending_withdraw": "出借提款",
     "sent_ether": "已发送以太币",
     "self_sent_ether": "已向自己发送以太币",
     "received_ether": "已接收以太币",
@@ -2097,7 +2350,8 @@
     "add_input_placeholder": "公钥 (0x) 或 ENS",
     "between_account": "在我的账户之间转账",
     "others": "其他",
-    "memo": "备注"
+    "memo": "备注",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "此为重复地址",
@@ -2349,21 +2603,21 @@
     "info_text_1_2": "私钥助记词，",
     "info_text_1_3": "以此保护您的钱包。",
     "info_text_1_4": "如果您被应用锁定或换新设备，这是找回钱包的唯一途径。",
-    "cta_text": "Get started",
+    "cta_text": "开始使用",
     "cta_subText": "强烈建议",
     "skip_button_cancel": "立即保护",
     "skip_button_confirm": "跳过",
     "skip_title": "跳过账户安全？",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "如果您弄丢该私钥助记词，将无法访问此钱包。",
+    "what_is_seedphrase_title": "什么是“私钥助记词”？",
+    "what_is_seedphrase_text_1": "私钥助记词（也称为助记词）是一组词语，可让您访问和控制自己的加密货币钱包。若要将钱包迁移至 MetaMask，您需要此助记词。",
     "what_is_seedphrase_text_2": "您必须确保助记词保密、安全。如果有人得到您的私钥助记词，他们将能够控制您的账户。",
     "what_is_seedphrase_text_3": "将它保存在只有您能够接触的地方。一旦丢失，即使是 MetaMask 也无法帮您找回。",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "任何拥有您的私钥助记词的人可以：",
+    "seedPhrase_point_1": "拿走您所有的资金",
+    "seedPhrase_point_2": "确认交易",
+    "seedPhrase_point_3": "修改您的登录信息",
+    "what_is_seedphrase_confirm": "知道了"
   },
   "account_backup_step_1B": {
     "title": "保护您的钱包安全",
@@ -2454,40 +2708,40 @@
     "progressThree": "确认私钥助记词"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
+    "action": "保存您的私钥助记词",
+    "info-1": "这是您的",
+    "info-2": "私钥助记词",
+    "info-3": "按正确顺序写下它并妥善保管。如果任何人拥有您的私钥助记词，就能访问您的钱包。",
+    "info-4": "切勿与任何人共享该助记词。",
     "continue": "继续",
-    "reveal": "Tap to reveal",
+    "reveal": "点击即可显示",
     "watching": "确保没有人在看您的屏幕。",
     "view": "查看",
     "confirm_password": "确认您的密码",
     "before_continiuing": "在继续之前，我们需要您确认自己的密码",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "输入您的当前密码",
+    "confirm": "确认",
     "got_it": "知道了",
     "learn_more": "了解更多",
-    "password": "Password"
+    "password": "密码"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
+    "action": "确认您的私钥助记词",
+    "info": "按正确顺序选择缺失的单词。",
     "complete": "完整备份",
     "success": "成功",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "不完全正确",
+    "error-description": "请仔细检查您的私钥助记词，然后重试。",
+    "success-title": "完美！",
+    "success-description": "没错！记住：切勿与任何人共享该助记词。",
+    "success-button": "知道了",
+    "error-button": "请重试",
+    "continue": "继续"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "congratulations": "恭喜",
     "success": "您已成功保护自己的钱包。记住妥善保管您的私钥助记词，这是您的责任！",
     "hint": "给自己留下提示？",
@@ -3106,7 +3360,7 @@
       "sale_pending_description": "您的订单正在处理中。",
       "no_date": "未知"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "{{currency}} 存款"
   },
   "swaps": {
     "title": "兑换",
@@ -3818,10 +4072,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "借出 {{tokenSymbol}} 并赚取",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "通过 {{protocol}} 借出您的 {{tokenSymbol}}，",
+      "annually": "每年赚取奖励。",
+      "learn_more": "了解更多。",
+      "earn": "赚取"
     },
     "service_interruption_banner": {
       "maintenance_message": "我们正在进行系统维护。即将恢复服务！"
@@ -3849,50 +4103,51 @@
       "withdrawal_time": "从协议中提取代币并转入钱包所需的时间",
       "receive": "此代币用于追踪您的资产和奖励。请勿转账或交易这些代币，否则您将无法提取资产。",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "您的健康系数用于衡量清算风险",
+        "above_two_dot_zero": "高于 2.0",
+        "safe_position": "安全位置",
+        "between_one_dot_five_and_2_dot_zero": "介于 1.5-2.0 之间",
+        "medium_liquidation_risk": "中等清算风险",
+        "below_one_dot_five": "低于 1.5",
+        "higher_liquidation_risk": "更高的清算风险"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "为什么我无法提取全部余额？",
+        "your_withdrawal_amount_may_be_limited_by": "您的提款金额可能会受到以下因素限制：",
+        "pool_liquidity": "资金池流动性",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "目前出借池中没有足够的可用资金。",
+        "existing_borrow_positions": "现有借款头寸",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "提取资金可能会使您现有的借出头寸面临清算风险。"
       }
     },
     "withdraw": "提取",
     "deposit_more": "存入更多",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "收益",
+    "withdrawal_time": "提取时间",
+    "withdrawing_to": "提取至",
+    "network": "网络",
+    "health_factor": "健康系数",
+    "liquidation_risk": "清算风险",
+    "insufficient_pool_liquidity": "资金池流动性不足",
+    "available_to_withdraw": "可提取",
+    "unknown": "未知",
+    "how_it_works": "如何运行",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "通过您的 {{tokenSymbol}} 赚取奖励",
+      "lend_and_earn_daily_rewards": "通过 {{protocol}} 借出您的 {{tokenSymbol}}，赚取每日奖励。奖励随时间增长，年利率会有所不同。",
+      "withdraw_whenever_you_want": "可随时提取",
+      "get_asset_back_in_your_wallet_instantly": "{{tokenSymbol}} 即时返还至您的钱包。"
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "金额超过安全提款限额",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "查看头寸交易记录",
+      "staking": "查看奖励历史记录"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "头寸历史",
+      "staking": "奖励发放记录"
+    },
+    "allowance_reset": "授权重设"
   },
   "stake": {
     "stake": "质押",
@@ -3992,8 +4247,9 @@
     "estimated_unstaking_time": "1 - 11 天",
     "proceed_anyway": "仍然继续",
     "gas_cost_impact": "燃料成本影响",
-    "select_a_token": "选择代币",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "您可赚取最高达",
     "per_year_on_your_tokens": "每年通过您的代币赚取奖励",
     "deposit": "保证金",
     "gas_cost_impact_warning": "警告：交易燃料成本将占您的保证金的 {{percentOverDeposit}}% 以上。",
@@ -4109,6 +4365,8 @@
       "part3": "。"
     },
     "label": {
+      "amount": "金额",
+      "value": "价值",
       "account": "账户",
       "balance": "余额",
       "interacting_with": "正在与下述内容交互：",
@@ -4127,19 +4385,29 @@
       "permit_NFTs": "提取请求",
       "signature_siwe": "登录请求",
       "contract_interaction": "交易请求",
+      "contract_deployment": "部署合约",
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
-      "approve": "Approve request"
+      "approve": "批准请求"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
+      "permit_revoke": "您正在删除某人从您的账户中花费代币的许可。",
       "permit_NFTs": "该网站想获得提取您的 NFT 的许可。",
+      "permit_revoke_NFTs": "此网站希望重设您的 NFT 提取限额",
       "signature": "在确认之前检查请求详情。",
       "signature_siwe": "一个网站需要您登录来证明您拥有此账户。",
       "contract_interaction": "在确认之前检查请求详情。",
       "switch_to_smart_account": "您正在切换到智能账户。",
-      "switch_to_standard_account": "您正在切换回标准账户（EOA）。"
+      "switch_to_standard_account": "您正在切换回标准账户（EOA）。",
+      "contract_deployment": "此网站希望您部署合约",
+      "decrease_allowance": "此网站希望降低您的代币支出上限。"
     },
+    "spending_cap": "支出上限",
+    "withdraw": "提取",
+    "nfts": "NFT",
+    "permission_from": "许可来自",
+    "spender": "支出者",
     "request_from": "请求来自",
     "staking_from": "质押提供商",
     "signing_in_with": "使用以下方式登录",
@@ -4192,6 +4460,7 @@
       "smartAccountLabel": "智能账户",
       "standardAccountLabel": "标准账户",
       "switch": "切换",
+      "switchBack": "切换回",
       "splashpage": {
         "accept": "是",
         "betterTransaction": "更迅捷的交易体验，更低的费用",
@@ -4200,13 +4469,21 @@
         "payToken": "随时以任何代币支付",
         "payTokenDescription": "用您现有的代币来支付网络费用。",
         "reject": "否",
-        "requestFor": "请求",
         "sameAccount": "账户不变，功能更加智能。",
-        "splashTitle": "要使用智能账户？",
-        "upgradeBannerDescription": "地址不变。功能更加智能。",
-        "upgradeBannerTitle": "切换到智能账户"
+        "splashTitle": "要使用智能账户？"
       },
-      "includes_transaction": "包含 {{transactionCount}} 笔交易"
+      "includes_transaction": "包含 {{transactionCount}} 笔交易",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "无限制",
     "all": "所有",
@@ -4217,7 +4494,7 @@
     "review": "查看",
     "transferRequest": "转账请求",
     "nested_transaction_heading": "交易 {{index}}",
-    "transaction": "Transaction"
+    "transaction": "交易"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -4266,6 +4543,7 @@
     "insufficient_funds": "资金不足",
     "select_amount": "选择金额",
     "bridge_to": "桥接至",
+    "swap_to": "Swap to",
     "title": "桥接",
     "submitting_transaction": "正在提交",
     "fetching_quote": "正在获取报价",
@@ -4277,6 +4555,11 @@
     "title": "有新的报价",
     "description": "价格每 {{refreshRate}} 秒更新一次，请在准备就绪后点击“获取新报价”。",
     "get_new_quote": "获取新报价"
+  },
+  "blockaid_modal": {
+    "simulation_title": "模拟交易失败",
+    "validation_title": "交易验证失败",
+    "go_back": "返回"
   },
   "bridge_transaction_details": {
     "status": "状态",
@@ -4293,6 +4576,54 @@
     "bridge_to_chain": "桥接至 {{chainName}}",
     "recipient": "接收者"
   },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "备份与同步",
     "description": "备份您的账户与同步设置。",
@@ -4308,7 +4639,7 @@
     "privacyLink": "了解我们如何保护您的隐私",
     "features": {
       "accounts": "账户",
-      "contacts": "Contacts"
+      "contacts": "联系方式"
     },
     "manageWhatYouSync": {
       "title": "管理同步内容",
@@ -4340,11 +4671,18 @@
       "private_key": "私钥"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "详情"
+    },
+    "wallet_details": {
+      "wallet_name": "钱包名称",
+      "balance": "余额",
+      "create_account": "Create account",
+      "back_up": "备份",
+      "reveal_recovery_phrase_with_index": "显示私钥助记词 {{index}}"
     },
     "smart_account": {
       "title": "启用智能账户",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "您可在支持的网络上启用智能账户功能。",
       "learn_more": "了解详情"
     },
     "edit_account_name": {
@@ -4394,19 +4732,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "正在将您重定向至 MetaMask",
+      "description": "如果您继续操作，将会打开 {{pageTitle}}。",
+      "checkbox_label": "不要再提醒我"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "请谨慎操作",
+      "description": "您是由第三方（并非 MetaMask）引导至此。若您继续操作，将打开 {{pageTitle}}。"
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "此页面不存在",
+      "description": "我们找不到您要查找的页面。"
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "返回",
+    "continue_button": "继续"
   }
 }

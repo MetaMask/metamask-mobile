@@ -145,16 +145,25 @@
     "scan_step_3": "Κάντε κλικ στο «Συγχρονισμός με Κινητό»",
     "scan_step_4": "Σαρώστε τον κωδικό QR για να ξεκινήσει ο συγχρονισμός",
     "success": "Επιτυχία",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "Επαναφορά τρέχοντος πορτοφολιού",
     "have_existing_wallet": "Έχω ήδη ένα πορτοφόλι",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "Εισαγωγή με χρήση της Μυστικής Φράσης Ανάκτησης"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "Διατηρήστε τη Μυστική Φράση Ανάκτησης σε ασφαλές μέρος!",
+    "description": "Η Μυστική Φράση Ανάκτησης μπορεί να σας βοηθήσει να ανακτήσετε την πρόσβαση, σε περίπτωση που ξεχάσετε τον κωδικό σας ή δεν έχετε πρόσβαση στον λογαριασμό σας.",
     "description_bold": "Ρυθμίσεις > Ασφάλεια και Απόρρητο.",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": " μπορείτε να φυλάξετε τη μυστική φράση σε ασφαλές μέρος για να διασφαλίσετε την πρόσβαση στα χρήματά σας.",
     "learn_more": "Μάθετε περισσότερα",
     "learn_how": "Μάθετε πώς",
     "leave_hint": "Θέλετε να κρατήσετε μια υπόδειξη;",
@@ -163,22 +172,22 @@
     "default_settings_footer": "Οι ρυθμίσεις έχουν βελτιστοποιηθεί για ευκολία χρήσης και ασφάλεια.\nΜπορείτε να τις αλλάξετε ανά πάσα στιγμή.",
     "no_srp_title": "Ορισμός υπενθύμισης!",
     "no_srp_description": "Εάν δεν μπορείτε να χρησιμοποιήσετε την εφαρμογή ή αποκτήσατε μια νέα συσκευή, θα χάσετε τα κεφάλαια σας. Φροντίστε να δημιουργήσετε αντίγραφα ασφαλείας της Μυστικής σας Φράσης Ανάκτησης στις",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "Το πορτοφόλι σας είναι έτοιμο!",
+    "import_description": "Αν χάσετε τη Μυστική Φράση Ανάκτησης, δεν θα μπορείτε να χρησιμοποιήσετε το πορτοφόλι σας.",
+    "import_description2": "φυλάξτε τη μυστική φράση σε ασφαλές μέρος για να διασφαλίσετε την πρόσβαση στα χρήματά σας.",
     "done": "Τέλος",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "Δημιουργήστε μια υπόδειξη κωδικού πρόσβασης",
+    "hint_title": "Υπόδειξη κωδικού πρόσβασης",
+    "hint_description": "Αφήστε μια υποδείξη που θα σας βοηθήσει να θυμηθείτε τον κωδικό πρόσβασης. Αυτή η υπόδειξη αποθηκεύεται στη συσκευή σας και δεν θα κοινοποιηθεί.",
+    "hint_description2": "Να θυμάστε: Αν χάσετε τον κωδικό σας, δεν θα μπορείτε να χρησιμοποιήσετε το πορτοφόλι σας.",
+    "hint_button": "Δημιουργία υπόδειξης",
+    "hint_placeholder": "π.χ. το σπίτι της μητέρας μου",
+    "hint_saved": "Αποθήκευση",
+    "hint_saved_toast": "Η υπόδειξη κωδικού πρόσβασης αποθηκεύτηκε",
+    "remind_later": "Θα σας την υπενθυμίσουμε αργότερα",
+    "remind_later_description": "Αν δεν δημιουργήσετε αντίγραφο ασφαλείας της Μυστικής Φράσης Ανάκτησής σας, θα χάσετε τα κεφάλαιά σας αν δεν έχετε πρόσβαση στην εφαρμογή ή αποκτήσετε νέα συσκευή.",
+    "remind_later_description2": "Μπορείτε να δημιουργήσετε αντίγραφα ασφαλείας των πορτοφολιών σας ή να δείτε τη Μυστική Φράση Ανάκτησης στις",
+    "setting_security_privacy": "Ρυθμίσεις > Ασφάλεια & Προστασία Προσωπικών Δεδομένων"
   },
   "onboarding_carousel": {
     "title1": "Καλώς ορίσατε στο MetaMask",
@@ -281,20 +290,20 @@
   "login": {
     "title": "Καλώς ήρθατε πίσω!",
     "password": "Κωδικός πρόσβασης",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "Πληκτρολογήστε τον κωδικό πρόσβασης",
+    "unlock_button": "Ξεκλείδωμα",
     "go_back": "Το πορτοφόλι δεν ξεκλειδώθηκε; Μπορείτε να ΔΙΑΓΡΑΨΕΤΕ το τρέχον πορτοφόλι σας και να δημιουργήσετε ένα καινούργιο",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "Ξεχάσατε τον κωδικό πρόσβασης;",
     "cant_proceed": "Δεν μπορείτε να προχωρήσετε μέχρι να πληκτρολογήσετε τη λέξη \"Διαγραφή\". Με αυτήν την ενέργεια επιλέγετε να διαγράψετε το τρέχον πορτοφόλι σας.",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "Ο κωδικός πρόσβασης είναι λανθασμένος, προσπαθήστε ξανά.",
+    "type_delete": "Πληκτρολογήστε ‘%{erase}’ για επιβεβαίωση",
+    "erase_my": "Ναι, επαναφορά πορτοφολιού",
+    "cancel": "Ακύρωση",
+    "are_you_sure": "Είστε σίγουροι;",
+    "your_current_wallet": "Το πορτοφόλι σας, οι λογαριασμοί και τα περιουσιακά σας στοιχεία θα",
+    "removed_from": " διαγραφούν οριστικά από την εφαρμογή",
     "this_action": "Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "Μπορείτε να ανακτήσετε αυτό το πορτοφόλι μόνο με τις πληροφορίες που χρησιμοποιήθηκαν κατά τη δημιουργία του, όπως η Μυστική Φράση Ανάκτησης, ο λογαριασμός Google ή Apple. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες.",
     "recovery_phrase": "Μυστική Φράση Ανάκτησης",
     "metamask_does_not": "Το MetaMask δεν έχει την Μυστική σας Φράση Ανάκτησης",
     "i_understand": "Κατανοώ, συνεχίστε",
@@ -305,20 +314,24 @@
     "clean_vault_error": "Το MetaMask αντιμετώπισε ένα σφάλμα διότι έφτασε στο όριο αποθήκευσής του. Τα τοπικά δεδομένα έχουν καταστραφεί. Παρακαλούμε εγκαταστήστε εκ νέου το MetaMask και ανακτήστε το με την Μυστική Φράση Ανάκτησης.",
     "security_alert_title": "Ειδοποίηση Ασφαλείας",
     "security_alert_desc": "Για να συνεχίσετε, πρέπει να ενεργοποιήσετε τον κωδικό πρόσβασης ή κάποια βιομετρική μέθοδο επαλήθευσης που υποστηρίζει η συσκευή σας (FaceID, TouchID ή Δακτυλικό αποτύπωμα)",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "Ξεχάσατε τον κωδικό πρόσβασης;",
+    "forgot_password_desc_2": "Το MetaMask δεν μπορεί να ανακτήσει τον κωδικό πρόσβασής σας.",
+    "forgot_password_point_1": "Αν είστε συνδεδεμένοι στο MetaMask σε μια συσκευή με",
+    "forgot_password_point_1_bold": "ενεργοποιημένα βιομετρικά στοιχεία",
+    "forgot_password_point_1_1": "(όπως το Face ID), μπορείτε να επαναφέρετε τον κωδικό πρόσβασής σας από εκεί.",
+    "forgot_password_point_2": "Αν διαθέτετε τη",
+    "forgot_password_point_2_bold": "Μυστική Φράση Ανάκτησης,",
+    "forgot_password_point_2_1": "μπορείτε να επαναφέρετε το τρέχον πορτοφόλι σας και να το επανεισαγάγετε με τη Μυστική Φράση Ανάκτησης.",
+    "reset_wallet": "Επαναφορά πορτοφολιού",
+    "reset_wallet_desc": "Τα δεδομένα του πορτοφολιού σας θα",
+    "reset_wallet_desc_bold": "διαγραφούν οριστικά",
+    "reset_wallet_desc_2": "από το MetaMask σε αυτήν τη συσκευή. Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.",
+    "reset_wallet_desc_login": "Για να επαναφέρετε το πορτοφόλι σας, μπορείτε να χρησιμοποιήσετε τη Μυστική Φράση Ανάκτησης ή τον κωδικό πρόσβασης του λογαριασμού σας Google ή Apple. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες.",
+    "reset_wallet_desc_srp": "Για να επαναφέρετε το πορτοφόλι σας, μπορείτε να χρησιμοποιήσετε τη Μυστική Φράση Ανάκτησης. Το MetaMask δεν διαθέτει αυτές τις πληροφορίες."
   },
   "connect_hardware": {
     "title_select_hardware": "Συνδέστε ένα πορτοφόλι υλικού",
@@ -332,10 +345,10 @@
     "error": "Σφάλμα"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "Κωδικός πρόσβασης στο MetaMask",
+    "description": "Ξεκλειδώνει το MetaMask μόνο σε αυτήν τη συσκευή.",
     "subtitle": "Αυτός ο κωδικός πρόσβασης θα ξεκλειδώσει το πορτοφόλι MetaMask μόνο σε αυτή τη συσκευή.",
-    "password": "Create new password",
+    "password": "Δημιουργία νέου κωδικού πρόσβασης",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
     "create_button": "Δημιουργία κωδικού πρόσβασης",
     "import_with_seed_phrase": "Εισαγωγή με Μυστική Φράση Ανάκτησης",
@@ -357,14 +370,14 @@
     "secure": "Ασφαλές πορτοφόλι",
     "confirm": "Επιβεβαιώστε τη Μυστική Φράση Ανάκτησης",
     "disable_biometric_error": "Έχετε απενεργοποιήσει τα βιομετρικά στοιχεία για την εφαρμογή. Ενημερώστε τις ρυθμίσεις «Να με θυμάστε» και προσπαθήστε ξανά.",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Δημιουργία κωδικού πρόσβασης",
     "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
     "password_error": "Οι κωδικοί πρόσβασης δεν ταιριάζουν. Προσπαθήστε ξανά."
   },
   "reset_password": {
     "title": "Αλλαγή κωδικού πρόσβασης",
     "subtitle": "Αυτός ο κωδικός πρόσβασης θα ξεκλειδώσει το πορτοφόλι σας στο MetaMask μόνο σε αυτή τη συσκευή.",
-    "password": "Νέος κωδικός πρόσβασης",
+    "password": "New password",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
     "reset_button": "Επαναφορά κωδικού πρόσβασης",
     "import_with_seed_phrase": "Εισαγωγή με Μυστική Φράση Ανάκτησης",
@@ -385,13 +398,23 @@
     "learn_more": "Μάθετε περισσότερα.",
     "secure": "Ασφαλές πορτοφόλι",
     "confirm": "Επιβεβαιώστε τη Μυστική Φράση Ανάκτησης",
-    "password_updated": "Ο κωδικός πρόσβασης ενημερώθηκε",
-    "successfully_changed": "Ο κωδικός πρόσβασής σας άλλαξε με επιτυχία"
+    "password_updated": "New password saved",
+    "successfully_changed": "Ο κωδικός πρόσβασής σας άλλαξε με επιτυχία",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Εισαγωγή πορτοφολιού",
     "seed_phrase_placeholder": "Εισαγάγετε την Μυστική Φράση Ανάκτησης",
-    "create_new_password": "Create new password",
+    "create_new_password": "Δημιουργία νέου κωδικού πρόσβασης",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
     "import_button": "ΕΙΣΑΓΩΓΉ",
     "cancel_button": "Άκυρο",
@@ -403,13 +426,14 @@
     "invalid_qr_code_title": "Μη έγκυρος κωδικός QR",
     "invalid_qr_code_message": "Αυτός ο κωδικός QR δεν αντιπροσωπεύει μια έγκυρη Μυστική Φράση Ανάκτησης",
     "enter_your_secret_recovery_phrase": "Εισάγετε τη Μυστική Φράση Ανάκτησης",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "Κωδικός πρόσβασης στο MetaMask",
+    "metamask_password_description": "Ξεκλειδώνει το MetaMask μόνο σε αυτήν τη συσκευή.",
     "seed_phrase_required": "Απαιτείται η Μυστική Φράση Ανάκτησης",
     "re_enter_password": "Εισάγετε ξανά τον κωδικό πρόσβασής σας",
     "use_at_least_8_characters": "Χρησιμοποιήστε τουλάχιστον 8 χαρακτήρες",
     "unlock_with_face_id": "Ξεκλείδωμα με Face ID;",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "Αν ξεχάσω τον κωδικό πρόσβασης, το MetaMask δεν μπορεί να τον ανακτήσει για μένα.",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "Η Μυστική Φράση Ανάκτησης πρέπει να αποτελείται από 12, 15, 18, 21 ή 24 λέξεις",
     "continue": "Συνεχίστε",
     "clear_all": "Εκκαθάριση όλων",
@@ -419,11 +443,11 @@
     "srp": "Μυστική Φράση Ανάκτησης",
     "srp_placeholder": "Προσθέστε ένα κενό ανάμεσα σε κάθε λέξη και βεβαιωθείτε ότι δεν σας βλέπει κανείς 👀",
     "learn_more_link": "Μάθετε περισσότερα",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Δημιουργία κωδικού πρόσβασης",
     "pass_flow": "Συνεχίστε με το Flow",
     "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
     "password_error": "Οι κωδικοί πρόσβασης δεν ταιριάζουν. Προσπαθήστε ξανά.",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "Χρησιμοποιήστε μόνο πεζά γράμματα, ελέγξτε την ορθογραφία σας και βάλτε τις λέξεις με τη σωστή σειρά.",
     "enter_strong_password": "Εισάγετε έναν ισχυρό κωδικό πρόσβασης"
   },
   "bottom_tab_bar": {
@@ -471,23 +495,53 @@
   },
   "deposit": {
     "title": "Κατάθεση",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "Επιλέξτε Περιοχή",
+    "chooseYourRegionToContinue": "Επιλέξτε την περιοχή σας για να συνεχίσετε",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "Πληρωμή με",
+      "unexpectedError": "Προέκυψε ένα απρόσμενο σφάλμα.",
+      "quoteFetchError": "Αποτυχία λήψης προσφοράς.",
+      "kycFormsFetchError": "Αποτυχία λήψης της φόρμας KYC.",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "Επιλέξτε ένα Token",
+      "search_by_name_or_address": "Αναζητήστε tokens με βάση το όνομα ή τη διεύθυνση",
+      "no_tokens_found": "Κανένα token δεν αντιστοιχεί στο '{{searchString}}'\""
+    },
+    "region_modal": {
+      "select_a_region": "Επιλέξτε μια περιοχή",
+      "search_by_country": "Αναζήτηση ανά χώρα",
+      "no_regions_found": "Καμία περιοχή δεν αντιστοιχεί στο '{{searchString}}'\""
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Επιλέξτε μια Μέθοδο Πληρωμής"
+    },
+    "payment_duration": {
+      "instant": "Άμεσα",
+      "1_to_2_days": "1 έως 2 ημέρες"
+    },
+    "unsupported_region_modal": {
+      "title": "Η περιοχή δεν υποστηρίζεται",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "title": "Φορτίστε το πορτοφόλι σας με USDC",
+      "bullet_1_title": "Η ισοτιμία βασίζεται σε δολάρια ΗΠΑ",
+      "bullet_1_description": "Αναλογία ισοτιμίας 1:1 με δολάρια ΗΠΑ.",
+      "bullet_2_title": "Χαμηλή μεταβλητότητα",
+      "bullet_2_description": "Εξασφαλίζει σταθερή ισοτιμία για αξιόπιστες συναλλαγές.",
+      "bullet_3_title": "Πιο γρήγορα από τις τράπεζες",
+      "bullet_3_description": "Οι γρήγορες μεταφορές μέσω blockchain είναι ταχύτερες από τις παραδοσιακές τραπεζικές μεθόδους.",
+      "button": "Ξεκινήστε"
     },
     "enter_email": {
       "title": "Εισάγετε το email σας",
@@ -496,7 +550,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Αποστολή email",
       "loading": "Αποστολή email...",
-      "validation_error": "Παρακαλούμε εισάγετε μια έγκυρη διεύθυνση email"
+      "validation_error": "Παρακαλούμε εισάγετε μια έγκυρη διεύθυνση email",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Εισάγετε τον εξαψήφιο κωδικό",
@@ -504,7 +559,14 @@
       "submit_button": "Υποβολή",
       "loading": "Επαλήθευση κωδικού...",
       "invalid_code_error": "Μη έγκυρος κωδικός",
-      "validation_error": "Παρακαλούμε εισάγετε έναν έγκυρο κωδικό"
+      "validation_error": "Παρακαλούμε εισάγετε έναν έγκυρο κωδικό",
+      "need_help": "Χρειάζεστε βοήθεια;",
+      "resend_code_description": "Δεν λάβατε τον κωδικό;",
+      "resend_code_error": "Προέκυψε σφάλμα στην αποστολή του κωδικού ξανά.",
+      "resend_code_button": "Αποστολή ξανά",
+      "resend_cooldown": "Επαναποστολή κωδικού σε {{seconds}} δευτερόλεπτα",
+      "contact_support": "Επικοινωνήστε με την υποστήριξη",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Επαληθεύστε την ταυτότητά σας",
@@ -515,7 +577,23 @@
     "basic_info": {
       "title": "Εισάγετε τις βασικές σας πληροφορίες",
       "continue": "Συνεχίστε",
-      "subtitle": "Για να ξεκινήσει η διαδικασία επαλήθευσης της ταυτότητάς σας, χρειαζόμαστε κάποιες βασικές πληροφορίες."
+      "subtitle": "Για να ξεκινήσει η διαδικασία επαλήθευσης της ταυτότητάς σας, χρειαζόμαστε κάποιες βασικές πληροφορίες.",
+      "first_name": "Όνομα",
+      "last_name": "Επώνυμο",
+      "phone_number": "Αριθμός τηλεφώνου",
+      "date_of_birth": "Ημερομηνία γέννησης",
+      "social_security_number": "Αριθμός κοινωνικής ασφάλισης",
+      "enter_phone_number": "Εισάγετε τον αριθμό τηλεφώνου",
+      "select_region": "Επιλέξτε περιοχή",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "Εισάγετε τη διεύθυνσή σας",
@@ -526,23 +604,189 @@
       "state": "Πολιτεία/Περιοχή",
       "city": "Πόλη",
       "postal_code": "Ταχυδρομικός Κώδικας",
-      "country": "Χώρα"
+      "country": "Χώρα",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "title": "Επαλήθευση της ταυτότητάς σας",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "Δεν ήταν δυνατή η επαλήθευση της ταυτότητάς σας.",
+      "error_description": "Δοκιμάστε να ανεβάσετε ξανά τα έγγραφά σας και να τα υποβάλετε εκ νέου για επαλήθευση.",
+      "error_button": "Επανάληψη επαλήθευσης",
+      "success_heading": "Η διαδικασία επαλήθευσης της ταυτότητάς σας ήταν επιτυχής!",
+      "success_description": "Μπορείτε τώρα να καταχωρίσετε τα στοιχεία πληρωμής και να ολοκληρώσετε την κατάθεση.",
+      "success_button": "Ολοκληρώστε την αγορά"
+    },
+    "provider_webview": {
+      "title": "Κατάθεση"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "Επαλήθευση της ταυτότητάς σας",
+      "webview_received_error": "Το WebView ανέφερε σφάλμα με κωδικό κατάστασης: {{code}}"
+    },
+    "order_processing": {
+      "title": "Επεξεργασία κατάθεσης",
+      "button": "Κλείσιμο",
+      "description": "Οι αγορές με κάρτα συνήθως διαρκούν λίγα λεπτά",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "Η κατάθεση ολοκληρώθηκε",
+      "success_description": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία!",
+      "error_title": "Η κατάθεση απέτυχε",
+      "error_description": "Δεν ήταν δυνατή η ολοκλήρωση της κατάθεσής σας",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "Προσπαθήστε ξανά",
+      "contact_support_button": "Επικοινωνήστε με την υποστήριξη",
+      "account": "Λογαριασμός",
+      "network": "Δίκτυο",
+      "order_id": "Κωδικός αγοράς",
+      "fees": "Τέλη",
+      "total": "Σύνολο",
+      "view_order_details_in_transak": "Δείτε τις λεπτομέρειες της αγοράς στο Transak",
+      "no_order_found": "Δεν βρέθηκε καμία αγορά",
+      "back_to_wallet": "Πίσω στο πορτοφόλι",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "Κατάθεση αγοράς",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "Η κατάθεση σε {{currency}} απέτυχε! Παρακαλούμε δοκιμάστε ξανά, συγγνώμη για την ταλαιπωρία!",
+      "deposit_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και αν υποστηρίζεται η κάρτα σας",
+      "deposit_cancelled_title": "Η κατάθεσή σας ακυρώθηκε",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία!",
+      "deposit_completed_description": "Τα {{currency}} είναι πλέον διαθέσιμα στο πορτοφόλι σας",
+      "deposit_pending_title": "Γίνεται επεξεργασία της κατάθεσής σας σε {{currency}}",
+      "deposit_pending_description": "Αναμένεται να ολοκληρωθεί σε λίγα λεπτά..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
     }
   },
   "receive": {
@@ -597,6 +841,10 @@
     "solana": {
       "title": "Υποστηρίζουμε τώρα την Solana",
       "subtitle": "Δημιουργήστε λογαριασμό στην Solana για να ξεκινήσετε"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Εισαγωγή στην δημιουργία αντιγράφων ασφαλείας και συγχρονισμού",
@@ -806,9 +1054,9 @@
     "action_description_1_prefix": "Ιδιωτικές:",
     "action_description_2_prefix": "Γενικές:",
     "action_description_3_prefix": "Προαιρετικές:",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "Τα κλικ και οι προβολές στην εφαρμογή αποθηκεύονται, αλλά άλλες λεπτομέρειες (όπως η δημόσια διεύθυνσή σας) δεν αποθηκεύονται.",
+    "action_description_2_description": "Χρησιμοποιούμε προσωρινά τη διεύθυνση IP σας για να εντοπίσουμε μια γενική τοποθεσία (όπως τη χώρα ή την περιοχή σας), αλλά δεν την αποθηκεύουμε ποτέ.",
+    "action_description_3_description": "Εσείς αποφασίζετε αν θέλετε να κοινοποιήσετε ή να διαγράψετε τα δεδομένα χρήσης σας οποιαδήποτε στιγμή μέσω των ρυθμίσεων.",
     "cta_no_thanks": "Όχι, ευχαριστώ",
     "cta_i_agree": "Συμφωνώ",
     "fine_print_1_legacy": "Τα δεδομένα αυτά είναι συγκεντρωτικά και συνεπώς ανώνυμα για τους σκοπούς του Γενικού Κανονισμού για την Προστασία Δεδομένων (ΕΕ) 2016/679.",
@@ -1084,9 +1332,11 @@
     "clear_browser_cookies_desc": "Εκκαθάριση των cookies από το πρόγραμμα περιήγησης",
     "clear": "ΕΚΚΑΘΑΡΙΣΗ",
     "protect_cta": "Προστασία",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "Απέτυχε η φόρτωση του βίντεο.",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "Δημιουργήστε αντίγραφο ασφαλείας της Μυστικής Φράσης Ανάκτησης για να διασφαλίσετε την πρόσβαση στο πορτοφόλι σας. Βεβαιωθείτε ότι θα την αποθηκεύσετε σε ασφαλές μέρος στο οποίο μόνο εσείς θα έχετε πρόσβαση και δεν θα το ξεχάσετε.",
     "protect_desc_no_backup": "Αυτή είναι η φράση 12 λέξεων του πορτοφολιού σας. Αυτή η φράση μπορεί να χρησιμοποιηθεί για τον έλεγχο όλων των τρεχόντων και μελλοντικών λογαριασμών σας, όπως και για τη δυνατότητα να στέλνετε χρήματα στο πορτοφόλι σας. Αποθηκεύστε με ασφάλεια αυτήν τη φράση και ΜΗΝ την μοιραστείτε με κανέναν. Το MetaMask δεν μπορεί να σας βοηθήσει να ανακτήσετε αυτό το κλειδί.",
     "learn_more": "Μάθετε περισσότερα.",
     "seedphrase_not_backed_up": "Σημαντικό! Δεν υπάρχει αντίγραφο ασφαλείας για τη Μυστική Φράση Ανάκτησης",
@@ -1147,7 +1397,7 @@
     "no_permissions_desc": "Αν συνδέσετε έναν λογαριασμό με έναν ιστότοπο ή μια εφαρμογή, θα τον δείτε εδώ.",
     "security_title": "Ασφάλεια και Απόρρητο",
     "back": "Πίσω",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "Ρυθμίσεις απορρήτου, MetaMetrics, ιδιωτικό κλειδί και Μυστική Φράση Ανάκτησης.",
     "networks_title": "Δίκτυα",
     "networks_default_title": "Προεπιλεγμένο Δίκτυο",
     "network_delete": "Εάν διαγράψετε αυτό το δίκτυο, θα πρέπει να το προσθέσετε ξανά για να δείτε τα περιουσιακά σας στοιχεία σε αυτό το δίκτυο",
@@ -1212,9 +1462,6 @@
     "invalid_password": "Μη έγκυρος κωδικός πρόσβασης",
     "invalid_password_message": "Ο κωδικός πρόσβασης δεν ήταν σωστός. Προσπαθήστε ξανά.",
     "security_heading": "Ασφάλεια",
-    "ses_heading": "Κλείδωμα κωδικού",
-    "ses_description": "Πρόκειται για μια δοκιμαστική λειτουργία που εμποδίζει οποιαδήποτε αλλαγή στον κώδικα JavaScript της εφαρμογής χωρίς άδεια.",
-    "ses_link": "Μάθετε περισσότερα",
     "general_heading": "Γενικά",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
@@ -1264,9 +1511,9 @@
     "check_status_button": "Έλεγχος Κατάστασης",
     "delete_metrics_confirm_modal_title": "Διαγραφή δεδομένων MetaMetrics;",
     "delete_metrics_confirm_modal_description": "Πρόκειται να αφαιρέσουμε όλα τα δεδομένα σας στο MetaMetrics. Είστε σίγουροι;",
-    "delete_wallet_data_title": "Διαγραφή πορτοφολιού",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "Αυτό θα αφαιρέσει από τη συσκευή όλα τα δεδομένα που σχετίζονται με το πορτοφόλι σας. Οι λογαριασμοί σας υπάρχουν στο blockchain και δεν σχετίζονται με το MetaMask. Μπορείτε πάντα να ανακτήσετε τους λογαριασμούς σας χρησιμοποιώντας την Μυστική σας Φράση Ανάκτησης.",
-    "delete_wallet_data_button": "Διαγραφή πορτοφολιού",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "Κατάστασης Εργασίας Διαγραφής",
     "delete_data_status_description": "Η τρέχουσα κατάσταση είναι",
     "delete_metrics_error_title": "Δεν μπορούμε να διαγράψουμε αυτά τα δεδομένα προς το παρόν.",
@@ -1294,8 +1541,8 @@
       "add": "Προσθήκη",
       "update": "Ενημέρωση",
       "cancel": "Ακύρωση",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "Αποσύνδεση από το {{depositProviderName}}",
+      "deposit_provider_logged_out": "Αποσυνδεθήκατε από το {{depositProviderName}}"
     },
     "request_feature": "Ζητήστε μια λειτουργία",
     "contact_support": "Επικοινωνία με την υποστήριξη",
@@ -1393,6 +1640,9 @@
     "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "dismiss_smart_account_update_heading": "Απόρριψη της υπόδειξης \"Μετάβαση σε Έξυπνο Λογαριασμό\"",
     "dismiss_smart_account_update_desc": "Ενεργοποιήστε αυτήν την επιλογή ώστε να μην εμφανίζεται ξανά η υπόδειξη \"Μετάβαση σε Έξυπνο Λογαριασμό\" σε κανένα λογαριασμό. Οι Έξυπνοι Λογαριασμοί προσφέρουν γρηγορότερες συναλλαγές, χαμηλότερα τέλη δικτύου και μεγαλύτερη ευελιξία στις πληρωμές.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Έξυπνες Συναλλαγές",
     "smart_transactions_opt_in_desc_supported_networks": "Ενεργοποιήστε τις Έξυπνες Συναλλαγές για πιο αξιόπιστες και ασφαλείς συναλλαγές σε υποστηριζόμενα δίκτυα.",
     "smart_transactions_learn_more": "Μάθετε περισσότερα.",
@@ -1478,13 +1728,13 @@
     "confirm": "Επόμενο",
     "seed_phrase_explanation": [
       "Η",
-      "Μυστική Φράση Ανάκτησης (ΜΦΑ)",
+      "Μυστική Φράση Ανάκτησής σας",
       "δίνει",
       "πλήρη πρόσβαση στο πορτοφόλι, τα χρήματα και τους λογαριασμούς σας.\n\n",
       "Το MetaMask είναι ένα",
       "πορτοφόλι χωρίς θεματοφύλακα.",
       "Αυτό σημαίνει,",
-      "ότι είστε ο κάτοχος της ΜΦΑ σας."
+      "εσείς είστε ο κάτοχος της Μυστικής Φράσης Ανάκτησής σας."
     ],
     "private_key_explanation": "Αποθηκεύστε την κάπου μυστικά και με ασφάλεια.",
     "private_key_warning": "Αυτό είναι το ιδιωτικό κλειδί για τον τρέχοντα επιλεγμένο λογαριασμό: {{accountName}}. Μην αποκαλύψετε ποτέ αυτό το κλειδί. Όποιος έχει το ιδιωτικό σας κλειδί μπορεί να έχει τον πλήρη έλεγχο του λογαριασμού σας, όπως και τη μεταφορά των χρημάτων σας.",
@@ -1537,7 +1787,7 @@
     "password_desc": "Επιλέξτε έναν ισχυρό κωδικό για να ξεκλειδώσετε την εφαρμογή MetaMask στη συσκευή σας. Εάν χάσετε τον κωδικό πρόσβασης θα χρειαστείτε τη Μυστική Φράση Ανάκτησης για να εισαγάγετε εκ νέου το πορτοφόλι σας.",
     "password_learn_more": "Μάθετε περισσότερα.",
     "change_password": "Αλλαγή κωδικού πρόσβασης",
-    "password_hint": "Password hint"
+    "password_hint": "Υπόδειξη κωδικού πρόσβασης"
   },
   "asset_overview": {
     "send_button": "Αποστολή",
@@ -1547,6 +1797,7 @@
     "receive_button": "Λήψη",
     "portfolio_button": "Portfolio",
     "earn_button": "Κερδίστε",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "Προσθήκη",
     "info": "Πληροφορίες",
     "swap": "Ανταλλαγή",
@@ -1559,7 +1810,8 @@
       "bridge": "Η διασύνδεση δεν υποστηρίζεται για αυτόν τον λογαριασμό",
       "send": "Η αποστολή δεν υποστηρίζεται για αυτόν τον λογαριασμό",
       "action": "Αυτή η ενέργεια δεν υποστηρίζεται για αυτόν τον λογαριασμό",
-      "earn": "Μη υποστήριξη των κερδών για αυτόν τον λογαριασμό"
+      "earn": "Μη υποστήριξη των κερδών για αυτόν τον λογαριασμό",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Περιγραφή",
     "totalSupply": "Συνολική Προμήθεια",
@@ -1576,6 +1828,7 @@
     "send_description": "Στείλτε κρυπτονομίσματα σε οποιονδήποτε λογαριασμό",
     "receive_description": "Λάβετε κρυπτονομίσματα",
     "earn_description": "Κερδίστε ανταμοιβές για τα token σας",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "Σήμερα",
       "7d": "Προηγούμενες 7 ημέρες",
@@ -1949,8 +2202,8 @@
     "tx_review_staking_claim": "Διεκδίκηση πονταρίσματος",
     "tx_review_staking_deposit": "Κατάθεση πονταρίσματος",
     "tx_review_staking_unstake": "Ακύρωση πονταρίσματος",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "Κατάθεση Δανεισμού",
+    "tx_review_lending_withdraw": "Ανάληψη Δανεισμού",
     "sent_ether": "Αποστολή Ether",
     "self_sent_ether": "Στείλτε Ether στον εαυτό σας",
     "received_ether": "Ληφθέντα Ether",
@@ -2097,7 +2350,8 @@
     "add_input_placeholder": "Δημόσια διεύθυνση (0x) ή ENS",
     "between_account": "Μεταφορά μεταξύ των λογαριασμών μου",
     "others": "Άλλοι",
-    "memo": "Σημείωση"
+    "memo": "Σημείωση",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "Αυτή είναι μια διπλή διεύθυνση",
@@ -2349,21 +2603,21 @@
     "info_text_1_2": "Μυστική Φράση Ανάκτησης",
     "info_text_1_3": "σε μέρος που εμπιστεύεστε.",
     "info_text_1_4": "Είναι ο μόνος τρόπος να ανακτήσετε το πορτοφόλι σας εάν κλειδωθείτε εκτός της εφαρμογής ή πάρετε νέα συσκευή.",
-    "cta_text": "Get started",
+    "cta_text": "Ξεκινήστε",
     "cta_subText": "Συνιστάται ανεπιφύλακτα",
     "skip_button_cancel": "Προστασία τώρα",
     "skip_button_confirm": "Παράλειψη",
     "skip_title": "Παράλειψη της ασφάλειας του λογαριασμού;",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "Αν χάσετε τη Μυστική Φράση Ανάκτησης, δεν θα έχετε πρόσβαση στο πορτοφόλι.",
+    "what_is_seedphrase_title": "Τι είναι η Μυστική Φράση Ανάκτησης;",
+    "what_is_seedphrase_text_1": "Η Μυστική Φράση Ανάκτησης, που ονομάζεται επίσης \"seed phrase\" ή μνημονική φράση, είναι ένα σύνολο λέξεων που σας επιτρέπει να έχετε πρόσβαση και να ελέγχετε το πορτοφόλι κρυπτονομισμάτων σας. Για να μεταφέρετε το πορτοφόλι σας στο MetaMask, χρειάζεστε αυτή τη φράση.",
     "what_is_seedphrase_text_2": "Πρέπει να διατηρείτε τη Μυστική Φράση Ανάκτησης κρυφή και ασφαλή. Εάν κάποιος βρει τη Μυστική Φράση Ανάκτησης, θα αποκτήσει τον έλεγχο των λογαριασμών σας.",
     "what_is_seedphrase_text_3": "Αποθηκεύστε την κάπου όπου μόνο εσείς έχετε πρόσβαση. Εάν την χάσετε, ούτε το MetaMask δεν μπορεί να σας βοηθήσει να την ανακτήσετε.",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "Οποιοσδήποτε έχει τη Μυστική Φράση Ανάκτησής σας μπορεί να:",
+    "seedPhrase_point_1": "Πάρει όλα σας τα χρήματα",
+    "seedPhrase_point_2": "Επιβεβαιώνει συναλλαγές",
+    "seedPhrase_point_3": "Αλλάξει τα στοιχεία σύνδεσής σας",
+    "what_is_seedphrase_confirm": "Εντάξει"
   },
   "account_backup_step_1B": {
     "title": "Προστατέψτε το πορτοφόλι σας",
@@ -2454,40 +2708,40 @@
     "progressThree": "Επιβεβαιώστε τη Μυστική Φράση Ανάκτησης"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
+    "action": "Αποθηκεύστε τη Μυστική Φράση Ανάκτησής σας",
+    "info-1": "Αυτή είναι η",
+    "info-2": "Μυστική Φράση Ανάκτησής σας",
+    "info-3": "Γράψτε τη με τη σωστή σειρά και φυλάξτε την σε ασφαλές μέρος. Αν κάποιος έχει τη Μυστική Φράση Ανάκτησής σας, μπορεί να έχει πρόσβαση στο πορτοφόλι σας.",
+    "info-4": "Μην την κοινοποιείτε ποτέ σε κανέναν.",
     "continue": "Συνέχεια",
-    "reveal": "Tap to reveal",
+    "reveal": "Πατήστε για εμφάνιση",
     "watching": "Βεβαιωθείτε ότι κανείς δεν παρακολουθεί την οθόνη σας.",
     "view": "Προβολή",
     "confirm_password": "Επιβεβαιώστε τον κωδικό πρόσβασής σας",
     "before_continiuing": "Πριν συνεχίσετε, πρέπει να επιβεβαιώσετε τον κωδικό πρόσβασής σας",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "Εισάγετε τον τρέχοντα κωδικό πρόσβασής σας",
+    "confirm": "Επιβεβαίωση",
     "got_it": "Το κατάλαβα",
     "learn_more": "Μάθετε περισσότερα",
-    "password": "Password"
+    "password": "Κωδικός πρόσβασης"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
+    "action": "Επιβεβαιώστε τη Μυστική Φράση Ανάκτησής σας",
+    "info": "Επιλέξτε τις λέξεις που λείπουν με τη σωστή σειρά.",
     "complete": "Ολοκλήρωση Αντιγράφου Ασφαλείας",
     "success": "Επιτυχία",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "Δεν είναι εντελώς σωστή",
+    "error-description": "Ελέγξτε προσεκτικά τη Μυστική Φράση Ανάκτησης και προσπαθήστε ξανά.",
+    "success-title": "Τέλεια!",
+    "success-description": "Σωστά! Και να θυμάστε: ποτέ μην κοινοποιείτε αυτή τη φράση σε κανέναν.",
+    "success-button": "Εντάξει",
+    "error-button": "Προσπαθήστε ξανά",
+    "continue": "Συνεχίστε"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
     "congratulations": "Συγχαρητήρια",
     "success": "Προστατεύσατε με επιτυχία το πορτοφόλι σας. Να θυμάστε να διατηρείτε την Μυστική Φράση Ανάκτησης ασφαλή. Είναι δική σας ευθύνη!",
     "hint": "Θέλετε να αφήσετε μια υπόδειξη;",
@@ -3106,7 +3360,7 @@
       "sale_pending_description": "Η παραγγελία σας βρίσκεται τώρα υπό επεξεργασία.",
       "no_date": "Άγνωστο"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "Κατάθεση σε {{currency}}"
   },
   "swaps": {
     "title": "Ανταλλαγή",
@@ -3818,10 +4072,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Δανείστε {{tokenSymbol}} και κερδίστε",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "Δανείστε τα {{tokenSymbol}} μέσω του {{protocol}} και κερδίστε",
+      "annually": "ετησίως.",
+      "learn_more": "Μάθετε περισσότερα.",
+      "earn": "Κερδίστε"
     },
     "service_interruption_banner": {
       "maintenance_message": "Είμαστε εκτός λειτουργίας για συντήρηση. Θα επανέλθουμε σύντομα!"
@@ -3849,50 +4103,51 @@
       "withdrawal_time": "Ο χρόνος που χρειάζεται για να αποσύρετε το token σας από το πρωτόκολλο και να το λάβετε πίσω στο πορτοφόλι σας",
       "receive": "Αυτό το token χρησιμοποιείται για την παρακολούθηση των περιουσιακών στοιχείων και των ανταμοιβών σας. Μην το μεταφέρετε ή το ανταλλάξετε, διαφορετικά δεν θα μπορείτε να κάνετε ανάληψη στα περιουσιακά σας στοιχεία.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "Ο Δείκτης Ασφάλειάς σας αξιολογεί τον κίνδυνο ρευστοποίησης",
+        "above_two_dot_zero": "Πάνω από 2,0",
+        "safe_position": "Ασφαλής θέση",
+        "between_one_dot_five_and_2_dot_zero": "Μεταξύ 1,5-2,0",
+        "medium_liquidation_risk": "Μέτριος κίνδυνος ρευστοποίησης",
+        "below_one_dot_five": "Κάτω από 1,5",
+        "higher_liquidation_risk": "Υψηλότερος κίνδυνος ρευστοποίησης"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "Γιατί δεν μπορώ να κάνω ανάληψη όλο το ποσό που έχω στο υπόλοιπό μου;",
+        "your_withdrawal_amount_may_be_limited_by": "Το ποσό ανάληψης ενδέχεται να επηρεάζεται από",
+        "pool_liquidity": "“Δεξαμενή” ρευστότητας",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Δεν υπάρχουν επαρκή διαθέσιμα κεφάλαια στην \"δεξαμενή\" δανεισμού αυτή τη στιγμή.",
+        "existing_borrow_positions": "Υφιστάμενες Θέσεις Δανεισμού",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Η ανάληψη χρημάτων μπορεί να θέσει τις υφιστάμενες θέσεις δανεισμού σας σε κίνδυνο ρευστοποίησης."
       }
     },
     "withdraw": "Ανάληψη",
     "deposit_more": "Καταθέστε περισσότερα",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "Κέρδος",
+    "withdrawal_time": "Ώρα ανάληψης",
+    "withdrawing_to": "Ανάληψη προς",
+    "network": "Δίκτυο",
+    "health_factor": "Δείκτης ασφάλειας",
+    "liquidation_risk": "Κίνδυνος ρευστοποίησης",
+    "insufficient_pool_liquidity": "Ανεπαρκής Ρευστότητα της \"Δεξαμενής\"",
+    "available_to_withdraw": "διαθέσιμα για ανάληψη",
+    "unknown": "άγνωστο",
+    "how_it_works": "Πώς λειτουργεί",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "Κερδίστε ανταμοιβές σε {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Δανείστε τα {{tokenSymbol}} μέσω του {{protocol}} και κερδίστε καθημερινές ανταμοιβές. Οι ανταμοιβές αυξάνονται με το χρόνο και το ετήσιο ποσοστό απόδοσης (APR) ποικίλει.",
+      "withdraw_whenever_you_want": "Κάντε ανάληψη όποτε θέλετε",
+      "get_asset_back_in_your_wallet_instantly": "Λάβετε τα {{tokenSymbol}} πίσω στο πορτοφόλι σας αμέσως."
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "Το ποσό υπερβαίνει το ασφαλές όριο ανάληψης",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "Προβολή ιστορικού θέσεων",
+      "staking": "Προβολή ιστορικού κερδών"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "Ιστορικό θέσεων",
+      "staking": "Ιστορικό πληρωμών"
+    },
+    "allowance_reset": "Επαναφορά Επιτρεπόμενου Ποσού"
   },
   "stake": {
     "stake": "Stake",
@@ -3992,8 +4247,9 @@
     "estimated_unstaking_time": "1 έως 11 ημέρες",
     "proceed_anyway": "Συνεχίστε παρόλα αυτά",
     "gas_cost_impact": "Επιπτώσεις στα έξοδα συναλλαγών",
-    "select_a_token": "Επιλέξτε ένα token",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "Μπορείτε να κερδίσετε εώς και",
     "per_year_on_your_tokens": "ανά έτος με τα tokens σας",
     "deposit": "Κατάθεση",
     "gas_cost_impact_warning": "Προειδοποίηση: το κόστος των τελών συναλλαγών θα αντιστοιχεί σε περισσότερο από το {{percentOverDeposit}}% της κατάθεσής σας.",
@@ -4109,6 +4365,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Ποσό",
+      "value": "Αξία",
       "account": "Λογαριασμός",
       "balance": "Υπόλοιπο",
       "interacting_with": "Αλληλεπίδραση με",
@@ -4127,19 +4385,29 @@
       "permit_NFTs": "Αίτημα ανάληψης",
       "signature_siwe": "Αίτημα σύνδεσης",
       "contract_interaction": "Αίτημα συναλλαγής",
+      "contract_deployment": "Ανάπτυξη συμβολαίου",
       "transfer": "Αίτημα μεταφοράς",
       "switch_account_type": "Ενημέρωση λογαριασμού",
-      "approve": "Approve request"
+      "approve": "Έγκριση αιτήματος"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
+      "permit_revoke": "Καταργείτε την άδεια πρόσβασης κάποιου ατόμου να χρησιμοποιεί tokens από τον λογαριασμό σας.",
       "permit_NFTs": "Αυτός ο ιστότοπος θέλει άδεια για την ανάληψη των NFT σας.",
+      "permit_revoke_NFTs": "Αυτός ο ιστότοπος θα ήθελε να επαναφέρει το όριο ανάληψης για τα δικά σας NFT",
       "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
       "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού.",
       "contract_interaction": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν το επιβεβαιώσετε.",
       "switch_to_smart_account": "Θα αλλάξετε σε έξυπνο λογαριασμό.",
-      "switch_to_standard_account": "Θα επιστρέψετε σε βασικό λογαριασμό (EOA)."
+      "switch_to_standard_account": "Θα επιστρέψετε σε βασικό λογαριασμό (EOA).",
+      "contract_deployment": "Αυτός ο ιστότοπος θέλει να αναπτύξετε ένα συμβόλαιο",
+      "decrease_allowance": "Αυτός ο ιστότοπος θέλει να μειώσει το όριο δαπανών για τα tokens σας."
     },
+    "spending_cap": "Όριο δαπανών",
+    "withdraw": "Ανάληψη",
+    "nfts": "NFT",
+    "permission_from": "Άδεια πρόσβασης από",
+    "spender": "Επενδυτής",
     "request_from": "Ζητήθηκε από",
     "staking_from": "Ποντάρισμα από",
     "signing_in_with": "Σύνδεση με",
@@ -4192,6 +4460,7 @@
       "smartAccountLabel": "Έξυπνος λογαριασμός",
       "standardAccountLabel": "Βασικός λογαριασμός",
       "switch": "Αλλαγή",
+      "switchBack": "Επιστροφή",
       "splashpage": {
         "accept": "Ναι",
         "betterTransaction": "Ταχύτερες συναλλαγές, χαμηλότερα τέλη",
@@ -4200,13 +4469,21 @@
         "payToken": "Πληρώστε με οποιοδήποτε token, οποιαδήποτε στιγμή",
         "payTokenDescription": "Χρησιμοποιήστε τα tokens που έχετε ήδη για να πληρώσετε τα τέλη δικτύου.",
         "reject": "Όχι",
-        "requestFor": "Ζητείται για",
         "sameAccount": "Ίδιος λογαριασμός, πιο έξυπνες λειτουργίες.",
-        "splashTitle": "Χρήση έξυπνου λογαριασμού;",
-        "upgradeBannerDescription": "Ίδιος λογαριασμός. Πιο έξυπνες λειτουργίες.",
-        "upgradeBannerTitle": "Αλλαγή σε έξυπνο λογαριασμό"
+        "splashTitle": "Χρήση έξυπνου λογαριασμού;"
       },
-      "includes_transaction": "Περιλαμβάνει {{transactionCount}} συναλλαγές"
+      "includes_transaction": "Περιλαμβάνει {{transactionCount}} συναλλαγές",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Απεριόριστα",
     "all": "Όλα",
@@ -4217,7 +4494,7 @@
     "review": "Επισκόπηση",
     "transferRequest": "Αίτημα μεταφοράς",
     "nested_transaction_heading": "Συναλλαγή {{index}}",
-    "transaction": "Transaction"
+    "transaction": "Συναλλαγή"
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
@@ -4266,6 +4543,7 @@
     "insufficient_funds": "Ανεπαρκές ποσό",
     "select_amount": "Επιλέξτε ποσό",
     "bridge_to": "Διασύνδεση προς",
+    "swap_to": "Swap to",
     "title": "Διασύνδεση",
     "submitting_transaction": "Υποβολή",
     "fetching_quote": "Λήψη προσφοράς",
@@ -4277,6 +4555,11 @@
     "title": "Υπάρχουν διαθέσιμες νέες προσφορές",
     "description": "Οι τιμές ενημερώνονται κάθε {{refreshRate}} δευτερόλεπτα, οπότε πατήστε \"Ζητήστε νέα προσφορά\" όταν είστε έτοιμοι.",
     "get_new_quote": "Ζητήστε νέα προσφορά"
+  },
+  "blockaid_modal": {
+    "simulation_title": "Η συναλλαγή απέτυχε στην προσομοίωση",
+    "validation_title": "Η συναλλαγή απέτυχε στην επικύρωση",
+    "go_back": "Πίσω"
   },
   "bridge_transaction_details": {
     "status": "Κατάσταση",
@@ -4293,6 +4576,54 @@
     "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
     "recipient": "Αποδέκτης"
   },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "Δημιουργία αντιγράφων ασφαλείας και συγχρονισμός",
     "description": "Δημιουργήστε αντίγραφα ασφαλείας των λογαριασμών και των ρυθμίσεων συγχρονισμού.",
@@ -4308,7 +4639,7 @@
     "privacyLink": "Μάθετε πώς προστατεύουμε το απόρρητό σας",
     "features": {
       "accounts": "Λογαριασμοί",
-      "contacts": "Contacts"
+      "contacts": "Επαφές"
     },
     "manageWhatYouSync": {
       "title": "Διαχειριστείτε αυτά που συγχρονίζετε",
@@ -4340,11 +4671,18 @@
       "private_key": "Ιδιωτικό κλειδί"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "Λεπτομέρειες"
+    },
+    "wallet_details": {
+      "wallet_name": "Όνομα πορτοφολιού",
+      "balance": "Υπόλοιπο",
+      "create_account": "Create account",
+      "back_up": "Aντιγράφο ασφαλείας",
+      "reveal_recovery_phrase_with_index": "Εμφάνιση Μυστικής Φράσης Ανάκτησης {{index}}"
     },
     "smart_account": {
       "title": "Ενεργοποίηση του Έξυπνου Λογαριασμού",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "Μπορείτε να ενεργοποιήσετε λειτουργίες έξυπνου λογαριασμού σε υποστηριζόμενα δίκτυα.",
       "learn_more": "Μάθετε περισσότερα"
     },
     "edit_account_name": {
@@ -4370,7 +4708,7 @@
     "export_credentials": {
       "export_private_key": "Ιδιωτικό κλειδί",
       "private_key_warning_title": "Μην αποκαλύψετε ποτέ αυτό το κλειδί.",
-      "private_key_warning_description": "Όποιος έχει το ιδιωτικό σας κλειδί μπορεί να κλέψει όλα τα περιουσιακά στοιχεία που βρίσκονται στον λογαριασμό σας.",
+      "private_key_warning_description": "Οποιοσδήποτε έχει το ιδιωτικό σας κλειδί μπορεί να κλέψει τα περιουσιακά στοιχεία που υπάρχουν στον λογαριασμό σας.",
       "credential_as_text": "Κείμενο",
       "credential_as_qr": "Κωδικός QR",
       "export_mnemonic": "Εξαγωγή μνημονικών στοιχείων",
@@ -4379,7 +4717,7 @@
     "reveal_private_key": {
       "title": "Εμφάνιση ιδιωτικού κλειδιού",
       "banner_title": "Μην αποκαλύψετε ποτέ αυτό το κλειδί.",
-      "banner_description": "Όποιος έχει το ιδιωτικό σας κλειδί μπορεί να κλέψει όλα τα περιουσιακά στοιχεία που βρίσκονται στον λογαριασμό σας.",
+      "banner_description": "Οποιοσδήποτε έχει το ιδιωτικό σας κλειδί μπορεί να κλέψει τα περιουσιακά στοιχεία που υπάρχουν στον λογαριασμό σας.",
       "enter_password": "Εισάγετε τον κωδικό πρόσβασής σας",
       "password_placeholder": "Κωδικός πρόσβασης",
       "next": "Επόμενο",
@@ -4394,19 +4732,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "Ανακατεύθυνση προς το MetaMask",
+      "description": "Αν συνεχίσετε, θα ανοίξει η σελίδα {{pageTitle}}.",
+      "checkbox_label": "Μην μου το υπενθυμίσετε ξανά"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "Συνεχίστε με προσοχή",
+      "description": "Μεταφερθήκατε εδώ από τρίτο μέρος, όχι από το MetaMask. Αν συνεχίσετε, θα ανοίξει η σελίδα {{pageTitle}}."
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "Αυτή η σελίδα δεν υπάρχει",
+      "description": "Δεν μπορούμε να βρούμε τη σελίδα που αναζητάτε."
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "Πίσω",
+    "continue_button": "Συνεχίστε"
   }
 }

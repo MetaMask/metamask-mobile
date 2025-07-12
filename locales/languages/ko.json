@@ -145,16 +145,25 @@
     "scan_step_3": "\"모바일과 동기화\"를 클릭",
     "scan_step_4": "QR 코드를 스캔하여 동기화를 시작",
     "success": "성공",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "현재 지갑 초기화",
     "have_existing_wallet": "기존 지갑이 있습니다",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "비밀복구구문을 사용하여 가져오기"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "비밀복구구문을 안전하게 보관하세요!",
+    "description": "이 비밀복구구문은 비밀번호를 잊어버리거나 로그인 접근 권한을 잃었을 때 접근 권한을 다시 얻는 데 도움이 됩니다.",
     "description_bold": "설정 > 보안 및 개인정보",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": " 이 구문을 안전하게 보관하면 자산 접근 권한을 잃지 않을 수 있습니다.",
     "learn_more": "자세히 알아보기",
     "learn_how": "방법 확인하기",
     "leave_hint": "힌트를 남기고 싶으신가요?",
@@ -163,22 +172,22 @@
     "default_settings_footer": "손쉬운 사용과 보안을 위해 설정이 최적화되었습니다.\n언제든지 변경할 수 있습니다.",
     "no_srp_title": "알림 설정 완료!",
     "no_srp_description": "앱에 로그인할 수 없거나 신규 기기를 사용하는 경우 자금에 액세스할 수 없습니다. 다음에 비밀 복구 구문을 백업하세요:",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "지갑이 준비되었습니다!",
+    "import_description": "비밀복구구문을 분실하면 지갑을 사용할 수 없습니다.",
+    "import_description2": "이 구문을 안전하게 보관하면 자산 접근 권한을 잃지 않을 수 있습니다.",
     "done": "완료",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "비밀번호 힌트 생성",
+    "hint_title": "비밀번호 힌트",
+    "hint_description": "비밀번호를 기억하는 데 도움이 될 힌트를 입력하세요. 이 힌트는 장치에만 저장되며, 외부에 공유되지 않습니다.",
+    "hint_description2": "참고: 비밀번호를 분실하면 지갑을 사용할 수 없습니다.",
+    "hint_button": "힌트 생성",
+    "hint_placeholder": "예: 엄마의 집",
+    "hint_saved": "저장",
+    "hint_saved_toast": "비밀번호 힌트가 저장되었습니다",
+    "remind_later": "나중에 다시 알려드리겠습니다",
+    "remind_later_description": "비밀복구구문을 백업하지 않으면, 앱에서 로그아웃되거나 새 장치를 사용할 때 자산 접근 권한을 잃게 됩니다.",
+    "remind_later_description2": "설정 > 보호 및 보안에서 지갑을 백업하거나",
+    "setting_security_privacy": "비밀복구구문을 확인할 수 있습니다"
   },
   "onboarding_carousel": {
     "title1": "MetaMask에 오신 것을 환영합니다",
@@ -281,20 +290,20 @@
   "login": {
     "title": "다시 방문해 주셔서 감사합니다!",
     "password": "비밀번호",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "비밀번호 입력",
+    "unlock_button": "잠금해제",
     "go_back": "지갑의 잠금이 해제되지 않나요? 현재 지갑을 삭제한 후 새 지갑을 생성할 수 있습니다",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "비밀번호를 잊으셨나요?",
     "cant_proceed": "'삭제(Delete)'라는 단어를 입력할 때까지 더 진행할 수 없습니다. 이 단어를 입력하시면, 현재 지갑을 지우는 것을 선택하는 것입니다.",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
+    "type_delete": "‘%{erase}’을(를) 입력해 컨펌하세요",
+    "erase_my": "예, 지갑을 초기화합니다",
+    "cancel": "취소",
+    "are_you_sure": "정말로 진행하시겠습니까?",
+    "your_current_wallet": "지갑, 계정, 자산이 이 앱에서",
+    "removed_from": " 영구적으로 제거됩니다",
     "this_action": "이 작업은 취소할 수 없습니다.",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "이 지갑을 복구하려면 생성 시 사용한 정보(비밀복구구문, Google 계정, Apple 계정 등)가 필요합니다. MetaMask는 이 정보를 보관하지 않습니다.",
     "recovery_phrase": "비밀복구구문입니다",
     "metamask_does_not": "MetaMask는 사용자의 비밀복구구문을 보유하고 있지 않습니다.",
     "i_understand": "이해했습니다. 계속 진행하겠습니다",
@@ -305,20 +314,24 @@
     "clean_vault_error": "저장 공간 부족으로 오류가 발생했습니다. 로컬 데이터가 손상되었습니다. MetaMask를 다시 설치하고 비밀복구구문으로 복원을 진행하세요.",
     "security_alert_title": "보안 경고",
     "security_alert_desc": "계속하려면, 비밀번호를 켜거나 또는 회원님의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "비밀번호를 잊으셨나요?",
+    "forgot_password_desc_2": "MetaMask는 비밀번호를 복구할 수 없습니다.",
+    "forgot_password_point_1": "바이오메트릭(예: Face ID)이 활성화된 장치에서",
+    "forgot_password_point_1_bold": "MetaMask에 로그인되어 있다면,",
+    "forgot_password_point_1_1": "해당 장치에서 비밀번호를 초기화할 수 있습니다.",
+    "forgot_password_point_2": "비밀복구구문이 있다면,",
+    "forgot_password_point_2_bold": "현재 지갑을 초기화하고",
+    "forgot_password_point_2_1": "비밀복구구문을 사용하여 다시 가져올 수 있습니다.",
+    "reset_wallet": "지갑 초기화",
+    "reset_wallet_desc": "이 장치에서 MetaMask의",
+    "reset_wallet_desc_bold": "지갑 데이터가",
+    "reset_wallet_desc_2": "영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "reset_wallet_desc_login": "지갑을 복구하려면 비밀복구구문, Google 계정 비밀번호, Apple 계정 비밀번호를 사용할 수 있습니다. MetaMask는 이 정보를 보관하지 않습니다.",
+    "reset_wallet_desc_srp": "비밀복구구문을 사용하여 지갑을 복구할 수 있습니다. MetaMask는 이 정보를 보관하지 않습니다."
   },
   "connect_hardware": {
     "title_select_hardware": "하드웨어 지갑 연결",
@@ -332,10 +345,10 @@
     "error": "오류"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "MetaMask 비밀번호",
+    "description": "이 장치에서만 MetaMask 잠금해제에 사용됩니다.",
     "subtitle": "이 비밀번호는 이 기기에서 회원님의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
-    "password": "Create new password",
+    "password": "새 비밀번호 생성",
     "confirm_password": "비밀번호 컨펌",
     "create_button": "비밀번호 생성",
     "import_with_seed_phrase": "비밀복구구문으로 가져오기",
@@ -357,14 +370,14 @@
     "secure": "지갑 보호",
     "confirm": "비밀복구구문 컨펌",
     "disable_biometric_error": "앱에 대해 생체 인식을 비활성화했습니다. 로그인 저장 정보를 업데이트하고 다시 시도하세요.",
-    "create_password_cta": "Create password",
+    "create_password_cta": "비밀번호 생성",
     "steps": "{{totalSteps}}단계 중 {{currentStep}}단계",
     "password_error": "비밀번호가 일치하지 않습니다. 다시 시도하세요."
   },
   "reset_password": {
     "title": "비밀번호 변경",
     "subtitle": "이 비밀번호는 이 기기에서 회원님의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
-    "password": "신규 비밀번호",
+    "password": "New password",
     "confirm_password": "비밀번호 컨펌",
     "reset_button": "비밀번호 재설정",
     "import_with_seed_phrase": "비밀복구구문으로 가져오기",
@@ -385,13 +398,23 @@
     "learn_more": "더 알아보기.",
     "secure": "지갑 보호",
     "confirm": "비밀복구구문 컨펌",
-    "password_updated": "비밀번호 갱신됨",
-    "successfully_changed": "암호가 성공적으로 변경되었습니다"
+    "password_updated": "New password saved",
+    "successfully_changed": "암호가 성공적으로 변경되었습니다",
+    "new_password_placeholder": "8자 이상이어야 합니다",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "지갑 가져오기",
     "seed_phrase_placeholder": "비밀복구구문을 입력하세요",
-    "create_new_password": "Create new password",
+    "create_new_password": "새 비밀번호 생성",
     "confirm_password": "비밀번호 컨펌",
     "import_button": "가져오기",
     "cancel_button": "취소",
@@ -403,13 +426,14 @@
     "invalid_qr_code_title": "잘못된 QR 코드",
     "invalid_qr_code_message": "이 QR 코드는 유효한 비밀복구구문이 아닙니다",
     "enter_your_secret_recovery_phrase": "비밀복구구문을 입력하세요",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "MetaMask 비밀번호",
+    "metamask_password_description": "이 장치에서만 MetaMask 잠금해제에 사용됩니다.",
     "seed_phrase_required": "비밀복구구문이 필요합니다",
     "re_enter_password": "비밀번호를 다시 입력하세요",
     "use_at_least_8_characters": "8자 이상이어야 합니다",
     "unlock_with_face_id": "Face ID로 잠금 해제하시겠습니까?",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "이 비밀번호를 잊으면 MetaMask는 복구할 수 없습니다.",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "비밀복구구문은 12, 15, 18, 21 또는 24개 단어로 구성되어야 합니다",
     "continue": "계속",
     "clear_all": "모두 지우기",
@@ -419,11 +443,11 @@
     "srp": "비밀복구구문",
     "srp_placeholder": "각 단어 사이에 공백을 추가하고 아무도 보지 못하게 하세요 👀",
     "learn_more_link": "자세히 알아보기",
-    "create_password_cta": "Create password",
+    "create_password_cta": "비밀번호 생성",
     "pass_flow": "Flow로 계속",
     "steps": "{{totalSteps}}단계 중 {{currentStep}}단계",
     "password_error": "비밀번호가 일치하지 않습니다. 다시 시도하세요.",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "소문자만 사용하고, 철자를 확인하며, 단어 순서를 제대로 입력하세요.",
     "enter_strong_password": "강력한 비밀번호를 입력하세요"
   },
   "bottom_tab_bar": {
@@ -471,23 +495,53 @@
   },
   "deposit": {
     "title": "예금",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "지역 선택",
+    "chooseYourRegionToContinue": "계속하려면 지역을 선택하세요",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "결제 수단:",
+      "unexpectedError": "예기치 않은 오류가 발생했습니다.",
+      "quoteFetchError": "견적을 불러오지 못했습니다.",
+      "kycFormsFetchError": "KYC 양식을 불러오지 못했습니다.",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "토큰 선택",
+      "search_by_name_or_address": "이름 또는 주소로 토큰 검색",
+      "no_tokens_found": "\"{{searchString}}\"(와)과 일치하는 토큰이 없습니다"
+    },
+    "region_modal": {
+      "select_a_region": "지역 선택",
+      "search_by_country": "국가별 검색",
+      "no_regions_found": "\"{{searchString}}\"(와)과 일치하는 지역이 없습니다"
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "결제 수단 선택"
+    },
+    "payment_duration": {
+      "instant": "즉시",
+      "1_to_2_days": "1~2일"
+    },
+    "unsupported_region_modal": {
+      "title": "지원되지 않는 지역입니다",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "title": "지갑에 USDC 충전하기",
+      "bullet_1_title": "미화 달러로 보장되는 가치",
+      "bullet_1_description": "미화 달러로 1:1 가치를 보장합니다.",
+      "bullet_2_title": "낮은 변동성",
+      "bullet_2_description": "신뢰할 수 있는 트랜젝션을 위해 안정적인 가치를 유지합니다.",
+      "bullet_3_title": "은행보다 빠른 속도",
+      "bullet_3_description": "블록체인 전송 속도는 기존 은행 송금보다 빠릅니다.",
+      "button": "시작하기"
     },
     "enter_email": {
       "title": "이메일을 입력하세요",
@@ -496,7 +550,8 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "이메일 전송",
       "loading": "이메일 전송 중...",
-      "validation_error": "올바른 이메일 주소를 입력하세요"
+      "validation_error": "올바른 이메일 주소를 입력하세요",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "6자리 코드를 입력하세요",
@@ -504,7 +559,14 @@
       "submit_button": "제출",
       "loading": "코드 확인 중...",
       "invalid_code_error": "잘못된 코드입니다",
-      "validation_error": "올바른 코드를 입력하세요"
+      "validation_error": "올바른 코드를 입력하세요",
+      "need_help": "도움이 필요하신가요?",
+      "resend_code_description": "코드를 받지 못하셨나요?",
+      "resend_code_error": "코드 재전송 오류.",
+      "resend_code_button": "재전송",
+      "resend_cooldown": "{{seconds}}초 후 코드 재전송",
+      "contact_support": "지원팀에 문의",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "본인 인증을 하세요",
@@ -515,7 +577,23 @@
     "basic_info": {
       "title": "기본 정보를 입력하세요",
       "continue": "계속",
-      "subtitle": "본인 인증을 시작하려면 기본 정보가 필요합니다."
+      "subtitle": "본인 인증을 시작하려면 기본 정보가 필요합니다.",
+      "first_name": "이름",
+      "last_name": "성",
+      "phone_number": "전화번호",
+      "date_of_birth": "생년월일",
+      "social_security_number": "사회보장번호",
+      "enter_phone_number": "전화번호 입력",
+      "select_region": "지역 선택",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "주소를 입력하세요",
@@ -526,23 +604,189 @@
       "state": "주/지역",
       "city": "도시",
       "postal_code": "우편번호",
-      "country": "국가"
+      "country": "국가",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "title": "본인 인증 중",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "본인 인증에 실패했습니다.",
+      "error_description": "서류를 다시 업로드하고 다시 제출해 주세요.",
+      "error_button": "본인 인증 재시도",
+      "success_heading": "본인 인증 완료!",
+      "success_description": "이제 결제 정보를 입력하고 예치를 완료할 수 있습니다.",
+      "success_button": "주문 완료"
+    },
+    "provider_webview": {
+      "title": "예치"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "본인 인증 중",
+      "webview_received_error": "웹뷰 오류 상태 코드: {{code}}"
+    },
+    "order_processing": {
+      "title": "예치 처리 중",
+      "button": "닫기",
+      "description": "카드 결제는 일반적으로 몇 분 내로 처리됩니다",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "예치 완료",
+      "success_description": "{{amount}} {{currency}} 예치가 처리되었습니다!",
+      "error_title": "예치 실패",
+      "error_description": "예치를 완료하지 못했습니다",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "다시 시도",
+      "contact_support_button": "지원팀에 문의",
+      "account": "계정",
+      "network": "네트워크",
+      "order_id": "주문 ID",
+      "fees": "수수료",
+      "total": "총액",
+      "view_order_details_in_transak": "Transak에서 주문 내역 보기",
+      "no_order_found": "주문을 찾을 수 없습니다",
+      "back_to_wallet": "지갑으로 돌아가기",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "예치 주문",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "{{currency}} 예치에 실패했습니다! 불편을 드려 죄송합니다. 다시 시도해 주세요!",
+      "deposit_failed_description": "결제 수단 및 카드의 지원 여부를 확인하세요",
+      "deposit_cancelled_title": "예치가 취소되었습니다",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "{{amount}} {{currency}} 예치가 처리되었습니다!",
+      "deposit_completed_description": "이제 {{currency}}의 금액을 지갑에서 사용할 수 있습니다",
+      "deposit_pending_title": "{{currency}} 예치 처리 중",
+      "deposit_pending_description": "몇 분 정도 소요됩니다..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
     }
   },
   "receive": {
@@ -597,6 +841,10 @@
     "solana": {
       "title": "이제 솔라나가 지원됩니다",
       "subtitle": "솔라나 계정을 만들고 시작하세요"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "백업 및 동기화 소개",
@@ -806,9 +1054,9 @@
     "action_description_1_prefix": "개인 정보:",
     "action_description_2_prefix": "일반:",
     "action_description_3_prefix": "선택 사항:",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "앱의 클릭 수와 조회수는 저장되지만, 공개 주소와 같은 기타 세부 정보는 저장되지 않습니다.",
+    "action_description_2_description": "MetaMask는 사용자의 국가나 지역과 같은 일반적인 위치를 찾기 위해 일시적으로 사용자의 IP 주소를 사용하지만, 이 정보는 저장되지 않습니다.",
+    "action_description_3_description": "언제든지 설정을 통해 사용 데이터를 공유할지 삭제할지 결정할 수 있습니다.",
     "cta_no_thanks": "아니요, 괜찮습니다",
     "cta_i_agree": "동의합니다",
     "fine_print_1_legacy": "이 데이터는 집계된 것이며 개인정보보호규정(EU) 2016/679의 목적에 따라 익명 처리되었습니다.",
@@ -1084,9 +1332,11 @@
     "clear_browser_cookies_desc": "브라우저 쿠키 지우기",
     "clear": "지우기",
     "protect_cta": "보호",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "영상을 가져올 수 없습니다.",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "비밀복구구문을 백업해 두면 지갑 접근 권한을 잃지 않을 수 있습니다. 본인만 접근할 수 있는 안전한 장소에 보관하고 반드시 기억하세요.",
     "protect_desc_no_backup": "이것은 지갑의 12단어 구문입니다. 이 구문은 지갑에 있는 자금을 보내는 기능을 포함하여 현재와 미래의 모든 계정을 통제하기 위해 사용할 수 있습니다. 이 구문은 안전하게 보관하고 다른 사람과 공유하지 마세요. MetaMask는 이 키를 복구해 드릴 수 없습니다.",
     "learn_more": "더 알아보기.",
     "seedphrase_not_backed_up": "중요! 비밀복구구문이 백업되지 않았습니다",
@@ -1147,7 +1397,7 @@
     "no_permissions_desc": "계정을 사이트나 앱에 연결하면 여기에 표시됩니다.",
     "security_title": "보안 & 개인정보 보호",
     "back": "뒤로",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "개인정보 설정, MetaMetrics, 개인 키, 비밀복구구문.",
     "networks_title": "네트워크",
     "networks_default_title": "기본 네트워크",
     "network_delete": "이 네트워크를 삭제하시면, 이 네트워크에 있는 자산을 볼 때 네트워크를 다시 추가해야 합니다",
@@ -1212,9 +1462,6 @@
     "invalid_password": "잘못된 비밀번호",
     "invalid_password_message": "비밀번호가 틀렸습니다. 다시 시도하세요.",
     "security_heading": "보안",
-    "ses_heading": "코드 록다운",
-    "ses_description": "앱의 자바스크립트 코드 무단 변경을 차단하는 테스트 기능입니다.",
-    "ses_link": "자세히 알아보기",
     "general_heading": "일반",
     "privacy_heading": "개인정보 보호",
     "failed_to_fetch_chain_id": "체인 ID를 가져올 수 없습니다. RPC URL이 맞습니까?",
@@ -1264,9 +1511,9 @@
     "check_status_button": "상태 확인",
     "delete_metrics_confirm_modal_title": "MetaMetrics 데이터를 삭제할까요?",
     "delete_metrics_confirm_modal_description": "모든 MetaMetrics 데이터를 삭제하려고 합니다. 확실합니까?",
-    "delete_wallet_data_title": "지갑 삭제",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "장치에서 모든 지갑 관련 데이터가 삭제됩니다. 계정은 블록체인에 존재하므로 MetaMask와는 관련이 없습니다. 비밀복구구문을 사용하면 언제든지 계정을 복구할 수 있습니다.",
-    "delete_wallet_data_button": "지갑 삭제",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "삭제 작업 상태",
     "delete_data_status_description": "현재 상태:",
     "delete_metrics_error_title": "지금 데이터를 가져올 수 없습니다.",
@@ -1294,8 +1541,8 @@
       "add": "추가",
       "update": "업데이트",
       "cancel": "취소",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "{{depositProviderName}}에서 로그아웃",
+      "deposit_provider_logged_out": "{{depositProviderName}}에서 로그아웃되었습니다"
     },
     "request_feature": "기능 요청",
     "contact_support": "문의하기",
@@ -1393,6 +1640,9 @@
     "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "dismiss_smart_account_update_heading": "'스마트 계정으로 전환' 제안 무시",
     "dismiss_smart_account_update_desc": "이 기능을 켜면 모든 계정에서 '스마트 계정으로 전환' 제안이 더 이상 표시되지 않습니다. 스마트 계정을 사용하면 트랜잭션이 빨라지고 네트워크 수수료가 낮아지며 결제가 유연해집니다.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "스마트 트랜잭션",
     "smart_transactions_opt_in_desc_supported_networks": "지원되는 네트워크에서 더 안정적이고 안전하게 트랜잭션을 진행하려면 스마트 트랜잭션을 활성화하세요.",
     "smart_transactions_learn_more": "자세히 알아보세요.",
@@ -1477,14 +1727,14 @@
     "done": "완료",
     "confirm": "다음",
     "seed_phrase_explanation": [
-      "해당",
-      "비밀복구구문 (SRP)",
+      "내",
+      "비밀복구구문",
       "(을)를 통해",
       "지갑과 자금, 계정에 완전히 접속할 수 있습니다.\n\n",
       "MetaMask는",
       "비수탁형 지갑입니다",
       "이는 사용자가",
-      "SRP에 대한 모든 책임을 가지게 된다는 의미입니다."
+      "회원님이 비밀복구구문의 소유자입니다."
     ],
     "private_key_explanation": "그러니 이를 안전하게 다른 사람이 볼 수 없게 보관해 놓으시기 바랍니다.",
     "private_key_warning": "이것은 현재 선택된 계정용 개인 키 {{accountName}} 입니다. 이 키를 절대 다른 사람에게 공개하지 마세요. 개인 키를 가지고 있는 사람은 누구든 해당 계정을 완전히 통제할 수 있습니다. 계정의 자금을 다른 곳에 송금할 수도 있습니다.",
@@ -1537,7 +1787,7 @@
     "password_desc": "기기에 설치된 MetaMask 앱을 잠금 해제하는 비밀번호는 보안 강도가 높아야 합니다. 비밀번호를 잃어버렸을 때는 지갑을 다시 가져오기 위해 비밀복구구문이 필요합니다.",
     "password_learn_more": "더 알아보기.",
     "change_password": "비밀번호 변경",
-    "password_hint": "Password hint"
+    "password_hint": "비밀번호 힌트"
   },
   "asset_overview": {
     "send_button": "보내기",
@@ -1547,6 +1797,7 @@
     "receive_button": "받기",
     "portfolio_button": "Portfolio",
     "earn_button": "수익",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "추가",
     "info": "정보",
     "swap": "스와프",
@@ -1559,7 +1810,8 @@
       "bridge": "이 계정에서는 브릿징이 지원되지 않음",
       "send": "이 계정에서는 전송이 지원되지 않음",
       "action": "이 계정에서는 이 작업이 지원되지 않습니다",
-      "earn": "이 계정은 수익 기능을 지원하지 않습니다"
+      "earn": "이 계정은 수익 기능을 지원하지 않습니다",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "설명",
     "totalSupply": "총 공급",
@@ -1576,6 +1828,7 @@
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
     "earn_description": "토큰으로 보상을 획득하세요",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "오늘",
       "7d": "지난 7일",
@@ -1949,8 +2202,8 @@
     "tx_review_staking_claim": "스테이킹 청구",
     "tx_review_staking_deposit": "스테이킹 입금",
     "tx_review_staking_unstake": "언스테이크",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "대출 예치",
+    "tx_review_lending_withdraw": "대출 출금",
     "sent_ether": "보낸 에테르",
     "self_sent_ether": "나에게 보낸 에테르",
     "received_ether": "받은 에테르",
@@ -2097,7 +2350,8 @@
     "add_input_placeholder": "공개 주소 (0x) 혹은 ENS",
     "between_account": "내 계정 간 전송",
     "others": "기타",
-    "memo": "메모"
+    "memo": "메모",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "중복된 주소입니다",
@@ -2349,21 +2603,21 @@
     "info_text_1_2": "비밀복구구문",
     "info_text_1_3": "해당 구문은 믿을 수 있는 장소에 저장하세요.",
     "info_text_1_4": "이것은 앱이 잠겨 있거나 새 기기를 얻었을 때 지갑을 복구하는 유일한 방법입니다.",
-    "cta_text": "Get started",
+    "cta_text": "시작하기",
     "cta_subText": "매우 권장",
     "skip_button_cancel": "지금 보호하기",
     "skip_button_confirm": "건너뛰기",
     "skip_title": "계정 보안을 건너뛸까요?",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "이 비밀복구구문을 잃으면 지갑에 접근할 수 없습니다.",
+    "what_is_seedphrase_title": "비밀복구구문이란?",
+    "what_is_seedphrase_text_1": "비밀복구구문은 시드구문 또는 니모닉이라고도 하며, 암호화폐 지갑에 접근하고 제어할 수 있게 해주는 단어 조합입니다. 지갑을 MetaMask로 옮기려면 이 구문이 필요합니다.",
     "what_is_seedphrase_text_2": "비밀복구구문은 비밀스럽고 안전한 곳에 보관해야 합니다. 누군가가 비밀복구구문을 알게 되면, 해당 계정을 제어할 수 있게 됩니다.",
     "what_is_seedphrase_text_3": "본인만 접근할 수 있는 곳에 이를 저장하세요. 이를 잃어버리게 되면 MetaMask도 구문 복구를 도와드릴 수 없습니다.",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "비밀복구구문을 가진 사람은 다음을 수행할 수 있습니다.",
+    "seedPhrase_point_1": "모든 자금을 인출할 수 있습니다",
+    "seedPhrase_point_2": "트랜잭션을 컨펌할 수 있습니다",
+    "seedPhrase_point_3": "로그인 정보를 변경할 수 있습니다",
+    "what_is_seedphrase_confirm": "확인"
   },
   "account_backup_step_1B": {
     "title": "자신의지갑을 보호하세요",
@@ -2454,40 +2708,40 @@
     "progressThree": "비밀복구구문 컨펌"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
+    "action": "비밀복구구문 저장하기",
+    "info-1": "회원님의",
+    "info-2": "비밀복구구문입니다",
+    "info-3": "올바른 순서로 적어두고 안전하게 보관하세요. 누군가 이 비밀복구구문을 알게 되면 지갑에 접근할 수 있습니다.",
+    "info-4": "절대 누구와도 공유하지 마세요.",
     "continue": "계속",
-    "reveal": "Tap to reveal",
+    "reveal": "탭하여 공개",
     "watching": "다른 사람이 본인의 화면을 보고 있지는 않은지 확인하세요.",
     "view": "보기",
     "confirm_password": "비밀번호 컨펌하기",
     "before_continiuing": "계속 진행하기 전에 회원님의 비밀번호를 컨펌해야 합니다",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "현재 비밀번호 입력",
+    "confirm": "컨펌",
     "got_it": "확인",
     "learn_more": "자세히 알아보기",
-    "password": "Password"
+    "password": "비밀번호"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
+    "action": "비밀복구구문 컨펌",
+    "info": "빠진 단어를 올바른 순서로 선택하세요.",
     "complete": "백업 완료",
     "success": "성공",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "올바르지 않습니다",
+    "error-description": "비밀복구구문을 다시 확인하고 시도하세요.",
+    "success-title": "완벽합니다!",
+    "success-description": "잘하셨습니다! 이 구문은 절대 누구와도 공유하지 마세요.",
+    "success-button": "확인",
+    "error-button": "다시 시도",
+    "continue": "계속"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
     "congratulations": "축하합니다",
     "success": "지갑을 성공적으로 보호했습니다. 비밀복구구문을 꼭 안전하게 보관하세요. 이 구문의 보안 책임을 본인에게 있습니다!",
     "hint": "힌트를 남기고 싶으신가요?",
@@ -3106,7 +3360,7 @@
       "sale_pending_description": "주문이 처리 중입니다.",
       "no_date": "알 수 없음"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "{{currency}} 예치"
   },
   "swaps": {
     "title": "스왑",
@@ -3818,10 +4072,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} 토큰을 빌려주고 수익을 올리세요",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "{{protocol}}에서 {{tokenSymbol}}을 예치하고 연간 이자를",
+      "annually": "받으세요.",
+      "learn_more": "자세히 알아보기.",
+      "earn": "수익 창출"
     },
     "service_interruption_banner": {
       "maintenance_message": "현재 점검 중입니다. 빠른 시일 내에 서비스를 재개하겠습니다!"
@@ -3849,50 +4103,51 @@
       "withdrawal_time": "프로토콜에서 토큰을 인출해 지갑으로 보내는 데 걸리는 시간입니다",
       "receive": "이 토큰은 자산과 보상을 추적하는 데 사용됩니다. 이를 전송하거나 거래하면 자산을 인출할 수 없게 됩니다.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "청산 위험 지수는 청산 위험도를 나타냅니다",
+        "above_two_dot_zero": "2.0 이상",
+        "safe_position": "안전한 포지션",
+        "between_one_dot_five_and_2_dot_zero": "1.5~2.0",
+        "medium_liquidation_risk": "중간 청산 위험",
+        "below_one_dot_five": "1.5 미만",
+        "higher_liquidation_risk": "높은 청산 위험"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "전체 잔액을 출금할 수 없는 이유는 무엇인가요?",
+        "your_withdrawal_amount_may_be_limited_by": "출금 한도는 다음과 같은 사유로 인해 제한될 수 있습니다",
+        "pool_liquidity": "풀 유동성",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "현재 대출 풀에 충분한 자금이 없습니다.",
+        "existing_borrow_positions": "기존 대출 포지션",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "출금 시 기존 대출이 청산 위험에 처할 수 있습니다."
       }
     },
     "withdraw": "출금",
     "deposit_more": "더 예치하기",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "수익 창출",
+    "withdrawal_time": "출금 시간",
+    "withdrawing_to": "출금 대상",
+    "network": "네트워크",
+    "health_factor": "청산 위험 지수",
+    "liquidation_risk": "청산 위험",
+    "insufficient_pool_liquidity": "풀 유동성 부족",
+    "available_to_withdraw": "출금 가능",
+    "unknown": "알 수 없음",
+    "how_it_works": "작동 방식",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "{{tokenSymbol}}(으)로 보상받기",
+      "lend_and_earn_daily_rewards": "{{protocol}}에서 {{tokenSymbol}}을 예치하고 일일 보상을 받으세요. 보상은 시간이 지날수록 증가하며, APR은 변동될 수 있습니다.",
+      "withdraw_whenever_you_want": "언제든 출금 가능",
+      "get_asset_back_in_your_wallet_instantly": "{{tokenSymbol}}을 즉시 지갑으로 돌려받으세요."
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "안전 출금 한도를 초과한 금액입니다",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "포지션 내역 보기",
+      "staking": "수익 내역 보기"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "포지션 내역",
+      "staking": "지급 내역"
+    },
+    "allowance_reset": "허용량 초기화"
   },
   "stake": {
     "stake": "스테이크",
@@ -3992,8 +4247,9 @@
     "estimated_unstaking_time": "1일~11일",
     "proceed_anyway": "계속 진행",
     "gas_cost_impact": "가스 비용 영향",
-    "select_a_token": "토큰 선택",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "최대 다음 금액까지 수익 창출 가능",
     "per_year_on_your_tokens": "토큰 보상 금액",
     "deposit": "입금",
     "gas_cost_impact_warning": "경고: 트랜잭션 가스 비용이 예치금의 {{percentOverDeposit}}% 이상을 차지할 수 있습니다.",
@@ -4109,6 +4365,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "금액",
+      "value": "가격",
       "account": "계정",
       "balance": "잔액",
       "interacting_with": "상호작용 대상:",
@@ -4127,19 +4385,29 @@
       "permit_NFTs": "출금 요청",
       "signature_siwe": "로그인 요청",
       "contract_interaction": "트랜잭션 요청",
+      "contract_deployment": "계약 배포",
       "transfer": "전송 요청",
       "switch_account_type": "계정 업데이트",
-      "approve": "Approve request"
+      "approve": "요청 승인"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
+      "permit_revoke": "다른 사람이 내 계정에서 토큰을 사용할 수 있는 권한을 제거합니다.",
       "permit_NFTs": "이 사이트에서 NFT 인출 권한을 요청합니다.",
+      "permit_revoke_NFTs": "이 사이트가 NFT의 출금 한도를 초기화하려고 합니다",
       "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
       "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다.",
       "contract_interaction": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
       "switch_to_smart_account": "스마트 계정으로 전환 중입니다.",
-      "switch_to_standard_account": "일반 계정(EOA)으로 전환 중입니다."
+      "switch_to_standard_account": "일반 계정(EOA)으로 전환 중입니다.",
+      "contract_deployment": "이 사이트가 계약 배포를 요청합니다",
+      "decrease_allowance": "이 사이트가 토큰의 지출 한도를 줄이려고 합니다."
     },
+    "spending_cap": "지출 한도",
+    "withdraw": "출금",
+    "nfts": "NFT",
+    "permission_from": "권한 부여자",
+    "spender": "지출자",
     "request_from": "요청자:",
     "staking_from": "스테이킹 출처:",
     "signing_in_with": "다음으로 로그인 중",
@@ -4192,6 +4460,7 @@
       "smartAccountLabel": "스마트 계정",
       "standardAccountLabel": "일반 계정",
       "switch": "전환",
+      "switchBack": "돌아가기",
       "splashpage": {
         "accept": "예",
         "betterTransaction": "더 빠른 트랜잭션, 더 낮은 수수료",
@@ -4200,13 +4469,21 @@
         "payToken": "언제든지 어떤 토큰으로든 결제",
         "payTokenDescription": "이미 보유하고 있는 코인으로 네트워크 수수료를 결제하세요.",
         "reject": "아니요",
-        "requestFor": "요청 대상:",
         "sameAccount": "같은 계정, 더욱 스마트한 기능.",
-        "splashTitle": "스마트 계정을 사용하시겠습니까?",
-        "upgradeBannerDescription": "같은 계정, 더욱 스마트한 기능.",
-        "upgradeBannerTitle": "스마트 계정으로 전환"
+        "splashTitle": "스마트 계정을 사용하시겠습니까?"
       },
-      "includes_transaction": "트랜잭션 {{transactionCount}}건 포함"
+      "includes_transaction": "트랜잭션 {{transactionCount}}건 포함",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "무제한",
     "all": "모두",
@@ -4217,7 +4494,7 @@
     "review": "검토",
     "transferRequest": "전송 요청",
     "nested_transaction_heading": "트랜잭션 {{index}}",
-    "transaction": "Transaction"
+    "transaction": "트랜잭션"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -4266,6 +4543,7 @@
     "insufficient_funds": "자금 부족",
     "select_amount": "금액 선택",
     "bridge_to": "브릿지 대상:",
+    "swap_to": "Swap to",
     "title": "브릿지",
     "submitting_transaction": "제출 중",
     "fetching_quote": "견적 가져오기",
@@ -4277,6 +4555,11 @@
     "title": "새로운 견적이 있습니다",
     "description": "환율은 {{refreshRate}}초마다 갱신됩니다. 준비가 되면 ‘새 견적 받기’를 눌러주세요.",
     "get_new_quote": "새 견적 받기"
+  },
+  "blockaid_modal": {
+    "simulation_title": "시뮬레이션에서 트랜잭션 실패",
+    "validation_title": "검증에서 트랜잭션 실패",
+    "go_back": "뒤로 가기"
   },
   "bridge_transaction_details": {
     "status": "상태",
@@ -4293,6 +4576,54 @@
     "bridge_to_chain": "{{chainName}}(으)로 브릿지",
     "recipient": "받는 사람"
   },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "백업 및 동기화",
     "description": "계정을 백업하고 설정을 동기화하세요.",
@@ -4308,7 +4639,7 @@
     "privacyLink": "개인 정보 보호 방법 알아보기",
     "features": {
       "accounts": "계정",
-      "contacts": "Contacts"
+      "contacts": "연락처"
     },
     "manageWhatYouSync": {
       "title": "동기화할 항목 관리",
@@ -4340,11 +4671,18 @@
       "private_key": "개인 키"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "세부 정보"
+    },
+    "wallet_details": {
+      "wallet_name": "지갑 이름",
+      "balance": "잔액",
+      "create_account": "Create account",
+      "back_up": "백업",
+      "reveal_recovery_phrase_with_index": "복구구문 {{index}} 공개"
     },
     "smart_account": {
       "title": "스마트 계정 활성화",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "지원되는 네트워크에서 스마트 계정 기능을 활성화할 수 있습니다.",
       "learn_more": "자세히 알아보기"
     },
     "edit_account_name": {
@@ -4370,7 +4708,7 @@
     "export_credentials": {
       "export_private_key": "개인 키",
       "private_key_warning_title": "이 키를 절대 공개하지 마세요.",
-      "private_key_warning_description": "누구라도 회원님의 개인 키를 가지면 계정에 있는 모든 자산을 훔칠 수 있습니다.",
+      "private_key_warning_description": "개인 키를 가진 사람은 계정의 모든 자산을 훔칠 수 있습니다.",
       "credential_as_text": "텍스트",
       "credential_as_qr": "QR 코드",
       "export_mnemonic": "니모닉 내보내기",
@@ -4379,7 +4717,7 @@
     "reveal_private_key": {
       "title": "개인 키 표시",
       "banner_title": "이 키를 절대 공개하지 마세요.",
-      "banner_description": "누구라도 회원님의 개인 키를 가지면 계정에 있는 모든 자산을 훔칠 수 있습니다.",
+      "banner_description": "개인 키를 가진 사람은 계정의 모든 자산을 훔칠 수 있습니다.",
       "enter_password": "비밀번호를 입력하세요",
       "password_placeholder": "비밀번호",
       "next": "다음",
@@ -4394,19 +4732,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "MetaMask로 이동 중",
+      "description": "계속하면 {{pageTitle}} 페이지가 열립니다.",
+      "checkbox_label": "다시 알리지 않기"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "주의해서 진행하세요",
+      "description": "이 페이지는 MetaMask가 아닌 제3자에 의해 안내되었습니다. 계속하면 {{pageTitle}} 페이지가 열립니다."
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "이 페이지는 존재하지 않습니다",
+      "description": "찾으시는 페이지를 찾을 수 없습니다."
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "뒤로",
+    "continue_button": "계속"
   }
 }

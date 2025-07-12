@@ -145,16 +145,25 @@
     "scan_step_3": "“Mobil ile Senkronize Et” düğmesine tıklayın",
     "scan_step_4": "Senkronize etmeye başlamak için QR kodunu tarayın",
     "success": "Başarılı",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "Geçerli cüzdanı sıfırla",
     "have_existing_wallet": "Mevcut bir cüzdanım var",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "Gizli Kurtarma İfadesini kullanarak içe aktar"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "Gizli Kurtarma İfadenizi güvenli bir şekilde saklayın!",
+    "description": "Bu Gizli Kurtarma İfadesi, şifrenizi unutmanız veya oturumunuza erişimi kaybetmeniz durumunda yeniden erişim kazanmanıza yardımcı olabilir.",
     "description_bold": "Ayarlar > Güvenlik ve Gizlilik.",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": " paranıza erişimi asla kaybetmemk için bu ifadeyi güvenli bir şekilde saklayabilirsiniz.",
     "learn_more": "Daha fazla bilgi edin",
     "learn_how": "Nasıl olduğunu öğren",
     "leave_hint": "Kendinize bir ucu bırakmak ister misiniz?",
@@ -163,22 +172,22 @@
     "default_settings_footer": "Ayarlar, kullanım kolaylığı ve güvenlik için optimize edildi.\nBu ayarları dilediğiniz zaman değiştirin.",
     "no_srp_title": "Hatırlatıcı ayarlandı!",
     "no_srp_description": "Uygulamaya giriş yapamazsanız veya yeni bir cihaz edinirseniz paranızı kaybedersiniz. Gizli Kurtarma İfadenizi şurada yedeklediğinizden emin olun:",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "Cüzdanınız hazır!",
+    "import_description": "Gizli Kurtarma İfadenizi kaybederseniz cüzdanınızı kullanamayacaksınız.",
+    "import_description2": "paranıza erişimi asla kaybetmemk için bu ifadeyi güvenli bir şekilde saklayabilirsiniz.",
     "done": "Bitti",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "Bir şifre ipucu oluşturun",
+    "hint_title": "Şifre ipucu",
+    "hint_description": "Kendinize şifrenizi hatırlamanıza yardımcı olacak bir ipucu bırakın. Bu ipucu cihazınıza kaydedilecek ve paylaşılmayacaktır.",
+    "hint_description2": "Unutmayın: Şifrenizi kaybederseniz cüzdanınızı kullanamayacaksınız.",
+    "hint_button": "İpucu oluştur",
+    "hint_placeholder": "ör. annemin evi",
+    "hint_saved": "Kaydet",
+    "hint_saved_toast": "Şifre ipucu kaydedildi",
+    "remind_later": "Size daha sonra hatırlatacağız",
+    "remind_later_description": "Gizli Kurtarma İfadenizi yedeklemezseniz uygulamanın dışında kalmanız veya yeni bir cihaz edinmeniz durumunda paranıza erişimi kaybedersiniz.",
+    "remind_later_description2": "Şurada cüzdanlarınızı yedekleyebilir veya Gizli Kurtarma İfadenizi görebilirsiniz:",
+    "setting_security_privacy": "Ayarlar > Güvenlik ve Gizlilik"
   },
   "onboarding_carousel": {
     "title1": "MetaMask'e Hoş Geldiniz",
@@ -281,20 +290,20 @@
   "login": {
     "title": "Tekrar Hoş Geldiniz!",
     "password": "Şifre",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "Şifre girin",
+    "unlock_button": "Kilidini Aç",
     "go_back": "Cüzdanın kilidi açılmıyor mu? Geçerli cüzdanınızı silip yeni bir tanesinin kurulumunu yapabilirsiniz",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "Şifreyi mi unuttunuz?",
     "cant_proceed": "‘Sil’ sözcüğünü yazana kadar ilerleyemezsiniz. Bu eylemle geçerli cüzdanınızı silmeyi seçiyorsunuz.",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "Şifre yanlış, tekrar deneyin.",
+    "type_delete": "Onaylamak için ‘%{erase}’ yazın",
+    "erase_my": "Evet, cüzdanı sıfırla",
+    "cancel": "İptal",
+    "are_you_sure": "Emin misiniz?",
+    "your_current_wallet": "Cüzdanınız, hesaplarınız ve varlıklarınız",
+    "removed_from": " bu uygulamadan kalıcı olarak kaldırılacak",
     "this_action": "Bu eylem geri alınamaz.",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "Bu cüzdanı yalnızca Gizli Kurtarma İfadeniz, Google hesabınız veya Apple hesabınız gibi cüzdanınızı oluştururken kullanılan bilgilerle geri alabilirsiniz. MetaMask bu bilgilere sahip değildir.",
     "recovery_phrase": "Gizli Kurtarma İfadenizle kurtarabilirsiniz",
     "metamask_does_not": "Gizli Kurtarma İfadeniz MetaMask'in içerisinde bulunmaz.",
     "i_understand": "Anlıyorum, devam et",
@@ -305,20 +314,24 @@
     "clean_vault_error": "MetaMask, depolama limitine ulaşılmasından dolayı bir hata ile karşılaştı. Yerel veriler bozuldu. Lütfen MetaMask'ı tekrar yükleyin ve Gizli Kurtarma İfadenizi kullanarak geri yükleyin.",
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_desc": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometrik kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gereklidir",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "Şifrenizi mi unuttunuz?",
+    "forgot_password_desc_2": "MetaMask sizin için şifrenizi kurtaramaz.",
+    "forgot_password_point_1": "Bir cihazda MetaMask oturumunuzu",
+    "forgot_password_point_1_bold": "biyometrik açık (Face ID gibi) olarak açtıysanız",
+    "forgot_password_point_1_1": "şifrenizi orada sıfırlayabilirsiniz.",
+    "forgot_password_point_2": "Gizli Kurtarma İfadeniz",
+    "forgot_password_point_2_bold": "varsa",
+    "forgot_password_point_2_1": "geçerli cüzdanınızı sıfırlayabilir ve Gizli Kurtarma İfadesi kullanarak yeniden içe aktarabilirsiniz.",
+    "reset_wallet": "Cüzdanı sıfırla",
+    "reset_wallet_desc": "Cüzdan verileriniz",
+    "reset_wallet_desc_bold": "bu cihazda",
+    "reset_wallet_desc_2": "MetaMask'ten kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "reset_wallet_desc_login": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizi veya Google ya da Apple hesap şifrenizi kullanabilirsiniz. MetaMask bu bilgilere sahip değildir.",
+    "reset_wallet_desc_srp": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizi kullanabilirsiniz. MetaMask bu bilgilere sahip değildir."
   },
   "connect_hardware": {
     "title_select_hardware": "Bir donanım cüzdanı bağlayın",
@@ -332,10 +345,10 @@
     "error": "Hata"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "MetaMask şifresi",
+    "description": "Yalnızca bu cihazda MetaMask'i açar.",
     "subtitle": "Bu şifre sadece bu cihazda MetaMask cüzdanınızın kilidini açar.",
-    "password": "Create new password",
+    "password": "Yeni şifre oluştur",
     "confirm_password": "Şifreyi onayla",
     "create_button": "Şifre oluştur",
     "import_with_seed_phrase": "Gizli Kurtarma İfadesi ile içe aktar",
@@ -357,14 +370,14 @@
     "secure": "Cüzdanı güvenli hale getir",
     "confirm": "Gizli Kurtarma İfadesini onayla",
     "disable_biometric_error": "Uygulama için biyometriyi devre dışı bıraktınız. Beni Hatırla ayarlarını güncelleyip tekrar deneyin.",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Şifre oluştur",
     "steps": "Adım {{currentStep}}/{{totalSteps}}",
     "password_error": "Şifreler eşleşmiyor. Tekrar deneyin."
   },
   "reset_password": {
     "title": "Şifreyi değiştir",
     "subtitle": "Bu şifre sadece bu cihazda MetaMask cüzdanınızın kilidini açar.",
-    "password": "Yeni Şifre",
+    "password": "New password",
     "confirm_password": "Şifreyi onayla",
     "reset_button": "Şifreyi sıfırla",
     "import_with_seed_phrase": "Gizli Kurtarma İfadesi ile içe aktar",
@@ -385,13 +398,23 @@
     "learn_more": "Daha fazlasını öğren.",
     "secure": "Cüzdanı güvenli hale getir",
     "confirm": "Gizli Kurtarma İfadesini onayla",
-    "password_updated": "Şifre güncellendi",
-    "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi"
+    "password_updated": "New password saved",
+    "successfully_changed": "Şifreniz başarılı bir şekilde değiştirildi",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Bir cüzdanı içe aktar",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
-    "create_new_password": "Create new password",
+    "create_new_password": "Yeni şifre oluştur",
     "confirm_password": "Şifreyi onayla",
     "import_button": "İÇE AKTAR",
     "cancel_button": "İptal",
@@ -403,13 +426,14 @@
     "invalid_qr_code_title": "QR Kodu geçersiz",
     "invalid_qr_code_message": "Bu QR kodu geçerli bir Gizli Kurtarma İfadesini temsil etmiyor",
     "enter_your_secret_recovery_phrase": "Gizli Kurtarma İfadenizi girin",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "MetaMask şifresi",
+    "metamask_password_description": "Yalnızca bu cihazda MetaMask'i açar.",
     "seed_phrase_required": "Gizli Kurtarma İfadesi gereklidir",
     "re_enter_password": "Şifrenizi tekrar girin",
     "use_at_least_8_characters": "En az 8 karakter kullanın",
     "unlock_with_face_id": "Face ID ile kilidi aç?",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "Bu şifreyi unutursam MetaMask bunu benim için kurtaramaz.",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "Gizli Kurtarma İfadesi 12, 15, 18, 21 veya 24 sözcükten oluşmalıdır",
     "continue": "Devam et",
     "clear_all": "Tümünü temizle",
@@ -419,11 +443,11 @@
     "srp": "Gizli Kurtarma İfadesi",
     "srp_placeholder": "Her bir sözcüğün arasına bir boşluk ekleyin ve hiç kimsenin izlemediğinden emin olun 👀",
     "learn_more_link": "Daha fazla bilgi edin",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Şifre oluştur",
     "pass_flow": "Akış ile devam et",
     "steps": "Adım {{currentStep}}/{{totalSteps}}",
     "password_error": "Şifreler eşleşmiyor. Tekrar deneyin.",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "Yalnızca küçük harf kullanın, yazımınızı kontrol edin ve sözcükleri asıl sıralamasında girin.",
     "enter_strong_password": "Güçlü bir şifre girin"
   },
   "bottom_tab_bar": {
@@ -471,23 +495,53 @@
   },
   "deposit": {
     "title": "Para Yatır",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "Bölge Seçin",
+    "chooseYourRegionToContinue": "Devam etmek için bölgenizi seçin",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "Ödeme Aracı",
+      "unexpectedError": "Beklenmedik bir hata oluştu.",
+      "quoteFetchError": "Teklif alınamadı.",
+      "kycFormsFetchError": "KYC formları alınamadı.",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "Bir Token seçin",
+      "search_by_name_or_address": "İsme veya adrese göre token ara",
+      "no_tokens_found": "\"{{searchString}}\" ile eşleşen token yok"
+    },
+    "region_modal": {
+      "select_a_region": "Bir bölge seçin",
+      "search_by_country": "Ülkeye göre ara",
+      "no_regions_found": "\"{{searchString}}\" ile eşleşen bölge yok"
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Bir Ödeme Yöntemi seçin"
+    },
+    "payment_duration": {
+      "instant": "Anında",
+      "1_to_2_days": "1 ila 2 gün"
+    },
+    "unsupported_region_modal": {
+      "title": "Bölge desteklenmiyor",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "title": "Cüzdanınıza USDC yükleyin",
+      "bullet_1_title": "Değeri Amerikan doları desteklidir",
+      "bullet_1_description": "1:1 oranda Amerikan doları destekli.",
+      "bullet_2_title": "Düşük volatilite",
+      "bullet_2_description": "Güvenilir işlemler için stabil değeri korur.",
+      "bullet_3_title": "Bankalardan daha hızlıdır",
+      "bullet_3_description": "Hızlı blokzinciri transferleri geleneksel bankacılıktan önce davranır.",
+      "button": "Başlarken"
     },
     "enter_email": {
       "title": "E-posta adresinizi girin",
@@ -496,7 +550,8 @@
       "input_placeholder": "isim@alanadi.com",
       "submit_button": "E-posta gönder",
       "loading": "E-posta gönderiliyor...",
-      "validation_error": "Lütfen geçerli bir e-posta adresi girin"
+      "validation_error": "Lütfen geçerli bir e-posta adresi girin",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Altı haneli kodu girin",
@@ -504,7 +559,14 @@
       "submit_button": "Gönder",
       "loading": "Kod doğrulanıyor...",
       "invalid_code_error": "Kod geçersiz",
-      "validation_error": "Lütfen geçerli bir kod girin"
+      "validation_error": "Lütfen geçerli bir kod girin",
+      "need_help": "Yardıma mı ihtiyacınız var?",
+      "resend_code_description": "Kodu almadınız mı?",
+      "resend_code_error": "Kod tekrar gönderilirken hata.",
+      "resend_code_button": "Tekrar gönder",
+      "resend_cooldown": "Kodu {{seconds}} saniye içinde tekrar gönder",
+      "contact_support": "Destek ile iletişime geçin",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Kimliğinizi doğrulayın",
@@ -515,7 +577,23 @@
     "basic_info": {
       "title": "Temel bilgilerinizi girin",
       "continue": "Devam et",
-      "subtitle": "Kimliğinizi doğrulamaya başlamak için bazı temel bilgilere ihtiyacımız var."
+      "subtitle": "Kimliğinizi doğrulamaya başlamak için bazı temel bilgilere ihtiyacımız var.",
+      "first_name": "Adı",
+      "last_name": "Soyadı",
+      "phone_number": "Telefon Numarası",
+      "date_of_birth": "Doğum Tarihi",
+      "social_security_number": "Sosyal Güvenlik Numarası",
+      "enter_phone_number": "Telefon numarası girin",
+      "select_region": "Bölge seçin",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "Adresinizi girin",
@@ -526,23 +604,189 @@
       "state": "Eyalet/Bölge",
       "city": "Şehir",
       "postal_code": "Posta Kodu",
-      "country": "Ülke"
+      "country": "Ülke",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "title": "Kimliğiniz doğrulanıyor",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "Kimliğinizi doğrulayamadık.",
+      "error_description": "Belgelerinizi tekrar yüklemeyi ve doğrulama için tekrar göndermeyi deneyin.",
+      "error_button": "Tekrar doğrulamayı deneyin",
+      "success_heading": "Kimlik başarılı bir şekilde doğrulandı!",
+      "success_description": "Şimdi ödeme bilgilerinizi girebilir ve para yatırma işleminizi tamamlayabilirsiniz.",
+      "success_button": "Emrinizi tamamlayın"
+    },
+    "provider_webview": {
+      "title": "Para Yatır"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "Kimliğiniz doğrulanıyor",
+      "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}"
+    },
+    "order_processing": {
+      "title": "Para yatırma işleniyor",
+      "button": "Kapat",
+      "description": "Kart ile satın alma işlemleri genellikle birkaç dakika sürer",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "Para yatırma işlemi tamamlandı",
+      "success_description": "{{amount}} {{currency}} para yatırma işleminiz başarılı oldu!",
+      "error_title": "Para yatırma işlemi başarısız oldu",
+      "error_description": "Para yatırma işleminizi tamamlayamadık",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "Tekrar deneyin",
+      "contact_support_button": "Destek ile iletişime geçin",
+      "account": "Hesap",
+      "network": "Ağ",
+      "order_id": "Emir Numarası",
+      "fees": "Ücretler",
+      "total": "Toplam",
+      "view_order_details_in_transak": "Emir bilgilerini Transak'ta görüntüle",
+      "no_order_found": "Emir bulunamadı",
+      "back_to_wallet": "Cüzdana Geri Dön",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "Para Yatırma Emri",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "{{currency}} para yatırma işlemi başarısız oldu! Lütfen tekrar deneyin, verdiğimiz rahatsızlıktan dolayı özür dileriz!",
+      "deposit_failed_description": "Ödeme yönteminizi ve kart desteğini doğrulayın",
+      "deposit_cancelled_title": "Para yatırma işleminiz iptal edildi",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "{{amount}} {{currency}} para yatırma işleminiz başarılı oldu!",
+      "deposit_completed_description": "{{currency}} şu anda cüzdanınızda mevcut",
+      "deposit_pending_title": "{{currency}} para yatırma işleminiz gerçekleşiyor",
+      "deposit_pending_description": "Bu işlem sadece birkaç dakika sürecektir..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
     }
   },
   "receive": {
@@ -597,6 +841,10 @@
     "solana": {
       "title": "Solana artık destekleniyor",
       "subtitle": "Başlamak için bir Solana hesabı oluşturun"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Yedekleme ve senkronizasyon hizmetinizde",
@@ -806,9 +1054,9 @@
     "action_description_1_prefix": "Özel:",
     "action_description_2_prefix": "Genel:",
     "action_description_3_prefix": "İsteğe bağlı:",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "Uygulama üzerindeki tıklamalar ve görüntülemeler depolanır ancak diğer bilgiler (genel adresiniz gibi) saklanmaz.",
+    "action_description_2_description": "Genel bir konumu (ülkeniz veya bölgeniz gibi) algılamak için geçici olarak IP adresinizi kullanırız ancak bu bilgi asla saklanmaz.",
+    "action_description_3_description": "Kullanım verilerinizi paylaşmak veya silmek isteyip istemediğinize dilediğiniz zaman ayarlar kısmından siz karar verirsiniz.",
     "cta_no_thanks": "Hayır, istemiyorum",
     "cta_i_agree": "Kabul ediyorum",
     "fine_print_1_legacy": "Bu veriler birleştirilmiştir ve bu nedenle 2016/679 sayılı Genel Veri Koruma Tüzüğü (AB) kapsamında isimsizdir.",
@@ -1084,9 +1332,11 @@
     "clear_browser_cookies_desc": "Tarayıcı çerezlerini temizle",
     "clear": "TEMİZLE",
     "protect_cta": "Koru",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "Video Yükleme İşlemi Başarısız Oldu.",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "Cüzdanınıza erişimi asla kaybetmemeniz için Gizli Kurtarma İfadenizi yedekleyin. Yalnızca sizin erişiminiz olan ve unutmayacağınız güvenli bir yerde sakladığınızdan emin olun.",
     "protect_desc_no_backup": "Bu sizin cüzdanınızın 12 sözcükten oluşan ifadesidir. Bu ifade, cüzdanınızda para gönderme kabiliyeti de dahil olmak üzere tüm şimdiki ve gelecekteki hesaplarınızı kontrol etmek için kullanılabilir. Bu ifadeyi güvenli bir şekilde saklayın, hiç kimseyle PAYLAŞMAYIN. MetaMask bu anahtarı kurtarmanıza yardımcı olamaz.",
     "learn_more": "Daha fazlasını öğren.",
     "seedphrase_not_backed_up": "Önemli! Gizli Kurtarma İfadesi yedeklenmedi",
@@ -1147,7 +1397,7 @@
     "no_permissions_desc": "Bir siteye veya bir uygulamaya bağladığınız hesabı burada göreceksiniz.",
     "security_title": "Güvenlik ve Gizlilik",
     "back": "Geri",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "Gizlilik ayarları, MetaMetrics, özel anahtar ve Gizli Kurtarma İfadesi.",
     "networks_title": "Ağlar",
     "networks_default_title": "Varsayılan Ağ",
     "network_delete": "Bu ağı silerseniz bu ağdaki varlıklarınızı görüntülemek için bu ağı tekrar eklemeniz gerekir",
@@ -1212,9 +1462,6 @@
     "invalid_password": "Şifre geçersiz",
     "invalid_password_message": "Şifre yanlıştı. Lütfen tekrar deneyin.",
     "security_heading": "Güvenlik",
-    "ses_heading": "Kod Kilitlendi",
-    "ses_description": "Bu, uygulamanın JavaScript kodunda izinsiz yapılan değişikliklerin engellenmesini sağlayan test edilen bir özelliktir.",
-    "ses_link": "Daha fazla bilgi",
     "general_heading": "Genel",
     "privacy_heading": "Gizlilik",
     "failed_to_fetch_chain_id": "Zincir kimliği alınamadı. RPC URL adresiniz doğru mu?",
@@ -1264,9 +1511,9 @@
     "check_status_button": "Durumu Kontrol Et",
     "delete_metrics_confirm_modal_title": "MetaMetrics verilerini sil?",
     "delete_metrics_confirm_modal_description": "Tüm MetaMetrics verilerini kaldırmak üzeresiniz. Emin misiniz?",
-    "delete_wallet_data_title": "Cüzdanı sil",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "Bu işlem cüzdanla ilgili tüm verileri cihazınızdan silecek. Hesaplar blokzincirinde bulunur ve MetaMask ile ilgili değildir. Dilediğiniz zaman Gizli Kurtarma İfadenizi kullanarak hesaplarınızı kurtarabilirsiniz.",
-    "delete_wallet_data_button": "Cüzdanı sil",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "Silme İşleminin Durumu",
     "delete_data_status_description": "Güncel durum ",
     "delete_metrics_error_title": "Şu anda bu verileri silemiyoruz.",
@@ -1294,8 +1541,8 @@
       "add": "Ekle",
       "update": "Güncelle",
       "cancel": "İptal",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "{{depositProviderName}} oturumunu kapat",
+      "deposit_provider_logged_out": "{{depositProviderName}} oturumu kapatıldı"
     },
     "request_feature": "Bir özellik talep et",
     "contact_support": "Destek ile iletişim kurun",
@@ -1393,6 +1640,9 @@
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
     "dismiss_smart_account_update_heading": "\"Akıllı Hesaba Geçiş Yap\" önerisini yok say",
     "dismiss_smart_account_update_desc": "Artık herhangi bir hesapta \"Akıllı Hesaba Geçiş Yap\" önerisini görmemek için bunu açın. Akıllı hesaplar daha hızlı işlemlerin, daha düşük ağ ücretlerinin ve bunların ödemesinde daha fazla esnekliğin kilidini açar.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
     "smart_transactions_opt_in_desc_supported_networks": "Desteklenen ağlarda daha güvenilir ve güvenli işlemler için Akıllı İşlemleri açın.",
     "smart_transactions_learn_more": "Daha fazla bilgi edinin.",
@@ -1477,14 +1727,14 @@
     "done": "Bitti",
     "confirm": "Sonraki",
     "seed_phrase_explanation": [
-      "Bu",
-      "Gizli Kurtarma İfadesi (GKİ)",
+      "Size ait",
+      "Gizli Kurtarma İfadesi",
       " cüzdanınıza,",
       " paranıza ve hesaplarınıza tam erişim verir.\n\n",
       "MetaMask,",
       "emanete dayalı olmayan bir cüzdandır",
       ". Yani, ",
-      "GKİ'niz size aittir."
+      "Gizli Kurtarma İfadenizin sahibi sizsiniz."
     ],
     "private_key_explanation": "Güvenli ve gizli bir yere kaydedin.",
     "private_key_warning": "Bu, halihazırda seçili hesabın özel anahtarıdır: {{accountName}}. Bu anahtarı hiçbir zaman ifşa etmeyin. Özel anahtara sahip olan herkes, paranızın tamamını transfer etmek de dahil olmak üzere hesabınızı tam olarak kontrol edebilir.",
@@ -1537,7 +1787,7 @@
     "password_desc": "Cihazınızda MetaMask uygulamasının kilidini açmak için güçlü bir şifre seçin. Bu şifreyi kaybettiğiniz takdirde cüzdanınızı yeniden içe aktarmak için Gizli Kurtarma İfadenize ihtiyacınız olacaktır.",
     "password_learn_more": "Daha fazlasını öğren.",
     "change_password": "Şifreyi değiştir",
-    "password_hint": "Password hint"
+    "password_hint": "Şifre ipucu"
   },
   "asset_overview": {
     "send_button": "Gönder",
@@ -1547,6 +1797,7 @@
     "receive_button": "Al",
     "portfolio_button": "Portfolio",
     "earn_button": "Kazan",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
@@ -1559,7 +1810,8 @@
       "bridge": "Bu hesap için köprü desteklenmiyor",
       "send": "Bu hesap için gönderme desteklenmiyor",
       "action": "Bu hesap için bu işlem desteklenmiyor",
-      "earn": "Kazanma bu hesap için desteklenmiyor"
+      "earn": "Kazanma bu hesap için desteklenmiyor",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Açıklama",
     "totalSupply": "Toplam Arz",
@@ -1576,6 +1828,7 @@
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
     "earn_description": "Token'lerinizden ödül kazanın",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "Bugün",
       "7d": "Son 7 gün",
@@ -1949,8 +2202,8 @@
     "tx_review_staking_claim": "Stake Yapma Talebi",
     "tx_review_staking_deposit": "Stake Para Yatırma",
     "tx_review_staking_unstake": "Unstake",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "Borç Verme Para Yatırma İşlemi",
+    "tx_review_lending_withdraw": "Borç Verme Para Çekme İşlemi",
     "sent_ether": "Ether Gönderdi",
     "self_sent_ether": "Sana Ether Gönderdi",
     "received_ether": "Ether Aldı",
@@ -2097,7 +2350,8 @@
     "add_input_placeholder": "Genel adres (0x) veya ENS",
     "between_account": "Hesaplarım arasında transfer",
     "others": "Diğerleri",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "Bu yinelenen bir adres",
@@ -2349,21 +2603,21 @@
     "info_text_1_2": "Gizli Kurtarma İfadesi",
     "info_text_1_3": "güvendiğiniz bir yere kaydedin.",
     "info_text_1_4": "Uygulamaya giriş yapamadığınızda veya yeni bir cihaz edindiğinizde cüzdanınızı kurtarmanın tek yolu budur.",
-    "cta_text": "Get started",
+    "cta_text": "Başlarken",
     "cta_subText": "Mutlaka önerilir",
     "skip_button_cancel": "Şimdi koru",
     "skip_button_confirm": "Atla",
     "skip_title": "Hesap güvenliğini atla?",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "Bu Gizli Kurtarma İfadesini kaybederseniz bu cüzdana erişim sağlayamayacaksınız.",
+    "what_is_seedphrase_title": "Gizli Kurtarma İfadesi nedir?",
+    "what_is_seedphrase_text_1": "G\nAnahtar cümle veya kurtarma ifadesi olarak da anılan Gizli Kurtarma İfadesi, kripto cüzdanınıza erişiminizi ve kontrolü sağlayan bir sözcük dizisidir. Cüzdanınızı MetaMask'e taşımak için bu ifadeye ihtiyacınız olur.",
     "what_is_seedphrase_text_2": "Gizli Kurtarma İfadenizi gizli ve güvende tutmalısınız. Gizli Kurtarma İfadenizi ele geçiren biri hesaplarınızın kontrolünü de ele geçirir.",
     "what_is_seedphrase_text_3": "Sadece sizin erişim sağlayabileceğiniz bir yere kaydedin. Kaybettiğiniz takdirde onu kurtarmanıza MetaMask bile yardımcı olamaz.",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "Gizli Kurtarma İfadenizi elinde bulunduran herkes:",
+    "seedPhrase_point_1": "Tüm paranızı alabilir",
+    "seedPhrase_point_2": "İşlemleri onaylayabilir",
+    "seedPhrase_point_3": "Oturum açma bilgilerinizi değiştirebilir",
+    "what_is_seedphrase_confirm": "Anladım"
   },
   "account_backup_step_1B": {
     "title": "Cüzdanınızı koruyun",
@@ -2454,40 +2708,40 @@
     "progressThree": "Gizli Kurtarma İfadesini onayla"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "Adım {{currentStep}}/{{totalSteps}}",
+    "action": "Gizli Kurtarma İfadenizi kaydedin",
+    "info-1": "Bu size ait",
+    "info-2": "Gizli Kurtarma İfadesi",
+    "info-3": "Doğru sıralamada yazın ve güvenli bir şekilde saklayın. Gizli Kurtarma İfadenizi elinde bulunduran biri cüzdanınıza erişim sağlayabilir.",
+    "info-4": "Asla başkasıyla paylaşmayın.",
     "continue": "Devam",
-    "reveal": "Tap to reveal",
+    "reveal": "Açığa çıkarmak için dokunun",
     "watching": "Hiç kimsenin ekranınızı izlemediğinden emin olun.",
     "view": "Görüntüle",
     "confirm_password": "Şifrenizi onaylayın",
     "before_continiuing": "Devam etmeden önce şifrenizi onaylamanız gerekiyor",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "Mevcut şifrenizi girin",
+    "confirm": "Onayla",
     "got_it": "Anladım",
     "learn_more": "Daha Fazlasını Öğren",
-    "password": "Password"
+    "password": "Şifre"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "Adım {{currentStep}}/{{totalSteps}}",
+    "action": "Gizli Kurtarma İfadenizi onaylayın",
+    "info": "Eksik sözcükleri doğru sıralamada seçin.",
     "complete": "Yedeklemeyi tamamla",
     "success": "Başarılı",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "Doğru değil",
+    "error-description": "Gizli Kurtarma İfadenizi kontrol edip tekrar deneyin.",
+    "success-title": "Mükemmel!",
+    "success-description": "Bu doğru! Unutmayın: Bu ifadeyi asla başkasıyla paylaşmayın.",
+    "success-button": "Anladım",
+    "error-button": "Tekrar deneyin",
+    "continue": "Devam Et"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "Adım {{currentStep}}/{{totalSteps}}",
     "congratulations": "Tebrikler",
     "success": "Cüzdanınızı başarılı bir şekilde korudunuz! Gizli Kurtarma İfadenizi güvende tutmayı unutmayın, bu sizin sorumluluğunuzdadır!",
     "hint": "Kendine bir ipucu bırak?",
@@ -3106,7 +3360,7 @@
       "sale_pending_description": "Emriniz şu anda gerçekleştiriliyor.",
       "no_date": "Bilinmeyen"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "{{currency}} Para Yatırma İşlemi"
   },
   "swaps": {
     "title": "Swap Yap",
@@ -3818,10 +4072,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} borç verin ve kazanın",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "{{protocol}} ile {{tokenSymbol}} token'ınızı borç verin ve",
+      "annually": "yıllık kazanç sağlayın.",
+      "learn_more": "Daha fazla bilgi edinin.",
+      "earn": "Kazan"
     },
     "service_interruption_banner": {
       "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız!"
@@ -3849,50 +4103,51 @@
       "withdrawal_time": "Token'inizi protokolden çekip cüzdanınıza geri almanızın süresi",
       "receive": "Bu token, varlıklarınızı ve ödüllerinizi takip etmek için kullanılır. Bunu transfer etmeyin veya bununla işlem yapmayın, aksi takdirde varlıklarınızı çekemezsiniz.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "Sağlık Faktörünüz likidasyon riskini ölçer",
+        "above_two_dot_zero": "2,0 üzeri",
+        "safe_position": "Güvenli pozisyon",
+        "between_one_dot_five_and_2_dot_zero": "1,5-2,0 arası",
+        "medium_liquidation_risk": "Orta Likidasyon riski",
+        "below_one_dot_five": "1,5 altı",
+        "higher_liquidation_risk": "Yüksek likidasyon riski"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "Neden tüm bakiyemi çekemiyorum?",
+        "your_withdrawal_amount_may_be_limited_by": "Para çekme tutarınız şununla sınırlı olabilir",
+        "pool_liquidity": "Havuz Likiditesi",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Şu anda borç verme havuzunda yeterli para yok.",
+        "existing_borrow_positions": "Mevcut Borç Alma Pozisyonları",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Para çekmek, mevcut kredi pozisyonlarınızı likidasyon riskine atabilir."
       }
     },
     "withdraw": "Çek",
     "deposit_more": "Daha fazla para yatır",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "Kazanç",
+    "withdrawal_time": "Para çekme zamanı",
+    "withdrawing_to": "Şuraya çek:",
+    "network": "Ağ",
+    "health_factor": "Sağlık faktörü",
+    "liquidation_risk": "Likidasyon riski",
+    "insufficient_pool_liquidity": "Yetersiz Havuz Likiditesi",
+    "available_to_withdraw": "çekilebilir",
+    "unknown": "bilinmeyen",
+    "how_it_works": "Nasıl çalışır?",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "{{tokenSymbol}} token'ınızda ödül kazanın",
+      "lend_and_earn_daily_rewards": "{{protocol}} ile {{tokenSymbol}} token'ınızı borç verin ve günlük ödül kazanın. Ödüller zaman içinde büyür ve APR değişiklik gösterir.",
+      "withdraw_whenever_you_want": "Dilediğiniz zaman çekin",
+      "get_asset_back_in_your_wallet_instantly": "{{tokenSymbol}} token'ı anında cüzdanınıza geri alın."
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "Tutar güvenli para çekme limitini aşıyor",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "Pozisyon geçmişini görüntüle",
+      "staking": "Kazanç geçmişini görüntüle"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "Pozisyon geçmişi",
+      "staking": "Ödeme geçmişi"
+    },
+    "allowance_reset": "Ödenek Sıfırlama"
   },
   "stake": {
     "stake": "Pay",
@@ -3992,8 +4247,9 @@
     "estimated_unstaking_time": "1 ila 11 gün",
     "proceed_anyway": "Yine de devam et",
     "gas_cost_impact": "Gaz maliyeti etkisi",
-    "select_a_token": "Bir token seç",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "Olası kazancınız:",
     "per_year_on_your_tokens": "kazanabilirsiniz",
     "deposit": "Para Yatır",
     "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın %{{percentOverDeposit}} fazlası olacaktır.",
@@ -4109,6 +4365,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Tutar",
+      "value": "Değer",
       "account": "Hesap",
       "balance": "Bakiye",
       "interacting_with": "Etkileşimde",
@@ -4127,19 +4385,29 @@
       "permit_NFTs": "Para çekme talebi",
       "signature_siwe": "Giriş talebi",
       "contract_interaction": "İşlem talebi",
+      "contract_deployment": "Bir sözleşme kullanın",
       "transfer": "Transfer talebi",
       "switch_account_type": "Hesap güncellemesi",
-      "approve": "Approve request"
+      "approve": "Talebi onayla"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
+      "permit_revoke": "Birinin hesabınızdan token harcama iznini kaldırıyorsunuz.",
       "permit_NFTs": "Bu site NFT'lerinizi çekmek için izin istiyor.",
+      "permit_revoke_NFTs": "Bu site, NFT'leriniz için para çekme limitini sıfırlamak istiyor",
       "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
       "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor.",
       "contract_interaction": "Onaylamadan önce talep bilgilerini inceleyin.",
       "switch_to_smart_account": "Akıllı bir hesaba geçiş yapıyorsunuz.",
-      "switch_to_standard_account": "Tekrar standart bir hesaba geçiş yapıyorsunuz (EOA)."
+      "switch_to_standard_account": "Tekrar standart bir hesaba geçiş yapıyorsunuz (EOA).",
+      "contract_deployment": "Bu site bir sözleşme kullanmanızı istiyor",
+      "decrease_allowance": "Bu size token'larınız için harcama üst limitini düşürmek istiyor."
     },
+    "spending_cap": "Harcama üst limiti",
+    "withdraw": "Çek",
+    "nfts": "NFT'ler",
+    "permission_from": "İzni veren:",
+    "spender": "Harcayan",
     "request_from": "Talebi gönderen",
     "staking_from": "Stake edilecek yer",
     "signing_in_with": "Şununla giriş yapılıyor:",
@@ -4192,6 +4460,7 @@
       "smartAccountLabel": "Akıllı Hesap",
       "standardAccountLabel": "Standart Hesap",
       "switch": "Değiştir",
+      "switchBack": "Geri dön",
       "splashpage": {
         "accept": "Evet",
         "betterTransaction": "Daha hızlı işlemler, daha düşük ücretler",
@@ -4200,13 +4469,21 @@
         "payToken": "Dilediğiniz token ile dilediğiniz zaman ödeme yapın",
         "payTokenDescription": "Zaten sahip olduğunuz token'leri kullanarak ağ ücretlerini karşılayın.",
         "reject": "Hayır",
-        "requestFor": "Talep edilen",
         "sameAccount": "Aynı hesap, daha akıllı özellikler.",
-        "splashTitle": "Akıllı hesap kullanılsın mı?",
-        "upgradeBannerDescription": "Aynı adres. Daha akıllı özellikler.",
-        "upgradeBannerTitle": "Akıllı hesaba geçiş yap"
+        "splashTitle": "Akıllı hesap kullanılsın mı?"
       },
-      "includes_transaction": "{{transactionCount}} işlem içerir"
+      "includes_transaction": "{{transactionCount}} işlem içerir",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Sınırsız",
     "all": "Tümü",
@@ -4217,7 +4494,7 @@
     "review": "İncele",
     "transferRequest": "Transfer talebi",
     "nested_transaction_heading": "{{index}} işlemi",
-    "transaction": "Transaction"
+    "transaction": "İşlem"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -4266,6 +4543,7 @@
     "insufficient_funds": "Para yetersiz",
     "select_amount": "Tutar seçin",
     "bridge_to": "Köprü yapılan:",
+    "swap_to": "Swap to",
     "title": "Köprü",
     "submitting_transaction": "Gönderiliyor",
     "fetching_quote": "Teklif alınıyor",
@@ -4277,6 +4555,11 @@
     "title": "Yeni teklifler mevcut",
     "description": "Oranlar {{refreshRate}} dakikada bir güncellenir, bu yüzden hazır olduğunuzda Yeni teklif al seçeneğine dokunun.",
     "get_new_quote": "Yeni teklif al"
+  },
+  "blockaid_modal": {
+    "simulation_title": "İşlem simülasyonda başarısız oldu",
+    "validation_title": "İşlem doğrulama başarısız oldu",
+    "go_back": "Geri git"
   },
   "bridge_transaction_details": {
     "status": "Durum",
@@ -4293,6 +4576,54 @@
     "bridge_to_chain": "{{chainName}} için köprü",
     "recipient": "Alıcı"
   },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "Yedekleme ve senkronizasyon",
     "description": "Hesaplarınızı yedekleyin ve ayarları senkronize edin.",
@@ -4308,7 +4639,7 @@
     "privacyLink": "Gizliliğinizi nasıl koruduğumuzu öğrenin",
     "features": {
       "accounts": "Hesaplar",
-      "contacts": "Contacts"
+      "contacts": "Kişiler"
     },
     "manageWhatYouSync": {
       "title": "Neleri senkronize ettiğinizi yönetin",
@@ -4340,11 +4671,18 @@
       "private_key": "Özel anahtar"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "Ayrıntılar"
+    },
+    "wallet_details": {
+      "wallet_name": "Cüzdan Adı",
+      "balance": "Bakiye",
+      "create_account": "Create account",
+      "back_up": "Yedekle",
+      "reveal_recovery_phrase_with_index": "Kurtarma İfadesini göster {{index}}"
     },
     "smart_account": {
       "title": "Akıllı Hesabı Etkinleştir",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "Akıllı hesap özelliklerini, desteklenen ağlarda etkinleştirebilirsiniz.",
       "learn_more": "Daha fazla bilgi edin"
     },
     "edit_account_name": {
@@ -4370,7 +4708,7 @@
     "export_credentials": {
       "export_private_key": "Özel anahtar",
       "private_key_warning_title": "Bu anahtarı asla paylaşmayın.",
-      "private_key_warning_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları tehlikeye atabilir.",
+      "private_key_warning_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları çalabilir.",
       "credential_as_text": "Metin",
       "credential_as_qr": "QR kodu",
       "export_mnemonic": "Kurtarma ifadesini dışa aktar",
@@ -4379,7 +4717,7 @@
     "reveal_private_key": {
       "title": "Özel anahtarı göster",
       "banner_title": "Bu anahtarı asla paylaşmayın.",
-      "banner_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları tehlikeye atabilir.",
+      "banner_description": "Özel anahtarınıza sahip olan herkes, hesabınızda tutulan tüm varlıkları çalabilir.",
       "enter_password": "Şifrenizi girin",
       "password_placeholder": "Şifre",
       "next": "Sonraki",
@@ -4394,19 +4732,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "Tekrar MetaMask'e yönlendiriliyorsunuz",
+      "description": "Devam ederseniz {{pageTitle}} sayfasını açacaksınız.",
+      "checkbox_label": "Bana tekrar hatırlatma"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "Dikkatle ilerleyin",
+      "description": "Buraya MetaMask tarafından değil, üçüncü bir taraftan gönderildiniz. Devam ederseniz {{pageTitle}} sayfasını açacaksınız."
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "Bu sayfa mevcut değil",
+      "description": "Aradığınız sayfayı bulamıyoruz."
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "Geri",
+    "continue_button": "Devam Et"
   }
 }
