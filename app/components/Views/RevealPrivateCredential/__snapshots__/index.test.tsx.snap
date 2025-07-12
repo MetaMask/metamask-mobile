@@ -356,7 +356,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -774,7 +774,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -1127,7 +1127,10 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                         "color": "#4459ff",
                         "gap": 4,
                         "marginBottom": 16,
-                        "padding": 8,
+                        "paddingBottom": 4,
+                        "paddingLeft": 12,
+                        "paddingRight": 12,
+                        "paddingTop": 4,
                       },
                     ]
                   }
@@ -1367,7 +1370,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
@@ -1720,7 +1723,10 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                         "color": "#4459ff",
                         "gap": 4,
                         "marginBottom": 16,
-                        "padding": 8,
+                        "paddingBottom": 4,
+                        "paddingLeft": 12,
+                        "paddingRight": 12,
+                        "paddingTop": 4,
                       },
                     ]
                   }
@@ -1960,7 +1966,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                     "padding": 15,
                   },
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "transparent",
                     "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },

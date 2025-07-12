@@ -13,6 +13,9 @@ const styleSheet = () =>
       marginLeft: 24,
       marginRight: 24,
     },
+    addressContainer: {
+      width: 200,
+    },
   });
 
 export default styleSheet;

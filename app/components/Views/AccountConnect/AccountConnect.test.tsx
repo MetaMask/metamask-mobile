@@ -406,7 +406,7 @@ describe('AccountConnect', () => {
 
 
 
-    })
+    });
     it('invokes onSubmit property and renders permissions summary', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType, findByTestId } =
