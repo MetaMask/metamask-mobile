@@ -5,6 +5,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -28,6 +29,7 @@ import {
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
+import { PerpsNavigationParamList } from '../types/navigation';
 
 interface PerpsViewProps {}
 
@@ -67,10 +69,11 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
-
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
   DevLogger.log(
@@ -189,6 +192,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     await reconnect();
   };
 
+  const handlePositionsNavigation = async () => {
+    navigation.navigate('PerpsPositions');
+  };
+
   // Show connection error screen if there's an error
   if (connectionError) {
     return (
@@ -270,6 +277,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Positions"
+            onPress={handlePositionsNavigation}
+            loading={isLoading}
             style={styles.button}
           />
         </View>
