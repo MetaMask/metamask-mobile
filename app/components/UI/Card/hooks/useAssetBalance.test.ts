@@ -8,57 +8,38 @@ import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { formatWithThreshold } from '../../../../util/assets';
 import { isTestNet } from '../../../../util/networks';
 
-// Mock useSelector
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-// Mock utility functions
+jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../Tokens/util', () => ({
   deriveBalanceFromAssetMarketDetails: jest.fn(),
 }));
-
 jest.mock('../../../../util/assets', () => ({
   formatWithThreshold: jest.fn(),
 }));
-
-jest.mock('../../../../util/networks', () => ({
-  isTestNet: jest.fn(),
-}));
-
-// Mock selectors
+jest.mock('../../../../util/networks', () => ({ isTestNet: jest.fn() }));
 jest.mock('../../../../selectors/multichain', () => ({
   makeSelectAssetByAddressAndChainId: jest.fn(() => jest.fn()),
   makeSelectNonEvmAssetById: jest.fn(() => jest.fn()),
 }));
-
 jest.mock('../../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
 }));
-
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountAddress: jest.fn(),
 }));
-
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRateForChainId: jest.fn(),
   selectCurrentCurrency: jest.fn(),
 }));
-
 jest.mock('../../../../selectors/settings', () => ({
   selectShowFiatInTestnets: jest.fn(),
 }));
-
 jest.mock('../../../../selectors/tokenRatesController', () => ({
   selectSingleTokenPriceMarketData: jest.fn(),
 }));
-
 jest.mock('../../../../selectors/tokenBalancesController', () => ({
   selectSingleTokenBalance: jest.fn(),
 }));
-
-// Mock localization
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: { [key: string]: string } = {
@@ -67,9 +48,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-  default: {
-    locale: 'en-US',
-  },
+  default: { locale: 'en-US' },
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -115,455 +94,418 @@ describe('useAssetBalance', () => {
     isStaked: false,
   };
 
-  const defaultMockState = {
-    selectedInternalAccountAddress: '0xtest',
-    isEvmNetworkSelected: true,
-    primaryCurrency: 'ETH',
-    currentCurrency: 'USD',
-    showFiatOnTestnets: true,
-    exchangeRates: { price: 2000 },
-    tokenBalances: { balance: '1000000000000000000' },
-    conversionRate: 1.0,
-    selectedAccount: { id: 'account1' },
-  };
+  const createMockSelector =
+    (overrides: any = {}) =>
+    (selector: any) => {
+      const defaults = {
+        selectedInternalAccountAddress: '0xtest',
+        isEvmNetworkSelected: true,
+        primaryCurrency: 'ETH',
+        currentCurrency: 'USD',
+        showFiatOnTestnets: true,
+        selectedAccount: { id: 'account1' },
+        exchangeRates: { price: 2000 },
+        ...overrides,
+      };
+
+      if (selector.toString().includes('selectSelectedInternalAccountAddress'))
+        return defaults.selectedInternalAccountAddress;
+      if (selector.toString().includes('selectIsEvmNetworkSelected'))
+        return defaults.isEvmNetworkSelected;
+      if (selector.toString().includes('primaryCurrency'))
+        return defaults.primaryCurrency;
+      if (selector.toString().includes('selectCurrentCurrency'))
+        return defaults.currentCurrency;
+      if (selector.toString().includes('selectShowFiatInTestnets'))
+        return defaults.showFiatOnTestnets;
+      if (selector.toString().includes('selectSelectedInternalAccount'))
+        return defaults.selectedAccount;
+      if (selector.toString().includes('selectSingleTokenPriceMarketData'))
+        return overrides.exchangeRates !== undefined
+          ? overrides.exchangeRates
+          : defaults.exchangeRates;
+      if (selector.toString().includes('selectSingleTokenBalance'))
+        return overrides.tokenBalances;
+      if (selector.toString().includes('selectCurrencyRateForChainId'))
+        return overrides.conversionRate;
+
+      // This catches the dynamically created selectors from makeSelectAssetByAddressAndChainId
+      // and makeSelectNonEvmAssetById
+      if (typeof selector === 'function') {
+        if (defaults.isEvmNetworkSelected) {
+          return overrides.evmAsset !== undefined
+            ? overrides.evmAsset
+            : mockEvmAsset;
+        }
+        return overrides.nonEvmAsset !== undefined
+          ? overrides.nonEvmAsset
+          : mockNonEvmAsset;
+      }
+
+      return defaults.exchangeRates;
+    };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Setup default mock implementations
-    mockUseSelector.mockImplementation((selector: any) => {
-      // Return appropriate mock data based on selector function
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return defaultMockState.isEvmNetworkSelected;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return defaultMockState.primaryCurrency;
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return defaultMockState.currentCurrency;
-      }
-      if (selector.toString().includes('selectShowFiatInTestnets')) {
-        return defaultMockState.showFiatOnTestnets;
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
-        return defaultMockState.selectedAccount;
-      }
-      // For asset selection mocks, return appropriate assets
-      if (selector.name === 'selectEvmAsset') {
-        return mockEvmAsset;
-      }
-      if (selector.name === 'selectNonEvmAsset') {
-        return mockNonEvmAsset;
-      }
-      // Handle dynamic selectors created by makeSelectAssetByAddressAndChainId and makeSelectNonEvmAssetById
-      if (typeof selector === 'function' && selector.length === 2) {
-        return mockEvmAsset; // Default to EVM asset for dynamic selectors
-      }
-      return defaultMockState.exchangeRates;
-    });
-
+    mockUseSelector.mockImplementation(createMockSelector());
     mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
       balanceFiat: '$1,000.00',
       balanceValueFormatted: '1.0',
     });
-
     mockFormatWithThreshold.mockImplementation((value: number | null) =>
       value ? value.toFixed(2) : '0',
     );
     mockIsTestNet.mockReturnValue(false);
   });
 
-  it('should return default values when token is null', () => {
-    const { result } = renderHook(() => useAssetBalance(null));
+  describe('null/undefined token handling', () => {
+    it('should return default values when token is null/undefined', () => {
+      const { result: nullResult } = renderHook(() => useAssetBalance(null));
+      const { result: undefinedResult } = renderHook(() =>
+        useAssetBalance(undefined),
+      );
 
-    expect(result.current.asset).toEqual({
-      balanceFiat: undefined,
-      isStaked: undefined,
-      price: 2000,
+      [nullResult, undefinedResult].forEach((result) => {
+        expect(result.current.asset).toEqual({
+          ...mockEvmAsset,
+          balanceFiat: undefined,
+          isStaked: false,
+        });
+        expect(result.current.balanceFiat).toBeUndefined();
+        expect(result.current.mainBalance).toBe('');
+        expect(result.current.secondaryBalance).toBeUndefined();
+      });
     });
-    expect(result.current.balanceFiat).toBeUndefined();
-    expect(result.current.mainBalance).toBe('');
-    expect(result.current.secondaryBalance).toBeUndefined();
   });
 
-  it('should return default values when token is undefined', () => {
-    const { result } = renderHook(() => useAssetBalance(undefined));
+  describe('EVM assets', () => {
+    it('should handle EVM asset with ETH primary currency', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelector({ primaryCurrency: 'ETH' }),
+      );
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    expect(result.current.asset).toEqual({
-      balanceFiat: undefined,
-      isStaked: undefined,
-      price: 2000,
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
+      expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
     });
-    expect(result.current.balanceFiat).toBeUndefined();
-    expect(result.current.mainBalance).toBe('');
-    expect(result.current.secondaryBalance).toBeUndefined();
+
+    it('should handle EVM asset with fiat primary currency', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelector({ primaryCurrency: 'USD' }),
+      );
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.mainBalance).toBe('$1,000.00');
+      expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
+    });
+
+    it('should handle ETH native token correctly', () => {
+      const ethAsset = { ...mockEvmAsset, isETH: true };
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          primaryCurrency: 'ETH',
+          evmAsset: ethAsset,
+        }),
+      );
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
+      expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
+    });
+
+    it('should handle asset with balance error', () => {
+      const errorAsset = {
+        ...mockEvmAsset,
+        hasBalanceError: true,
+        symbol: 'TEST',
+      };
+
+      // Create a more explicit mock implementation that tracks calls
+      const mockSelectorImplementation = jest
+        .fn()
+        .mockImplementation((selector: any) => {
+          if (
+            selector.toString().includes('selectSelectedInternalAccountAddress')
+          )
+            return '0xtest';
+          if (selector.toString().includes('selectIsEvmNetworkSelected'))
+            return true;
+          if (selector.toString().includes('primaryCurrency')) return 'ETH';
+          if (selector.toString().includes('selectCurrentCurrency'))
+            return 'USD';
+          if (selector.toString().includes('selectShowFiatInTestnets'))
+            return true;
+          if (selector.toString().includes('selectSelectedInternalAccount'))
+            return { id: 'account1' };
+          if (selector.toString().includes('selectSingleTokenPriceMarketData'))
+            return { price: 2000 };
+          if (selector.toString().includes('selectSingleTokenBalance'))
+            return {};
+          if (selector.toString().includes('selectCurrencyRateForChainId'))
+            return 0;
+
+          // Handle the dynamic selector that should return the error asset
+          if (typeof selector === 'function') {
+            return errorAsset;
+          }
+
+          return { price: 2000 };
+        });
+
+      mockUseSelector.mockImplementation(mockSelectorImplementation);
+
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: '$1,000.00',
+        balanceValueFormatted: '1.0',
+      });
+
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.mainBalance).toBe('TEST');
+      expect(result.current.secondaryBalance).toBe('Unable to load');
+    });
+
+    it('should handle undefined asset when no asset found', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          evmAsset: undefined,
+          exchangeRates: undefined,
+        }),
+      );
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: undefined,
+        balanceValueFormatted: '',
+      });
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toEqual({
+        ...mockEvmAsset,
+        balanceFiat: undefined,
+        isStaked: false,
+      });
+      expect(result.current.mainBalance).toBe('');
+      expect(result.current.secondaryBalance).toBeUndefined();
+    });
   });
 
-  it('should handle EVM asset with ETH primary currency', () => {
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'ETH';
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return 'USD';
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return mockEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
+  describe('Non-EVM assets', () => {
+    it('should handle non-EVM asset', () => {
+      const mockSelectorImplementation = jest
+        .fn()
+        .mockImplementation((selector: any) => {
+          if (
+            selector.toString().includes('selectSelectedInternalAccountAddress')
+          )
+            return '0xtest';
+          if (selector.toString().includes('selectIsEvmNetworkSelected'))
+            return false; // Non-EVM network
+          if (selector.toString().includes('primaryCurrency')) return 'ETH';
+          if (selector.toString().includes('selectCurrentCurrency'))
+            return 'USD';
+          if (selector.toString().includes('selectShowFiatInTestnets'))
+            return true;
+          if (selector.toString().includes('selectSelectedInternalAccount'))
+            return { id: 'account1' };
+          if (selector.toString().includes('selectSingleTokenPriceMarketData'))
+            return { price: 2000 };
+          if (selector.toString().includes('selectSingleTokenBalance'))
+            return {};
+          if (selector.toString().includes('selectCurrencyRateForChainId'))
+            return 0;
+
+          // Handle the dynamic selector that should return the non-EVM asset
+          if (typeof selector === 'function') {
+            return mockNonEvmAsset;
+          }
+
+          return { price: 2000 };
+        });
+
+      mockUseSelector.mockImplementation(mockSelectorImplementation);
+
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: '$50000.00',
+        balanceValueFormatted: '1.0',
+      });
+
+      mockFormatWithThreshold.mockImplementation(
+        (
+          value: number | null,
+          _threshold: number,
+          _locale: string,
+          _options: any,
+        ) => {
+          if (!value) return '0';
+          if (_options?.style === 'currency') return `$${value.toFixed(2)}`;
+          return value.toFixed(5);
+        },
+      );
+
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.asset?.symbol).toBe('BTC');
+      expect(result.current.asset?.balanceFiat).toBe('$50000.00');
     });
 
-    const { result } = renderHook(() => useAssetBalance(mockToken));
+    it('should handle non-EVM asset with missing selected account', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          isEvmNetworkSelected: false,
+          selectedAccount: undefined,
+          nonEvmAsset: undefined,
+          exchangeRates: undefined,
+        }),
+      );
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: undefined,
+        balanceValueFormatted: '',
+      });
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    expect(result.current.asset).toBeDefined();
-    expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
-    expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
+      expect(result.current.asset).toEqual({
+        ...mockNonEvmAsset,
+        balanceFiat: undefined,
+        isStaked: false,
+      });
+      expect(result.current.mainBalance).toBe('');
+      expect(result.current.secondaryBalance).toBeUndefined();
+    });
   });
 
-  it('should handle EVM asset with fiat primary currency', () => {
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'USD';
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return 'USD';
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return mockEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
+  describe('Test network scenarios', () => {
+    it('should handle test network with fiat disabled for ETH', () => {
+      mockIsTestNet.mockReturnValue(true);
+      const ethAsset = { ...mockEvmAsset, isETH: true };
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          primaryCurrency: 'ETH',
+          showFiatOnTestnets: false,
+          evmAsset: ethAsset,
+        }),
+      );
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
+      expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
     });
 
-    const { result } = renderHook(() => useAssetBalance(mockToken));
+    it('should handle test network with fiat disabled for USD primary currency', () => {
+      mockIsTestNet.mockReturnValue(true);
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          primaryCurrency: 'USD',
+          showFiatOnTestnets: false,
+        }),
+      );
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: undefined,
+        balanceValueFormatted: '1.0',
+      });
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    expect(result.current.asset).toBeDefined();
-    expect(result.current.mainBalance).toBe('$1,000.00');
-    expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
+      expect(result.current.mainBalance).toBe('Unable to find conversion rate');
+      expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
+    });
   });
 
-  it('should handle ETH native token correctly', () => {
-    const ethAsset = { ...mockEvmAsset, isETH: true };
+  describe('Special cases', () => {
+    it('should handle TOKEN_RATE_UNDEFINED', () => {
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: TOKEN_RATE_UNDEFINED,
+        balanceValueFormatted: '1.0',
+      });
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'ETH';
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return 'USD';
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return ethAsset;
-      }
-      return defaultMockState.exchangeRates;
+      expect(result.current.mainBalance).toBe('1.0');
+      expect(result.current.secondaryBalance).toBe(
+        'Unable to find conversion rate',
+      );
     });
 
-    const { result } = renderHook(() => useAssetBalance(mockToken));
+    it('should handle balance error precedence over TOKEN_RATE_UNDEFINED', () => {
+      const errorAsset = {
+        ...mockEvmAsset,
+        hasBalanceError: true,
+        symbol: 'TEST',
+      };
+      mockUseSelector.mockImplementation(
+        createMockSelector({ evmAsset: errorAsset }),
+      );
+      mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
+        balanceFiat: TOKEN_RATE_UNDEFINED,
+        balanceValueFormatted: '1.0',
+      });
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    expect(result.current.asset).toBeDefined();
-    expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
-    expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
-  });
-
-  it('should handle test network with fiat disabled', () => {
-    mockIsTestNet.mockReturnValue(true);
-    const ethAsset = { ...mockEvmAsset, isETH: true };
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'ETH';
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return 'USD';
-      }
-      if (selector.toString().includes('selectShowFiatInTestnets')) {
-        return false;
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return ethAsset;
-      }
-      return defaultMockState.exchangeRates;
+      expect(result.current.mainBalance).toBe('1.0');
+      expect(result.current.secondaryBalance).toBe(
+        'Unable to find conversion rate',
+      );
     });
 
-    const { result } = renderHook(() => useAssetBalance(mockToken));
+    it('should handle staked asset correctly', () => {
+      const stakedAsset = { ...mockEvmAsset, isStaked: true };
 
-    expect(result.current.asset).toBeDefined();
-    expect(result.current.mainBalance).toBe('1.0'.toUpperCase());
-    // The hook still returns secondaryBalance even on testnets when ETH is primary currency
-    expect(result.current.secondaryBalance).toBe('$1,000.00'.toUpperCase());
-  });
+      const mockSelectorImplementation = jest
+        .fn()
+        .mockImplementation((selector: any) => {
+          if (
+            selector.toString().includes('selectSelectedInternalAccountAddress')
+          )
+            return '0xtest';
+          if (selector.toString().includes('selectIsEvmNetworkSelected'))
+            return true;
+          if (selector.toString().includes('primaryCurrency')) return 'USD';
+          if (selector.toString().includes('selectCurrentCurrency'))
+            return 'USD';
+          if (selector.toString().includes('selectShowFiatInTestnets'))
+            return true;
+          if (selector.toString().includes('selectSelectedInternalAccount'))
+            return { id: 'account1' };
+          if (selector.toString().includes('selectSingleTokenPriceMarketData'))
+            return { price: 2000 };
+          if (selector.toString().includes('selectSingleTokenBalance'))
+            return {};
+          if (selector.toString().includes('selectCurrencyRateForChainId'))
+            return 0;
 
-  it('should handle asset with balance error', () => {
-    const errorAsset = { ...mockEvmAsset, hasBalanceError: true };
+          if (typeof selector === 'function') {
+            return stakedAsset;
+          }
 
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return errorAsset;
-      }
-      return defaultMockState.exchangeRates;
+          return { price: 2000 };
+        });
+
+      mockUseSelector.mockImplementation(mockSelectorImplementation);
+
+      const { result } = renderHook(() => useAssetBalance(mockToken));
+
+      expect(result.current.asset).toBeDefined();
+      expect(result.current.asset?.isStaked).toBe(true);
+      expect(result.current.mainBalance).toBe('$1,000.00');
     });
 
-    const { result } = renderHook(() => useAssetBalance(mockToken));
+    it('should handle missing selectedInternalAccountAddress', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelector({
+          selectedInternalAccountAddress: null,
+          primaryCurrency: 'USD',
+        }),
+      );
+      const { result } = renderHook(() => useAssetBalance(mockToken));
 
-    // The hook checks evmAsset.hasBalanceError but returns derived balance when not in error state
-    expect(result.current.mainBalance).toBe('$1,000.00');
-    expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
-  });
-
-  it('should handle TOKEN_RATE_UNDEFINED', () => {
-    mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
-      balanceFiat: TOKEN_RATE_UNDEFINED,
-      balanceValueFormatted: '1.0',
+      expect(result.current.asset).toEqual({
+        ...mockEvmAsset,
+        balanceFiat: '$1,000.00',
+        isStaked: false,
+      });
+      expect(result.current.balanceFiat).toBe('$1,000.00');
+      expect(result.current.mainBalance).toBe('$1,000.00');
     });
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return mockEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    expect(result.current.mainBalance).toBe('1.0');
-    expect(result.current.secondaryBalance).toBe(
-      'Unable to find conversion rate',
-    );
-  });
-
-  it('should handle non-EVM asset', () => {
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return false;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'ETH';
-      }
-      if (selector.toString().includes('selectCurrentCurrency')) {
-        return 'USD';
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
-        return defaultMockState.selectedAccount;
-      }
-      // The hook calls selectNonEvmAsset when token and selectedAccount.id exist
-      if (selector.name === 'selectNonEvmAsset') {
-        return mockNonEvmAsset;
-      }
-      // This handles the selector returned by makeSelectNonEvmAssetById()
-      if (
-        typeof selector === 'function' &&
-        selector.name !== 'selectEvmAsset'
-      ) {
-        return mockNonEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    mockFormatWithThreshold.mockImplementation(
-      (
-        value: number | null,
-        _threshold: number,
-        _locale: string,
-        _options: any,
-      ) => {
-        if (!value) return '0';
-        if (_options?.style === 'currency') {
-          return `$${value.toFixed(2)}`;
-        }
-        return value.toFixed(5);
-      },
-    );
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    expect(result.current.asset).toBeDefined();
-    expect(result.current.asset?.symbol).toBe('BTC');
-  });
-
-  it('should handle missing balanceFiat in non-EVM asset', () => {
-    const assetWithoutFiat = { ...mockNonEvmAsset, balanceFiat: undefined };
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return false;
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
-        return defaultMockState.selectedAccount;
-      }
-      if (selector.name === 'selectNonEvmAsset') {
-        return assetWithoutFiat;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    expect(result.current.asset).toBeDefined();
-    // Should use TOKEN_BALANCE_LOADING when balanceFiat is missing
-    expect(mockFormatWithThreshold).not.toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-      expect.objectContaining({ style: 'currency' }),
-    );
-  });
-
-  it('should handle missing balance in non-EVM asset', () => {
-    const assetWithoutBalance = { ...mockNonEvmAsset, balance: undefined };
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return false;
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
-        return defaultMockState.selectedAccount;
-      }
-      if (selector.name === 'selectNonEvmAsset') {
-        return assetWithoutBalance;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    expect(result.current.asset).toBeDefined();
-    // Should use TOKEN_BALANCE_LOADING when balance is missing
-  });
-
-  it('should handle missing selectedInternalAccountAddress', () => {
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return null;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'USD'; // fiat primary currency
-      }
-      // Return mockEvmAsset for the asset selector
-      if (typeof selector === 'function' && selector.length === 2) {
-        return mockEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    // The hook still returns asset with partial data even when selectedInternalAccountAddress is null
-    expect(result.current.asset).toEqual({
-      balanceFiat: '$1,000.00',
-      isStaked: undefined,
-      price: 2000,
-    });
-    // The hook returns the balanceFiat from the derived balance calculation
-    expect(result.current.balanceFiat).toBe('$1,000.00');
-    // When selectedInternalAccountAddress is null but asset exists, mainBalance shows the fiat value
-    expect(result.current.mainBalance).toBe('$1,000.00');
-  });
-
-  it('should handle fiat primary currency with test network and no fiat', () => {
-    mockIsTestNet.mockReturnValue(true);
-    mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
-      balanceFiat: undefined,
-      balanceValueFormatted: '1.0',
-    });
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (
-        selector.toString().includes('selectSelectedInternalAccountAddress')
-      ) {
-        return defaultMockState.selectedInternalAccountAddress;
-      }
-      if (selector.toString().includes('selectIsEvmNetworkSelected')) {
-        return true;
-      }
-      if (selector.toString().includes('primaryCurrency')) {
-        return 'USD';
-      }
-      if (selector.toString().includes('selectShowFiatInTestnets')) {
-        return false;
-      }
-      if (selector.name === 'selectEvmAsset') {
-        return mockEvmAsset;
-      }
-      return defaultMockState.exchangeRates;
-    });
-
-    const { result } = renderHook(() => useAssetBalance(mockToken));
-
-    // When balanceFiat is undefined and we're on testnet with fiat disabled,
-    // the hook falls back to 'Unable to find conversion rate'
-    expect(result.current.mainBalance).toBe('Unable to find conversion rate');
-    expect(result.current.secondaryBalance).toBe('1.0'.toUpperCase());
   });
 });
