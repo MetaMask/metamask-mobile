@@ -145,16 +145,25 @@
     "scan_step_3": "Cliquez sur « Synchroniser avec un appareil mobile ».",
     "scan_step_4": "Scannez le code QR pour lancer la synchronisation",
     "success": "Réussi",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "Réinitialiser le portefeuille actuel",
     "have_existing_wallet": "J’ai déjà un portefeuille",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "Importer en utilisant la phrase secrète de récupération"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "Conservez votre phrase secrète de récupération en lieu sûr !",
+    "description": "Cette phrase secrète de récupération peut vous aider à accéder à nouveau à votre compte si jamais vous oubliez votre mot de passe ou votre identifiant.",
     "description_bold": "Paramètres > Sécurité et confidentialité.",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": " conservez cette phrase en lieu sûr pour ne jamais perdre l’accès à votre argent.",
     "learn_more": "En savoir plus",
     "learn_how": "Découvrir comment",
     "leave_hint": "Voulez-vous vous laisser un indice ?",
@@ -163,22 +172,22 @@
     "default_settings_footer": "Les paramètres sont optimisés pour la facilité d’utilisation et la sécurité.\nVous pouvez les modifier à tout moment.",
     "no_srp_title": "Rappel défini !",
     "no_srp_description": "Si vous ne pouvez plus accéder à votre compte ou si vous changez d’appareil, vous perdrez vos fonds. Veillez à sauvegarder votre phrase secrète de récupération dans",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "Votre portefeuille est prêt !",
+    "import_description": "Si vous perdez votre phrase secrète de récupération, vous ne pourrez plus utiliser votre portefeuille.",
+    "import_description2": "conservez cette phrase en lieu sûr pour ne jamais perdre l’accès à votre argent.",
     "done": "Terminé",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "Créer un indice de mot de passe",
+    "hint_title": "Indice de mot de passe",
+    "hint_description": "Laissez-vous un indice qui vous aidera à vous souvenir de votre mot de passe. Cet indice est enregistré sur votre appareil et ne sera pas partagé avec d’autres personnes.",
+    "hint_description2": "N’oubliez pas : si vous perdez votre mot de passe, vous ne pourrez plus utiliser votre portefeuille.",
+    "hint_button": "Créer un indice",
+    "hint_placeholder": "Par exemple : la maison de maman",
+    "hint_saved": "Sauvegarder",
+    "hint_saved_toast": "Indice de mot de passe sauvegardé",
+    "remind_later": "Nous vous le rappellerons plus tard",
+    "remind_later_description": "Si vous ne sauvegardez pas votre phrase secrète de récupération, vous ne pourrez plus accéder à vos fonds si jamais vous perdez l’accès à l’application ou changez d’appareil.",
+    "remind_later_description2": "Vous pouvez sauvegarder vos portefeuilles ou voir votre phrase secrète de récupération dans",
+    "setting_security_privacy": "Paramètres > Sécurité et confidentialité"
   },
   "onboarding_carousel": {
     "title1": "Bienvenue sur MetaMask",
@@ -281,20 +290,20 @@
   "login": {
     "title": "Heureux de vous revoir !",
     "password": "Mot de passe",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "Saisissez votre mot de passe",
+    "unlock_button": "Déverrouiller",
     "go_back": "Des problèmes pour déverrouiller votre portefeuille ? Vous pouvez EFFACER votre portefeuille actuel et en créer un nouveau.",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "Mot de passe oublié ?",
     "cant_proceed": "Vous ne pouvez pas continuer tant que vous n’avez pas saisi le mot « Supprimer ». Ce faisant, vous acceptez d’effacer votre portefeuille actuel.",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "Le mot de passe est erroné, réessayez.",
+    "type_delete": "Tapez « %{erase} » pour confirmer",
+    "erase_my": "Oui, réinitialiser le portefeuille",
+    "cancel": "Annuler",
+    "are_you_sure": "En êtes-vous sûr(e) ?",
+    "your_current_wallet": "Votre portefeuille, vos comptes et vos actifs seront",
+    "removed_from": " définitivement supprimés de cette application",
     "this_action": "Cette action est irréversible.",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "Vous ne pouvez récupérer ce portefeuille qu’avec les informations utilisées lors de sa création, comme votre phrase secrète de récupération, votre compte Google ou votre compte Apple. MetaMask ne dispose pas de ces informations.",
     "recovery_phrase": "phrase secrète de récupération",
     "metamask_does_not": "MetaMask ne possède pas votre phrase secrète de récupération.",
     "i_understand": "Je comprends et je souhaite continuer",
@@ -305,20 +314,24 @@
     "clean_vault_error": "MetaMask a rencontré une erreur, car la limite de stockage a été atteinte. Les données locales ont été corrompues. Veuillez réinstaller MetaMask et procéder à une restauration en utilisant votre phrase secrète de récupération.",
     "security_alert_title": "Alerte de sécurité",
     "security_alert_desc": "Pour continuer, vous devez activer le code d'accès ou toute méthode d'authentification biométrique prise en charge par votre appareil (FaceID, TouchID ou empreinte digitale)",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "Mot de passe oublié ?",
+    "forgot_password_desc_2": "MetaMask ne peut pas récupérer votre mot de passe pour vous.",
+    "forgot_password_point_1": "Si vous êtes connecté(e) à MetaMask avec un appareil sur lequel",
+    "forgot_password_point_1_bold": "la biométrie est activée",
+    "forgot_password_point_1_1": "(comme Face ID), vous pourrez réinitialiser votre mot de passe sur ce dernier.",
+    "forgot_password_point_2": "Si vous disposez de votre",
+    "forgot_password_point_2_bold": "phrase secrète de récupération,",
+    "forgot_password_point_2_1": "vous pourrez l’utiliser pour réinitialiser et réimporter votre portefeuille actuel.",
+    "reset_wallet": "Réinitialiser le portefeuille",
+    "reset_wallet_desc": "Les données de votre portefeuille seront",
+    "reset_wallet_desc_bold": "définitivement supprimées",
+    "reset_wallet_desc_2": "de MetaMask sur cet appareil. Cette opération est irréversible.",
+    "reset_wallet_desc_login": "Pour restaurer votre portefeuille, vous pouvez utiliser votre phrase secrète de récupération ou le mot de passe de votre compte Google ou Apple. MetaMask ne dispose pas de ces informations.",
+    "reset_wallet_desc_srp": "Pour restaurer votre portefeuille, vous pouvez utiliser votre phrase secrète de récupération. MetaMask ne dispose pas de cette information."
   },
   "connect_hardware": {
     "title_select_hardware": "Connecter un portefeuille matériel",
@@ -332,10 +345,10 @@
     "error": "Erreur"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "Mot de passe MetaMask",
+    "description": "Déverrouille MetaMask sur cet appareil uniquement.",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
-    "password": "Create new password",
+    "password": "Créer un nouveau mot de passe",
     "confirm_password": "Confirmer le mot de passe",
     "create_button": "Créer un mot de passe",
     "import_with_seed_phrase": "Importer en utilisant la phrase secrète de récupération",
@@ -357,14 +370,14 @@
     "secure": "Portefeuille sécurisé",
     "confirm": "Confirmez la phrase secrète de récupération",
     "disable_biometric_error": "Vous avez désactivé la fonction de reconnaissance biométrique pour l’application. Mettez à jour les paramètres « Se souvenir de moi », puis réessayez.",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Créer un mot de passe",
     "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "password_error": "Les mots de passe ne correspondent pas. Veuillez réessayer."
   },
   "reset_password": {
     "title": "Modifier le mot de passe",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
-    "password": "Nouveau mot de passe",
+    "password": "New password",
     "confirm_password": "Confirmer le mot de passe",
     "reset_button": "Réinitialiser le mot de passe",
     "import_with_seed_phrase": "Importer en utilisant la phrase secrète de récupération",
@@ -385,13 +398,23 @@
     "learn_more": "En savoir plus.",
     "secure": "Portefeuille sécurisé",
     "confirm": "Confirmez la phrase secrète de récupération",
-    "password_updated": "Mot de passe mis à jour",
-    "successfully_changed": "Votre mot de passe a été modifié"
+    "password_updated": "New password saved",
+    "successfully_changed": "Votre mot de passe a été modifié",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "Importer un portefeuille",
     "seed_phrase_placeholder": "Saisissez votre phrase secrète de récupération",
-    "create_new_password": "Create new password",
+    "create_new_password": "Créer un nouveau mot de passe",
     "confirm_password": "Confirmer le mot de passe",
     "import_button": "IMPORTER",
     "cancel_button": "Annuler",
@@ -403,13 +426,14 @@
     "invalid_qr_code_title": "Code QR non valide",
     "invalid_qr_code_message": "Ce code QR ne correspond pas à une phrase secrète de récupération valide.",
     "enter_your_secret_recovery_phrase": "Saisissez votre phrase secrète de récupération",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "Mot de passe MetaMask",
+    "metamask_password_description": "Déverrouille MetaMask sur cet appareil uniquement.",
     "seed_phrase_required": "La phrase secrète de récupération est requise",
     "re_enter_password": "Veuillez saisir à nouveau votre mot de passe",
     "use_at_least_8_characters": "Saisissez au moins 8 caractères",
     "unlock_with_face_id": "Déverrouiller avec Face ID ?",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "Si j’oublie ce mot de passe, MetaMask ne pourra pas le récupérer pour moi.",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "La phrase secrète de récupération doit comporter 12, 15, 18, 21 ou 24 mots",
     "continue": "Continuer",
     "clear_all": "Tout effacer",
@@ -419,11 +443,11 @@
     "srp": "Phrase secrète de récupération",
     "srp_placeholder": "Ajoutez un espace entre chaque mot et assurez-vous que personne ne vous épie 👀",
     "learn_more_link": "En savoir plus",
-    "create_password_cta": "Create password",
+    "create_password_cta": "Créer un mot de passe",
     "pass_flow": "Continuer avec Flow",
     "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "password_error": "Les mots de passe ne correspondent pas. Veuillez réessayer.",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "Utilisez uniquement des lettres minuscules, vérifiez l’orthographe et respectez l’ordre original des mots.",
     "enter_strong_password": "Saisissez un mot de passe sécurisé"
   },
   "bottom_tab_bar": {
@@ -471,23 +495,53 @@
   },
   "deposit": {
     "title": "Dépôt",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "Sélectionner la région",
+    "chooseYourRegionToContinue": "Sélectionnez votre région pour continuer",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "Payer avec",
+      "unexpectedError": "Une erreur inattendue est survenue.",
+      "quoteFetchError": "Échec de la récupération de la cotation.",
+      "kycFormsFetchError": "Échec de la récupération des formulaires KYC.",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "Sélectionner un jeton",
+      "search_by_name_or_address": "Rechercher un jeton par nom ou adresse",
+      "no_tokens_found": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}"
+    },
+    "region_modal": {
+      "select_a_region": "Sélectionner la région",
+      "search_by_country": "Rechercher par pays",
+      "no_regions_found": "Aucune région correspondant à vos critères de recherche : {{searchString}}"
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Sélectionnez un mode de paiement"
+    },
+    "payment_duration": {
+      "instant": "Instantané",
+      "1_to_2_days": "1 à 2 jours"
+    },
+    "unsupported_region_modal": {
+      "title": "Région non prise en charge",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "title": "Approvisionnez votre portefeuille avec des USDC",
+      "bullet_1_title": "Adossé au dollar américain",
+      "bullet_1_description": "Maintient un ratio de 1:1 avec le dollar américain.",
+      "bullet_2_title": "Faible volatilité",
+      "bullet_2_description": "Sa valeur stable offre une protection contre la volatilité des marchés.",
+      "bullet_3_title": "Plus rapide que les banques",
+      "bullet_3_description": "Les transferts rapides via la blockchain surpassent les opérations bancaires traditionnelles.",
+      "button": "Commencer"
     },
     "enter_email": {
       "title": "Saisissez votre adresse e-mail",
@@ -496,7 +550,8 @@
       "input_placeholder": "nom@domaine.com",
       "submit_button": "Envoyer l’e-mail",
       "loading": "Envoi de l’e-mail…",
-      "validation_error": "Veuillez saisir une adresse e-mail valide"
+      "validation_error": "Veuillez saisir une adresse e-mail valide",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
       "title": "Saisissez le code à six chiffres",
@@ -504,7 +559,14 @@
       "submit_button": "Soumettre",
       "loading": "Vérification du code…",
       "invalid_code_error": "Code non valide",
-      "validation_error": "Veuillez saisir un code valide"
+      "validation_error": "Veuillez saisir un code valide",
+      "need_help": "Besoin d’aide ?",
+      "resend_code_description": "Vous n’avez pas reçu le code ?",
+      "resend_code_error": "Erreur lors du renvoi du code.",
+      "resend_code_button": "Renvoyer le code",
+      "resend_cooldown": "Renvoyer le code dans {{seconds}} secondes",
+      "contact_support": "Contacter le service d’assistance",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "Vérifier votre identité",
@@ -515,7 +577,23 @@
     "basic_info": {
       "title": "Saisissez vos informations de base",
       "continue": "Continuer",
-      "subtitle": "Pour commencer à vérifier votre identité, nous avons besoin de quelques informations de base."
+      "subtitle": "Pour commencer à vérifier votre identité, nous avons besoin de quelques informations de base.",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "phone_number": "Numéro de téléphone",
+      "date_of_birth": "Date de naissance",
+      "social_security_number": "Numéro de sécurité sociale",
+      "enter_phone_number": "Saisissez le numéro de téléphone",
+      "select_region": "Sélectionner la région",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "Saisissez votre adresse",
@@ -526,23 +604,189 @@
       "state": "État/Région",
       "city": "Ville",
       "postal_code": "Code postal",
-      "country": "Pays"
+      "country": "Pays",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "title": "Vérification de votre identité",
+      "heading": "Hang tight!",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "Nous n’avons pas pu vérifier votre identité.",
+      "error_description": "Essayez à nouveau de télécharger vos documents et soumettez-les pour vérification.",
+      "error_button": "Vérifier à nouveau",
+      "success_heading": "Identité vérifiée !",
+      "success_description": "Vous pouvez maintenant saisir vos informations de paiement et finaliser votre dépôt.",
+      "success_button": "Finalisez votre commande"
+    },
+    "provider_webview": {
+      "title": "Dépôt"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "Vérification de votre identité",
+      "webview_received_error": "WebView a reçu le code d’erreur : {{code}}"
+    },
+    "order_processing": {
+      "title": "Traitement du dépôt",
+      "button": "Fermer",
+      "description": "Vous pouvez finaliser les achats par carte de crédit/débit en quelques minutes",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "Dépôt effectué ",
+      "success_description": "Votre dépôt de {{amount}} {{currency}} a été effectué !",
+      "error_title": "Le dépôt a échoué",
+      "error_description": "Nous n’avons pas pu effectuer votre dépôt",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "Réessayer",
+      "contact_support_button": "Contacter l’assistance",
+      "account": "Compte",
+      "network": "Réseau",
+      "order_id": "Numéro de la commande",
+      "fees": "Frais",
+      "total": "Total",
+      "view_order_details_in_transak": "Consulter les détails de la commande dans Transak",
+      "no_order_found": "Aucune commande trouvée",
+      "back_to_wallet": "Retour au portefeuille",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "Demande de dépôt",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "Le dépôt de {{currency}} a échoué ! Veuillez réessayer et nous excuser pour les désagréments occasionnés.",
+      "deposit_failed_description": "Vérifiez si votre méthode de paiement ou votre carte bancaire est prise en charge",
+      "deposit_cancelled_title": "Votre dépôt a été annulé",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "Votre dépôt de {{amount}} {{currency}} a été effectué !",
+      "deposit_completed_description": "Vos {{currency}} sont désormais disponibles dans votre portefeuille",
+      "deposit_pending_title": "Traitement de votre dépôt de {{currency}}",
+      "deposit_pending_description": "Cela ne devrait prendre que quelques minutes…"
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
     }
   },
   "receive": {
@@ -597,6 +841,10 @@
     "solana": {
       "title": "Solana est désormais pris en charge",
       "subtitle": "Créez un compte Solana pour commencer"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Présentation de la fonction de sauvegarde et de synchronisation",
@@ -806,9 +1054,9 @@
     "action_description_1_prefix": "Privé :",
     "action_description_2_prefix": "Général :",
     "action_description_3_prefix": "Facultatif :",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "Les clics et les contenus visualisés sur l’application sont enregistrés, mais d’autres renseignements (comme votre adresse publique) ne le sont pas.",
+    "action_description_2_description": "Nous utilisons votre adresse IP de temps en temps pour déterminer votre emplacement général (comme votre pays ou votre région), mais nous ne l’enregistrons pas.",
+    "action_description_3_description": "Vous pouvez décider à tout moment de partager ou de supprimer vos données d’utilisation dans les paramètres.",
     "cta_no_thanks": "Non, merci.",
     "cta_i_agree": "J’accepte",
     "fine_print_1_legacy": "Conformément au règlement général sur la protection des données (UE) 2016/679, ces données sont agrégées pour préserver l’anonymat des utilisateurs.",
@@ -1084,9 +1332,11 @@
     "clear_browser_cookies_desc": "Effacer les cookies du navigateur",
     "clear": "EFFACER",
     "protect_cta": "Protéger",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "Échec du chargement de la vidéo.",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "Sauvegardez votre phrase secrète de récupération pour ne jamais perdre l’accès à votre portefeuille. Veillez à la conserver dans un endroit sûr auquel personne d’autre que vous ne peut accéder et que vous ne risquez pas d’oublier.",
     "protect_desc_no_backup": "Voici la phrase de 12 mots de votre portefeuille. Celle-ci peut être utilisée pour prendre le contrôle de tous vos comptes actuels et futurs, y compris la possibilité d’envoyer des fonds dans votre portefeuille. Conservez-la en sécurité et ne la partagez avec PERSONNE. MetaMask ne peut en aucun cas vous aider à récupérer cette clé.",
     "learn_more": "En savoir plus.",
     "seedphrase_not_backed_up": "Attention ! Phrase secrète de récupération non sauvegardée",
@@ -1147,7 +1397,7 @@
     "no_permissions_desc": "Les comptes que vous connectez à un site ou à une application seront affichés ici.",
     "security_title": "Sécurité et confidentialité",
     "back": "Retour",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "Paramètres de confidentialité, MetaMetrics, clé privée et phrase secrète de récupération.",
     "networks_title": "Réseaux",
     "networks_default_title": "Réseau par défaut",
     "network_delete": "Si vous supprimez ce réseau, vous devrez l’ajouter à nouveau pour voir vos actifs sur ce réseau",
@@ -1212,9 +1462,6 @@
     "invalid_password": "Mot de passe incorrect",
     "invalid_password_message": "Le mot de passe était incorrect. Veuillez réessayer.",
     "security_heading": "Sécurité",
-    "ses_heading": "Verrouillage du code",
-    "ses_description": "Il s’agit d’une fonction expérimentale qui bloque toute modification non autorisée du code JavaScript de l’application.",
-    "ses_link": "En savoir plus",
     "general_heading": "Général",
     "privacy_heading": "Confidentialité",
     "failed_to_fetch_chain_id": "Impossible de récupérer l’identificateur de chaîne. Votre URL de RPC est-elle correcte ?",
@@ -1264,9 +1511,9 @@
     "check_status_button": "Vérifier l’état",
     "delete_metrics_confirm_modal_title": "Voulez-vous supprimer les données MetaMetrics ?",
     "delete_metrics_confirm_modal_description": "Nous sommes sur le point de supprimer toutes vos données MetaMetrics. Êtes-vous sûr(e) de vouloir continuer ?",
-    "delete_wallet_data_title": "Supprimer le portefeuille",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "Cela supprimera toutes les données liées au portefeuille de votre appareil. Vos comptes existent sur la blockchain et ne sont pas liés à MetaMask. Vous pouvez toujours récupérer vos comptes en utilisant votre phrase secrète de récupération.",
-    "delete_wallet_data_button": "Supprimer le portefeuille",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "État d’avancement de la suppression",
     "delete_data_status_description": "L’état actuel de la demande est",
     "delete_metrics_error_title": "Il nous est impossible de supprimer ces données pour le moment.",
@@ -1294,8 +1541,8 @@
       "add": "Ajouter",
       "update": "Mise à jour",
       "cancel": "Annuler",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "Déconnectez-vous de {{depositProviderName}}",
+      "deposit_provider_logged_out": "Déconnecté de {{depositProviderName}}"
     },
     "request_feature": "Demander une fonction",
     "contact_support": "Contacter l’assistance",
@@ -1393,6 +1640,9 @@
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "dismiss_smart_account_update_heading": "Ignorer la suggestion « Passer à un compte intelligent »",
     "dismiss_smart_account_update_desc": "Activez cette option si vous ne voulez plus voir la suggestion « Passer à un compte intelligent » sur aucun de vos comptes. Les comptes intelligents vous permettent de bénéficier de transactions plus rapides, de frais de réseau moins élevés et d’une plus grande flexibilité de paiement.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Transactions intelligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Activez les transactions intelligentes pour profiter de transactions plus fiables et plus sûres sur les réseaux pris en charge.",
     "smart_transactions_learn_more": "En savoir plus.",
@@ -1477,14 +1727,14 @@
     "done": "Terminé",
     "confirm": "Suivant",
     "seed_phrase_explanation": [
-      "La",
-      "phrase secrète de récupération (PSR)",
+      "Votre",
+      "Phrase secrète de récupération",
       "donne",
       "un accès complet à votre portefeuille, vos fonds et vos comptes.\n\n",
       "MetaMask est un",
       "portefeuille non dépositaire.",
       "Cela signifie que",
-      "vous êtes le responsable exclusif de votre PSR."
+      "vous êtes le/la propriétaire de votre phrase secrète de récupération."
     ],
     "private_key_explanation": "Conservez-la dans un endroit sûr et secret.",
     "private_key_warning": "Il s’agit de la clé privée du compte actuellement sélectionné : {{accountName}}. Ne divulguez jamais cette clé. Quiconque est en sa possession peut exercer un contrôle total sur votre compte, y compris le transfert de vos fonds.",
@@ -1537,7 +1787,7 @@
     "password_desc": "Choisissez un mot de passe fort pour déverrouiller l’application MetaMask sur votre appareil. Si vous oubliez ce mot de passe, vous aurez besoin de votre phrase secrète de récupération pour réimporter votre portefeuille.",
     "password_learn_more": "En savoir plus.",
     "change_password": "Modifier le mot de passe",
-    "password_hint": "Password hint"
+    "password_hint": "Indice de mot de passe"
   },
   "asset_overview": {
     "send_button": "Envoyer",
@@ -1547,6 +1797,7 @@
     "receive_button": "Recevoir",
     "portfolio_button": "Portfolio",
     "earn_button": "Gagner",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "Ajouter",
     "info": "Infos",
     "swap": "Échanger",
@@ -1559,7 +1810,8 @@
       "bridge": "Impossible d’établir une passerelle en utilisant ce compte",
       "send": "Impossible d’effectuer un envoi en utilisant ce compte",
       "action": "Cette action ne peut pas être effectuée en utilisant ce compte",
-      "earn": "Les gains ne sont pas pris en charge pour ce compte"
+      "earn": "Les gains ne sont pas pris en charge pour ce compte",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Offre totale",
@@ -1576,6 +1828,7 @@
     "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
     "receive_description": "Recevoir des crypto-actifs",
     "earn_description": "Gagnez des récompenses avec vos jetons",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "Aujourd’hui",
       "7d": "Les 7 derniers jours",
@@ -1949,8 +2202,8 @@
     "tx_review_staking_claim": "Réclamation de staking",
     "tx_review_staking_deposit": "Dépôt de staking",
     "tx_review_staking_unstake": "Déstaker",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "Dépôt de prêt",
+    "tx_review_lending_withdraw": "Retrait de prêt",
     "sent_ether": "Ether envoyé(s)",
     "self_sent_ether": "Ether envoyé(s) à vous-même",
     "received_ether": "Ether reçu(s)",
@@ -2097,7 +2350,8 @@
     "add_input_placeholder": "Adresse publique (0x) ou ENS",
     "between_account": "Transfert entre mes comptes",
     "others": "Autres",
-    "memo": "Mémo"
+    "memo": "Mémo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "Il s’agit d’une adresse dupliquée",
@@ -2349,21 +2603,21 @@
     "info_text_1_2": "phrase secrète de récupération",
     "info_text_1_3": "en lieu sûr.",
     "info_text_1_4": "C’est le seul et unique moyen de récupérer votre portefeuille si vous n’avez plus accès à l’application ou si vous changez d’appareil.",
-    "cta_text": "Get started",
+    "cta_text": "Commencer",
     "cta_subText": "Vivement recommandé",
     "skip_button_cancel": "Sécuriser maintenant",
     "skip_button_confirm": "Ignorer",
     "skip_title": "Renoncer à la sécurité du compte ?",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "Si vous perdez cette phrase secrète de récupération, vous ne pourrez plus accéder à ce portefeuille.",
+    "what_is_seedphrase_title": "Qu’est-ce qu’une « phrase secrète de récupération » ?",
+    "what_is_seedphrase_text_1": "Une phrase secrète de récupération, également appelée phrase secrète ou phrase mnémonique, est une série de mots qui vous permet d’accéder à votre portefeuille crypto et de le gérer. Vous en aurez besoin pour transférer votre portefeuille vers MetaMask.",
     "what_is_seedphrase_text_2": "Vous devez garder votre phrase secrète de récupération en lieu sûr. Si quelqu’un en prend connaissance, il/elle prendra le contrôle de vos comptes.",
     "what_is_seedphrase_text_3": "Conservez-la dans un endroit où vous êtes le/la seul(e) à pouvoir y accéder. Si vous la perdez, même MetaMask ne pourra pas vous aider à la récupérer.",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "Toute personne disposant de votre phrase secrète de récupération peut :",
+    "seedPhrase_point_1": "Retirer tout votre argent",
+    "seedPhrase_point_2": "Confirmer des transactions",
+    "seedPhrase_point_3": "Modifier vos identifiants de connexion",
+    "what_is_seedphrase_confirm": "J’ai compris"
   },
   "account_backup_step_1B": {
     "title": "Sécurisez votre portefeuille",
@@ -2454,40 +2708,40 @@
     "progressThree": "Confirmez la phrase secrète de récupération"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "Étape {{currentStep}} sur {{totalSteps}}",
+    "action": "Enregistrez votre phrase secrète de récupération",
+    "info-1": "Voici votre",
+    "info-2": "Phrase secrète de récupération",
+    "info-3": "Notez-la bien et conservez-la en lieu sûr. Si quelqu’un dispose de votre phrase secrète de récupération, il peut accéder à votre portefeuille.",
+    "info-4": "Ne la divulguez jamais à une autre personne.",
     "continue": "Continuer",
-    "reveal": "Tap to reveal",
+    "reveal": "Appuyez pour l’afficher",
     "watching": "Assurez-vous que personne ne regarde votre écran.",
     "view": "Afficher",
     "confirm_password": "Confirmez votre nouveau mot de passe",
     "before_continiuing": "Avant de continuer, veuillez confirmer votre mot de passe",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "Saisissez votre mot de passe actuel",
+    "confirm": "Confirmer",
     "got_it": "J’ai compris",
     "learn_more": "En savoir plus",
-    "password": "Password"
+    "password": "Mot de passe"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "Étape {{currentStep}} sur {{totalSteps}}",
+    "action": "Confirmez votre phrase secrète de récupération",
+    "info": "Sélectionnez les mots manquants dans le bon ordre.",
     "complete": "Terminer la sauvegarde",
     "success": "Réussi",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "Pas tout à fait correct",
+    "error-description": "Vérifiez votre phrase secrète de récupération et réessayez.",
+    "success-title": "Parfait !",
+    "success-description": "C’est exact ! Et n’oubliez pas : ne partagez jamais cette phrase avec qui que ce soit.",
+    "success-button": "J’ai compris",
+    "error-button": "Réessayer",
+    "continue": "Continuer"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "congratulations": "Félicitations",
     "success": "Vous avez assuré la protection de votre portefeuille. N’oubliez pas de conserver votre phrase secrète de récupération en lieu sûr. Vous en êtes responsable !",
     "hint": "Laissez-vous un indice ?",
@@ -3106,7 +3360,7 @@
       "sale_pending_description": "Votre commande est en train d’être traitée.",
       "no_date": "Inconnu"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "Dépôt en {{currency}}"
   },
   "swaps": {
     "title": "Échanger",
@@ -3818,10 +4072,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Prêtez des {{tokenSymbol}} et gagnez",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "Prêtez vos {{tokenSymbol}} avec {{protocol}} et touchez un revenu",
+      "annually": "annuel.",
+      "learn_more": "En savoir plus.",
+      "earn": "Gagner"
     },
     "service_interruption_banner": {
       "maintenance_message": "Maintenance en cours. Le service sera bientôt rétabli !"
@@ -3849,50 +4103,51 @@
       "withdrawal_time": "Le délai nécessaire pour retirer votre jeton du protocole et le replacer dans votre portefeuille",
       "receive": "Ce jeton permet de suivre l’évolution de vos actifs et de vos récompenses. Ne le transférez pas et ne l’échangez pas, sinon vous ne pourrez pas retirer vos actifs.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "Votre facteur de santé financière mesure le risque de liquidation",
+        "above_two_dot_zero": "Au-dessus de 2",
+        "safe_position": "Position sans risque",
+        "between_one_dot_five_and_2_dot_zero": "Entre 1,5 et 2",
+        "medium_liquidation_risk": "Risque de liquidation modéré",
+        "below_one_dot_five": "En dessous de 1,5",
+        "higher_liquidation_risk": "Risque de liquidation élevé"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "Pourquoi je ne peux pas retirer la totalité de mon solde ?",
+        "your_withdrawal_amount_may_be_limited_by": "Le montant que vous pouvez retirer peut être limité par",
+        "pool_liquidity": "Le pool de liquidités",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "Il n’y a pas suffisamment de fonds disponibles dans le pool de prêt pour le moment.",
+        "existing_borrow_positions": "Positions d’emprunt existantes",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Un retrait pourrait exposer vos positions de prêt existantes à un risque de liquidation."
       }
     },
     "withdraw": "Retirer",
     "deposit_more": "Déposer plus",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "Revenus",
+    "withdrawal_time": "Délai de retrait",
+    "withdrawing_to": "Retrait vers",
+    "network": "Réseau",
+    "health_factor": "Facteur de santé financière",
+    "liquidation_risk": "Risque de liquidation",
+    "insufficient_pool_liquidity": "Pool de liquidités insuffisant",
+    "available_to_withdraw": "disponible pour le retrait",
+    "unknown": "inconnu",
+    "how_it_works": "Comment ça marche ",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "Gagnez des récompenses sur vos {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Prêtez vos {{tokenSymbol}} avec {{protocol}} et gagnez des récompenses quotidiennes. Elles augmentent avec le temps et le taux annuel effectif global (TAEG) varie.",
+      "withdraw_whenever_you_want": "Effectuez un retrait quand vous le souhaitez",
+      "get_asset_back_in_your_wallet_instantly": "Récupérez et déposez instantanément vos {{tokenSymbol}} dans votre portefeuille."
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "Le montant dépasse la limite de retrait sans risque",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "Afficher l’historique des positions",
+      "staking": "Afficher l’historique des revenus"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "Historique des positions",
+      "staking": "Historique des versements"
+    },
+    "allowance_reset": "Réinitialisation de l’allocation"
   },
   "stake": {
     "stake": "Staker",
@@ -3992,8 +4247,9 @@
     "estimated_unstaking_time": "1 à 11 jours",
     "proceed_anyway": "Continuer quand même",
     "gas_cost_impact": "Impact du coût du gaz",
-    "select_a_token": "Sélectionnez un jeton",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "Vous pouvez gagner jusqu’à",
     "per_year_on_your_tokens": "par an avec vos jetons",
     "deposit": "Dépôt",
     "gas_cost_impact_warning": "Attention : le coût du gaz de la transaction représente plus de {{percentOverDeposit}} % de votre dépôt.",
@@ -4109,6 +4365,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Montant",
+      "value": "Valeur",
       "account": "Compte",
       "balance": "Solde",
       "interacting_with": "Interagissant avec",
@@ -4127,19 +4385,29 @@
       "permit_NFTs": "Demande de retrait",
       "signature_siwe": "Demande de connexion",
       "contract_interaction": "Demande de transaction",
+      "contract_deployment": "Déployer un contrat",
       "transfer": "Demande de transfert",
       "switch_account_type": "Mise à jour du compte",
-      "approve": "Approve request"
+      "approve": "Approuver la demande"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
+      "permit_revoke": "Vous allez retirer à quelqu’un l’autorisation de dépenser des jetons depuis votre compte.",
       "permit_NFTs": "Ce site demande l’autorisation de retirer vos jetons.",
+      "permit_revoke_NFTs": "Ce site souhaite réinitialiser la limite de retrait pour vos NFT",
       "signature": "Vérifiez les détails de la demande avant de la confirmer.",
       "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte.",
       "contract_interaction": "Vérifiez les détails de la demande avant de la confirmer.",
       "switch_to_smart_account": "Vous passez à un compte intelligent.",
-      "switch_to_standard_account": "Vous revenez à un compte standard (EOA)."
+      "switch_to_standard_account": "Vous revenez à un compte standard (EOA).",
+      "contract_deployment": "Ce site souhaite que vous déployiez un contrat",
+      "decrease_allowance": "Ce site souhaite réduire le plafond de dépenses pour vos jetons."
     },
+    "spending_cap": "Plafond de dépenses",
+    "withdraw": "Retirer",
+    "nfts": "NFT",
+    "permission_from": "Autorisation de",
+    "spender": "Dépenseur",
     "request_from": "Demande de",
     "staking_from": "Staking à partir de",
     "signing_in_with": "Se connecter avec",
@@ -4192,6 +4460,7 @@
       "smartAccountLabel": "Compte intelligent",
       "standardAccountLabel": "Compte standard",
       "switch": "Changer",
+      "switchBack": "Rétablir",
       "splashpage": {
         "accept": "Oui",
         "betterTransaction": "Des transactions plus rapides et des frais moins élevés",
@@ -4200,13 +4469,21 @@
         "payToken": "Payez à tout moment en utilisant le jeton de votre choix",
         "payTokenDescription": "Utilisez les jetons que vous possédez déjà pour couvrir les frais de réseau.",
         "reject": "Non",
-        "requestFor": "Demande de",
         "sameAccount": "Le même compte, mais avec des fonctionnalités plus intelligentes.",
-        "splashTitle": "Voulez-vous utiliser un compte intelligent ?",
-        "upgradeBannerDescription": "Le même compte. Des fonctionnalités plus intelligentes.",
-        "upgradeBannerTitle": "Passer à un compte intelligent"
+        "splashTitle": "Voulez-vous utiliser un compte intelligent ?"
       },
-      "includes_transaction": "Inclut {{transactionCount}} transactions"
+      "includes_transaction": "Inclut {{transactionCount}} transactions",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Illimité",
     "all": "Tout",
@@ -4266,6 +4543,7 @@
     "insufficient_funds": "Fonds insuffisants",
     "select_amount": "Sélectionnez le montant",
     "bridge_to": "Établir une passerelle vers",
+    "swap_to": "Swap to",
     "title": "Passerelle",
     "submitting_transaction": "En train d’envoyer",
     "fetching_quote": "Récupération de la cotation",
@@ -4277,6 +4555,11 @@
     "title": "De nouvelles cotations sont disponibles",
     "description": "Les taux de change sont mis à jour toutes les {{refreshRate}} secondes. Appuyez sur « Obtenir une nouvelle cotation » lorsque vous êtes prêt.",
     "get_new_quote": "Obtenir une nouvelle cotation"
+  },
+  "blockaid_modal": {
+    "simulation_title": "La transaction a échoué lors de la simulation",
+    "validation_title": "Échec de la validation de la transaction",
+    "go_back": "Retour"
   },
   "bridge_transaction_details": {
     "status": "État",
@@ -4292,6 +4575,54 @@
     "transaction_details": "Détails de la transaction",
     "bridge_to_chain": "Passerelle vers {{chainName}}",
     "recipient": "Destinataire"
+  },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
   },
   "backupAndSync": {
     "title": "Sauvegarder et synchroniser",
@@ -4340,11 +4671,18 @@
       "private_key": "Clé privée"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "Détails"
+    },
+    "wallet_details": {
+      "wallet_name": "Nom du portefeuille",
+      "balance": "Solde",
+      "create_account": "Create account",
+      "back_up": "Sauvegarder",
+      "reveal_recovery_phrase_with_index": "Révéler la phrase de récupération {{index}}"
     },
     "smart_account": {
       "title": "Activer le compte intelligent",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "Vous pouvez activer les fonctionnalités du compte intelligent sur les réseaux pris en charge.",
       "learn_more": "En savoir plus"
     },
     "edit_account_name": {
@@ -4370,7 +4708,7 @@
     "export_credentials": {
       "export_private_key": "Clé privée",
       "private_key_warning_title": "Ne divulguez jamais cette clé.",
-      "private_key_warning_description": "Toute personne disposant de votre clé privée peut voler les actifs détenus sur votre compte.",
+      "private_key_warning_description": "Toute personne disposant de votre clé privée peut voler les actifs détenus dans votre compte.",
       "credential_as_text": "Texte",
       "credential_as_qr": "Code QR",
       "export_mnemonic": "Exporter la phrase mnémonique",
@@ -4379,7 +4717,7 @@
     "reveal_private_key": {
       "title": "Afficher la clé privée",
       "banner_title": "Ne divulguez jamais cette clé.",
-      "banner_description": "Toute personne disposant de votre clé privée peut voler les actifs détenus sur votre compte.",
+      "banner_description": "Toute personne disposant de votre clé privée peut voler les actifs détenus dans votre compte.",
       "enter_password": "Saisissez votre mot de passe",
       "password_placeholder": "Mot de passe",
       "next": "Suivant",
@@ -4394,19 +4732,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "Redirection vers MetaMask",
+      "description": "Si vous continuez, vous ouvrirez {{pageTitle}}.",
+      "checkbox_label": "Ne plus me le rappeler"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "Agissez avec prudence",
+      "description": "Vous avez été redirigé(e) ici par un tiers et non par MetaMask. Si vous continuez, vous ouvrirez {{pageTitle}}."
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "Cette page n’existe pas",
+      "description": "Nous n’avons pas trouvé la page que vous recherchez."
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "Retour",
+    "continue_button": "Continuer"
   }
 }
