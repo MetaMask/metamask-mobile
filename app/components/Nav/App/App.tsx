@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useNavigationState } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -832,6 +832,7 @@ const AppFlow = () => {
 const App: React.FC = () => {
   const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const routes = useNavigationState((state) => state.routes);
   const [onboarded, setOnboarded] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
@@ -859,6 +860,14 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          // Check if we came from Settings screen to skip auto-authentication
+          const previousRoute = routes[routes.length - 2]?.name; // Get the previous route
+          
+          // Skip auto-authentication if we came from Settings screen
+          if (previousRoute === 'Settings') {
+            return;
+          }
+          
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -914,7 +923,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation]);
+  }, [navigation, routes]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
