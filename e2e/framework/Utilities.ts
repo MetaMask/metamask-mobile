@@ -232,7 +232,9 @@ export default class Utilities {
       }
     }
 
-    if (checkEnabled) {
+    if (checkEnabled && device.getPlatform() === 'android') {
+      // checkEnabled is only relevant for Android
+      // iOS elements often fail on enabled checks even when they are tappable
       await this.checkElementEnabled(Promise.resolve(el));
     }
 
