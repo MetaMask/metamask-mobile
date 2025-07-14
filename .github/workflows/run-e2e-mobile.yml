@@ -49,7 +49,7 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
-          matrix-index: ${{ inputs.matrix-index }}
+          cache-unique-id: ${{ github.run_id }}-${{ inputs.test-suite-name }}-${{ github.run_attempt }}
 
       - name: Run E2E tests
         run: |

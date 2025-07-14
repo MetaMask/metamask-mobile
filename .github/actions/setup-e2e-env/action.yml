@@ -29,10 +29,9 @@ inputs:
     description: 'Cache key prefix'
     required: false
     default: 'e2e'
-  matrix-index:
-    description: 'Matrix index for cache isolation'
-    required: false
-    default: '0'
+  cache-unique-id:
+    description: 'Unique ID for complete cache isolation'
+    required: true
   ruby-version:
     description: Ruby version to use (only for iOS)
     required: false
@@ -93,9 +92,7 @@ runs:
       with:
         path: |
           node_modules
-        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-
+        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('yarn.lock') }}
 
     - name: Install JavaScript dependencies
       id: yarn-install
@@ -142,9 +139,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ios/vendor/bundle
-        key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-${{ hashFiles('ios/Gemfile.lock') }}
-        restore-keys: |
-          ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-
+        key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Gemfile.lock') }}
 
     # Configure bundler to use a specific path for gem installation
     - name: Configure bundler install path
@@ -172,9 +167,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ios/Pods
-        key: ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-${{ hashFiles('ios/Podfile.lock') }}
-        restore-keys: |
-          ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.matrix-index }}-
+        key: ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Podfile.lock') }}
 
     # Install CocoaPods w/ cached bundler environment
     - name: Install CocoaPods via bundler
