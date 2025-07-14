@@ -56,7 +56,10 @@ export const acceptTermOfUse = async () => {
  *   - 'create': Taps "Create Account" on the Solana sheet.
  *   - 'viewAccount': Intended to navigate to a view/manage existing account flow for Solana.
  */
-export const closeOnboardingModals = async (solanaSheetAction = 'dismiss', fromResetWallet = false) => {
+export const closeOnboardingModals = async (
+  solanaSheetAction = 'dismiss',
+  fromResetWallet = false,
+) => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
@@ -76,7 +79,7 @@ have to have all these workarounds in the tests
   }
 
   if (!fromResetWallet) {
-      // Handle Solana New feature sheet
+    // Handle Solana New feature sheet
     if (solanaSheetAction === 'dismiss') {
       await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
       await SolanaNewFeatureSheet.tapNotNowButton();
@@ -143,11 +146,13 @@ export const importWalletWithRecoveryPhrase = async ({
 } = {}) => {
   // tap on import seed phrase button
 
-
   if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container, {
-    description: 'Onboarding Carousel should be visible',
-    });
+    await Assertions.expectElementToBeVisible(
+      OnboardingCarouselView.container,
+      {
+        description: 'Onboarding Carousel should be visible',
+      },
+    );
     await OnboardingCarouselView.tapOnGetStartedButton();
     await acceptTermOfUse();
   }
@@ -170,16 +175,16 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-
-  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
-    description: 'MetaMetrics Opt-In should be visible',
-  });
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
+  if (!fromResetWallet) {
+    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+      description: 'MetaMetrics Opt-In should be visible',
+    });
+    if (optInToMetrics) {
+      await MetaMetricsOptIn.tapAgreeButton();
+    } else {
+      await MetaMetricsOptIn.tapNoThanksButton();
+    }
   }
-
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -310,7 +315,7 @@ export const switchToSepoliaNetwork = async () => {
 
 /**
  * Logs into the application using the provided password or a default password.
- * 
+ *
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
