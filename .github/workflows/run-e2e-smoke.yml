@@ -6,10 +6,13 @@ name: Mobile E2E Smoke Tests
 on:
   workflow_call:
   workflow_dispatch:
+  pull_request:
+    types: [labeled]
 
 jobs:
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -24,6 +27,7 @@ jobs:
 
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -38,6 +42,7 @@ jobs:
 
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -52,6 +57,7 @@ jobs:
 
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -66,6 +72,7 @@ jobs:
 
   smoke-trade-android:
     name: "Trade Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -80,6 +87,7 @@ jobs:
 
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -94,6 +102,7 @@ jobs:
 
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -108,6 +117,7 @@ jobs:
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -122,6 +132,7 @@ jobs:
 
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -136,6 +147,7 @@ jobs:
 
   smoke-network-expansion-ios:
     name: "Network Expansion Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -150,6 +162,7 @@ jobs:
 
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -164,6 +177,7 @@ jobs:
 
   smoke-api-specs-ios:
     name: "API Specs Smoke (iOS only)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     strategy:
       fail-fast: false
@@ -176,138 +190,138 @@ jobs:
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
 
-  test-e2e-mobile-smoke-report:
-    needs:
-      - smoke-confirmations-ios
-      - smoke-confirmations-android
-      - smoke-confirmations-redesigned-ios
-      - smoke-trade-ios
-      - smoke-trade-android
-      - smoke-wallet-platform-ios
-      - smoke-wallet-platform-android
-      - smoke-network-abstraction-ios
-      - smoke-network-abstraction-android
-      - smoke-network-expansion-ios
-      - smoke-network-expansion-android
-      - smoke-api-specs-ios
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OWNER: ${{ github.repository_owner }}
-      REPOSITORY: ${{ github.event.repository.name }}
-      BRANCH: ${{ github.head_ref || github.ref_name }}
-    steps:
-      - name: Checkout and setup environment
-        uses: MetaMask/action-checkout-and-setup@v1
-        with:
-          is-high-risk-environment: false
-          skip-allow-scripts: true
-          yarn-custom-url: ${{ vars.YARN_URL }}
-
-      - name: Download test results
-        uses: actions/download-artifact@v4
-        with:
-          path: .
-          pattern: smoke-*
-          merge-multiple: true
-
-      - name: Aggregate and summarize results
-        run: |
-          echo "# Mobile E2E Smoke Test Results (Category + Matrix Sharding)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🚀 **Architecture**: Category separation + Matrix sharding (like Firefox E2E)" >> $GITHUB_STEP_SUMMARY
-          echo "⚡ **Performance**: ~35+ parallel jobs vs previous 12 sequential category jobs" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Matrix job patterns to check
-          categories=(
-            "confirmations-ios"
-            "confirmations-android" 
-            "confirmations-redesigned-ios"
-            "trade-ios"
-            "trade-android"
-            "wallet-platform-ios"
-            "wallet-platform-android"
-            "network-abstraction-ios"
-            "network-abstraction-android"
-            "network-expansion-ios"
-            "network-expansion-android"
-            "api-specs-ios"
-          )
-          
-          total_jobs=0
-          passed_jobs=0
-          failed_jobs=0
-          
-          echo "## Results by Category (Matrix Sharded)" >> $GITHUB_STEP_SUMMARY
-          
-          for category in "${categories[@]}"; do
-            echo "### $category" >> $GITHUB_STEP_SUMMARY
-            
-            # Count shards for this category
-            shards_found=0
-            shards_passed=0
-            shards_failed=0
-            
-            for shard_dir in smoke-${category}-*; do
-              if [ -d "$shard_dir" ]; then
-                shards_found=$((shards_found + 1))
-                total_jobs=$((total_jobs + 1))
-                
-                shard_index=$(echo "$shard_dir" | sed "s/smoke-${category}-//")
-                
-                if [ -f "$shard_dir/e2e/reports/junit.xml" ]; then
-                  if grep -q 'failures="0"' "$shard_dir/e2e/reports/junit.xml" 2>/dev/null; then
-                    shards_passed=$((shards_passed + 1))
-                    passed_jobs=$((passed_jobs + 1))
-                    echo "  - ✅ **Shard $shard_index**: PASSED" >> $GITHUB_STEP_SUMMARY
-                  else
-                    shards_failed=$((shards_failed + 1))
-                    failed_jobs=$((failed_jobs + 1))
-                    echo "  - ❌ **Shard $shard_index**: FAILED" >> $GITHUB_STEP_SUMMARY
-                  fi
-                else
-                  shards_failed=$((shards_failed + 1))
-                  failed_jobs=$((failed_jobs + 1))
-                  echo "  - ❌ **Shard $shard_index**: NO RESULTS" >> $GITHUB_STEP_SUMMARY
-                fi
-              fi
-            done
-            
-            if [ $shards_found -eq 0 ]; then
-              echo "  - ❌ **No shards found**" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "  - **Total Shards**: $shards_found | **Passed**: $shards_passed | **Failed**: $shards_failed" >> $GITHUB_STEP_SUMMARY
-            fi
-            echo "" >> $GITHUB_STEP_SUMMARY
-          done
-          
-          echo "## Overall Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total Matrix Jobs**: $total_jobs" >> $GITHUB_STEP_SUMMARY
-          echo "- **Passed**: $passed_jobs" >> $GITHUB_STEP_SUMMARY
-          echo "- **Failed**: $failed_jobs" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### Architecture Benefits" >> $GITHUB_STEP_SUMMARY
-          echo "- **Category Organization**: Clear separation by smoke test type" >> $GITHUB_STEP_SUMMARY
-          echo "- **Matrix Sharding**: Multiple parallel jobs per category" >> $GITHUB_STEP_SUMMARY
-          echo "- **Maximum Parallelization**: ~35+ jobs vs 12 sequential jobs" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dynamic Discovery**: Test files discovered automatically" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platform Separation**: Clear iOS/Android job separation" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Set overall result
-          if [ $failed_jobs -eq 0 ]; then
-            echo "🎉 All smoke test matrix jobs passed!" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Some smoke test matrix jobs failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Upload aggregated test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobile-smoke-test-report
-          path: test/test-results/
-          retention-days: 7 
+  #test-e2e-mobile-smoke-report:
+  #  needs:
+  #    - smoke-confirmations-ios
+  #    - smoke-confirmations-android
+  #    - smoke-confirmations-redesigned-ios
+  #    - smoke-trade-ios
+  #    - smoke-trade-android
+  #    - smoke-wallet-platform-ios
+  #    - smoke-wallet-platform-android
+  #    - smoke-network-abstraction-ios
+  #    - smoke-network-abstraction-android
+  #    - smoke-network-expansion-ios
+  #    - smoke-network-expansion-android
+  #    - smoke-api-specs-ios
+  #  runs-on: ubuntu-latest
+  #  if: ${{ !cancelled() }}
+  #  env:
+  #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    OWNER: ${{ github.repository_owner }}
+  #    REPOSITORY: ${{ github.event.repository.name }}
+  #    BRANCH: ${{ github.head_ref || github.ref_name }}
+  #  steps:
+  #    - name: Checkout and setup environment
+  #      uses: MetaMask/action-checkout-and-setup@v1
+  #      with:
+  #        is-high-risk-environment: false
+  #        skip-allow-scripts: true
+  #        yarn-custom-url: ${{ vars.YARN_URL }}
+#
+  #    - name: Download test results
+  #      uses: actions/download-artifact@v4
+  #      with:
+  #        path: .
+  #        pattern: smoke-*
+  #        merge-multiple: true
+#
+  #    - name: Aggregate and summarize results
+  #      run: |
+  #        echo "# Mobile E2E Smoke Test Results (Category + Matrix Sharding)" >> $GITHUB_STEP_SUMMARY
+  #        echo "" >> $GITHUB_STEP_SUMMARY
+  #        echo "🚀 **Architecture**: Category separation + Matrix sharding (like Firefox E2E)" >> $GITHUB_STEP_SUMMARY
+  #        echo "⚡ **Performance**: ~35+ parallel jobs vs previous 12 sequential category jobs" >> $GITHUB_STEP_SUMMARY
+  #        echo "" >> $GITHUB_STEP_SUMMARY
+  #        
+  #        # Matrix job patterns to check
+  #        categories=(
+  #          "confirmations-ios"
+  #          "confirmations-android" 
+  #          "confirmations-redesigned-ios"
+  #          "trade-ios"
+  #          "trade-android"
+  #          "wallet-platform-ios"
+  #          "wallet-platform-android"
+  #          "network-abstraction-ios"
+  #          "network-abstraction-android"
+  #          "network-expansion-ios"
+  #          "network-expansion-android"
+  #          "api-specs-ios"
+  #        )
+  #        
+  #        total_jobs=0
+  #        passed_jobs=0
+  #        failed_jobs=0
+  #        
+  #        echo "## Results by Category (Matrix Sharded)" >> $GITHUB_STEP_SUMMARY
+  #        
+  #        for category in "${categories[@]}"; do
+  #          echo "### $category" >> $GITHUB_STEP_SUMMARY
+  #          
+  #          # Count shards for this category
+  #          shards_found=0
+  #          shards_passed=0
+  #          shards_failed=0
+  #          
+  #          for shard_dir in smoke-${category}-*; do
+  #            if [ -d "$shard_dir" ]; then
+  #              shards_found=$((shards_found + 1))
+  #              total_jobs=$((total_jobs + 1))
+  #              
+  #              shard_index=$(echo "$shard_dir" | sed "s/smoke-${category}-//")
+  #              
+  #              if [ -f "$shard_dir/e2e/reports/junit.xml" ]; then
+  #                if grep -q 'failures="0"' "$shard_dir/e2e/reports/junit.xml" 2>/dev/null; then
+  #                  shards_passed=$((shards_passed + 1))
+  #                  passed_jobs=$((passed_jobs + 1))
+  #                  echo "  - ✅ **Shard $shard_index**: PASSED" >> $GITHUB_STEP_SUMMARY
+  #                else
+  #                  shards_failed=$((shards_failed + 1))
+  #                  failed_jobs=$((failed_jobs + 1))
+  #                  echo "  - ❌ **Shard $shard_index**: FAILED" >> $GITHUB_STEP_SUMMARY
+  #                fi
+  #              else
+  #                shards_failed=$((shards_failed + 1))
+  #                failed_jobs=$((failed_jobs + 1))
+  #                echo "  - ❌ **Shard $shard_index**: NO RESULTS" >> $GITHUB_STEP_SUMMARY
+  #              fi
+  #            fi
+  #          done
+  #          
+  #          if [ $shards_found -eq 0 ]; then
+  #            echo "  - ❌ **No shards found**" >> $GITHUB_STEP_SUMMARY
+  #          else
+  #            echo "  - **Total Shards**: $shards_found | **Passed**: $shards_passed | **Failed**: $shards_failed" >> $GITHUB_STEP_SUMMARY
+  #          fi
+  #          echo "" >> $GITHUB_STEP_SUMMARY
+  #        done
+  #        
+  #        echo "## Overall Summary" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Total Matrix Jobs**: $total_jobs" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Passed**: $passed_jobs" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Failed**: $failed_jobs" >> $GITHUB_STEP_SUMMARY
+  #        echo "" >> $GITHUB_STEP_SUMMARY
+  #        
+  #        echo "### Architecture Benefits" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Category Organization**: Clear separation by smoke test type" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Matrix Sharding**: Multiple parallel jobs per category" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Maximum Parallelization**: ~35+ jobs vs 12 sequential jobs" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Dynamic Discovery**: Test files discovered automatically" >> $GITHUB_STEP_SUMMARY
+  #        echo "- **Platform Separation**: Clear iOS/Android job separation" >> $GITHUB_STEP_SUMMARY
+  #        echo "" >> $GITHUB_STEP_SUMMARY
+  #        
+  #        # Set overall result
+  #        if [ $failed_jobs -eq 0 ]; then
+  #          echo "🎉 All smoke test matrix jobs passed!" >> $GITHUB_STEP_SUMMARY
+  #        else
+  #          echo "⚠️ Some smoke test matrix jobs failed" >> $GITHUB_STEP_SUMMARY
+  #        fi
+#
+  #    - name: Upload aggregated test results
+  #      if: always()
+  #      uses: actions/upload-artifact@v4
+  #      with:
+  #        name: mobile-smoke-test-report
+  #        path: test/test-results/
+  #        retention-days: 7 
