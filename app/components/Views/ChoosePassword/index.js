@@ -253,6 +253,8 @@ class ChoosePassword extends PureComponent {
     trackOnboarding(eventBuilder.build(), this.props.saveOnboardingEvent);
   };
 
+  getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
+
   headerLeft = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -385,8 +387,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
-      authType.oauth2Login = oauth2LoginSuccess;
+      authType.oauth2Login = this.getOauth2LoginSuccess();
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -483,7 +484,7 @@ class ChoosePassword extends PureComponent {
       false,
     );
 
-    const oauth2LoginSuccess = this.props.route.params?.oauthLoginSuccess;
+    const oauth2LoginSuccess = this.getOauth2LoginSuccess();
     newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
@@ -695,12 +696,17 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('choose_password.steps', {
-                  currentStep: 1,
-                  totalSteps: 3,
-                })}
-              </Text>
+              {!this.getOauth2LoginSuccess() && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.steps', {
+                    currentStep: 1,
+                    totalSteps: 3,
+                  })}
+                </Text>
+              )}
 
               <View
                 style={styles.passwordContainer}
@@ -857,7 +863,9 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {this.getOauth2LoginSuccess()
+                          ? strings('import_from_seed.learn_more_social_login')
+                          : strings('import_from_seed.learn_more')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}

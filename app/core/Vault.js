@@ -2,6 +2,12 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import ReduxService from './redux';
+import { areAddressesEqual } from '../util/address';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from './Engine/controllers/seedless-onboarding-controller/error';
+
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 
 /**
@@ -45,7 +51,16 @@ export const recreateVaultWithNewPassword = async (
 
   let seedlessChangePasswordError = null;
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-    await SeedlessOnboardingController.changePassword(newPassword, password);
+    try {
+      await SeedlessOnboardingController.changePassword(newPassword, password);
+    } catch (error) {
+      Logger.error(error);
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error || 'Password change failed',
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
+      throw seedlessChangePasswordError;
+    }
   }
 
   setSelectedAddress(selectedAddress);

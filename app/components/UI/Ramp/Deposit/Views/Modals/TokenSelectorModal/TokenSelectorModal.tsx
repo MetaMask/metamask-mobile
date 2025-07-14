@@ -27,7 +27,7 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 
-import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -66,7 +66,9 @@ function TokenSelectorModal() {
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const allNetworkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {

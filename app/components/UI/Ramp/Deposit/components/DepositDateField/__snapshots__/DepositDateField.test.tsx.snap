@@ -79,30 +79,19 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           }
           testID="textfield-startacccessory"
         >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Calendar"
             style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 20,
-                },
-                {
-                  "color": "#121314",
-                  "marginRight": 8,
-                },
-                {
-                  "fontFamily": "Ionicons",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
+              {
+                "height": 20,
+                "width": 20,
+              }
             }
-          >
-            
-          </Text>
+            width={20}
+          />
         </View>
         <View
           style={
@@ -136,14 +125,14 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
                 "paddingVertical": 0,
               }
             }
-            value="01/01/2000"
+            value="01/01/2024"
           />
         </View>
       </View>
     </View>
   </View>,
   <RNDateTimePicker
-    date={946702800000}
+    date={1704085200000}
     displayIOS="default"
     enabled={true}
     maximumDate={1767157200000}
@@ -235,30 +224,19 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           }
           testID="textfield-startacccessory"
         >
-          <Text
-            allowFontScaling={false}
-            selectable={false}
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={20}
+            name="Calendar"
             style={
-              [
-                {
-                  "color": undefined,
-                  "fontSize": 20,
-                },
-                {
-                  "color": "#121314",
-                  "marginRight": 8,
-                },
-                {
-                  "fontFamily": "Ionicons",
-                  "fontStyle": "normal",
-                  "fontWeight": "normal",
-                },
-                {},
-              ]
+              {
+                "height": 20,
+                "width": 20,
+              }
             }
-          >
-            
-          </Text>
+            width={20}
+          />
         </View>
         <View
           style={
@@ -292,7 +270,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
                 "paddingVertical": 0,
               }
             }
-            value="01/01/2000"
+            value="01/01/2024"
           />
         </View>
       </View>
@@ -449,7 +427,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           </TouchableOpacity>
         </View>
         <RNDateTimePicker
-          date={946702800000}
+          date={1704085200000}
           displayIOS="spinner"
           enabled={true}
           maximumDate={1767157200000}
@@ -548,30 +526,19 @@ exports[`DepositDateField render matches snapshot 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
@@ -605,7 +572,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
               "paddingVertical": 0,
             }
           }
-          value="01/01/2000"
+          value="01/01/2024"
         />
       </View>
     </View>
@@ -690,30 +657,19 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
@@ -747,7 +703,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
               "paddingVertical": 0,
             }
           }
-          value="12/25/1990"
+          value="01/02/2024"
         />
       </View>
     </View>
@@ -832,30 +788,19 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
         }
         testID="textfield-startacccessory"
       >
-        <Text
-          allowFontScaling={false}
-          selectable={false}
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 20,
-              },
-              {
-                "color": "#121314",
-                "marginRight": 8,
-              },
-              {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </View>
       <View
         style={
@@ -889,7 +834,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
               "paddingVertical": 0,
             }
           }
-          value="01/01/2000"
+          value="01/01/2024"
         />
       </View>
     </View>
