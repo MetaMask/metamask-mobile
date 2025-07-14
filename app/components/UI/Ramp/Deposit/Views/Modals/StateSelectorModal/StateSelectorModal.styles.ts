@@ -42,4 +42,4 @@ const styleSheet = (params: {
   });
 };
 
-export default styleSheet; 
+export default styleSheet;
