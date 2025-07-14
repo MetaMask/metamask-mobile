@@ -5,22 +5,14 @@ import {
   type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
 import Text from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import type { Position } from '../controllers/types';
-import { formatPercentage, formatPrice } from '../utils/formatUtils';
 import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
@@ -260,7 +252,6 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
   // Calculate position metrics
-  const absoluteSize = Math.abs(parseFloat(position.size));
   const pnlNum = parseFloat(position.unrealizedPnl);
   const pnlPercentage = calculatePnLPercentageFromUnrealized({
     unrealizedPnl: pnlNum,
@@ -333,35 +324,6 @@ const PerpsPositionDetailsView: React.FC = () => {
     DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
   };
 
-  // Position details data
-  const positionDetails = useMemo(
-    () => [
-      { label: 'Size', value: `${absoluteSize.toFixed(6)} ${position.coin}` },
-      { label: 'Entry Price', value: formatPrice(position.entryPrice) },
-      {
-        label: 'Mark Price',
-        value: formatPrice(position.liquidationPrice || position.entryPrice),
-      },
-      { label: 'Position Value', value: formatPrice(position.positionValue) },
-      { label: 'Margin Used', value: formatPrice(position.marginUsed) },
-      { label: 'Leverage', value: `${position.leverage.value}x` },
-      {
-        label: 'Liquidation Price',
-        value: position.liquidationPrice
-          ? formatPrice(position.liquidationPrice)
-          : 'N/A',
-      },
-      {
-        label: 'ROE',
-        value: formatPercentage(parseFloat(position.returnOnEquity || '0')),
-      },
-      // TODO: Add actual TP/SL fields when available in Position type
-      { label: 'Take Profit', value: 'Not Set' },
-      { label: 'Stop Loss', value: 'Not Set' },
-    ],
-    [position, absoluteSize],
-  );
-
   if (!position) {
     return (
       <SafeAreaView style={styles.container}>
@@ -376,22 +338,12 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          iconColor={IconColor.Default}
-          size={ButtonIconSizes.Md}
-          onPress={handleBackPress}
-        />
-        <Text style={styles.headerTitle}>Position Details</Text>
-        <View style={styles.headerPlaceholder} />
-      </View>
-
       <ScrollView style={styles.container}>
         {/* Position Header */}
         <PerpsPositionHeader
           position={position}
           pnlPercentage={pnlPercentage}
+          onBackPress={handleBackPress}
         />
 
         {/* Chart */}

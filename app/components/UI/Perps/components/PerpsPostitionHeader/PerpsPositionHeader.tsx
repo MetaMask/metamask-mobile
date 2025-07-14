@@ -8,7 +8,11 @@ import Text, {
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import type { Position } from '../../controllers/types';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
@@ -17,11 +21,13 @@ import { styleSheet } from './PerpsPositionHeader.styles';
 interface PerpsPositionHeaderProps {
   position: Position;
   pnlPercentage: number;
+  onBackPress?: () => void;
 }
 
 const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
   position,
   pnlPercentage,
+  onBackPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(position.coin);
@@ -50,6 +56,18 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      {onBackPress && (
+        <View style={styles.backButton}>
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            iconColor={IconColor.Default}
+            size={ButtonIconSizes.Md}
+            onPress={onBackPress}
+          />
+        </View>
+      )}
+
       {/* Icon Section */}
       <View style={styles.perpIcon}>
         {assetUrl ? (

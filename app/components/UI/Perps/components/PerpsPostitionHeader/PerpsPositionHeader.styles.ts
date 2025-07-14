@@ -9,9 +9,12 @@ export const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
-      margin: 16,
       backgroundColor: colors.background.default,
+      marginVertical: 16,
       padding: 16,
+    },
+    backButton: {
+      marginRight: 8,
     },
     leftSection: {
       alignItems: 'flex-start' as const,
