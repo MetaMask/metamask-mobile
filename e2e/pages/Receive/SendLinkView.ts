@@ -32,4 +32,4 @@ class SendLinkView {
   }
 }
 
-export default new SendLinkView(); 
+export default new SendLinkView();
