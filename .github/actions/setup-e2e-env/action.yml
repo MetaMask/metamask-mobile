@@ -88,7 +88,8 @@ runs:
       shell: bash
 
     - name: Restore Yarn cache
-      uses: actions/cache@v4
+      id: restore-yarn-cache
+      uses: actions/cache/restore@v4
       with:
         path: |
           node_modules
@@ -100,6 +101,14 @@ runs:
       shell: bash
       env:
         NODE_OPTIONS: --max-old-space-size=4096 # Increase memory limit for Node.js due to large dependencies
+
+    - name: Save Yarn cache
+      if: steps.restore-yarn-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          node_modules
+        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('yarn.lock') }}
 
     - name: Install Detox CLI
       id: install-detox-cli
@@ -136,7 +145,8 @@ runs:
     # Restore cached Ruby gems
     - name: Restore Bundler cache
       if: ${{ inputs.platform == 'ios' }}
-      uses: actions/cache@v4
+      id: restore-bundler-cache
+      uses: actions/cache/restore@v4
       with:
         path: ios/vendor/bundle
         key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Gemfile.lock') }}
@@ -155,6 +165,14 @@ runs:
       working-directory: ios
       shell: bash
 
+    # Save Ruby gems cache
+    - name: Save Bundler cache
+      if: ${{ inputs.platform == 'ios' && steps.restore-bundler-cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ios/vendor/bundle
+        key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Gemfile.lock') }}
+
     # Select Xcode version
     - name: Select Xcode version
       if: ${{ inputs.platform == 'ios' }}
@@ -164,7 +182,8 @@ runs:
     # Restore CocoaPods cache
     - name: Restore CocoaPods cache
       if: ${{ inputs.platform == 'ios' && inputs.setup-simulator == 'true' }}
-      uses: actions/cache@v4
+      id: restore-pods-cache
+      uses: actions/cache/restore@v4
       with:
         path: ios/Pods
         key: ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Podfile.lock') }}
@@ -175,6 +194,14 @@ runs:
       run: bundle exec pod install
       working-directory: ios
       shell: bash
+
+    # Save CocoaPods cache
+    - name: Save CocoaPods cache
+      if: ${{ inputs.platform == 'ios' && inputs.setup-simulator == 'true' && steps.restore-pods-cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ios/Pods
+        key: ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ inputs.cache-unique-id }}-${{ hashFiles('ios/Podfile.lock') }}
 
     - name: Install applesimutils
       if: ${{ inputs.platform == 'ios' }}
