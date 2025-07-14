@@ -5,10 +5,7 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import {
-  withIdentityFixtures,
-  createSharedUserStorageController,
-} from '../utils/withIdentityFixtures.ts';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,

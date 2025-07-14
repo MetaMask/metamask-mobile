@@ -10,7 +10,6 @@ import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import {
   withIdentityFixtures,
-  createSharedUserStorageController,
 } from '../utils/withIdentityFixtures.ts';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
@@ -20,7 +19,9 @@ import SettingsView from '../../../pages/Settings/SettingsView.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import LoginView from '../../../pages/wallet/LoginView.js';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
-import { OnboardingSelectorText } from '../../../selectors/Onboarding/Onboarding.selectors.js';
+import { createUserStorageController } from '../utils/mocks.ts';
+import Matchers from '../../../utils/Matchers.js';
+import { ToastSelectorsIDs } from '../../../selectors/wallet/ToastModal.selectors.js';
 
 describe(
   SmokeIdentity('Account syncing - Forgot Password Flow'),
@@ -29,7 +30,7 @@ describe(
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createSharedUserStorageController();
+      sharedUserStorageController = createUserStorageController();
     });
 
     const NEW_ACCOUNT_NAME = 'Best name ever';
@@ -84,8 +85,9 @@ describe(
           await LoginView.tapForgotPassword();
           await ForgotPasswordModalView.tapResetWalletButton();
           await ForgotPasswordModalView.tapYesResetWalletButton();
-          await Assertions.expectTextDisplayed(OnboardingSelectorText.SUCCESSFUL_WALLET_RESET); // Verify reset wallet success toast is displayed
-          await Assertions.expectTextNotDisplayed(OnboardingSelectorText.SUCCESSFUL_WALLET_RESET); // Wait for the toast to disappear
+          const elem = Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
+          await Assertions.expectElementToBeVisible(elem); // Verify reset wallet success toast is displayed
+          await Assertions.expectElementToNotBeVisible(elem); // Wait for the toast to disappear
           await importWalletWithRecoveryPhrase({
             seedPhrase: defaultGanacheOptions.mnemonic,
             fromResetWallet: true,

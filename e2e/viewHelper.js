@@ -56,7 +56,7 @@ export const acceptTermOfUse = async () => {
  *   - 'create': Taps "Create Account" on the Solana sheet.
  *   - 'viewAccount': Intended to navigate to a view/manage existing account flow for Solana.
  */
-export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
+export const closeOnboardingModals = async (solanaSheetAction = 'dismiss', fromResetWallet = false) => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
@@ -75,14 +75,16 @@ have to have all these workarounds in the tests
     console.log('The marketing toast is not visible');
   }
 
-  // Handle Solana New feature sheet
-  if (solanaSheetAction === 'dismiss') {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
-    await SolanaNewFeatureSheet.tapNotNowButton();
-  } else if (solanaSheetAction === 'create') {
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-  } else if (solanaSheetAction === 'viewAccount') {
-    await SolanaNewFeatureSheet.tapViewAccountButton();
+  if (!fromResetWallet) {
+      // Handle Solana New feature sheet
+    if (solanaSheetAction === 'dismiss') {
+      await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
+      await SolanaNewFeatureSheet.tapNotNowButton();
+    } else if (solanaSheetAction === 'create') {
+      await SolanaNewFeatureSheet.tapCreateAccountButton();
+    } else if (solanaSheetAction === 'viewAccount') {
+      await SolanaNewFeatureSheet.tapViewAccountButton();
+    }
   }
 };
 
@@ -188,7 +190,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals(solanaSheetAction);
+  await closeOnboardingModals(solanaSheetAction, fromResetWallet);
 };
 
 /**

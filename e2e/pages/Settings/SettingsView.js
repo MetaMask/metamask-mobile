@@ -133,7 +133,9 @@ class SettingsView {
   }
 
   async tapYesAlertButton() {
-    await Gestures.tap(this.alertButton);
+    await Gestures.tap(this.alertButton, {
+      checkEnabled: false,
+    });
   }
 
   async tapBackupAndSync() {
