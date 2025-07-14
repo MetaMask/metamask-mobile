@@ -29,7 +29,7 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 
-async function callRequestPermissionsScript({
+async function requestPermissions({
   accounts,
   params,
 }: {
@@ -98,7 +98,7 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await callRequestPermissionsScript();
+        await requestPermissions();
 
         await ConnectBottomSheet.tapConnectButton();
 
@@ -128,7 +128,7 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await callRequestPermissionsScript({
+        await requestPermissions({
           accounts: [DEFAULT_FIXTURE_ACCOUNT_2],
         });
 
@@ -209,7 +209,7 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await callRequestPermissionsScript({
+        await requestPermissions({
           accounts: [DEFAULT_FIXTURE_ACCOUNT],
         });
         await ConnectBottomSheet.tapConnectButton();
@@ -233,7 +233,7 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await Browser.navigateToTestDApp();
 
         //Request only Ethereum Mainnet
-        await callRequestPermissionsScript({
+        await requestPermissions({
           params: [
             {
               'endowment:permitted-chains': {
