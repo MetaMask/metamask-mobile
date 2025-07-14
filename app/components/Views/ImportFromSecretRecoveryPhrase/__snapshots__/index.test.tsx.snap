@@ -569,7 +569,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         spellCheck={false}
                                         style={
                                           {
-                                            "backgroundColor": "#3c4d9d1a",
                                             "borderWidth": 0,
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
