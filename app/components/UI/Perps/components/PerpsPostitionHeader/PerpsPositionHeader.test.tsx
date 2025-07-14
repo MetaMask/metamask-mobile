@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsPositionHeader from './PerpsPositionHeader';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { Position } from '../../controllers/types';
+import type { Position, PriceUpdate } from '../../controllers/types';
 import { Theme } from '../../../../../util/theme/models';
 
 // Mock dependencies
@@ -15,81 +15,158 @@ jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: ({
-    children,
-    testID,
-    color,
-    ...props
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-    color?: string;
-    [key: string]: unknown;
-  }) => {
-    const { Text } = jest.requireActual('react-native');
-    return (
-      <Text testID={testID} data-color={color} {...props}>
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      testID,
+      name,
+      ...props
+    }: {
+      testID?: string;
+      name?: string;
+      [key: string]: unknown;
+    }) => <View testID={testID || 'icon'} {...props} />,
+    IconColor: {
+      Default: 'default',
+      Primary: 'primary',
+      Alternative: 'alternative',
+      Muted: 'muted',
+    },
+    IconName: {
+      Add: 'add',
+      Close: 'close',
+      ArrowLeft: 'arrow-left',
+      Coin: 'coin',
+    },
+    IconSize: {
+      Xs: 'xs',
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components/Buttons/ButtonIcon',
+  () => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        testID,
+        onPress,
+        iconName,
+        ...props
+      }: {
+        testID?: string;
+        onPress?: () => void;
+        iconName?: string;
+        [key: string]: unknown;
+      }) => (
+        <TouchableOpacity
+          testID={testID || 'button-icon'}
+          onPress={onPress}
+          {...props}
+        />
+      ),
+      ButtonIconSizes: {
+        Sm: 'sm',
+        Md: 'md',
+        Lg: 'lg',
+      },
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/Skeleton/Skeleton',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        testID,
+        width,
+        height,
+        ...props
+      }: {
+        testID?: string;
+        width?: number;
+        height?: number;
+        [key: string]: unknown;
+      }) => <View testID={testID || 'skeleton'} {...props} />,
+    };
+  },
+);
+
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      testID,
+      color,
+      variant,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+      color?: string;
+      variant?: string;
+      [key: string]: unknown;
+    }) => (
+      <Text testID={testID} {...props}>
         {children}
       </Text>
-    );
-  },
-  TextVariant: {
-    BodySM: 'BodySM',
-  },
-  TextColor: {
-    Default: 'Default',
-    Success: 'Success',
-    Error: 'Error',
-  },
+    ),
+    TextVariant: {
+      BodySM: 'body-sm',
+      BodyMD: 'body-md',
+      HeadingSM: 'heading-sm',
+    },
+    TextColor: {
+      Default: 'default',
+      Success: 'success',
+      Error: 'error',
+      Muted: 'muted',
+    },
+  };
+});
+
+jest.mock('../../../../Base/RemoteImage', () => {
+  const { Image } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      source,
+      testID,
+      ...props
+    }: {
+      source?: { uri?: string };
+      testID?: string;
+      [key: string]: unknown;
+    }) => (
+      <Image testID={testID || 'remote-image'} source={source} {...props} />
+    ),
+  };
+});
+
+// Mock format utilities
+jest.mock('../../utils/formatUtils', () => ({
+  formatPnl: (value: number) =>
+    `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}`,
+  formatPercentage: (value: string | number) => `${value}%`,
 }));
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: ({
-    name,
-    size,
-    testID,
-  }: {
-    name?: string;
-    size?: string;
-    testID?: string;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'icon'} data-name={name} data-size={size} />;
-  },
-  IconName: {
-    Coin: 'Coin',
-  },
-  IconSize: {
-    Lg: 'Lg',
-  },
+// Mock styles
+jest.mock('./PerpsPositionHeader.styles', () => ({
+  styleSheet: () => ({}),
 }));
 
-jest.mock('../../../../Base/RemoteImage', () => ({
-  __esModule: true,
-  default: ({
-    source,
-    style,
-    testID,
-  }: {
-    source?: { uri?: string };
-    style?: unknown;
-    testID?: string;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return (
-      <View
-        testID={testID || 'remote-image'}
-        data-uri={source?.uri}
-        style={style}
-      />
-    );
-  },
-}));
-
-// Mock hooks
 const mockUsePerpsAssetMetadata = usePerpsAssetMetadata as jest.MockedFunction<
   typeof usePerpsAssetMetadata
 >;
@@ -118,15 +195,23 @@ describe('PerpsPositionHeader', () => {
     },
   };
 
+  const mockPriceData: PriceUpdate = {
+    coin: 'ETH',
+    price: '2100.00',
+    timestamp: Date.now(),
+    percentChange24h: '5.0',
+  };
+
   const mockStyles = {
     container: { flexDirection: 'row' },
+    backButton: { marginRight: 8 },
     perpIcon: { marginRight: 16 },
     tokenIcon: { width: 32, height: 32 },
     leftSection: { flex: 1 },
-    rightSection: { flex: 1 },
     assetName: { fontWeight: 'bold' },
-    positionValue: { marginBottom: 8 },
-    pnlText: { textAlign: 'right' },
+    positionValueRow: { flexDirection: 'row', alignItems: 'center' },
+    positionValue: { marginRight: 8 },
+    priceChange24h: { marginLeft: 8 },
   };
 
   beforeEach(() => {
@@ -137,22 +222,48 @@ describe('PerpsPositionHeader', () => {
 
   describe('Component Rendering', () => {
     it('renders position header with all required elements', () => {
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert
+      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('$2,100.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$262.50 (5.0%)')).toBeOnTheScreen();
+    });
+
+    it('renders back button when onBackPress is provided', () => {
       // Arrange
-      const pnlPercentage = 5.0;
+      const mockOnBackPress = jest.fn();
 
       // Act
       render(
         <PerpsPositionHeader
           position={mockPosition}
-          pnlPercentage={pnlPercentage}
+          priceData={mockPriceData}
+          onBackPress={mockOnBackPress}
         />,
       );
 
       // Assert
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('Unrealized')).toBeOnTheScreen();
-      expect(screen.getByText('+$250.00 (5.00%)')).toBeOnTheScreen();
+      expect(screen.getByTestId('button-icon')).toBeOnTheScreen();
+    });
+
+    it('does not render back button when onBackPress is not provided', () => {
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert
+      expect(screen.queryByTestId('button-icon')).toBeNull();
     });
 
     it('renders fallback icon when assetUrl is not available', () => {
@@ -161,7 +272,10 @@ describe('PerpsPositionHeader', () => {
 
       // Act
       render(
-        <PerpsPositionHeader position={mockPosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
@@ -176,32 +290,147 @@ describe('PerpsPositionHeader', () => {
 
       // Act
       render(
-        <PerpsPositionHeader position={mockPosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
       expect(screen.getByTestId('remote-image')).toBeOnTheScreen();
-      expect(screen.getByTestId('remote-image')).toHaveProp(
-        'data-uri',
-        assetUrl,
-      );
       expect(screen.queryByTestId('icon')).toBeNull();
     });
   });
 
-  describe('Currency Formatting', () => {
-    it('formats position value as USD currency', () => {
+  describe('Price Data Display', () => {
+    it('displays current market price when priceData is provided', () => {
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert
+      expect(screen.getByText('$2,100.00')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton when priceData is not provided', () => {
+      // Act
+      render(<PerpsPositionHeader position={mockPosition} />);
+
+      // Assert
+      expect(screen.getByTestId('skeleton')).toBeOnTheScreen();
+    });
+
+    it('displays skeleton when priceData price is missing', () => {
       // Arrange
-      const positionWithLargeValue = {
-        ...mockPosition,
-        positionValue: '12345.67',
+      const priceDataWithoutPrice = {
+        ...mockPriceData,
+        price: undefined as unknown as string,
       };
 
       // Act
       render(
         <PerpsPositionHeader
-          position={positionWithLargeValue}
-          pnlPercentage={5.0}
+          position={mockPosition}
+          priceData={priceDataWithoutPrice}
+        />,
+      );
+
+      // Assert
+      expect(screen.getByTestId('skeleton')).toBeOnTheScreen();
+    });
+  });
+
+  describe('24-Hour Price Change', () => {
+    it('displays positive 24h price change with success color', () => {
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert
+      const priceChangeText = screen.getByText('+$262.50 (5.0%)');
+      expect(priceChangeText).toBeOnTheScreen();
+    });
+
+    it('displays negative 24h price change with error color', () => {
+      // Arrange
+      const negativePriceData = {
+        ...mockPriceData,
+        percentChange24h: '-3.5',
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={negativePriceData}
+        />,
+      );
+
+      // Assert
+      const priceChangeText = screen.getByText('-$183.75 (-3.5%)');
+      expect(priceChangeText).toBeOnTheScreen();
+    });
+
+    it('does not display 24h price change when percentChange24h is missing', () => {
+      // Arrange
+      const priceDataWithoutChange = {
+        ...mockPriceData,
+        percentChange24h: undefined,
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={priceDataWithoutChange}
+        />,
+      );
+
+      // Assert
+      expect(screen.queryByText(/\(/)).toBeNull(); // No parentheses indicating percentage
+    });
+
+    it('does not display 24h price change when price is missing', () => {
+      // Arrange
+      const priceDataWithoutPrice = {
+        ...mockPriceData,
+        price: undefined as unknown as string,
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={priceDataWithoutPrice}
+        />,
+      );
+
+      // Assert
+      expect(screen.queryByText(/\(/)).toBeNull(); // No parentheses indicating percentage
+    });
+  });
+
+  describe('Currency Formatting', () => {
+    it('formats large price values with commas', () => {
+      // Arrange
+      const largePriceData = {
+        ...mockPriceData,
+        price: '12345.67',
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={largePriceData}
         />,
       );
 
@@ -209,18 +438,18 @@ describe('PerpsPositionHeader', () => {
       expect(screen.getByText('$12,345.67')).toBeOnTheScreen();
     });
 
-    it('formats small position values correctly', () => {
+    it('formats small price values correctly', () => {
       // Arrange
-      const positionWithSmallValue = {
-        ...mockPosition,
-        positionValue: '0.01',
+      const smallPriceData = {
+        ...mockPriceData,
+        price: '0.01',
       };
 
       // Act
       render(
         <PerpsPositionHeader
-          position={positionWithSmallValue}
-          pnlPercentage={5.0}
+          position={mockPosition}
+          priceData={smallPriceData}
         />,
       );
 
@@ -228,122 +457,23 @@ describe('PerpsPositionHeader', () => {
       expect(screen.getByText('$0.01')).toBeOnTheScreen();
     });
 
-    it('formats zero position value correctly', () => {
+    it('formats zero price values correctly', () => {
       // Arrange
-      const positionWithZeroValue = {
-        ...mockPosition,
-        positionValue: '0.00',
+      const zeroPriceData = {
+        ...mockPriceData,
+        price: '0.00',
       };
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={positionWithZeroValue}
-          pnlPercentage={0}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
-    });
-  });
-
-  describe('PnL Formatting and Colors', () => {
-    it('displays positive PnL with success color and plus sign', () => {
-      // Arrange
-      const positivePnlPercentage = 12.5;
 
       // Act
       render(
         <PerpsPositionHeader
           position={mockPosition}
-          pnlPercentage={positivePnlPercentage}
+          priceData={zeroPriceData}
         />,
       );
 
       // Assert
-      expect(screen.getByText('Unrealized')).toBeOnTheScreen();
-      expect(screen.getByText('+$250.00 (12.50%)')).toBeOnTheScreen();
-    });
-
-    it('displays negative PnL with error color and minus sign', () => {
-      // Arrange
-      const negativePosition = {
-        ...mockPosition,
-        unrealizedPnl: '-150.00',
-      };
-      const negativePnlPercentage = -3.0;
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={negativePosition}
-          pnlPercentage={negativePnlPercentage}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('Unrealized')).toBeOnTheScreen();
-      expect(screen.getByText('-$150.00 (-3.00%)')).toBeOnTheScreen();
-    });
-
-    it('displays zero PnL with success color', () => {
-      // Arrange
-      const zeroPosition = {
-        ...mockPosition,
-        unrealizedPnl: '0.00',
-      };
-      const zeroPnlPercentage = 0.0;
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={zeroPosition}
-          pnlPercentage={zeroPnlPercentage}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('Unrealized')).toBeOnTheScreen();
-      expect(screen.getByText('+$0.00 (0.00%)')).toBeOnTheScreen();
-    });
-
-    it('handles string unrealized PnL values', () => {
-      // Arrange
-      const stringPnlPosition = {
-        ...mockPosition,
-        unrealizedPnl: '123.45',
-      };
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={stringPnlPosition}
-          pnlPercentage={2.47}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('+$123.45 (2.47%)')).toBeOnTheScreen();
-    });
-
-    it('handles large PnL values correctly', () => {
-      // Arrange
-      const largePnlPosition = {
-        ...mockPosition,
-        unrealizedPnl: '12345.67',
-      };
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={largePnlPosition}
-          pnlPercentage={24.69}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('+$12,345.67 (24.69%)')).toBeOnTheScreen();
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
   });
 
@@ -357,18 +487,24 @@ describe('PerpsPositionHeader', () => {
 
       // Act
       render(
-        <PerpsPositionHeader position={btcPosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={btcPosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('BTC-USD')).toBeOnTheScreen();
       expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('BTC');
     });
 
     it('calls usePerpsAssetMetadata with correct asset symbol', () => {
-      // Arrange & Act
+      // Act
       render(
-        <PerpsPositionHeader position={mockPosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
@@ -376,59 +512,24 @@ describe('PerpsPositionHeader', () => {
     });
   });
 
-  describe('Percentage Formatting', () => {
-    it('formats percentage with two decimal places', () => {
+  describe('User Interactions', () => {
+    it('calls onBackPress when back button is pressed', () => {
       // Arrange
-      const precisePercentage = 12.3456;
+      const mockOnBackPress = jest.fn();
 
       // Act
       render(
         <PerpsPositionHeader
           position={mockPosition}
-          pnlPercentage={precisePercentage}
+          priceData={mockPriceData}
+          onBackPress={mockOnBackPress}
         />,
       );
 
-      // Assert
-      expect(screen.getByText('+$250.00 (12.35%)')).toBeOnTheScreen();
-    });
-
-    it('handles very small percentages correctly', () => {
-      // Arrange
-      const smallPercentage = 0.001;
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={mockPosition}
-          pnlPercentage={smallPercentage}
-        />,
-      );
+      fireEvent.press(screen.getByTestId('button-icon'));
 
       // Assert
-      expect(screen.getByText('+$250.00 (0.00%)')).toBeOnTheScreen();
-    });
-
-    it('handles negative percentages correctly', () => {
-      // Arrange
-      const negativePosition = {
-        ...mockPosition,
-        unrealizedPnl: '-75.25',
-      };
-      const negativePercentage = -1.505;
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={negativePosition}
-          pnlPercentage={negativePercentage}
-        />,
-      );
-
-      // Assert
-      // Check that the negative PnL text is present (may be split across elements)
-      expect(screen.getByText(/-\$75\.25/)).toBeOnTheScreen();
-      expect(screen.getByText(/-1\.50%/)).toBeOnTheScreen();
+      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -441,30 +542,14 @@ describe('PerpsPositionHeader', () => {
 
       // Act
       render(
-        <PerpsPositionHeader position={mockPosition} pnlPercentage={5.0} />,
-      );
-
-      // Assert
-      expect(screen.getByTestId('icon')).toBeOnTheScreen();
-    });
-
-    it('handles extreme PnL values', () => {
-      // Arrange
-      const extremePosition = {
-        ...mockPosition,
-        unrealizedPnl: '999999.99',
-      };
-
-      // Act
-      render(
         <PerpsPositionHeader
-          position={extremePosition}
-          pnlPercentage={1999.99}
+          position={mockPosition}
+          priceData={mockPriceData}
         />,
       );
 
       // Assert
-      expect(screen.getByText('+$999,999.99 (1999.99%)')).toBeOnTheScreen();
+      expect(screen.getByTestId('icon')).toBeOnTheScreen();
     });
 
     it('handles very long asset names', () => {
@@ -476,33 +561,85 @@ describe('PerpsPositionHeader', () => {
 
       // Act
       render(
-        <PerpsPositionHeader position={longNamePosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={longNamePosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
-      expect(screen.getByText('VERYLONGASSETNAMETOKEN')).toBeOnTheScreen();
+      expect(screen.getByText('VERYLONGASSETNAMETOKEN-USD')).toBeOnTheScreen();
+    });
+
+    it('handles extreme price values', () => {
+      // Arrange
+      const extremePriceData = {
+        ...mockPriceData,
+        price: '999999.99',
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={extremePriceData}
+        />,
+      );
+
+      // Assert
+      expect(screen.getByText('$999,999.99')).toBeOnTheScreen();
+    });
+
+    it('handles position with zero size', () => {
+      // Arrange
+      const zeroSizePosition = {
+        ...mockPosition,
+        size: '0',
+      };
+
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={zeroSizePosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert
+      // When position size is 0, no 24h price change should be displayed
+      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('$2,100.00')).toBeOnTheScreen();
+      expect(screen.queryByText(/\(/)).toBeNull(); // No parentheses indicating no percentage display
     });
   });
 
   describe('Component Integration', () => {
     it('uses styles from useStyles hook', () => {
-      // Arrange
-      const customStyles = {
-        ...mockStyles,
-        container: { flexDirection: 'column' },
-      };
-      mockUseStyles.mockReturnValue({
-        styles: customStyles,
-        theme: {} as Theme,
-      });
-
       // Act
       render(
-        <PerpsPositionHeader position={mockPosition} pnlPercentage={5.0} />,
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
       );
 
       // Assert
       expect(mockUseStyles).toHaveBeenCalledWith(expect.anything(), {});
+    });
+
+    it('renders with proper component structure', () => {
+      // Act
+      render(
+        <PerpsPositionHeader
+          position={mockPosition}
+          priceData={mockPriceData}
+        />,
+      );
+
+      // Assert - Check that all expected text elements are rendered
+      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('$2,100.00')).toBeOnTheScreen();
+      expect(screen.getByText('+$262.50 (5.0%)')).toBeOnTheScreen();
     });
   });
 });

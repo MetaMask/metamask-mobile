@@ -93,13 +93,14 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => ({
 jest.mock('../../utils/formatUtils', () => ({
   formatPrice: (value: string) => `$${parseFloat(value).toFixed(2)}`,
   formatPnl: (value: number) => `$${value.toFixed(2)}`,
-  formatPercentage: (value: number) => `${value.toFixed(2)}%`,
+  formatPercentage: (value: number) =>
+    value != null ? `${value.toFixed(2)}%` : 'N/A',
   formatPositionSize: (size: string) => Math.abs(parseFloat(size)).toFixed(6),
 }));
 
 // Mock PnL calculations
 jest.mock('../../utils/pnlCalculations', () => ({
-  calculatePnLPercentageFromUnrealized: jest.fn(),
+  calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
 }));
 
 // Mock styles
@@ -194,8 +195,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Assert - Header section
-      expect(screen.getByText('10x')).toBeOnTheScreen();
-      expect(screen.getByText('long')).toBeOnTheScreen();
+      expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
       expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen();
       expect(screen.getByText('$5000.00')).toBeOnTheScreen();
 
@@ -230,32 +230,26 @@ describe('PerpsPositionCard', () => {
       expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen(); // Should show absolute value
     });
 
-    it('renders with 24h price change data', () => {
+    it('renders with PnL data', () => {
       // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          priceChange24h={5.5}
-          priceChange24hFiat={110.25}
-        />,
-      );
+      render(<PerpsPositionCard position={mockPosition} />);
 
       // Assert
-      expect(screen.getByText('$110.25 (5.50%)')).toBeOnTheScreen();
+      expect(screen.getByText('$250.00 (5.00%)')).toBeOnTheScreen();
     });
 
-    it('renders with negative 24h price change data', () => {
+    it('handles missing PnL percentage data', () => {
+      // Arrange
+      const mockCalculatePnL = jest.requireMock(
+        '../../utils/pnlCalculations',
+      ).calculatePnLPercentageFromUnrealized;
+      mockCalculatePnL.mockReturnValueOnce(undefined);
+
       // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          priceChange24h={-3.2}
-          priceChange24hFiat={-64.5}
-        />,
-      );
+      render(<PerpsPositionCard position={mockPosition} />);
 
       // Assert
-      expect(screen.getByText('$-64.50 (-3.20%)')).toBeOnTheScreen();
+      expect(screen.getByText('$250.00 (N/A)')).toBeOnTheScreen();
     });
 
     it('handles missing liquidation price', () => {
@@ -376,7 +370,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={highLeveragePosition} />);
 
       // Assert
-      expect(screen.getByText('100x')).toBeOnTheScreen();
+      expect(screen.getByText(/100x\s+long/)).toBeOnTheScreen();
     });
 
     it('formats position size correctly for different coin', () => {
@@ -455,8 +449,18 @@ describe('PerpsPositionCard', () => {
 
   describe('Edge Cases', () => {
     it('handles missing price change data gracefully', () => {
+      // Arrange
+      const positionWithZeroPnl = {
+        ...mockPosition,
+        unrealizedPnl: '0.00',
+      };
+      const mockCalculatePnL = jest.requireMock(
+        '../../utils/pnlCalculations',
+      ).calculatePnLPercentageFromUnrealized;
+      mockCalculatePnL.mockReturnValueOnce(0);
+
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
       // Assert
       expect(screen.getByText('$0.00 (0.00%)')).toBeOnTheScreen();
