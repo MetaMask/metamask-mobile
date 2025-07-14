@@ -16,7 +16,7 @@ export const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: 16,
+      marginBottom: 8,
     },
     headerLeft: {
       flex: 1,
@@ -29,10 +29,9 @@ export const createStyles = (colors: Colors) =>
     headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 4,
     },
     leverageText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '700',
       color: colors.text.default,
       marginRight: 8,
@@ -49,9 +48,8 @@ export const createStyles = (colors: Colors) =>
       backgroundColor: colors.error.muted,
     },
     directionText: {
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '600',
-      textTransform: 'uppercase',
     },
     longText: {
       color: colors.success.default,
@@ -61,18 +59,30 @@ export const createStyles = (colors: Colors) =>
     },
     tokenAmount: {
       fontSize: 14,
-      fontWeight: '500',
+      fontWeight: '600',
       color: colors.text.muted,
     },
     positionValue: {
-      fontSize: 18,
+      fontSize: 14,
       fontWeight: '700',
       color: colors.text.default,
       textAlign: 'right',
     },
+    positionValuePositive: {
+      fontSize: 14,
+      fontWeight: '700',
+      textAlign: 'right',
+      color: colors.success.default,
+    },
+    positionValueNegative: {
+      fontSize: 14,
+      fontWeight: '700',
+      textAlign: 'right',
+      color: colors.error.default,
+    },
     priceChange: {
       fontSize: 14,
-      fontWeight: '500',
+      fontWeight: '600',
       textAlign: 'right',
     },
 
@@ -80,15 +90,12 @@ export const createStyles = (colors: Colors) =>
     body: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-      paddingVertical: 12,
-      marginBottom: 16,
+      paddingVertical: 8,
+      marginBottom: 8,
     },
     bodyRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 12,
     },
     bodyItem: {
       flex: 1,
@@ -97,7 +104,6 @@ export const createStyles = (colors: Colors) =>
     bodyLabel: {
       fontSize: 12,
       color: colors.text.muted,
-      marginBottom: 4,
       textAlign: 'left',
     },
     bodyValue: {

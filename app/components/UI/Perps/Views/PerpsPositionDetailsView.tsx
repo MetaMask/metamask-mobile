@@ -146,10 +146,12 @@ const createStyles = (colors: Colors) =>
       margin: 16,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: '600',
       color: colors.text.default,
-      marginBottom: 16,
+      marginTop: 8,
+      marginBottom: 8,
+      marginLeft: 16,
     },
     closeSection: {
       backgroundColor: colors.background.alternative,
@@ -412,8 +414,9 @@ const PerpsPositionDetailsView: React.FC = () => {
           />
         </View>
 
-        {/* Position Card */}
+        {/* Positions Section */}
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Position</Text>
           <PerpsPositionCard
             position={position}
             onClose={handleClosePosition}

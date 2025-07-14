@@ -48,7 +48,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
-  const direction = isLong ? 'LONG' : 'SHORT';
+  const direction = isLong ? 'long' : 'short';
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const handleCardPress = async () => {
@@ -107,13 +107,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
-            <Text style={styles.leverageText}>{position.leverage.value}x</Text>
-            <View
-              style={[
-                styles.directionBadge,
-                isLong ? styles.longBadge : styles.shortBadge,
-              ]}
-            >
+            <Text style={styles.leverageText}>
+              {position.leverage.value}x{' '}
               <Text
                 style={[
                   styles.directionText,
@@ -122,7 +117,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               >
                 {direction}
               </Text>
-            </View>
+            </Text>
           </View>
           <View style={styles.headerRow}>
             <Text style={styles.tokenAmount}>
@@ -139,10 +134,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
           <View style={styles.headerRow}>
             <Text
-              style={[
-                styles.priceChange,
-                isPositive24h ? styles.positivePnl : styles.negativePnl,
-              ]}
+              style={
+                isPositive24h
+                  ? styles.positionValuePositive
+                  : styles.positionValueNegative
+              }
             >
               {formatPnl(priceChange24hFiat)} (
               {formatPercentage(priceChange24h)})

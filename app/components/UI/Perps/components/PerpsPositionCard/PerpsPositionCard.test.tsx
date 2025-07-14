@@ -195,7 +195,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert - Header section
       expect(screen.getByText('10x')).toBeOnTheScreen();
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('long')).toBeOnTheScreen();
       expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen();
       expect(screen.getByText('$5000.00')).toBeOnTheScreen();
 
@@ -226,7 +226,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={shortPosition} />);
 
       // Assert
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('short')).toBeOnTheScreen();
       expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen(); // Should show absolute value
     });
 
@@ -421,7 +421,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={longPosition} />);
 
       // Assert
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('long')).toBeOnTheScreen();
     });
 
     it('correctly identifies SHORT position', () => {
@@ -435,7 +435,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={shortPosition} />);
 
       // Assert
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('short')).toBeOnTheScreen();
     });
 
     it('handles zero position size as LONG', () => {
@@ -449,7 +449,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={zeroPosition} />);
 
       // Assert
-      expect(screen.getByText('LONG')).toBeOnTheScreen(); // Zero is >= 0, so it's LONG
+      expect(screen.getByText('long')).toBeOnTheScreen(); // Zero is >= 0, so it's long
     });
   });
 
