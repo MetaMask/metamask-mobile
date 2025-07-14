@@ -253,7 +253,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
-    coin: position.coin,
+    coin: position?.coin || '',
     selectedInterval,
   });
 
