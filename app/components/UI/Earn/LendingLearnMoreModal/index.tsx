@@ -115,10 +115,10 @@ const parseMarketLendingApyAverages = (
   // Appends APR value to numDaysMap
   return Object.entries(lendingMarketApyAverages).reduce<
     Record<number, { apyAverage: string; numDays: number; label: string }>
-  >((map, [key, { totalSupplyRate }]) => {
+  >((map, [key, { netSupplyRate }]) => {
     const numDaysMapEntry = numDaysMap[key as keyof typeof numDaysMap];
     map[numDaysMapEntry.numDays] = {
-      apyAverage: totalSupplyRate.toString(),
+      apyAverage: netSupplyRate.toString(),
       ...numDaysMapEntry,
     };
     return map;
@@ -256,7 +256,8 @@ export const LendingLearnMoreModal = () => {
       Boolean(
         Boolean(reversedMarketApys) &&
           reversedMarketApys !== null &&
-          activeTimespanApyAverage,
+          activeTimespanApyAverage &&
+          reversedMarketApys.every((item) => item.netSupplyRate !== null),
       ),
     [activeTimespanApyAverage, reversedMarketApys],
   );
