@@ -57,6 +57,7 @@ import { RampType } from '../../UI/Ramp/Aggregator/types';
 import RampSettings from '../../UI/Ramp/Aggregator/Views/Settings';
 import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm';
 
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
 import { colors as importedColors } from '../../../styles/common';
@@ -96,9 +97,11 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import { PerpsScreenStack, selectPerpsEnabledFlag } from '../../UI/Perps';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import WalletRecovery from '../../Views/WalletRecovery';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -210,6 +213,10 @@ const TransactionsHome = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
+    />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
@@ -391,6 +398,11 @@ const SettingsFlow = () => (
       options={ResetPassword.navigationOptions}
     />
     <Stack.Screen
+      name="WalletRecovery"
+      component={WalletRecovery}
+      options={WalletRecovery.navigationOptions}
+    />
+    <Stack.Screen
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
@@ -454,26 +466,6 @@ const HomeTabs = () => {
     (state) => state.browser.tabs.length,
   );
 
-  /* tabs: state.browser.tabs, */
-  /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector((state) => {
-    const activeTabUrl = getActiveTabUrl(state);
-    if (!isUrl(activeTabUrl)) return [];
-    try {
-      const permissionsControllerState = selectPermissionControllerState(state);
-      const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedCaipAccountIdsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-      return permittedAcc;
-    } catch (error) {
-      Logger.error(error, {
-        message: 'ParseUrl::MainNavigator error while parsing URL',
-      });
-    }
-  }, isEqual);
-
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
@@ -502,7 +494,6 @@ const HomeTabs = () => {
               number_of_accounts: accountsLength,
               chain_id: getDecimalChainId(chainId),
               source: 'Navigation Tab',
-              active_connected_dapp: activeConnectedDapp,
               number_of_open_tabs: amountOfBrowserOpenTabs,
             })
             .build(),
@@ -651,7 +642,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator>
+  <Stack.Navigator headerMode="screen">
     <Stack.Screen
       name="SendTo"
       component={SendTo}
@@ -796,14 +787,18 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const MainNavigator = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    mode={'modal'}
-    initialRouteName={'Home'}
-  >
+const MainNavigator = () => {
+  // Get feature flag state for conditional Perps screen registration
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      mode={'modal'}
+      initialRouteName={'Home'}
+    >
     <Stack.Screen
       name="CollectiblesDetails"
       component={CollectiblesDetails}
@@ -879,6 +874,9 @@ const MainNavigator = () => (
       component={StakeModalStack}
       options={clearStackNavigatorOptions}
     />
+    {isPerpsEnabled && (
+      <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+    )}
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
@@ -919,6 +917,7 @@ const MainNavigator = () => (
       }}
     />
   </Stack.Navigator>
-);
+  );
+};
 
 export default MainNavigator;

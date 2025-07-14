@@ -691,9 +691,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -715,9 +714,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -882,6 +880,9 @@ exports[`Quotes custom action renders correctly after animation with the recomme
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={23}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -972,7 +973,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1012,6 +1013,9 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={22}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -1102,9 +1106,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1285,6 +1288,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={24}
+                              handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               testID="quotes"
@@ -1518,6 +1523,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1528,9 +1534,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1540,6 +1545,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View />
                         </View>
                       </View>
                     </View>
@@ -1722,9 +1728,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1746,9 +1751,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1913,6 +1917,9 @@ exports[`Quotes renders animation on first fetching 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={10}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2003,7 +2010,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2043,6 +2050,9 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={9}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -2821,9 +2831,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2845,9 +2854,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3012,6 +3020,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={17}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -3102,7 +3113,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3142,6 +3153,9 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={false}
+                          handlerTag={16}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -3213,9 +3227,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -3468,6 +3481,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </Text>
                                 </View>
                               </View>
+                              <View />
                               <View
                                 style={
                                   [
@@ -3510,6 +3524,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           },
                                         ]
                                       }
+                                      testID="expanded-quotes-section"
                                     >
                                       <View
                                         style={
@@ -3602,7 +3617,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#1c7e33",
-                                                            "fontFamily": "CentraNo1-Bold",
+                                                            "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -3692,9 +3707,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3727,9 +3741,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3920,7 +3933,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#4459ff",
-                                                            "fontFamily": "CentraNo1-Bold",
+                                                            "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -3952,7 +3965,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#1c7e33",
-                                                            "fontFamily": "CentraNo1-Bold",
+                                                            "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -4041,9 +4054,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4076,9 +4088,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4315,9 +4326,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4350,9 +4360,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "CentraNo1-Medium",
+                                                          "fontFamily": "Geist Medium",
                                                           "fontSize": 18,
-                                                          "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4640,9 +4649,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4664,9 +4672,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -4831,6 +4838,9 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={14}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -4921,7 +4931,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4961,6 +4971,9 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={13}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -5051,9 +5064,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -5234,6 +5246,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={15}
+                              handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               testID="quotes"
@@ -5330,7 +5344,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   style={
                                                     {
                                                       "color": "#4459ff",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
@@ -5362,7 +5376,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   style={
                                                     {
                                                       "color": "#1c7e33",
-                                                      "fontFamily": "CentraNo1-Bold",
+                                                      "fontFamily": "Geist Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
@@ -5452,9 +5466,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Medium",
+                                                    "fontFamily": "Geist Medium",
                                                     "fontSize": 18,
-                                                    "fontWeight": "500",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -5487,9 +5500,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Medium",
+                                                    "fontFamily": "Geist Medium",
                                                     "fontSize": 18,
-                                                    "fontWeight": "500",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -5619,6 +5631,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -5629,9 +5642,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -5641,6 +5653,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View />
                         </View>
                       </View>
                     </View>
@@ -5823,9 +5836,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -5847,9 +5859,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -6014,6 +6025,9 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={12}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6104,7 +6118,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6144,6 +6158,9 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={11}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -6573,9 +6590,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -6597,9 +6613,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -6764,6 +6779,9 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={80}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -6854,7 +6872,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6894,6 +6912,9 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={79}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -7323,9 +7344,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -7347,9 +7367,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -7514,6 +7533,9 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={76}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -7604,7 +7626,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -7644,6 +7666,9 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={75}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
@@ -8073,9 +8098,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -8097,9 +8121,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -8264,6 +8287,9 @@ exports[`Quotes renders quotes expired screen 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={68}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -8354,7 +8380,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -8394,6 +8420,9 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       >
                         <View
                           collapsable={false}
+                          enabled={true}
+                          handlerTag={67}
+                          handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}

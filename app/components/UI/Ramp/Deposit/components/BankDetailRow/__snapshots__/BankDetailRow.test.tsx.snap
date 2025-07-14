@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BankDetailRow render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Account Number
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "gap": 8,
+        "justifyContent": "flex-end",
+        "marginLeft": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "flex": 1,
+          "flexWrap": "wrap",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "right",
+        }
+      }
+    >
+      1234567890
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="copy-button"
+    >
+      <SvgMock
+        color="#686e7d"
+        fill="currentColor"
+        height={16}
+        name="Copy"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`BankDetailRow render matches snapshot with different values 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Bank Name
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "gap": 8,
+        "justifyContent": "flex-end",
+        "marginLeft": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "flex": 1,
+          "flexWrap": "wrap",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "right",
+        }
+      }
+    >
+      Chase Bank
+    </Text>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="copy-button"
+    >
+      <SvgMock
+        color="#686e7d"
+        fill="currentColor"
+        height={16}
+        name="Copy"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;

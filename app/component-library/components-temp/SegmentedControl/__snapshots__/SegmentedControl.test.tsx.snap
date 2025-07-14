@@ -43,6 +43,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -52,9 +53,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -89,6 +89,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -98,9 +99,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -135,6 +135,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -144,9 +145,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -181,6 +181,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -190,9 +191,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -243,6 +243,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -252,9 +253,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -289,6 +289,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -298,9 +299,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -335,6 +335,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -344,9 +345,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -381,6 +381,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -390,9 +391,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

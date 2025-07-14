@@ -12,6 +12,7 @@ import { StyleSheet } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectBridgeViewMode,
   selectEnabledDestChains,
   selectSelectedDestChainId,
   setSelectedDestChainId,
@@ -27,6 +28,7 @@ import {
   ARBITRUM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -38,6 +40,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import { BridgeViewMode } from '../types';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -79,6 +82,7 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [AVALANCHE_CHAIN_ID]: 9,
   [POLYGON_CHAIN_ID]: 8,
   [ZKSYNC_ERA_CHAIN_ID]: 10,
+  [NETWORKS_CHAIN_ID.SEI]: 11,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {
@@ -92,17 +96,23 @@ export const BridgeDestNetworksBar = () => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const currentChainId = useSelector(selectChainId);
   const { styles } = useStyles(createStyles, { selectedDestChainId });
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const sortedDestChains = useMemo(
     () =>
       [...enabledDestChains]
-        .filter((chain) => chain.chainId !== currentChainId)
+        .filter((chain) => {
+          if (bridgeViewMode === BridgeViewMode.Unified) {
+            return true;
+          }
+          return chain.chainId !== currentChainId;
+        })
         .sort((a, b) => {
           const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
           const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
           return aPopularity - bPopularity;
         }),
-    [enabledDestChains, currentChainId],
+    [enabledDestChains, currentChainId, bridgeViewMode],
   );
 
   const navigateToNetworkSelector = () => {

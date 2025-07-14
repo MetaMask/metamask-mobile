@@ -1,6 +1,5 @@
 import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
-import { initialState as initialConfirmationState } from '../../reducers/confirmation';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
@@ -21,7 +20,6 @@ export const backgroundState: EngineState =
 const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
-  confirmation: initialConfirmationState,
   engine: { backgroundState },
   privacy: undefined,
   bookmarks: undefined,

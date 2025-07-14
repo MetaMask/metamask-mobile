@@ -16,7 +16,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+  TRUE,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -203,10 +207,10 @@ class OptinMetrics extends PureComponent {
       prevState.isEndReached !== isEndReached ||
       prevState.scrollViewHeight !== scrollViewHeight
     ) {
-      if (scrollViewContentHeight === undefined || isEndReached) return;
+      if (scrollViewContentHeight === undefined) return;
 
       // Check if content fits view port of scroll view
-      if (scrollViewHeight >= scrollViewContentHeight) {
+      if (scrollViewHeight >= scrollViewContentHeight && !isEndReached) {
         this.onScrollEndReached();
       }
     }
@@ -230,6 +234,8 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -238,10 +244,14 @@ class OptinMetrics extends PureComponent {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     } else {
       this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     }
   };
 
@@ -340,7 +350,6 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -389,7 +398,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -493,14 +501,9 @@ class OptinMetrics extends PureComponent {
   renderActionButtons = () => {
     const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -510,6 +513,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -519,6 +523,7 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
+          isDisabled={!isActionEnabled}
         />
       </View>
     );
@@ -557,7 +562,6 @@ class OptinMetrics extends PureComponent {
    * @param {Object} event
    */
   onScroll = ({ nativeEvent }) => {
-    if (this.state.isEndReached) return;
     const currentYOffset = nativeEvent.contentOffset.y;
     const paddingAllowance = Platform.select({
       ios: 16,
@@ -567,8 +571,11 @@ class OptinMetrics extends PureComponent {
       nativeEvent.contentSize.height -
       nativeEvent.layoutMeasurement.height -
       paddingAllowance;
+
     // Check when scroll has reached the end.
-    if (currentYOffset >= endThreshold) this.onScrollEndReached();
+    if (currentYOffset >= endThreshold && !this.state.isEndReached) {
+      this.onScrollEndReached();
+    }
   };
 
   render() {

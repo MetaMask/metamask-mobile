@@ -174,6 +174,7 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_invokeKeyring',
   'snap_getClientStatus',
   'snap_clearState',
+  'snap_endTrace',
   'snap_getFile',
   'snap_getState',
   'snap_listEntropySources',
@@ -184,9 +185,15 @@ export const unrestrictedMethods = Object.freeze([
   'snap_resolveInterface',
   'snap_setState',
   'snap_scheduleBackgroundEvent',
+  'snap_startTrace',
+  'snap_trackError',
   'snap_trackEvent',
   'snap_cancelBackgroundEvent',
   'snap_getBackgroundEvents',
   'snap_experimentalProviderRequest',
+  'snap_openWebSocket',
+  'snap_sendWebSocketMessage',
+  'snap_closeWebSocket',
+  'snap_getWebSockets',
   ///: END:ONLY_INCLUDE_IF
 ]);

@@ -45,6 +45,12 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { EARN_EXPERIENCES } from '../constants/experiences';
+import { ScrollView } from 'react-native-gesture-handler';
+import useEarnToken from '../hooks/useEarnToken';
+import { Hex } from 'viem';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -59,7 +65,7 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
       <View style={styles.row}>
         <Icon name={IconName.Plant} />
         {/* Text Container */}
-        <View>
+        <View style={styles.textContainer}>
           <Text variant={TextVariant.HeadingSM}>
             {strings(
               'earn.market_historic_apr_modal.earn_rewards_on_your_token',
@@ -83,7 +89,6 @@ const BodyText = ({ assetSymbol, protocol }: BodyTextProps) => {
             )}
           </Text>
           <Text color={TextColor.Alternative}>
-            {' '}
             {strings(
               'earn.market_historic_apr_modal.get_asset_back_in_your_wallet_instantly',
               { tokenSymbol: assetSymbol },
@@ -133,14 +138,21 @@ const CHART_HEIGHT = 300; // Adjust to your chart's height
 
 export const LendingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
-
+  const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
   const route = useRoute<EarnLendingLearnMoreModalRouteProp>();
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
+
+  useEffect(() => {
+    trace({ name: TraceName.EarnFaqApys, data: { experience: EARN_EXPERIENCES.STABLECOIN_LENDING } });
+    endTrace({ name: TraceName.EarnFaq });
+  }, []);
 
   const {
     isLoading: isLoadingMarketApys,
@@ -149,6 +161,36 @@ export const LendingLearnMoreModal = () => {
   } = useLendingMarketApys({
     asset: route?.params?.asset,
   });
+
+  const {
+    earnTokenPair: { outputToken, earnToken },
+    getTokenSnapshot,
+    tokenSnapshot,
+  } = useEarnToken(route?.params?.asset);
+
+  useEffect(() => {
+    if (!earnToken?.symbol) {
+      getTokenSnapshot(
+        outputToken?.chainId as Hex,
+        outputToken?.experience?.market?.underlying.address as Hex,
+      );
+    }
+  }, [
+    route?.params?.asset,
+    earnToken?.symbol,
+    outputToken?.chainId,
+    outputToken?.experience?.market?.underlying.address,
+    getTokenSnapshot,
+  ]);
+  useEffect(() => {
+    if (tokenSnapshot?.token?.symbol) {
+      setAssetSymbol(tokenSnapshot?.token?.symbol);
+    } else if (earnToken?.symbol || earnToken?.ticker) {
+      setAssetSymbol(earnToken?.symbol || earnToken?.ticker || null);
+    } else {
+      setAssetSymbol(null);
+    }
+  }, [tokenSnapshot?.token?.symbol, earnToken?.symbol, earnToken?.ticker]);
 
   const reversedMarketApys = useMemo(
     () => (marketApys?.length ? [...marketApys].reverse() : []),
@@ -170,8 +212,18 @@ export const LendingLearnMoreModal = () => {
     }
   }, [parsedVaultTimespanApyAverages]);
 
-  const handleRedirectToLearnMore = () =>
+  const handleRedirectToLearnMore = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_LENDING_FAQ_LINK_OPENED)
+        .addProperties({
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          url: EARN_URLS.LENDING_FAQ,
+        })
+        .build(),
+    );
+
     Linking.openURL(EARN_URLS.LENDING_FAQ);
+  };
 
   const footerButtons: ButtonProps[] = [
     {
@@ -212,6 +264,7 @@ export const LendingLearnMoreModal = () => {
   useEffect(() => {
     if (showChart) {
       chartReveal.value = withTiming(1, { duration: 350 });
+      endTrace({ name: TraceName.EarnFaqApys });
     }
   }, [showChart, chartReveal]);
 
@@ -229,9 +282,9 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <View>
+      <ScrollView style={styles.scrollView}>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
+          <Text variant={TextVariant.HeadingMD}>
             {strings('earn.how_it_works')}
           </Text>
         </BottomSheetHeader>
@@ -292,13 +345,13 @@ export const LendingLearnMoreModal = () => {
           )}
         </Animated.View>
         <BodyText
-          assetSymbol={route?.params?.asset?.symbol}
+          assetSymbol={assetSymbol || ''}
           protocol={
             route?.params?.asset?.experience?.market
               ?.protocol as LendingProtocol
           }
         />
-      </View>
+      </ScrollView>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}

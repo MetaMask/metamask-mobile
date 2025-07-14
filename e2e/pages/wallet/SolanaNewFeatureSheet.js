@@ -1,10 +1,9 @@
 'use strict';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../selectors/wallet/SolanaNewFeatureSheet.selectors';
-import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
+import Gestures from '../../framework/Gestures.ts';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers.ts';
 
 class SolanaNewFeatureSheet {
   // Sheet container
@@ -12,9 +11,9 @@ class SolanaNewFeatureSheet {
     return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
   }
 
-  // Create Account button
-  get createAccountButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON);
+  // Import Account button
+  get importAccountButton() {
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
   }
 
   get learnMoreButton() {
@@ -34,12 +33,12 @@ class SolanaNewFeatureSheet {
   }
 
   // Interaction methods
-  async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);
+  async tapImportAccountButton() {
+    await Gestures.waitAndTap(this.importAccountButton);
   }
 
   async tapViewAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton);//Create account testID is used for both create and view account actions
+    await Gestures.waitAndTap(this.importAccountButton);//Create account testID is used for both create and view account actions
   }
 
   async tapAddAccountButton() {
@@ -52,7 +51,9 @@ class SolanaNewFeatureSheet {
 
 
   async tapNotNowButton() {
-    await Gestures.waitAndTap(this.notNowButton);
+    await Gestures.waitAndTap(this.notNowButton, {
+      elemDescription: 'Solana New Feature Sheet Not Now Button',
+    });
   }
 
   async swipeWithCarouselLogo() {

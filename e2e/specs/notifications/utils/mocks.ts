@@ -26,6 +26,7 @@ import {
 } from '@metamask/notification-services-controller/push-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
+import { mockAuthServices } from '../../identity/utils/mocks';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -77,18 +78,19 @@ export function getMockFeatureAnnouncementItemId() {
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server: Mockttp) {
+  await mockAuthServices(server);
   // Trigger Config
-  new MockttpNotificationTriggerServer().setupServer(server);
+  await new MockttpNotificationTriggerServer().setupServer(server);
 
   // Notifications
-  mockAPICall(server, mockFeatureAnnouncementResponse);
-  mockAPICall(server, mockListNotificationsResponse);
-  mockAPICall(server, getMockMarkNotificationsAsReadResponse());
+  await mockAPICall(server, mockFeatureAnnouncementResponse);
+  await mockAPICall(server, mockListNotificationsResponse);
+  await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
-  mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
-  mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
-  mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
+  await mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
+  await mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
+  await mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
 }
 
 interface ResponseParam {
@@ -97,7 +99,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-function mockAPICall(server: Mockttp, response: ResponseParam) {
+async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -116,13 +118,22 @@ function mockAPICall(server: Mockttp, response: ResponseParam) {
     requestRuleBuilder = server.forDelete('/proxy');
   }
 
-  requestRuleBuilder
+  await requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return url.includes(String(response.url));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: response.response,
-    }));
+    .asPriority(999)
+    .thenCallback((request) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+          request.url,
+        )}`,
+      );
+      return {
+        statusCode: 200,
+        json: response.response,
+      };
+    });
 }

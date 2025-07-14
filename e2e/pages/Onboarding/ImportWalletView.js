@@ -1,7 +1,7 @@
 import { ChoosePasswordSelectorsIDs } from '../../selectors/Onboarding/ChoosePassword.selectors';
 import { ImportFromSeedSelectorsIDs } from '../../selectors/Onboarding/ImportFromSeed.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class ImportWalletView {
   get container() {
@@ -47,21 +47,32 @@ class ImportWalletView {
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
-    await Gestures.replaceTextInField(
+    await Gestures.replaceText(
       this.seedPhraseInput,
       secretRecoveryPhrase,
+      {
+        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+      }
     );
   }
   async clearSecretRecoveryPhraseInputBox() {
-    await Gestures.clearField(this.seedPhraseInput);
+    await Gestures.clearField(this.seedPhraseInput,
+      {
+        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+      }
+    );
   }
 
   async tapContinueButton() {
-    await Gestures.tap(this.continueButton);
+    await Gestures.tap(this.continueButton, {
+      elemDescription: 'Import Wallet Continue Button',
+    });
   }
 
   async tapTitle() {
-    await Gestures.tap(this.title);
+    await Gestures.tap(this.title, {
+      elemDescription: 'Import Wallet Title',
+    });
   }
 }
 
