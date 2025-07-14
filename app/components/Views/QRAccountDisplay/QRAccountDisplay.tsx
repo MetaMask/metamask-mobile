@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -25,8 +25,13 @@ import { renderAccountName } from '../../../util/address';
 const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;
 
-const QRAccountDisplay = (props: { accountAddress: string }) => {
-  const { styles } = useStyles(styleSheet, {});
+const QRAccountDisplay = (props: {
+  accountAddress: string;
+  addressContainerStyle?: ViewStyle;
+}) => {
+  const { styles } = useStyles(styleSheet, {
+    addressContainerStyle: props.addressContainerStyle,
+  });
   const addr = props.accountAddress;
   const accounts = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, accounts);

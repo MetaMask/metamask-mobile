@@ -6,6 +6,7 @@ import {
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
+  timestampToTransakFormat,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -346,4 +347,21 @@ describe('hasDepositOrderField', () => {
     expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
   });
+});
+
+describe('timestampToTransakFormat', () => {
+  it.each([
+    [new Date(2021, 6, 4).getTime().toString(), '04-07-2021'],
+    [new Date(2015, 4, 10).getTime().toString(), '10-05-2015'],
+    [new Date(1998, 3, 6).getTime().toString(), '06-04-1998'],
+    [new Date(1958, 2, 31).getTime().toString(), '31-03-1958'],
+    [new Date(2025, 11, 31).getTime().toString(), '31-12-2025'],
+    [new Date(2010, 9, 10).getTime().toString(), '10-10-2010'],
+    [new Date(1996, 0, 1).getTime().toString(), '01-01-1996'],
+  ])(
+    'should return correct Transak format for timestamp %s',
+    (timestamp, expected) => {
+      expect(timestampToTransakFormat(timestamp)).toBe(expected);
+    },
+  );
 });
