@@ -13,8 +13,6 @@ import {
   bufferTraceStartCall,
   bufferTraceEndCall,
   discardBufferedTraces,
-  hasMetricsConsent,
-  updateCachedConsent,
 } from './trace';
 import { AGREED, DENIED } from '../constants/storage';
 
@@ -379,8 +377,8 @@ describe('Trace', () => {
     it('should clear buffer and not process traces when consent is not given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
-      bufferedTraceStartCall({ name: TraceName.Middleware });
-      bufferedTraceEndCall({ name: TraceName.Middleware });
+      bufferTraceStartCall({ name: TraceName.Middleware });
+      bufferTraceEndCall({ name: TraceName.Middleware });
 
       await flushBufferedTraces();
 
@@ -397,10 +395,10 @@ describe('Trace', () => {
     it('should flush buffered traces when consent is given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
-      bufferedTraceStartCall({ name: TraceName.Middleware, id: 'test1' });
-      bufferedTraceStartCall({ name: TraceName.NestedTest1, id: 'test2' });
-      bufferedTraceEndCall({ name: TraceName.Middleware, id: 'test1' });
-      bufferedTraceEndCall({ name: TraceName.NestedTest1, id: 'test2' });
+      bufferTraceStartCall({ name: TraceName.Middleware, id: 'test1' });
+      bufferTraceStartCall({ name: TraceName.NestedTest1, id: 'test2' });
+      bufferTraceEndCall({ name: TraceName.Middleware, id: 'test1' });
+      bufferTraceEndCall({ name: TraceName.NestedTest1, id: 'test2' });
 
       storageGetItemMock.mockResolvedValue(AGREED);
       jest.clearAllMocks();
