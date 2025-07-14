@@ -100,15 +100,21 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         await requestPermissions();
 
+        // Validate that the prompted account is the one that is already permitted
+        const promptedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(promptedAccounts, 1);
+        await Assertions.checkIfObjectsMatch(promptedAccounts, ['Account 2']);
+
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate only existing permitted EVM account is connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        const displayedAccounts =
+        const permittedAccounts =
           await ConnectedAccountsModal.getDisplayedAccountNames();
 
-        await Assertions.checkIfArrayHasLength(displayedAccounts, 1);
-        await Assertions.checkIfObjectsMatch(displayedAccounts, ['Account 2']);
+        await Assertions.checkIfArrayHasLength(permittedAccounts, 1);
+        await Assertions.checkIfObjectsMatch(permittedAccounts, ['Account 2']);
       },
     );
   });
@@ -135,14 +141,23 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
           accounts: [DEFAULT_FIXTURE_ACCOUNT_2],
         });
 
+        // Validate that the prompted account is the one that is already permitted
+        const promptedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(promptedAccounts, [
+          'Account 1',
+          'Account 2',
+        ]);
+
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        const displayedAccounts =
+        const permittedAccounts =
           await ConnectedAccountsModal.getDisplayedAccountNames();
-        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
-        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+        await Assertions.checkIfArrayHasLength(permittedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(permittedAccounts, [
           'Account 1',
           'Account 2',
         ]);
@@ -153,14 +168,26 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
   it('should retain EVM permissions when connecting through the Solana Wallet Standard', async () => {
     await withSolanaAccountEnabled({ evmAccountPermitted: true }, async () => {
       await navigateToSolanaTestDApp();
-      await connectSolanaTestDapp();
+      await connectSolanaTestDapp({
+        // Validate the prompted accounts
+        assert: async () => {
+          const promptedAccounts =
+            await ConnectedAccountsModal.getDisplayedAccountNames();
+          console.log('promptedAccounts', promptedAccounts);
+          await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
+          await Assertions.checkIfObjectsMatch(promptedAccounts, [
+            'Account 1',
+            'Solana Account 1',
+          ]);
+        },
+      });
 
       // Validate both EVM and Solana accounts are connected
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      const displayedAccounts =
+      const permittedAccounts =
         await ConnectedAccountsModal.getDisplayedAccountNames();
-      await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
-      await Assertions.checkIfObjectsMatch(displayedAccounts, [
+      await Assertions.checkIfArrayHasLength(permittedAccounts, 2);
+      await Assertions.checkIfObjectsMatch(permittedAccounts, [
         'Account 1',
         'Solana Account 1',
       ]);
@@ -187,14 +214,24 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
+
+        // Validate the prompted accounts
+        const promptedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(promptedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
+
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        const displayedAccounts =
+        const permittedAccounts =
           await ConnectedAccountsModal.getDisplayedAccountNames();
-        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
-        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+        await Assertions.checkIfArrayHasLength(permittedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(permittedAccounts, [
           'Account 1',
           'Solana Account 1',
         ]);
@@ -230,6 +267,16 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
         await requestPermissions({
           accounts: [DEFAULT_FIXTURE_ACCOUNT],
         });
+
+        // Validate the prompted accounts
+        const promptedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(promptedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
+
         await ConnectBottomSheet.tapConnectButton();
 
         // Validate both EVM and Solana accounts are connected
@@ -266,14 +313,23 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
           ],
         });
 
+        // Validate the prompted accounts
+        const promptedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(promptedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
+
         await ConnectBottomSheet.tapConnectButton();
 
         //Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        const displayedAccounts =
+        const permittedAccounts =
           await ConnectedAccountsModal.getDisplayedAccountNames();
-        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
-        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+        await Assertions.checkIfArrayHasLength(permittedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(permittedAccounts, [
           'Account 1',
           'Solana Account 1',
         ]);
