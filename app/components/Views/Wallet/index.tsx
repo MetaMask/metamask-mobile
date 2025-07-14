@@ -337,20 +337,20 @@ const Wallet = ({
     navigate,
   ]);
 
+  const checkAndNavigateToSolanaFeature = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(
+      SOLANA_FEATURE_MODAL_SHOWN,
+    );
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+    }
+  }, [navigate]);
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    const checkAndNavigateToSolanaFeature = async () => {
-      const hasSeenModal = await StorageWrapper.getItem(
-        SOLANA_FEATURE_MODAL_SHOWN,
-      );
-
-      if (hasSeenModal !== 'true') {
-        navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
-      }
-    };
-
     checkAndNavigateToSolanaFeature();
-  }, [navigate]);
+  }, [checkAndNavigateToSolanaFeature]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
