@@ -108,7 +108,7 @@ describe(
         },
       });
       await TestHelpers.delay(2000); // Wait for app launch
-      
+
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
       // Removed delay - we already wait for wallet view to be visible
@@ -128,7 +128,7 @@ describe(
 
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
-      
+
       await device.enableSynchronization();
     });
   }

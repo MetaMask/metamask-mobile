@@ -231,23 +231,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       );
   };
 
-  const buttonBackgroundColor = () => {
-    if (isScrollToEndNeeded) {
-      return {
-        backgroundColor:
-          !isScrollEnded || !isCheckboxSelected
-            ? colors.primary.muted
-            : colors.primary.default,
-      };
-    }
-
-    return {
-      backgroundColor: !isCheckboxSelected
-        ? colors.primary.muted
-        : colors.primary.default,
-    };
-  };
-
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack isInteractable={false}>
       <View style={styles.modal} testID={containerTestId}>
@@ -271,14 +254,13 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         </TouchableOpacity>
         <ButtonPrimary
           label={buttonText}
-          disabled={
+          isDisabled={
             isScrollToEndNeeded
               ? !isScrollEnded || !isCheckboxSelected
               : !isCheckboxSelected
           }
           style={{
             ...styles.confirmButton,
-            ...buttonBackgroundColor(),
           }}
           onPress={onPress}
           testID={buttonTestId}

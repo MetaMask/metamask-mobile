@@ -79,15 +79,9 @@ have to have all these workarounds in the tests
   }
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    if (solanaSheetAction === 'dismiss') {
-      await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
+     // Handle Solana New feature sheet
+      await Assertions.expectElementToBeVisible(SolanaNewFeatureSheet.notNowButton);
       await SolanaNewFeatureSheet.tapNotNowButton();
-    } else if (solanaSheetAction === 'create') {
-      await SolanaNewFeatureSheet.tapCreateAccountButton();
-    } else if (solanaSheetAction === 'viewAccount') {
-      await SolanaNewFeatureSheet.tapViewAccountButton();
-    }
   }
 };
 

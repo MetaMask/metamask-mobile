@@ -90,4 +90,4 @@ export const WalletViewSelectorsText = {
 
 // Type definitions for the selectors
 export type WalletViewSelectorsIDsType = typeof WalletViewSelectorsIDs;
-export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText; 
+export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText;

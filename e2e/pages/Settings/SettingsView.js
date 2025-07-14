@@ -108,7 +108,7 @@ class SettingsView {
   }
 
   async tapNotifications() {
-    await Gestures.waitAndTap(this.notificationsButton, 
+    await Gestures.waitAndTap(this.notificationsButton,
       {
         elemDescription: 'Settings - Notifications Button',
       },

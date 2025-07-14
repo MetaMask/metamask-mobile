@@ -251,7 +251,7 @@ export const onRequestUserApproval = (origin: string) => async (args: any) => {
 export const isSwitchingChainRequest = (request: WalletKitTypes.SessionRequest) => {
   const {params: {request: {method}}} = request;
   return method === 'wallet_switchEthereumChain';
-}
+};
 
 export const getChainIdForCaipChainId = (caipChainId: CaipChainId) => {
   const caipNetworkConfiguration = selectNetworkConfigurationsByCaipChainId(store.getState());
@@ -268,14 +268,14 @@ export const getChainIdForCaipChainId = (caipChainId: CaipChainId) => {
   }
 
   return chainId as Hex;
-}
+};
 
 export const getRequestCaip2ChainId = (request: WalletKitTypes.SessionRequest) => {
   const isSwitchingChain = isSwitchingChainRequest(request);
-  const hexChainId = isSwitchingChain ? request.params.request.params[0].chainId : getChainIdForCaipChainId(request.params.chainId as CaipChainId)
+  const hexChainId = isSwitchingChain ? request.params.request.params[0].chainId : getChainIdForCaipChainId(request.params.chainId as CaipChainId);
   const caip2ChainId = `eip155:${parseInt(hexChainId, 16)}`as CaipChainId;
   return caip2ChainId;
-}
+};
 
 export const getNetworkClientIdForCaipChainId = (caipChainId: CaipChainId) => {
     const networkConfigurationsByChainId = selectEvmNetworkConfigurationsByChainId(store.getState());
@@ -299,7 +299,7 @@ export const getNetworkClientIdForCaipChainId = (caipChainId: CaipChainId) => {
     }
 
     return networkClientId;
-}
+};
 
 export const hasPermissionsToSwitchChainRequest = async (
   caip2ChainId: CaipChainId,
@@ -328,10 +328,10 @@ export const hasPermissionsToSwitchChainRequest = async (
     allowed: isAllowedChainId,
     existingNetwork,
     hexChainIdString,
-  }
-}
+  };
+};
 
 export const getRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string
-) => request.verifyContext?.verified?.origin ?? defaultOrigin
+) => request.verifyContext?.verified?.origin ?? defaultOrigin;
