@@ -29,13 +29,16 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   customButton: React.ReactNode;
   type: 'success' | 'error';
+  icon: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
   onPrimaryButtonPress?: () => void;
+  isInteractable?: boolean;
+  closeOnPrimaryButtonPress?: boolean;
+  closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
-  icon?: IconName;
   iconColor?: IconColor;
 }
 
@@ -50,18 +53,21 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
+    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
     onPrimaryButtonPress,
+    isInteractable = true,
+    closeOnPrimaryButtonPress = false,
+    closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
-    icon,
     iconColor,
   } = route.params;
 
   const { colors } = useTheme();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
 
   const handleClose = () => {
@@ -71,14 +77,14 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   };
 
   const handleSecondaryButtonPress = () => {
-    navigation.goBack();
+    closeOnSecondaryButtonPress && navigation.goBack();
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
     }
   };
 
   const handlePrimaryButtonPress = () => {
-    navigation.goBack();
+    closeOnPrimaryButtonPress && navigation.goBack();
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
     }
@@ -92,7 +98,11 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     (type === 'success' ? colors.success.default : colors.error.default);
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={handleClose}
+      isInteractable={isInteractable}
+    >
       <View style={styles.statusContainer}>
         <Icon name={getIcon} size={IconSize.Xl} color={getIconColor} />
 
