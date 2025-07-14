@@ -1,4 +1,4 @@
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
@@ -20,7 +20,7 @@ import FixtureServer from '../../../fixtures/fixture-server';
 const fixtureServer = new FixtureServer();
 
 describe(
-  SmokeNetworkExpansion('AES Crypto - Encryption and decryption with password'),
+  SmokeAccounts('AES Crypto - Encryption and decryption with password'),
   (): void => {
     const PASSWORD_ONE: string = '123123123';
     const PASSWORD_TWO: string = '456456456';
@@ -49,6 +49,7 @@ describe(
       await SettingsView.tapAesCryptoTestForm();
 
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
+      await Assertions.checkIfVisible(AesCryptoTestForm.responseText);
       await AesCryptoTestForm.decrypt(PASSWORD_ONE);
       await Assertions.checkIfElementHasLabel(
         AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
@@ -64,4 +65,4 @@ describe(
       );
     });
   },
-); 
+);

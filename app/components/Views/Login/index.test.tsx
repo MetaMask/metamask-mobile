@@ -28,6 +28,7 @@ const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 const mockRoute = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -36,6 +37,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       replace: mockReplace,
+      reset: mockReset,
       goBack: mockGoBack,
     }),
     useRoute: () => mockRoute(),
@@ -656,14 +658,16 @@ describe('Login', () => {
       });
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.ROOT_NAV, {
-        screen: Routes.ONBOARDING.NAV,
-        params: {
-          screen: Routes.ONBOARDING.OPTIN_METRICS,
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{
+          name: Routes.ONBOARDING.ROOT_NAV,
           params: {
-            onContinue: expect.any(Function),
+            screen: Routes.ONBOARDING.NAV,
+            params: {
+              screen: Routes.ONBOARDING.OPTIN_METRICS
+            },
           },
-        },
+        }],
       });
     });
 
@@ -697,3 +701,4 @@ describe('Login', () => {
     });
   });
 });
+

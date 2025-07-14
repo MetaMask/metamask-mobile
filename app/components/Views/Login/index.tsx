@@ -26,7 +26,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -38,6 +38,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -92,8 +93,6 @@ import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@met
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { RootState } from '../../../reducers';
-import { useMetrics } from '../../hooks/useMetrics';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -136,10 +135,6 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  const { isEnabled: isAnalyticsEnabled } = useMetrics();
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
   const track = (
@@ -272,15 +267,23 @@ const Login: React.FC = () => {
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
-    if (!isMetaMetricsUISeen) {
-      navigation.replace(Routes.ONBOARDING.ROOT_NAV, {
-        screen: Routes.ONBOARDING.NAV,
-        params: {
-          screen: Routes.ONBOARDING.OPTIN_METRICS,
-          params: {
-            onContinue: () => navigateToHome(),
+    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+      OPTIN_META_METRICS_UI_SEEN,
+    );
+
+    if (!isOptinMetaMetricsUISeen) {
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
           },
-        },
+        ],
       });
     } else {
       navigateToHome();

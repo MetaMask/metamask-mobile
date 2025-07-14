@@ -300,7 +300,7 @@ export const switchToSepoliaNetwork = async () => {
 
 /**
  * Logs into the application using the provided password or a default password.
- * 
+ *
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
