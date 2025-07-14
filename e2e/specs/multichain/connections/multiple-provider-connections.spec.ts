@@ -104,8 +104,11 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         // Validate only existing permitted EVM account is connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfTextIsDisplayed('Account 2');
-        await Assertions.checkIfTextIsNotDisplayed('Account 1');
+        const displayedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+
+        await Assertions.checkIfArrayHasLength(displayedAccounts, 1);
+        await Assertions.checkIfObjectsMatch(displayedAccounts, ['Account 2']);
       },
     );
   });
@@ -134,10 +137,15 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         await ConnectBottomSheet.tapConnectButton();
 
-        // // Validate both EVM accounts are connected
+        // Validate both EVM accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfTextIsDisplayed('Account 1');
-        await Assertions.checkIfTextIsDisplayed('Account 2');
+        const displayedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+          'Account 1',
+          'Account 2',
+        ]);
       },
     );
   });
@@ -149,8 +157,13 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
       // Validate both EVM and Solana accounts are connected
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      await Assertions.checkIfTextIsDisplayed('Account 1');
-      await Assertions.checkIfTextIsDisplayed('Solana Account 1');
+      const displayedAccounts =
+        await ConnectedAccountsModal.getDisplayedAccountNames();
+      await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
+      await Assertions.checkIfObjectsMatch(displayedAccounts, [
+        'Account 1',
+        'Solana Account 1',
+      ]);
 
       // Navigate to the permissions summary tab
       await ConnectedAccountsModal.tapManagePermissionsButton();
@@ -178,8 +191,13 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfTextIsDisplayed('Account 1');
-        await Assertions.checkIfTextIsDisplayed('Solana Account 1');
+        const displayedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
 
         // Navigate to the permissions summary tab
         await ConnectedAccountsModal.tapManagePermissionsButton();
@@ -216,8 +234,13 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         // Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfTextIsDisplayed('Account 1');
-        await Assertions.checkIfTextIsDisplayed('Solana Account 1');
+        const displayedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
       },
     );
   });
@@ -247,8 +270,13 @@ describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
 
         //Validate both EVM and Solana accounts are connected
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfTextIsDisplayed('Account 1');
-        await Assertions.checkIfTextIsDisplayed('Solana Account 1');
+        const displayedAccounts =
+          await ConnectedAccountsModal.getDisplayedAccountNames();
+        await Assertions.checkIfArrayHasLength(displayedAccounts, 2);
+        await Assertions.checkIfObjectsMatch(displayedAccounts, [
+          'Account 1',
+          'Solana Account 1',
+        ]);
 
         // Navigate to the permissions summary tab
         await ConnectedAccountsModal.tapManagePermissionsButton();
