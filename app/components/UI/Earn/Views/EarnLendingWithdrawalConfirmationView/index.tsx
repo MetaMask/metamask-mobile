@@ -400,7 +400,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .addProperties(getTrackEventProperties('withdrawal'))
           .build(),
       );
-      
+
       // start trace between user intiating withdrawal and generic confirmation bottom sheet showing
       trace({
         name: TraceName.EarnWithdrawConfirmationScreen,
