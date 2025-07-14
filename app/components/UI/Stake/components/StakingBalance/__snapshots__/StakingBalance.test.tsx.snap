@@ -10,11 +10,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
+        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
@@ -232,7 +232,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }
@@ -807,11 +806,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
+        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
@@ -1029,7 +1028,6 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }

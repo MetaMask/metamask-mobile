@@ -42,8 +42,8 @@ describe('Collectibles', () => {
       'rarityScore':10.667,
       'standard':'ERC1155',
       'tokenId':'2',
-    }]
-    const { toJSON } = renderWithProvider(<Collectibles collectibles={testCollectibles} navigation={{navigate: jest.fn(), goBack: jest.fn()}} />, 
+    }];
+    const { toJSON } = renderWithProvider(<Collectibles collectibles={testCollectibles} navigation={{navigate: jest.fn(), goBack: jest.fn()}} />,
       {
         state: {
           engine: {

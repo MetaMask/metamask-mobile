@@ -90,12 +90,10 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedWalletAddress, selectedRegion } =
-    useDepositSDK();
+  const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const { routeAfterAuthentication } = useDepositRouting({
-    selectedWalletAddress,
     cryptoCurrencyChainId: cryptoCurrency.chainId,
     paymentMethodId: paymentMethod.id,
   });
@@ -124,7 +122,11 @@ const BuildQuote = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.buildQuote.title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 
@@ -137,6 +139,18 @@ const BuildQuote = () => {
       }
     }
   }, [selectedRegion?.currency]);
+
+  useEffect(() => {
+    if (selectedRegion?.isoCode && paymentMethods.length > 0) {
+      const isPaymentMethodSupported = paymentMethods.some(
+        (method) => method.id === paymentMethod.id,
+      );
+
+      if (!isPaymentMethodSupported) {
+        setPaymentMethod(paymentMethods[0]);
+      }
+    }
+  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
@@ -305,31 +319,34 @@ const BuildQuote = () => {
           </View>
 
           <View style={styles.centerGroup}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.mainAmount}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {formatCurrency(amountAsNumber, fiatCurrency.id, {
-                currencyDisplay: 'narrowSymbol',
-              })}
-            </Text>
+            <View>
+              <Text
+                variant={TextVariant.HeadingLG}
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, fiatCurrency.id, {
+                  currencyDisplay: 'narrowSymbol',
+                  maximumFractionDigits: 0,
+                })}
+              </Text>
 
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.convertedAmount}
-            >
-              {isLoadingTokenAmount || errorLoadingTokenAmount ? (
-                ' '
-              ) : (
-                <>
-                  {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                  {cryptoCurrency.symbol}
-                </>
-              )}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.convertedAmount}
+              >
+                {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                  ' '
+                ) : (
+                  <>
+                    {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                    {cryptoCurrency.symbol}
+                  </>
+                )}
+              </Text>
+            </View>
 
             <TouchableOpacity onPress={handleCryptoPress}>
               <View style={styles.cryptoPill}>
