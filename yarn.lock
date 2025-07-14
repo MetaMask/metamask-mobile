@@ -5021,15 +5021,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-8.0.0.tgz#eaee5631553a138900c39c842eca8f5e19d59439"
   integrity sha512-iZPdGG/kzgeUn9SUDI+U86JD6Bu4VxJHoCA3smajzaXzCbFP3dbJPvT36ise+VTP4yGykSIZxZQbnSBIabfcVw==
 
-"@metamask/earn-controller@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-2.0.1.tgz#e3486fc2e9aeb8dc292629ad01d8de075ac64326"
-  integrity sha512-sriAsbMjvTQ1sx6K6gRgzEKlLW0wlJidvGhbI/nWZvZKaYy3xhPPmVBXIau4huwWUfSy1ohINPEnqsjRS2WInw==
+"@metamask/earn-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-3.0.0.tgz#400684ceb8a4017921b9efa3dce1c7df31610131"
+  integrity sha512-HhBshlXNevaSBC/dOuhehowYQGTSs3gg6juHzBhpRCqnz/vbxV4+cQWixcrPZ49I8CC/ZJ6NeLjl5JDrAzlO0g==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/controller-utils" "^11.11.0"
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
