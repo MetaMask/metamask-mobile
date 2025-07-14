@@ -68,7 +68,7 @@ export const TokenButton: React.FC<TokenProps> = ({
       <Box
         style={styles.pillContainer}
         flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
+        alignItems={AlignItems.flexEnd}
         justifyContent={JustifyContent.flexEnd}
         gap={4}
       >
