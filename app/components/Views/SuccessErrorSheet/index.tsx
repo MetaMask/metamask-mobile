@@ -16,6 +16,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -36,6 +37,7 @@ export interface SuccessErrorSheetParams {
   closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
+  iconColor?: IconColor;
 }
 
 export interface SuccessErrorSheetProps {
@@ -59,22 +61,17 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
+    iconColor,
   } = route.params;
 
   const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
 
   const handleClose = () => {
     if (onClose) {
       onClose();
     }
-  };
-
-  const getIcon = () => {
-    if (icon) {
-      return icon;
-    }
-    return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
   };
 
   const handleSecondaryButtonPress = () => {
@@ -91,6 +88,13 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
+  const getIcon =
+    icon || (type === 'success' ? IconName.Confirmation : IconName.CircleX);
+
+  const getIconColor =
+    iconColor ||
+    (type === 'success' ? colors.success.default : colors.error.default);
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -98,13 +102,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       isInteractable={isInteractable}
     >
       <View style={styles.statusContainer}>
-        <Icon
-          name={getIcon()}
-          size={IconSize.Xl}
-          color={
-            type === 'success' ? colors.success.default : colors.error.default
-          }
-        />
+        <Icon name={getIcon} size={IconSize.Xl} color={getIconColor} />
 
         {typeof title === 'string' ? (
           <Text

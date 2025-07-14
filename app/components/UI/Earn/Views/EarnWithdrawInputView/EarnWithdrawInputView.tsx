@@ -311,7 +311,7 @@ const EarnWithdrawInputView = () => {
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
     trace({ name: TraceName.EarnWithdrawReviewScreen });
-    
+
     if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)

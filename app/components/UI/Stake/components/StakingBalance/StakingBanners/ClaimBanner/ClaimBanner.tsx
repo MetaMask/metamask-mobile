@@ -71,7 +71,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const attemptClaim = useCallback(async () => {
     try {
       if (!activeAccount?.address) return;
-      
+
       trace({ name: TraceName.EarnClaimConfirmationScreen });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)

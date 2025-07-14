@@ -137,7 +137,8 @@ const Main = (props) => {
           primaryButtonLabel: strings(
             'login.seedless_password_outdated_modal_confirm',
           ),
-          icon: IconName.RichDanger,
+          type: 'error',
+          icon: IconName.Danger,
           isInteractable: false,
           onPrimaryButtonPress: async () => {
             await Authentication.lockApp({ locked: true });

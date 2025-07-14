@@ -88,7 +88,7 @@ describe('UnmountOnBlur', () => {
   describe('focus state changes', () => {
     it('unmounts and remounts children when focus changes', () => {
       mockUseIsFocused.mockReturnValue(true);
-      
+
       const { getByText, queryByText, rerender } = render(
         <UnmountOnBlur>
           <Text>Dynamic Content</Text>
@@ -121,4 +121,4 @@ describe('UnmountOnBlur', () => {
       expect(getByText('Dynamic Content')).toBeTruthy();
     });
   });
-}); 
+});

@@ -20,33 +20,12 @@ const MAXIMUM_DATE = new Date(2025, 11, 31);
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
-const formatDate = (date: Date, locale = I18n.locale): string =>
+const formatDateForDisplay = (date: Date, locale = I18n.locale): string =>
   new Intl.DateTimeFormat(locale, {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
   }).format(date);
-
-const formatDateForValue = (date: Date): string => {
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-};
-
-const getValidDate = (dateString: string): Date => {
-  const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-  const match = dateString.match(dateRegex);
-
-  if (match) {
-    const [, month, day, year] = match;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return isNaN(date.getTime()) ? DEFAULT_DATE : date;
-  }
-
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? DEFAULT_DATE : date;
-};
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -113,7 +92,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
     const fieldRef = useRef<TextInput>(null);
 
     const handleOpenPicker = () => {
-      handleOnPress?.()
+      handleOnPress?.();
       setShowDatePicker(true);
     };
 
@@ -126,7 +105,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       (date?: Date | null) => {
         if (date) {
           setShowDatePicker(false);
-          onChangeText(formatDateForValue(date));
+          onChangeText(date.getTime().toString());
           onSubmitEditing?.();
         }
       },
@@ -151,8 +130,8 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                 />
               }
               label={label}
-              placeholder={formatDate(DEFAULT_DATE)}
-              value={formatDate(getValidDate(value))}
+              placeholder={formatDateForDisplay(DEFAULT_DATE)}
+              value={formatDateForDisplay(new Date(Number(value)))}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
@@ -165,7 +144,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker
-            value={getValidDate(value)}
+            value={new Date(Number(value))}
             mode="date"
             display="default"
             onChange={(_, date) => processSelectedDate(date)}
@@ -200,7 +179,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                     </View>
                     <DateTimePicker
-                      value={getValidDate(value)}
+                      value={new Date(Number(value))}
                       mode="date"
                       display="spinner"
                       onChange={(_, date) =>
