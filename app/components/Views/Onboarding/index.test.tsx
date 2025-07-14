@@ -11,7 +11,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import { InteractionManager, BackHandler, Animated } from 'react-native';
+import {
+  InteractionManager,
+  BackHandler,
+  Animated,
+  Platform,
+} from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -103,6 +108,17 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    Platform: {
+      ...actualRN.Platform,
+      OS: 'ios',
+    },
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockNav = {
@@ -154,6 +170,8 @@ describe('Onboarding', () => {
     }));
 
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+    Platform.OS = 'ios';
   });
 
   it('should render correctly', () => {
@@ -188,6 +206,8 @@ describe('Onboarding', () => {
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+
+    Platform.OS = 'android';
 
     const { toJSON } = renderScreen(
       Onboarding,

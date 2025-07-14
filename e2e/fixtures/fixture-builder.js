@@ -67,7 +67,7 @@ class FixtureBuilder {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
     }
-    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShownV2'] = 'true';
     return this;
   }
 
@@ -81,7 +81,7 @@ class FixtureBuilder {
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false',
+      '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
 
     // Set existingUser in Redux state instead of asyncState
@@ -706,7 +706,7 @@ class FixtureBuilder {
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-        '@MetaMask:solanaFeatureModalShown': 'true',
+        '@MetaMask:solanaFeatureModalShownV2': 'true',
       },
     };
     return this;

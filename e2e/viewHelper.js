@@ -56,7 +56,10 @@ export const acceptTermOfUse = async () => {
  *   - 'create': Taps "Create Account" on the Solana sheet.
  *   - 'viewAccount': Intended to navigate to a view/manage existing account flow for Solana.
  */
-export const closeOnboardingModals = async (solanaSheetAction = 'dismiss') => {
+export const closeOnboardingModals = async (
+  solanaSheetAction = 'dismiss',
+  fromResetWallet = false,
+) => {
   /*
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
@@ -75,14 +78,10 @@ have to have all these workarounds in the tests
     console.log('The marketing toast is not visible');
   }
 
-  // Handle Solana New feature sheet
-  if (solanaSheetAction === 'dismiss') {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
-    await SolanaNewFeatureSheet.tapNotNowButton();
-  } else if (solanaSheetAction === 'create') {
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-  } else if (solanaSheetAction === 'viewAccount') {
-    await SolanaNewFeatureSheet.tapViewAccountButton();
+  if (!fromResetWallet) {
+     // Handle Solana New feature sheet
+      await Assertions.expectElementToBeVisible(SolanaNewFeatureSheet.notNowButton);
+      await SolanaNewFeatureSheet.tapNotNowButton();
   }
 };
 
@@ -128,6 +127,7 @@ export const dismissProtectYourWalletModal = async () => {
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
  * @param {('dismiss'|'create'|'viewAccount')} [options.solanaSheetAction='dismiss'] - Action for the Solana feature sheet.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
@@ -135,16 +135,25 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  fromResetWallet = false,
   solanaSheetAction = 'dismiss',
 } = {}) => {
   // tap on import seed phrase button
-  await Assertions.expectElementToBeVisible(OnboardingCarouselView.container, {
-    description: 'Onboarding Carousel should be visible',
+
+  if (!fromResetWallet) {
+    await Assertions.expectElementToBeVisible(
+      OnboardingCarouselView.container,
+      {
+        description: 'Onboarding Carousel should be visible',
+      },
+    );
+    await OnboardingCarouselView.tapOnGetStartedButton();
+    await acceptTermOfUse();
+  }
+
+  await Assertions.expectElementToBeVisible(OnboardingView.importSeedButton, {
+    description: 'Import with seed button should be visible',
   });
-
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
-
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   // should import wallet with secret recovery phrase
@@ -160,16 +169,16 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
-
-  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
-    description: 'MetaMetrics Opt-In should be visible',
-  });
-  if (optInToMetrics) {
-    await MetaMetricsOptIn.tapAgreeButton();
-  } else {
-    await MetaMetricsOptIn.tapNoThanksButton();
+  if (!fromResetWallet) {
+    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+      description: 'MetaMetrics Opt-In should be visible',
+    });
+    if (optInToMetrics) {
+      await MetaMetricsOptIn.tapAgreeButton();
+    } else {
+      await MetaMetricsOptIn.tapNoThanksButton();
+    }
   }
-
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -180,7 +189,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals(solanaSheetAction);
+  await closeOnboardingModals(solanaSheetAction, fromResetWallet);
 };
 
 /**
@@ -300,7 +309,7 @@ export const switchToSepoliaNetwork = async () => {
 
 /**
  * Logs into the application using the provided password or a default password.
- * 
+ *
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.

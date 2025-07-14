@@ -96,7 +96,7 @@ export const useTokenAmount = ({ amountWei }: TokenAmountProps = {}): TokenAmoun
       // Native
       fiat = amount.times(nativeConversionRate);
       const usdAmount = amount.times(usdConversionRate);
-      usdValue = usdConversionRateFromCurrencyRates ? usdAmount.toFixed(2): null;
+      usdValue = usdConversionRateFromCurrencyRates ? usdAmount.toFixed(2) : null;
       isNative = true;
       break;
     }
