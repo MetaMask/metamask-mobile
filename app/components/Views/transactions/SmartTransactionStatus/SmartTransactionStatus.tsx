@@ -268,8 +268,9 @@ const SmartTransactionStatus = ({
   // Stable creationTime fallback for swaps (latestSmartTransaction may lack creationTime)
   const effectiveCreationTime = useMemo(() => {
     if (creationTime) return creationTime;
-    return Date.now(); // Fallback timestamp, stable across re-renders
-  }, [creationTime]);
+    
+    return isStxPending ? Date.now() : undefined;
+  }, [creationTime, isStxPending]);
 
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
