@@ -183,9 +183,7 @@ class Approval extends PureComponent {
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
-        }
-
-        if (!isLedgerAccount) {
+        } else if (!isLedgerAccount) {
           Engine.rejectPendingApproval(
             transaction?.id,
             providerErrors.userRejectedRequest(),
@@ -194,15 +192,16 @@ class Approval extends PureComponent {
               logErrors: false,
             },
           );
-
-          Engine.controllerMessenger.tryUnsubscribe(
-            'TransactionController:transactionFinished',
-            this.#transactionFinishedListener,
-          );
-
-          this.appStateListener?.remove();
         }
       }
+
+      // Always perform cleanup operations regardless of account type
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionFinished',
+        this.#transactionFinishedListener,
+      );
+
+      this.appStateListener?.remove();
 
       this.clear();
     } catch (e) {
