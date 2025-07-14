@@ -49,7 +49,7 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
-          cache-unique-id: ${{ github.run_id }}-${{ inputs.test-suite-name }}-${{ github.run_attempt }}
+          cache-unique-id: ${{ github.repository }}-${{ inputs.platform }}
 
       - name: Build E2E app
         run: |
