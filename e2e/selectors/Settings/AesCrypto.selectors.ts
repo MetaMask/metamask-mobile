@@ -62,4 +62,4 @@ export const aesCryptoFormButtons: AesCryptoFormButtons = {
 
 export const aesCryptoFormScrollIdentifier: string = 'aes-crypto-form-scroll';
 export const accountAddress: string = 'account-address';
-export const responseText: string = 'response-text'; 
+export const responseText: string = 'response-text';

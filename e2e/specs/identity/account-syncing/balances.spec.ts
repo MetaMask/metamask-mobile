@@ -8,10 +8,7 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import {
-  withIdentityFixtures,
-  createSharedUserStorageController,
-} from '../utils/withIdentityFixtures.ts';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
@@ -23,6 +20,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../fixtures/fixture-builder.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
   SmokeIdentity('Account syncing - Accounts with Balances'),
@@ -31,7 +29,7 @@ describe(
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createSharedUserStorageController();
+      sharedUserStorageController = createUserStorageController();
     });
 
     const balancesAccounts = [
