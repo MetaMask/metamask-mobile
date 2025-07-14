@@ -182,7 +182,7 @@
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.9.0",
     "@metamask/design-tokens": "^7.0.0",
-    "@metamask/earn-controller": "^2.0.1",
+    "@metamask/earn-controller": "^3.0.0",
     "@metamask/eip1193-permission-middleware": "^0.1.0",
     "@metamask/error-reporting-service": "^2.0.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
