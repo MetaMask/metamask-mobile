@@ -5,13 +5,11 @@ import {
   View,
   type GestureResponderEvent,
 } from 'react-native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import type {
@@ -32,15 +30,17 @@ interface PerpsPositionCardProps {
   onClose?: (position: Position) => void;
   onEdit?: (position: Position) => void;
   disabled?: boolean;
+  priceChange24h?: number; // 24hr price change in percentage
+  priceChange24hFiat?: number; // 24hr price change in fiat
 }
-
-// Styles moved to separate file for better organization
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   position,
   onClose,
   onEdit,
   disabled,
+  priceChange24h = 0,
+  priceChange24hFiat = 0,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -48,9 +48,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) > 0;
-  const direction = isLong ? 'long' : 'short';
-
-  // Format numbers for display - using shared utilities
+  const direction = isLong ? 'LONG' : 'SHORT';
+  const absoluteSize = Math.abs(parseFloat(position.size));
 
   const handleCardPress = async () => {
     // await triggerSelectionHaptic();
@@ -95,118 +94,125 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     size: parseFloat(position.size),
   });
 
+  const isPositive24h = priceChange24h >= 0;
+
   return (
     <TouchableOpacity
       style={styles.container}
       onPress={handleCardPress}
       disabled={disabled}
     >
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.assetInfo}>
-          <Text style={styles.assetName}>{position.coin}</Text>
-          <View
-            style={[
-              styles.directionBadge,
-              isLong ? styles.longBadge : styles.shortBadge,
-            ]}
-          >
-            <Text
+        <View style={styles.headerLeft}>
+          <View style={styles.headerRow}>
+            <Text style={styles.leverageText}>{position.leverage.value}x</Text>
+            <View
               style={[
-                styles.directionText,
-                isLong ? styles.longText : styles.shortText,
+                styles.directionBadge,
+                isLong ? styles.longBadge : styles.shortBadge,
               ]}
             >
-              {direction}
+              <Text
+                style={[
+                  styles.directionText,
+                  isLong ? styles.longText : styles.shortText,
+                ]}
+              >
+                {direction}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.headerRow}>
+            <Text style={styles.tokenAmount}>
+              {formatPositionSize(absoluteSize.toString())} {position.coin}
             </Text>
           </View>
         </View>
-        <View style={styles.actionsContainer}>
-          <ButtonIcon
-            iconName={IconName.Edit}
-            iconColor={IconColor.Muted}
-            size={ButtonIconSizes.Sm}
-            onPress={handleEditPress}
-          />
-          <ButtonIcon
-            iconName={IconName.Close}
-            iconColor={IconColor.Error}
-            size={ButtonIconSizes.Sm}
-            onPress={handleClosePress}
-          />
-        </View>
-      </View>
 
-      <View style={styles.detailsContainer}>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>Size</Text>
-          <Text style={styles.detailValue}>
-            {formatPositionSize(position.size)} {position.coin}
-          </Text>
-        </View>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>Entry Price</Text>
-          <Text style={styles.detailValue}>
-            {formatPrice(position.entryPrice)}
-          </Text>
-        </View>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>Mark Price</Text>
-          <Text style={styles.detailValue}>
-            {formatPrice(position.liquidationPrice || position.entryPrice)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.detailsContainer}>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>Unrealized P&L</Text>
-          <Text
-            style={[
-              styles.pnlValue,
-              pnlNum >= 0 ? styles.positivePnl : styles.negativePnl,
-            ]}
-          >
-            {formatPnl(pnlNum)}
-          </Text>
-        </View>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>P&L %</Text>
-          <Text
-            style={[
-              styles.pnlValue,
-              pnlPercentage >= 0 ? styles.positivePnl : styles.negativePnl,
-            ]}
-          >
-            {formatPercentage(pnlPercentage)}
-          </Text>
-        </View>
-        <View style={styles.detailColumn}>
-          <Text style={styles.detailLabel}>Position Value</Text>
-          <Text style={styles.detailValue}>
-            {formatPrice(position.positionValue)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.leverageContainer}>
-        <View style={styles.leverageInfo}>
-          <View style={styles.leverageItem}>
-            <Text style={styles.leverageLabel}>Leverage</Text>
-            <Text style={styles.leverageValue}>{position.leverage.value}x</Text>
+        <View style={styles.headerRight}>
+          <View style={styles.headerRow}>
+            <Text style={styles.positionValue}>
+              {formatPrice(position.positionValue)}
+            </Text>
           </View>
-          <View style={styles.leverageItem}>
-            <Text style={styles.leverageLabel}>Margin Used</Text>
-            <Text style={styles.leverageValue}>
+          <View style={styles.headerRow}>
+            <Text
+              style={[
+                styles.priceChange,
+                isPositive24h ? styles.positivePnl : styles.negativePnl,
+              ]}
+            >
+              {formatPnl(priceChange24hFiat)} (
+              {formatPercentage(priceChange24h)})
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Body */}
+      <View style={styles.body}>
+        <View style={styles.bodyRow}>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Entry Price</Text>
+            <Text style={styles.bodyValue}>
+              {formatPrice(position.entryPrice)}
+            </Text>
+          </View>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Market Price</Text>
+            <Text style={styles.bodyValue}>
+              {formatPrice(position.liquidationPrice || position.entryPrice)}
+            </Text>
+          </View>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Liquidity Price</Text>
+            <Text style={styles.bodyValue}>
+              {position.liquidationPrice
+                ? formatPrice(position.liquidationPrice)
+                : 'N/A'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.bodyRow}>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Take Profit</Text>
+            <Text style={styles.bodyValue}>Not Set</Text>
+          </View>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Stop Loss</Text>
+            <Text style={styles.bodyValue}>Not Set</Text>
+          </View>
+          <View style={styles.bodyItem}>
+            <Text style={styles.bodyLabel}>Margin</Text>
+            <Text style={styles.bodyValue}>
               {formatPrice(position.marginUsed)}
             </Text>
           </View>
-          <View style={styles.leverageItem}>
-            <Text style={styles.leverageLabel}>Liq. Price</Text>
-            <Text style={styles.leverageValue}>
-              {formatPrice(position.liquidationPrice || '0')}
-            </Text>
-          </View>
         </View>
+      </View>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Auto}
+          label="Edit TP/SL"
+          onPress={handleEditPress}
+          disabled={disabled}
+          style={styles.footerButton}
+        />
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Auto}
+          label="Close Position"
+          onPress={handleClosePress}
+          disabled={disabled}
+          style={styles.footerButton}
+        />
       </View>
     </TouchableOpacity>
   );
