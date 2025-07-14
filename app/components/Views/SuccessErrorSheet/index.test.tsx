@@ -41,6 +41,7 @@ describe('SuccessErrorSheet', () => {
       customButton: null,
       descriptionAlign: 'center' as const,
       reverseButtonOrder: true,
+      icon: IconName.Confirmation,
     },
   };
 
