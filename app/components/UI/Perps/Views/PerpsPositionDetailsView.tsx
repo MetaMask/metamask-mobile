@@ -7,11 +7,7 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -263,11 +259,7 @@ const PerpsPositionDetailsView: React.FC = () => {
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
 
   const { position } = route.params || {};
-  const [error, setError] = useState<string | null>(null);
-
   // Calculate position metrics
-  const isLong = parseFloat(position.size) > 0;
-  const direction = isLong ? 'long' : 'short';
   const absoluteSize = Math.abs(parseFloat(position.size));
   const pnlNum = parseFloat(position.unrealizedPnl);
   const pnlPercentage = calculatePnLPercentageFromUnrealized({
@@ -339,7 +331,6 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const handleEditTPSL = () => {
     DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
-    setError(null);
   };
 
   // Position details data
@@ -423,59 +414,6 @@ const PerpsPositionDetailsView: React.FC = () => {
             onEdit={handleEditTPSL}
             disabled
           />
-        </View>
-
-        {/* Position Details Grid */}
-        <View style={styles.detailsGrid}>
-          {positionDetails.map((detail, index) => (
-            <View key={index} style={styles.detailCard}>
-              <Text style={styles.detailLabel}>{detail.label}</Text>
-              <Text style={styles.detailValue}>{detail.value}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Actions Section */}
-        <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Position Actions</Text>
-
-          <View style={styles.closeSection}>
-            <View style={styles.closeWarning}>
-              <Text style={styles.warningText}>
-                ⚠️ Closing this position will execute a market order to exit
-                your entire {direction.toUpperCase()} position in{' '}
-                {position.coin}.
-              </Text>
-            </View>
-
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <View style={styles.buttonContainer}>
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label="Edit TP/SL"
-                onPress={handleEditTPSL}
-                loading={false} // TODO: Add loading state when implemented
-                style={styles.editButton}
-              />
-
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={`Close ${direction.toUpperCase()} Position`}
-                onPress={handleClosePosition}
-                loading={false} // TODO: Add loading state when implemented
-                style={styles.closeButton}
-              />
-            </View>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
