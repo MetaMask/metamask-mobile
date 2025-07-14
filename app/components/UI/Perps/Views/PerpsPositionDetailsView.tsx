@@ -10,14 +10,13 @@ import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 import Text from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import type { Position, PriceUpdate } from '../controllers/types';
+import type { Position } from '../controllers/types';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
-import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 import PerpsPositionCard from '../components/PerpsPositionCard';
 import PerpsPositionHeader from '../components/PerpsPostitionHeader/PerpsPositionHeader';
+import { usePerpsPositionData } from '../hooks/usePerpsPositionData';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -252,68 +251,15 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  const [candleData, setCandleData] = useState<{
-    coin: string;
-    interval: string;
-    candles: {
-      time: number;
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      volume: string;
-    }[];
-  } | null>(null);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState('1h');
-  const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
-
-  const fetchHistoricalCandles = useCallback(async () => {
-    const historicalData =
-      await HyperLiquidSubscriptionService.fetchHistoricalCandles(
-        position.coin,
-        selectedInterval,
-        100,
-      );
-    return historicalData;
-  }, [position.coin, selectedInterval]);
+  const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
+    coin: position.coin,
+    selectedInterval,
+  });
 
   const handleIntervalChange = useCallback((newInterval: string) => {
     setSelectedInterval(newInterval);
   }, []);
-
-  useEffect(() => {
-    setIsLoadingHistory(true);
-    const loadHistoricalData = async () => {
-      try {
-        const historicalData = await fetchHistoricalCandles();
-        setCandleData(historicalData);
-      } catch (err) {
-        console.error('Error loading historical candles:', err);
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
-
-    loadHistoricalData();
-  }, [fetchHistoricalCandles]);
-
-  // Subscribe to price updates for 24-hour data
-  useEffect(() => {
-    const unsubscribe = Engine.context.PerpsController.subscribeToPrices({
-      symbols: [position.coin],
-      callback: (priceUpdates) => {
-        const update = priceUpdates.find((p) => p.coin === position.coin);
-        if (update) {
-          setPriceData(update);
-        }
-      },
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [position.coin]);
 
   // Handle position close
   const handleClosePosition = useCallback(async () => {
