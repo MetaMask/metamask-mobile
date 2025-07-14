@@ -40,24 +40,24 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
           (Date.now() - creationTime) / 1000,
         );
         
-        // Calculate current deadline inside the function
-        const currentDeadline = isStxPastEstimatedDeadline
+        // Calculate current deadline fresh based on elapsed time
+        const isPastEstimated = secondsAfterStxSubmission > stxEstimatedDeadlineSec;
+        const currentDeadline = isPastEstimated
           ? stxMaxDeadlineSec
           : stxEstimatedDeadlineSec;
 
-        if (secondsAfterStxSubmission > currentDeadline) {
-          if (isStxPastEstimatedDeadline) {
-            setTimeLeftForPendingStxInSec(0);
-            clearInterval(intervalId);
-            return;
-          }
-          setIsStxPastEstimatedDeadline(true);
-          // After setting the state, recalculate with the new deadline
-          const newDeadline = stxMaxDeadlineSec;
-          const newTimeLeft = newDeadline - secondsAfterStxSubmission;
-          setTimeLeftForPendingStxInSec(newTimeLeft > 0 ? newTimeLeft : 0);
+        // Check if past MAX deadline using fresh calculation
+        if (secondsAfterStxSubmission > stxMaxDeadlineSec) {
+          setTimeLeftForPendingStxInSec(0);
+          clearInterval(intervalId);
           return;
         }
+
+        // Update state if transitioning past estimated deadline
+        if (isPastEstimated && !isStxPastEstimatedDeadline) {
+          setIsStxPastEstimatedDeadline(true);
+        }
+
         setTimeLeftForPendingStxInSec(
           currentDeadline - secondsAfterStxSubmission,
         );

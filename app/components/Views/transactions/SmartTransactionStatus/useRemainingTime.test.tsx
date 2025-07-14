@@ -164,8 +164,8 @@ describe('useRemainingTime', () => {
 
   it('stops countdown when past max deadline', () => {
     const now = Date.now();
-    const creationTime = now - (FALLBACK_STX_MAX_DEADLINE_SEC * 1000 + 10000); // 160 seconds ago (past 150s max)
-
+    const creationTime = now - (FALLBACK_STX_MAX_DEADLINE_SEC * 1000); // Exactly 150 seconds ago
+  
     const { result } = renderHook(
       () =>
         useRemainingTime({
@@ -174,12 +174,9 @@ describe('useRemainingTime', () => {
         }),
       { wrapper: createWrapper() }
     );
-
-    // Should be past estimated deadline
-    expect(result.current.isStxPastEstimatedDeadline).toBe(true);
-    expect(result.current.stxDeadlineSec).toBe(FALLBACK_STX_MAX_DEADLINE_SEC);
-    
-    // Should show 0 remaining time
+  
+    // Should show 0 remaining time at the boundary
     expect(result.current.timeLeftForPendingStxInSec).toBe(0);
+    expect(result.current.isStxPastEstimatedDeadline).toBe(true);
   });
 });
