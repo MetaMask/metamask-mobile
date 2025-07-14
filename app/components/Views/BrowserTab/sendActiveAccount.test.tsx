@@ -282,10 +282,10 @@ describe('sendActiveAccount function', () => {
 
       // Should not throw, but handle gracefully
       await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
-      
+
       // Should log the error
       expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
-      
+
       // Should not proceed to call other functions
       expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
@@ -300,10 +300,10 @@ describe('sendActiveAccount function', () => {
 
       // Should not throw, but handle gracefully
       await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
-      
+
       // Should log the error
       expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
-      
+
       // Should not proceed to notify connections
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
