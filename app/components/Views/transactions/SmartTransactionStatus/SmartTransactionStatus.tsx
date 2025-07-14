@@ -1,4 +1,4 @@
-import React, { useMemo} from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {

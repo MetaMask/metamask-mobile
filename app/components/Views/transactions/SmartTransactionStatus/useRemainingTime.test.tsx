@@ -12,7 +12,6 @@ jest.mock('../../../../reducers/swaps', () => ({
   selectSwapsChainFeatureFlags: jest.fn(() => undefined),
 }));
 
-// Create a wrapper for tests
 const createWrapper = () => {
   const mockStore = configureStore([]);
   const store = mockStore({});
