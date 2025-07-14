@@ -1,0 +1,77 @@
+# This workflow runs mobile E2E tests for a specific smoke test category.
+# It passes matrix sharding info to the test framework via environment variables.
+
+name: Test Mobile E2E Category
+
+on:
+  workflow_call:
+    inputs:
+      test-suite-name:
+        description: 'Name of the test suite'
+        required: true
+        type: string
+      smoke-category:
+        description: 'Smoke test category (confirmations, trade, wallet-platform, etc.)'
+        required: true
+        type: string
+      matrix-index:
+        description: 'Matrix index for this test run'
+        required: true
+        type: number
+      matrix-total:
+        description: 'Total number of matrix entries'
+        required: true
+        type: number
+      platform:
+        description: 'Platform to test (ios or android)'
+        required: true
+        type: string
+
+jobs:
+  test-e2e-mobile:
+    name: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-14' || 'ubuntu-latest' }}
+    env:
+      METAMASK_ENVIRONMENT: 'local'
+      METAMASK_BUILD_TYPE: 'main'
+      MATRIX_INDEX: ${{ inputs.matrix-index }}
+      MATRIX_TOTAL: ${{ inputs.matrix-total }}
+      SMOKE_CATEGORY: ${{ inputs.smoke-category }}
+      PLATFORM: ${{ inputs.platform }}
+      JOB_NAME: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up E2E environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+
+      - name: Run E2E tests
+        run: |
+          category="${{ inputs.smoke-category }}"
+          platform="${{ inputs.platform }}"
+          
+          echo "Running $category smoke tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
+          
+          if [[ "$category" == "api-specs" ]]; then
+            if [[ "$platform" != "ios" ]]; then
+              echo "API specs are iOS-only, skipping Android"
+              exit 0
+            fi
+            yarn test:api-specs --retries 1
+          else
+            if [[ "$platform" == "ios" ]]; then
+              yarn test:e2e:ios:smoke:$category --retries 1
+            else
+              yarn test:e2e:android:smoke:$category --retries 1
+            fi
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.test-suite-name }}
+          path: e2e/reports/
+          retention-days: 7
