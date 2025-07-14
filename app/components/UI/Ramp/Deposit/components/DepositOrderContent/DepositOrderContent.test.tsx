@@ -27,7 +27,7 @@ describe('DepositOrderContent Component', () => {
     fee: '2.50',
     state: FIAT_ORDER_STATES.COMPLETED,
     account: '0x1234567890123456789012345678901234567890',
-    network: '1',
+    network: 'eip155:1',
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {

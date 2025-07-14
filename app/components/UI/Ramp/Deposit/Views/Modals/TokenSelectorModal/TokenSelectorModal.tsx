@@ -103,8 +103,7 @@ function TokenSelectorModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: DepositCryptoCurrency }) => {
-      const networkName =
-        allNetworkConfigurations[token.chainId as `${string}:${string}`]?.name;
+      const networkName = allNetworkConfigurations[token.chainId]?.name;
       const networkImageSource = getNetworkImageSource({
         chainId: token.chainId,
       });
