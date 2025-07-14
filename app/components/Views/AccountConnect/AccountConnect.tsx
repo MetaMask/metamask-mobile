@@ -174,9 +174,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const defaultSelectedChainIds = useMemo(
     () =>
       getDefaultSelectedChainIds({
-        isEip1193Request: !!isEip1193Request,
-        isOriginWalletConnect: !!isOriginWalletConnect,
-        isOriginMMSDKRemoteConn: !!isOriginMMSDKRemoteConn,
+        isEip1193Request: Boolean(isEip1193Request),
+        isOriginWalletConnect: Boolean(isOriginWalletConnect),
+        isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
         origin: channelIdOrHostname,
         allNetworksList,
         supportedRequestedCaipChainIds,
