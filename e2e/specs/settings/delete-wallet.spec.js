@@ -57,7 +57,7 @@ describe(
         if (device.getPlatform() === 'ios' && process.env.CI) {
           await TabBarComponent.tapWallet();
         }
-    
+
         //wait for screen transitions after password change
         await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
         await Assertions.checkIfVisible(ToastModal.notificationTitle);
@@ -75,7 +75,7 @@ describe(
         await Assertions.checkIfVisible(LoginView.container);
 
         // should tap reset wallet button
-        await LoginView.tapResetWalletButton();
+        await LoginView.tapForgotPassword();
 
         // should reset wallet
         await ForgotPasswordModal.tapResetWalletButton();
