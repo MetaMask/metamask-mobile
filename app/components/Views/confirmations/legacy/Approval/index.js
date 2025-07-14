@@ -176,10 +176,16 @@ class Approval extends PureComponent {
       const { transaction, selectedAddress } = this.props;
       const { KeyringController } = Engine.context;
 
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
-        } else {
+        }
+
+        if (!isLedgerAccount) {
           Engine.rejectPendingApproval(
             transaction?.id,
             providerErrors.userRejectedRequest(),
@@ -188,14 +194,14 @@ class Approval extends PureComponent {
               logErrors: false,
             },
           );
+
+          Engine.controllerMessenger.tryUnsubscribe(
+            'TransactionController:transactionFinished',
+            this.#transactionFinishedListener,
+          );
+
+          this.appStateListener?.remove();
         }
-
-        Engine.controllerMessenger.tryUnsubscribe(
-          'TransactionController:transactionFinished',
-          this.#transactionFinishedListener,
-        );
-
-        this.appStateListener?.remove();
       }
 
       this.clear();
