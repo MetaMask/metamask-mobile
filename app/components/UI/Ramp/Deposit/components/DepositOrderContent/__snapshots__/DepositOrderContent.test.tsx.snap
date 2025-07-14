@@ -360,7 +360,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           }
         }
       >
-        $102.50
+        $100.00
       </Text>
     </View>
   </View>,
@@ -723,7 +723,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           }
         }
       >
-        $102.50
+        $100.00
       </Text>
     </View>
   </View>,
@@ -1086,7 +1086,7 @@ exports[`DepositOrderContent Component renders error state correctly 1`] = `
           }
         }
       >
-        $102.50
+        $100.00
       </Text>
     </View>
   </View>,
@@ -1453,7 +1453,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           }
         }
       >
-        $102.50
+        $100.00
       </Text>
     </View>
   </View>,
@@ -1816,7 +1816,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           }
         }
       >
-        $102.50
+        $100.00
       </Text>
     </View>
   </View>,

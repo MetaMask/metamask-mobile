@@ -517,7 +517,7 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('An unexpected error occurred.');
+      ).rejects.toThrow('Failed to generate payment URL');
     });
   });
 

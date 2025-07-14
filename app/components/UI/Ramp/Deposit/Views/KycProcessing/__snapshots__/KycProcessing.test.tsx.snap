@@ -1626,7 +1626,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Try uploading your documents again and resubmit for verification.
+                                Network error
                               </Text>
                             </View>
                           </View>
