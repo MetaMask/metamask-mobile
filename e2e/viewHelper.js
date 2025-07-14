@@ -76,14 +76,8 @@ have to have all these workarounds in the tests
   }
 
   // Handle Solana New feature sheet
-  if (solanaSheetAction === 'dismiss') {
-    await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
-    await SolanaNewFeatureSheet.tapNotNowButton();
-  } else if (solanaSheetAction === 'create') {
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-  } else if (solanaSheetAction === 'viewAccount') {
-    await SolanaNewFeatureSheet.tapViewAccountButton();
-  }
+  await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
+  await SolanaNewFeatureSheet.tapNotNowButton();
 };
 
 export const skipNotificationsDeviceSettings = async () => {
@@ -300,7 +294,7 @@ export const switchToSepoliaNetwork = async () => {
 
 /**
  * Logs into the application using the provided password or a default password.
- * 
+ *
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
