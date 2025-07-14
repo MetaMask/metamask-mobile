@@ -22,6 +22,7 @@ import {
   renderAccountName,
   getTokenDetails,
   areAddressesEqual,
+  toChecksumAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -532,6 +533,16 @@ describe('resemblesAddress', () => {
   });
   it('should return true if address resemble an eth address', () => {
     expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+  });
+});
+describe('toChecksumAddress', () => {
+  it('should return the same address if it is invalid hex string', () => {
+    expect(toChecksumAddress('0x1')).toBe('0x1');
+    expect(toChecksumAddress('0x123')).toBe('0x123');
+    expect(toChecksumAddress('0x1234')).toBe('0x1234');
+  });
+  it('should throw an error if address is not a hex string', () => {
+    expect(() => toChecksumAddress('abc')).toThrow('Invalid hex address.');
   });
 });
 describe('isSnapAccount,', () => {

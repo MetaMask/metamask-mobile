@@ -28,14 +28,13 @@ import { selectNetworkConfigurations } from '../../networkController';
 import { selectTokensBalances } from '../../tokenBalancesController';
 import { selectTokenMarketData } from '../../tokenRatesController';
 import { pooledStakingSelectors } from '../pooledStaking';
-import { toChecksumAddress } from 'ethereumjs-util';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { createDeepEqualSelector } from '../../util';
+import { toFormattedAddress } from '../../../util/address';
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -157,7 +156,6 @@ const selectEarnTokens = createDeepEqualSelector(
       selectLendingMarketsByChainIdAndTokenAddress(earnState);
     const lendingMarketsByChainIdAndOutputTokenAddress =
       selectLendingMarketsByChainIdAndOutputTokenAddress(earnState);
-    const isEvmAddress = !isNonEvmAddress(selectedAddress || '');
 
     const earnTokensData = allTokens.reduce((acc, token) => {
       const experiences: EarnTokenDetails['experiences'] = [];
@@ -192,15 +190,13 @@ const selectEarnTokens = createDeepEqualSelector(
       }
 
       // TODO: balance logic, extract to utils then use when we are clear to add token
+      const formattedAddress = toFormattedAddress(selectedAddress as Hex);
       const rawAccountBalance = selectedAddress
-        ? accountsByChainId[token?.chainId as Hex]?.[
-            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
-          ]?.balance
+        ? accountsByChainId[token?.chainId as Hex]?.[formattedAddress]?.balance
         : '0';
       const rawStakedAccountBalance = selectedAddress
-        ? accountsByChainId[token?.chainId as Hex]?.[
-            isEvmAddress ? toChecksumAddress(selectedAddress) : selectedAddress
-          ]?.stakedBalance
+        ? accountsByChainId[token?.chainId as Hex]?.[formattedAddress]
+            ?.stakedBalance
         : '0';
       const balanceWei = hexToBN(rawAccountBalance);
       const stakedBalanceWei = hexToBN(rawStakedAccountBalance);
