@@ -227,13 +227,8 @@ export const recreateVaultWithNewPassword = async (
     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
   ) {
     try {
-      const keyringEncryptionKey =
-        await KeyringController.exportEncryptionKey();
-      await SeedlessOnboardingController.changePassword({
-        oldPassword: password,
-        newPassword,
-        newKeyringEncryptionKey: keyringEncryptionKey,
-      });
+      await SeedlessOnboardingController.changePassword(newPassword, password);
+      await Authentication.syncKeyringEncryptionKey();
     } catch (error) {
       Logger.error(error);
       Logger.error(
@@ -248,7 +243,6 @@ export const recreateVaultWithNewPassword = async (
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
-    } finally {
       await Authentication.syncKeyringEncryptionKey();
     }
   }
