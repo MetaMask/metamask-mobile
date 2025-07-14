@@ -276,3 +276,17 @@ export const generateThemeParameters = (
     surfaceFillColor: colors.background.muted,
   };
 };
+
+/**
+ * Transforms a timestamp to a Transak format
+ * @param timestamp - The timestamp to transform
+ * @returns The Transak format
+ */
+export const timestampToTransakFormat = (timestamp: string) => {
+  const transakDate = new Date(Number(timestamp));
+  const month = (transakDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = transakDate.getDate().toString().padStart(2, '0');
+  const year = transakDate.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
