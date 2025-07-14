@@ -45,11 +45,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
-          cache-prefix: smoke-e2e
+          matrix-index: ${{ inputs.matrix-index }}
 
       - name: Run E2E tests
         run: |
