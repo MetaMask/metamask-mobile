@@ -20,10 +20,10 @@ jobs:
         index: [0, 1, 2, 3]  # 4 shards for 19 files
     with:
       test-suite-name: smoke-confirmations-ios-${{ matrix.index }}
-      smoke-category: confirmations
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: "SmokeConfirmations "
 
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
@@ -35,10 +35,10 @@ jobs:
         index: [0, 1, 2, 3]  # 4 shards for 19 files
     with:
       test-suite-name: smoke-confirmations-android-${{ matrix.index }}
-      smoke-category: confirmations
-      platform: android
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: android
+      test_suite_tag: "SmokeConfirmations "
 
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
@@ -50,10 +50,10 @@ jobs:
         index: [0]  # 1 shard for 2 files
     with:
       test-suite-name: smoke-confirmations-redesigned-ios-${{ matrix.index }}
-      smoke-category: confirmations-redesigned
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: "SmokeConfirmationsRedesigned"
 
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
@@ -65,10 +65,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 9 files
     with:
       test-suite-name: smoke-trade-ios-${{ matrix.index }}
-      smoke-category: trade
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: ".*SmokeTrade.*"
 
   smoke-trade-android:
     name: "Trade Smoke (Android)"
@@ -80,10 +80,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 9 files
     with:
       test-suite-name: smoke-trade-android-${{ matrix.index }}
-      smoke-category: trade
-      platform: android
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: android
+      test_suite_tag: ".*SmokeTrade.*"
 
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
@@ -95,10 +95,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 9 files
     with:
       test-suite-name: smoke-wallet-platform-ios-${{ matrix.index }}
-      smoke-category: wallet-platform
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: ".*SmokeWalletPlatform.*"
 
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android)"
@@ -110,10 +110,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 9 files
     with:
       test-suite-name: smoke-wallet-platform-android-${{ matrix.index }}
-      smoke-category: wallet-platform
-      platform: android
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: android
+      test_suite_tag: ".*SmokeWalletPlatform.*"
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
@@ -125,10 +125,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 15 files
     with:
       test-suite-name: smoke-network-abstraction-ios-${{ matrix.index }}
-      smoke-category: network-abstraction
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: ".*SmokeNetworkAbstraction.*"
 
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android)"
@@ -140,10 +140,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 15 files
     with:
       test-suite-name: smoke-network-abstraction-android-${{ matrix.index }}
-      smoke-category: network-abstraction
-      platform: android
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: android
+      test_suite_tag: ".*SmokeNetworkAbstraction.*"
 
   smoke-network-expansion-ios:
     name: "Network Expansion Smoke (iOS)"
@@ -155,10 +155,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 11 files
     with:
       test-suite-name: smoke-network-expansion-ios-${{ matrix.index }}
-      smoke-category: network-expansion
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      test_suite_tag: ".*NetworkExpansion.*"
 
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android)"
@@ -170,10 +170,10 @@ jobs:
         index: [0, 1, 2]  # 3 shards for 11 files
     with:
       test-suite-name: smoke-network-expansion-android-${{ matrix.index }}
-      smoke-category: network-expansion
-      platform: android
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: android
+      test_suite_tag: ".*NetworkExpansion.*"
 
   smoke-api-specs-ios:
     name: "API Specs Smoke (iOS only)"
@@ -185,10 +185,10 @@ jobs:
         index: [0]  # 1 shard for API specs
     with:
       test-suite-name: smoke-api-specs-ios-${{ matrix.index }}
-      smoke-category: api-specs
-      platform: ios
       matrix-index: ${{ matrix.index }}
       matrix-total: ${{ strategy.job-total }}
+      platform: ios
+      is_api_specs: true
 
   #test-e2e-mobile-smoke-report:
   #  needs:
