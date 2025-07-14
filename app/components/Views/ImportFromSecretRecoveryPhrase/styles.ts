@@ -62,7 +62,6 @@ const createStyles = (colors: any) =>
       color: colors.text.alternative,
       borderWidth: 0,
       ...fontStyles.normal,
-      backgroundColor: colors.background.muted,
       paddingHorizontal: 0,
       height: 66,
     },
