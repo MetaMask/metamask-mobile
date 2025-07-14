@@ -4,6 +4,7 @@ import PerpsPositionHeader from './PerpsPositionHeader';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { Position } from '../../controllers/types';
+import { Theme } from '../../../../../util/theme/models';
 
 // Mock dependencies
 jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
@@ -130,7 +131,7 @@ describe('PerpsPositionHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseStyles.mockReturnValue({ styles: mockStyles, theme: {} as any });
+    mockUseStyles.mockReturnValue({ styles: mockStyles, theme: {} as Theme });
     mockUsePerpsAssetMetadata.mockReturnValue({ assetUrl: '' });
   });
 
@@ -434,7 +435,9 @@ describe('PerpsPositionHeader', () => {
   describe('Edge Cases', () => {
     it('handles undefined or null assetUrl gracefully', () => {
       // Arrange
-      mockUsePerpsAssetMetadata.mockReturnValue({ assetUrl: undefined as any });
+      mockUsePerpsAssetMetadata.mockReturnValue({
+        assetUrl: undefined as unknown as string,
+      });
 
       // Act
       render(
@@ -488,7 +491,10 @@ describe('PerpsPositionHeader', () => {
         ...mockStyles,
         container: { flexDirection: 'column' },
       };
-      mockUseStyles.mockReturnValue({ styles: customStyles });
+      mockUseStyles.mockReturnValue({
+        styles: customStyles,
+        theme: {} as Theme,
+      });
 
       // Act
       render(

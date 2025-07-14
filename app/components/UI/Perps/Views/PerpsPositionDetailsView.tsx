@@ -273,12 +273,6 @@ const PerpsPositionDetailsView: React.FC = () => {
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // TP/SL editing state
-  const [isEditingTPSL, setIsEditingTPSL] = useState(false);
-  const [takeProfitPrice, setTakeProfitPrice] = useState('');
-  const [stopLossPrice, setStopLossPrice] = useState('');
-  const [isUpdatingTPSL, setIsUpdatingTPSL] = useState(false);
-
   // Calculate position metrics
   const isLong = parseFloat(position.size) > 0;
   const direction = isLong ? 'long' : 'short';
@@ -442,54 +436,8 @@ const PerpsPositionDetailsView: React.FC = () => {
     // setStopLossPrice(position.stopLossPrice || '');
   }, [position]);
 
-  // Handle TP/SL update
-  const handleUpdateTPSL = useCallback(async () => {
-    if (!takeProfitPrice && !stopLossPrice) {
-      setError('Please set at least one of Take Profit or Stop Loss');
-      return;
-    }
-
-    setIsUpdatingTPSL(true);
-    setError(null);
-
-    try {
-      // TODO: Implement TP/SL update when available in PerpsController
-      // This would typically involve modifying existing position orders
-      DevLogger.log('PerpsPositionDetails: TP/SL update not yet implemented', {
-        coin: position.coin,
-        takeProfitPrice,
-        stopLossPrice,
-      });
-
-      // When TP/SL update is implemented, refresh positions after success:
-      // if (result.success) {
-      //   await getPositions(); // Refresh positions state
-      //   setIsEditingTPSL(false);
-      //   await triggerSuccessHaptic();
-      // }
-
-      // await triggerErrorHaptic();
-      setError('TP/SL updates are not yet implemented');
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to update TP/SL';
-      setError(errorMessage);
-      DevLogger.log('PerpsPositionDetails: Error updating TP/SL', err);
-      // await triggerErrorHaptic();
-    } finally {
-      setIsUpdatingTPSL(false);
-    }
-  }, [position.coin, takeProfitPrice, stopLossPrice]);
-
   const handleEditTPSL = () => {
-    setIsEditingTPSL(true);
-    setError(null);
-  };
-
-  const handleCancelTPSLEdit = () => {
-    setIsEditingTPSL(false);
-    setTakeProfitPrice('');
-    setStopLossPrice('');
+    DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
     setError(null);
   };
 
@@ -611,7 +559,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 width={ButtonWidthTypes.Full}
                 label="Edit TP/SL"
                 onPress={handleEditTPSL}
-                loading={isUpdatingTPSL}
+                loading={false} // TODO: Add loading state when implemented
                 style={styles.editButton}
               />
 
