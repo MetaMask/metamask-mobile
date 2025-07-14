@@ -104,7 +104,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
         <View style={styles.relativeContainer}>
-          <View style={styles.chartLoadingContainer}>
+          <View
+            style={[
+              styles.chartLoadingContainer,
+              {
+                height: height - 120, // Same as loaded chart
+                width: chartWidth, // Same as loaded chart
+              },
+            ]}
+          >
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Muted}

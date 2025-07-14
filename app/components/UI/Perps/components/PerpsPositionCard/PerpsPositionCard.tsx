@@ -89,11 +89,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     entryPrice: parseFloat(position.entryPrice),
     size: parseFloat(position.size),
   });
-
-  console.log(position);
-
-  // const isPositive24h = position.priceChange24h >= 0;
-  const isPositive24h = true;
+  const isPositive24h =
+    position.cumulativeFunding.sinceChange &&
+    parseFloat(position.cumulativeFunding.sinceChange) >= 0;
 
   return (
     <TouchableOpacity

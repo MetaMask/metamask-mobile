@@ -136,8 +136,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.muted,
     },
     chartLoadingContainer: {
-      height: 300,
-      width: '100%' as const,
       backgroundColor: 'transparent',
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
