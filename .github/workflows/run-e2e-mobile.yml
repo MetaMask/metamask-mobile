@@ -46,6 +46,9 @@ jobs:
 
       - name: Set up E2E environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        with:
+          platform: ${{ inputs.platform }}
+          setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
 
       - name: Run E2E tests
         run: |
