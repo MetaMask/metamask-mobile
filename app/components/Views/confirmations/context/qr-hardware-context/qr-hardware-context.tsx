@@ -9,12 +9,12 @@ import React, {
 import { useNavigation, NavigationAction } from '@react-navigation/native';
 
 import Engine from '../../../../../core/Engine';
-import { IQRState } from '../../../../UI/QRHardware/types';
 import { useCamera } from './useCamera';
 import { useQRHardwareAwareness } from './useQRHardwareAwareness';
+import { QrScanRequest } from '@metamask/eth-qr-keyring';
 
 export interface QRHardwareContextType {
-  QRState?: IQRState;
+  pendingScanRequest?: QrScanRequest;
   cameraError: string | undefined;
   cancelQRScanRequestIfPresent: () => Promise<void>;
   isQRSigningInProgress: boolean;
@@ -26,7 +26,7 @@ export interface QRHardwareContextType {
 }
 
 export const QRHardwareContext = createContext<QRHardwareContextType>({
-  QRState: undefined,
+  pendingScanRequest: undefined,
   cameraError: undefined,
   cancelQRScanRequestIfPresent: () => Promise.resolve(),
   isQRSigningInProgress: false,
@@ -41,13 +41,11 @@ export const QRHardwareContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const navigation = useNavigation();
-  const { isQRSigningInProgress, isSigningQRObject, QRState } =
+  const { isQRSigningInProgress, isSigningQRObject, pendingScanRequest } =
     useQRHardwareAwareness();
   const { cameraError, hasCameraPermission } = useCamera(isSigningQRObject);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [isRequestCompleted, setRequestCompleted] = useState(false);
-
-  const KeyringController = Engine.context.KeyringController;
 
   const cancelRequest = useCallback(
     (e: { preventDefault: () => void; data: { action: NavigationAction } }) => {
@@ -55,11 +53,10 @@ export const QRHardwareContextProvider: React.FC<{
         return;
       }
       e.preventDefault();
-      KeyringController.cancelQRSignRequest().then(() => {
-        navigation.dispatch(e.data.action);
-      });
+      Engine.rejectQrKeyringScanRequest(new Error('Request cancelled'));
+      navigation.dispatch(e.data.action);
     },
-    [KeyringController, isRequestCompleted, navigation],
+    [isRequestCompleted, navigation],
   );
 
   useEffect(() => {
@@ -71,20 +68,15 @@ export const QRHardwareContextProvider: React.FC<{
     if (!isQRSigningInProgress) {
       return;
     }
-    await KeyringController.cancelQRSignRequest();
+    Engine.rejectQrKeyringScanRequest(new Error('Request cancelled'));
     setRequestCompleted(true);
     setScannerVisible(false);
-  }, [
-    KeyringController,
-    isQRSigningInProgress,
-    setRequestCompleted,
-    setScannerVisible,
-  ]);
+  }, [isQRSigningInProgress, setRequestCompleted, setScannerVisible]);
 
   return (
     <QRHardwareContext.Provider
       value={{
-        QRState,
+        pendingScanRequest,
         cameraError,
         cancelQRScanRequestIfPresent,
         isQRSigningInProgress,

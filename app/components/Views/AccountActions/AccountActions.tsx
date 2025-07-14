@@ -47,6 +47,7 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
+import { forgetQrDevice } from 'app/core/QrKeyring/QrKeyring';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -308,7 +309,7 @@ const AccountActions = () => {
           );
           break;
         case ExtendedKeyringTypes.qr:
-          await controllers.KeyringController.forgetQRDevice();
+          await forgetQrDevice();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
               .addProperties({
@@ -429,8 +430,8 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {(networkSupporting7702Present &&
-          !isHardwareAccount(selectedAddress)) && (
+        {networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress) && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}

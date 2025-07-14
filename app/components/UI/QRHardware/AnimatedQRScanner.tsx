@@ -32,6 +32,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -95,7 +96,7 @@ const frameImage = require('../../../images/frame.png'); // eslint-disable-line 
 
 interface AnimatedQRScannerProps {
   visible: boolean;
-  purpose: 'sync' | 'sign';
+  purpose: QrScanRequestType;
   onScanSuccess: (ur: UR) => void;
   onScanError: (error: string) => void;
   hideModal: () => void;
@@ -122,7 +123,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const { hasPermission, requestPermission } = useCameraPermission();
 
   let expectedURTypes: string[];
-  if (purpose === 'sync') {
+  if (purpose === QrScanRequestType.PAIR) {
     expectedURTypes = [
       SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
       SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
@@ -148,7 +149,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         {strings('connect_qr_hardware.hint_text')}
         <Text style={styles.bold}>
           {strings(
-            purpose === 'sync'
+            purpose === QrScanRequestType.PAIR
               ? 'connect_qr_hardware.purpose_connect'
               : 'connect_qr_hardware.purpose_sign',
           )}
@@ -198,7 +199,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             onScanSuccess(ur);
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
-          } else if (purpose === 'sync') {
+          } else if (purpose === QrScanRequestType.PAIR) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
                 .addProperties({

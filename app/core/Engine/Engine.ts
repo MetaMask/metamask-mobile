@@ -60,7 +60,12 @@ import {
 } from '@metamask/snaps-rpc-methods';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
-import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import {
+  QrKeyring,
+  QrKeyringScannerBridge,
+  QrScanRequest,
+  SerializedUR,
+} from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
@@ -110,7 +115,12 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import { Hex, Json } from '@metamask/utils';
+import {
+  DeferredPromise,
+  Hex,
+  Json,
+  createDeferredPromise,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -231,6 +241,7 @@ import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -281,6 +292,9 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+
+  pendingQrKeyringScanRequest?: DeferredPromise<SerializedUR>;
+
   /**
    * Creates a CoreController instance
    */
@@ -551,13 +565,16 @@ export class Engine {
 
     const additionalKeyrings = [];
 
+    const qrKeyringBridge = new QrKeyringScannerBridge({
+      requestScan: (request) => this.requestQrKeyringScan(request),
+    });
     const qrKeyringBuilder = () => {
-      const keyring = new QRHardwareKeyring();
+      const keyring = new QrKeyring({ bridge: qrKeyringBridge });
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
       keyring.forgetDevice();
       return keyring;
     };
-    qrKeyringBuilder.type = QRHardwareKeyring.type;
+    qrKeyringBuilder.type = QrKeyring.type;
 
     additionalKeyrings.push(qrKeyringBuilder);
 
@@ -2251,6 +2268,37 @@ export class Engine {
     }
   }
 
+  async requestQrKeyringScan(request: QrScanRequest): Promise<SerializedUR> {
+    if (this.pendingQrKeyringScanRequest) {
+      throw new Error(
+        'A QR keyring scan request is already pending. Please wait for it to complete before requesting a new scan.',
+      );
+    }
+    this.pendingQrKeyringScanRequest = createDeferredPromise<SerializedUR>({
+      suppressUnhandledRejection: true,
+    });
+    store.dispatch(scanRequested(request));
+    return this.pendingQrKeyringScanRequest.promise;
+  }
+
+  resolveQrKeyringScanRequest(response: SerializedUR) {
+    if (!this.pendingQrKeyringScanRequest) {
+      throw new Error('No pending QR keyring scan request to resolve.');
+    }
+    this.pendingQrKeyringScanRequest.resolve(response);
+    this.pendingQrKeyringScanRequest = undefined;
+    store.dispatch(scanCompleted());
+  }
+
+  rejectQrKeyringScanRequest(error: Error) {
+    if (!this.pendingQrKeyringScanRequest) {
+      throw new Error('No pending QR keyring scan request to reject.');
+    }
+    this.pendingQrKeyringScanRequest.reject(error);
+    this.pendingQrKeyringScanRequest = undefined;
+    store.dispatch(scanCompleted());
+  }
+
   // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
   setSelectedAccount(address: string) {
     const { AccountsController, PreferencesController } = this.context;
@@ -2466,6 +2514,16 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+
+  resolveQrKeyringScanRequest: (response: SerializedUR) => {
+    assertEngineExists(instance);
+    instance.resolveQrKeyringScanRequest(response);
+  },
+
+  rejectQrKeyringScanRequest: (error: Error) => {
+    assertEngineExists(instance);
+    instance.rejectQrKeyringScanRequest(error);
+  },
 
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);

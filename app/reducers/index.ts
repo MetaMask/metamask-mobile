@@ -26,6 +26,7 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
+import qrKeyringScannerReducer from '../core/redux/slices/qrKeyringScanner';
 import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
@@ -122,6 +123,7 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
+  qrKeyringScanner: StateFromReducer<typeof qrKeyringScannerReducer>;
   banners: BannersState;
   performance?: PerformanceState;
 }
@@ -160,6 +162,7 @@ const baseReducers = {
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
+  qrKeyringScanner: qrKeyringScannerReducer,
 };
 
 if (isTest) {

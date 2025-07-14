@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Modal from 'react-native-modal';
-import { IQRState } from '../types';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
 import { useTheme } from '../../../../util/theme';
@@ -8,10 +7,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getNormalizedTxState } from '../../../../util/transactions';
 import { resetTransaction } from '../../../../actions/transaction';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { QrScanRequest } from '@metamask/eth-qr-keyring';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
-  QRState: IQRState;
+  pendingScanRequest: QrScanRequest;
   onSuccess?: () => void;
   onCancel?: () => void;
   onFailure?: (error: string) => void;
@@ -37,7 +37,7 @@ const createStyles = (colors: any) =>
 
 const QRSigningModal = ({
   isVisible,
-  QRState,
+  pendingScanRequest,
   onSuccess,
   onCancel,
   onFailure,
@@ -85,7 +85,7 @@ const QRSigningModal = ({
     >
       <View style={styles.contentWrapper}>
         <QRSigningDetails
-          QRState={QRState}
+          pendingScanRequest={pendingScanRequest}
           showCancelButton
           tighten
           showHint
