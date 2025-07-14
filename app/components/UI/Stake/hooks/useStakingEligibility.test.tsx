@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     EarnController: {
-      refreshStakingEligibility: jest.fn(),
+      refreshEarnEligibility: jest.fn(),
     },
   },
 }));
