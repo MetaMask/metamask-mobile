@@ -11,6 +11,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
+import type { BridgeRouteParams } from './index';
 import { createBridgeTestState } from '../../testUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
@@ -19,7 +20,6 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
-import { BridgeViewMode } from '../../types';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 
@@ -209,9 +209,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 const mockNavigate = jest.fn();
 const mockRoute = {
   params: {
-    bridgeViewMode: BridgeViewMode.Bridge, // Default to bridge mode using enum
     sourcePage: 'test',
-  },
+  } as BridgeRouteParams,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -1026,9 +1025,6 @@ describe('BridgeView', () => {
         error: null,
       });
 
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1103,9 +1099,6 @@ describe('BridgeView', () => {
         },
         error: 'Simulation failed',
       });
-
-      // Set route params for bridge mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
 
       const testState = createBridgeTestState(
         {
@@ -1185,9 +1178,6 @@ describe('BridgeView', () => {
         error: 'Simulation failed',
       });
 
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1257,9 +1247,6 @@ describe('BridgeView', () => {
         error: null,
       });
 
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1325,9 +1312,6 @@ describe('BridgeView', () => {
     });
 
     it('should skip validation for non-Solana transactions', async () => {
-      // Set route params for bridge mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1384,6 +1368,119 @@ describe('BridgeView', () => {
 
       // Should not call validation for non-Solana transactions
       expect(mockValidateBridgeTx).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deep link parameter handling', () => {
+    const mockDeepLinkSourceToken = {
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'USD Coin',
+      symbol: 'USDC',
+    };
+
+    const mockDeepLinkDestToken = {
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'Tether USD',
+      symbol: 'USDT',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset route params to default
+      mockRoute.params = {
+        sourcePage: 'test',
+      } as BridgeRouteParams;
+    });
+
+    it('uses sourceToken from route params when provided', () => {
+      mockRoute.params.sourceToken = mockDeepLinkSourceToken;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display the deep link token symbol
+      expect(getByText('USDC')).toBeTruthy();
+    });
+
+    it('uses destToken from route params when provided', () => {
+      mockRoute.params.destToken = mockDeepLinkDestToken;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display the deep link dest token symbol
+      expect(getByText('USDT')).toBeTruthy();
+    });
+
+    it('uses sourceAmount from route params when provided', () => {
+      mockRoute.params.sourceAmount = '1000000';
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display the deep link amount in the input
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('uses all deep link params when all are provided', () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        sourceToken: mockDeepLinkSourceToken,
+        destToken: mockDeepLinkDestToken,
+        sourceAmount: '1000000',
+      } as BridgeRouteParams;
+
+      const { getByText, getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display all deep link data
+      expect(getByText('USDC')).toBeTruthy();
+      expect(getByText('USDT')).toBeTruthy();
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('falls back to Redux state when deep link params are not provided', () => {
+      // Ensure no deep link params are set
+      mockRoute.params = {
+        sourcePage: 'test',
+      } as BridgeRouteParams;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display default ETH token from Redux state
+      expect(getByText('ETH')).toBeTruthy();
     });
   });
 });

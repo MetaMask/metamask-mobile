@@ -79,6 +79,9 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
 const BridgeView = () => {
@@ -99,9 +102,15 @@ const BridgeView = () => {
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   useGasFeeEstimates(selectedNetworkClientId);
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
+  // Call selectors first to follow React Hook rules
+  const reduxSourceAmount = useSelector(selectSourceAmount);
+  const reduxSourceToken = useSelector(selectSourceToken);
+  const reduxDestToken = useSelector(selectDestToken);
+
+  // Use param if available, otherwise use Redux state for deep link support
+  const sourceAmount = route?.params?.sourceAmount || reduxSourceAmount;
+  const sourceToken = route?.params?.sourceToken || reduxSourceToken;
+  const destToken = route?.params?.destToken || reduxDestToken;
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
