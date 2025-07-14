@@ -9,9 +9,9 @@ export async function getGeolocation(): Promise<GeolocationResponse> {
     throw new Error('Transak API URL is not set');
   }
 
-  const url = `${TRANSAK_API_URL}/${TRANSAK_GEOLOCATION_ENDPOINT}`;
+  const myURL = new URL(TRANSAK_GEOLOCATION_ENDPOINT, TRANSAK_API_URL);
 
-  const response = await fetch(url, {
+  const response = await fetch(myURL.toString(), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

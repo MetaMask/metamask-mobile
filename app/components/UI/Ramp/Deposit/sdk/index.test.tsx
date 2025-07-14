@@ -379,7 +379,7 @@ describe('Deposit SDK Context', () => {
     });
 
     it('sets region based on geolocation when no initial region is set', async () => {
-      const mockGeolocationResponse = { ipCountryCode: 'GB' };
+      const mockGeolocationResponse = { ipCountryCode: 'DE' };
       mockGetGeolocation.mockResolvedValue(mockGeolocationResponse);
 
       const stateWithNoRegion = {
@@ -403,12 +403,12 @@ describe('Deposit SDK Context', () => {
 
       expect(mockGetGeolocation).toHaveBeenCalledTimes(1);
 
-      const gbRegion = DEPOSIT_REGIONS.find(
-        (region) => region.isoCode === 'GB',
+      const deRegion = DEPOSIT_REGIONS.find(
+        (region) => region.isoCode === 'DE',
       );
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'FIAT_SET_REGION_DEPOSIT',
-        payload: gbRegion,
+        payload: deRegion,
       });
     });
 

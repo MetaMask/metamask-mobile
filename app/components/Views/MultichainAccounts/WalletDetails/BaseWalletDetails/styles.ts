@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { Platform, StatusBar, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
@@ -22,11 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
   } as ViewStyle;
 
   return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
-
     container: {
       flex: 1,
       padding: 16,
