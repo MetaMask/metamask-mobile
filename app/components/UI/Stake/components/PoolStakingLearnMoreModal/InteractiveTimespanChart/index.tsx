@@ -191,25 +191,22 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     [dataPointsToShow.length, segmentCenters, snapThreshold],
   );
 
-  // Replace the PanResponder with Gesture Handler
-  const panGesture = useMemo(
+  // Use Manual gesture for more direct control
+  const chartGesture = useMemo(
     () =>
-      Gesture.Pan()
-        .onStart((event) => {
-          runOnJS(updateSelectedGraphPosition)(event.x);
+      Gesture.Manual()
+        .onTouchesDown((event) => {
+          runOnJS(updateSelectedGraphPosition)(event.changedTouches[0].x);
         })
-        .onUpdate((event) => {
-          runOnJS(updateSelectedGraphPosition)(event.x);
+        .onTouchesMove((event) => {
+          runOnJS(updateSelectedGraphPosition)(event.changedTouches[0].x);
         })
-        .onEnd(() => {
+        .onTouchesUp(() => {
           runOnJS(updateSelectedGraphPosition)(-1);
         })
-        .onFinalize(() => {
-          // This ensures the selection is cleared even if the gesture is cancelled
+        .onTouchesCancelled(() => {
           runOnJS(updateSelectedGraphPosition)(-1);
-        })
-        .shouldCancelWhenOutside(true)
-        .simultaneousWithExternalGesture(Gesture.Native()),
+        }),
     [updateSelectedGraphPosition],
   );
 
@@ -225,7 +222,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     }
 
     return (
-      <GestureDetector gesture={panGesture}>
+      <GestureDetector gesture={chartGesture}>
         <View style={styles.chartContainer}>
           <AreaChart
             style={styles.chart}
