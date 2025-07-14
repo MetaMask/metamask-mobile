@@ -55,8 +55,6 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.s
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
 import {
-  bufferedTrace,
-  bufferedEndTrace,
   trace,
   TraceName,
   TraceOperation,
@@ -172,7 +170,7 @@ const Login: React.FC = () => {
 
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
-      passwordLoginAttemptTraceCtxRef.current = bufferedTrace({
+      passwordLoginAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtxFromRoute,
@@ -393,11 +391,11 @@ const Login: React.FC = () => {
       Keyboard.dismiss();
 
       if (passwordLoginAttemptTraceCtxRef.current) {
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
         passwordLoginAttemptTraceCtxRef.current = null;
       }
-      bufferedEndTrace({ name: TraceName.OnboardingExistingSocialLogin });
-      bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       await checkMetricsUISeen();
 
@@ -450,13 +448,13 @@ const Login: React.FC = () => {
       // Check if we are in the onboarding flow
       const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
       if (onboardingTraceCtxFromRoute) {
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage: loginErrorMessage },
           parentContext: onboardingTraceCtxFromRoute,
         });
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordLoginError });
+        endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
     }
   };

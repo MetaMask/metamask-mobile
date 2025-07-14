@@ -29,8 +29,8 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import {
-  bufferedEndTrace,
-  bufferedTrace,
+  endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -71,14 +71,14 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
       ? TraceName.OnboardingNewSocialAccountExists
       : TraceName.OnboardingExistingSocialAccountNotFound;
 
-    bufferedTrace({
+    trace({
       name: traceName,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
       parentContext: onboardingTraceCtx,
     });
     return () => {
-      bufferedEndTrace({ name: traceName });
+      endTrace({ name: traceName });
     };
   }, [onboardingTraceCtx, type]);
 
@@ -90,7 +90,7 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     const nextScenarioTraceName = type === 'found'
       ? TraceName.OnboardingExistingSocialLogin
       : TraceName.OnboardingNewSocialCreateWallet;
-    bufferedTrace({
+    trace({
       name: nextScenarioTraceName,
       op: TraceOperation.OnboardingUserJourney,
       tags: {

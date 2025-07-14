@@ -21,8 +21,8 @@ import {
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import {
-  bufferedTrace,
-  bufferedEndTrace,
+  endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../util/trace';
@@ -229,7 +229,7 @@ export const recreateVaultWithNewPassword = async (
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     let specificTraceSucceeded = false;
     try {
-      bufferedTrace({
+      trace({
         name: TraceName.OnboardingResetPassword,
         op: TraceOperation.OnboardingSecurityOp,
       });
@@ -239,12 +239,12 @@ export const recreateVaultWithNewPassword = async (
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      bufferedTrace({
+      trace({
         name: TraceName.OnboardingResetPasswordError,
         op: TraceOperation.OnboardingError,
         tags: { errorMessage },
       });
-      bufferedEndTrace({
+      endTrace({
         name: TraceName.OnboardingResetPasswordError,
       });
 
@@ -258,7 +258,7 @@ export const recreateVaultWithNewPassword = async (
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
     } finally {
-      bufferedEndTrace({
+      endTrace({
         name: TraceName.OnboardingResetPassword,
         data: { success: specificTraceSucceeded },
       });

@@ -20,7 +20,7 @@ import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { VAULT_ERROR } from './constants';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
-import { TraceName, TraceOperation, bufferedEndTrace, bufferedTrace, endTrace, trace } from '../../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../../util/trace';
 import { ONBOARDING_WIZARD, OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 
 const mockNavigate = jest.fn();
@@ -156,9 +156,7 @@ jest.mock('../../../util/trace', () => {
       }
       return 'mockTraceContext';
     }),
-    bufferedEndTrace: jest.fn(),
     endTrace: jest.fn(),
-    bufferedTrace: jest.fn(),
   };
 });
 
@@ -173,9 +171,7 @@ jest.mock('../../hooks/useMetrics', () => ({
 
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
-  const mockBufferedEndTrace = jest.mocked(bufferedEndTrace);
   const mockEndTrace = jest.mocked(endTrace);
-  const mockBufferedTrace = jest.mocked(bufferedTrace);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -185,16 +181,13 @@ describe('Login', () => {
     mockReset.mockClear();
     mockRoute.mockClear();
     mockTrace.mockClear();
-    mockBufferedEndTrace.mockClear();
     mockEndTrace.mockClear();
-    mockBufferedTrace.mockClear();
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
-    mockBufferedTrace.mockReturnValue('mockTraceContext');
     mockUseMetrics.mockReturnValue({ isEnabled: jest.fn().mockReturnValue(true) });
     (Authentication.rehydrateSeedPhrase as jest.Mock).mockResolvedValue(true);
     (Authentication.userEntryAuth as jest.Mock).mockResolvedValue(true);
@@ -599,13 +592,13 @@ describe('Login', () => {
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual('Error: Some unexpected error');
 
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordLoginError,
         op: TraceOperation.OnboardingError,
         tags: { errorMessage: 'Error: Some unexpected error' },
         parentContext: 'mockTraceContext',
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginError });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginError });
     });
   });
 
@@ -726,9 +719,9 @@ describe('Login', () => {
       });
 
       expect(Authentication.rehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
@@ -757,9 +750,9 @@ describe('Login', () => {
       });
 
       expect(Authentication.rehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
+      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
       expect(mockReset).toHaveBeenCalledWith({
         routes: [
           {

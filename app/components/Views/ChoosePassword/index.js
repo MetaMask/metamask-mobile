@@ -77,8 +77,8 @@ import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import {
   TraceName,
-  bufferedEndTrace,
-  bufferedTrace,
+  endTrace,
+  trace,
   TraceOperation,
 } from '../../../util/trace';
 
@@ -306,7 +306,7 @@ class ChoosePassword extends PureComponent {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
-      this.passwordSetupAttemptTraceCtx = bufferedTrace({
+      this.passwordSetupAttemptTraceCtx = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtx,
@@ -358,7 +358,7 @@ class ChoosePassword extends PureComponent {
   componentWillUnmount() {
     this.mounted = false;
     if (this.passwordSetupAttemptTraceCtx) {
-      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
       this.passwordSetupAttemptTraceCtx = null;
     }
   }
@@ -430,8 +430,8 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
-        bufferedEndTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (this.props.metrics.isEnabled()) {
           this.props.navigation.reset({
@@ -498,13 +498,13 @@ class ChoosePassword extends PureComponent {
 
       const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
       if (onboardingTraceCtx) {
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingPasswordSetupError,
           op: TraceOperation.OnboardingUserJourney,
           parentContext: onboardingTraceCtx,
           tags: { errorMessage: error.toString() },
         });
-        bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupError });
+        endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
     }
   };

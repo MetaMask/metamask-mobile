@@ -10,9 +10,11 @@ import {
   TraceName,
   TRACES_CLEANUP_INTERVAL,
   flushBufferedTraces,
-  bufferedTrace,
-  bufferedEndTrace,
+  bufferTraceStartCall,
+  bufferTraceEndCall,
   discardBufferedTraces,
+  hasMetricsConsent,
+  updateCachedConsent,
 } from './trace';
 import { AGREED, DENIED } from '../constants/storage';
 
@@ -28,6 +30,22 @@ jest.mock('@sentry/core', () => ({
 
 jest.mock('../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+}));
+
+jest.mock('../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock('../actions/bufferedTraces', () => ({
+  addBufferedTrace: jest.fn(),
+  clearBufferedTraces: jest.fn(),
+}));
+
+jest.mock('../selectors/bufferedTraces', () => ({
+  selectBufferedTraces: jest.fn(),
 }));
 
 const NAME_MOCK = TraceName.Middleware;
@@ -361,8 +379,8 @@ describe('Trace', () => {
     it('should clear buffer and not process traces when consent is not given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
-      bufferedTrace({ name: TraceName.Middleware });
-      bufferedEndTrace({ name: TraceName.Middleware });
+      bufferedTraceStartCall({ name: TraceName.Middleware });
+      bufferedTraceEndCall({ name: TraceName.Middleware });
 
       await flushBufferedTraces();
 
@@ -379,10 +397,10 @@ describe('Trace', () => {
     it('should flush buffered traces when consent is given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
-      bufferedTrace({ name: TraceName.Middleware, id: 'test1' });
-      bufferedTrace({ name: TraceName.NestedTest1, id: 'test2' });
-      bufferedEndTrace({ name: TraceName.Middleware, id: 'test1' });
-      bufferedEndTrace({ name: TraceName.NestedTest1, id: 'test2' });
+      bufferedTraceStartCall({ name: TraceName.Middleware, id: 'test1' });
+      bufferedTraceStartCall({ name: TraceName.NestedTest1, id: 'test2' });
+      bufferedTraceEndCall({ name: TraceName.Middleware, id: 'test1' });
+      bufferedTraceEndCall({ name: TraceName.NestedTest1, id: 'test2' });
 
       storageGetItemMock.mockResolvedValue(AGREED);
       jest.clearAllMocks();

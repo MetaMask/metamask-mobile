@@ -21,12 +21,7 @@ import {
 } from '../util/test/accountsControllerTestUtils';
 import ReduxService from './redux';
 import { RootState } from '../reducers';
-import {
-  bufferedEndTrace,
-  bufferedTrace,
-  TraceName,
-  TraceOperation,
-} from '../util/trace';
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -230,8 +225,8 @@ jest.mock('../util/Logger', () => ({
 
 jest.mock('../util/trace', () => ({
   ...jest.requireActual('../util/trace'),
-  bufferedTrace: jest.fn(),
-  bufferedEndTrace: jest.fn(),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 const mockMultichainWalletSnapClient = {
@@ -384,8 +379,8 @@ describe('Vault', () => {
 
   describe('recreateVaultWithNewPassword', () => {
     const mockReduxState = jest.mocked(ReduxService.store.getState);
-    const mockBufferedTrace = jest.mocked(bufferedTrace);
-    const mockBufferedEndTrace = jest.mocked(bufferedEndTrace);
+    const mockTrace = jest.mocked(trace);
+    const mockEndTrace = jest.mocked(endTrace);
 
     it('should recreate vault with new password', async () => {
       const newPassword = 'new-password';
@@ -540,11 +535,11 @@ describe('Vault', () => {
       expect(
         mockSeedlessOnboardingController.changePassword,
       ).toHaveBeenCalledWith(newPassword, 'password');
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         op: TraceOperation.OnboardingSecurityOp,
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         data: { success: true },
       });
@@ -592,19 +587,19 @@ describe('Vault', () => {
         'password',
         [primarySeedPhrase],
       );
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         op: TraceOperation.OnboardingSecurityOp,
       });
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPasswordError,
         op: TraceOperation.OnboardingError,
         tags: { errorMessage: 'Password change failed in controller' },
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPasswordError,
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         data: { success: false },
       });
@@ -629,8 +624,8 @@ describe('Vault', () => {
         error,
         'error while trying to get seed phrase on recreate vault',
       );
-      expect(mockBufferedTrace).not.toHaveBeenCalled();
-      expect(mockBufferedEndTrace).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('should log error when getting imported accounts fails', async () => {
@@ -658,11 +653,11 @@ describe('Vault', () => {
       expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith(newPassword, [
         primarySeedPhrase,
       ]);
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         op: TraceOperation.OnboardingSecurityOp,
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         data: { success: true },
       });
@@ -698,11 +693,11 @@ describe('Vault', () => {
       expect(mockImportAccountWithStrategy).toHaveBeenCalledWith('privateKey', [
         mockPrivateKey,
       ]);
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         op: TraceOperation.OnboardingSecurityOp,
       });
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingResetPassword,
         data: { success: true },
       });

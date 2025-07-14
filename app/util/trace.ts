@@ -11,8 +11,15 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
+import { store } from '../store';
+import {
+  addBufferedTrace,
+  clearBufferedTraces,
+} from '../actions/bufferedTraces';
+import { selectBufferedTraces } from '../selectors/bufferedTraces';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
+import { BufferedTrace } from '../reducers/bufferedTraces';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -146,9 +153,6 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
-let consentCache: boolean | null = null;
-const preConsentCallBuffer: PreConsentCallBuffer[] = [];
-
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
@@ -237,12 +241,6 @@ export interface EndTraceRequest {
   data?: Record<string, TraceValue>;
 }
 
-interface PreConsentCallBuffer<T = TraceRequest | EndTraceRequest> {
-  type: 'start' | 'end';
-  request: T;
-  parentTraceName?: string; // Track parent trace name for reconnecting during flush
-}
-
 interface SentrySpanWithName extends Span {
   _name?: string;
 }
@@ -281,6 +279,12 @@ export function trace<T>(
 export function endTrace(request: EndTraceRequest): void {
   const { name, timestamp } = request;
   const id = getTraceId(request);
+
+  if (getCachedConsent() !== true) {
+    bufferTraceEndCall(request);
+    return;
+  }
+
   const key = getTraceKey(request);
   const pendingTrace = tracesByKey.get(key);
 
@@ -309,110 +313,130 @@ export function endTrace(request: EndTraceRequest): void {
 }
 
 /**
- * Buffered version of trace. Handles consent and buffering logic before calling trace.
+ * Buffer a trace start call with parent context information
+ * @param {*} request - trace request
+ * @param {string | undefined} parentTraceName - parent trace name for reconnection
  */
-export function bufferedTrace<T>(
+export function bufferTraceStartCall(
   request: TraceRequest,
-  fn?: TraceCallback<T>,
-): T | TraceContext {
-  // If consent is not cached or not given, buffer the trace start
-  if (consentCache !== true) {
-    if (consentCache === null) {
-      updateIsConsentGivenForSentry();
-    }
-    // Extract parent trace name if parentContext exists
-    let parentTraceName: string | undefined;
-    if (request.parentContext && typeof request.parentContext === 'object') {
-      const parentSpan = request.parentContext as SentrySpanWithName;
-      parentTraceName = parentSpan._name;
-    }
-    preConsentCallBuffer.push({
+  parentTraceName?: string,
+) {
+  store.dispatch(
+    addBufferedTrace({
       type: 'start',
       request: {
         ...request,
         parentContext: undefined, // Remove original parentContext to avoid invalid references
-        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
-        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
         startTime: request.startTime ?? Date.now(),
       },
-      parentTraceName, // Store the parent trace name for later reconnection
-    });
-  }
-  if (fn) {
-    return trace(request, fn);
-  }
-  return trace(request);
+      parentTraceName,
+    } as BufferedTrace),
+  );
 }
 
 /**
- * Buffered version of endTrace. Handles consent and buffering logic before calling endTrace.
+ * Buffer a trace end call
+ * @param {*} request - end trace request
  */
-export function bufferedEndTrace(request: EndTraceRequest): void {
-  // If consent is not cached or not given, buffer the trace end
-  if (consentCache !== true) {
-    if (consentCache === null) {
-      updateIsConsentGivenForSentry();
-    }
-    preConsentCallBuffer.push({
+export function bufferTraceEndCall(request: EndTraceRequest) {
+  store.dispatch(
+    addBufferedTrace({
       type: 'end',
       request: {
         ...request,
-        // Use `Date.now()` as `performance.timeOrigin` is only valid for measuring durations within
-        // the same session; it won't produce valid event times for Sentry if buffered and flushed later
         timestamp: request.timestamp ?? Date.now(),
       },
-    });
-  }
-  endTrace(request);
+    } as BufferedTrace),
+  );
 }
 
-export async function flushBufferedTraces(): Promise<void> {
-  const canFlush = await updateIsConsentGivenForSentry();
-  if (!canFlush) {
-    log('Consent not given, cannot flush buffered traces.');
-    preConsentCallBuffer.length = 0;
+/**
+ * Flushes buffered traces to Sentry when consent is given
+ */
+export async function flushBufferedTraces() {
+  const bufferedTraces = selectBufferedTraces(store.getState());
+  if (bufferedTraces.length === 0) {
     return;
   }
-
-  log('Flushing buffered traces. Count:', preConsentCallBuffer.length);
-  const bufferToProcess = [...preConsentCallBuffer];
-  preConsentCallBuffer.length = 0;
+  store.dispatch(clearBufferedTraces());
 
   const activeSpans = new Map<string, Span>();
 
-  for (const call of bufferToProcess) {
-    if (call.type === 'start') {
-      const traceName = call.request.name as string;
+  for (const bufferedItem of bufferedTraces) {
+    if (bufferedItem.type === 'start') {
+      const traceName = bufferedItem.request.name as string;
 
       // Get parent if applicable
       let parentSpan: Span | undefined;
-      if (call.parentTraceName) {
-        parentSpan = activeSpans.get(call.parentTraceName);
+      if (bufferedItem.parentTraceName) {
+        parentSpan = activeSpans.get(bufferedItem.parentTraceName);
       }
 
       const span = trace({
-        ...call.request,
+        ...bufferedItem.request,
         parentContext: parentSpan,
       }) as Span;
 
       if (span) {
         activeSpans.set(traceName, span);
       }
-    } else if (call.type === 'end') {
-      endTrace(call.request);
-      activeSpans.delete(call.request.name as string);
+    } else if (bufferedItem.type === 'end') {
+      endTrace(bufferedItem.request);
+      activeSpans.delete(bufferedItem.request.name);
     }
   }
-  log('Finished flushing buffered traces');
+}
+
+// Cache consent state to avoid async checks in trace functions
+// Default to null to indicate not yet loaded (traces will be buffered)
+let cachedConsent: boolean | null = null;
+
+/**
+ * Check if user has given consent for metrics
+ */
+export async function hasMetricsConsent(): Promise<boolean> {
+  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
+  const hasConsent = metricsOptIn === AGREED;
+  cachedConsent = hasConsent;
+  return hasConsent;
+}
+
+/**
+ * Get cached consent state synchronously
+ * Note: When null, traces are buffered to ensure we don't accidentally send data before consent is checked
+ */
+function getCachedConsent(): boolean | null {
+  return cachedConsent;
+}
+
+/**
+ * Update cached consent state
+ * @param {boolean} consent - new consent state
+ */
+export function updateCachedConsent(consent: boolean) {
+  cachedConsent = consent;
 }
 
 export function discardBufferedTraces() {
-  preConsentCallBuffer.length = 0;
-  consentCache = null;
+  store.dispatch(clearBufferedTraces());
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
   const { name } = request;
+
+  if (getCachedConsent() !== true) {
+    // Extract parent trace name if parentContext exists
+    let parentTraceName: string | undefined;
+    if (request.parentContext && typeof request.parentContext === 'object') {
+      const parentSpan = request.parentContext as SentrySpanWithName;
+      parentTraceName = parentSpan._name;
+    }
+    bufferTraceStartCall(request, parentTraceName);
+    const result = fn(undefined);
+    bufferTraceEndCall({ name: request.name, id: request.id });
+
+    return result;
+  }
 
   const callback = (span: Span | undefined) => {
     log('Starting trace', name, request);
@@ -448,6 +472,18 @@ function startTrace(request: TraceRequest): TraceContext {
   const { name, startTime: requestStartTime } = request;
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
+
+  if (getCachedConsent() !== true) {
+    // Extract parent trace name if parentContext exists
+    let parentTraceName: string | undefined;
+    if (request.parentContext && typeof request.parentContext === 'object') {
+      const parentSpan = request.parentContext as SentrySpanWithName;
+      parentTraceName = parentSpan._name;
+    }
+    bufferTraceStartCall(request, parentTraceName);
+
+    return { _buffered: true, _name: name, _id: id };
+  }
 
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
@@ -576,10 +612,4 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
-}
-
-async function updateIsConsentGivenForSentry(): Promise<boolean> {
-  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  consentCache = metricsOptIn === AGREED;
-  return consentCache;
 }

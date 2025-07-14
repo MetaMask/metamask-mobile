@@ -25,13 +25,13 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 // Mock the entire trace module
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  bufferedTrace: jest.fn(),
-  bufferedEndTrace: jest.fn(),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 import ChoosePassword from './';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { TraceName, TraceOperation, bufferedTrace, bufferedEndTrace } from '../../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../../util/trace';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -867,20 +867,20 @@ describe('ChoosePassword', () => {
   });
 
   describe('Tracing functionality', () => {
-    const mockBufferedTrace = bufferedTrace as jest.MockedFunction<typeof bufferedTrace>;
-    const mockBufferedEndTrace = bufferedEndTrace as jest.MockedFunction<typeof bufferedEndTrace>;
+    const mockTrace = trace as jest.MockedFunction<typeof trace>;
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockBufferedTrace.mockClear();
-      mockBufferedEndTrace.mockClear();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
     });
 
     it('should start and end tracing on component unmount', async () => {
       const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
       const mockTraceCtx = { traceId: 'password-setup-trace-id' };
 
-      mockBufferedTrace.mockReturnValue(mockTraceCtx);
+      mockTrace.mockReturnValue(mockTraceCtx);
 
       const props: ChoosePasswordProps = {
         ...defaultProps,
@@ -897,7 +897,7 @@ describe('ChoosePassword', () => {
 
       await act(async () => Promise.resolve());
 
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: mockOnboardingTraceCtx,
@@ -905,7 +905,7 @@ describe('ChoosePassword', () => {
 
       unmount();
 
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
       });
     });
@@ -928,11 +928,11 @@ describe('ChoosePassword', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(mockBufferedTrace).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
 
       unmount();
 
-      expect(mockBufferedEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('should trace error when password creation fails', async () => {
@@ -940,7 +940,7 @@ describe('ChoosePassword', () => {
       const mockTraceCtx = { traceId: 'password-setup-trace-id' };
       const testError = new Error('Password creation failed');
 
-      mockBufferedTrace.mockReturnValue(mockTraceCtx);
+      mockTrace.mockReturnValue(mockTraceCtx);
       const mockComponentAuthenticationType = jest.spyOn(
         Authentication,
         'componentAuthenticationType',
@@ -990,14 +990,14 @@ describe('ChoosePassword', () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
       });
 
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: mockOnboardingTraceCtx,
         tags: { errorMessage: testError.toString() },
       });
 
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
       });
     });
@@ -1057,13 +1057,13 @@ describe('ChoosePassword', () => {
       });
 
       // Verify error tracing was not called since no onboardingTraceCtx
-      expect(mockBufferedTrace).not.toHaveBeenCalledWith(
+      expect(mockTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingPasswordSetupError,
         }),
       );
 
-      expect(mockBufferedEndTrace).not.toHaveBeenCalledWith({
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
       });
     });
@@ -1072,7 +1072,7 @@ describe('ChoosePassword', () => {
       const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
       const mockTraceCtx = { traceId: 'password-setup-trace-id' };
 
-      mockBufferedTrace.mockReturnValue(mockTraceCtx);
+      mockTrace.mockReturnValue(mockTraceCtx);
 
       const mockComponentAuthenticationType = jest.spyOn(
         Authentication,
@@ -1134,17 +1134,17 @@ describe('ChoosePassword', () => {
         await new Promise((resolve) => setTimeout(resolve, 200));
       });
 
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: mockOnboardingTraceCtx,
       });
-      expect(mockBufferedTrace).not.toHaveBeenCalledWith(
+      expect(mockTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingPasswordSetupError,
         }),
       );
-      expect(mockBufferedEndTrace).not.toHaveBeenCalledWith({
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
       });
     });

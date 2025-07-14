@@ -45,7 +45,7 @@ import Icon, {
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import { TraceName, bufferedEndTrace } from '../../../util/trace';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -198,8 +198,8 @@ const AccountBackupStep1 = (props) => {
         },
       ],
     });
-    bufferedEndTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
-    bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
 
     if (isMetricsEnabled()) {
       navigation.dispatch(resetAction);

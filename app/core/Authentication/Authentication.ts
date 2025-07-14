@@ -30,14 +30,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import {
-  TraceName,
-  TraceOperation,
-  trace,
-  endTrace,
-  bufferedEndTrace,
-  bufferedTrace,
-} from '../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -591,7 +584,7 @@ class AuthenticationService {
 
       let createKeyAndBackupSrpSuccess = false;
       try {
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
@@ -605,18 +598,18 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
         });
-        bufferedEndTrace({
+        endTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
         });
 
         throw error;
       } finally {
-        bufferedEndTrace({
+        endTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           data: { success: createKeyAndBackupSrpSuccess },
         });
@@ -642,7 +635,7 @@ class AuthenticationService {
       let result: Uint8Array[] | null = null;
       let fetchSrpsSuccess = false;
       try {
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
@@ -654,18 +647,18 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingFetchSrpsError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
         });
-        bufferedEndTrace({
+        endTrace({
           name: TraceName.OnboardingFetchSrpsError,
         });
 
         throw error;
       } finally {
-        bufferedEndTrace({
+        endTrace({
           name: TraceName.OnboardingFetchSrps,
           data: { success: fetchSrpsSuccess },
         });

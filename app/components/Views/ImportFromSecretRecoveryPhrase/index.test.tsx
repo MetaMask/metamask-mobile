@@ -17,7 +17,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { passcodeType } from '../../../util/authentication';
-import { TraceName, TraceOperation, bufferedTrace, bufferedEndTrace } from '../../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../../util/trace';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -26,8 +26,8 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  bufferedTrace: jest.fn(),
-  bufferedEndTrace: jest.fn(),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 jest.mock('../../../util/termsOfUse/termsOfUse', () => ({
@@ -1502,19 +1502,19 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('tracing', () => {
-    const mockBufferedTrace = bufferedTrace as jest.MockedFunction<typeof bufferedTrace>;
-    const mockBufferedEndTrace = bufferedEndTrace as jest.MockedFunction<typeof bufferedEndTrace>;
+    const mockTrace = trace as jest.MockedFunction<typeof trace>;
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
     beforeEach(() => {
-      mockBufferedTrace.mockClear();
-      mockBufferedEndTrace.mockClear();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
     });
 
     it('starts and ends trace with onboardingTraceCtx', async () => {
       const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
       const mockTraceCtx = { traceId: 'password-setup-trace-id' };
 
-      mockBufferedTrace.mockReturnValue(mockTraceCtx);
+      mockTrace.mockReturnValue(mockTraceCtx);
 
       const { getByPlaceholderText, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1538,7 +1538,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockBufferedTrace).toHaveBeenCalledWith({
+      expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: mockOnboardingTraceCtx,
@@ -1546,7 +1546,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       unmount();
 
-      expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+      expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
       });
     });
@@ -1573,11 +1573,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockBufferedTrace).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
 
       unmount();
 
-      expect(mockBufferedEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('traces error when wallet import fails with onboardingTraceCtx', async () => {
@@ -1608,13 +1608,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(importButton);
 
       await waitFor(() => {
-        expect(mockBufferedTrace).toHaveBeenCalledWith({
+        expect(mockTrace).toHaveBeenCalledWith({
           name: TraceName.OnboardingPasswordSetupError,
           op: TraceOperation.OnboardingUserJourney,
           parentContext: mockOnboardingTraceCtx,
           tags: { errorMessage: 'Error: Authentication failed' },
         });
-        expect(mockBufferedEndTrace).toHaveBeenCalledWith({
+        expect(mockEndTrace).toHaveBeenCalledWith({
           name: TraceName.OnboardingPasswordSetupError,
         });
       }, { timeout: 3000 });
@@ -1648,13 +1648,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(importButton);
 
       await waitFor(() => {
-        expect(mockBufferedTrace).not.toHaveBeenCalledWith(
+        expect(mockTrace).not.toHaveBeenCalledWith(
           expect.objectContaining({
             name: TraceName.OnboardingPasswordSetupError,
           }),
         );
 
-        expect(mockBufferedEndTrace).not.toHaveBeenCalledWith({
+        expect(mockEndTrace).not.toHaveBeenCalledWith({
           name: TraceName.OnboardingPasswordSetupError,
         });
       });

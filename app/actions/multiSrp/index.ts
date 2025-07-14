@@ -19,14 +19,7 @@ import { store } from '../../store';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
-import {
-  bufferedEndTrace,
-  bufferedTrace,
-  TraceName,
-  TraceOperation,
-  trace,
-  endTrace,
-} from '../../util/trace';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
@@ -104,7 +97,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     const seed = new Uint8Array(inputCodePoints.buffer);
     let addSeedPhraseSuccess = false;
     try {
-      bufferedTrace({
+      trace({
         name: TraceName.OnboardingAddSrp,
         op: TraceOperation.OnboardingSecurityOp,
       });
@@ -119,18 +112,18 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
       // Log the error but don't let it crash the import process
       console.error('Failed to backup seed phrase:', errorMessage);
 
-      bufferedTrace({
+      trace({
         name: TraceName.OnboardingAddSrpError,
         op: TraceOperation.OnboardingError,
         tags: { errorMessage },
       });
-      bufferedEndTrace({
+      endTrace({
         name: TraceName.OnboardingAddSrpError,
       });
 
       throw error;
     } finally {
-      bufferedEndTrace({
+      endTrace({
         name: TraceName.OnboardingAddSrp,
         data: { success: addSeedPhraseSuccess },
       });

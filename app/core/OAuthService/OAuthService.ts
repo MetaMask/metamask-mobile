@@ -1,12 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
-import {
-  bufferedTrace,
-  bufferedEndTrace,
-  TraceName,
-  TraceOperation,
-} from '../../util/trace';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 
 import { UserActionType } from '../../actions/user';
 import {
@@ -149,7 +144,7 @@ export class OAuthService {
       let result, data, handleCodeFlowResult;
       let providerLoginSuccess = false;
       try {
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingOAuthProviderLogin,
           op: TraceOperation.OnboardingSecurityOp,
         });
@@ -159,16 +154,16 @@ export class OAuthService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        bufferedTrace({
+        trace({
           name: TraceName.OnboardingOAuthProviderLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
         });
-        bufferedEndTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
 
         throw error;
       } finally {
-        bufferedEndTrace({
+        endTrace({
           name: TraceName.OnboardingOAuthProviderLogin,
           data: { success: providerLoginSuccess },
         });
@@ -180,7 +175,7 @@ export class OAuthService {
       if (result) {
         let getAuthTokensSuccess = false;
         try {
-          bufferedTrace({
+          trace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             op: TraceOperation.OnboardingSecurityOp,
           });
@@ -193,18 +188,18 @@ export class OAuthService {
           const errorMessage =
             error instanceof Error ? error.message : 'Unknown error';
 
-          bufferedTrace({
+          trace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
           });
-          bufferedEndTrace({
+          endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
           throw error;
         } finally {
-          bufferedEndTrace({
+          endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             data: { success: getAuthTokensSuccess },
           });
@@ -227,7 +222,7 @@ export class OAuthService {
 
         let seedlessAuthSuccess = false;
         try {
-          bufferedTrace({
+          trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
           });
@@ -240,18 +235,18 @@ export class OAuthService {
           const errorMessage =
             error instanceof Error ? error.message : 'Unknown error';
 
-          bufferedTrace({
+          trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
           });
-          bufferedEndTrace({
+          endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
           });
 
           throw error;
         } finally {
-          bufferedEndTrace({
+          endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             data: { success: seedlessAuthSuccess },
           });

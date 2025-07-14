@@ -100,8 +100,8 @@ import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithN
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import {
   TraceName,
-  bufferedEndTrace,
-  bufferedTrace,
+  endTrace,
+  trace,
   TraceOperation,
 } from '../../../util/trace';
 
@@ -435,7 +435,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   useEffect(() => () => {
     if (passwordSetupAttemptTraceCtxRef.current) {
-      bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
       passwordSetupAttemptTraceCtxRef.current = null;
     }
   }, []);
@@ -567,7 +567,7 @@ const ImportFromSecretRecoveryPhrase = ({
     // Start the trace when moving to the password setup step
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
-      passwordSetupAttemptTraceCtxRef.current = bufferedTrace({
+      passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
         parentContext: onboardingTraceCtx,
@@ -672,8 +672,8 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
-        bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
-        bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+        endTrace({ name: TraceName.OnboardingExistingSrpImport });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         if (isMetricsEnabled()) {
           navigation.dispatch(resetAction);
@@ -704,13 +704,13 @@ const ImportFromSecretRecoveryPhrase = ({
 
         const onboardingTraceCtx = route.params?.onboardingTraceCtx;
         if (onboardingTraceCtx) {
-          bufferedTrace({
+          trace({
             name: TraceName.OnboardingPasswordSetupError,
             op: TraceOperation.OnboardingUserJourney,
             parentContext: onboardingTraceCtx,
             tags: { errorMessage: error.toString() },
           });
-          bufferedEndTrace({ name: TraceName.OnboardingPasswordSetupError });
+          endTrace({ name: TraceName.OnboardingPasswordSetupError });
         }
       }
     }
