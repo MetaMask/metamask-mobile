@@ -707,6 +707,8 @@ const ImportFromSecretRecoveryPhrase = ({
         <ScrollView
           contentContainerStyle={styles.container}
           testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
+          keyboardShouldPersistTaps
+          keyboardDismissMode="on-drag"
         >
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('import_from_seed.steps', {
