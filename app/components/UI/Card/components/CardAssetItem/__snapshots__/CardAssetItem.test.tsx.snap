@@ -318,11 +318,11 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -557,7 +557,6 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -926,11 +925,11 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-USDC"
@@ -1133,7 +1132,6 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -1502,11 +1500,11 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -1743,7 +1741,6 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -2112,11 +2109,11 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -2353,7 +2350,6 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -2722,11 +2718,11 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -2963,7 +2959,6 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -3332,11 +3327,11 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -3573,7 +3568,6 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -3942,11 +3936,11 @@ exports[`CardAssetItem Component renders with tag and matches snapshot 1`] = `
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -4183,7 +4177,6 @@ exports[`CardAssetItem Component renders with tag and matches snapshot 1`] = `
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }
@@ -4552,11 +4545,11 @@ exports[`CardAssetItem Component renders without tag and matches snapshot 1`] = 
                       onPress={[Function]}
                       style={
                         {
-                          "alignItems": "flex-start",
+                          "alignItems": "center",
                           "flex": 1,
                           "flexDirection": "row",
-                          "paddingHorizontal": 15,
-                          "paddingVertical": 14,
+                          "height": 64,
+                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -4764,7 +4757,6 @@ exports[`CardAssetItem Component renders without tag and matches snapshot 1`] = 
                         style={
                           {
                             "alignItems": "flex-end",
-                            "alignSelf": "flex-end",
                             "flexShrink": 0,
                           }
                         }

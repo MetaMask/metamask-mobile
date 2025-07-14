@@ -313,8 +313,7 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
-  BRIDGE_PAGE_VIEWED = 'Bridge Page Viewed',
-  SWAP_PAGE_VIEWED = 'Swap Page Viewed', // Temporary event until unified swap/bridge is done
+  SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -425,8 +424,7 @@ enum EVENT_NAME {
   // Tab Bar Actions
   ACTIONS_BUTTON_CLICKED = 'Global Actions Button Clicked',
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
-  SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
-  BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
+  SWAP_BUTTON_CLICKED = 'Unified SwapBridge Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
@@ -514,6 +512,9 @@ enum EVENT_NAME {
   DEEP_LINK_PUBLIC_MODAL_CONTINUE_CLICKED = 'Deep Link Public Modal Continue Clicked',
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_CHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Checked',
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Unchecked',
+
+  // What's New Link Clicked
+  WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
 
   // Card
   CARD_VIEWED = 'Card Viewed',
@@ -691,6 +692,7 @@ const events = {
     EVENT_NAME.WALLET_REHYDRATION_SELECTED,
   ),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  WHATS_NEW_LINK_CLICKED: generateOpt(EVENT_NAME.WHATS_NEW_LINK_CLICKED),
   REHYDRATION_PASSWORD_ATTEMPTED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_ATTEMPTED,
   ),
@@ -994,7 +996,6 @@ const events = {
   ACTIONS_BUTTON_CLICKED: generateOpt(EVENT_NAME.ACTIONS_BUTTON_CLICKED),
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
-  BRIDGE_BUTTON_CLICKED: generateOpt(EVENT_NAME.BRIDGE_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
@@ -1241,7 +1242,6 @@ const events = {
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 
   // Bridge
-  BRIDGE_PAGE_VIEWED: generateOpt(EVENT_NAME.BRIDGE_PAGE_VIEWED),
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
 
   // RPC Failover

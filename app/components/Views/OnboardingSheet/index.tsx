@@ -58,6 +58,7 @@ const createStyles = (colors: Colors) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       color: colors.text.default,
+      backgroundColor: colors.background.default,
     },
     buttonWrapper: {
       flexDirection: 'column',

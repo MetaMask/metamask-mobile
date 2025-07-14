@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import OnboardingCarousel from './';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
@@ -27,6 +28,29 @@ jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
 }));
 
+jest.mock('react-native-scrollable-tab-view', () => {
+  const MockScrollableTabView = (props: {
+    children?: unknown;
+    [key: string]: unknown;
+  }) => {
+    const ReactLib = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactLib.createElement(View, props, props.children);
+  };
+  return MockScrollableTabView;
+});
+
+jest.mock('react-native', () => {
+  const actualRN = jest.requireActual('react-native');
+  return {
+    ...actualRN,
+    Platform: {
+      ...actualRN.Platform,
+      OS: 'ios',
+    },
+  };
+});
+
 const mockNavigate: jest.Mock = jest.fn();
 const mockSetOptions: jest.Mock = jest.fn();
 const mockNavigation = {
@@ -45,6 +69,8 @@ describe('OnboardingCarousel', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
     (Device.isIphone5S as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
+
+    Platform.OS = 'ios';
   });
 
   it('should render correctly', () => {
@@ -55,15 +81,17 @@ describe('OnboardingCarousel', () => {
   });
 
   it('should render the App Start Time text when isTest is true', async () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { toJSON, getAllByTestId } = renderWithProvider(
       <OnboardingCarousel navigation={mockNavigation} />,
     );
     expect(toJSON()).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(
-        getByTestId(OnboardingCarouselSelectorIDs.APP_START_TIME_ID),
-      ).toBeTruthy();
+      const appStartTimeElements = getAllByTestId(
+        OnboardingCarouselSelectorIDs.APP_START_TIME_ID,
+      );
+      expect(appStartTimeElements).toHaveLength(3); // One for each carousel tab
+      expect(appStartTimeElements[0]).toBeOnTheScreen();
     });
   });
 
@@ -118,6 +146,8 @@ describe('OnboardingCarousel', () => {
       (Device.isAndroid as jest.Mock).mockReturnValue(true);
       (Device.isIphoneX as jest.Mock).mockReturnValue(false);
       (Device.isIos as jest.Mock).mockReturnValue(false);
+
+      Platform.OS = 'android';
 
       // Mock window height to be greater than 800
       const originalHeight = global.window.innerHeight;

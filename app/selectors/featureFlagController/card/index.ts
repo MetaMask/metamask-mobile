@@ -7,6 +7,12 @@ export interface CardFeatureFlag {
 
 export interface SupportedChain {
   enabled?: boolean | null;
+  balanceScannerAddress?: `0x${string}` | null;
+  foxConnectAddresses?: {
+    global?: `0x${string}` | null;
+    us?: `0x${string}` | null;
+  };
+  onRampApi?: string | null;
   tokens?: SupportedToken[] | null;
 }
 
@@ -21,7 +27,7 @@ export interface SupportedToken {
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const cardFeatureFlag = remoteFeatureFlags?.cardFeatureFlag;
+    const cardFeatureFlag = remoteFeatureFlags?.cardFeature;
     return (cardFeatureFlag ?? null) as CardFeatureFlag | null;
   },
 );

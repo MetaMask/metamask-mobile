@@ -329,6 +329,7 @@ exports[`AssetListBottomSheet Component renders with empty balances array and ma
                           },
                         ]
                       }
+                      testID="asset-list-bottom-sheet"
                     >
                       <View
                         style={
@@ -871,6 +872,7 @@ exports[`AssetListBottomSheet Component renders with privacy mode enabled and ma
                           },
                         ]
                       }
+                      testID="asset-list-bottom-sheet"
                     >
                       <View
                         style={
@@ -1430,6 +1432,7 @@ exports[`AssetListBottomSheet Component renders with required props and matches 
                           },
                         ]
                       }
+                      testID="asset-list-bottom-sheet"
                     >
                       <View
                         style={
@@ -1989,6 +1992,7 @@ exports[`AssetListBottomSheet Component renders with single balance and matches 
                           },
                         ]
                       }
+                      testID="asset-list-bottom-sheet"
                     >
                       <View
                         style={

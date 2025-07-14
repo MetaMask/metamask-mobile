@@ -12,10 +12,10 @@ export enum AllowanceState {
 
 // Helper interface for token balances
 export interface CardToken {
-  address: string;
-  decimals: number;
-  symbol: string;
-  name: string;
+  address: string | null;
+  decimals: number | null;
+  symbol: string | null;
+  name: string | null;
 }
 
 export type CardTokenAllowance = {

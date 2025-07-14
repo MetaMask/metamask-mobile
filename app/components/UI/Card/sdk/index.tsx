@@ -40,6 +40,8 @@ export const CardSDKProvider = ({
         rawChainId: selectedChainId,
       });
       setSdk(cardSDK);
+    } else {
+      setSdk(null);
     }
   }, [cardFeatureFlag, selectedChainId]);
 
