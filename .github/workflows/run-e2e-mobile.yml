@@ -26,6 +26,15 @@ on:
         description: 'Platform to test (ios or android)'
         required: true
         type: string
+      test_suite_tag:
+        description: 'The Cucumber tag expression to use for filtering tests'
+        required: false
+        type: string
+      is_api_specs:
+        description: 'Whether this is the API specs test (iOS-only, special command)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test-e2e-mobile:
@@ -39,6 +48,7 @@ jobs:
       SMOKE_CATEGORY: ${{ inputs.smoke-category }}
       PLATFORM: ${{ inputs.platform }}
       JOB_NAME: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
+      TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       
     steps:
       - name: Checkout
@@ -71,45 +81,27 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          category="${{ inputs.smoke-category }}"
           platform="${{ inputs.platform }}"
+          is_api_specs="${{ inputs.is_api_specs }}"
+          test_suite_tag="${{ inputs.test_suite_tag }}"
           
-          echo "Running $category smoke tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
+          echo "Running ${{ inputs.smoke-category }} tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
           
-          # Set TEST_SUITE_TAG based on category (matching Bitrise configuration)
-          case "$category" in
-            "confirmations")
-              export TEST_SUITE_TAG="SmokeConfirmations "
-              ;;
-            "confirmations-redesigned")
-              export TEST_SUITE_TAG="SmokeConfirmationsRedesigned"
-              ;;
-            "trade")
-              export TEST_SUITE_TAG=".*SmokeTrade.*"
-              ;;
-            "network-expansion")
-              export TEST_SUITE_TAG=".*NetworkExpansion.*"
-              ;;
-            "network-abstraction")
-              export TEST_SUITE_TAG=".*SmokeNetworkAbstraction.*"
-              ;;
-            "wallet-platform")
-              export TEST_SUITE_TAG=".*SmokeWalletPlatform.*"
-              ;;
-            "api-specs")
-              if [[ "$platform" != "ios" ]]; then
-                echo "API specs are iOS-only, skipping Android"
-                exit 0
-              fi
-              yarn test:api-specs --retries 1
+          if [[ "$is_api_specs" == "true" ]]; then
+            if [[ "$platform" != "ios" ]]; then
+              echo "API specs are iOS-only, skipping $platform"
               exit 0
-              ;;
-            *)
-              echo "Unknown smoke category: $category"
-              exit 1
-              ;;
-          esac
+            fi
+            yarn test:api-specs --retries 1
+            exit 0
+          fi
           
+          if [[ -z "$test_suite_tag" ]]; then
+            echo "Error: test_suite_tag is required for non-api-specs tests"
+            exit 1
+          fi
+          
+          export TEST_SUITE_TAG="$test_suite_tag"
           echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
           
           # Set environment variables needed for the script
