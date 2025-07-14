@@ -57,7 +57,7 @@ jobs:
         shell: bash
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: local
+          METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true
