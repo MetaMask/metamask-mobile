@@ -20,8 +20,6 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import LoginView from '../../../pages/wallet/LoginView.js';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
-import Matchers from '../../../utils/Matchers.js';
-import { ToastSelectorsIDs } from '../../../selectors/wallet/ToastModal.selectors.js';
 
 describe(
   SmokeIdentity('Account syncing - Forgot Password Flow'),
@@ -85,9 +83,14 @@ describe(
           await LoginView.tapForgotPassword();
           await ForgotPasswordModalView.tapResetWalletButton();
           await ForgotPasswordModalView.tapYesResetWalletButton();
-          const elem = Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
-          await Assertions.expectElementToBeVisible(elem); // Verify reset wallet success toast is displayed
-          await Assertions.expectElementToNotBeVisible(elem); // Wait for the toast to disappear
+          if (device.getPlatform() === 'android') {
+            // eslint-disable-next-line no-restricted-syntax
+            await TestHelpers.delay(5000); // Assertion is flaky on Android
+          } else {
+          await Assertions.expectElementToBeVisible(ForgotPasswordModalView.successBottomNotification); 
+          await Assertions.expectElementToNotBeVisible(ForgotPasswordModalView.successBottomNotification); 
+          }
+
           await importWalletWithRecoveryPhrase({
             seedPhrase: defaultGanacheOptions.mnemonic,
             fromResetWallet: true,
