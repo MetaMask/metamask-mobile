@@ -6,13 +6,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -29,8 +23,7 @@ import Text from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import type { ClosePositionParams, Position } from '../controllers/types';
-import { usePerpsTrading } from '../hooks';
+import type { Position } from '../controllers/types';
 import { formatPercentage, formatPrice } from '../utils/formatUtils';
 import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
@@ -268,9 +261,6 @@ const PerpsPositionDetailsView: React.FC = () => {
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
 
   const { position } = route.params || {};
-  const { closePosition, getPositions } = usePerpsTrading();
-
-  const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Calculate position metrics
@@ -331,99 +321,8 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   // Handle position close
   const handleClosePosition = useCallback(async () => {
-    Alert.alert(
-      'Close Position',
-      `Are you sure you want to close your ${direction.toUpperCase()} ${
-        position.coin
-      } position?\n\nThis action cannot be undone.`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Close Position',
-          style: 'destructive',
-          onPress: async () => {
-            setIsClosing(true);
-            setError(null);
-
-            try {
-              DevLogger.log('PerpsPositionDetails: Closing position', {
-                coin: position.coin,
-                size: position.size,
-                direction,
-              });
-
-              const closeParams: ClosePositionParams = {
-                coin: position.coin,
-                // Close the entire position by using the opposite size
-                size: absoluteSize.toString(),
-                // For market close, we don't need price
-                orderType: 'market' as const,
-              };
-
-              const result = await closePosition(closeParams);
-
-              if (result.success) {
-                DevLogger.log(
-                  'PerpsPositionDetails: Position closed successfully',
-                  result,
-                );
-                // await triggerSuccessHaptic();
-
-                // Refresh positions to update the store
-                try {
-                  await getPositions();
-                  DevLogger.log(
-                    'PerpsPositionDetails: Positions refreshed after closure',
-                  );
-                } catch (refreshErr) {
-                  DevLogger.log(
-                    'PerpsPositionDetails: Warning - Failed to refresh positions',
-                    refreshErr,
-                  );
-                }
-
-                Alert.alert(
-                  'Position Closed',
-                  `Your ${direction.toUpperCase()} ${
-                    position.coin
-                  } position has been closed successfully.`,
-                  [
-                    {
-                      text: 'OK',
-                      onPress: () => navigation.goBack(),
-                    },
-                  ],
-                );
-              } else {
-                throw new Error(result.error || 'Failed to close position');
-              }
-            } catch (err) {
-              const errorMessage =
-                err instanceof Error ? err.message : 'Failed to close position';
-              setError(errorMessage);
-              DevLogger.log(
-                'PerpsPositionDetails: Error closing position',
-                err,
-              );
-              // await triggerErrorHaptic();
-            } finally {
-              setIsClosing(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [
-    position,
-    direction,
-    absoluteSize,
-    closePosition,
-    navigation,
-    getPositions,
-  ]);
+    DevLogger.log('PerpsPositionDetails: handleClosePosition not implemented');
+  }, []);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -569,7 +468,7 @@ const PerpsPositionDetailsView: React.FC = () => {
                 width={ButtonWidthTypes.Full}
                 label={`Close ${direction.toUpperCase()} Position`}
                 onPress={handleClosePosition}
-                loading={isClosing}
+                loading={false} // TODO: Add loading state when implemented
                 style={styles.closeButton}
               />
             </View>
