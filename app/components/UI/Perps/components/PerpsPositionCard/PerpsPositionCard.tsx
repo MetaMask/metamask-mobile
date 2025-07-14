@@ -1,10 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React from 'react';
-import {
-  TouchableOpacity,
-  View,
-  type GestureResponderEvent,
-} from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -55,8 +51,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     });
   };
 
-  const handleClosePress = async (event: GestureResponderEvent) => {
-    event.stopPropagation();
+  const handleClosePress = () => {
     // await triggerSelectionHaptic();
     if (onClose) {
       onClose(position);
@@ -69,8 +64,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  const handleEditPress = async (event: GestureResponderEvent) => {
-    event.stopPropagation();
+  const handleEditPress = () => {
     // await triggerSelectionHaptic();
     if (onEdit) {
       onEdit(position);
