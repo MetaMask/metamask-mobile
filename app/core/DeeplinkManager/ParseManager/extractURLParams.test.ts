@@ -5,6 +5,8 @@ import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import extractURLParams from './extractURLParams';
 
+// TODO: Update unit test to support new way of parsing utm params
+
 jest.mock('qs', () => ({
   parse: jest.fn(),
 }));

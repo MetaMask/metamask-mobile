@@ -3,6 +3,8 @@ import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import { processAttribution } from './processAttribution';
 import Logger from '../util/Logger';
 
+// TODO: Update unit test to support new way of parsing utm params
+
 jest.mock('../store', () => ({
   store: {
     getState: jest.fn(),
@@ -31,12 +33,15 @@ describe('processAttribution', () => {
           medium: 'social',
           campaign: 'cmp-57731027-afbf09/',
           term: null,
-          content: null
-        })
+          content: null,
+        }),
       },
     });
 
-    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123&utm=...', store });
+    const result = processAttribution({
+      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      store,
+    });
     expect(result).toEqual({
       attributionId: 'test123',
       utm: expect.any(String),
@@ -44,7 +49,7 @@ describe('processAttribution', () => {
       utm_medium: 'social',
       utm_campaign: 'cmp-57731027-afbf09/',
       utm_term: null,
-      utm_content: null
+      utm_content: null,
     });
   });
 
@@ -53,7 +58,10 @@ describe('processAttribution', () => {
       security: { dataCollectionForMarketing: false },
     });
 
-    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123&utm=...', store });
+    const result = processAttribution({
+      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      store,
+    });
     expect(result).toBeUndefined();
   });
 
@@ -75,12 +83,15 @@ describe('processAttribution', () => {
         attributionId: 'test123',
         utm: JSON.stringify({
           source: 'twitter',
-          medium: 'social'
-        })
+          medium: 'social',
+        }),
       },
     });
 
-    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123&utm=...', store });
+    const result = processAttribution({
+      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      store,
+    });
     expect(result).toEqual({
       attributionId: 'test123',
       utm: expect.any(String),
@@ -88,7 +99,7 @@ describe('processAttribution', () => {
       utm_medium: 'social',
       utm_campaign: undefined,
       utm_term: undefined,
-      utm_content: undefined
+      utm_content: undefined,
     });
   });
 
@@ -99,11 +110,15 @@ describe('processAttribution', () => {
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
         attributionId: 'test123',
-        utm: 'invalid-json'
+        utm: 'invalid-json',
       },
     });
 
-    const result = processAttribution({ currentDeeplink: 'metamask://connect?attributionId=test123&utm=invalid-json', store });
+    const result = processAttribution({
+      currentDeeplink:
+        'metamask://connect?attributionId=test123&utm=invalid-json',
+      store,
+    });
     expect(result).toEqual({
       attributionId: 'test123',
       utm: 'invalid-json',
@@ -111,8 +126,11 @@ describe('processAttribution', () => {
       utm_medium: undefined,
       utm_campaign: undefined,
       utm_term: undefined,
-      utm_content: undefined
+      utm_content: undefined,
     });
-    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), expect.any(Error));
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.any(Error),
+    );
   });
 });
