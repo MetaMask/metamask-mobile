@@ -18,6 +18,7 @@ import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
 import Approve from '../info/approve';
 import QRInfo from '../qr-info';
+import ContractDeployment from '../info/contract-deployment';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -36,10 +37,6 @@ const ConfirmationInfoComponentMap = {
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
     switch (transactionType) {
-      case TransactionType.batch:
-        return ContractInteraction;
-      case TransactionType.contractInteraction:
-        return ContractInteraction;
       case TransactionType.stakingClaim:
         return StakingClaim;
       case TransactionType.stakingDeposit:
@@ -50,15 +47,18 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodTransfer:
       case TransactionType.tokenMethodTransferFrom:
         return Transfer;
+      case TransactionType.deployContract:
+        return ContractDeployment;
       case TransactionType.tokenMethodApprove:
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
+      // Default to contract interaction as generic transaction confirmation
       default:
-        return null;
+        return ContractInteraction;
     }
   },
-  'transaction_batch': () => TransactionBatch,
+  [ApprovalType.TransactionBatch]: () => TransactionBatch,
 };
 
 interface InfoProps {

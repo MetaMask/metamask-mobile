@@ -1,6 +1,7 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RouteProp } from '@react-navigation/native';
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import SimulationDetails from '../../../../../../UI/SimulationDetails/SimulationDetails';
@@ -14,6 +15,9 @@ import InfoSection from '../../../../components/UI/info-row/info-section';
 import StakingContractInteractionDetails from '../../components/staking-contract-interaction-details/staking-contract-interaction-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
+import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
+import { TraceName } from '../../../../../../../util/trace';
 
 const StakingClaim = ({
   route,
@@ -43,9 +47,10 @@ const StakingClaim = ({
   }, [amount, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+  useEndTraceOnMount(TraceName.EarnClaimConfirmationScreen);
 
   return (
-    <>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>
       <HeroRow amountWei={route?.params?.amountWei} />
       <SimulationDetails
         transaction={transactionMetadata as TransactionMeta}
@@ -56,7 +61,7 @@ const StakingClaim = ({
         <StakingContractInteractionDetails />
       </InfoSection>
       <GasFeesDetailsRow disableUpdate />
-    </>
+    </View>
   );
 };
 export default StakingClaim;

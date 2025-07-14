@@ -1,32 +1,37 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { KycStatus } from '../../constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
+const mockStartPolling = jest.fn();
+const mockHandleApprovedKycFlow = jest.fn();
 
-const mockUseKycPolling = {
-  kycApproved: false,
-  loading: false,
-  error: null as string | null,
-  startPolling: jest.fn(),
-  stopPolling: mockStopPolling,
-};
-
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-const mockQuote: MockQuote = {
+const mockKycForms = { forms: [] };
+const mockQuote = {
   id: 'test-quote-id',
   amount: 100,
   currency: 'USD',
+};
+
+const mockUseDepositSdkMethod = jest.fn();
+const mockUseUserDetailsPolling: {
+  userDetails: unknown;
+  loading: boolean;
+  error: string | null;
+  startPolling: () => void;
+  stopPolling: () => void;
+} = {
+  userDetails: null,
+  loading: false,
+  error: null,
+  startPolling: mockStartPolling,
+  stopPolling: mockStopPolling,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -46,15 +51,31 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useKycPolling', () => ({
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: (...args: unknown[]) => mockUseDepositSdkMethod(...args),
+}));
+
+jest.mock('../../hooks/useUserDetailsPolling', () => ({
   __esModule: true,
-  default: jest.fn(() => mockUseKycPolling),
+  default: () => mockUseUserDetailsPolling,
+  KycStatus: {
+    NOT_SUBMITTED: 'NOT_SUBMITTED',
+    SUBMITTED: 'SUBMITTED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+  },
 }));
 
 jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'KYC Processing',
   }),
+}));
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: jest.fn(() => ({
+    handleApprovedKycFlow: mockHandleApprovedKycFlow,
+  })),
 }));
 
 function render(Component: React.ComponentType) {
@@ -64,9 +85,13 @@ function render(Component: React.ComponentType) {
 describe('KycProcessing Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseKycPolling.error = null;
-    mockUseKycPolling.kycApproved = false;
-    mockUseKycPolling.loading = false;
+    mockUseDepositSdkMethod.mockReturnValue([
+      { data: mockKycForms, error: null, isFetching: false },
+    ]);
+    mockUseUserDetailsPolling.userDetails = null;
+    mockUseUserDetailsPolling.loading = false;
+    mockUseUserDetailsPolling.error = null;
+    mockHandleApprovedKycFlow.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -84,32 +109,58 @@ describe('KycProcessing Component', () => {
   });
 
   it('renders loading state snapshot', () => {
-    mockUseKycPolling.loading = true;
+    mockUseUserDetailsPolling.loading = true;
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders error state snapshot', () => {
-    mockUseKycPolling.error = 'Network error';
+    mockUseUserDetailsPolling.error = 'Network error';
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders approved state snapshot', () => {
-    mockUseKycPolling.kycApproved = true;
+    mockUseUserDetailsPolling.userDetails = {
+      kyc: { l1: { status: KycStatus.APPROVED } },
+    };
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to browser tab on button press and stops polling', async () => {
+  it('renders rejected state snapshot', () => {
+    mockUseUserDetailsPolling.userDetails = {
+      kyc: { l1: { status: KycStatus.REJECTED } },
+    };
     render(KycProcessing);
-    const button = screen.getByRole('button');
-    fireEvent.press(button);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER_TAB_HOME);
+  it('renders pending forms state snapshot', () => {
+    mockUseDepositSdkMethod.mockReturnValueOnce([
+      { data: { forms: [{}] }, error: null, isFetching: false },
+    ]);
+    render(KycProcessing);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('handleContinue button behavior', () => {
+    beforeEach(() => {
+      mockUseUserDetailsPolling.userDetails = {
+        kyc: { l1: { status: KycStatus.APPROVED } },
+      };
     });
 
-    expect(mockStopPolling).toHaveBeenCalled();
+    it('calls handleApprovedKycFlow when continue button is pressed', async () => {
+      mockHandleApprovedKycFlow.mockResolvedValueOnce(undefined);
+      render(KycProcessing);
+
+      const continueButton = screen.getByText('Complete your order');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockHandleApprovedKycFlow).toHaveBeenCalledWith(mockQuote);
+      });
+    });
   });
 });

@@ -85,6 +85,10 @@ import migration81 from './081';
 import migration82 from './082';
 import migration83 from './083';
 import migration84 from './084';
+import migration85 from './085';
+import migration86 from './086';
+import migration87 from './087';
+import migration88 from './088';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -186,6 +190,10 @@ export const migrationList: MigrationsList = {
   82: migration82,
   83: migration83,
   84: migration84,
+  85: migration85,
+  86: migration86,
+  87: migration87,
+  88: migration88,
 };
 
 // Enable both synchronous and asynchronous migrations

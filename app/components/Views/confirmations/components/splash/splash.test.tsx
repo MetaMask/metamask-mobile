@@ -19,6 +19,9 @@ jest.mock('../../../../../core/Engine', () => ({
     TransactionController: {
       getTransactions: jest.fn().mockReturnValue([]),
     },
+    KeyringController: {
+      state: { keyrings: [] },
+    },
   },
 }));
 
@@ -32,28 +35,36 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const renderComponent = (state?: Record<string, unknown>) =>
+  renderWithProvider(<Splash />, {
+    state:
+      state ??
+      getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+  });
+
 describe('Splash', () => {
   it('renders splash page if present', async () => {
-    const { getByText } = renderWithProvider(<Splash />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
-    });
+    const { getByText } = renderComponent();
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('renders null if confirmation is not of type upgrade', async () => {
-    const { queryByText } = renderWithProvider(<Splash />, {
-      state: getAppStateForConfirmation(downgradeAccountConfirmation),
-    });
+    const { queryByText } = renderComponent(
+      getAppStateForConfirmation(downgradeAccountConfirmation),
+    );
 
     expect(queryByText('Use smart account?')).toBeNull();
   });
 
   it('renders null for internal confirmation', async () => {
-    const { queryByText } = renderWithProvider(<Splash />, {
-      state: getAppStateForConfirmation(upgradeOnlyAccountConfirmation),
-    });
+    const { queryByText } = renderComponent(
+      getAppStateForConfirmation(upgradeOnlyAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
+    );
 
     expect(queryByText('Use smart account?')).toBeNull();
   });

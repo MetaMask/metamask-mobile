@@ -1,5 +1,7 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { waitFor } from 'detox';
+// eslint-disable-next-line import/no-nodejs-modules
+import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 export default class Utilities {
   /**
@@ -63,7 +65,7 @@ export default class Utilities {
       let stableChecks = 0;
       const fallBackTimeout = 2000;
       const start = Date.now();
-  
+
       const getPosition = async (element) => {
         try {
           const attributes = await element.getAttributes();
@@ -75,22 +77,22 @@ export default class Utilities {
             return { x: attributes.frame.x, y: attributes.frame.y };
           }
             return null;
-  
+
         } catch {
           return null;
         }
       };
-  
+
       while (Date.now() - start < timeout) {
         const el = await element;
-  
+
         const position = await getPosition(el);
-  
+
         if (!position) {
           await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
           return; // Return early if position is not available
         }
-  
+
         if (
           lastPosition &&
           position.x === lastPosition.x &&
@@ -102,11 +104,49 @@ export default class Utilities {
           lastPosition = position;
           stableChecks = 1;
         }
-  
+
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
-  
+
       throw new Error('Element did not become stable in time');
     }
 
+  /**
+   * Waits for a condition to be met within a given timeout period.
+   *
+   * Note: Copied directly from the extension implementation
+   *
+   * @param {() => Promise<boolean>} condition - The condition to wait for. This function must return a boolean indicating whether the condition is met.
+   * @param {object} options - Options for the wait.
+   * @param {number} options.timeout - The maximum amount of time (in milliseconds) to wait for the condition to be met.
+   * @param {number} options.interval - The interval (in milliseconds) between checks for the condition.
+   * @returns {Promise<void>} A promise that resolves when the condition is met or the timeout is reached.
+   * @throws {Error} Throws an error if the condition is not met within the timeout period.
+   */
+  static async waitUntil(condition, { interval, timeout }) {
+    const startTime = Date.now();
+    const endTime = startTime + timeout;
+
+    // Loop indefinitely until condition met or timeout
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const result = await condition();
+      if (result === true) {
+        return; // Condition met
+      }
+
+      const currentTime = Date.now();
+      if (currentTime >= endTime) {
+        throw new Error(`Condition not met within ${timeout}ms.`);
+      }
+
+      // Calculate remaining time to ensure we don't overshoot the timeout
+      const remainingTime = endTime - currentTime;
+      const waitTime = Math.min(interval, remainingTime);
+
+      // always yield to the event loop, even for an interval of `0`, to avoid a
+      // macro-task deadlock
+      await asyncSetTimeout(waitTime, null, { ref: false });
+    }
+  }
 }

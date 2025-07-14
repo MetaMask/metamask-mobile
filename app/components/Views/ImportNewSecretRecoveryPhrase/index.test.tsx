@@ -102,6 +102,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockImportNewSecretRecoveryPhrase.mockResolvedValue({
+      address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
+      discoveredAccountsCount: 3,
+    });
+
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
@@ -242,7 +247,11 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-      ).build(),
+      )
+        .addProperties({
+          number_of_solana_accounts_discovered: 3,
+        })
+        .build(),
     );
   });
 

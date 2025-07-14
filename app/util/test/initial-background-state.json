@@ -189,6 +189,8 @@
     "isMultiAccountBalancesEnabled": true,
     "showMultiRpcModal": false,
     "showTestNetworks": false,
+    "smartAccountOptIn": true,
+    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
@@ -209,7 +211,8 @@
       "0x504": true,
       "0x507": true,
       "0x505": true,
-      "0x64": true
+      "0x64": true,
+      "0x531": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -354,9 +357,33 @@
   "PermissionController": {
     "subjects": {}
   },
+  "PerpsController": {
+    "activeProvider": "hyperliquid",
+    "isTestnet": false,
+    "connectionStatus": "disconnected",
+    "positions": [],
+    "accountState": null,
+    "pendingOrders": [],
+    "depositStatus": "idle",
+    "depositFlowType": null,
+    "currentDepositTxHash": null,
+    "depositError": null,
+    "requiresModalDismissal": false,
+    "depositSteps": {
+      "totalSteps": 0,
+      "currentStep": 0,
+      "stepNames": [],
+      "stepTxHashes": []
+    },
+    "lastError": null,
+    "lastUpdateTimestamp": 0
+  },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
+  },
+  "SeedlessOnboardingController": {
+    "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
     "domains": {}
@@ -394,7 +421,9 @@
     "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
-    "isAccountSyncingEnabled": true
+    "isAccountSyncingEnabled": true,
+    "isContactSyncingEnabled": true,
+    "isContactSyncingInProgress": false
   },
   "MultichainBalancesController": {
     "balances": {}

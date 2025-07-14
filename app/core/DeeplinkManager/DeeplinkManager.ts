@@ -99,7 +99,6 @@ class DeeplinkManager {
   _handleSwap(swapPath: string) {
     handleSwapUrl({
       swapPath,
-      navigation: this.navigation,
     });
   }
   // NOTE: keeping this for backwards compatibility
@@ -107,7 +106,7 @@ class DeeplinkManager {
     this.navigation.navigate(Routes.SWAPS);
   }
 
-  parse(
+  async parse(
     url: string,
     {
       browserCallBack,
@@ -119,7 +118,7 @@ class DeeplinkManager {
       onHandled?: () => void;
     },
   ) {
-    return parseDeeplink({
+    return await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,

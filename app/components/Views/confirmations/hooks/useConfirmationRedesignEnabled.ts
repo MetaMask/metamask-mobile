@@ -14,6 +14,7 @@ import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import {
   REDESIGNED_APPROVE_TYPES,
+  REDESIGNED_CONTRACT_INTERACTION_TYPES,
   REDESIGNED_SIGNATURE_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
   REDESIGNED_TRANSFER_TYPES,
@@ -63,7 +64,7 @@ function isRedesignedTransaction({
     return confirmationRedesignFlags?.staking_confirmations;
   }
 
-  if (transactionType === TransactionType.contractInteraction) {
+  if (REDESIGNED_CONTRACT_INTERACTION_TYPES.includes(transactionType)) {
     return confirmationRedesignFlags?.contract_interaction;
   }
 
@@ -82,11 +83,15 @@ function isRedesignedTransaction({
     return confirmationRedesignFlags?.approve;
   }
 
+  if (transactionType === TransactionType.deployContract) {
+    return confirmationRedesignFlags?.contract_deployment;
+  }
+
   return false;
 }
 
-function isBatchTransaction(approvalRequestType: ApprovalType | 'transaction_batch') {
-  return approvalRequestType === 'transaction_batch';
+function isBatchTransaction(approvalRequestType: ApprovalType) {
+  return approvalRequestType === ApprovalType.TransactionBatch;
 }
 
 export const useConfirmationRedesignEnabled = () => {

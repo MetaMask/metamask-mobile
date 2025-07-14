@@ -1,5 +1,11 @@
 // Third party dependencies
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   BackHandler,
   NativeScrollEvent,
@@ -32,6 +38,7 @@ import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
+import { throttle } from 'lodash';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
@@ -164,21 +171,25 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     </View>
   );
 
-  const isCloseToBottom = ({
-    layoutMeasurement,
-    contentOffset,
-    contentSize,
-  }: NativeScrollEvent) => {
-    const paddingToBottom = 20;
-    if (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    ) {
-      setIsScrollEnded(true);
-    } else {
-      setIsScrollEnded(false);
-    }
-  };
+  const isCloseToBottom = useCallback(
+    ({ layoutMeasurement, contentOffset, contentSize }: NativeScrollEvent) => {
+      const paddingToBottom = 20;
+      if (
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom
+      ) {
+        setIsScrollEnded(true);
+      } else {
+        setIsScrollEnded(false);
+      }
+    },
+    [],
+  );
+
+  const throttledCloseToBottom = useMemo(
+    () => throttle(isCloseToBottom, 50),
+    [isCloseToBottom],
+  );
 
   const renderWebView = (webviewBody: BodyWebView) => {
     const source = isBodyWebViewUri(webviewBody)
@@ -193,9 +204,9 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         injectedJavaScript={isScrollEndedJS}
         onLoad={() => setIsWebViewLoaded(true)}
         onMessage={onMessage}
-        onScroll={({ nativeEvent }) =>
-          isCloseToBottom(nativeEvent as NativeScrollEvent)
-        }
+        onScroll={({ nativeEvent }) => {
+          throttledCloseToBottom(nativeEvent as NativeScrollEvent);
+        }}
         {...(source.uri && {
           onShouldStartLoadWithRequest: (req) => source.uri === req.url,
         })}
@@ -218,23 +229,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           {body.component()}
         </ScrollView>
       );
-  };
-
-  const buttonBackgroundColor = () => {
-    if (isScrollToEndNeeded) {
-      return {
-        backgroundColor:
-          !isScrollEnded || !isCheckboxSelected
-            ? colors.primary.muted
-            : colors.primary.default,
-      };
-    }
-
-    return {
-      backgroundColor: !isCheckboxSelected
-        ? colors.primary.muted
-        : colors.primary.default,
-    };
   };
 
   return (
@@ -260,14 +254,13 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         </TouchableOpacity>
         <ButtonPrimary
           label={buttonText}
-          disabled={
+          isDisabled={
             isScrollToEndNeeded
               ? !isScrollEnded || !isCheckboxSelected
               : !isCheckboxSelected
           }
           style={{
             ...styles.confirmButton,
-            ...buttonBackgroundColor(),
           }}
           onPress={onPress}
           testID={buttonTestId}

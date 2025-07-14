@@ -16,6 +16,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet,
   passwordUnset,
@@ -70,9 +71,10 @@ import Button, {
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import Routes from '../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -124,8 +126,8 @@ const createStyles = (colors) =>
       rowGap: 18,
       marginTop: 'auto',
       marginBottom: Platform.select({
-        ios: 0,
-        android: 16,
+        ios: 16,
+        android: 24,
         default: 16,
       }),
     },
@@ -155,7 +157,7 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 1,
       flexWrap: 'wrap',
-      width: '95%',
+      width: '90%',
     },
     headerLeft: {
       marginLeft: 16,
@@ -211,13 +213,17 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
+     * Action to save onboarding event
+     */
+    saveOnboardingEvent: PropTypes.func,
+    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
     /**
-     * Action to save onboarding event
+     * Metrics injected by withMetricsAwareness HOC
      */
-    dispatchSaveOnboardingEvent: PropTypes.func,
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -244,22 +250,24 @@ class ChoosePassword extends PureComponent {
   track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
-    trackOnboarding(
-      eventBuilder.build(),
-      this.props.dispatchSaveOnboardingEvent,
-    );
+    trackOnboarding(eventBuilder.build(), this.props.saveOnboardingEvent);
   };
+
+  getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
 
   headerLeft = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const marginLeft = 16;
     return (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        disabled={this.state.loading}
+      >
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={colors.text.default}
+          color={this.state.loading ? colors.icon.muted : colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -343,23 +351,32 @@ class ChoosePassword extends PureComponent {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
-
-    if (!canSubmit) return;
     if (loading) return;
+    if (!canSubmit) {
+      if (
+        password !== '' &&
+        confirmPassword !== '' &&
+        password !== confirmPassword
+      ) {
+        this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: strings('choose_password.password_dont_match'),
+        });
+      }
+      return;
+    }
     if (!passwordRequirementsMet(password)) {
       this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
       return;
-    } else if (password !== confirmPassword) {
-      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'import',
-        error_type: strings('choose_password.password_dont_match'),
-      });
-      return;
     }
-    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+
+    const provider = this.props.route.params?.provider;
+    this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
+      account_type: provider ? `metamask_${provider}` : 'metamask',
+    });
 
     try {
       this.setState({ loading: true });
@@ -370,11 +387,16 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      if (previous_screen === ONBOARDING) {
+      authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      Logger.log('previous_screen', previous_screen);
+      if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
+          if (Device.isIos) {
+            await this.handleRejectedOsBiometricPrompt();
+          }
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -385,13 +407,44 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
+
+      if (authType.oauth2Login) {
+        if (this.props.metrics.isEnabled()) {
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
+            ],
+          });
+        } else {
+          this.props.navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              this.props.navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              });
+            },
+          });
+        }
+      } else {
+        this.props.navigation.replace('AccountBackupStep1');
+      }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
+        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
+        account_type: provider ? `metamask_${provider}` : 'metamask',
       });
     } catch (error) {
       try {
@@ -430,6 +483,9 @@ class ChoosePassword extends PureComponent {
       false,
       false,
     );
+
+    const oauth2LoginSuccess = this.getOauth2LoginSuccess();
+    newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,
@@ -550,18 +606,25 @@ class ChoosePassword extends PureComponent {
 
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
-    this.setState({
+    this.setState((prevState) => ({
       password: val,
       passwordStrength: passInfo.score,
-      confirmPassword: '',
-    });
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
+    const learnMoreUrl =
+      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+    this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
+      text: 'Learn More',
+      location: 'choose_password',
+      url: learnMoreUrl,
+    });
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: learnMoreUrl,
         title: 'support.metamask.io',
       },
     });
@@ -623,10 +686,7 @@ class ChoosePassword extends PureComponent {
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.subtitle}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
@@ -636,12 +696,17 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('choose_password.steps', {
-                  currentStep: 1,
-                  totalSteps: 3,
-                })}
-              </Text>
+              {!this.getOauth2LoginSuccess() && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.steps', {
+                    currentStep: 1,
+                    totalSteps: 3,
+                  })}
+                </Text>
+              )}
 
               <View
                 style={styles.passwordContainer}
@@ -655,7 +720,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.title')}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
                     {strings('choose_password.description')}
@@ -798,7 +863,9 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {this.getOauth2LoginSuccess()
+                          ? strings('import_from_seed.learn_more_social_login')
+                          : strings('import_from_seed.learn_more')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
@@ -841,10 +908,12 @@ const mapDispatchToProps = (dispatch) => ({
   passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-  dispatchSaveOnboardingEvent: (...eventArgs) =>
-    dispatch(saveOnboardingEvent(eventArgs)),
+  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
 const mapStateToProps = (state) => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(ChoosePassword));

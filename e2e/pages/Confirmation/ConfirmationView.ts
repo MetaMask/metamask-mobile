@@ -13,4 +13,4 @@ class ConfirmationView {
   }
 }
 
-export default new ConfirmationView(); 
+export default new ConfirmationView();

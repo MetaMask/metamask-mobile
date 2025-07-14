@@ -7,8 +7,8 @@ import { SimulationDetails } from '../../../../../UI/SimulationDetails/Simulatio
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
@@ -22,7 +22,6 @@ const Transfer = () => {
   // Set navbar as first to prevent Android navigation flickering
   useNavbar(strings('confirm.review'));
   const transactionMetadata = useTransactionMetadataRequest();
-  const isDappTransfer = transactionMetadata?.origin !== MMM_ORIGIN;
   const { usdValue } = useTokenAmount();
   const { assetType } = useTransferAssetType();
   const { trackPageViewedEvent, setConfirmationMetric } =
@@ -41,17 +40,15 @@ const Transfer = () => {
   }, [assetType, usdValue, setConfirmationMetric]);
 
   return (
-    <View>
+    <View testID={ConfirmationInfoComponentIDs.TRANSFER}>
       <HeroRow />
       <FromToRow />
       <NetworkAndOriginRow />
-      {isDappTransfer && (
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics
-          isTransactionsRedesign
-        />
-      )}
+      <SimulationDetails
+        transaction={transactionMetadata as TransactionMeta}
+        enableMetrics
+        isTransactionsRedesign
+      />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>

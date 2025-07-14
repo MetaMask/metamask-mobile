@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import useNavbar from '../../../../hooks/ui/useNavbar';
@@ -10,6 +12,8 @@ import StakingContractInteractionDetails from '../../components/staking-contract
 import StakingDetails from '../../components/staking-details/staking-details';
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
+import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
+import { TraceName } from '../../../../../../../util/trace';
 
 const StakingDeposit = () => {
   useNavbar(strings('stake.stake'));
@@ -43,6 +47,8 @@ const StakingDeposit = () => {
     });
   }, [trackPageViewedEvent, setConfirmationMetric]);
 
+  useEndTraceOnMount(TraceName.EarnDepositConfirmationScreen);
+
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });
     if (isExpanded) {
@@ -55,7 +61,7 @@ const StakingDeposit = () => {
   };
 
   return (
-    <>
+    <View testID={ConfirmationInfoComponentIDs.STAKING_DEPOSIT}>
       <HeroRow />
       <StakingDetails />
       <GasFeesDetailsRow disableUpdate />
@@ -65,7 +71,7 @@ const StakingDeposit = () => {
       >
         <StakingContractInteractionDetails />
       </InfoSectionAccordion>
-    </>
+    </View>
   );
 };
 export default StakingDeposit;

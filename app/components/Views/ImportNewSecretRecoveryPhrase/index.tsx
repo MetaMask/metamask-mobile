@@ -232,9 +232,10 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(true);
     try {
       await lockAccountSyncing();
-      await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
+      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -247,11 +248,16 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
+
       fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        ).build(),
+        )
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
       );
       navigation.navigate('WalletView');
     } catch (e) {

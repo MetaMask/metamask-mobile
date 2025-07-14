@@ -127,7 +127,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(token.symbol))}
+        {...generateTestId(Platform, getAssetTestId(`${token.chainId}-${token.symbol}`))}
       >
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
           {/* Token Icon */}

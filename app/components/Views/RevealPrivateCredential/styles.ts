@@ -46,17 +46,18 @@ export const createStyles = (theme: Theme) =>
       padding: 20,
     },
     tabContentContainer: {
+      minHeight: 320,
       flexGrow: 1,
       flexShrink: 0,
       marginBottom: Platform.OS === 'android' ? 20 : 0,
     },
     warningWrapper: {
       backgroundColor: theme.colors.error.muted,
-      margin: 20,
-      marginTop: 10,
+      padding: 20,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: theme.colors.error.default,
+      marginTop: 16,
     },
     warningRowWrapper: {
       flexDirection: 'row',
@@ -77,7 +78,6 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
     },
     icon: {
-      margin: 10,
       color: theme.colors.error.default,
     },
     blueText: {
@@ -129,7 +129,7 @@ export const createStyles = (theme: Theme) =>
       fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
-      marginBottom: 20,
+      marginBottom: 24,
     },
     tabBar: {
       borderColor: theme.colors.border.muted,

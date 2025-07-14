@@ -20,10 +20,15 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 
-import { FIAT_ORDER_PROVIDERS } from '../../../../../../constants/on-ramp';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../../../constants/on-ramp';
 import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -32,12 +37,9 @@ interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
 }
 
 function FilterButton({ selected = false, ...props }: FilterButtonProps) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   return (
     <Button
       variant={selected ? ButtonVariants.Primary : ButtonVariants.Secondary}
-      style={selected ? styles.selectedFilter : undefined}
       size={ButtonSize.Sm}
       accessibilityRole="button"
       accessible
@@ -65,7 +67,7 @@ function OrdersList() {
     return true;
   });
 
-  const handleNavigateToTxDetails = useCallback(
+  const handleNavigateToAggregatorTxDetails = useCallback(
     (orderId: string) => {
       navigation.navigate(
         ...createOrderDetailsNavDetails({
@@ -76,6 +78,25 @@ function OrdersList() {
     [navigation],
   );
 
+  const handleNavigateToDepositTxDetails = useCallback(
+    (orderId: string) => {
+      const order = orders.find((o) => o.id === orderId);
+
+      if (order?.state === FIAT_ORDER_STATES.CREATED) {
+        navigation.navigate(Routes.DEPOSIT.ID, {
+          screen: Routes.DEPOSIT.ROOT,
+        });
+      } else {
+        navigation.navigate(
+          ...createDepositOrderDetailsNavDetails({
+            orderId,
+          }),
+        );
+      }
+    },
+    [navigation, orders],
+  );
+
   const renderItem = ({ item }: { item: FiatOrder }) => (
     <TouchableHighlight
       accessibilityRole="button"
@@ -83,7 +104,9 @@ function OrdersList() {
       style={styles.row}
       onPress={
         item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
-          ? () => handleNavigateToTxDetails(item.id)
+          ? () => handleNavigateToAggregatorTxDetails(item.id)
+          : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+          ? () => handleNavigateToDepositTxDetails(item.id)
           : undefined
       }
       underlayColor={colors.background.alternative}

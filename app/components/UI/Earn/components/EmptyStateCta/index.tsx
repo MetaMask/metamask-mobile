@@ -1,29 +1,35 @@
+import { useNavigation } from '@react-navigation/native';
+import _ from 'lodash';
 import React from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './EmptyStateCta.styles';
 import { View } from 'react-native-animatable';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useNavigation } from '@react-navigation/native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenI } from '../../../Tokens/types';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import { getDecimalChainId } from '../../../../../util/networks';
-import _ from 'lodash';
-import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
-import useEarnTokens from '../../hooks/useEarnTokens';
+import { RootState } from '../../../../../reducers';
+import { earnSelectors } from '../../../../../selectors/earnController';
 import { capitalize } from '../../../../../util/general';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useStyles } from '../../../../hooks/useStyles';
+import { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { parseFloatSafe } from '../../utils/number';
+import styleSheet from './EmptyStateCta.styles';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -42,23 +48,46 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { getEarnToken } = useEarnTokens();
-  const earnToken = getEarnToken(token);
+  const network = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
+  );
+
+  const earnToken = useSelector((state: RootState) =>
+    earnSelectors.selectEarnToken(state, token),
+  );
 
   const estimatedAnnualRewardsFormatted = parseFloatSafe(
     earnToken?.experience?.estimatedAnnualRewardsFormatted ?? '0',
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
-  const navigateToLendInputScreen = () => {
+  const navigateToLendInputScreen = async () => {
+    trace({ name: TraceName.EarnDepositScreen });
+    const { NetworkController } = Engine.context;
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+      );
+      return;
+    }
+
+    await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
           location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
           token_name: token.name,
-          token_symbol: token.symbol,
+          token: token.symbol,
+          text: 'Earn',
           token_chain_id: getDecimalChainId(token.chainId),
           estimatedAnnualRewards: estimatedAnnualRewardsFormatted,
+          apr: `${apr}%`,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         })
         .build(),
     );
@@ -70,6 +99,23 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   };
 
   const navigateToLendingHistoricApyChart = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_LEARN_MORE_CLICKED)
+        .addProperties({
+          provider: EVENT_PROVIDERS.CONSENSYS,
+          location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
+          component_name: 'EarnEmptyStateCta',
+          token_name: token.name,
+          token_symbol: token.symbol,
+          text: 'Learn more',
+          network: network?.name,
+          token_chain_id: getDecimalChainId(token.chainId),
+          apr: `${apr}%`,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        })
+        .build(),
+    );
+
     navigate(Routes.EARN.MODALS.ROOT, {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: { asset: earnToken },

@@ -26,6 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
+  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -36,6 +37,8 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { renderShortAddress } from '../../../../../util/address';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;
@@ -80,8 +83,15 @@ export enum TokenInputAreaType {
   Destination = 'destination',
 }
 
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+const formatAddress = (address?: string) => {
+  if (!address) return undefined;
+
+  if (isCaipAssetType(address)) {
+    const { assetReference } = parseCaipAssetType(address);
+    return renderShortAddress(assetReference, 4);
+  }
+  return renderShortAddress(address, 4);
+};
 
 export const getDisplayAmount = (
   amount?: string,
@@ -137,6 +147,9 @@ export const TokenInputArea = forwardRef<
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
+
+    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
@@ -260,7 +273,7 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings('bridge.bridge_to')}
+                label={strings(isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to')}
                 onPress={navigateToDestNetworkSelector}
               />
             )}

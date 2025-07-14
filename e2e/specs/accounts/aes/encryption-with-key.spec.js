@@ -1,4 +1,4 @@
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
@@ -19,7 +19,7 @@ import FixtureServer from '../../../fixtures/fixture-server';
 const fixtureServer = new FixtureServer();
 
 describe(
-  SmokeNetworkExpansion('AES Crypto - Encryption and decryption with encryption key'),
+  SmokeAccounts('AES Crypto - Encryption and decryption with encryption key'),
   () => {
     const PASSWORD_ONE = '123123123';
     // const PASSWORD_TWO = '456456456';
