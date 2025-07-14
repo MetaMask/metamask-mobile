@@ -91,12 +91,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   }, [providerOrderId]);
 
   const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
-  const totalAmount =
-    order.amount && order.fee
-      ? (
-          parseFloat(order.amount.toString()) + parseFloat(order.fee.toString())
-        ).toString()
-      : order.amount;
 
   const orderFee = formatCurrency(
     order.fee || order.cryptoFee || 0,
@@ -240,7 +234,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.total')}
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            {formatCurrency(totalAmount || order.amount, order.currency)}
+            {formatCurrency(order.amount, order.currency)}
           </Text>
         </View>
       </View>
