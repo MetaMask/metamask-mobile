@@ -10,6 +10,12 @@ import { passwordRequirementsMet } from '../../../util/password';
 import { trace } from '../../../util/trace';
 import StorageWrapper from '../../../store/storage-wrapper';
 
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockReset = jest.fn();
+const mockGoBack = jest.fn();
+const mockRoute = jest.fn();
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -29,9 +35,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
-const mockRoute = jest.fn();
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
