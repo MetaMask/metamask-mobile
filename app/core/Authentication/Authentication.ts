@@ -47,6 +47,7 @@ import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -101,11 +102,13 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
+    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-    await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
+    await KeyringController.createNewVaultAndRestore(
+      password,
+      parsedSeedUint8Array,
+    );
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     this.attemptSolanaAccountDiscovery().catch((error) => {
       console.warn(
@@ -658,8 +661,6 @@ class AuthenticationService {
         this.dispatchLogin();
         this.dispatchPasswordSet();
         this.dispatchOauthReset();
-
-        // Try to complete any pending Solana account discovery
         ///: BEGIN:ONLY_INCLUDE_IF(solana)
         this.retrySolanaDiscoveryIfPending();
         ///: END:ONLY_INCLUDE_IF
@@ -711,9 +712,8 @@ class AuthenticationService {
       await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
       });
-      await this.resetPassword();
-
       await this.syncKeyringEncryptionKey();
+      await this.resetPassword();
 
       // check password outdated again skip cache to reset the cache after successful syncing
       await SeedlessOnboardingController.checkIsPasswordOutdated({
