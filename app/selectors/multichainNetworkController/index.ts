@@ -67,7 +67,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
 
     // TODO: Add support for non-EVM testnets
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
-      multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+      multichainNetworkControllerState?.multichainNetworkConfigurationsByChainId ||
       {};
 
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
