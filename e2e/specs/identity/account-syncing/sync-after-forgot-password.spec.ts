@@ -68,7 +68,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
     await withIdentityFixtures(
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
-        fixture: new FixtureBuilder({ onboarding: true }),
+        fixture: new FixtureBuilder().withOnboardingFixture().build(),
       },
       async ({ userStorageMockttpController, mockServer }) => {
         await CreateNewWallet();
