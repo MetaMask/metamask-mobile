@@ -30,7 +30,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-14' || 'ubuntu-latest' }}
+    runs-on: macos-14-large
     env:
       METAMASK_ENVIRONMENT: 'local'
       METAMASK_BUILD_TYPE: 'main'
