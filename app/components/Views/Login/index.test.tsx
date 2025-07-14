@@ -884,13 +884,10 @@ describe('Login', () => {
           params: {
             screen: Routes.ONBOARDING.NAV,
             params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
                 screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
             },
           },
-        ],
+        }],
       });
     });
 
