@@ -6,7 +6,7 @@ const styleSheet = () =>
       flex: 1,
     },
     bodyTextContainer: {
-      paddingBottom: 16,
+      paddingBottom: 8,
       paddingHorizontal: 16,
     },
     row: {

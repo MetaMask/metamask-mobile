@@ -47,7 +47,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
-import { ScrollView } from 'react-native-gesture-handler';
 import useEarnToken from '../hooks/useEarnToken';
 import { Hex } from 'viem';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
@@ -286,78 +285,65 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <ScrollView>
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('earn.how_it_works')}
-          </Text>
-        </BottomSheetHeader>
-        <Animated.View style={animatedChartContainerStyle}>
-          {showChart && (
-            <InteractiveTimespanChart
-              dataPoints={reversedMarketApys}
-              yAccessor={(point) =>
-                new BigNumber(point.netSupplyRate).toNumber()
-              }
-              defaultTitle={`${formatPercent(
-                activeTimespanApyAverage?.apyAverage ?? '',
-                {
-                  inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                  outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                  fixed: 1,
-                },
-              )} ${strings('stake.apr')}`}
-              titleAccessor={(point) =>
-                `${formatPercent(point.netSupplyRate, {
-                  inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                  outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                  fixed: 1,
-                })} ${strings('stake.apr')}`
-              }
-              defaultSubtitle={activeTimespanApyAverage?.label ?? ''}
-              subtitleAccessor={(point) =>
-                formatChartDate(new Date(point.timestamp * 1000).toISOString())
-              }
-              onTimespanPressed={handleTimespanPressed}
-              graphOptions={{
-                ...getGraphInsetsByDataPointLength(
-                  activeTimespanApyAverage?.numDays ?? 0,
-                ),
-                timespanButtons: [
-                  {
-                    label: strings(
-                      'stake.interactive_chart.timespan_buttons.7D',
-                    ),
-                    value: 7,
-                  },
-                  {
-                    label: strings(
-                      'stake.interactive_chart.timespan_buttons.1M',
-                    ),
-                    value: 30,
-                  },
-                  {
-                    label: strings(
-                      'stake.interactive_chart.timespan_buttons.3M',
-                    ),
-                    value: 90,
-                  },
-                ],
-              }}
-              isLoading={isLoadingMarketApys}
-            />
-          )}
-        </Animated.View>
-        <View style={styles.bodyTextContainer}>
-          <BodyText
-            assetSymbol={assetSymbol || ''}
-            protocol={
-              route?.params?.asset?.experience?.market
-                ?.protocol as LendingProtocol
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('earn.how_it_works')}
+        </Text>
+      </BottomSheetHeader>
+      <Animated.View style={animatedChartContainerStyle}>
+        {showChart && (
+          <InteractiveTimespanChart
+            dataPoints={reversedMarketApys}
+            yAccessor={(point) => new BigNumber(point.netSupplyRate).toNumber()}
+            defaultTitle={`${formatPercent(
+              activeTimespanApyAverage?.apyAverage ?? '',
+              {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              },
+            )} ${strings('stake.apr')}`}
+            titleAccessor={(point) =>
+              `${formatPercent(point.netSupplyRate, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })} ${strings('stake.apr')}`
             }
+            defaultSubtitle={activeTimespanApyAverage?.label ?? ''}
+            subtitleAccessor={(point) =>
+              formatChartDate(new Date(point.timestamp * 1000).toISOString())
+            }
+            onTimespanPressed={handleTimespanPressed}
+            graphOptions={{
+              ...getGraphInsetsByDataPointLength(
+                activeTimespanApyAverage?.numDays ?? 0,
+              ),
+              timespanButtons: [
+                {
+                  label: strings('stake.interactive_chart.timespan_buttons.7D'),
+                  value: 7,
+                },
+                {
+                  label: strings('stake.interactive_chart.timespan_buttons.1M'),
+                  value: 30,
+                },
+                {
+                  label: strings('stake.interactive_chart.timespan_buttons.3M'),
+                  value: 90,
+                },
+              ],
+            }}
+            isLoading={isLoadingMarketApys}
           />
-        </View>
-      </ScrollView>
+        )}
+      </Animated.View>
+      <BodyText
+        assetSymbol={assetSymbol || ''}
+        protocol={
+          route?.params?.asset?.experience?.market?.protocol as LendingProtocol
+        }
+      />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         buttonPropsArray={footerButtons}
