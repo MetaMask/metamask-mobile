@@ -14,6 +14,7 @@ import TestHelpers from '../../helpers';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
 const deleteAccount = async () => {
+  await Assertions.checkIfVisible(DeleteAccount.container);
   await AccountDetails.tapDeleteAccountLink();
   await DeleteAccount.tapDeleteAccount();
 };
