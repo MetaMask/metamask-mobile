@@ -23,15 +23,6 @@ import 'react-native-url-polyfill/auto';
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
-// Needed to polyfill global.crypto with only the essential functions
-if (!global.crypto) {
-  global.crypto = {};
-}
-
-// Use functions from react-native-quick-crypto
-global.crypto.randomUUID = randomUUID;
-global.crypto.getRandomValues = getRandomValues;
-
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
   const raw = LaunchArguments.value();
@@ -67,6 +58,17 @@ if (typeof process === 'undefined') {
     }
   }
 }
+
+// Polyfill crypto after process is polyfilled
+const crypto = require('crypto'); // eslint-disable-line import/no-nodejs-modules
+
+// Needed to polyfill crypto
+global.crypto = {
+  ...global.crypto,
+  ...crypto,
+  randomUUID,
+  getRandomValues,
+};
 
 process.browser = false;
 if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
