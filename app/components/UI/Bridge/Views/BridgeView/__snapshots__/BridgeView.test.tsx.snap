@@ -427,14 +427,14 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       testID="source-token-area"
                                     >
                                       <View
-                                        alignItems="center"
+                                        alignItems="flex-end"
                                         flexDirection="row"
                                         gap={4}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignItems": "flex-end",
                                               "flexDirection": "row",
                                               "gap": 4,
                                               "justifyContent": "flex-end",
@@ -442,7 +442,8 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             {
                                               "backgroundColor": "#ffffff",
                                               "borderRadius": 100,
-                                              "paddingHorizontal": 12,
+                                              "paddingLeft": 8,
+                                              "paddingRight": 11,
                                               "paddingVertical": 8,
                                               "shadowColor": "#0000001a",
                                               "shadowOffset": {
@@ -611,10 +612,10 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 24,
                                               "letterSpacing": 0,
-                                              "lineHeight": 28,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -657,7 +658,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         }
                                       }
                                     >
-                                      2.0 ETH
+                                      2 ETH
                                     </Text>
                                   </View>
                                 </View>
@@ -1393,14 +1394,14 @@ exports[`BridgeView renders 1`] = `
                                       testID="source-token-area"
                                     >
                                       <View
-                                        alignItems="center"
+                                        alignItems="flex-end"
                                         flexDirection="row"
                                         gap={4}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
+                                              "alignItems": "flex-end",
                                               "flexDirection": "row",
                                               "gap": 4,
                                               "justifyContent": "flex-end",
@@ -1408,7 +1409,8 @@ exports[`BridgeView renders 1`] = `
                                             {
                                               "backgroundColor": "#ffffff",
                                               "borderRadius": 100,
-                                              "paddingHorizontal": 12,
+                                              "paddingLeft": 8,
+                                              "paddingRight": 11,
                                               "paddingVertical": 8,
                                               "shadowColor": "#0000001a",
                                               "shadowOffset": {
@@ -1577,10 +1579,10 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 24,
                                               "letterSpacing": 0,
-                                              "lineHeight": 28,
+                                              "lineHeight": 24,
                                             }
                                           }
                                         >
@@ -1623,7 +1625,7 @@ exports[`BridgeView renders 1`] = `
                                         }
                                       }
                                     >
-                                      2.0 ETH
+                                      2 ETH
                                     </Text>
                                   </View>
                                 </View>

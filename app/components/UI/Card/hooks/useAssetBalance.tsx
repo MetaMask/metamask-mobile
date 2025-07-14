@@ -30,7 +30,6 @@ import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 
 // This hook retrieves the asset balance and related information for a given token and account.
-// Validate if it's necessary or if it can be simplified further.
 export const useAssetBalance = (
   token: FlashListAssetKey | null | undefined,
 ): {
@@ -39,22 +38,22 @@ export const useAssetBalance = (
   mainBalance: string;
   secondaryBalance: string;
 } => {
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
 
-  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectEvmAsset = useMemo(
     () => makeSelectAssetByAddressAndChainId(),
     [],
   );
 
   const evmAsset = useSelector((state: RootState) =>
-    token
+    token?.chainId
       ? selectEvmAsset(state, {
           address: token.address,
-          chainId: token.chainId ?? '',
           isStaked: token.isStaked,
+          chainId: token.chainId,
         })
       : undefined,
   );
@@ -114,7 +113,14 @@ export const useAssetBalance = (
   const oneHundredThousandths = 0.00001;
 
   const { balanceFiat, balanceValueFormatted } = useMemo(() => {
-    if (!token || !selectedInternalAccountAddress) {
+    if (!token) {
+      return {
+        balanceFiat: undefined,
+        balanceValueFormatted: '',
+      };
+    }
+
+    if (!asset) {
       return {
         balanceFiat: undefined,
         balanceValueFormatted: '',
@@ -149,7 +155,6 @@ export const useAssetBalance = (
         };
   }, [
     token,
-    selectedInternalAccountAddress,
     isEvmNetworkSelected,
     asset,
     exchangeRates,

@@ -64,7 +64,7 @@ export const useGetAllowances = (address?: string, autoFetch = false) => {
 
         setAllowances(filteredAllowances);
       } catch (error) {
-        console.error('Error fetching priority token:', error);
+        console.error('Error fetching allowances:', error);
       } finally {
         setIsLoading(false);
       }
