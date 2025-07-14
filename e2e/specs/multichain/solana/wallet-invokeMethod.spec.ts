@@ -19,6 +19,9 @@ import SolanaNewFeatureSheet from '../../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import Gestures from '../../../utils/Gestures';
 import Matchers from '../../../utils/Matchers';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
@@ -37,8 +40,15 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
         await TestHelpers.reverseServerPort();
         await loginToApp();
 
-        await SolanaNewFeatureSheet.tapCreateAccountButton();
+        await SolanaNewFeatureSheet.tapNotNowButton();
+
+        await WalletView.tapIdenticon();
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        await AccountListBottomSheet.tapAddAccountButton();
+        await TestHelpers.delay(4000);
+        await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
+        await TestHelpers.delay(4000);
 
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
