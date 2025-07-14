@@ -253,7 +253,7 @@ describe('useGetAllowances', () => {
     expect(result.current.isLoading).toBe(false);
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledTimes(1);
     expect(mockConsoleError).toHaveBeenCalledWith(
-      'Error fetching priority token:',
+      'Error fetching allowances:',
       mockError,
     );
   });
