@@ -47,7 +47,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Determine if position is long or short based on size
-  const isLong = parseFloat(position.size) > 0;
+  const isLong = parseFloat(position.size) >= 0;
   const direction = isLong ? 'LONG' : 'SHORT';
   const absoluteSize = Math.abs(parseFloat(position.size));
 
@@ -100,6 +100,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     <TouchableOpacity
       style={styles.container}
       onPress={handleCardPress}
+      testID="PerpsPositionCard"
       disabled={disabled}
     >
       {/* Header */}

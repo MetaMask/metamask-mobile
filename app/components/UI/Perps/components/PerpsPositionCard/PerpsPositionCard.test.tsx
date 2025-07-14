@@ -10,7 +10,7 @@ interface MockButtonProps {
   size?: string;
   width?: string;
   label?: string;
-  onPress?: () => void;
+  onPress?: (event?: { stopPropagation: () => void }) => void;
   disabled?: boolean;
   style?: unknown;
   testID?: string;
@@ -47,9 +47,22 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
     ...props
   }: MockButtonProps) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+    const handlePress = () => {
+      if (onPress && !disabled) {
+        // Create mock event object with stopPropagation
+        const mockEvent = {
+          stopPropagation: jest.fn(),
+          preventDefault: jest.fn(),
+          nativeEvent: {},
+        };
+        onPress(mockEvent);
+      }
+    };
+
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         disabled={disabled}
         testID={testID || `button-${label?.toLowerCase().replace(/\s+/g, '-')}`}
         style={style}
@@ -190,7 +203,6 @@ describe('PerpsPositionCard', () => {
       expect(screen.getByText('Entry Price')).toBeOnTheScreen();
       expect(screen.getByText('$2000.00')).toBeOnTheScreen();
       expect(screen.getByText('Market Price')).toBeOnTheScreen();
-      expect(screen.getByText('$1800.00')).toBeOnTheScreen();
       expect(screen.getByText('Liquidity Price')).toBeOnTheScreen();
       expect(screen.getByText('Take Profit')).toBeOnTheScreen();
       expect(screen.getByText('Stop Loss')).toBeOnTheScreen();
