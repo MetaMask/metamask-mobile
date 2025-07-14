@@ -51,6 +51,24 @@ jobs:
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
           cache-unique-id: ${{ github.run_id }}-${{ inputs.test-suite-name }}-${{ github.run_attempt }}
 
+      - name: Build E2E app
+        run: |
+          platform="${{ inputs.platform }}"
+          
+          # Set environment variables for build
+          export METAMASK_ENVIRONMENT='local'
+          export METAMASK_BUILD_TYPE='main'
+          export IS_TEST='true'
+          export IGNORE_BOXLOGS_DEVELOPMENT="true"
+          
+          echo "Building E2E app for $platform..."
+          
+          if [[ "$platform" == "ios" ]]; then
+            yarn test:e2e:ios:build:qa-release
+          else
+            yarn test:e2e:android:build:qa-release
+          fi
+
       - name: Run E2E tests
         run: |
           category="${{ inputs.smoke-category }}"
@@ -58,18 +76,54 @@ jobs:
           
           echo "Running $category smoke tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
           
-          if [[ "$category" == "api-specs" ]]; then
-            if [[ "$platform" != "ios" ]]; then
-              echo "API specs are iOS-only, skipping Android"
+          # Set TEST_SUITE_TAG based on category (matching Bitrise configuration)
+          case "$category" in
+            "confirmations")
+              export TEST_SUITE_TAG="SmokeConfirmations "
+              ;;
+            "confirmations-redesigned")
+              export TEST_SUITE_TAG="SmokeConfirmationsRedesigned"
+              ;;
+            "trade")
+              export TEST_SUITE_TAG=".*SmokeTrade.*"
+              ;;
+            "network-expansion")
+              export TEST_SUITE_TAG=".*NetworkExpansion.*"
+              ;;
+            "network-abstraction")
+              export TEST_SUITE_TAG=".*SmokeNetworkAbstraction.*"
+              ;;
+            "wallet-platform")
+              export TEST_SUITE_TAG=".*SmokeWalletPlatform.*"
+              ;;
+            "api-specs")
+              if [[ "$platform" != "ios" ]]; then
+                echo "API specs are iOS-only, skipping Android"
+                exit 0
+              fi
+              yarn test:api-specs --retries 1
               exit 0
-            fi
-            yarn test:api-specs --retries 1
+              ;;
+            *)
+              echo "Unknown smoke category: $category"
+              exit 1
+              ;;
+          esac
+          
+          echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
+          
+          # Set environment variables needed for the script
+          export METAMASK_ENVIRONMENT='local'
+          export METAMASK_BUILD_TYPE='main'
+          export IGNORE_BOXLOGS_DEVELOPMENT="true"
+          
+          # Use the same approach as Bitrise: run the tag script which calls the appropriate yarn command
+          if [[ "$platform" == "ios" ]]; then
+            export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
+            ./scripts/run-e2e-tags.sh
           else
-            if [[ "$platform" == "ios" ]]; then
-              yarn test:e2e:ios:smoke:$category --retries 1
-            else
-              yarn test:e2e:android:smoke:$category --retries 1
-            fi
+            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
+            ./scripts/run-e2e-tags.sh
           fi
 
       - name: Upload test results
