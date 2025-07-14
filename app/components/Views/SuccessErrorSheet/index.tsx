@@ -19,8 +19,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
-
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
@@ -28,10 +26,14 @@ export interface SuccessErrorSheetParams {
   description: string | React.ReactNode;
   customButton: React.ReactNode;
   type: 'success' | 'error';
+  icon: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;
   primaryButtonLabel?: string;
   onPrimaryButtonPress?: () => void;
+  isInteractable?: boolean;
+  closeOnPrimaryButtonPress?: boolean;
+  closeOnSecondaryButtonPress?: boolean;
   reverseButtonOrder?: boolean;
   descriptionAlign?: 'center' | 'left';
 }
@@ -47,17 +49,20 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     description,
     customButton,
     type = 'success',
+    icon,
     secondaryButtonLabel,
     onSecondaryButtonPress,
     primaryButtonLabel,
     onPrimaryButtonPress,
+    isInteractable = true,
+    closeOnPrimaryButtonPress = false,
+    closeOnSecondaryButtonPress = true,
     reverseButtonOrder = false,
     descriptionAlign = 'left',
   } = route.params;
 
   const { colors } = useTheme();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleClose = () => {
     if (onClose) {
@@ -65,25 +70,36 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
+  const getIcon = () => {
+    if (icon) {
+      return icon;
+    }
+    return type === 'success' ? IconName.SuccessSolid : IconName.CircleX;
+  };
+
   const handleSecondaryButtonPress = () => {
-    navigation.goBack();
+    closeOnSecondaryButtonPress && navigation.goBack();
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
     }
   };
 
   const handlePrimaryButtonPress = () => {
-    navigation.goBack();
+    closeOnPrimaryButtonPress && navigation.goBack();
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
     }
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={handleClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={handleClose}
+      isInteractable={isInteractable}
+    >
       <View style={styles.statusContainer}>
         <Icon
-          name={type === 'success' ? IconName.Confirmation : IconName.CircleX}
+          name={getIcon()}
           size={IconSize.Xl}
           color={
             type === 'success' ? colors.success.default : colors.error.default
