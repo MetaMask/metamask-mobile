@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, View } from 'react-native';
+import {
+  Dimensions,
+  GestureResponderEvent,
+  PanResponder,
+  View,
+} from 'react-native';
 import { AreaChart } from 'react-native-svg-charts';
 import ChartTimespanButtonGroup from './ChartTimespanButtonGroup';
 import DataGradient from './DataGradient';
@@ -20,8 +25,6 @@ import {
 import GraphTooltip from './GraphTooltip';
 import { DEFAULT_GRAPH_OPTIONS } from './InteractiveTimespanChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
 
 export interface InteractiveTimespanChartProps<T extends DataPoint> {
   dataPoints: T[];
@@ -191,22 +194,28 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     [dataPointsToShow.length, segmentCenters, snapThreshold],
   );
 
-  // Use Manual gesture for more direct control
-  const chartGesture = useMemo(
+  /**
+   * PanResponder captures the dragging on the graph
+   * src: https://reactnative.dev/docs/panresponder
+   */
+  const panResponder = useMemo(
     () =>
-      Gesture.Manual()
-        .onTouchesDown((event) => {
-          runOnJS(updateSelectedGraphPosition)(event.changedTouches[0].x);
-        })
-        .onTouchesMove((event) => {
-          runOnJS(updateSelectedGraphPosition)(event.changedTouches[0].x);
-        })
-        .onTouchesUp(() => {
-          runOnJS(updateSelectedGraphPosition)(-1);
-        })
-        .onTouchesCancelled(() => {
-          runOnJS(updateSelectedGraphPosition)(-1);
-        }),
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderTerminationRequest: () => true,
+        onPanResponderGrant: (evt: GestureResponderEvent) => {
+          updateSelectedGraphPosition(evt.nativeEvent.locationX);
+        },
+        onPanResponderMove: (evt: GestureResponderEvent) => {
+          updateSelectedGraphPosition(evt.nativeEvent.locationX);
+        },
+        onPanResponderRelease: () => {
+          updateSelectedGraphPosition(-1);
+        },
+      }),
     [updateSelectedGraphPosition],
   );
 
@@ -222,32 +231,30 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     }
 
     return (
-      <GestureDetector gesture={chartGesture}>
-        <View style={styles.chartContainer}>
-          <AreaChart
-            style={styles.chart}
+      <View style={styles.chartContainer} {...panResponder.panHandlers}>
+        <AreaChart
+          style={styles.chart}
+          data={parsedDataPointValues}
+          contentInset={{
+            top: insetTop,
+            right: insetRight,
+            bottom: insetBottom,
+            left: insetLeft,
+          }}
+          svg={doesChartHaveData ? { fill: `url(#dataGradient)` } : undefined}
+          yMin={0}
+        >
+          <PlotLine doesChartHaveData color={color} />
+          {doesChartHaveData && (
+            <DataGradient dataPoints={parsedDataPointValues} color={color} />
+          )}
+          <GraphCursor
+            currentX={selectedPointIndex}
             data={parsedDataPointValues}
-            contentInset={{
-              top: insetTop,
-              right: insetRight,
-              bottom: insetBottom,
-              left: insetLeft,
-            }}
-            svg={doesChartHaveData ? { fill: `url(#dataGradient)` } : undefined}
-            yMin={0}
-          >
-            <PlotLine doesChartHaveData color={color} />
-            {doesChartHaveData && (
-              <DataGradient dataPoints={parsedDataPointValues} color={color} />
-            )}
-            <GraphCursor
-              currentX={selectedPointIndex}
-              data={parsedDataPointValues}
-              color={color}
-            />
-          </AreaChart>
-        </View>
-      </GestureDetector>
+            color={color}
+          />
+        </AreaChart>
+      </View>
     );
   };
 
