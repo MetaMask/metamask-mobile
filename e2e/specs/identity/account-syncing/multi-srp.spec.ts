@@ -17,13 +17,14 @@ import ImportSrpView from '../../../pages/importSrp/ImportSrpView.js';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants.ts';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    sharedUserStorageController = createSharedUserStorageController();
+    sharedUserStorageController = createUserStorageController();
   });
 
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
