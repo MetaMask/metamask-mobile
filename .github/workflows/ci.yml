@@ -66,11 +66,14 @@ jobs:
         scripts:
           - lint
           - lint:tsc
+          - format:check:changed
           - audit:ci
           - test:depcheck
           - test:tgz-check
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
