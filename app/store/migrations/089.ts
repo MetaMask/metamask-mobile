@@ -31,28 +31,23 @@ const migration = async (state: unknown): Promise<unknown> => {
   const newState = cloneDeep(state) as ValidStateWithUser;
 
   try {
-    // Get existing user value from MMKV
     const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUserValue = existingUser === 'true';  
 
-    // Check if user state exists and is valid
     if (!isObject(newState.user)) {
-      // This indicates a serious bug - user state should always exist
       const error = new Error(
         `Migration 89: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
       );
       captureException(error);
 
-      // Initialize with full userInitialState and continue migration
       newState.user = {
         ...userInitialState,
-        existingUser: false, // Default to false for safety
+        existingUser: existingUserValue,
       };
     } else {
-      // Set in Redux state based on the value found
-      newState.user.existingUser = existingUser === 'true';
+      newState.user.existingUser = existingUserValue;
     }
 
-    // Clear from MMKV
     if (existingUser !== null) {
       try {
         await StorageWrapper.removeItem(EXISTING_USER);
@@ -65,14 +60,12 @@ const migration = async (state: unknown): Promise<unknown> => {
   } catch (error) {
     captureException(error as Error);
 
-    // If user state is missing, initialize with full userInitialState
     if (!isObject(newState.user)) {
       newState.user = {
         ...userInitialState,
-        existingUser: false, // Default to false for safety
+        existingUser: false, // Default to false only if we can't read from MMKV
       };
     } else {
-      // If user state exists but migration failed, default existingUser to false
       newState.user.existingUser = false;
     }
   }

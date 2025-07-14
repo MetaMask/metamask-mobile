@@ -123,7 +123,7 @@ describe('Migration 089', () => {
     expect(migratedState).toEqual({
       user: {
         ...userInitialState,
-        existingUser: false, // Default to false for safety
+        existingUser: true, // Should use the MMKV value, not default to false
       },
     });
 
@@ -150,7 +150,34 @@ describe('Migration 089', () => {
     expect(migratedState).toEqual({
       user: {
         ...userInitialState,
-        existingUser: false, // Default to false for safety
+        existingUser: true, // Should use the MMKV value, not default to false
+      },
+    });
+
+    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          'Migration 89: User state is missing or invalid. Expected object, got: string',
+      }),
+    );
+  });
+
+  it('uses MMKV value of false when user state is corrupted', async () => {
+    const state = {
+      user: 'not an object',
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+    mockedStorageWrapper.getItem.mockResolvedValue('false');
+
+    const migratedState = await migrate(state);
+
+    expect(migratedState).toEqual({
+      user: {
+        ...userInitialState,
+        existingUser: false, // Should use the MMKV value of false
       },
     });
 
