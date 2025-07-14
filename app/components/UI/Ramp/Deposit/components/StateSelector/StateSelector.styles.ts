@@ -45,4 +45,4 @@ export const createStateSelectorStyles = (params: { theme: Theme }) => {
       marginLeft: 8,
     },
   });
-}; 
+};
