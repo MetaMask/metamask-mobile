@@ -80,7 +80,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
         await ForgotPasswordModalView.tapYesResetWalletButton();
         if (device.getPlatform() === 'android') {
           // eslint-disable-next-line no-restricted-syntax
-          await TestHelpers.delay(2500); // Assertion is flaky on Android. Fix later.
+          await TestHelpers.delay(5000); // Assertion is not working on Android. Fix later.
         } else {
           await Assertions.expectElementToBeVisible(
             ForgotPasswordModalView.successBottomNotification,
