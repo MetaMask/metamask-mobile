@@ -1968,7 +1968,8 @@
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
-    "open_settings": "Settings"
+    "open_settings": "Settings",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Cancel",

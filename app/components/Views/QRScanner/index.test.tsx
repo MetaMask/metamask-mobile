@@ -1,6 +1,9 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
-import { useCameraPermission } from 'react-native-vision-camera';
+import {
+  useCameraPermission,
+  useCameraDevice,
+} from 'react-native-vision-camera';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
@@ -22,7 +25,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('react-native-vision-camera', () => ({
   Camera: () => null,
-  useCameraDevice: jest.fn(() => ({ id: 'back' })),
+  useCameraDevice: jest.fn(),
   useCameraPermission: jest.fn(),
   useCodeScanner: jest.fn(() => ({
     codeTypes: ['qr'],
@@ -30,6 +33,9 @@ jest.mock('react-native-vision-camera', () => ({
   })),
 }));
 
+const mockUseCameraDevice = useCameraDevice as jest.MockedFunction<
+  typeof useCameraDevice
+>;
 const mockUseCameraPermission = useCameraPermission as jest.MockedFunction<
   typeof useCameraPermission
 >;
@@ -43,6 +49,12 @@ const initialState = {
 describe('QrScanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCameraDevice.mockReturnValue({
+      id: 'back',
+      position: 'back',
+      name: 'Back Camera',
+      hasFlash: false,
+    } as unknown as ReturnType<typeof useCameraDevice>);
     mockUseCameraPermission.mockReturnValue({
       hasPermission: true,
       requestPermission: jest.fn().mockResolvedValue('granted'),
@@ -87,5 +99,35 @@ describe('QrScanner', () => {
     await waitFor(() => {
       expect(mockRequestPermission).not.toHaveBeenCalled();
     });
+  });
+
+  it('should call onScanError when camera error occurs', () => {
+    const mockOnScanError = jest.fn();
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn(),
+    });
+
+    renderWithProvider(
+      <QrScanner onScanSuccess={jest.fn()} onScanError={mockOnScanError} />,
+      { state: initialState },
+    );
+
+    expect(mockOnScanError).toBeDefined();
+  });
+
+  it('should render camera not available message when no camera device', () => {
+    mockUseCameraDevice.mockReturnValue(undefined);
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <QrScanner onScanSuccess={jest.fn()} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Camera not available')).toBeTruthy();
   });
 });
