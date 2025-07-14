@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -92,6 +93,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../reducers';
+import { useMetrics } from '../../hooks/useMetrics';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -113,6 +115,7 @@ const Login: React.FC = () => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
@@ -133,6 +136,7 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const { isEnabled: isAnalyticsEnabled } = useMetrics();
   const isMetaMetricsUISeen = useSelector(
     (state: RootState) => state.user.isMetaMetricsUISeen,
   );
@@ -319,17 +323,38 @@ const Login: React.FC = () => {
     }
   };
 
+  const isSeedlessOnboardingControllerError = (err: Error): boolean =>
+    err.message.includes('SeedlessOnboardingController');
+
   const handleSeedlessOnboardingControllerError = (
-    seedlessError: SeedlessOnboardingControllerRecoveryError,
-  ) => {
-    if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    seedlessError: Error,
+  ): void => {
+    if (
+      seedlessError instanceof SeedlessOnboardingControllerRecoveryError
+    ) {
+      if (typeof seedlessError.data?.remainingTime === 'number') {
+        tooManyAttemptsError(seedlessError.data.remainingTime).catch(() => null);
+        return;
+      }
+    }
+
+    const errMessage = seedlessError.message.replace(
+      'SeedlessOnboardingController - ',
+      '',
+    );
+    setError(errMessage);
+
+    // If user has already consented to analytics, report error using regular Sentry
+    if (isAnalyticsEnabled()) {
+      oauthLoginSuccess && captureException(seedlessError, {
+        tags: {
+          view: 'Login',
+          context: 'OAuth rehydration failed - user consented to analytics',
+        },
+      });
     } else {
-      const errMessage = seedlessError.message.replace(
-        'SeedlessOnboardingController - ',
-        '',
-      );
-      setError(errMessage);
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      oauthLoginSuccess && setErrorToThrow(new Error(`OAuth rehydration failed: ${seedlessError.message}`));
     }
   };
 
@@ -412,12 +437,10 @@ const Login: React.FC = () => {
         setLoading(false);
         updateBiometryChoice(false);
       } else if (
-        loginErr instanceof SeedlessOnboardingControllerRecoveryError
+        isSeedlessOnboardingControllerError(loginError)
       ) {
         setLoading(false);
-        handleSeedlessOnboardingControllerError(
-          loginError as SeedlessOnboardingControllerRecoveryError,
-        );
+        handleSeedlessOnboardingControllerError(loginError);
       } else {
         setLoading(false);
         setError(loginErrorMessage);
@@ -500,8 +523,21 @@ const Login: React.FC = () => {
     [password.length],
   );
 
+  // Component that throws error if needed (to be caught by ErrorBoundary)
+  const ThrowErrorIfNeeded = () => {
+    if (errorToThrow) {
+      throw errorToThrow;
+    }
+    return null;
+  };
+
   return (
-    <ErrorBoundary navigation={navigation} view="Login">
+    <ErrorBoundary
+      navigation={navigation}
+      view="Login"
+      useOnboardingErrorHandling={!!errorToThrow && !isAnalyticsEnabled()}
+    >
+      <ThrowErrorIfNeeded />
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"

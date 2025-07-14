@@ -1,7 +1,7 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
@@ -22,6 +22,7 @@ import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { VAULT_ERROR } from './constants';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import Logger from '../../../util/Logger';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -40,6 +41,15 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => mockRoute(),
   };
 });
+
+const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
+const mockTrackEvent = jest.fn();
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
+  }),
+}));
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -488,6 +498,64 @@ describe('Login', () => {
       mockRoute.mockClear();
     });
 
+    it('should trigger ErrorBoundary for OAuth rehydration failures when metrics are disabled', async () => {
+      const seedlessError = new Error('SeedlessOnboardingController - Auth server is down');
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Verify that the built-in ErrorBoundary caught the error and rendered its fallback UI
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'OAuth rehydration failed: SeedlessOnboardingController - Auth server is down',
+        }),
+        expect.objectContaining({
+          View: 'Login',
+          ErrorBoundary: true,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+    });
+
+    it('should trigger ErrorBoundary for OAuth rehydration failures when metrics are enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      const seedlessError = new Error('SeedlessOnboardingController - Auth server is down');
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+    });
+
     it('should handle seedless onboarding controller error with remaining time of > 0', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
@@ -528,7 +596,7 @@ describe('Login', () => {
         seedlessError,
       );
 
-      const { getByTestId } = renderWithProvider(<Login />);
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
       await act(async () => {
@@ -543,9 +611,11 @@ describe('Login', () => {
         fireEvent.press(loginButton);
       });
 
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Too many attempts');
+      await waitFor(() => {
+        // When remainingTime is 0, the error should be cleared and no error message should be displayed
+        const errorElement = queryByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement).toBeNull();
+      });
     });
   });
 
