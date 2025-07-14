@@ -1,14 +1,36 @@
 /* eslint-disable import/no-nodejs-modules */
 import { Platform } from 'react-native';
 import { decode, encode } from 'base-64';
+import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
+import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FIXTURE_SERVER_PORT,
   isTest,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
-import { LaunchArguments } from 'react-native-launch-arguments';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
+
+// Needed to polyfill random number generation
+import 'react-native-get-random-values';
+
+// Needed to polyfill WalletConnect
+import '@walletconnect/react-native-compat';
+
+// Needed to polyfill URL
+import 'react-native-url-polyfill/auto';
+
+// Needed to polyfill browser
+require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
+
+// Needed to polyfill global.crypto with only the essential functions
+if (!global.crypto) {
+  global.crypto = {};
+}
+
+// Use functions from react-native-quick-crypto
+global.crypto.randomUUID = randomUUID;
+global.crypto.getRandomValues = getRandomValues;
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {
@@ -50,7 +72,10 @@ process.browser = false;
 if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
 // EventTarget polyfills for Hyperliquid SDK WebSocket support
-if (typeof global.EventTarget === 'undefined' || typeof global.Event === 'undefined') {
+if (
+  typeof global.EventTarget === 'undefined' ||
+  typeof global.Event === 'undefined'
+) {
   const { Event, EventTarget } = require('event-target-shim');
   global.EventTarget = EventTarget;
   global.Event = Event;
