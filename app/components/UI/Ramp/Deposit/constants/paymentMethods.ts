@@ -31,7 +31,7 @@ export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
 };
 
 export const WIRE_TRANSFER_PAYMENT_METHOD: DepositPaymentMethod = {
-  id: 'pm_wire',
+  id: 'wire_transfer',
   name: 'Wire Transfer',
   duration: '1_to_2_days',
   icon: IconName.Bank,

@@ -23,23 +23,6 @@ const parsedArgs = parseArgs({
   strict: false,
 });
 
-// Apply SES Hermes shim on Android (Hermes) and Expo dev server by default
-let hermesRuntime = true;
-
-// Apply SES Vanilla shim on iOS (RN JSC)
-if (parsedArgs.values.platform === 'ios' || parsedArgs.positionals[0] === 'run:ios') {
-  // TODO: Remove once iOS upgraded to Hermes (i.e. both platforms on Hermes)
-  hermesRuntime = false;
-}
-
-// TODO: Remove console warnings once iOS on Hermes (i.e. both platforms on Hermes)
-if (parsedArgs.positionals[0] === 'start') {
-  // Warn since we cannot detect Android/iOS from Expo dev server 'a' or 'i' keypress, nor when running Detox debug-mode locally
-  console.warn('Expo dev server detected, @lavamoat/react-native-lockdown defaulting to "hermesRuntime: true"');
-  console.warn('› to debug iOS please run "yarn start:ios" for correct hermesRuntime detection and lockdown behaviour');
-  console.warn('› to debug iOS (Detox) please set "hermesRuntime: false" in metro.config.js then launch E2E tests');
-}
-
 const getPolyfills = () => [
   // eslint-disable-next-line import/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
@@ -109,7 +92,7 @@ module.exports = function (baseConfig) {
         }),
       },
       serializer: lockdownSerializer(
-        { hermesRuntime },
+        { hermesRuntime: true },
         {
           getPolyfills,
         },
