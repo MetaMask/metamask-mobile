@@ -29,6 +29,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
+import { timestampToTransakFormat } from '../../utils';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -62,7 +63,7 @@ const BasicInfo = (): JSX.Element => {
     firstName: '',
     lastName: '',
     mobileNumber: '',
-    dob: '',
+    dob: new Date(2000, 0, 1).getTime().toString(),
     ssn: '',
   };
 
@@ -91,9 +92,11 @@ const BasicInfo = (): JSX.Element => {
       errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
-    if (!formData.dob.trim()) {
+    const transakFormattedDate = timestampToTransakFormat(formData.dob);
+
+    if (!transakFormattedDate.trim()) {
       errors.dob = strings('deposit.basic_info.dob_required');
-    } else if (!VALIDATION_REGEX.dateOfBirth.test(formData.dob)) {
+    } else if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
       errors.dob = strings('deposit.basic_info.dob_invalid');
     }
 
@@ -131,7 +134,10 @@ const BasicInfo = (): JSX.Element => {
     if (validateFormData()) {
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData,
+          formData: {
+            ...formData,
+            dob: timestampToTransakFormat(formData.dob),
+          },
           quote,
           kycUrl,
         }),
