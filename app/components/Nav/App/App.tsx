@@ -143,6 +143,7 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 
 const clearStackNavigatorOptions = {
@@ -581,6 +582,19 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const SolanaNewFeatureContentView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+      component={SolanaNewFeatureContent}
+    />
+  </Stack.Navigator>
+);
+
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -691,6 +705,18 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+<<<<<<< HEAD
+=======
+        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+        component={SolanaNewFeatureContentView}
+        options={{ animationEnabled: true }}
+      />
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
+        component={MultichainWalletDetails}
+      />
+      <Stack.Screen
+>>>>>>> 8cdee353fa (chore: update solana welcome modal/view (#16578))
         options={{
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },

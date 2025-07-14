@@ -67,13 +67,8 @@ have to have all these workarounds in the tests
   }
 
   // Handle Solana New feature sheet
-  if (solanaSheetAction === 'dismiss') {
-    await SolanaNewFeatureSheet.tapNotNowButton();
-  } else if (solanaSheetAction === 'create') {
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-  } else if (solanaSheetAction === 'viewAccount') {
-    await SolanaNewFeatureSheet.tapViewAccountButton();
-  }
+  await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
+  await SolanaNewFeatureSheet.tapNotNowButton();
 };
 
 export const skipNotificationsDeviceSettings = async () => {
