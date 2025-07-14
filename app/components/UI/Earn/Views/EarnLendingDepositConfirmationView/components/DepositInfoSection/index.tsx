@@ -87,12 +87,16 @@ const DepositInfoSection = ({
           value={{
             label: (
               <View style={styles.estAnnualReward}>
-                <Text>
+                <Text numberOfLines={1}>
                   {
                     estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
                   }
                 </Text>
-                <Text color={TextColor.Alternative}>
+                <Text
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                  ellipsizeMode="head"
+                >
                   {
                     estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
                   }

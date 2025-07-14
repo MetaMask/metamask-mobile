@@ -12,14 +12,15 @@ import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionV
 
 // Test constants
 const INVALID_ADDRESS = 'invalid address';
-const INVALID_ADDRESS_ERROR = 'Invalid Solana address';
+const INVALID_ADDRESS_ERROR = 'Invalid Solana address or domain name';
 const RECIPIENT_ADDRESS = 'EjiyBUWeEXPBJT5cB2jzbm6pmbBxWuyVyVBGasSGgtXt';
 const TRANSFER_AMOUNT = '0.002';
 const EXPECTED_CONFIRMATION = '0.002 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
-describe(
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {

@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,8 +19,8 @@ import ScrollableTabView, {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
-import StorageWrapper from '../../../store/storage-wrapper';
 import { store } from '../../../store';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -65,7 +64,12 @@ import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/S
 
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -195,6 +199,11 @@ const RevealPrivateCredential = ({
         if (privateCredential) {
           setClipboardPrivateCredential(privateCredential);
           setUnlocked(true);
+
+          // We would reveal the private credential after this point, so that's the end of the flow.
+          endTrace({
+            name: traceName,
+          });
         }
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -367,7 +376,6 @@ const RevealPrivateCredential = ({
       inactiveTextColor={colors.text.alternative}
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
-      // @ts-expect-error - TextStyle is not correctly at react-native-scrollable-tab-view, this library is outdated
       textStyle={styles.textStyle}
       style={styles.tabBar}
     />
@@ -426,7 +434,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
       >
         <Text style={styles.boldText}>
           {strings(`reveal_credential.${privCredentialName}`)}
@@ -462,7 +470,7 @@ const RevealPrivateCredential = ({
       <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW}
+        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
       >
         <View
           style={styles.qrCodeWrapper}
@@ -533,7 +541,7 @@ const RevealPrivateCredential = ({
       })}
       body={
         <>
-          <Text style={[styles.normalText, styles.revealModalText]}>
+          <Text variant={TextVariant.BodyMD} style={styles.revealModalText}>
             {
               strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
@@ -541,19 +549,19 @@ const RevealPrivateCredential = ({
                   : strings('reveal_credential.srp_text'),
               })[0]
             }
-            <Text style={styles.boldText}>
+            <Text variant={TextVariant.BodyMDBold}>
               {isPrivateKeyReveal
                 ? strings('reveal_credential.reveal_credential_modal')[1]
                 : strings('reveal_credential.reveal_credential_modal')[2]}
             </Text>
             {strings('reveal_credential.reveal_credential_modal')[3]}
-            <TouchableOpacity
+            <Text
+              color={colors.primary.default}
+              variant={TextVariant.BodyMDBold}
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
-              <Text style={[styles.blueText, styles.link]}>
-                {strings('reveal_credential.reveal_credential_modal')[4]}
-              </Text>
-            </TouchableOpacity>
+              {strings('reveal_credential.reveal_credential_modal')[4]}
+            </Text>
           </Text>
           {isTest ? (
             <Button

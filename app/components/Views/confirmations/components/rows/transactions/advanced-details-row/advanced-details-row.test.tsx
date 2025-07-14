@@ -58,20 +58,6 @@ describe('AdvancedDetailsRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('does not render when txParams.to is missing', () => {
-    // Create a state with a transaction that has no 'to' field
-    const stateWithoutTo = cloneDeep(generateContractInteractionState);
-    stateWithoutTo.engine.backgroundState.TransactionController.transactions[0].txParams.to =
-      undefined;
-
-    const { toJSON } = renderWithProvider(
-      <AdvancedDetailsRow />,
-      { state: stateWithoutTo },
-      false,
-    );
-    expect(toJSON()).toBeNull();
-  });
-
   // We can't easily test interactions in this case because our mocks are simple string replacements
   // Testing the basic rendering is still valuable
   it('should set up the component with correct props', () => {

@@ -57,21 +57,39 @@ export class MockttpNotificationTriggerServer {
     };
   };
 
-  setupServer = (server: Mockttp) => {
+  setupServer = async (server: Mockttp) => {
     // Mobile uses a API url proxy, where all subsequent calls need to pulled out from this proxy API
-    server
+    await server
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(GET_CONFIG_URL),
       )
-      .thenCallback((request) => this.getConfig(request));
+      .asPriority(999)
+      .thenCallback((request) => {
+        // eslint-disable-next-line no-console
+        console.log(
+          `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+            request.url,
+          )}`,
+        );
+        return this.getConfig(request);
+      });
 
-    server
+    await server
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(UPDATE_CONFIG_URL),
       )
-      .thenCallback((request) => this.updateConfig(request));
+      .asPriority(999)
+      .thenCallback((request) => {
+        // eslint-disable-next-line no-console
+        console.log(
+          `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+            request.url,
+          )}`,
+        );
+        return this.updateConfig(request);
+      });
   };
 
   // Helper methods for testing

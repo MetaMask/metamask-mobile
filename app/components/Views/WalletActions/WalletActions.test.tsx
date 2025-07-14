@@ -1,9 +1,10 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { fireEvent } from '@testing-library/react-native';
+import '../../UI/Bridge/_mocks_/initialState';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import { selectChainId } from '../../../selectors/networkController';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -29,6 +30,12 @@ import {
 } from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
+import Routes from '../../../constants/navigation/Routes';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -162,28 +169,37 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../selectors/featureFlagController/deposit', () => ({
+  selectDepositEntrypointWalletActions: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
 
-jest.mock('../../../core/AppConstants', () => ({
-  SWAPS: {
-    ACTIVE: true,
-  },
-  BUNDLE_IDS: {
-    ANDROID: 'io.metamask',
-    IOS: '1438144202',
-  },
-  MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-  WALLET_CONNECT: {
-    PROJECT_ID: 'test-project-id',
-  },
-  BRIDGE: {
-    ACTIVE: true,
-    URL: 'https://bridge.metamask.io',
-  },
-}));
+jest.mock('../../../core/AppConstants', () => {
+  const actual = jest.requireActual('../../../core/AppConstants');
+
+  return {
+    ...actual,
+    SWAPS: {
+      ACTIVE: true,
+    },
+    BUNDLE_IDS: {
+      ANDROID: 'io.metamask',
+      IOS: '1438144202',
+    },
+    MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+    WALLET_CONNECT: {
+      PROJECT_ID: 'test-project-id',
+    },
+    BRIDGE: {
+      ACTIVE: true,
+      URL: 'https://bridge.metamask.io',
+    },
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -285,6 +301,7 @@ jest.mock('../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     LoadRampExperience: 'LoadRampExperience',
+    LoadDepositExperience: 'LoadDepositExperience',
   },
 }));
 
@@ -334,6 +351,10 @@ describe('WalletActions', () => {
     // Feature flag is disabled by default
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
+    // Feature flag is disabled by default
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeNull();
   });
   it('should render earn button if the stablecoin lending feature is enabled', () => {
@@ -446,6 +467,20 @@ describe('WalletActions', () => {
     });
   });
 
+  it('should call the onDeposit function when the Deposit button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.LoadDepositExperience,
+    });
+  });
+
   it('should call the onSend function when the Send button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -489,7 +524,6 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
-        bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
           address: ethers.constants.AddressZero,
@@ -582,6 +616,40 @@ describe('WalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
+  });
+
+  it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('should call the onPerps function when the Perpetuals button is pressed', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Perps');
   });
 
   it('disables action buttons when the account cannot sign transactions', () => {

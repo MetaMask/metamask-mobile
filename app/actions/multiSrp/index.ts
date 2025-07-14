@@ -16,6 +16,11 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
+
+import ReduxService from '../../core/redux';
+import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -65,6 +70,24 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
+  const { SeedlessOnboardingController } = Engine.context;
+
+  // TODO: to use loginCompleted
+  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+    // on Error, wallet should notify user that the newly added seed phrase is not synced properly
+    // user can try manual sync again (phase 2)
+    const seed = new Uint8Array(inputCodePoints.buffer);
+    try {
+      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+        seed,
+        newKeyring.id,
+      );
+    } catch (error) {
+      // Log the error but don't let it crash the import process
+      console.error('Failed to backup seed phrase:', error);
+    }
+  }
+
   let discoveredAccountsCount = 0;
 
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -72,7 +95,9 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     WalletClientType.Solana,
   );
 
-  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(newKeyring.id);
+  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+    newKeyring.id,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   Engine.setSelectedAddress(newAccountAddress);
@@ -100,6 +125,18 @@ export async function addNewHdAccount(
   keyringId?: string,
   name?: string,
 ): Promise<InternalAccount> {
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
+  trace({
+    name: TraceName.CreateHdAccount,
+    op: TraceOperation.CreateAccount,
+    tags: getTraceTags(store.getState()),
+  });
+
   const { KeyringController, AccountsController } = Engine.context;
   const keyringSelector: KeyringSelector = keyringId
     ? {
@@ -108,12 +145,6 @@ export async function addNewHdAccount(
     : {
         type: ExtendedKeyringTypes.hd,
       };
-
-  store.dispatch(
-    startPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
 
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
@@ -134,6 +165,10 @@ export async function addNewHdAccount(
   }
 
   // We consider the account to be created once it got selected and renamed.
+  endTrace({
+    name: TraceName.CreateHdAccount,
+  });
+
   store.dispatch(
     endPerformanceTrace({
       eventName: PerformanceEventNames.AddHdAccount,

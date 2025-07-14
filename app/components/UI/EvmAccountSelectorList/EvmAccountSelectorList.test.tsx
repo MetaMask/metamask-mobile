@@ -168,10 +168,13 @@ const initialState = {
               },
               groups: {
                 'hd-accounts': {
-                  accounts: [BUSINESS_ACCOUNT_ID, PERSONAL_ACCOUNT_ID],
-                },
-              },
-            },
+                  accounts: [
+                    BUSINESS_ACCOUNT_ID,
+                    PERSONAL_ACCOUNT_ID,
+                  ]
+                }
+              }
+            }
           },
         },
       },
@@ -774,7 +777,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(/main-wallet-account-actions-/);
+    const actionButtons = getAllByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+    );
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -1255,6 +1260,7 @@ describe('EvmAccountSelectorList', () => {
           accountTree: {
             wallets: {
               wallet1: {
+                id: 'test-wallet-id-123',
                 metadata: {
                   name: 'HD Accounts',
                 },
@@ -1306,14 +1312,13 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(multichainState);
 
     const accountActionsButton = getAllByTestId(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-0`,
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
     )[0];
 
     fireEvent.press(accountActionsButton);
 
     const expectedAccount =
-      multichainState.engine.backgroundState.AccountsController.internalAccounts
-        .accounts[BUSINESS_ACCOUNT_ID];
+      multichainState.engine.backgroundState.AccountsController.internalAccounts.accounts[BUSINESS_ACCOUNT_ID];
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
       {
@@ -1555,6 +1560,21 @@ describe('EvmAccountSelectorList', () => {
       (footerItem: { type: string; sectionIndex: number }) => {
         expect(footerItem.type).toBe('footer');
         expect(typeof footerItem.sectionIndex).toBe('number');
+      },
+    );
+  });
+
+  it('navigates to wallet details when section header details link is pressed', () => {
+    const multichainState = getMultichainState();
+    const { getByText } = renderComponent(multichainState);
+
+    const detailsLink = getByText('Details');
+    fireEvent.press(detailsLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS,
+      {
+        walletId: 'test-wallet-id-123',
       },
     );
   });

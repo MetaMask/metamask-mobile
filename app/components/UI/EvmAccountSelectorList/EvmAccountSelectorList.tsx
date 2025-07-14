@@ -4,6 +4,7 @@ import {
   InteractionManager,
   View,
   ViewStyle,
+  TouchableOpacity,
   ScrollViewProps,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -57,6 +58,7 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
+import { AccountWallet } from '@metamask/account-tree-controller';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 /**
@@ -117,6 +119,7 @@ const EvmAccountSelectorList = ({
       // Use AccountTreeController sections and match accounts to their IDs
       return accountTreeSections.map((section) => ({
         title: section.title,
+        wallet: section.wallet,
         data: section.data
           .map((accountId: string) => accountsById.get(accountId))
           .filter((account): account is Account => account !== undefined),
@@ -306,18 +309,35 @@ const EvmAccountSelectorList = ({
     [navigate],
   );
 
+  const onNavigateToWalletDetails = useCallback(
+    (wallet: AccountWallet) => {
+      navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
+        walletId: wallet.id,
+      });
+    },
+    [navigate],
+  );
+
   const renderSectionHeader = useCallback(
-    ({ section: { title } }: { section: AccountSection }) => (
+    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}
         </Text>
-        <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
-          {strings('multichain_accounts.accounts_list.details')}
-        </Text>
+        <TouchableOpacity
+          onPress={() => wallet && onNavigateToWalletDetails(wallet)}
+        >
+          <Text variant={TextVariant.BodySM} style={styles.sectionDetailsLink}>
+            {strings('multichain_accounts.accounts_list.details')}
+          </Text>
+        </TouchableOpacity>
       </View>
     ),
-    [styles.sectionHeader, styles.sectionDetailsLink],
+    [
+      styles.sectionHeader,
+      styles.sectionDetailsLink,
+      onNavigateToWalletDetails,
+    ],
   );
 
   const renderSectionFooter = useCallback(
@@ -373,7 +393,7 @@ const EvmAccountSelectorList = ({
   const renderItem: ListRenderItem<FlattenedAccountListItem> = useCallback(
     ({ item }) => {
       if (item.type === 'header') {
-        return renderSectionHeader({ section: item.data });
+        return renderSectionHeader(item.data);
       }
 
       if (item.type === 'footer') {
@@ -455,7 +475,7 @@ const EvmAccountSelectorList = ({
 
       const buttonProps = {
         onButtonClick: handleButtonClick,
-        buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${item.accountIndex}`,
+        buttonTestId: WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
       };
 
       const avatarProps = {

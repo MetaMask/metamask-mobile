@@ -29,7 +29,8 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
   it('batch transfer ERC1155 tokens', async () => {
     const testSpecificMock  = {
       GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
+        mockEvents.GET.suggestedGasFeesApiGanache,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
       ],
     };
 

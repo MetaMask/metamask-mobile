@@ -66,19 +66,30 @@ class AddContactView {
 
   async typeInName(name) {
     await Gestures.replaceTextInField(this.nameInput, name);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async typeInMemo(memo) {
     await Gestures.replaceTextInField(this.memoInput, memo);
-    await Gestures.waitAndTap(this.memoLabel);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async typeInAddress(address) {
     await Gestures.replaceTextInField(this.addressInput, address);
+    await Gestures.waitAndTap(this.memoLabel); // tap somewhere to dismiss keyboard
   }
 
   async clearAddressInputBox() {
     await Gestures.clearField(this.addressInput);
+  }
+
+  async selectNetwork(networkName) {
+    const networkSelector = Matchers.getElementByID(
+      AddContactViewSelectorsIDs.NETWORK_INPUT,
+    );
+    await Gestures.waitAndTap(networkSelector);
+    const networkOption = Matchers.getElementByText(networkName);
+    await Gestures.waitAndTap(networkOption);
   }
 }
 

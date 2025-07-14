@@ -29,7 +29,7 @@ const styleSheet = (params: { theme: Theme }) => {
     centerGroup: {
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: 16,
       flex: 1,
     },
     amountContainer: {
@@ -38,7 +38,7 @@ const styleSheet = (params: { theme: Theme }) => {
     mainAmount: {
       textAlign: 'center',
       fontSize: 64,
-      lineHeight: 100,
+      lineHeight: 64 + 8,
       fontWeight: 400,
     },
     convertedAmount: {
@@ -59,6 +59,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     cryptoPill: {
       flexDirection: 'row',
+      gap: 8,
       alignItems: 'center',
       borderRadius: 100,
       paddingVertical: 8,
@@ -68,25 +69,10 @@ const styleSheet = (params: { theme: Theme }) => {
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
     },
-    tokenLogo: {
-      width: 32,
-      height: 32,
-    },
-    cryptoText: {
-      marginLeft: 8,
-    },
     paymentMethodBox: {
-      backgroundColor: theme.colors.background.default,
       borderRadius: 12,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
-    },
-    paymentMethodContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
     },
     keypad: {
       paddingHorizontal: 0,

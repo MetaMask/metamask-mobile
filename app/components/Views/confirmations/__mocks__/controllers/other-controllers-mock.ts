@@ -158,16 +158,31 @@ export const preferencesControllerMock = {
   },
 };
 
+export const tokenListControllerMock = {
+  engine: {
+    backgroundState: {
+      TokenListController: {
+        tokensChainsCache: {
+          '0x1': {},
+        },
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
-  keyringControllerMock,
   accountsControllerMock,
   accountTrackerControllerMock,
-  multichainNetworkControllerMock,
-  tokenBalancesControllerMock,
-  networkControllerMock,
   currencyRateControllerMock,
+  keyringControllerMock,
+  networkControllerMock,
+  multichainNetworkControllerMock,
+  nftControllerMock,
+  preferencesControllerMock,
+  tokenBalancesControllerMock,
   swapsState,
   smartTransactionsControllerMock,
   preferencesControllerMock,
+  tokenListControllerMock,
 );

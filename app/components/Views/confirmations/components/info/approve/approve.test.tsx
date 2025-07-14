@@ -1,7 +1,10 @@
 import React from 'react';
+
+import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { approveERC20TransactionStateMock } from '../../../__mocks__/approve-transaction-mock';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { flushPromises } from '../../../../../../util/test/utils';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import Approve from './approve';
 
@@ -44,6 +47,13 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
+  useGetTokenStandardAndDetails: jest.fn().mockReturnValue({
+    details: { decimalsNumber: undefined, standard: undefined },
+    isPending: false,
+  }),
+}));
+
 describe('Approve', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
@@ -65,19 +75,29 @@ describe('Approve', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
-  it('renders expected elements', () => {
+  it('renders expected elements', async () => {
     const mockOnReject = jest.fn();
     mockUseConfirmActions.mockImplementation(() => ({
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
 
-    const { getByText } = renderWithProvider(<Approve />, {
+    const { getByTestId } = renderWithProvider(<Approve />, {
       state: approveERC20TransactionStateMock,
     });
 
+    await flushPromises();
 
-    expect(getByText('Network Fee')).toBeDefined();
-    expect(getByText('Advanced details')).toBeDefined();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.ACCOUNT_NETWORK),
+    ).toBeDefined();
+    expect(getByTestId(ConfirmationRowComponentIDs.APPROVE_ROW)).toBeDefined();
+    expect(getByTestId(ConfirmationRowComponentIDs.ORIGIN_INFO)).toBeDefined();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.GAS_FEES_DETAILS),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS),
+    ).toBeDefined();
   });
 });
