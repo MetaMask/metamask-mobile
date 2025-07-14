@@ -79,6 +79,9 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
 const BridgeView = () => {
@@ -99,9 +102,15 @@ const BridgeView = () => {
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   useGasFeeEstimates(selectedNetworkClientId);
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
+  // Call selectors first to follow React Hook rules
+  const reduxSourceAmount = useSelector(selectSourceAmount);
+  const reduxSourceToken = useSelector(selectSourceToken);
+  const reduxDestToken = useSelector(selectDestToken);
+
+  // Use param if available, otherwise use Redux state for deep link support
+  const sourceAmount = route?.params?.sourceAmount || reduxSourceAmount;
+  const sourceToken = route?.params?.sourceToken || reduxSourceToken;
+  const destToken = route?.params?.destToken || reduxDestToken;
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -241,13 +250,7 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    bridgeViewMode,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
 
   // Update isErrorBannerVisible when input focus changes
   useEffect(() => {
@@ -284,13 +287,19 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (validationResult.error || validationResult.result.validation.reason) {
-            const isValidationError = !!validationResult.result.validation.reason;
+          if (
+            validationResult.error ||
+            validationResult.result.validation.reason
+          ) {
+            const isValidationError =
+              !!validationResult.result.validation.reason;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError ? validationResult.result.validation.reason : validationResult.error,
+                errorMessage: isValidationError
+                  ? validationResult.result.validation.reason
+                  : validationResult.error,
               },
             });
             return;
@@ -404,9 +413,7 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              isHardwareAddress
+              hasInsufficientBalance || isSubmittingTx || isHardwareAddress
             }
           />
           <Button
