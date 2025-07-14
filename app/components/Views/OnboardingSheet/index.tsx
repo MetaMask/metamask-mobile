@@ -15,7 +15,7 @@ import Text, {
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import { AppThemeKey } from '../../../util/theme/models';
+import { AppThemeKey, Colors } from '../../../util/theme/models';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
@@ -34,8 +34,7 @@ export interface OnboardingSheetProps {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     divider: {
       flexDirection: 'row',
@@ -59,6 +58,7 @@ const createStyles = (colors: any) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       color: colors.text.default,
+      backgroundColor: colors.background.default,
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -125,7 +125,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={
               <View style={styles.buttonLabel}>
-                <GoogleIcon 
+                <GoogleIcon
                   fill="currentColor"
                   width={24}
                   height={24}

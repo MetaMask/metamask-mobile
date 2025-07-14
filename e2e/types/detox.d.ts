@@ -11,18 +11,18 @@ declare global {
 
   // Web element types
   type WebElement = Promise<IndexableWebElement | SecuredWebElementFacade>;
-  
+
   // Individual element types - useful for specific casting
   type IndexableNativeElement = Detox.IndexableNativeElement;
   type NativeElement = Detox.NativeElement;
   type SystemElement = Detox.SystemElement;
-  
+
   // Configuration types
   type DeviceLaunchAppConfig = Detox.DeviceLaunchAppConfig;
-  
+
   // Matcher types for element finding
   type DetoxMatcher = Detox.NativeMatcher;
 }
 
 // This export is required to make this file a module
-export {}; 
+export {};
