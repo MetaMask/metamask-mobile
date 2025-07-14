@@ -201,7 +201,7 @@ describe('verifySignature', () => {
         .toString('base64')
         .replace(/\+/g, '-')
         .replace(new RegExp('/', 'g'), '_')
-        .replace(/=/g, '');
+        .replace(/[=]/g, '');
 
       const url = new URL(`https://example.com?sig=${urlSafeBase64}`);
 

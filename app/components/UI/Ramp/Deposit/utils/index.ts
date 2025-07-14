@@ -37,6 +37,7 @@ const TRANSAK_PAYMENT_METHOD_IDS: Record<string, string> = {
   credit_debit_card: 'credit_debit_card',
   sepa_bank_transfer: 'sepa_bank_transfer',
   apple_pay: 'apple_pay',
+  wire_transfer: 'pm_wire',
 };
 
 /**
@@ -239,4 +240,18 @@ export const hasDepositOrderField = (
   const depositOrder = data as Record<string, unknown>;
 
   return field in depositOrder && depositOrder[field] !== undefined;
+};
+
+/**
+ * Transforms a timestamp to a Transak format
+ * @param timestamp - The timestamp to transform
+ * @returns The Transak format
+ */
+export const timestampToTransakFormat = (timestamp: string) => {
+  const transakDate = new Date(Number(timestamp));
+  const month = (transakDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = transakDate.getDate().toString().padStart(2, '0');
+  const year = transakDate.getFullYear();
+
+  return `${day}-${month}-${year}`;
 };
