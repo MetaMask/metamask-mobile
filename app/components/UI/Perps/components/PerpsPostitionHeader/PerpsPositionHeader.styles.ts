@@ -47,7 +47,14 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
 
     positionValue: {
-      marginBottom: 8,
+      marginBottom: 0,
+    },
+    positionValueRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+    },
+    priceChange24h: {
+      marginLeft: 8,
     },
     pnlContainer: {
       flexDirection: 'row' as const,

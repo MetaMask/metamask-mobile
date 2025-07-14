@@ -30,8 +30,6 @@ interface PerpsPositionCardProps {
   onClose?: (position: Position) => void;
   onEdit?: (position: Position) => void;
   disabled?: boolean;
-  priceChange24h?: number; // 24hr price change in percentage
-  priceChange24hFiat?: number; // 24hr price change in fiat
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -39,8 +37,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onClose,
   onEdit,
   disabled,
-  priceChange24h = 0,
-  priceChange24hFiat = 0,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -94,7 +90,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     size: parseFloat(position.size),
   });
 
-  const isPositive24h = priceChange24h >= 0;
+  console.log(position);
+
+  // const isPositive24h = position.priceChange24h >= 0;
+  const isPositive24h = true;
 
   return (
     <TouchableOpacity
@@ -140,8 +139,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   : styles.positionValueNegative
               }
             >
-              {formatPnl(priceChange24hFiat)} (
-              {formatPercentage(priceChange24h)})
+              {formatPnl(pnlNum)} ({formatPercentage(pnlPercentage)})
             </Text>
           </View>
         </View>

@@ -10,10 +10,10 @@ import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 import Text from '../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import type { Position } from '../controllers/types';
-import { calculatePnLPercentageFromUnrealized } from '../utils/pnlCalculations';
+import type { Position, PriceUpdate } from '../controllers/types';
 import CandlestickChartComponent from '../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 import PerpsPositionCard from '../components/PerpsPositionCard';
@@ -251,13 +251,6 @@ const PerpsPositionDetailsView: React.FC = () => {
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
 
   const { position } = route.params || {};
-  // Calculate position metrics
-  const pnlNum = parseFloat(position.unrealizedPnl);
-  const pnlPercentage = calculatePnLPercentageFromUnrealized({
-    unrealizedPnl: pnlNum,
-    entryPrice: parseFloat(position.entryPrice),
-    size: parseFloat(position.size),
-  });
 
   const [candleData, setCandleData] = useState<{
     coin: string;
@@ -273,6 +266,7 @@ const PerpsPositionDetailsView: React.FC = () => {
   } | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState('1h');
+  const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
 
   const fetchHistoricalCandles = useCallback(async () => {
     const historicalData =
@@ -303,6 +297,23 @@ const PerpsPositionDetailsView: React.FC = () => {
 
     loadHistoricalData();
   }, [fetchHistoricalCandles]);
+
+  // Subscribe to price updates for 24-hour data
+  useEffect(() => {
+    const unsubscribe = Engine.context.PerpsController.subscribeToPrices({
+      symbols: [position.coin],
+      callback: (priceUpdates) => {
+        const update = priceUpdates.find((p) => p.coin === position.coin);
+        if (update) {
+          setPriceData(update);
+        }
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [position.coin]);
 
   // Handle position close
   const handleClosePosition = useCallback(async () => {
@@ -342,8 +353,8 @@ const PerpsPositionDetailsView: React.FC = () => {
         {/* Position Header */}
         <PerpsPositionHeader
           position={position}
-          pnlPercentage={pnlPercentage}
           onBackPress={handleBackPress}
+          priceData={priceData}
         />
 
         {/* Chart */}

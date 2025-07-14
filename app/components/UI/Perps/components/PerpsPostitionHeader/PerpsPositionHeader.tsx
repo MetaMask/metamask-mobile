@@ -13,21 +13,23 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import type { Position } from '../../controllers/types';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import type { Position, PriceUpdate } from '../../controllers/types';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { styleSheet } from './PerpsPositionHeader.styles';
+import { formatPnl, formatPercentage } from '../../utils/formatUtils';
 
 interface PerpsPositionHeaderProps {
   position: Position;
-  pnlPercentage: number;
   onBackPress?: () => void;
+  priceData?: PriceUpdate | null;
 }
 
 const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
   position,
-  pnlPercentage,
   onBackPress,
+  priceData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(position.coin);
@@ -40,19 +42,16 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
       minimumFractionDigits: 2,
     }).format(value);
 
-  // Format PnL
-  const formatPnl = (pnl: string | number) => {
-    const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
-    const formatted = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Math.abs(num));
-    return num >= 0 ? `+${formatted}` : `-${formatted}`;
-  };
+  // Calculate 24-hour fiat amount change
+  const priceChange24hFiat =
+    priceData?.percentChange24h && priceData?.price
+      ? (parseFloat(priceData.percentChange24h) / 100) *
+        parseFloat(priceData.price) *
+        parseFloat(position.size)
+      : null;
 
-  const isPositivePnl = pnlPercentage >= 0;
+  const priceChange24h = priceData?.percentChange24h;
+  const isPositive24h = priceChange24hFiat ? priceChange24hFiat >= 0 : false;
 
   return (
     <View style={styles.container}>
@@ -84,33 +83,31 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
           color={TextColor.Default}
           style={styles.assetName}
         >
-          {position.coin}
+          {position.coin}-USD
         </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Default}
-          style={styles.positionValue}
-        >
-          {formatCurrency(parseFloat(position.positionValue))}
-        </Text>
-      </View>
-
-      {/* Right Section */}
-      <View style={styles.rightSection}>
-        <Text
-          variant={TextVariant.BodySM}
-          color={isPositivePnl ? TextColor.Success : TextColor.Error}
-          style={styles.pnlText}
-        >
-          Unrealized
-        </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={isPositivePnl ? TextColor.Success : TextColor.Error}
-          style={styles.pnlText}
-        >
-          {formatPnl(position.unrealizedPnl)} ({pnlPercentage.toFixed(2)}%)
-        </Text>
+        <View style={styles.positionValueRow}>
+          {priceData?.price ? (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Default}
+              style={styles.positionValue}
+            >
+              {formatCurrency(parseFloat(priceData.price))}
+            </Text>
+          ) : (
+            <Skeleton height={16} width={80} />
+          )}
+          {priceChange24hFiat && priceChange24h && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={isPositive24h ? TextColor.Success : TextColor.Error}
+              style={styles.priceChange24h}
+            >
+              {formatPnl(priceChange24hFiat)} (
+              {formatPercentage(priceChange24h)})
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );
