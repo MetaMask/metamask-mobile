@@ -283,7 +283,7 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView>
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
             {strings('earn.how_it_works')}
@@ -345,13 +345,15 @@ export const LendingLearnMoreModal = () => {
             />
           )}
         </Animated.View>
-        <BodyText
-          assetSymbol={assetSymbol || ''}
-          protocol={
-            route?.params?.asset?.experience?.market
-              ?.protocol as LendingProtocol
-          }
-        />
+        <View style={styles.bodyTextContainer}>
+          <BodyText
+            assetSymbol={assetSymbol || ''}
+            protocol={
+              route?.params?.asset?.experience?.market
+                ?.protocol as LendingProtocol
+            }
+          />
+        </View>
       </ScrollView>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
