@@ -221,6 +221,7 @@ describe('MultiSRP Actions', () => {
     });  
     
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+      mockAddNewSeedPhraseBackup.mockResolvedValue(undefined);
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         id: 'test-keyring-id',
