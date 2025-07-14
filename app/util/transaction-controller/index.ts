@@ -35,7 +35,7 @@ export async function addTransactionBatch(
 ) {
   const { TransactionController } = Engine.context;
 
-  return await TransactionController.addTransactionBatch(...args)
+  return await TransactionController.addTransactionBatch(...args);
 }
 
 // Keeping this export as function to put more logic in the future
