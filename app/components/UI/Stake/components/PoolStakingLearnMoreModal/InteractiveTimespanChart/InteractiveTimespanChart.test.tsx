@@ -192,16 +192,19 @@ describe('InteractiveTimespanChart', () => {
     const interactiveTimespanChart = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
     );
-    const areaChartComponent = (
+
+    const chartContainer = (
       interactiveTimespanChart as unknown as {
         children: {
-          children: { children: { props: { data: number[] } }[] }[];
+          children: {
+            children: { props: { children: { props: { data: number[] } } } }[];
+          }[];
         }[];
       }
     ).children[2].children[0].children[0];
 
     // Chart defaults to 7 data points shown (1 week).
-    expect(areaChartComponent.props.data.length).toEqual(7);
+    expect(chartContainer.props.children.props.data.length).toEqual(7);
 
     if (!oneMonthButton) {
       throw new Error('Could not find one month button');
@@ -209,7 +212,7 @@ describe('InteractiveTimespanChart', () => {
     // Display 30 data points (1 month).
     fireEvent.press(oneMonthButton);
 
-    expect(areaChartComponent.props.data.length).toEqual(30);
+    expect(chartContainer.props.children.props.data.length).toEqual(30);
 
     // Display 90 data points (3 months).
     const threeMonthButton = getByText(
@@ -222,7 +225,7 @@ describe('InteractiveTimespanChart', () => {
 
     fireEvent.press(threeMonthButton);
 
-    expect(areaChartComponent.props.data.length).toEqual(90);
+    expect(chartContainer.props.children.props.data.length).toEqual(90);
 
     // Display 180 data points (6 months).
     const sixMonthButton = getByText(
@@ -235,6 +238,6 @@ describe('InteractiveTimespanChart', () => {
 
     fireEvent.press(sixMonthButton);
 
-    expect(areaChartComponent.props.data.length).toEqual(180);
+    expect(chartContainer.props.children.props.data.length).toEqual(180);
   });
 });
