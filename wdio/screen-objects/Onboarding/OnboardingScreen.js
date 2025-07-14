@@ -1,9 +1,3 @@
-import {
-  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_TEXT,
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_TEXT,
-  WALLET_SETUP_SCREEN_TITLE_ID,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
@@ -25,9 +19,9 @@ class OnBoardingScreen {
     );
   }
 
-  get importWalletButton() {
+  get existingWalletButton() {
     return Selectors.getXpathElementByResourceId(
-      OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
   }
 
@@ -35,8 +29,8 @@ class OnBoardingScreen {
     await expect(this.title).toBeDisplayed();
   }
 
-  async clickImportWalletButton() {
-    await Gestures.waitAndTap(this.importWalletButton);
+  async tapHaveAnExistingWallet() {
+    await Gestures.waitAndTap(this.existingWalletButton);
   }
 
   async tapCreateNewWalletButton() {

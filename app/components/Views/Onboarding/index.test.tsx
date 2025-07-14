@@ -230,7 +230,7 @@ describe('Onboarding', () => {
     fireEvent.press(createWalletButton);
   });
 
-  it('should click on import seed button', () => {
+  it('should click on have an existing wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
@@ -245,7 +245,7 @@ describe('Onboarding', () => {
     );
 
     const importSeedButton = getByTestId(
-      OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
     fireEvent.press(importSeedButton);
   });
@@ -323,8 +323,7 @@ describe('Onboarding', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
-
-    it('should navigate to onboarding sheet when import wallet is pressed for new user', async () => {
+    it('should navigate to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -337,7 +336,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
 
       await act(async () => {
@@ -370,7 +369,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
 
       await act(async () => {
@@ -593,9 +592,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
-      );
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -682,9 +679,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
-      );
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -773,9 +768,7 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
-      );
+      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
