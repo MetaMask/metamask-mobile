@@ -22,6 +22,10 @@ const styleSheet = (params: { theme: Theme }) => {
   } as ViewStyle;
 
   return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+    },
+
     container: {
       flex: 1,
       padding: 16,
