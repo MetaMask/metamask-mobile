@@ -49,6 +49,7 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
+          cache-prefix: smoke-e2e
 
       - name: Run E2E tests
         run: |
