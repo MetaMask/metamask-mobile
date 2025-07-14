@@ -384,7 +384,6 @@ function swapsReducer(state = initialState, action) {
 
       const data = state[chainId];
 
-      console.log({ chainId, rawChainId, state, data });
       const chainNoFlags = {
         ...data,
         featureFlags: undefined,
