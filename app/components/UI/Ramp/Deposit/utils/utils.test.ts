@@ -357,23 +357,26 @@ describe('generateThemeParameters', () => {
     const colors = lightTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
-      themeColor: colors.icon.default,
+      themeColor: colors.primary.default,
       colorMode: 'LIGHT',
       backgroundColors: [
         colors.background.default,
+        colors.background.default,
         colors.background.alternative,
-        colors.background.muted,
       ].join(','),
       textColors: [
         colors.text.default,
-        colors.primary.inverse,
-        colors.text.muted,
+        colors.text.default,
+        colors.text.alternative,
       ].join(','),
       borderColors: [
         colors.border.default,
         colors.border.muted,
         colors.border.muted,
       ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
     });
   });
 
@@ -382,23 +385,27 @@ describe('generateThemeParameters', () => {
     const colors = darkTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
-      themeColor: colors.icon.default,
+      themeColor: colors.primary.default,
       colorMode: 'DARK',
       backgroundColors: [
         colors.background.default,
+        colors.background.default,
         colors.background.alternative,
-        colors.background.muted,
       ].join(','),
       textColors: [
         colors.text.default,
-        colors.primary.inverse,
-        colors.text.muted,
+        colors.text.default,
+        colors.text.alternative,
       ].join(','),
       borderColors: [
         colors.border.default,
         colors.border.muted,
         colors.border.muted,
       ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+      hideMenu: 'TRUE',
     });
   });
 });

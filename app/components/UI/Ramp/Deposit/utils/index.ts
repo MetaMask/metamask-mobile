@@ -249,14 +249,14 @@ export const generateThemeParameters = (
 ) => {
   const backgroundColors = [
     colors.background.default,
+    colors.background.default,
     colors.background.alternative,
-    colors.background.muted,
   ].join(',');
 
   const textColors = [
     colors.text.default,
-    colors.primary.inverse, // Button text color (primary buttons)
-    colors.text.muted,
+    colors.text.default,
+    colors.text.alternative,
   ].join(',');
 
   const borderColors = [
@@ -266,10 +266,13 @@ export const generateThemeParameters = (
   ].join(',');
 
   return {
-    themeColor: colors.icon.default,
+    themeColor: colors.primary.default,
     colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
     backgroundColors,
     textColors,
     borderColors,
+    primaryButtonFillColor: colors.icon.default,
+    primaryButtonTextColor: colors.icon.inverse,
+    surfaceFillColor: colors.background.muted,
   };
 };
