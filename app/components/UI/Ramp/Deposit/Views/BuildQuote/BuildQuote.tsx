@@ -189,7 +189,7 @@ const BuildQuote = () => {
         'Deposit::BuildQuote - Error fetching quote',
       );
       setError(
-        quoteError instanceof Error
+        quoteError instanceof Error && quoteError.message
           ? quoteError.message
           : strings('deposit.buildQuote.quoteFetchError'),
       );
@@ -216,7 +216,7 @@ const BuildQuote = () => {
         'Deposit::BuildQuote - Error handling authentication',
       );
       setError(
-        routeError instanceof Error
+        routeError instanceof Error && routeError.message
           ? routeError.message
           : strings('deposit.buildQuote.unexpectedError'),
       );

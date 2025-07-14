@@ -123,7 +123,7 @@ const KycProcessing = () => {
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
               <Text variant={TextVariant.BodyMD} style={styles.description}>
-                {strings('deposit.kyc_processing.error_description')}
+                {error || strings('deposit.kyc_processing.error_description')}
               </Text>
             </View>
           </ScreenLayout.Content>

@@ -96,7 +96,11 @@ const EnterEmail = () => {
         setValidationError(true);
       }
     } catch (e) {
-      setError(strings('deposit.enter_email.error'));
+      setError(
+        e instanceof Error && e.message
+          ? e.message
+          : strings('deposit.enter_email.error'),
+      );
       Logger.error(e as Error, 'Error submitting email');
     } finally {
       setIsLoading(false);

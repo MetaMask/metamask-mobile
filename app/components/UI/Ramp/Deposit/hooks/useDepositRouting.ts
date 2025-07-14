@@ -100,28 +100,35 @@ export const useDepositRouting = ({
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
-            const order = await getOrder(orderId, selectedWalletAddress);
+            try {
+              const order = await getOrder(orderId, selectedWalletAddress);
 
-            if (!order) {
-              throw new Error('Missing order');
+              if (!order) {
+                throw new Error('Missing order');
+              }
+
+              const cryptoCurrency = getCryptoCurrencyFromTransakId(
+                order.cryptoCurrency,
+              );
+              const processedOrder = {
+                ...depositOrderToFiatOrder(order),
+                account: selectedWalletAddress || order.walletAddress,
+                network: cryptoCurrency?.chainId || order.network,
+              };
+
+              await handleNewOrder(processedOrder);
+
+              navigation.navigate(
+                ...createOrderProcessingNavDetails({
+                  orderId: order.id,
+                }),
+              );
+            } catch (error) {
+              throw new Error(
+                (error as Error).message ||
+                  strings('deposit.buildQuote.unexpectedError'),
+              );
             }
-
-            const cryptoCurrency = getCryptoCurrencyFromTransakId(
-              order.cryptoCurrency,
-            );
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrency?.chainId || order.network,
-            };
-
-            await handleNewOrder(processedOrder);
-
-            navigation.navigate(
-              ...createOrderProcessingNavDetails({
-                orderId: order.id,
-              }),
-            );
           }
         } catch (e) {
           console.error('Error extracting orderId from URL:', e);
@@ -133,72 +140,91 @@ export const useDepositRouting = ({
 
   const handleApprovedKycFlow = useCallback(
     async (quote: BuyQuote) => {
-      const userDetails = await fetchUserDetails();
-      if (!userDetails) {
-        throw new Error('Missing user details');
-      }
-
-      if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-        if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
-          const reservation = await createReservation(
-            quote,
-            selectedWalletAddress,
-          );
-
-          if (!reservation) {
-            throw new Error('Missing reservation');
-          }
-
-          const order = await createOrder(reservation);
-
-          if (!order) {
-            throw new Error('Missing order');
-          }
-
-          const processedOrder = {
-            ...depositOrderToFiatOrder(order),
-            account: selectedWalletAddress || order.walletAddress,
-            network: cryptoCurrencyChainId,
-          };
-
-          await handleNewOrder(processedOrder);
-
-          navigation.navigate(
-            ...createBankDetailsNavDetails({
-              orderId: order.id,
-              shouldUpdate: false,
-            }),
-          );
-        } else {
-          const ottResponse = await requestOtt();
-
-          if (!ottResponse) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-
-          const paymentUrl = await generatePaymentUrl(
-            ottResponse.token,
-            quote,
-            selectedWalletAddress,
-            { ...generateThemeParameters(themeAppearance, colors) },
-          );
-
-          if (!paymentUrl) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-
-          navigation.navigate(
-            ...createWebviewModalNavigationDetails({
-              sourceUrl: paymentUrl,
-              handleNavigationStateChange,
-            }),
-          );
+      try {
+        const userDetails = await fetchUserDetails();
+        if (!userDetails) {
+          throw new Error('Missing user details');
         }
-        return true;
-      }
 
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
-      return false;
+        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+          if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
+            try {
+              const reservation = await createReservation(
+                quote,
+                selectedWalletAddress,
+              );
+
+              if (!reservation) {
+                throw new Error('Missing reservation');
+              }
+
+              const order = await createOrder(reservation);
+
+              if (!order) {
+                throw new Error('Missing order');
+              }
+
+              const processedOrder = {
+                ...depositOrderToFiatOrder(order),
+                account: selectedWalletAddress || order.walletAddress,
+                network: cryptoCurrencyChainId,
+              };
+
+              await handleNewOrder(processedOrder);
+
+              navigation.navigate(
+                ...createBankDetailsNavDetails({
+                  orderId: order.id,
+                  shouldUpdate: false,
+                }),
+              );
+            } catch (error) {
+              throw new Error(
+                (error as Error).message ||
+                  strings('deposit.buildQuote.unexpectedError'),
+              );
+            }
+          } else {
+            try {
+              const ottResponse = await requestOtt();
+
+              if (!ottResponse) {
+                throw new Error('Failed to get OTT token');
+              }
+
+              const paymentUrl = await generatePaymentUrl(
+                ottResponse.token,
+                quote,
+                selectedWalletAddress,
+                { ...generateThemeParameters(themeAppearance, colors) },
+              );
+
+              if (!paymentUrl) {
+                throw new Error('Failed to generate payment URL');
+              }
+
+              navigation.navigate(
+                ...createWebviewModalNavigationDetails({
+                  sourceUrl: paymentUrl,
+                  handleNavigationStateChange,
+                }),
+              );
+            } catch (error) {
+              throw new Error(
+                (error as Error).message || 'Failed to generate payment URL',
+              );
+            }
+          }
+          return true;
+        }
+
+        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+        return false;
+      } catch (error) {
+        throw new Error(
+          (error as Error).message || 'Failed to process KYC flow',
+        );
+      }
     },
     [
       fetchUserDetails,

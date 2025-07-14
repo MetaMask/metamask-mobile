@@ -224,7 +224,7 @@ const EnterAddress = (): JSX.Element => {
     } catch (submissionError) {
       setLoading(false);
       setError(
-        submissionError instanceof Error
+        submissionError instanceof Error && submissionError.message
           ? submissionError.message
           : strings('deposit.enter_address.unexpected_error'),
       );

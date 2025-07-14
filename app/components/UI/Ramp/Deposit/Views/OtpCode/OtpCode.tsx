@@ -165,7 +165,11 @@ const OtpCode = () => {
         await setAuthToken(response);
         await routeAfterAuthentication(quote);
       } catch (e) {
-        setError(strings('deposit.otp_code.error'));
+        setError(
+          e instanceof Error && e.message
+            ? e.message
+            : strings('deposit.otp_code.error'),
+        );
         Logger.error(
           e as Error,
           'Error submitting OTP code, setAuthToken, or routing after authentication',
