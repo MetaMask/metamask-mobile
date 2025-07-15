@@ -2,9 +2,9 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/keyring-api';
+import { SolScope, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
@@ -118,7 +118,7 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (selector === selectSolanaAccountTransactions) {
+      if (selector === selectNonEvmTransactions) {
         return mockTransactionsData;
       }
       return null;
@@ -130,19 +130,29 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
-      if (selector === selectSolanaAccountTransactions) {
+      if (selector === selectNonEvmTransactions) {
         return null;
       }
       return null;
     });
 
-    const { getByText } = customRender(<MultichainTransactionsView />);
+    const { getByText } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+      />,
+    );
 
     expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
   it('renders transaction list items when transactions are available', async () => {
-    const { queryAllByTestId } = customRender(<MultichainTransactionsView />);
+    const { queryAllByTestId } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+      />,
+    );
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);

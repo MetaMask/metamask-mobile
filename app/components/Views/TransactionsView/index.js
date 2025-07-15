@@ -32,7 +32,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -246,7 +246,7 @@ const mapStateToProps = (state) => {
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
+    const solanaTransactionData = selectNonEvmTransactions(state);
     const solanaTransactions = solanaTransactionData?.transactions || [];
 
     allTransactions = [...evmTransactions, ...solanaTransactions].sort(

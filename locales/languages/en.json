@@ -314,12 +314,12 @@
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-    
+
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use another method",
-    
+
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
@@ -618,7 +618,7 @@
       "postal_code_required": "Postal/Zip Code is required",
       "postal_code_invalid": "Please enter a valid postal code"
     },
-    "privacy_section":{
+    "privacy_section": {
       "transak": "Transak encrypts and stores this information.",
       "metamask": "MetaMask never receives or uses your data."
     },
@@ -1265,6 +1265,8 @@
     "labels": {
       "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
       "bitcoin_account_name": "Bitcoin Account",
+      "bitcoin_signet_account_name": "Bitcoin Signet Account",
+      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
       "solana_account_name": "Solana Account"
@@ -4053,8 +4055,7 @@
     "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
-    "add_bitcoin_account_testnet": "Bitcoin testnet account",
-    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
     "switch_to_smart_account": "Switch to Smart account",
     "headers": {
@@ -4639,7 +4640,7 @@
     "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
     "support_button": "MetaMask Support.",
     "error_button": "Try again",
-    
+
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",

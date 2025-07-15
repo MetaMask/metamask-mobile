@@ -11,7 +11,7 @@ import {
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
-  selectSolanaAccountTransactions,
+  selectNonEvmTransactions,
   selectMultichainHistoricalPrices,
   makeSelectNonEvmAssetById,
 } from './multichain';
@@ -726,14 +726,12 @@ describe('MultichainNonEvm Selectors', () => {
           },
         };
 
-      expect(selectSolanaAccountTransactions(state)).toEqual(
-        mockTransactionData,
-      );
+      expect(selectNonEvmTransactions(state)).toEqual(mockTransactionData);
     });
 
     it('returns empty array when no Solana account is selected', () => {
       const state = getEvmState();
-      expect(selectSolanaAccountTransactions(state)).toEqual({
+      expect(selectNonEvmTransactions(state)).toEqual({
         lastUpdated: 0,
         next: null,
         transactions: [],
@@ -754,7 +752,7 @@ describe('MultichainNonEvm Selectors', () => {
           },
         };
 
-      expect(selectSolanaAccountTransactions(state)).toEqual({
+      expect(selectNonEvmTransactions(state)).toEqual({
         lastUpdated: undefined,
         next: null,
         transactions: [],

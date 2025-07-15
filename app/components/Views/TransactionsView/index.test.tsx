@@ -161,7 +161,7 @@ import {
 } from '../../../util/activity';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { areAddressesEqual } from '../../../util/address';
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 
@@ -346,8 +346,8 @@ describe('TransactionsView', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .mockReturnValue([createMockTransaction()] as any);
     (
-      selectSolanaAccountTransactions as jest.MockedFunction<
-        typeof selectSolanaAccountTransactions
+      selectNonEvmTransactions as jest.MockedFunction<
+        typeof selectNonEvmTransactions
       >
     ).mockReturnValue({
       transactions: [],
@@ -564,8 +564,8 @@ describe('TransactionsView', () => {
         isEvmAccountType as jest.MockedFunction<typeof isEvmAccountType>
       ).mockReturnValue(false);
       (
-        selectSolanaAccountTransactions as jest.MockedFunction<
-          typeof selectSolanaAccountTransactions
+        selectNonEvmTransactions as jest.MockedFunction<
+          typeof selectNonEvmTransactions
         >
       ).mockReturnValue({
         transactions: [
@@ -612,7 +612,7 @@ describe('TransactionsView', () => {
         jest.runAllTimers();
       });
 
-      expect(selectSolanaAccountTransactions).toHaveBeenCalled();
+      expect(selectNonEvmTransactions).toHaveBeenCalled();
     });
 
     it('merges EVM and Solana transactions for non-EVM accounts', async () => {
@@ -671,8 +671,8 @@ describe('TransactionsView', () => {
         >
       ).mockReturnValue(evmTransactions);
       (
-        selectSolanaAccountTransactions as jest.MockedFunction<
-          typeof selectSolanaAccountTransactions
+        selectNonEvmTransactions as jest.MockedFunction<
+          typeof selectNonEvmTransactions
         >
       ).mockReturnValue({
         transactions: solanaTransactions,
@@ -686,7 +686,7 @@ describe('TransactionsView', () => {
         jest.runAllTimers();
       });
 
-      expect(selectSolanaAccountTransactions).toHaveBeenCalled();
+      expect(selectNonEvmTransactions).toHaveBeenCalled();
       expect(component).toBeDefined();
     });
   });
