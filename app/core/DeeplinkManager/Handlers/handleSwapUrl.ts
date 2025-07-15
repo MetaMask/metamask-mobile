@@ -9,12 +9,6 @@ import Engine from '../../Engine';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
-import { isSolanaAccount } from '../../Multichain/utils';
-///: END:ONLY_INCLUDE_IF
-
 interface HandleSwapUrlParams {
   swapPath: string;
 }
@@ -119,59 +113,6 @@ const processAmount = (
   }
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-/**
- * Checks if user has a Solana account and redirects to account creation if needed
- * @param fromCaip - The source CAIP identifier from the deep link
- * @param toCaip - The destination CAIP identifier from the deep link
- * @returns true if user has Solana account or no Solana tokens involved, false if redirecting to account creation
- */
-const checkSolanaAccountAndRedirect = (
-  fromCaip?: string | null,
-  toCaip?: string | null,
-): boolean => {
-  // Check if either CAIP identifier is Solana
-  const hasSolanaToken =
-    fromCaip?.startsWith('solana:') || toCaip?.startsWith('solana:');
-
-  if (!hasSolanaToken) {
-    return true; // No Solana tokens involved, proceed normally
-  }
-
-  try {
-    // Check if user has a Solana account
-    const { AccountsController } = Engine.context;
-    const accounts = Object.values(
-      AccountsController.state.internalAccounts.accounts,
-    );
-    const hasSolanaAccount = accounts.some((account) =>
-      isSolanaAccount(account),
-    );
-
-    if (!hasSolanaAccount) {
-      // Redirect to Solana account creation
-      NavigationService.navigation.navigate('Modal', {
-        screen: 'RootModalFlow',
-        params: {
-          screen: 'AddAccount',
-          params: {
-            scope: SolScope.Mainnet,
-            clientType: WalletClientType.Solana,
-          },
-        },
-      });
-      return false; // Don't proceed with bridge navigation
-    }
-
-    return true; // User has Solana account, proceed normally
-  } catch (error) {
-    console.warn('Error checking Solana account:', error);
-    // Continue with bridge navigation if account checking fails
-    return true;
-  }
-};
-///: END:ONLY_INCLUDE_IF
-
 /**
  * Handles deeplinks for the unified swap/bridge experience
  * Expected format: https://metamask.app.link/swap?from=0x...&to=0x...&amount=1
@@ -211,13 +152,6 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       toCaip && isCaipAssetType(toCaip)
         ? await validateAndLookupToken(toCaip)
         : undefined;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Check if user needs to create a Solana account
-    if (!checkSolanaAccountAndRedirect(fromCaip, toCaip)) {
-      return; // User was redirected to account creation
-    }
-    ///: END:ONLY_INCLUDE_IF
 
     // Process amount if we have a source token and amount
     const sourceAmount =
