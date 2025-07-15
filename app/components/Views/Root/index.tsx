@@ -18,6 +18,41 @@ import { isTest } from '../../../util/test/utils';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { AppState, AppStateStatus, StyleSheet, View } from 'react-native';
+import { BlurView } from 'expo-blur';
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+  },
+});
+
+export function BackgroundSecurityOverlay() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      setVisible(nextAppState !== 'active');
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    // Set initial state
+    setVisible(AppState.currentState !== 'active');
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
+  if (!visible) return null;
+
+  return <BlurView intensity={50} style={styles.container} />;
+}
 
 /**
  * Top level of the component hierarchy
@@ -61,6 +96,7 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
+      <BackgroundSecurityOverlay />
       <Provider store={store}>
         <PersistGate persistor={persistor}>
           {
