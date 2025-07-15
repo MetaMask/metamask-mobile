@@ -41,6 +41,8 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
+  setSourceToken,
+  setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -102,15 +104,9 @@ const BridgeView = () => {
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   useGasFeeEstimates(selectedNetworkClientId);
 
-  // Call selectors first to follow React Hook rules
-  const reduxSourceAmount = useSelector(selectSourceAmount);
-  const reduxSourceToken = useSelector(selectSourceToken);
-  const reduxDestToken = useSelector(selectDestToken);
-
-  // Use param if available, otherwise use Redux state for deep link support
-  const sourceAmount = route?.params?.sourceAmount || reduxSourceAmount;
-  const sourceToken = route?.params?.sourceToken || reduxSourceToken;
-  const destToken = route?.params?.destToken || reduxDestToken;
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -204,6 +200,24 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
+
+  // Handle deep link route params - trigger Redux updates if params exist
+  useEffect(() => {
+    if (route?.params?.sourceToken) {
+      dispatch(setSourceToken(route.params.sourceToken));
+    }
+    if (route?.params?.destToken) {
+      dispatch(setDestToken(route.params.destToken));
+    }
+    if (route?.params?.sourceAmount) {
+      dispatch(setSourceAmount(route.params.sourceAmount));
+    }
+  }, [
+    route?.params?.sourceToken,
+    route?.params?.destToken,
+    route?.params?.sourceAmount,
+    dispatch,
+  ]);
 
   // Blur input when quotes have loaded
   useEffect(() => {
