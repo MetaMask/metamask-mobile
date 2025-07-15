@@ -72,22 +72,6 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   const { SeedlessOnboardingController } = Engine.context;
 
-  // TODO: to use loginCompleted
-  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-    // on Error, wallet should notify user that the newly added seed phrase is not synced properly
-    // user can try manual sync again (phase 2)
-    const seed = new Uint8Array(inputCodePoints.buffer);
-    try {
-      await SeedlessOnboardingController.addNewSeedPhraseBackup(
-        seed,
-        newKeyring.id,
-      );
-    } catch (error) {
-      // Log the error but don't let it crash the import process
-      console.error('Failed to backup seed phrase:', error);
-    }
-  }
-
   let discoveredAccountsCount = 0;
 
   // TODO: to use loginCompleted
@@ -121,7 +105,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
         name: TraceName.OnboardingAddSrpError,
       });
 
-      throw error;
+      // Don't throw the error - log it but allow the import process to continue
     } finally {
       endTrace({
         name: TraceName.OnboardingAddSrp,
