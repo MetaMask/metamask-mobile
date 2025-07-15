@@ -7,4 +7,4 @@ export const AddBookmarkViewSelectorsIDs = {
   URL_TEXT: 'add-bookmark-url',
 } as const;
 
-export type AddBookmarkViewSelectorsIDsType = typeof AddBookmarkViewSelectorsIDs; 
+export type AddBookmarkViewSelectorsIDsType = typeof AddBookmarkViewSelectorsIDs;

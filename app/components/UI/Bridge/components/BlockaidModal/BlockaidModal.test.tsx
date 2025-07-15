@@ -54,12 +54,12 @@ describe('BlockaidModal', () => {
       <BlockaidModal />,
       { state: mockInitialState }
     );
-    
+
     // Test that the component renders
     expect(getByText('Transaction Warning')).toBeTruthy();
     expect(getByText('Test error message')).toBeTruthy();
     expect(getByText('Go Back')).toBeTruthy();
-    
+
     // Test close functionality
     const goBackButton = getByText('Go Back');
     fireEvent.press(goBackButton);
@@ -73,7 +73,7 @@ describe('BlockaidModal', () => {
       <BlockaidModal />,
       { state: mockInitialState }
     );
-    
+
     // The component should render regardless of error type
     expect(getByText('Transaction Warning')).toBeTruthy();
     expect(getByText('Test error message')).toBeTruthy();
@@ -85,7 +85,7 @@ describe('BlockaidModal', () => {
       <BlockaidModal />,
       { state: mockInitialState }
     );
-    
+
     // Verify error message is rendered
     expect(getByText('Test error message')).toBeTruthy();
   });
@@ -95,10 +95,10 @@ describe('BlockaidModal', () => {
       <BlockaidModal />,
       { state: mockInitialState }
     );
-    
+
     const closeButton = getByText('Go Back');
     fireEvent.press(closeButton);
-    
+
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
-}); 
+});

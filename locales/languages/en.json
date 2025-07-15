@@ -1968,7 +1968,8 @@
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
-    "open_settings": "Settings"
+    "open_settings": "Settings",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -4080,17 +4081,12 @@
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
   "solana_new_feature_content": {
-    "title": "Solana on MetaMask",
-    "create_solana_account": "Create Solana account",
+    "title": "solana is here",
+    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
     "not_now": "Not now",
     "view_solana_account": "View Solana account",
-    "feature_1_title": "Send, receive, and swap tokens",
-    "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
-    "feature_2_title": "Import Solana accounts",
-    "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
-    "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
-    "learn_more": "Learn more about Solana accounts"
+    "learn_more": "Learn more about Solana accounts",
+    "import_your_wallet": "Import your wallet"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -4579,6 +4575,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network Fee",
+    "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "quote_details": "Quote Details",

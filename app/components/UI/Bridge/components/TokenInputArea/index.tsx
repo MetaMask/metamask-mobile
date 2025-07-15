@@ -12,7 +12,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
@@ -209,7 +208,7 @@ export const TokenInputArea = forwardRef<
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+        ? `${parseFloat(tokenBalance).toFixed(3).replace(/\.?0+$/, '')} ${token?.symbol}`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero

@@ -158,7 +158,7 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
-    
+
     await Utilities.waitUntil(
       async () => {
         try {
