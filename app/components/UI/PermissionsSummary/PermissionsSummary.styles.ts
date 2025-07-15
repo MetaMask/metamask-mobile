@@ -171,26 +171,6 @@ const createStyles = (params: {
       flex: 1,
       paddingHorizontal: 16,
     },
-    base: {
-      paddingHorizontal: 16,
-    },
-    tabStyle: {
-      paddingVertical: 16,
-    },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabUnderlineStyleInactive: {
-      backgroundColor: colors.text.muted,
-    },
-    textStyle: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-    },
-    tabBar: {
-      marginBottom: 8,
-    },
     // Header
     connectionTitle: {
       textAlign: 'center',
