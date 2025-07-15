@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
-import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
@@ -21,9 +20,13 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 
 export interface VerifyIdentityParams {
   quote: BuyQuote;
+  kycUrl?: string;
+  cryptoCurrencyChainId: string;
+  paymentMethodId: string;
 }
 
 export const createVerifyIdentityNavDetails =
@@ -34,7 +37,13 @@ const VerifyIdentity = () => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { quote } = useParams<VerifyIdentityParams>();
+  const { quote, kycUrl, cryptoCurrencyChainId, paymentMethodId } =
+    useParams<VerifyIdentityParams>();
+
+  const { navigateToKycWebview, navigateToEnterEmail } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
 
   useEffect(() => {
     navigation.setOptions(
@@ -47,7 +56,11 @@ const VerifyIdentity = () => {
   }, [navigation, theme]);
 
   const handleSubmit = async () => {
-    navigation.navigate(...createBasicInfoNavDetails({ quote }));
+    if (kycUrl) {
+      navigateToKycWebview(quote, kycUrl);
+    } else {
+      navigateToEnterEmail(quote);
+    }
   };
 
   return (

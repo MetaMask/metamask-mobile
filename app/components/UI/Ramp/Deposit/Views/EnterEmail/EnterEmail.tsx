@@ -43,7 +43,10 @@ export const createEnterEmailNavDetails =
 
 const EnterEmail = () => {
   const navigation = useNavigation();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    const randomNum = Math.floor(Math.random() * 10000) + 1;
+    return `george.weiler+${randomNum}@consensys.net`;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState(false);
