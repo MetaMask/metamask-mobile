@@ -6,7 +6,10 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isPrivateConnection } from '../../../util/networks';
+import {
+  isPrivateConnection,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -50,6 +53,11 @@ import {
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace';
 
 export interface SafeChain {
   chainId: string;
@@ -125,6 +133,12 @@ const NetworkModals = (props: NetworkProps) => {
   const styles = createNetworkModalStyles(colors);
 
   const dispatch = useDispatch();
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const validateRpcUrl = (url: string) => {
     if (!isWebUri(url)) return false;
@@ -159,7 +173,17 @@ const NetworkModals = (props: NetworkProps) => {
         [customNetworkInformation.chainId]: true,
       });
     }
-  }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
+
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId as `0x${string}`);
+    }
+  }, [
+    customNetworkInformation.chainId,
+    isAllNetworks,
+    tokenNetworkFilter,
+    chainId,
+    selectNetwork,
+  ]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,

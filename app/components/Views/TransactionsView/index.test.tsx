@@ -47,6 +47,7 @@ jest.mock('@metamask/transaction-controller', () => ({
 
 jest.mock('@metamask/controller-utils', () => ({
   toChecksumHexAddress: jest.fn((address) => address?.toUpperCase()),
+  toHex: jest.fn((value) => `0x${parseInt(value, 10).toString(16)}`),
   NetworkType: {
     mainnet: 'mainnet',
     rpc: 'rpc',
@@ -111,6 +112,14 @@ jest.mock('../../../selectors/transactionController', () => ({
   selectSortedTransactions: jest.fn(() => []),
 }));
 
+jest.mock('../../../selectors/networkEnablementController', () => ({
+  selectEnabledNetworksByNamespace: jest.fn(() => ({
+    eip155: {
+      '0x1': true,
+    },
+  })),
+}));
+
 jest.mock('@metamask/keyring-api', () => ({
   EthMethod: {
     PersonalSign: 'personal_sign',
@@ -123,6 +132,17 @@ jest.mock('@metamask/keyring-api', () => ({
   SolAccountType: {
     DataAccount: 'solana:dataAccount',
   },
+  BtcAccountType: {
+    P2wpkh: 'bip122:p2wpkh',
+  },
+  BtcScope: {
+    Mainnet: 'bip122:000000000019d6689c085ae165831e93',
+    Testnet: 'bip122:000000000933ea01ad0ee984209779ba',
+  },
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  },
   isEvmAccountType: jest.fn(() => true),
 }));
 
@@ -131,6 +151,10 @@ jest.mock('../../../util/networks/customNetworks', () => ({
     { chainId: '0x89' }, // Polygon
     { chainId: '0xa4b1' }, // Arbitrum
   ],
+}));
+
+jest.mock('../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Transactions', () => () => null);

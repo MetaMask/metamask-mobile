@@ -7,11 +7,13 @@ import React, {
   startTransition,
   useEffect,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
 
 // External dependencies.
@@ -26,6 +28,7 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
+import { selectEvmChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -70,6 +73,8 @@ const NetworkMultiSelectList = ({
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const safeAreaInsets = useSafeAreaInsets();
+  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -190,13 +195,14 @@ const NetworkMultiSelectList = ({
         openModal({
           isVisible: true,
           caipChainId: network.caipChainId,
-          displayEdit: !network.isMainChain,
+          displayEdit:
+            selectedChainIdCaip !== network.caipChainId && !network.isMainChain,
           networkTypeOrRpcUrl: network.networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });
       },
     }),
-    [openModal],
+    [openModal, selectedChainIdCaip],
   );
 
   const renderNetworkItem: ListRenderItem<NetworkListItem> = useCallback(

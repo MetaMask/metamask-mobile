@@ -1,38 +1,22 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { useNetworkEnablement } from './useNetworkEnablement';
 import { ProcessedNetwork } from './useNetworksByNamespace';
-
-export enum SelectionMode {
-  Single = 'single',
-  Multi = 'multi',
-}
-
-export enum ResetNetworkType {
-  Popular = 'popular',
-  Custom = 'custom',
-}
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../constants/network';
 
 interface UseNetworkSelectionOptions {
-  mode: SelectionMode;
   networks: ProcessedNetwork[];
-  /**
-   * For single mode: which networks to reset to when selecting
-   * For multi mode: which networks to clear when selecting from this set
-   */
-  resetNetworkType?: ResetNetworkType;
 }
 
 /**
- * Hook that provides network selection functionality for both single and multi-selection modes
+ * Hook that provides network selection functionality for both custom and popular networks
  */
 export const useNetworkSelection = ({
-  mode,
   networks,
-  resetNetworkType,
 }: UseNetworkSelectionOptions) => {
   const {
     namespace,
@@ -40,7 +24,6 @@ export const useNetworkSelection = ({
     disableNetwork,
     toggleNetwork,
     enabledNetworksByNamespace,
-    networkEnablementController,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
@@ -71,25 +54,6 @@ export const useNetworkSelection = ({
     [currentEnabledNetworks, popularNetworkChainIds],
   );
 
-  const resetToPopularNetworks = useCallback(() => {
-    const enabledNetworksForNamespace = enabledNetworksByNamespace[namespace];
-    if (
-      !enabledNetworksForNamespace ||
-      Object.keys(enabledNetworksForNamespace).length === 0
-    ) {
-      return;
-    }
-
-    popularNetworkConfigurations.forEach((network) => {
-      enableNetwork(network.caipChainId);
-    });
-  }, [
-    popularNetworkConfigurations,
-    enabledNetworksByNamespace,
-    namespace,
-    enableNetwork,
-  ]);
-
   const resetCustomNetworks = useCallback(
     (excludeChainId?: CaipChainId) => {
       const networksToDisable = excludeChainId
@@ -107,84 +71,73 @@ export const useNetworkSelection = ({
     [customNetworksToReset, disableNetwork],
   );
 
-  const selectNetwork = useCallback(
+  // The network enablement controller will always have one network enabled
+  // so we need to reset the custom networks to ensure that the network enablement controller
+  // has at least one network enabled
+  const selectCustomNetwork = useCallback(
     (chainId: CaipChainId) => {
-      if (mode === SelectionMode.Single) {
-        if (resetNetworkType === ResetNetworkType.Popular) {
-          resetToPopularNetworks();
-        } else if (resetNetworkType === ResetNetworkType.Custom) {
-          // Enable the target network first to ensure at least one network is always enabled
-          enableNetwork(chainId);
-          // Then disable custom networks, excluding the newly enabled one
-          resetCustomNetworks(chainId);
-        } else {
-          // If no reset type specified, just enable the target network
-          enableNetwork(chainId);
-        }
-
-        // For popular reset type, enable the target network after resetting
-        if (resetNetworkType === ResetNetworkType.Popular) {
-          enableNetwork(chainId);
-        }
-      } else if (resetNetworkType === ResetNetworkType.Custom) {
-        const isCurrentlyEnabled =
-          networkEnablementController.isNetworkEnabled(chainId);
-        if (!isCurrentlyEnabled) {
-          // Enable the target network first
-          enableNetwork(chainId);
-          // Then reset custom networks, excluding the newly enabled one
-          resetCustomNetworks(chainId);
-        } else {
-          // If already enabled, just toggle it (which might disable it)
-          toggleNetwork(chainId);
-        }
-      } else {
-        toggleNetwork(chainId);
-      }
+      enableNetwork(chainId);
+      resetCustomNetworks(chainId);
     },
-    [
-      mode,
-      resetNetworkType,
-      resetToPopularNetworks,
-      resetCustomNetworks,
-      enableNetwork,
-      toggleNetwork,
-      networkEnablementController,
-    ],
+    [enableNetwork, resetCustomNetworks],
   );
 
-  const selectAll = useCallback(() => {
-    if (mode !== SelectionMode.Multi) return;
+  const selectPopularNetwork = useCallback(
+    (chainId: CaipChainId) => {
+      // Toggle the popular network
+      toggleNetwork(chainId);
+      // Reset custom networks when selecting popular networks
+      resetCustomNetworks();
+    },
+    [toggleNetwork, resetCustomNetworks],
+  );
 
-    networks.forEach(({ caipChainId, isSelected }) => {
-      if (!isSelected) {
-        selectNetwork(caipChainId);
+  const selectNetwork = useCallback(
+    (hexOrCaipChainId: CaipChainId | `0x${string}` | Hex) => {
+      const chainId = toHex(hexOrCaipChainId);
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
+        chainId as `0x${string}`,
+      );
+      const caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+      if (isPopularNetwork) {
+        selectPopularNetwork(caipChainId);
+      } else {
+        selectCustomNetwork(caipChainId);
       }
-    });
-  }, [mode, networks, selectNetwork]);
+    },
+    [selectPopularNetwork, selectCustomNetwork],
+  );
 
   const deselectAll = useCallback(() => {
-    if (mode !== SelectionMode.Multi) return;
-
     networks.forEach(({ caipChainId }) => {
-      disableNetwork(caipChainId);
+      // disable all networks except Ethereum. That should be the default network enabled
+      // when all networks are deselected. The EnablementController will always have one network enabled
+      if (caipChainId !== 'eip155:1') {
+        disableNetwork(caipChainId);
+      }
     });
-  }, [mode, networks, disableNetwork]);
+  }, [networks, disableNetwork]);
 
   const toggleAll = useCallback(() => {
-    if (mode !== SelectionMode.Multi) return;
     const areAllSelected = networks.every(({ isSelected }) => isSelected);
     if (areAllSelected) {
       deselectAll();
     } else {
-      selectAll();
+      // Select all popular networks
+      networks.forEach(({ caipChainId }) => {
+        enableNetwork(caipChainId);
+      });
+      resetCustomNetworks();
     }
-  }, [mode, networks, deselectAll, selectAll]);
+  }, [networks, deselectAll, enableNetwork, resetCustomNetworks]);
 
   return {
+    selectCustomNetwork,
+    selectPopularNetwork,
     selectNetwork,
-    selectAll,
     deselectAll,
     toggleAll,
+    resetCustomNetworks,
+    customNetworksToReset,
   };
 };

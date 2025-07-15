@@ -40,6 +40,26 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../hooks/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../hooks/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
@@ -91,7 +111,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        1,
+        9,
       );
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -121,7 +141,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        1,
+        9,
       );
       expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
         {},

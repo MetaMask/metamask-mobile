@@ -10,7 +10,10 @@ import {
 } from '@metamask/network-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { NETWORKS_CHAIN_ID } from '../constants/network';
+import {
+  NETWORKS_CHAIN_ID,
+  POPULAR_NETWORK_CHAIN_IDS,
+} from '../constants/network';
 import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
@@ -262,12 +265,6 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
       nonEvmNetworkConfigurationsByChainId,
     ),
 );
-
-const POPULAR_NETWORK_CHAIN_IDS = new Set([
-  ...PopularList.map((popular) => popular.chainId as Hex),
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-]);
 
 export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
   selectNetworkConfigurationsByCaipChainId,

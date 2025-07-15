@@ -43,7 +43,6 @@ import {
   selectIsPopularNetwork,
   selectProviderType,
   selectNetworkConfigurations,
-  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
@@ -58,13 +57,9 @@ import { RefreshTestId, SpinnerTestId } from './constants';
 import { debounce, cloneDeep } from 'lodash';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  selectIsEvmNetworkSelected,
-  selectedSelectedMultichainNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
-  isTestNet,
   getDecimalChainId,
   isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
@@ -74,9 +69,7 @@ import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { parseCaipChainId } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -208,16 +201,10 @@ const CollectibleContracts = ({
     multichainCollectibleContractsByEnabledNetworksSelector,
   );
 
-  // TODO: Come back to refactor this logic is used in several places
-  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
-  const currentCaipChainId = useSelector(
-    selectedSelectedMultichainNetworkChainId,
-  );
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
 
-  const { namespace } = parseCaipChainId(currentCaipChainId);
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const collectiblesByEnabledNetworks = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
@@ -607,14 +594,6 @@ const CollectibleContracts = ({
     endTrace({ name: TraceName.CollectibleContractsComponent });
     isFirstRender.current = false;
   }, []);
-
-  // TODO: Come back to refactor this logic is used in several places
-  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
-    .filter(([_key, value]) => value)
-    .map(([chainId, enabled]) => ({ chainId, enabled }));
-  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
-  const currentNetworkName = networksByCaipChainId[caipChainId].name;
-  const isDisabled = !isEvmSelected;
 
   return (
     <View

@@ -32,11 +32,7 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace';
-import {
-  ResetNetworkType,
-  useNetworkSelection,
-  SelectionMode,
-} from '../../hooks/useNetworkSelection';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -55,10 +51,8 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectNetwork } = useNetworkSelection({
-    mode: SelectionMode.Single,
+  const { selectCustomNetwork } = useNetworkSelection({
     networks,
-    resetNetworkType: ResetNetworkType.Popular,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -75,7 +69,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       const chainId = toHex(rawChainId);
 
       const handlePress = () => {
-        selectNetwork(caipChainId);
+        selectCustomNetwork(caipChainId);
       };
 
       const handleMenuPress = () => {
@@ -109,7 +103,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         </View>
       );
     },
-    [selectNetwork, openModal],
+    [selectCustomNetwork, openModal],
   );
 
   const renderFooter = useCallback(

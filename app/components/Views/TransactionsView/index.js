@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';

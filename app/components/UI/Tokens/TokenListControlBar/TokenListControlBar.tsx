@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View, Text } from 'react-native';
-import { parseCaipChainId } from '@metamask/utils';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
@@ -9,14 +8,10 @@ import { useSelector } from 'react-redux';
 import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../locales/i18n';
-import {
-  selectedSelectedMultichainNetworkChainId,
-  selectIsEvmNetworkSelected,
-} from '../../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
@@ -27,8 +22,7 @@ import {
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectEnabledNetworksByNamespace } from '../../../../selectors/networkEnablementController';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -49,15 +43,11 @@ export const TokenListControlBar = ({
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
-  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
-  const currentCaipChainId = useSelector(
-    selectedSelectedMultichainNetworkChainId,
-  );
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
-  const { namespace } = parseCaipChainId(currentCaipChainId);
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const navigation =
     useNavigation<
@@ -77,14 +67,6 @@ export const TokenListControlBar = ({
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
-
-  // TODO: Come back to refactor this logic is used in several places
-  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
-    .filter(([_key, value]) => value)
-    .map(([chainId, enabled]) => ({ chainId, enabled }));
-  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
-  const currentNetworkName = networksByCaipChainId[caipChainId]?.name;
-  const isDisabled = !isEvmSelected;
 
   return (
     <View style={styles.actionBarWrapper}>

@@ -108,8 +108,7 @@ import {
   selectUseTokenDetection,
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
-import { Hex, isCaipChainId } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -127,6 +126,11 @@ import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -329,6 +333,13 @@ const Wallet = ({
       : AvatarAccountType.JazzIcon,
   );
 
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
+
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -463,8 +474,7 @@ const Wallet = ({
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
     // network as the default state instead of doing this
-    const { PreferencesController, NetworkEnablementController } =
-      Engine.context;
+    const { PreferencesController } = Engine.context;
     if (Object.keys(tokenNetworkFilter).length === 0) {
       PreferencesController.setTokenNetworkFilter({
         [chainId]: true,
@@ -474,15 +484,9 @@ const Wallet = ({
       isRemoveGlobalNetworkSelectorEnabled() &&
       enabledEVMNetworks.length === 0
     ) {
-      let caipChainId;
-      if (!isCaipChainId(chainId)) {
-        caipChainId = toEvmCaipChainId(chainId);
-      } else {
-        caipChainId = chainId;
-      }
-      NetworkEnablementController.setEnabledNetwork(caipChainId);
+      selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, enabledEVMNetworks]);
+  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();

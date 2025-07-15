@@ -23,7 +23,10 @@ import imageIcons from 'images/image-icons';
 import Text from '../../../../../Base/Text';
 import CustomNetwork from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { Network, ExtendedNetwork } from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import {
+  Network,
+  ExtendedNetwork,
+} from '../../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
@@ -50,7 +53,7 @@ interface NetworkWithAdded extends Network, ExtendedNetwork {
 function NetworkSwitcher() {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const customNetworkStyle = customNetworkStyles();
+  const customNetworkStyle = customNetworkStyles({ colors });
   const trackEvent = useAnalytics();
 
   const [isLoadingNetworks, errorFetchingNetworks, fetchNetworks] =

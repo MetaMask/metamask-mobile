@@ -10,6 +10,26 @@ import * as networks from '../../../util/networks';
 import Engine from '../../../core/Engine';
 const { PreferencesController } = Engine.context;
 
+jest.mock('../../hooks/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../hooks/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
+
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork');
 
@@ -24,7 +44,7 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => jest.fn(),
-  useSelector: jest.fn(),
+  useSelector: jest.fn((selector) => selector()),
 }));
 
 const URL_MOCK = 'test.com';

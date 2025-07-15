@@ -20,11 +20,7 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace';
-import {
-  useNetworkSelection,
-  SelectionMode,
-  ResetNetworkType,
-} from '../../hooks/useNetworkSelection';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
@@ -67,10 +63,8 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { selectNetwork, toggleAll } = useNetworkSelection({
-    mode: SelectionMode.Multi,
+  const { selectPopularNetwork, toggleAll } = useNetworkSelection({
     networks,
-    resetNetworkType: ResetNetworkType.Custom,
   });
 
   const selectedChainIds = useMemo(
@@ -170,7 +164,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         openModal={openModal}
         networks={networks}
         selectedChainIds={selectedChainIds}
-        onSelectNetwork={selectNetwork}
+        onSelectNetwork={selectPopularNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
       />
     </View>

@@ -103,6 +103,11 @@ import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -971,7 +976,6 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    // TODO: Do I need to set the enabled network in this instance?
     // Set tokenNetworkFilter
     if (isPortfolioViewEnabled()) {
       const { PreferencesController } = Engine.context;
@@ -985,6 +989,11 @@ export class NetworkSettings extends PureComponent {
           [chainId]: true,
         });
       }
+    }
+
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      const { NetworkEnablementController } = Engine.context;
+      NetworkEnablementController.setEnabledNetwork(chainId);
     }
 
     await this.handleNetworkUpdate({
@@ -1678,9 +1687,6 @@ export class NetworkSettings extends PureComponent {
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl) => {
-      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
-    };
     const inputStyle = [
       styles.input,
       inputWidth,

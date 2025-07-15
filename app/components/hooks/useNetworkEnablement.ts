@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import { parseCaipChainId, CaipChainId, Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
-import { selectedSelectedMultichainNetworkChainId } from '../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
+import { selectChainId } from '../../selectors/networkController';
 
 /**
  * Hook that provides network enablement functionality including:
@@ -16,10 +19,11 @@ export const useNetworkEnablement = () => {
     selectEnabledNetworksByNamespace,
   );
 
-  const currentCaipChainId = useSelector(
-    selectedSelectedMultichainNetworkChainId,
-  );
-
+  const currentChainId = useSelector(selectChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const currentCaipChainId = isEvmSelected
+    ? (toEvmCaipChainId(currentChainId as Hex) as CaipChainId)
+    : (currentChainId as CaipChainId);
   const { namespace } = parseCaipChainId(currentCaipChainId);
 
   const networkEnablementController = useMemo(
@@ -46,14 +50,25 @@ export const useNetworkEnablement = () => {
 
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
-      const isEnabled = networkEnablementController.isNetworkEnabled(chainId);
-      if (isEnabled) {
+      const controllerEnabled =
+        networkEnablementController.isNetworkEnabled(chainId);
+      const formattedChainId = parseCaipChainId(chainId).reference;
+      const formattedChainIdHex = toHex(formattedChainId);
+      const namespaceEnabled =
+        enabledNetworksForCurrentNamespace[formattedChainIdHex] === true;
+
+      if (controllerEnabled && namespaceEnabled) {
         disableNetwork(chainId);
       } else {
         enableNetwork(chainId);
       }
     },
-    [networkEnablementController, enableNetwork, disableNetwork],
+    [
+      networkEnablementController,
+      enableNetwork,
+      disableNetwork,
+      enabledNetworksForCurrentNamespace,
+    ],
   );
 
   const isNetworkEnabled = useMemo(

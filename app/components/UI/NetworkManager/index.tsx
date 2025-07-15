@@ -46,6 +46,7 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -83,15 +84,15 @@ const NetworkManager = () => {
   const { styles } = useStyles(createStyles, { colors });
   const { trackEvent, createEventBuilder } = useMetrics();
   const safeAreaInsets = useSafeAreaInsets();
+  const { selectedCount } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { disableNetwork } = useNetworkEnablement();
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] =
     useState<ShowConfirmDeleteModalState>(initialShowConfirmDeleteModal);
-
-  const { selectedCount } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
 
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -226,6 +227,7 @@ const NetworkManager = () => {
       const chainId = toHex(rawChainId);
 
       NetworkController.removeNetwork(chainId);
+      disableNetwork(showConfirmDeleteModal.caipChainId);
 
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
@@ -233,7 +235,7 @@ const NetworkManager = () => {
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal]);
+  }, [showConfirmDeleteModal, disableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({

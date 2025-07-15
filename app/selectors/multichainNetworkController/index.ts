@@ -3,7 +3,6 @@ import { createSelector } from 'reselect';
 import {
   MultichainNetworkControllerState,
   NON_EVM_TESTNET_IDS,
-  toEvmCaipChainId,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
@@ -18,7 +17,6 @@ import {
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
-import { ProviderConfig, selectProviderConfig } from '../networkController';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -33,22 +31,6 @@ export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.selectedMultichainNetworkChainId,
-);
-
-export const selectedSelectedMultichainNetworkChainId = createDeepEqualSelector(
-  selectMultichainNetworkControllerState,
-  selectIsEvmNetworkSelected,
-  selectProviderConfig,
-  (
-    multichainNetworkControllerState: MultichainNetworkControllerState,
-    isEvmSelected: boolean,
-    providerConfig: ProviderConfig,
-  ) => {
-    if (isEvmSelected) {
-      return toEvmCaipChainId(providerConfig.chainId);
-    }
-    return multichainNetworkControllerState.selectedMultichainNetworkChainId;
-  },
 );
 
 /**

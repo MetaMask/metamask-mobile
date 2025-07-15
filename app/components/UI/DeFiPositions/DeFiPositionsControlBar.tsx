@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Hex, parseCaipChainId } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -9,7 +9,6 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectChainId,
-  selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
@@ -26,9 +25,7 @@ import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
-import { selectedSelectedMultichainNetworkChainId } from '../../../selectors/multichainNetworkController';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
@@ -38,15 +35,10 @@ const DeFiPositionsControlBar: React.FC = () => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId) as Hex;
-  const networksByNameSpace = useSelector(selectEnabledNetworksByNamespace);
-  const currentCaipChainId = useSelector(
-    selectedSelectedMultichainNetworkChainId,
-  );
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
-  const { namespace } = parseCaipChainId(currentCaipChainId);
+  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const showFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -59,13 +51,6 @@ const DeFiPositionsControlBar: React.FC = () => {
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
-
-  // TODO: Come back to refactor this logic is used in several places
-  const enabledNetworks = Object.entries(networksByNameSpace[namespace])
-    .filter(([_key, value]) => value)
-    .map(([chainId, enabled]) => ({ chainId, enabled }));
-  const caipChainId = formatChainIdToCaip(enabledNetworks[0].chainId);
-  const currentNetworkName = networksByCaipChainId[caipChainId].name;
 
   return (
     <View style={styles.actionBarWrapper}>
