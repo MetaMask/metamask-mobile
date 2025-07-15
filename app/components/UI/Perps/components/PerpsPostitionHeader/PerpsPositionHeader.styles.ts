@@ -1,14 +1,15 @@
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 export const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
 
-  return {
+  return StyleSheet.create({
     container: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-between' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       backgroundColor: colors.background.default,
       marginVertical: 16,
       padding: 16,
@@ -17,11 +18,11 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginRight: 8,
     },
     leftSection: {
-      alignItems: 'flex-start' as const,
+      alignItems: 'flex-start',
       flex: 1,
     },
     rightSection: {
-      alignItems: 'flex-end' as const,
+      alignItems: 'flex-end',
       flex: 1,
     },
     perpIcon: {
@@ -38,8 +39,8 @@ export const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     assetInfo: {
-      flexDirection: 'column' as const,
-      alignItems: 'flex-start' as const,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
       marginBottom: 8,
     },
     assetName: {
@@ -50,15 +51,15 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 0,
     },
     positionValueRow: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     priceChange24h: {
       marginLeft: 8,
     },
     pnlContainer: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     pnlText: {
       marginRight: 8,
@@ -68,15 +69,15 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     chartSection: {
       marginLeft: 16,
-      alignItems: 'flex-end' as const,
+      alignItems: 'flex-end',
     },
     chartPlaceholder: {
       width: 80,
       height: 50,
       backgroundColor: colors.background.default,
       borderRadius: 8,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-  };
+  });
 };

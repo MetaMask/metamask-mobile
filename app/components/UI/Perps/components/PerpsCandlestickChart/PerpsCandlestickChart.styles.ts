@@ -1,19 +1,21 @@
-import { Theme } from '../../../../../util/theme/models';
+import { StyleSheet } from 'react-native';
+import { colors as importedColors } from '../../../../../styles/common';
+import { Theme, Colors } from '../../../../../util/theme/models';
 
 export const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
 
-  return {
+  return StyleSheet.create({
     chartContainer: {
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     loadingText: {
-      textAlign: 'center' as const,
+      textAlign: 'center',
     },
     noDataText: {
-      textAlign: 'center' as const,
+      textAlign: 'center',
     },
     priceLabel: {
       backgroundColor: colors.background.alternative,
@@ -21,12 +23,12 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 4,
       borderRadius: 6,
       marginBottom: 8,
-      alignSelf: 'flex-start' as const,
+      alignSelf: 'flex-start',
     },
     priceText: {
       color: colors.text.default,
       fontSize: 14,
-      fontWeight: '600' as const,
+      fontWeight: '600',
     },
     dateLabel: {
       backgroundColor: colors.background.alternative,
@@ -34,7 +36,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 4,
       borderRadius: 6,
       marginTop: 8,
-      alignSelf: 'flex-start' as const,
+      alignSelf: 'flex-start',
     },
     dateText: {
       color: colors.text.muted,
@@ -50,23 +52,23 @@ export const styleSheet = (params: { theme: Theme }) => {
       opacity: 0.8,
     },
     gridContainer: {
-      position: 'absolute' as const,
+      position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       zIndex: 1,
-      pointerEvents: 'none' as const,
+      pointerEvents: 'none',
     },
     gridLineWithLabel: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     gridLineBar: {
       flex: 1,
       height: 1,
     },
     gridPriceLabel: {
-      position: 'absolute' as const,
+      position: 'absolute',
       right: 4,
       paddingHorizontal: 4,
       paddingVertical: 2,
@@ -75,9 +77,9 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     gridPriceLabelText: {
       fontSize: 10,
-      fontWeight: '600' as const,
+      fontWeight: '600',
       color: colors.text.muted,
-      textAlign: 'right' as const,
+      textAlign: 'right',
       textShadowColor: colors.background.default,
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 2,
@@ -99,7 +101,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     tooltipText: {
       color: colors.text.default,
       fontSize: 12,
-      fontWeight: '600' as const,
+      fontWeight: '600',
     },
     tooltipDateText: {
       color: colors.text.muted,
@@ -108,9 +110,9 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     // Interval selector styling
     intervalSelector: {
-      flexDirection: 'row' as const,
+      flexDirection: 'row',
       //   backgroundColor: 'red',
-      alignSelf: 'center' as const,
+      alignSelf: 'center',
       //   paddingRight: 16,
       marginTop: 24,
     },
@@ -118,13 +120,13 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 6,
       borderRadius: 6,
       padding: 10,
-      alignItems: 'center' as const,
+      alignItems: 'center',
     },
     intervalTabActive: {
       backgroundColor: colors.primary.muted,
     },
     intervalTabInactive: {
-      backgroundColor: 'transparent',
+      backgroundColor: importedColors.transparent,
     },
     intervalTabText: {
       fontSize: 12,
@@ -136,27 +138,27 @@ export const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.muted,
     },
     chartLoadingContainer: {
-      backgroundColor: 'transparent',
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+      backgroundColor: importedColors.transparent,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     // Add new styles for inline styles
     relativeContainer: {
-      position: 'relative' as const,
+      position: 'relative',
     },
     noDataContainer: {
-      backgroundColor: 'transparent',
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+      backgroundColor: importedColors.transparent,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     gridLineStyle: {
-      position: 'absolute' as const,
+      position: 'absolute',
       left: 0,
       right: 0,
       zIndex: 10,
     },
     majorGridLineStyle: {
-      position: 'absolute' as const,
+      position: 'absolute',
       left: 0,
       right: 0,
       height: 2,
@@ -165,7 +167,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       opacity: 0.8,
     },
     minorGridLineStyle: {
-      position: 'absolute' as const,
+      position: 'absolute',
       left: 0,
       right: 0,
       height: 1,
@@ -173,16 +175,20 @@ export const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.border.muted,
       opacity: 0.6,
     },
-    // Function to create complete grid line style with position
-    getGridLineStyle: (isEdge: boolean, position: number) => ({
-      position: 'absolute' as const,
-      left: 0,
-      right: 0,
-      top: position,
-      height: isEdge ? 2 : 1,
-      zIndex: 10,
-      backgroundColor: colors.border.muted,
-      opacity: isEdge ? 0.8 : 0.6,
-    }),
-  };
+  });
 };
+
+export const getGridLineStyle = (
+  colors: Colors,
+  isEdge: boolean,
+  position: number,
+) => ({
+  position: 'absolute' as const,
+  left: 0,
+  right: 0,
+  top: position,
+  height: isEdge ? 2 : 1,
+  zIndex: 10,
+  backgroundColor: colors.border.muted,
+  opacity: isEdge ? 0.8 : 0.6,
+});
