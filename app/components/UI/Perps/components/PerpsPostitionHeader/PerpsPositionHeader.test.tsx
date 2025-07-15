@@ -217,7 +217,11 @@ describe('PerpsPositionHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseStyles.mockReturnValue({ styles: mockStyles, theme: {} as Theme });
-    mockUsePerpsAssetMetadata.mockReturnValue({ assetUrl: '' });
+    mockUsePerpsAssetMetadata.mockReturnValue({
+      assetUrl: '',
+      error: null,
+      hasError: false,
+    });
   });
 
   describe('Component Rendering', () => {
@@ -268,7 +272,11 @@ describe('PerpsPositionHeader', () => {
 
     it('renders fallback icon when assetUrl is not available', () => {
       // Arrange
-      mockUsePerpsAssetMetadata.mockReturnValue({ assetUrl: '' });
+      mockUsePerpsAssetMetadata.mockReturnValue({
+        assetUrl: '',
+        error: null,
+        hasError: false,
+      });
 
       // Act
       render(
@@ -286,7 +294,11 @@ describe('PerpsPositionHeader', () => {
     it('renders asset image when assetUrl is available', () => {
       // Arrange
       const assetUrl = 'https://example.com/eth.png';
-      mockUsePerpsAssetMetadata.mockReturnValue({ assetUrl });
+      mockUsePerpsAssetMetadata.mockReturnValue({
+        assetUrl,
+        error: null,
+        hasError: false,
+      });
 
       // Act
       render(
@@ -538,6 +550,8 @@ describe('PerpsPositionHeader', () => {
       // Arrange
       mockUsePerpsAssetMetadata.mockReturnValue({
         assetUrl: undefined as unknown as string,
+        error: null,
+        hasError: false,
       });
 
       // Act
