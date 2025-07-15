@@ -88,7 +88,7 @@ jest.mock('../../../core', () => ({
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  trace: jest.fn(),
+  trace: jest.fn().mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
 }));
 

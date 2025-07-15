@@ -11,7 +11,7 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { store } from '../store';
+import ReduxService from '../core/redux/ReduxService';
 import {
   addBufferedTrace,
   clearBufferedTraces,
@@ -313,6 +313,17 @@ export function endTrace(request: EndTraceRequest): void {
 }
 
 /**
+ * Safely get the Redux store, returning null if not initialized
+ */
+function getStoreIfReady() {
+  try {
+    return ReduxService.store;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Buffer a trace start call with parent context information
  * @param {*} request - trace request
  * @param {string | undefined} parentTraceName - parent trace name for reconnection
@@ -321,7 +332,12 @@ export function bufferTraceStartCall(
   request: TraceRequest,
   parentTraceName?: string,
 ) {
-  store.dispatch(
+  const storeInstance = getStoreIfReady();
+  if (!storeInstance) {
+    return;
+  }
+
+  storeInstance.dispatch(
     addBufferedTrace({
       type: 'start',
       request: {
@@ -339,7 +355,12 @@ export function bufferTraceStartCall(
  * @param {*} request - end trace request
  */
 export function bufferTraceEndCall(request: EndTraceRequest) {
-  store.dispatch(
+  const storeInstance = getStoreIfReady();
+  if (!storeInstance) {
+    return;
+  }
+
+  storeInstance.dispatch(
     addBufferedTrace({
       type: 'end',
       request: {
@@ -354,11 +375,16 @@ export function bufferTraceEndCall(request: EndTraceRequest) {
  * Flushes buffered traces to Sentry when consent is given
  */
 export async function flushBufferedTraces() {
-  const bufferedTraces = selectBufferedTraces(store.getState());
+  const storeInstance = getStoreIfReady();
+  if (!storeInstance) {
+    return;
+  }
+
+  const bufferedTraces = selectBufferedTraces(storeInstance.getState());
   if (bufferedTraces.length === 0) {
     return;
   }
-  store.dispatch(clearBufferedTraces());
+  storeInstance.dispatch(clearBufferedTraces());
 
   const activeSpans = new Map<string, Span>();
 
@@ -426,7 +452,11 @@ export function updateCachedConsent(consent: boolean) {
 }
 
 export function discardBufferedTraces() {
-  store.dispatch(clearBufferedTraces());
+  const storeInstance = getStoreIfReady();
+  if (!storeInstance) {
+    return;
+  }
+  storeInstance.dispatch(clearBufferedTraces());
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
