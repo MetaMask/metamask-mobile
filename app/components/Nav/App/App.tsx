@@ -875,6 +875,26 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
+    const checkSeedlessPasswordOutdated = async () => {
+      if (isSeedlessOnboardingLoginFlow) {
+        // check if the seedless password is outdated at app init
+        // if app is locked, check skip cache to ensure user need to input latest global password
+        try {
+          const isOutdated =
+            await Authentication.checkIsSeedlessPasswordOutdated(true);
+          Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'App: Error in checkIsSeedlessPasswordOutdated',
+          );
+        }
+      }
+    };
+    checkSeedlessPasswordOutdated();
+  }, [isSeedlessOnboardingLoginFlow]);
+
+  useEffect(() => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
@@ -897,20 +917,6 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          if (isSeedlessOnboardingLoginFlow) {
-            // check if the seedless password is outdated at app init
-            // if app is locked, check skip cache to ensure user need to input latest global password
-            try {
-              const isOutdated =
-                await Authentication.checkIsSeedlessPasswordOutdated(true);
-              Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
-            } catch (error) {
-              Logger.error(
-                error as Error,
-                'App: Error in checkIsSeedlessPasswordOutdated',
-              );
-            }
-          }
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -966,7 +972,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, isSeedlessOnboardingLoginFlow]);
+  }, [navigation]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
