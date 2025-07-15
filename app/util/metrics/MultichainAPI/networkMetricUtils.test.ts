@@ -6,27 +6,29 @@ import {
 import { UserProfileProperty } from '../UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // Mock the store and selectors
+const mockGetState = jest.fn();
+
 jest.mock('../../../store', () => ({
   store: {
-    getState: jest.fn(),
+    getState: jest.fn(() => mockGetState()),
   },
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  selectNetworkConfigurations: jest.fn(),
+// Mock MetaMask utility functions
+jest.mock('@metamask/utils', () => ({
+  isCaipChainId: jest.fn((chainId: string) => chainId.includes(':')),
+  isHexString: jest.fn((chainId: string) => chainId.startsWith('0x')),
+  toCaipChainId: jest.fn(
+    (namespace: string, reference: string) =>
+      `${namespace}:${parseInt(reference, 10)}`,
+  ),
 }));
 
-import { store } from '../../../store';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { RootState } from '../../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-
-const mockStore = store as jest.Mocked<typeof store>;
-const mockSelectNetworkConfigurations =
-  selectNetworkConfigurations as jest.MockedFunction<
-    typeof selectNetworkConfigurations
-  >;
-
-const mockedState = {} as jest.Mocked<RootState>;
+jest.mock('@metamask/multichain-network-controller', () => ({
+  toEvmCaipChainId: jest.fn(
+    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
+  ),
+}));
 
 describe('networkMetricUtils', () => {
   beforeEach(() => {
@@ -35,8 +37,18 @@ describe('networkMetricUtils', () => {
 
   describe('getConfiguredCaipChainIds', () => {
     it('should return empty array when no networks are configured', () => {
-      mockStore.getState.mockReturnValue(mockedState);
-      mockSelectNetworkConfigurations.mockReturnValue({});
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {},
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      });
 
       const result = getConfiguredCaipChainIds();
 
@@ -44,27 +56,31 @@ describe('networkMetricUtils', () => {
     });
 
     it('should convert EVM chain IDs to CAIP format', () => {
-      const mockNetworks = {
-        '0x1': {
-          chainId: '0x1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                },
+                '0x89': {
+                  chainId: '0x89',
+                  name: 'Polygon',
+                },
+                '0xa86a': {
+                  chainId: '0xa86a',
+                  name: 'Avalanche',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
         },
-        '0x89': {
-          chainId: '0x89',
-          name: 'Polygon',
-          isEvm: true,
-        },
-        '0xa86a': {
-          chainId: '0xa86a',
-          name: 'Avalanche',
-          isEvm: true,
-        },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
 
       const result = getConfiguredCaipChainIds();
 
@@ -72,48 +88,56 @@ describe('networkMetricUtils', () => {
     });
 
     it('should handle decimal chain IDs', () => {
-      const mockNetworks = {
-        '1': {
-          chainId: '1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '1': {
+                  chainId: '1',
+                  name: 'Ethereum Mainnet',
+                },
+                '137': {
+                  chainId: '137',
+                  name: 'Polygon',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
         },
-        '137': {
-          chainId: '137',
-          name: 'Polygon',
-          isEvm: true,
-        },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
 
       const result = getConfiguredCaipChainIds();
 
-      expect(result).toEqual([
-        'eip155:1',
-        'eip155:311', // 137 in hex is 0x89, which is 137 decimal, but toCaipChainId treats it as string
-      ]);
+      expect(result).toEqual(['eip155:1', 'eip155:137']);
     });
 
     it('should preserve CAIP chain IDs as-is', () => {
-      const mockNetworks = {
-        'eip155:1': {
-          chainId: 'eip155:1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                'eip155:1': {
+                  chainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': {
+                  chainId: 'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ',
+                  name: 'Solana',
+                },
+              },
+            },
+          },
         },
-        'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': {
-          chainId: 'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ',
-          name: 'Solana',
-          isEvm: false,
-        },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
 
       const result = getConfiguredCaipChainIds();
 
@@ -126,22 +150,27 @@ describe('networkMetricUtils', () => {
 
   describe('addItemToChainIdList', () => {
     beforeEach(() => {
-      const mockNetworks = {
-        '0x1': {
-          chainId: '0x1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                },
+                '0x89': {
+                  chainId: '0x89',
+                  name: 'Polygon',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
         },
-        '0x89': {
-          chainId: '0x89',
-          name: 'Polygon',
-          isEvm: true,
-        },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
     });
 
     it('should add a new hex chain ID to the list', () => {
@@ -163,7 +192,7 @@ describe('networkMetricUtils', () => {
         [UserProfileProperty.CHAIN_IDS]: [
           'eip155:1',
           'eip155:137',
-          'eip155:274708', // This is what the actual function returns
+          'eip155:43114',
         ],
       });
     });
@@ -197,27 +226,31 @@ describe('networkMetricUtils', () => {
 
   describe('removeItemFromChainIdList', () => {
     beforeEach(() => {
-      const mockNetworks = {
-        '0x1': {
-          chainId: '0x1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                },
+                '0x89': {
+                  chainId: '0x89',
+                  name: 'Polygon',
+                },
+                '0xa86a': {
+                  chainId: '0xa86a',
+                  name: 'Avalanche',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
         },
-        '0x89': {
-          chainId: '0x89',
-          name: 'Polygon',
-          isEvm: true,
-        },
-        '0xa86a': {
-          chainId: '0xa86a',
-          name: 'Avalanche',
-          isEvm: true,
-        },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
     });
 
     it('should remove a hex chain ID from the list', () => {
@@ -257,17 +290,23 @@ describe('networkMetricUtils', () => {
     });
 
     it('should return empty array when all networks are removed', () => {
-      const mockNetworks = {
-        '0x1': {
-          chainId: '0x1',
-          name: 'Ethereum Mainnet',
-          isEvm: true,
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
         },
-      };
-
-      mockStore.getState.mockReturnValue(mockedState);
-      // @ts-expect-error - mocking selector for test
-      mockSelectNetworkConfigurations.mockReturnValue(mockNetworks);
+      });
 
       const result = removeItemFromChainIdList('0x1');
 
