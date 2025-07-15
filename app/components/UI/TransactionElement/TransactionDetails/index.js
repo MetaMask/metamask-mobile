@@ -193,7 +193,7 @@ class TransactionDetails extends PureComponent {
     // First check for network configuration block explorer
     let blockExplorer =
       networkConfigurations?.[txChainId]?.blockExplorerUrls[
-      networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
       ] || NO_RPC_BLOCK_EXPLORER;
 
     // Check for default block explorers based on chain ID
@@ -553,7 +553,8 @@ const mapStateToProps = (state, ownProps) => ({
     : selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRateByChainId(state,
+  conversionRate: selectConversionRateByChainId(
+    state,
     ownProps.transactionObject.chainId,
   ),
   currentCurrency: selectCurrentCurrency(state),
