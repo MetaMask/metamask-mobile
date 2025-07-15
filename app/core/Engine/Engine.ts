@@ -60,12 +60,7 @@ import {
 } from '@metamask/snaps-rpc-methods';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
-import {
-  QrKeyring,
-  QrKeyringScannerBridge,
-  QrScanRequest,
-  SerializedUR,
-} from '@metamask/eth-qr-keyring';
+import { QrKeyring, QrKeyringScannerBridge } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
