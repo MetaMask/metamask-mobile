@@ -902,6 +902,18 @@ describe('Authentication', () => {
   describe('resetVault', () => {
     it('calls KeyringController.submitPassword and resetPassword', async () => {
       const Engine = jest.requireMock('../Engine');
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: { state: { vault: undefined } },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
       const resetGenericPasswordSpy = jest
         .spyOn(SecureKeychain, 'resetGenericPassword')
         .mockImplementation(() => Promise.resolve(true));
