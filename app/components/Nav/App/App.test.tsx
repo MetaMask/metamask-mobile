@@ -100,7 +100,9 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     reset: mockReset,
   }),
-  useNavigationState: (selector: (state: { routes: typeof mockRoutes }) => unknown) => selector({ routes: mockRoutes }),
+  useNavigationState: (
+    selector: (state: { routes: typeof mockRoutes }) => unknown,
+  ) => selector({ routes: mockRoutes }),
 }));
 
 jest.mock('../../../core/Analytics/MetaMetrics');
