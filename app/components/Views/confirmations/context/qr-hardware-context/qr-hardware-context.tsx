@@ -17,7 +17,6 @@ export interface QRHardwareContextType {
   pendingScanRequest?: QrScanRequest;
   cameraError: string | undefined;
   cancelQRScanRequestIfPresent: () => Promise<void>;
-  isQRSigningInProgress: boolean;
   isSigningQRObject: boolean;
   needsCameraPermission: boolean;
   scannerVisible: boolean;
@@ -29,7 +28,6 @@ export const QRHardwareContext = createContext<QRHardwareContextType>({
   pendingScanRequest: undefined,
   cameraError: undefined,
   cancelQRScanRequestIfPresent: () => Promise.resolve(),
-  isQRSigningInProgress: false,
   isSigningQRObject: false,
   needsCameraPermission: false,
   scannerVisible: false,
@@ -41,8 +39,7 @@ export const QRHardwareContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const navigation = useNavigation();
-  const { isQRSigningInProgress, isSigningQRObject, pendingScanRequest } =
-    useQRHardwareAwareness();
+  const { isSigningQRObject, pendingScanRequest } = useQRHardwareAwareness();
   const { cameraError, hasCameraPermission } = useCamera(isSigningQRObject);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [isRequestCompleted, setRequestCompleted] = useState(false);
@@ -67,7 +64,7 @@ export const QRHardwareContextProvider: React.FC<{
   }, [cancelRequest, navigation]);
 
   const cancelQRScanRequestIfPresent = useCallback(async () => {
-    if (!isQRSigningInProgress) {
+    if (!isSigningQRObject) {
       return;
     }
     Engine.getQrKeyringScanner().rejectPendingScan(
@@ -75,7 +72,7 @@ export const QRHardwareContextProvider: React.FC<{
     );
     setRequestCompleted(true);
     setScannerVisible(false);
-  }, [isQRSigningInProgress, setRequestCompleted, setScannerVisible]);
+  }, [isSigningQRObject, setRequestCompleted, setScannerVisible]);
 
   return (
     <QRHardwareContext.Provider
@@ -83,9 +80,8 @@ export const QRHardwareContextProvider: React.FC<{
         pendingScanRequest,
         cameraError,
         cancelQRScanRequestIfPresent,
-        isQRSigningInProgress,
         isSigningQRObject,
-        needsCameraPermission: isQRSigningInProgress && !hasCameraPermission,
+        needsCameraPermission: isSigningQRObject && !hasCameraPermission,
         scannerVisible,
         setRequestCompleted: () => setRequestCompleted(true),
         setScannerVisible,

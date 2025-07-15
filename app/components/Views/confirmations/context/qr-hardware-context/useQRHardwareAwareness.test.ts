@@ -3,7 +3,6 @@ import { useQRHardwareAwareness } from './useQRHardwareAwareness';
 
 const initialState = {
   pendingScanRequest: null,
-  isQRSigningInProgress: false,
   isSigningQRObject: false,
 };
 

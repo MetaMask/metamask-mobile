@@ -8,7 +8,6 @@ export const useQRHardwareAwareness = () => {
   );
 
   return {
-    isQRSigningInProgress: pendingScanRequest?.type === QrScanRequestType.SIGN,
     isSigningQRObject: pendingScanRequest?.type === QrScanRequestType.SIGN,
     pendingScanRequest,
   };

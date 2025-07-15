@@ -65,7 +65,6 @@ describe('QRHardwareContext', () => {
   };
 
   const createQRHardwareAwarenessSpy = (mockedValues: {
-    isQRSigningInProgress: boolean;
     isSigningQRObject: boolean;
     pendingScanRequest: QrScanRequest;
   }) => {
@@ -77,7 +76,6 @@ describe('QRHardwareContext', () => {
   it('should pass correct value of needsCameraPermission to child components', () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
-      isQRSigningInProgress: true,
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
     });
@@ -97,7 +95,6 @@ describe('QRHardwareContext', () => {
   it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
-      isQRSigningInProgress: false,
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
     });
@@ -116,7 +113,6 @@ describe('QRHardwareContext', () => {
   it('invokes KeyringController.cancelQRSignRequest when request is cancelled', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
-      isQRSigningInProgress: true,
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
     });
@@ -135,7 +131,6 @@ describe('QRHardwareContext', () => {
   it('passes correct value of pendingScanRequest components', () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
-      isQRSigningInProgress: true,
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
     });
@@ -153,7 +148,6 @@ describe('QRHardwareContext', () => {
   it('passes correct value of scannerVisible to child components', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
-      isQRSigningInProgress: true,
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
     });

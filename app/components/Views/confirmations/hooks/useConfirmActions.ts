@@ -22,11 +22,8 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const {
-    cancelQRScanRequestIfPresent,
-    isQRSigningInProgress,
-    setScannerVisible,
-  } = useQRHardwareContext();
+  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
+    useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -62,7 +59,7 @@ export const useConfirmActions = () => {
       openLedgerSignModal();
       return;
     }
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       setScannerVisible(true);
       return;
     }
@@ -83,7 +80,7 @@ export const useConfirmActions = () => {
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
-    isQRSigningInProgress,
+    isSigningQRObject,
     ledgerSigningInProgress,
     navigation,
     openLedgerSignModal,
@@ -92,7 +89,7 @@ export const useConfirmActions = () => {
     onRequestConfirm,
     isSignatureReq,
     isFullScreenConfirmation,
-    shouldUseSmartTransaction
+    shouldUseSmartTransaction,
   ]);
 
   return { onConfirm, onReject };
