@@ -907,7 +907,7 @@ const App: React.FC = () => {
       }
     },
     {
-      delay: Duration.Minute * 30,
+      delay: Duration.Minute * 5,
     },
   );
 
