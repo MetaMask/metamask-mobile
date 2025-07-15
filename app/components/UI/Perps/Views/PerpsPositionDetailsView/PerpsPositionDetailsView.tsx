@@ -11,6 +11,7 @@ import { SafeAreaView, ScrollView, View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
@@ -67,7 +68,7 @@ const PerpsPositionDetailsView: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            Position data not found. Please go back and try again.
+            {strings('perps.position.details.errorMessage')}
           </Text>
         </View>
       </SafeAreaView>
@@ -97,7 +98,9 @@ const PerpsPositionDetailsView: React.FC = () => {
 
         {/* Positions Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Position</Text>
+          <Text style={styles.sectionTitle}>
+            {strings('perps.position.details.sectionTitle')}
+          </Text>
           <PerpsPositionCard
             position={position}
             onClose={handleClosePosition}

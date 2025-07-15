@@ -8,6 +8,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -141,19 +142,25 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       <View style={styles.body}>
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Entry Price</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.entryPrice')}
+            </Text>
             <Text style={styles.bodyValue}>
               {formatPrice(position.entryPrice)}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Market Price</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.marketPrice')}
+            </Text>
             <Text style={styles.bodyValue}>
               {formatPrice(position.liquidationPrice || position.entryPrice)}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Liquidity Price</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.liquidityPrice')}
+            </Text>
             <Text style={styles.bodyValue}>
               {position.liquidationPrice
                 ? formatPrice(position.liquidationPrice)
@@ -164,15 +171,25 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Take Profit</Text>
-            <Text style={styles.bodyValue}>Not Set</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.takeProfit')}
+            </Text>
+            <Text style={styles.bodyValue}>
+              {strings('perps.position.card.notSet')}
+            </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Stop Loss</Text>
-            <Text style={styles.bodyValue}>Not Set</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.stopLoss')}
+            </Text>
+            <Text style={styles.bodyValue}>
+              {strings('perps.position.card.notSet')}
+            </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>Margin</Text>
+            <Text style={styles.bodyLabel}>
+              {strings('perps.position.card.margin')}
+            </Text>
             <Text style={styles.bodyValue}>
               {formatPrice(position.marginUsed)}
             </Text>
@@ -186,7 +203,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
-          label="Edit TP/SL"
+          label={strings('perps.position.card.editTPSL')}
           onPress={handleEditPress}
           disabled={disabled}
           style={styles.footerButton}
@@ -195,7 +212,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
-          label="Close Position"
+          label={strings('perps.position.card.closePosition')}
           onPress={handleClosePress}
           disabled={disabled}
           style={styles.footerButton}

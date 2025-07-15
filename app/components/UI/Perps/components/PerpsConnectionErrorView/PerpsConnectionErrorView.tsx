@@ -10,6 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { strings } from '../../../../../../locales/i18n';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsConnectionErrorView.styles';
 
@@ -35,7 +36,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             color={TextColor.Error}
             style={styles.errorTitle}
           >
-            Connection Failed
+            {strings('perps.connection.failed')}
           </Text>
 
           <Text
@@ -43,7 +44,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             color={TextColor.Muted}
             style={styles.errorMessage}
           >
-            Unable to connect to Perps trading service.
+            {strings('perps.connection.errorMessage')}
           </Text>
 
           <Text
@@ -59,7 +60,11 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          label={isRetrying ? 'Connecting...' : 'Retry Connection'}
+          label={
+            isRetrying
+              ? strings('perps.connection.retryingConnection')
+              : strings('perps.connection.retryConnection')
+          }
           onPress={onRetry}
           loading={isRetrying}
           style={styles.retryButton}

@@ -15,6 +15,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import { usePerpsAccount, usePerpsTrading } from '../../hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import type { Position } from '../../controllers/types';
@@ -100,7 +101,9 @@ const PerpsPositionsView: React.FC = () => {
     if (isLoading) {
       return (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading positions...</Text>
+          <Text style={styles.loadingText}>
+            {strings('perps.position.list.loading')}
+          </Text>
         </View>
       );
     }
@@ -108,7 +111,9 @@ const PerpsPositionsView: React.FC = () => {
     if (error) {
       return (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Error Loading Positions</Text>
+          <Text style={styles.errorTitle}>
+            {strings('perps.position.list.errorTitle')}
+          </Text>
           <Text style={styles.errorDescription}>{error}</Text>
         </View>
       );
@@ -117,10 +122,11 @@ const PerpsPositionsView: React.FC = () => {
     if (positions.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No Open Positions</Text>
+          <Text style={styles.emptyTitle}>
+            {strings('perps.position.list.emptyTitle')}
+          </Text>
           <Text style={styles.emptyDescription}>
-            You don&apos;t have any open positions yet.{'\n'}
-            Start trading to see your positions here.
+            {strings('perps.position.list.emptyDescription')}
           </Text>
         </View>
       );
@@ -129,9 +135,13 @@ const PerpsPositionsView: React.FC = () => {
     return (
       <View style={styles.positionsSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Open Positions</Text>
+          <Text style={styles.sectionTitle}>
+            {strings('perps.position.list.openPositions')}
+          </Text>
           <Text style={styles.positionCount}>
-            {positions.length} position{positions.length !== 1 ? 's' : ''}
+            {strings('perps.position.list.positionCount', {
+              count: positions.length,
+            })}
           </Text>
         </View>
         {positions.map((position, index) => (
@@ -153,7 +163,9 @@ const PerpsPositionsView: React.FC = () => {
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
         />
-        <Text style={styles.headerTitle}>Positions</Text>
+        <Text style={styles.headerTitle}>
+          {strings('perps.position.title')}
+        </Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -169,31 +181,41 @@ const PerpsPositionsView: React.FC = () => {
       >
         {/* Account Summary */}
         <View style={styles.accountSummary}>
-          <Text style={styles.summaryTitle}>Account Summary</Text>
+          <Text style={styles.summaryTitle}>
+            {strings('perps.position.account.summaryTitle')}
+          </Text>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Balance</Text>
+            <Text style={styles.summaryLabel}>
+              {strings('perps.position.account.totalBalance')}
+            </Text>
             <Text style={styles.summaryValue}>
               {formatPrice(cachedAccountState?.totalBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Available Balance</Text>
+            <Text style={styles.summaryLabel}>
+              {strings('perps.position.account.availableBalance')}
+            </Text>
             <Text style={styles.summaryValue}>
               {formatPrice(cachedAccountState?.availableBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Margin Used</Text>
+            <Text style={styles.summaryLabel}>
+              {strings('perps.position.account.marginUsed')}
+            </Text>
             <Text style={styles.summaryValue}>
               {formatPrice(cachedAccountState?.marginUsed || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Unrealized P&L</Text>
+            <Text style={styles.summaryLabel}>
+              {strings('perps.position.account.totalUnrealizedPnl')}
+            </Text>
             <Text
               style={[
                 styles.totalPnlValue,
