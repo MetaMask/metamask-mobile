@@ -711,10 +711,10 @@ class AuthenticationService {
       });
 
       // update vault password to global password
-      await KeyringController.changePassword(globalPassword);
       await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
       });
+      await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
       await this.resetPassword();
 

@@ -2,11 +2,9 @@ import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
 
+const AUTH_SERVER_REVOKE_PATH = '/api/v1/oauth/revoke';
+const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 class AuthTokenHandler {
-  protected readonly AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
-
-  protected readonly AUTH_SERVER_REVOKE_PATH = '/api/v1/oauth/revoke';
-
   async refreshJWTToken(params: {
     connection: AuthConnection;
     refreshToken: string;
@@ -23,7 +21,7 @@ class AuthTokenHandler {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${this.AUTH_SERVER_TOKEN_PATH}`,
+      `${loginHandler.options.authServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
       {
         method: 'POST',
         headers: {
@@ -53,7 +51,7 @@ class AuthTokenHandler {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${this.AUTH_SERVER_REVOKE_PATH}`,
+      `${loginHandler.options.authServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
       {
         method: 'POST',
         headers: {
