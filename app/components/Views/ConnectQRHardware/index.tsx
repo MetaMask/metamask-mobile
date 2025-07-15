@@ -29,7 +29,7 @@ import ExtendedKeyringTypes, {
 } from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { withQrKeyring } from 'app/core/QrKeyring/QrKeyring';
+import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 
 interface IConnectQRHardwareProps {

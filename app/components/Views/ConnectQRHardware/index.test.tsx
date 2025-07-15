@@ -6,11 +6,11 @@ import { fireEvent } from '@testing-library/react-native';
 import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { act } from '@testing-library/react-hooks';
-import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 
 const mockedNavigate = jest.fn();
 
@@ -80,6 +80,16 @@ const mockPage1Accounts = [
   },
 ];
 
+const mockQrKeyring = {
+  getFirstPage: jest.fn(),
+  getNextPage: jest.fn(),
+  getPreviousPage: jest.fn(),
+};
+
+const mockQrKeyringBridge: QrKeyringBridge = {
+  requestScan: jest.fn(),
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -98,14 +108,9 @@ jest.mock('../../../core/Engine', () => ({
         keyrings: [],
       },
       getAccounts: jest.fn(),
-      getOrAddQRKeyring: jest.fn(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({
-          keyring: {
-            cancelSync: jest.fn(),
-            submitCryptoAccount: jest.fn(),
-            submitCryptoHDKey: jest.fn(),
-          },
+          keyring: mockQrKeyring,
           metadata: { id: '1234' },
         }),
       connectQRHardware: jest.fn(),
@@ -118,6 +123,7 @@ jest.mock('../../../core/Engine', () => ({
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
+  qrKeyringScanner: mockQrKeyringBridge,
 }));
 const MockEngine = jest.mocked(Engine);
 
@@ -131,19 +137,9 @@ const mockInitialState = {
 
 describe('ConnectQRHardware', () => {
   const mockKeyringController = MockEngine.context.KeyringController;
-  mockKeyringController.connectQRHardware.mockImplementation((page) => {
-    switch (page) {
-      case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
-        return Promise.resolve(mockPage1Accounts);
-
-      case PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE:
-        return Promise.resolve(mockPage0Accounts);
-
-      default:
-        // return account lists in first page.
-        return Promise.resolve(mockPage0Accounts);
-    }
-  });
+  mockQrKeyring.getFirstPage.mockResolvedValue(mockPage0Accounts);
+  mockQrKeyring.getNextPage.mockResolvedValue(mockPage1Accounts);
+  mockQrKeyring.getPreviousPage.mockResolvedValue(mockPage0Accounts);
 
   const mockAccountTrackerController =
     MockEngine.context.AccountTrackerController;
@@ -192,10 +188,7 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(1);
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
-      PAGINATION_OPERATIONS.GET_FIRST_PAGE,
-    );
+    expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
 
     mockPage0Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
@@ -223,10 +216,7 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(nextButton);
     });
 
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(2);
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
-      PAGINATION_OPERATIONS.GET_NEXT_PAGE,
-    );
+    expect(mockQrKeyring.getNextPage).toHaveBeenCalledTimes(1);
 
     mockPage1Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
@@ -260,10 +250,7 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(prevButton);
     });
 
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledTimes(3);
-    expect(mockKeyringController.connectQRHardware).toHaveBeenCalledWith(
-      PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
-    );
+    expect(mockQrKeyring.getPreviousPage).toHaveBeenCalledTimes(1);
 
     mockPage0Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();

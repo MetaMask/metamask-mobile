@@ -1,7 +1,7 @@
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import { KeyringMetadata } from '@metamask/keyring-controller';
 import Engine from '../Engine';
-import ExtendedKeyringTypes from 'app/constants/keyringTypes';
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 /**
  * Perform an operation with the QR keyring.
