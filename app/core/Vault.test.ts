@@ -8,11 +8,20 @@ import {
 } from '../util/test/accountsControllerTestUtils';
 import { recreateVaultWithNewPassword } from './Vault';
 import ReduxService, { ReduxStore } from './redux';
+import { captureException } from '@sentry/react-native';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from './Engine/controllers/seedless-onboarding-controller/error';
 
 const mockVerifyPassword = jest.fn().mockResolvedValue(undefined);
 const mockChangePassword = jest.fn();
 const mockExportSeedPhrase = jest.fn();
 const mockCreateNewVaultAndRestore = jest.fn();
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn().mockResolvedValue(undefined),
+}));
 
 const mockHdAccount1 = createMockInternalAccount(
   '0x67B2fAf7959fB61eb9746571041476Bbd0672569',
@@ -138,8 +147,7 @@ jest.mock('./Engine', () => ({
   context: {
     KeyringController: {
       verifyPassword: (password: string) => mockVerifyPassword(password),
-      changePassword: (password: string, newPassword: string) =>
-        mockChangePassword(password, newPassword),
+      changePassword: (password: string) => mockChangePassword(password),
       exportSeedPhrase: (password: string) => mockExportSeedPhrase(password),
       createNewVaultAndRestore: (password: string, seedPhrases: string[]) =>
         mockCreateNewVaultAndRestore(password, seedPhrases),
@@ -201,7 +209,7 @@ describe('Vault', () => {
         mockHdAccount1.address,
       );
 
-      expect(mockChangePassword).toHaveBeenCalledWith('password', newPassword);
+      expect(mockChangePassword).toHaveBeenCalledWith(newPassword);
 
       // Selected address should be restored since it exists in recreated keyrings
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
@@ -244,6 +252,53 @@ describe('Vault', () => {
       expect(mockChangePasswordSpy).toHaveBeenCalledWith(
         newPassword,
         'password',
+      );
+    });
+
+    it('will revert to the old password if SeedlessOnboardingController.changePassword fails', async () => {
+      const newPassword = 'new-password';
+      const primarySeedPhrase = 'seed-phrase';
+      const expectedError = new Error('test error');
+      mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
+      mockChangePassword.mockResolvedValue(undefined);
+
+      // Mock ReduxService to return a vault
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: jest.fn().mockReturnValue({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing-vault',
+              },
+            },
+          },
+        }),
+        dispatch: jest.fn(),
+      } as unknown as ReduxStore);
+
+      // Use the existing SeedlessOnboardingController mock from Engine.context
+      jest
+        .spyOn(Engine.context.SeedlessOnboardingController, 'changePassword')
+        .mockImplementation(() => {
+          throw expectedError;
+        });
+
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
+
+      // Expect change password on the keyring controller to be called twice
+      // The second call should be to revert to the old password
+      expect(mockChangePassword).toHaveBeenNthCalledWith(1, newPassword);
+      expect(mockChangePassword).toHaveBeenNthCalledWith(2, 'password');
+
+      expect(captureException).toHaveBeenCalledWith(
+        new SeedlessOnboardingControllerError(
+          expectedError,
+          SeedlessOnboardingControllerErrorType.ChangePasswordError,
+        ),
       );
     });
   });
