@@ -10,6 +10,8 @@ jobs:
 
 
     runs-on: macos-14-large
+    env:
+      GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
