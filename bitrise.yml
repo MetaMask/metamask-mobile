@@ -1892,6 +1892,20 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_prod:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:prod'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_prod:
     envs:
       - NAME: $VERSION_NAME
@@ -1982,17 +1996,10 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_flask_release:
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
-      - APP_NAME: 'flask'
-      - OUTPUT_PATH: 'flaskRelease'
     after_run:
-      - _android_build_template
+      - build_android_flask_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2520,14 +2527,17 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_release:
+    after_run:
+      - build_ios_flask_prod
+  build_ios_flask_prod:
     envs:
-      - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
   build_ios_simbuild:
