@@ -219,7 +219,7 @@ export const useDepositRouting = ({
   );
 
   const handleApprovedKycFlow = useCallback(
-    async ({ quote }: { quote: BuyQuote }) => {
+    async (quote: BuyQuote) => {
       const userDetails = await fetchUserDetails();
       if (!userDetails) {
         throw new Error('Missing user details');
@@ -311,7 +311,7 @@ export const useDepositRouting = ({
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
         if (requiredForms?.length === 0) {
-          await handleApprovedKycFlow({ quote });
+          await handleApprovedKycFlow(quote);
           return;
         }
 
