@@ -40,31 +40,26 @@ export function getConfiguredCaipChainIds(): CaipChainId[] {
   // Issue described here: https://github.com/MetaMask/metamask-mobile/issues/17167
 
   const state = store.getState();
-  try {
-    const evmNetworkConfigurations =
-      state?.engine?.backgroundState?.NetworkController
-        ?.networkConfigurationsByChainId || {};
+  const evmNetworkConfigurations =
+    state?.engine?.backgroundState?.NetworkController
+      ?.networkConfigurationsByChainId || {};
 
-    const multichainNetworkController =
-      state?.engine?.backgroundState?.MultichainNetworkController;
+  const multichainNetworkController =
+    state?.engine?.backgroundState?.MultichainNetworkController;
 
-    const nonEvmNetworkConfigurations =
-      multichainNetworkController?.multichainNetworkConfigurationsByChainId ||
-      {};
+  const nonEvmNetworkConfigurations =
+    multichainNetworkController?.multichainNetworkConfigurationsByChainId || {};
 
-    const allNetworkConfigurations: Record<string, NetworkConfiguration> = {
-      ...evmNetworkConfigurations,
-      ...nonEvmNetworkConfigurations,
-    };
+  const allNetworkConfigurations: Record<string, NetworkConfiguration> = {
+    ...evmNetworkConfigurations,
+    ...nonEvmNetworkConfigurations,
+  };
 
-    const chainIds = Object.values(allNetworkConfigurations)
-      .filter((network) => network?.chainId)
-      .map((network) => caipifyChainId(network.chainId));
+  const chainIds = Object.values(allNetworkConfigurations)
+    .filter((network) => network?.chainId)
+    .map((network) => caipifyChainId(network.chainId));
 
-    return chainIds;
-  } catch (error) {
-    return [];
-  }
+  return chainIds;
 }
 
 /**
