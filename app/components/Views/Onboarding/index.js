@@ -393,18 +393,12 @@ class Onboarding extends PureComponent {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
           });
-          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-            account_type: `metamask_${provider}`,
-          });
         }
       } else if (!createWallet) {
         if (result.existingUser) {
           this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
-          });
-          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-            account_type: `imported_${provider}`,
           });
         } else {
           this.props.navigation.navigate('AccountNotFound', {
@@ -421,9 +415,15 @@ class Onboarding extends PureComponent {
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
     this.props.navigation.navigate('Onboarding');
 
-    this.track(MetaMetricsEvents.WALLET_REHYDRATION_SELECTED, {
-      account_type: provider,
-    });
+    if (createWallet) {
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: `metamask_${provider}`,
+      });
+    } else {
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: `imported_${provider}`,
+      });
+    }
 
     const action = async () => {
       const loginHandler = createLoginHandler(Platform.OS, provider);
