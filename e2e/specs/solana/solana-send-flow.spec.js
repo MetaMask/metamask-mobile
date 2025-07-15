@@ -20,7 +20,7 @@ const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
 // TODO: Enable when we come back after the new feature view is released
-describe.skip(
+describe(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {
