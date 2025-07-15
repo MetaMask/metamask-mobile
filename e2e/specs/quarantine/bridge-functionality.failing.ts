@@ -1,36 +1,36 @@
 'use strict';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp } from '../../viewHelper.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import QuoteView from '../../pages/Bridge/QuoteView';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import FixtureServer from '../../fixtures/fixture-server';
-import WalletView from '../../pages/wallet/WalletView';
-import TestHelpers from '../../helpers';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
-import Ganache from '../../../app/util/test/ganache';
-import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import SettingsView from '../../pages/Settings/SettingsView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+} from '../../fixtures/fixture-helper.js';
+import QuoteView from '../../pages/Bridge/QuoteView.js';
+import FixtureBuilder from '../../fixtures/fixture-builder.js';
+import FixtureServer from '../../fixtures/fixture-server.js';
+import WalletView from '../../pages/wallet/WalletView.js';
+import TestHelpers from '../../helpers.js';
+import { SmokeTrade } from '../../tags.js';
+import Assertions from '../../utils/Assertions.js';
+import Ganache from '../../../app/util/test/ganache.js';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView.js';
+import SettingsView from '../../pages/Settings/SettingsView.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
 import NetworkListModal from '../../pages/Network/NetworkListModal.js';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
-import { startMockServer } from './bridge-mocks';
-import { stopMockServer } from '../../api-mocking/mock-server';
-import { localNodeOptions, testSpecificMock } from './constants';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import { startMockServer } from '../bridge/bridge-mocks.js';
+import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { localNodeOptions, testSpecificMock } from '../bridge/constants.js';
 import { Mockttp, MockttpServer } from 'mockttp';
-import { getEventsPayloads } from '../analytics/helpers';
-import SoftAssert from '../../utils/SoftAssert';
+import { getEventsPayloads } from '../analytics/helpers.js';
+import SoftAssert from '../../utils/SoftAssert.js';
 
 const fixtureServer = new FixtureServer();
 
