@@ -270,10 +270,64 @@ jobs:
               fi
             done
           else
-            # Android: Run normally without retry logic
-            echo "🤖 Running Android tests..."
-            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-            ./scripts/run-e2e-tags.sh
+            # Android: Add emulator cleanup and retry logic
+            echo "🤖 Running Android tests with emulator cleanup..."
+            
+            # Kill any running emulator instances before starting
+            echo "🧹 Cleaning up any existing Android emulators..."
+            adb devices | grep emulator | cut -f1 | while read line; do
+              echo "Killing emulator: $line"
+              adb -s "$line" emu kill 2>/dev/null || true
+            done
+            
+            # Kill emulator processes directly
+            pkill -f "emulator.*avd" 2>/dev/null || true
+            pkill -f "qemu-system" 2>/dev/null || true
+            pkill -f "Metro\|node\|npm" 2>/dev/null || true
+            
+            # Wait for cleanup
+            sleep 5
+            echo "✅ Android emulator environment cleaned"
+            
+            # Run tests with retry logic for emulator issues
+            max_retries=3
+            retry_count=0
+            
+            while [ $retry_count -lt $max_retries ]; do
+              echo "🚀 Android Attempt $((retry_count + 1))/$max_retries"
+              
+              export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
+              if ./scripts/run-e2e-tags.sh; then
+                echo "✅ Android tests completed successfully"
+                break
+              fi
+              
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -lt $max_retries ]; then
+                echo "⚠️ Android attempt failed, retrying in 30 seconds..."
+                sleep 30
+                
+                # Clean Android environment between retries
+                echo "🧹 Cleaning Android emulator environment..."
+                
+                # Kill any running emulator instances
+                adb devices | grep emulator | cut -f1 | while read line; do
+                  echo "Killing emulator: $line"
+                  adb -s "$line" emu kill 2>/dev/null || true
+                done
+                
+                # Kill emulator processes directly
+                pkill -f "emulator.*avd" 2>/dev/null || true
+                pkill -f "qemu-system" 2>/dev/null || true
+                pkill -f "Metro\|node\|npm" 2>/dev/null || true
+                
+                sleep 5
+                echo "✅ Android environment cleaned"
+              else
+                echo "❌ All Android retry attempts failed"
+                exit 1
+              fi
+            done
           fi
 
       - name: Upload test results
