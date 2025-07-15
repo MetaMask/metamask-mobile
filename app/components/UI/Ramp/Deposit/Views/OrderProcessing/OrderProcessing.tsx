@@ -37,7 +37,6 @@ const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
-
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   const handleMainAction = useCallback(() => {
@@ -113,19 +112,19 @@ const OrderProcessing = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
-            {(order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED) && (
-              <Button
-                style={styles.button}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                onPress={handleContactSupport}
-                label={strings(
-                  'deposit.order_processing.contact_support_button',
-                )}
-              />
-            )}
             <View style={styles.buttonsContainer}>
+              {(order.state === FIAT_ORDER_STATES.CANCELLED ||
+                order.state === FIAT_ORDER_STATES.FAILED) && (
+                <Button
+                  style={styles.button}
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContactSupport}
+                  label={strings(
+                    'deposit.order_processing.contact_support_button',
+                  )}
+                />
+              )}
               <Button
                 style={styles.button}
                 variant={ButtonVariants.Primary}
