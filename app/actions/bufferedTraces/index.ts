@@ -1,5 +1,7 @@
-import { BufferedTraceActionType } from '../../reducers/bufferedTraces';
-import type { BufferedTrace } from '../../reducers/bufferedTraces';
+import {
+  BufferedTraceActionType,
+  type BufferedTrace,
+} from '../../reducers/bufferedTraces';
 
 export const addBufferedTrace = (trace: BufferedTrace) => ({
   type: BufferedTraceActionType.ADD_BUFFERED_TRACE,
