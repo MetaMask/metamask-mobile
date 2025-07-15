@@ -29,8 +29,14 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent, ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
-import { OnboardingActionTypes, saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 
 import AccountStatusImg from '../../../images/account_status.png';
 
@@ -44,7 +50,10 @@ interface AccountRouteParams {
   oauthLoginSuccess?: boolean;
 }
 
-const AccountStatus = ({ type = 'not_exist', saveOnboardingEvent }: AccountStatusProps) => {
+const AccountStatus = ({
+  type = 'not_exist',
+  saveOnboardingEvent,
+}: AccountStatusProps) => {
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -148,7 +157,4 @@ const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
     dispatch(saveEvent(eventArgs)),
 });
 
-export default connect(
-  null,
-  mapDispatchToProps,
-)(AccountStatus);
+export default connect(null, mapDispatchToProps)(AccountStatus);

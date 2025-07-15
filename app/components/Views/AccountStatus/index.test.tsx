@@ -66,9 +66,9 @@ describe('AccountStatus', () => {
     });
 
     it('renders correctly with accountName in route params', () => {
-        mockRoute.params = { accountName: 'test@example.com' };
-        const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
-        expect(toJSON()).toMatchSnapshot();
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -78,7 +78,9 @@ describe('AccountStatus', () => {
         const mockReplace = jest.fn();
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
-        const { getByText } = renderWithProvider(<AccountStatus type="found" />);
+        const { getByText } = renderWithProvider(
+          <AccountStatus type="found" />,
+        );
         const primaryButton = getByText(strings('account_status.log_in'));
 
         fireEvent.press(primaryButton);
@@ -95,8 +97,12 @@ describe('AccountStatus', () => {
         const mockReplace = jest.fn();
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
-        const { getByText } = renderWithProvider(<AccountStatus type="not_exist" />);
-        const primaryButton = getByText(strings('account_status.create_new_wallet'));
+        const { getByText } = renderWithProvider(
+          <AccountStatus type="not_exist" />,
+        );
+        const primaryButton = getByText(
+          strings('account_status.create_new_wallet'),
+        );
 
         fireEvent.press(primaryButton);
 
@@ -113,7 +119,9 @@ describe('AccountStatus', () => {
         const mockReplace = jest.fn();
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
-        const { getByText } = renderWithProvider(<AccountStatus type="found" />);
+        const { getByText } = renderWithProvider(
+          <AccountStatus type="found" />,
+        );
         const primaryButton = getByText(strings('account_status.log_in'));
 
         fireEvent.press(primaryButton);
@@ -144,7 +152,9 @@ describe('AccountStatus', () => {
           MetricsEventBuilder.createEventBuilder as jest.Mock
         ).mockImplementation(mockCreateEventBuilder);
 
-        const { getByText } = renderWithProvider(<AccountStatus type="found" />);
+        const { getByText } = renderWithProvider(
+          <AccountStatus type="found" />,
+        );
         const primaryButton = getByText('Log in');
 
         fireEvent.press(primaryButton);
@@ -163,7 +173,9 @@ describe('AccountStatus', () => {
           MetricsEventBuilder.createEventBuilder as jest.Mock
         ).mockImplementation(mockCreateEventBuilder);
 
-        const { getByText } = renderWithProvider(<AccountStatus type="not_exist" />);
+        const { getByText } = renderWithProvider(
+          <AccountStatus type="not_exist" />,
+        );
         const primaryButton = getByText('Create a new wallet');
 
         fireEvent.press(primaryButton);
@@ -188,9 +200,13 @@ describe('AccountStatus', () => {
     });
 
     it('calls trackOnboarding when primary button is pressed for new account', () => {
-      const { getByText } = renderWithProvider(<AccountStatus type="not_exist" />);
+      const { getByText } = renderWithProvider(
+        <AccountStatus type="not_exist" />,
+      );
 
-      const primaryButton = getByText(strings('account_status.create_new_wallet'));
+      const primaryButton = getByText(
+        strings('account_status.create_new_wallet'),
+      );
       fireEvent.press(primaryButton);
 
       expect(trackOnboarding).toHaveBeenCalled();

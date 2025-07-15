@@ -514,7 +514,7 @@ enum EVENT_NAME {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED = 'Deep Link Modal Private Dont Remind Me Again Checkbox Unchecked',
 
   // What's New Link Clicked
-  WHATS_NEW_LINK_CLICKED = 'What\'s New Link Clicked',
+  WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
 }
 
 enum ACTIONS {
