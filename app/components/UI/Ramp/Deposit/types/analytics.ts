@@ -24,14 +24,6 @@ interface RampsPaymentMethodSelected {
   is_authenticated: boolean;
 }
 
-interface RampsPaymentMethodSelected {
-  quote_session_id: string;
-  ramp_type: 'DEPOSIT';
-  user_id: string;
-  region: string;
-  payment_method_id: string;
-  is_authenticated: boolean;
-}
 
 interface RampsTokenSelected {
   quote_session_id: string;
