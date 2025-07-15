@@ -176,7 +176,7 @@ class Approval extends PureComponent {
       const { transaction, selectedAddress } = this.props;
       const { KeyringController } = Engine.context;
 
-      const isLedgerAccount = isHardwareAccount(transaction.from, [
+      const isLedgerAccount = isHardwareAccount(selectedAddress, [
         ExtendedKeyringTypes.ledger,
       ]);
 
