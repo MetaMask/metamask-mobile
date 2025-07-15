@@ -8,21 +8,20 @@ import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-d
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import QRInfo from './qr-info';
-import Engine from '../../../../../core/Engine';
+
+const mockQrKeyringBridge = {
+  requestScan: jest.fn(),
+  resolvePendingScan: jest.fn(),
+  rejectPendingScan: jest.fn(),
+};
 
 jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      submitQRSignature: jest.fn(),
-    },
-  },
+  qrKeyringScanner: mockQrKeyringBridge,
 }));
 
 jest.mock('uuid', () => ({
   stringify: jest.fn().mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566'),
 }));
-
-const MockEngine = jest.mocked(Engine);
 
 const MockView = View;
 const MockText = Text;
@@ -66,8 +65,6 @@ const mockQRState = {
 };
 
 describe('QRInfo', () => {
-
-  const mockKeyringController = MockEngine.context.KeyringController;
   const mockSetRequestCompleted = jest.fn();
 
   beforeEach(() => {
@@ -149,7 +146,7 @@ describe('QRInfo', () => {
       state: typedSignV3ConfirmationState,
     });
     fireEvent.press(getByText('onScanSuccess'));
-    expect(mockKeyringController.submitQRSignature).toHaveBeenCalledTimes(1);
+    expect(mockQrKeyringBridge.resolvePendingScan).toHaveBeenCalledTimes(1);
     expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
