@@ -5,7 +5,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
@@ -56,6 +56,8 @@ const QRScanner = ({
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
+  const [permissionCheckCompleted, setPermissionCheckCompleted] =
+    useState(false);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -65,10 +67,20 @@ const QRScanner = ({
   const styles = createStyles(theme);
 
   useEffect(() => {
-    if (!hasPermission) {
-      requestPermission();
-    }
-  }, [hasPermission, requestPermission]);
+    const checkPermission = async () => {
+      if (!hasPermission && !permissionCheckCompleted) {
+        try {
+          await requestPermission();
+        } finally {
+          setPermissionCheckCompleted(true);
+        }
+      } else {
+        setPermissionCheckCompleted(true);
+      }
+    };
+
+    checkPermission();
+  }, [hasPermission, requestPermission, permissionCheckCompleted]);
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -270,7 +282,7 @@ const QRScanner = ({
     onCodeScanned: onBarCodeRead,
   });
 
-  const showCameraNotAuthorizedAlert = () =>
+  const showCameraNotAuthorizedAlert = useCallback(() => {
     Alert.alert(
       strings('qr_scanner.not_allowed_error_title'),
       strings('qr_scanner.not_allowed_error_desc'),
@@ -285,6 +297,7 @@ const QRScanner = ({
         },
       ],
     );
+  }, []);
 
   const onError = useCallback(
     (error: Error) => {
@@ -298,8 +311,16 @@ const QRScanner = ({
     [onScanError, navigation],
   );
 
-  if (!hasPermission) {
+  // Only show the camera permission alert if:
+  // 1. Permission check has been completed
+  // 2. Permission is not granted
+  if (permissionCheckCompleted && !hasPermission) {
     showCameraNotAuthorizedAlert();
+    return null;
+  }
+
+  // Don't render anything if permission check is not completed yet
+  if (!permissionCheckCompleted) {
     return null;
   }
 
