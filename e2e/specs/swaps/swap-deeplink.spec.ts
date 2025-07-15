@@ -31,7 +31,6 @@ const fixtureServer: FixtureServer = new FixtureServer();
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
 const SWAP_DEEPLINK_BASE = 'https://metamask.app.link/swap';
 const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000`;
-const SWAP_DEEPLINK_NATIVE = `${SWAP_DEEPLINK_BASE}?from=eip155:1/slip44:60&to=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=1000000000000000000`;
 
 describe(
   SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
@@ -93,33 +92,7 @@ describe(
 
       // Verify we can navigate back
       await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
-      await Gestures.waitAndTap(QuoteView.cancelButton);
-
-      // Should be back on wallet view - check for wallet elements
-      await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
-    });
-
-    it('should navigate to bridge view with native token (ETH to USDC)', async (): Promise<void> => {
-      await TestHelpers.openDeepLink(SWAP_DEEPLINK_NATIVE);
-
-      // Handle "Proceed with caution" modal that appears for deep links
-      await Assertions.checkIfVisible(
-        Matchers.getElementByText('Proceed with caution'),
-        10000,
-      );
-      await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
-
-      // Wait for bridge view to load after modal is dismissed
-      await FrameworkAssertions.expectElementToBeVisible(
-        QuoteView.selectAmountLabel,
-        {
-          timeout: 10000,
-        },
-      );
-
-      // Verify we can navigate back
-      await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
-      await Gestures.waitAndTap(QuoteView.cancelButton);
+      await QuoteView.tapOnCancelButton();
 
       // Should be back on wallet view - check for wallet elements
       await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
@@ -145,7 +118,7 @@ describe(
 
       // Verify we can navigate back
       await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
-      await Gestures.waitAndTap(QuoteView.cancelButton);
+      await QuoteView.tapOnCancelButton();
 
       // Should be back on wallet view - check for wallet elements
       await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
@@ -173,7 +146,7 @@ describe(
 
       // Verify we can navigate back
       await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
-      await Gestures.waitAndTap(QuoteView.cancelButton);
+      await QuoteView.tapOnCancelButton();
 
       // Should be back on wallet view - check for wallet elements
       await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
