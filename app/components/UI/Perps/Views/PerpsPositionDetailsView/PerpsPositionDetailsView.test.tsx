@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
-import { usePerpsPositionData } from '../hooks/usePerpsPositionData';
-import type { Position } from '../controllers/types';
+import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
+import type { Position } from '../../controllers/types';
 
 // Mock component types
 interface MockTextProps {
@@ -53,23 +53,23 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-jest.mock('../hooks/usePerpsPositionData', () => ({
+jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: jest.fn(),
 }));
 
 const mockUseTheme = jest.fn();
-jest.mock('../../../../util/theme', () => ({
+jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
 
 // Mock components
-jest.mock('../../../../component-library/components/Texts/Text', () => ({
+jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
   default: ({ children, testID, ...props }: MockTextProps) => {
     const { Text } = jest.requireActual('react-native');
@@ -81,39 +81,43 @@ jest.mock('../../../../component-library/components/Texts/Text', () => ({
   },
 }));
 
-jest.mock('../components/PerpsCandlestickChart/PerpsCandlectickChart', () => ({
-  __esModule: true,
-  default: ({
-    candleData,
-    isLoading,
-    onIntervalChange,
-    selectedInterval,
-    ...props
-  }: MockCandlestickChartProps) => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return (
-      <View testID="candlestick-chart" {...props}>
-        <Text testID="chart-loading-state">
-          {isLoading ? 'Loading chart...' : 'Chart loaded'}
-        </Text>
-        <Text testID="chart-data-state">
-          {candleData ? 'Has data' : 'No data'}
-        </Text>
-        <Text testID="chart-selected-interval">
-          Selected: {selectedInterval}
-        </Text>
-        <TouchableOpacity
-          testID="chart-interval-change"
-          onPress={() => onIntervalChange?.('4h')}
-        >
-          <Text>Change Interval</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
+jest.mock(
+  '../../components/PerpsCandlestickChart/PerpsCandlectickChart',
+  () => ({
+    __esModule: true,
+    default: ({
+      candleData,
+      isLoading,
+      onIntervalChange,
+      selectedInterval,
+      ...props
+    }: MockCandlestickChartProps) => {
+      const { View, Text, TouchableOpacity } =
+        jest.requireActual('react-native');
+      return (
+        <View testID="candlestick-chart" {...props}>
+          <Text testID="chart-loading-state">
+            {isLoading ? 'Loading chart...' : 'Chart loaded'}
+          </Text>
+          <Text testID="chart-data-state">
+            {candleData ? 'Has data' : 'No data'}
+          </Text>
+          <Text testID="chart-selected-interval">
+            Selected: {selectedInterval}
+          </Text>
+          <TouchableOpacity
+            testID="chart-interval-change"
+            onPress={() => onIntervalChange?.('4h')}
+          >
+            <Text>Change Interval</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    },
+  }),
+);
 
-jest.mock('../components/PerpsPositionCard', () => ({
+jest.mock('../../components/PerpsPositionCard', () => ({
   __esModule: true,
   default: ({
     position,
@@ -147,7 +151,7 @@ jest.mock('../components/PerpsPositionCard', () => ({
   },
 }));
 
-jest.mock('../components/PerpsPostitionHeader/PerpsPositionHeader', () => ({
+jest.mock('../../components/PerpsPostitionHeader/PerpsPositionHeader', () => ({
   __esModule: true,
   default: ({
     position,
