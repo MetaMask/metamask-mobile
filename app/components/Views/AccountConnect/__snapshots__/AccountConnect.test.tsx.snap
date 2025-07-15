@@ -1308,7 +1308,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
 </View>
 `;
 
-exports[`AccountConnect renders correctly with base request 1`] = `
+exports[`AccountConnect renders correctly with base request when there is no existing CAIP endowment 1`] = `
 <View
   onLayout={[Function]}
   style={
