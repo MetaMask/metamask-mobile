@@ -1,8 +1,9 @@
-import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
+import extractURLParams, {
+  DeeplinkUrlParams,
+} from './DeeplinkManager/ParseManager/extractURLParams';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';
-import DevLogger from './SDKConnect/utils/DevLogger';
 
 interface ProcessAttributionParams {
   currentDeeplink: string | null;
@@ -12,7 +13,7 @@ interface ProcessAttributionParams {
 
 interface AttributionResult {
   attributionId?: string;
-  utm?: string;
+
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -26,13 +27,14 @@ export function processAttribution({
 }: ProcessAttributionParams): AttributionResult | undefined {
   const { security } = store.getState();
   if (!security.dataCollectionForMarketing) {
+    Logger.log(
+      'processAttribution:: dataCollectionForMarketing is false, returning undefined',
+    );
     return undefined;
   }
 
   if (currentDeeplink) {
     const { params } = extractURLParams(currentDeeplink);
-    // const attributionId = params.attributionId || undefined;
-    // const utm = params.utm || undefined;
     const {
       attributionId = undefined,
       utm_source = undefined,
@@ -40,22 +42,7 @@ export function processAttribution({
       utm_campaign = undefined,
       utm_term = undefined,
       utm_content = undefined,
-    } = params;
-    // let utm_source, utm_medium, utm_campaign, utm_term, utm_content;
-
-    // if (utm) {
-    //     try {
-    //         const utmParams = JSON.parse(utm);
-    //         DevLogger.log('processAttribution:: UTM params', utmParams);
-    //         utm_source = utmParams.source;
-    //         utm_medium = utmParams.medium;
-    //         utm_campaign = utmParams.campaign;
-    //         utm_term = utmParams.term;
-    //         utm_content = utmParams.content;
-    //     } catch (error) {
-    //         Logger.error(new Error('Error parsing UTM params'), error);
-    //     }
-    // }
+    }: DeeplinkUrlParams = params;
 
     return {
       attributionId,

@@ -173,7 +173,12 @@ export function* handleDeeplinkSaga() {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
-      AppStateEventProcessor.clearPendingDeeplink();
+
+      // Delay clearing deeplinks to allow attribution processing to complete
+      setTimeout(() => {
+        AppStateEventProcessor.clearPendingDeeplink();
+        AppStateEventProcessor.clearCurrentDeeplink();
+      }, 1000);
     }
   }
 }

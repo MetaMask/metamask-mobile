@@ -82,6 +82,7 @@ jest.mock('../../core/AppStateEventListener', () => ({
     start: jest.fn(),
     pendingDeeplink: null,
     clearPendingDeeplink: jest.fn(),
+    clearCurrentDeeplink: jest.fn(),
   },
 }));
 
@@ -112,7 +113,7 @@ describe('appLockStateMachine', () => {
     mockNavigate.mockClear();
   });
 
-  it('should fork biometricsStateMachine when app is locked', async () => {
+  it('forks biometricsStateMachine when app is locked', async () => {
     const generator = appLockStateMachine();
     expect(generator.next().value).toEqual(take(UserActionType.LOCKED_APP));
     // Fork biometrics listener.
@@ -121,7 +122,7 @@ describe('appLockStateMachine', () => {
     );
   });
 
-  it('should navigate to LockScreen when app is locked', async () => {
+  it('navigates to LockScreen when app is locked', async () => {
     const generator = appLockStateMachine();
     // Lock app.
     generator.next();
@@ -140,7 +141,7 @@ describe('biometricsStateMachine', () => {
     mockNavigate.mockClear();
   });
 
-  it('should lock app if biometrics is interrupted', async () => {
+  it('locks app if biometrics is interrupted', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     expect(generator.next().value).toEqual(
@@ -155,7 +156,7 @@ describe('biometricsStateMachine', () => {
     expect(nextFork).toEqual(fork(lockKeyringAndApp));
   });
 
-  it('should navigate to Wallet when authenticating without interruptions via biometrics', async () => {
+  it('navigates to Wallet when authenticating without interruptions via biometrics', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -165,7 +166,7 @@ describe('biometricsStateMachine', () => {
     expect(mockNavigate).toBeCalledWith(Routes.ONBOARDING.HOME_NAV);
   });
 
-  it('should not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
+  it('does not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -175,7 +176,7 @@ describe('biometricsStateMachine', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('should not do anything when AUTH_ERROR is encountered', async () => {
+  it('does not do anything when AUTH_ERROR is encountered', async () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     generator.next();
@@ -192,7 +193,7 @@ describe('startAppServices', () => {
     jest.clearAllMocks();
   });
 
-  it('should start app services', async () => {
+  it('starts app services', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -204,7 +205,7 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
   });
 
-  it('should not start app services if navigation is not ready', async () => {
+  it('does not start app services if navigation is not ready', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
@@ -215,7 +216,7 @@ describe('startAppServices', () => {
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
   });
 
-  it('should not start app services if persisted data is not loaded', async () => {
+  it('does not start app services if persisted data is not loaded', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
@@ -233,7 +234,7 @@ describe('handleDeeplinkSaga', () => {
   });
 
   describe('without deeplink', () => {
-    it('should skip handling deeplink', async () => {
+    it('skips handling deeplink', async () => {
       // Triggered by CHECK_FOR_DEEPLINK action
       await expectSaga(handleDeeplinkSaga)
         .withState({
@@ -258,12 +259,15 @@ describe('handleDeeplinkSaga', () => {
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
+      expect(
+        AppStateEventProcessor.clearCurrentDeeplink,
+      ).not.toHaveBeenCalled();
     });
   });
 
   describe('with deeplink', () => {
     describe('when app is locked', () => {
-      it('should skip handling deeplink', async () => {
+      it('skips handling deeplink', async () => {
         AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
 
         // Triggered by CHECK_FOR_DEEPLINK action
@@ -291,11 +295,14 @@ describe('handleDeeplinkSaga', () => {
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
+        expect(
+          AppStateEventProcessor.clearCurrentDeeplink,
+        ).not.toHaveBeenCalled();
       });
     });
     describe('when app is unlocked', () => {
       describe('when completed onboarding is false', () => {
-        it('should skip handling deeplink', async () => {
+        it('skips handling deeplink', async () => {
           AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
 
           // Triggered by SET_COMPLETED_ONBOARDING action
@@ -310,10 +317,13 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearCurrentDeeplink,
+          ).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is passed in and true', () => {
-        it('should parse deeplink', async () => {
+        it('parses deeplink', async () => {
           AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
@@ -328,13 +338,20 @@ describe('handleDeeplinkSaga', () => {
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
           expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+
+          // Wait for the setTimeout to complete (1000ms delay)
+          await new Promise((resolve) => setTimeout(resolve, 1100));
+
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearCurrentDeeplink,
           ).toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
-        it('should parse deeplink', async () => {
+        it('parses deeplink', async () => {
           AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
@@ -364,11 +381,73 @@ describe('handleDeeplinkSaga', () => {
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
           expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+
+          // Wait for the setTimeout to complete (1000ms delay)
+          await new Promise((resolve) => setTimeout(resolve, 1100));
+
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearCurrentDeeplink,
           ).toHaveBeenCalled();
         });
       });
     });
+  });
+
+  describe('deeplink clearing behavior', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Use real timers for this test
+    });
+
+    it('clears both pending and current deeplinks after processing', async () => {
+      AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+      Engine.context.KeyringController.isUnlocked = jest
+        .fn()
+        .mockReturnValue(true);
+
+      const saga = expectSaga(handleDeeplinkSaga)
+        .withState({
+          onboarding: { completedOnboarding: true },
+          user: {},
+          engine: { backgroundState: {} },
+          confirmation: {},
+          navigation: {},
+          security: {},
+          sdk: {},
+          inpageProvider: {},
+          confirmationMetrics: {},
+          originThrottling: {},
+          notifications: {},
+          bridge: {},
+          banners: {},
+        })
+        .dispatch(checkForDeeplink())
+        .silentRun();
+
+      // Initially, clear methods should not be called
+      expect(
+        AppStateEventProcessor.clearPendingDeeplink,
+      ).not.toHaveBeenCalled();
+      expect(
+        AppStateEventProcessor.clearCurrentDeeplink,
+      ).not.toHaveBeenCalled();
+
+      // Wait for the saga to complete
+      await saga;
+
+      // Wait for the setTimeout to complete (1000ms delay)
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      // After the timeout, both clear methods should be called
+      expect(AppStateEventProcessor.clearPendingDeeplink).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(AppStateEventProcessor.clearCurrentDeeplink).toHaveBeenCalledTimes(
+        1,
+      );
+    }, 10000);
   });
 });

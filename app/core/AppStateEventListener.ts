@@ -41,12 +41,16 @@ export class AppStateEventListener {
     this.pendingDeeplink = null;
   }
 
+  public clearCurrentDeeplink() {
+    this.currentDeeplink = null;
+  }
+
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
     if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange();
-      }, 2000);
+      }, 500);
     }
     this.lastAppState = nextAppState;
   };
@@ -54,7 +58,7 @@ export class AppStateEventListener {
   private processAppStateChange = () => {
     try {
       const attribution = processAttribution({
-        currentDeeplink: this.currentDeeplink,
+        currentDeeplink: this.pendingDeeplink || this.currentDeeplink,
         store: ReduxService.store,
       });
       const metrics = MetaMetrics.getInstance();
@@ -73,9 +77,9 @@ export class AppStateEventListener {
         MetaMetricsEvents.APP_OPENED,
       );
       if (attribution) {
-        const { attributionId, utm, ...utmParams } = attribution;
+        const { attributionId, ...utmParams } = attribution;
         DevLogger.log(
-          `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
+          `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId}`,
           utmParams,
         );
         appOpenedEventBuilder.addProperties({ attributionId, ...utmParams });
