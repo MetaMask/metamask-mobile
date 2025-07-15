@@ -141,7 +141,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(300);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
@@ -843,7 +843,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                 key={`seed-phrase-item-${index}`}
                                 style={[
                                   {
-                                    width: containerWidth / NUM_COLUMNS,
+                                    width: Math.max(containerWidth / NUM_COLUMNS, 100),
                                   },
                                   styles.inputPadding,
                                 ]}
@@ -884,7 +884,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                   isError={errorWordIndexes[index]}
                                   autoCapitalize="none"
                                   numberOfLines={1}
-                                  testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                                  testID={index === 0 ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
                                   keyboardType="default"
                                   autoCorrect={false}
                                   textContentType="oneTimeCode"
