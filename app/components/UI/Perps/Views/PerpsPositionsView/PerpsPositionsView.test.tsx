@@ -7,10 +7,10 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
-import { usePerpsAccount, usePerpsTrading } from '../hooks';
-import { calculateTotalPnL } from '../utils/pnlCalculations';
-import { formatPnl, formatPrice } from '../utils/formatUtils';
-import type { Position } from '../controllers/types';
+import { usePerpsAccount, usePerpsTrading } from '../../hooks';
+import { calculateTotalPnL } from '../../utils/pnlCalculations';
+import { formatPnl, formatPrice } from '../../utils/formatUtils';
+import type { Position } from '../../controllers/types';
 
 // Mock component types
 interface MockButtonIconProps {
@@ -44,26 +44,26 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
-jest.mock('../hooks', () => ({
+jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
 }));
 
-jest.mock('../utils/pnlCalculations', () => ({
+jest.mock('../../utils/pnlCalculations', () => ({
   calculateTotalPnL: jest.fn(),
 }));
 
-jest.mock('../utils/formatUtils', () => ({
+jest.mock('../../utils/formatUtils', () => ({
   formatPnl: jest.fn(),
   formatPrice: jest.fn(),
 }));
 
 const mockUseTheme = jest.fn();
-jest.mock('../../../../util/theme', () => ({
+jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
@@ -71,7 +71,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 // Mock components
 jest.mock(
-  '../../../../component-library/components/Buttons/ButtonIcon',
+  '../../../../../component-library/components/Buttons/ButtonIcon',
   () => ({
     __esModule: true,
     default: ({
@@ -97,12 +97,12 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   IconName: { ArrowLeft: 'arrow-left' },
   IconColor: { Default: 'default' },
 }));
 
-jest.mock('../../../../component-library/components/Texts/Text', () => ({
+jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
   default: ({ children, style, testID, ...props }: MockTextProps) => {
     const { Text } = jest.requireActual('react-native');
@@ -114,7 +114,7 @@ jest.mock('../../../../component-library/components/Texts/Text', () => ({
   },
 }));
 
-jest.mock('../components/PerpsPositionCard', () => ({
+jest.mock('../../components/PerpsPositionCard', () => ({
   __esModule: true,
   default: ({ position, testID, ...props }: MockPositionCardProps) => {
     const { View, Text } = jest.requireActual('react-native');
