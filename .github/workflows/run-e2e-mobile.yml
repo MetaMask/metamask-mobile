@@ -64,7 +64,15 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
-          cache-unique-id: ${{ github.repository }}-${{ inputs.platform }}
+          android-avd-name: emulator
+
+      # test workadound
+      - name: Build Detox framework cache (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          echo "Building Detox framework cache for iOS..."
+          yarn detox clean-framework-cache
+          yarn detox build-framework-cache
 
       #- name: Build E2E app
       #  if: ${{ !inputs.use_prebuilt_apps }}
