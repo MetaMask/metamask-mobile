@@ -60,7 +60,11 @@ import {
 } from '@metamask/snaps-rpc-methods';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
-import { QrKeyring, QrKeyringScannerBridge } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring,
+  QrKeyringScannerBridge,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
@@ -232,7 +236,6 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
-import { QrKeyringScanner } from '../QrKeyring/QrKeyringScanner';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -284,7 +287,7 @@ export class Engine {
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
 
-  readonly qrKeyringScanner = new QrKeyringScanner({
+  readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
     onScanRequested: (request) => {
       store.dispatch(scanRequested(request));
     },
@@ -566,11 +569,8 @@ export class Engine {
 
     const additionalKeyrings = [];
 
-    const qrKeyringBridge = new QrKeyringScannerBridge({
-      requestScan: (request) => this.qrKeyringScanner.requestScan(request),
-    });
     const qrKeyringBuilder = () => {
-      const keyring = new QrKeyring({ bridge: qrKeyringBridge });
+      const keyring = new QrKeyring({ bridge: this.qrKeyringScanner });
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
       keyring.forgetDevice();
       return keyring;
