@@ -1,6 +1,6 @@
 import { LoginViewSelectors } from '../../selectors/wallet/LoginView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class LoginView {
   get container() {
@@ -11,7 +11,7 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  get resetWalletButton() {
+  get forgotPasswordButton() {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
@@ -23,8 +23,8 @@ class LoginView {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
   }
 
-  async tapResetWalletButton() {
-    await Gestures.waitAndTap(this.resetWalletButton);
+  async tapForgotPassword() {
+    await Gestures.waitAndTap(this.forgotPasswordButton);
   }
 
   async toggleRememberMeSwitch() {
