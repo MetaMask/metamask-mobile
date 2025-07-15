@@ -13,9 +13,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
-import ScrollableTabView, {
-  DefaultTabBar,
-} from 'react-native-scrollable-tab-view';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
@@ -74,9 +72,10 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/AccountInfo/AccountInfo';
-import Text, {
+import ComponentText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 
 export const PRIVATE_KEY = 'private_key';
 
@@ -369,20 +368,10 @@ const RevealPrivateCredential = ({
     tryUnlockWithPassword,
   ]);
 
-  const renderTabBar = () => (
-    <DefaultTabBar
-      underlineStyle={styles.tabUnderlineStyle}
-      activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
-      backgroundColor={colors.background.default}
-      tabStyle={styles.tabStyle}
-      textStyle={styles.textStyle}
-      style={styles.tabBar}
-    />
-  );
+  const renderTabBar = () => <TabBar />;
 
-  const onTabBarChange = (event: { i: number }) => {
-    if (event.i === 0) {
+  const onTabBarChange = (tabChangeEvent: { i: number }) => {
+    if (tabChangeEvent.i === 0) {
       trackEvent(
         createEventBuilder(
           isPrivateKey
@@ -395,7 +384,7 @@ const RevealPrivateCredential = ({
 
       if (!isPrivateKey)
         trackEvent(createEventBuilder(MetaMetricsEvents.VIEW_SRP).build());
-    } else if (event.i === 1) {
+    } else if (tabChangeEvent.i === 1) {
       trackEvent(
         createEventBuilder(
           isPrivateKey
@@ -424,72 +413,79 @@ const RevealPrivateCredential = ({
   }, []);
 
   const renderTabView = (privCredentialName: string) => (
-    <ScrollableTabView
-      renderTabBar={() => renderTabBar()}
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChangeTab={(event: any) => onTabBarChange(event)}
-      style={styles.tabContentContainer}
-    >
-      <CustomTabView
-        tabLabel={strings(`reveal_credential.text`)}
-        style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
+    <View style={styles.tabContainer}>
+      <ScrollableTabView
+        renderTabBar={() => renderTabBar()}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onChangeTab={(tabEvent: any) => onTabBarChange(tabEvent)}
+        style={styles.tabContentContainer}
       >
-        <Text style={styles.boldText}>
-          {strings(`reveal_credential.${privCredentialName}`)}
-        </Text>
-        <View style={styles.seedPhraseView}>
-          <TextInput
-            value={clipboardPrivateCredential}
-            numberOfLines={3}
-            multiline
-            selectTextOnFocus
-            style={styles.seedPhrase}
-            editable={false}
-            testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
-            placeholderTextColor={colors.text.muted}
-            keyboardAppearance={themeAppearance}
-          />
-          {clipboardEnabled ? (
-            <Button
-              label={strings('reveal_credential.copy_to_clipboard')}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Sm}
-              onPress={() =>
-                copyPrivateCredentialToClipboard(privCredentialName)
-              }
-              testID={
-                RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
-              }
-              style={styles.clipboardButton}
-            />
-          ) : null}
-        </View>
-      </CustomTabView>
-      <CustomTabView
-        tabLabel={strings(`reveal_credential.qr_code`)}
-        style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
-      >
-        <View
-          style={styles.qrCodeWrapper}
-          testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
+        <CustomTabView
+          tabLabel={strings(`reveal_credential.text`)}
+          style={styles.tabContent}
+          testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <QRCode
-            value={clipboardPrivateCredential}
-            size={Dimensions.get('window').width - 176}
-          />
-        </View>
-      </CustomTabView>
-    </ScrollableTabView>
+          <ComponentText style={styles.boldText}>
+            {strings(`reveal_credential.${privCredentialName}`)}
+          </ComponentText>
+          <View style={styles.seedPhraseView}>
+            <TextInput
+              value={clipboardPrivateCredential}
+              numberOfLines={3}
+              multiline
+              selectTextOnFocus
+              style={styles.seedPhrase}
+              editable={false}
+              testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
+              placeholderTextColor={colors.text.muted}
+              keyboardAppearance={themeAppearance}
+            />
+            {clipboardEnabled ? (
+              <Button
+                label={strings('reveal_credential.copy_to_clipboard')}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Sm}
+                onPress={() =>
+                  copyPrivateCredentialToClipboard(privCredentialName)
+                }
+                testID={
+                  RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
+                }
+                style={styles.clipboardButton}
+              />
+            ) : null}
+          </View>
+        </CustomTabView>
+        <CustomTabView
+          tabLabel={strings(`reveal_credential.qr_code`)}
+          style={styles.tabContent}
+          testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
+        >
+          <View
+            style={styles.qrCodeWrapper}
+            testID={
+              RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID
+            }
+          >
+            <QRCode
+              value={clipboardPrivateCredential}
+              size={Dimensions.get('window').width - 176}
+            />
+          </View>
+        </CustomTabView>
+      </ScrollableTabView>
+    </View>
   );
 
   const renderPasswordEntry = () => (
     <>
-      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
+      <ComponentText
+        style={styles.enterPassword}
+        variant={TextVariant.BodyMDMedium}
+      >
         {strings('reveal_credential.enter_password')}
-      </Text>
+      </ComponentText>
       <TextInput
         style={styles.input}
         placeholder={'Password'}
@@ -500,12 +496,12 @@ const RevealPrivateCredential = ({
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
       />
-      <Text
+      <ComponentText
         style={styles.warningText}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}
       >
         {warningIncorrectPassword}
-      </Text>
+      </ComponentText>
     </>
   );
 
@@ -541,7 +537,10 @@ const RevealPrivateCredential = ({
       })}
       body={
         <>
-          <Text variant={TextVariant.BodyMD} style={styles.revealModalText}>
+          <ComponentText
+            variant={TextVariant.BodyMD}
+            style={styles.revealModalText}
+          >
             {
               strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
@@ -549,20 +548,20 @@ const RevealPrivateCredential = ({
                   : strings('reveal_credential.srp_text'),
               })[0]
             }
-            <Text variant={TextVariant.BodyMDBold}>
+            <ComponentText variant={TextVariant.BodyMDBold}>
               {isPrivateKeyReveal
                 ? strings('reveal_credential.reveal_credential_modal')[1]
                 : strings('reveal_credential.reveal_credential_modal')[2]}
-            </Text>
+            </ComponentText>
             {strings('reveal_credential.reveal_credential_modal')[3]}
-            <Text
+            <ComponentText
               color={colors.primary.default}
               variant={TextVariant.BodyMDBold}
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
               {strings('reveal_credential.reveal_credential_modal')[4]}
-            </Text>
-          </Text>
+            </ComponentText>
+          </ComponentText>
           {isTest ? (
             <Button
               label={strings('reveal_credential.reveal_credential', {
@@ -592,26 +591,30 @@ const RevealPrivateCredential = ({
   );
 
   const renderSRPExplanation = () => (
-    <Text style={styles.normalText}>
+    <ComponentText style={styles.normalText}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
-      <Text
+      <ComponentText
         color={colors.primary.default}
         onPress={() => Linking.openURL(SRP_GUIDE_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[1]}
-      </Text>{' '}
+      </ComponentText>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[3]}</Text>
+      <ComponentText>
+        {strings('reveal_credential.seed_phrase_explanation')[3]}
+      </ComponentText>
       {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-      <Text
+      <ComponentText
         color={colors.primary.default}
         onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-      </Text>
+      </ComponentText>
       {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-      <Text>{strings('reveal_credential.seed_phrase_explanation')[7]}</Text>
-    </Text>
+      <ComponentText>
+        {strings('reveal_credential.seed_phrase_explanation')[7]}
+      </ComponentText>
+    </ComponentText>
   );
 
   const renderWarning = (privCredentialName: string) => (
@@ -623,18 +626,18 @@ const RevealPrivateCredential = ({
           size={IconSize.Lg}
         />
         {privCredentialName === PRIVATE_KEY ? (
-          <Text style={styles.warningMessageText}>
+          <ComponentText style={styles.warningMessageText}>
             {strings(
               `reveal_credential.${privCredentialName}_warning_explanation`,
             )}
-          </Text>
+          </ComponentText>
         ) : (
-          <Text style={styles.warningMessageText}>
+          <ComponentText style={styles.warningMessageText}>
             {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
-            <Text style={styles.boldText}>
+            <ComponentText style={styles.boldText}>
               {strings('reveal_credential.seed_phrase_warning_explanation')[1]}
-            </Text>
-          </Text>
+            </ComponentText>
+          </ComponentText>
         )}
       </View>
     </View>
