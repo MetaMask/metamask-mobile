@@ -21,7 +21,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Button, {
@@ -37,6 +36,7 @@ import Logger from '../../../../../../util/Logger';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createKycProcessingNavDetails =
@@ -88,8 +88,8 @@ const KycProcessing = () => {
   }, [kycForms, startPolling, stopPolling]);
 
   const handleRetryVerification = useCallback(() => {
-    navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
-  }, [navigation, quote]);
+    // TODO: Implement retry logic for KYC verification?
+  }, []);
 
   const handleContinue = useCallback(async () => {
     try {

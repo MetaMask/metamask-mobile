@@ -217,7 +217,7 @@ const EnterAddress = (): JSX.Element => {
       await submitPurpose();
 
       if (kycUrl) {
-        navigateToKycWebview(quote, kycUrl);
+        navigateToKycWebview({ quote, kycUrl });
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
