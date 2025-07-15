@@ -257,28 +257,21 @@ class AddCustomToken extends PureComponent {
     }
 
     // Clear state before closing
-    this.setState(
-      {
-        address: '',
-        symbol: '',
-        decimals: '',
-        warningAddress: '',
-        warningSymbol: '',
-        warningDecimals: '',
-      },
-      () => {
-        InteractionManager.runAfterInteractions(() => {
-          this.props.navigation.goBack();
-          this.props.navigation.goBack();
-          NotificationManager.showSimpleNotification({
-            status: `import_success`,
-            duration: 5000,
-            title: strings('wallet.token_toast.token_imported_title'),
-            description: strings('wallet.token_toast.token_imported_desc_1'),
-          });
-        });
-      },
-    );
+    this.setState({
+      address: '',
+      symbol: '',
+      decimals: '',
+      warningAddress: '',
+      warningSymbol: '',
+      warningDecimals: '',
+    });
+
+    NotificationManager.showSimpleNotification({
+      status: `import_success`,
+      duration: 5000,
+      title: strings('wallet.token_toast.token_imported_title'),
+      description: strings('wallet.token_toast.token_imported_desc_1'),
+    });
   };
 
   cancelAddToken = () => {
