@@ -65,6 +65,7 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
+import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -720,6 +721,8 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.tx.chainId),
+  conversionRate: selectConversionRateByChainId(
+    state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;
