@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, Dimensions, TouchableOpacity } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
-import { styleSheet } from './PerpsCandlestickChart.styles';
+import { styleSheet, getGridLineStyle } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-
 interface CandleData {
   coin: string;
   interval: string;
@@ -36,7 +35,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   selectedInterval = '1h',
   onIntervalChange,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const screenWidth = Dimensions.get('window').width;
   const chartWidth = screenWidth - 48; // Account for padding
 
@@ -231,7 +230,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             {gridLines.map((line, index) => (
               <View
                 key={`grid-${index}`}
-                style={styles.getGridLineStyle(line.isEdge, line.position)}
+                style={getGridLineStyle(
+                  theme.colors,
+                  line.isEdge,
+                  line.position,
+                )}
               />
             ))}
           </View>
@@ -243,8 +246,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           >
             {/* Candlestick Data */}
             <CandlestickChart.Candles
-              positiveColor="#00D68F" // Green for positive candles
-              negativeColor="#FF6B6B" // Red for negative candles
+              positiveColor={theme.colors.success.default} // Green for positive candles
+              negativeColor={theme.colors.error.default} // Red for negative candles
             />
 
             {/* Interactive Crosshair */}
