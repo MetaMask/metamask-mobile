@@ -102,8 +102,6 @@ import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOn
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
-import { CardSDKProvider } from '../../UI/Card/sdk';
-import CardHome from '../../UI/Card/Views/CardHome/CardHome';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -789,18 +787,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const CardRoutes = () => (
-  <CardSDKProvider>
-    <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
-      <Stack.Screen
-        name={Routes.CARD.HOME}
-        component={CardHome}
-        options={CardHome.navigationOptions}
-      />
-    </Stack.Navigator>
-  </CardSDKProvider>
-);
-
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -930,7 +916,6 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
-      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );
 };
