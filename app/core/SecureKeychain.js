@@ -26,6 +26,12 @@ const defaultOptions = {
   fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
+
+// Service options for deposit provider key
+const depositProviderKeyOptions = {
+  service: 'com.metamask.deposit-provider',
+};
+
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
@@ -53,6 +59,14 @@ class SecureKeychain {
   }
 
   decryptPassword(str) {
+    return encryptor.decrypt(privates.get(this).code, str);
+  }
+
+  encryptData(data) {
+    return encryptor.encrypt(privates.get(this).code, { data });
+  }
+
+  decryptData(str) {
     return encryptor.decrypt(privates.get(this).code, str);
   }
 }
@@ -201,6 +215,54 @@ export default {
       //Don't need to add any parameter
     }
   },
+
+  // Deposit Provider Key methods
+  async setDepositProviderKey(key, type) {
+    const authOptions = {
+      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    };
+
+    const metrics = MetaMetrics.getInstance();
+    if (type === this.TYPES.BIOMETRICS) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+    } else if (type === this.TYPES.PASSCODE) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
+    } else if (type === this.TYPES.REMEMBER_ME) {
+      // No additional access control for remember me
+    } else {
+      // Setting a key without a type does not save it
+      return await this.resetDepositProviderKey();
+    }
+
+    // Store the key in plain text (no encryption needed)
+    await Keychain.setGenericPassword('metamask-deposit-provider', key, {
+      ...depositProviderKeyOptions,
+      ...authOptions,
+    });
+  },
+
+  async getDepositProviderKey() {
+    if (instance) {
+      try {
+        const keychainObject = await Keychain.getGenericPassword(
+          depositProviderKeyOptions,
+        );
+        if (keychainObject.password) {
+          // Return the key directly (no decryption needed)
+          return keychainObject.password;
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    }
+    return null;
+  },
+
+  async resetDepositProviderKey() {
+    const options = { service: depositProviderKeyOptions.service };
+    return Keychain.resetGenericPassword(options);
+  },
+
   ACCESS_CONTROL: Keychain.ACCESS_CONTROL,
   ACCESSIBLE: Keychain.ACCESSIBLE,
   AUTHENTICATION_TYPE: Keychain.AUTHENTICATION_TYPE,

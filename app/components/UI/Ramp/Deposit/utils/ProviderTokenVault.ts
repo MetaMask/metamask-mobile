@@ -1,15 +1,7 @@
-import {
-  getInternetCredentials,
-  setInternetCredentials,
-  resetInternetCredentials,
-  ACCESSIBLE,
-  ACCESS_CONTROL,
-} from 'react-native-keychain';
-import { Authentication } from '../../../../../core/Authentication/Authentication';
+import SecureKeychain from '../../../../../core/SecureKeychain';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
+import { Authentication } from '../../../../../core/Authentication/Authentication';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-
-const PROVIDER_TOKEN_KEY = 'TRANSAK_ACCESS_TOKEN';
 
 interface ProviderTokenResponse {
   success: boolean;
@@ -26,19 +18,6 @@ export async function storeProviderToken(
   token: NativeTransakAccessToken,
 ): Promise<ProviderTokenResponse> {
   try {
-    // Get current auth type to match user's security preference
-    const authData = await Authentication.getType();
-
-    const authOptions = {
-      accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-      accessControl:
-        authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC
-          ? ACCESS_CONTROL.BIOMETRY_CURRENT_SET
-          : authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE
-          ? ACCESS_CONTROL.DEVICE_PASSCODE
-          : undefined,
-    };
-
     const expiresAt = Date.now() + token.ttl * 1000;
     const storedToken: ProviderToken = {
       token,
@@ -47,19 +26,32 @@ export async function storeProviderToken(
 
     const stringifiedToken = JSON.stringify(storedToken);
 
-    const storeResult = await setInternetCredentials(
-      PROVIDER_TOKEN_KEY,
-      PROVIDER_TOKEN_KEY,
-      stringifiedToken,
-      authOptions,
-    );
+    // Get the user's current authentication type to match their security preference
+    const authData = await Authentication.getType();
 
-    if (storeResult === false) {
-      return {
-        success: false,
-        error: 'Failed to store Provider token',
-      };
+    // Map the authentication type to SecureKeychain types
+    let secureKeychainType;
+    switch (authData.currentAuthType) {
+      case AUTHENTICATION_TYPE.BIOMETRIC:
+        secureKeychainType = SecureKeychain.TYPES.BIOMETRICS;
+        break;
+      case AUTHENTICATION_TYPE.PASSCODE:
+        secureKeychainType = SecureKeychain.TYPES.PASSCODE;
+        break;
+      case AUTHENTICATION_TYPE.REMEMBER_ME:
+        secureKeychainType = SecureKeychain.TYPES.REMEMBER_ME;
+        break;
+      default:
+        // Default to password (no additional authentication)
+        secureKeychainType = SecureKeychain.TYPES.REMEMBER_ME;
     }
+
+    // Use SecureKeychain to store the token with the same authentication type as the main password
+    // This ensures consistent security behavior across the app
+    await SecureKeychain.setDepositProviderKey(
+      stringifiedToken,
+      secureKeychainType,
+    );
 
     return {
       success: true,
@@ -74,9 +66,10 @@ export async function storeProviderToken(
 
 export async function getProviderToken(): Promise<ProviderTokenResponse> {
   try {
-    const credentials = await getInternetCredentials(PROVIDER_TOKEN_KEY);
-    if (credentials) {
-      const storedToken: ProviderToken = JSON.parse(credentials.password);
+    const storedTokenString = await SecureKeychain.getDepositProviderKey();
+
+    if (storedTokenString) {
+      const storedToken: ProviderToken = JSON.parse(storedTokenString);
 
       if (Date.now() > storedToken.expiresAt) {
         await resetProviderToken();
@@ -104,5 +97,5 @@ export async function getProviderToken(): Promise<ProviderTokenResponse> {
 }
 
 export async function resetProviderToken(): Promise<void> {
-  await resetInternetCredentials(PROVIDER_TOKEN_KEY);
+  await SecureKeychain.resetDepositProviderKey();
 }

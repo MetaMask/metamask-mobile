@@ -414,6 +414,18 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setBiometricsOption();
 
+    const devSeedPhrase = process.env.MM_DEV_SEED_PHRASE;
+    if (devSeedPhrase && __DEV__) {
+      handleSeedPhraseChange(devSeedPhrase);
+    }
+
+    const devPassword = process.env.MM_DEV_PASSWORD;
+    if (devPassword && __DEV__) {
+      onPasswordChange(devPassword);
+      onPasswordConfirmChange(devPassword);
+      setLearnMore(true);
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
