@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { styleSheet, getGridLineStyle } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -8,10 +8,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  CHART_INTERVALS,
   PERPS_CHART_CONFIG,
   getCandlestickColors,
 } from '../../constants/chartConfig';
+import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector';
 interface CandleData {
   coin: string;
   interval: string;
@@ -52,9 +52,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     () => getCandlestickColors(theme.colors),
     [theme.colors],
   );
-
-  // Available intervals from configuration
-  const intervals = CHART_INTERVALS;
 
   // Transform data to wagmi-charts format with validation
   const transformedData = React.useMemo(() => {
@@ -145,39 +142,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </View>
         </View>
 
-        {/* Interval Selector - same as non-loading state */}
-        <View style={styles.intervalSelector}>
-          {intervals.map((interval) => (
-            <TouchableOpacity
-              key={interval.value}
-              style={[
-                styles.intervalTab,
-                selectedInterval === interval.value
-                  ? styles.intervalTabActive
-                  : styles.intervalTabInactive,
-              ]}
-              onPress={() => onIntervalChange?.(interval.value)}
-              activeOpacity={0.7}
-            >
-              <Text
-                variant={TextVariant.BodySM}
-                color={
-                  selectedInterval === interval.value
-                    ? TextColor.Default
-                    : TextColor.Muted
-                }
-                style={[
-                  styles.intervalTabText,
-                  selectedInterval === interval.value
-                    ? styles.intervalTabTextActive
-                    : styles.intervalTabTextInactive,
-                ]}
-              >
-                {interval.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Interval Selector */}
+        <PerpsCandlestickChartIntervalSelector
+          selectedInterval={selectedInterval}
+          onIntervalChange={onIntervalChange}
+          testID="perps-chart-interval-selector-loading"
+        />
       </View>
     );
   }
@@ -206,39 +176,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </View>
         </View>
 
-        {/* Interval Selector - same as non-loading state */}
-        <View style={styles.intervalSelector}>
-          {intervals.map((interval) => (
-            <TouchableOpacity
-              key={interval.value}
-              style={[
-                styles.intervalTab,
-                selectedInterval === interval.value
-                  ? styles.intervalTabActive
-                  : styles.intervalTabInactive,
-              ]}
-              onPress={() => onIntervalChange?.(interval.value)}
-              activeOpacity={0.7}
-            >
-              <Text
-                variant={TextVariant.BodySM}
-                color={
-                  selectedInterval === interval.value
-                    ? TextColor.Default
-                    : TextColor.Muted
-                }
-                style={[
-                  styles.intervalTabText,
-                  selectedInterval === interval.value
-                    ? styles.intervalTabTextActive
-                    : styles.intervalTabTextInactive,
-                ]}
-              >
-                {interval.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Interval Selector */}
+        <PerpsCandlestickChartIntervalSelector
+          selectedInterval={selectedInterval}
+          onIntervalChange={onIntervalChange}
+          testID="perps-chart-interval-selector-no-data"
+        />
       </View>
     );
   }
@@ -286,38 +229,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         </View>
 
         {/* Interval Selector */}
-        <View style={styles.intervalSelector}>
-          {intervals.map((interval) => (
-            <TouchableOpacity
-              key={interval.value}
-              style={[
-                styles.intervalTab,
-                selectedInterval === interval.value
-                  ? styles.intervalTabActive
-                  : styles.intervalTabInactive,
-              ]}
-              onPress={() => onIntervalChange?.(interval.value)}
-              activeOpacity={0.7}
-            >
-              <Text
-                variant={TextVariant.BodySM}
-                color={
-                  selectedInterval === interval.value
-                    ? TextColor.Default
-                    : TextColor.Muted
-                }
-                style={[
-                  styles.intervalTabText,
-                  selectedInterval === interval.value
-                    ? styles.intervalTabTextActive
-                    : styles.intervalTabTextInactive,
-                ]}
-              >
-                {interval.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <PerpsCandlestickChartIntervalSelector
+          selectedInterval={selectedInterval}
+          onIntervalChange={onIntervalChange}
+          testID="perps-chart-interval-selector"
+        />
       </View>
     </CandlestickChart.Provider>
   );
