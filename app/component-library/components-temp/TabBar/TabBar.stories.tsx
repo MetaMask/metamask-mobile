@@ -34,7 +34,7 @@ interface TabViewProps {
 
 export const Default = () => (
   <View style={containerStyle}>
-    <ScrollableTabView renderTabBar={() => <TabBarComponent />} initialPage={0}>
+    <ScrollableTabView renderTabBar={(props) => <TabBarComponent {...props} />} initialPage={0}>
       <View
         key="tokens"
         style={tabContentStyle}
