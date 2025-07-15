@@ -2947,3 +2947,4 @@ trigger_map:
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline
