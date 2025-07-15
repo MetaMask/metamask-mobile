@@ -148,14 +148,29 @@ jobs:
             
             if curl -L --fail -o /tmp/outputs.zip "${base_url}/outputs.zip"; then
               echo "✅ Downloaded outputs.zip"
-              echo "📦 Extracting Android APK..."
+              echo "📦 Extracting Android APKs..."
+              
+              # Create required directories for both main and test APKs
+              mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
+              
+              # Extract main APK
               unzip -o -j /tmp/outputs.zip "apk/qa/release/app-qa-release.apk" -d "android/app/build/outputs/apk/qa/release/"
+              
+              # Extract test APK (androidTest)
+              unzip -o -j /tmp/outputs.zip "apk/androidTest/qa/release/app-qa-release-androidTest.apk" -d "android/app/build/outputs/apk/androidTest/qa/release/"
               
               # Verify Android setup
               if [[ -f "android/app/build/outputs/apk/qa/release/app-qa-release.apk" ]]; then
-                echo "✅ Android APK ready for E2E tests"
+                echo "✅ Android main APK ready for E2E tests"
               else
-                echo "❌ Android APK setup failed"
+                echo "❌ Android main APK setup failed"
+                exit 1
+              fi
+              
+              if [[ -f "android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk" ]]; then
+                echo "✅ Android test APK ready for E2E tests"
+              else
+                echo "❌ Android test APK setup failed"
                 exit 1
               fi
             else
