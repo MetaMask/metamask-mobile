@@ -688,7 +688,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -704,7 +703,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
-                              "opacity": 0.5,
                               "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
@@ -737,7 +735,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                           accessibilityRole="button"
                           accessible={true}
                           activeOpacity={1}
-                          disabled={true}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
@@ -751,7 +748,6 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
-                              "opacity": 0.5,
                               "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }

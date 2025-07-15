@@ -20,6 +20,7 @@
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
+    "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json|feature)$' || true; } | xargs --no-run-if-empty prettier --check",
     "setup": "yarn clean && node scripts/setup.mjs",
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
