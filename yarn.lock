@@ -4984,7 +4984,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.10.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.9.0", "@metamask/controller-utils@npm:@metamask/controller-utils@^11.11.0":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.10.0", "@metamask/controller-utils@^11.11.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.9.0", "@metamask/controller-utils@npm:@metamask/controller-utils@^11.11.0":
   version "11.11.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.11.0.tgz#1992541d9c4744c0a26324f6ecdd842a79741972"
   integrity sha512-ucFIBeULDyXuTetOOPPtsSPBLoTws7zKnQReAVvuSpAxieo0QDA8xEfv/gjEoB0CohbiSyYeY0f9CJa2M8nuGw==
@@ -5006,15 +5006,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-2.0.1.tgz#e3486fc2e9aeb8dc292629ad01d8de075ac64326"
-  integrity sha512-sriAsbMjvTQ1sx6K6gRgzEKlLW0wlJidvGhbI/nWZvZKaYy3xhPPmVBXIau4huwWUfSy1ohINPEnqsjRS2WInw==
+"@metamask/earn-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-3.0.0.tgz#400684ceb8a4017921b9efa3dce1c7df31610131"
+  integrity sha512-HhBshlXNevaSBC/dOuhehowYQGTSs3gg6juHzBhpRCqnz/vbxV4+cQWixcrPZ49I8CC/ZJ6NeLjl5JDrAzlO0g==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/controller-utils" "^11.11.0"
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
