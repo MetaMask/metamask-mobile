@@ -705,18 +705,11 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
-<<<<<<< HEAD
-=======
         name={Routes.SOLANA_NEW_FEATURE_CONTENT}
         component={SolanaNewFeatureContentView}
         options={{ animationEnabled: true }}
       />
       <Stack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={MultichainWalletDetails}
-      />
-      <Stack.Screen
->>>>>>> 8cdee353fa (chore: update solana welcome modal/view (#16578))
         options={{
           //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
           cardStyle: { backgroundColor: importedColors.transparent },
