@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from './PerpsCandlectickChart';
 
 // Minimal mock - only what we actually test
@@ -18,7 +19,11 @@ jest.mock('react-native-wagmi-charts', () => {
     height: number;
     width: number;
   }) => (
-    <View testID="candlestick-chart" data-height={height} data-width={width}>
+    <View
+      testID={PerpsCandlestickChartSelectorsIDs.CONTAINER}
+      data-height={height}
+      data-width={width}
+    >
       {children}
     </View>
   );
@@ -30,7 +35,10 @@ jest.mock('react-native-wagmi-charts', () => {
     children: React.ReactNode;
     data: unknown[];
   }) => (
-    <View testID="candlestick-provider" data-data-points={data?.length || 0}>
+    <View
+      testID={PerpsCandlestickChartSelectorsIDs.PROVIDER}
+      data-data-points={data?.length || 0}
+    >
       {children}
     </View>
   );
@@ -43,17 +51,19 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID="candlestick-candles"
+      testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID="candlestick-crosshair">{children}</View>
+    <View testID={PerpsCandlestickChartSelectorsIDs.CROSSHAIR}>{children}</View>
   );
 
-  MockChart.Tooltip = () => <View testID="candlestick-tooltip" />;
+  MockChart.Tooltip = () => (
+    <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
+  );
 
   return { CandlestickChart: MockChart };
 });
@@ -196,10 +206,18 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
-      expect(screen.getByTestId('candlestick-candles')).toBeOnTheScreen();
-      expect(screen.getByTestId('candlestick-crosshair')).toBeOnTheScreen();
-      expect(screen.getByTestId('candlestick-tooltip')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CANDLES),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CROSSHAIR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.TOOLTIP),
+      ).toBeOnTheScreen();
     });
 
     it('renders with correct candle colors', () => {
@@ -207,7 +225,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      const candles = screen.getByTestId('candlestick-candles');
+      const candles = screen.getByTestId(
+        PerpsCandlestickChartSelectorsIDs.CANDLES,
+      );
       // The colors come from the actual theme system
       expect(candles).toHaveProp('data-positive-color', '#1c7e33'); // Actual success color
       expect(candles).toHaveProp('data-negative-color', '#ca3542'); // Actual error color
@@ -224,7 +244,9 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       // The component should render without errors with custom height
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('uses default height when not provided', () => {
@@ -232,10 +254,12 @@ describe('CandlestickChartComponent', () => {
       const { height, ...propsWithoutHeight } = defaultProps;
 
       // Act
-      render(<CandlestickChartComponent {...propsWithoutHeight} />);
+      renderWithWrapper(<CandlestickChartComponent {...propsWithoutHeight} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('uses default selectedInterval when not provided', () => {
@@ -363,7 +387,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      const provider = screen.getByTestId('candlestick-provider');
+      const provider = screen.getByTestId(
+        PerpsCandlestickChartSelectorsIDs.PROVIDER,
+      );
       expect(provider).toHaveProp('data-data-points', 2); // mockCandleData has 2 candles
     });
 
@@ -375,7 +401,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      const chart = screen.getByTestId('candlestick-chart');
+      const chart = screen.getByTestId(
+        PerpsCandlestickChartSelectorsIDs.CONTAINER,
+      );
       expect(chart).toHaveProp('data-height', 280); // 400 - 120 (PADDING.VERTICAL)
       expect(chart).toHaveProp('data-width', 702); // 750 - 48 (PADDING.HORIZONTAL * 2)
     });
@@ -412,8 +440,12 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert - Check for the presence of the candlestick chart which contains grid lines
-      expect(screen.getByTestId('candlestick-chart')).toBeOnTheScreen();
-      expect(screen.getByTestId('candlestick-candles')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CANDLES),
+      ).toBeOnTheScreen();
     });
 
     it('does not render grid lines when no data', () => {
@@ -424,7 +456,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert - No candlestick chart should be rendered when no data
-      expect(screen.queryByTestId('candlestick-chart')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsCandlestickChartSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
   });
 

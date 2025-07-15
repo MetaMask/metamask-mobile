@@ -6,7 +6,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { CHART_INTERVALS } from '../../constants/chartConfig';
-import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles';
+import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
   selectedInterval: string;

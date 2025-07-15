@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
@@ -271,7 +272,7 @@ describe('PerpsPositionCard', () => {
     it('navigates to position details when card is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(screen.getByTestId('PerpsPositionCard')); // This might need adjustment based on how the container is identified
+      fireEvent.press(screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD)); // This might need adjustment based on how the container is identified
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
