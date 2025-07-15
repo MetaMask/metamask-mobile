@@ -514,7 +514,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const toggleWarningModal = () => {
-    track(MetaMetricsEvents.FORGOT_PASSWORD, {});
+    track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
     track(MetaMetricsEvents.RESET_WALLET, {
       account_type: oauthLoginSuccess ? 'social' : 'metamask',
     });
