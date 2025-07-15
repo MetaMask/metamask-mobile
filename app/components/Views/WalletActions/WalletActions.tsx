@@ -421,17 +421,19 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && !isUnifiedSwapsEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Bridge}
-            iconName={IconName.Bridge}
-            onPress={goToBridge}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
+        {AppConstants.BRIDGE.ACTIVE &&
+          isBridgeAllowed(chainId) &&
+          !isUnifiedSwapsEnabled && (
+            <WalletAction
+              actionType={WalletActionType.Bridge}
+              iconName={IconName.Bridge}
+              onPress={goToBridge}
+              actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+              iconStyle={styles.icon}
+              iconSize={AvatarSize.Md}
+              disabled={!canSignTransactions}
+            />
+          )}
         {isPerpsEnabled && (
           <WalletAction
             actionType={WalletActionType.Perps}
