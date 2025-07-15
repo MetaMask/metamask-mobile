@@ -56,19 +56,35 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   // Available intervals from configuration
   const intervals = CHART_INTERVALS;
 
-  // Transform data to wagmi-charts format
+  // Transform data to wagmi-charts format with validation
   const transformedData = React.useMemo(() => {
     if (!candleData?.candles || candleData.candles.length === 0) {
       return [];
     }
 
-    return candleData.candles.map((candle) => ({
-      timestamp: candle.time,
-      open: parseFloat(candle.open),
-      high: parseFloat(candle.high),
-      low: parseFloat(candle.low),
-      close: parseFloat(candle.close),
-    }));
+    return candleData.candles
+      .map((candle) => {
+        const open = parseFloat(candle.open);
+        const high = parseFloat(candle.high);
+        const low = parseFloat(candle.low);
+        const close = parseFloat(candle.close);
+
+        // Validate numeric values
+        if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
+          console.warn(`Invalid candle data for time ${candle.time}`, {
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+          });
+          return null;
+        }
+
+        return { timestamp: candle.time, open, high, low, close };
+      })
+      .filter(
+        (candle): candle is NonNullable<typeof candle> => candle !== null,
+      ); // Remove invalid candles
   }, [candleData]);
 
   // Calculate evenly spaced horizontal lines with better visibility
