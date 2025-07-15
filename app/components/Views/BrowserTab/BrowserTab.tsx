@@ -620,7 +620,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const handleError = useCallback(
     (webViewError: WebViewError) => {
       resolvedUrlRef.current = submittedUrlRef.current;
-      titleRef.current = `Can't Open Page`;
+      titleRef.current = `Can't Open Page`; // todo: translate this string
       iconRef.current = undefined;
       setConnectionType(ConnectionType.UNKNOWN);
       setBackEnabled(true);
@@ -832,7 +832,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   /**
    * Sets loading bar progress
    */
-  const onLoadProgress = useCallback(
+  const onLoadProgress = useCallback( // todo: debounce?
     ({
       nativeEvent: { progress: onLoadProgressProgress },
     }: WebViewProgressEvent) => {
@@ -970,22 +970,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     try {
       const urlToCheck = targetUrl || resolvedUrlRef.current;
       if (!urlToCheck) return;
-      const hostname = new URLParse(urlToCheck).hostname;
+      const origin = new URLParse(urlToCheck).origin;
       const permissionsControllerState = Engine.context.PermissionController.state;
 
       // Get permitted accounts specifically for the target hostname
       const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
         permissionsControllerState,
-        hostname,
+        origin,
       );
 
-      // Only send account information if the target URL has explicit permissions
-      if (permittedAccountsForTarget.length > 0) {
-        notifyAllConnections({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: permittedAccountsForTarget,
-        });
-      }
+      const permittedOrigins = Object.keys(permissionsControllerState.subjects);
+      const isPermittedOrigin = permittedOrigins.includes(origin);
+      if (!isPermittedOrigin) return;
+
+      notifyAllConnections({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: permittedAccountsForTarget,
+      });
     } catch (err) {
       Logger.log(err as Error, 'Error in sendActiveAccount');
       return;
