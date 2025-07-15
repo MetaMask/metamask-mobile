@@ -31,10 +31,3 @@ export function toggleSignModal(show) {
     show,
   };
 }
-
-export function toggleQrKeyringScanModal(show) {
-  return {
-    type: 'TOGGLE_QR_KEYRING_SCAN_MODAL',
-    show,
-  };
-}
