@@ -20,14 +20,14 @@ import {
   mockIdentityServices,
   setupAccountMockedBalances,
 } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { MockttpServer } from 'mockttp';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
-  SmokeWalletPlatform(
+  SmokeIdentity(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {
