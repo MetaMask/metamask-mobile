@@ -14,6 +14,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Import PerpsController hooks
 import {
@@ -193,7 +194,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   };
 
   const handlePositionsNavigation = async () => {
-    navigation.navigate('PerpsPositions');
+    navigation.navigate(Routes.PERPS.POSITIONS);
   };
 
   // Show connection error screen if there's an error
