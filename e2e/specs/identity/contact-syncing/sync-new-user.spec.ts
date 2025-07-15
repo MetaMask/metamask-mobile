@@ -12,12 +12,10 @@ import SettingsView from '../../../pages/Settings/SettingsView';
 import Assertions from '../../../utils/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
-import {
-  createSharedUserStorageController,
-  withIdentityFixtures,
-} from '../utils/withIdentityFixtures';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
+import { createUserStorageController } from '../utils/mocks';
 
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
@@ -26,7 +24,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    sharedUserStorageController = createSharedUserStorageController();
+    sharedUserStorageController = createUserStorageController();
   });
 
   it('syncs new contacts and retrieves them after importing the same SRP', async () => {
