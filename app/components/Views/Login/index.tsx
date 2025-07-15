@@ -464,55 +464,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
       Logger.error(loginErr as Error, 'Failed to unlock');
-      const loginErrorMessage = (loginErr as Error).toString();
-
-      if (
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
-        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
-      ) {
-        setLoading(false);
-        setError(strings('login.invalid_password'));
-        trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-        return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('login.security_alert_title'),
-          strings('login.security_alert_desc'),
-        );
-        setLoading(false);
-      } else if (
-        containsErrorMessage(loginErr as Error, VAULT_ERROR) ||
-        containsErrorMessage(loginErr as Error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        try {
-          await handleVaultCorruption();
-        } catch (vaultCorruptionErr: unknown) {
-          const vaultCorruptionError = vaultCorruptionErr as Error;
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(
-            vaultCorruptionError,
-            'Failed to handle vault corruption',
-          );
-          setLoading(false);
-          setError(strings('login.clean_vault_error'));
-        }
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
-        setLoading(false);
-        updateBiometryChoice(false);
-      } else if (
-        loginErr instanceof SeedlessOnboardingControllerRecoveryError
-      ) {
-        setLoading(false);
-        handleSeedlessOnboardingControllerError(
-          loginErr as SeedlessOnboardingControllerRecoveryError,
-        );
-      } else {
-        setLoading(false);
-        setError(loginErrorMessage);
-      }
-      Logger.error(loginErr as Error, 'Failed to unlock');
     }
   };
 
