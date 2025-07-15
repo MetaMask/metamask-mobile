@@ -11,8 +11,8 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Setup E2E iOS Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+      - name: Setup E2E Android Environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions-keystore
         with:
           platform: android
           setup-simulator: true
@@ -70,7 +70,7 @@ jobs:
 
       - name: Build Android E2E App
         run: |
-          echo "Building E2E app for iOS..."
+          echo "Building E2E app for Android..."
           yarn test:e2e:android:build:qa-release
         shell: bash
         env:

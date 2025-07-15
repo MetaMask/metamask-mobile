@@ -14,6 +14,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Detect CPU architecture
+        run: |
+          echo "Arch: $(uname -m)"
+          if [[ "$(uname -m)" == "x86_64" ]]; then
+            echo "Detected Intel runner"
+          else
+            echo "Detected Apple Silicon runner"
+          fi
+
       - name: Print system resources
         run: |
             echo "🧠 Memory info:"
@@ -27,7 +36,7 @@ jobs:
 
 
       - name: Setup E2E iOS Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions-keystore
         with:
           platform: ios
           setup-simulator: true
