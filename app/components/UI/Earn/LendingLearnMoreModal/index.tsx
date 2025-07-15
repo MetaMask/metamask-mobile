@@ -259,7 +259,7 @@ export const LendingLearnMoreModal = () => {
         Boolean(reversedMarketApys) &&
           reversedMarketApys !== null &&
           activeTimespanApyAverage &&
-          reversedMarketApys.every((item) => item.netSupplyRate !== null),
+          reversedMarketApys.every((item) => Boolean(item.netSupplyRate)),
       ),
     [activeTimespanApyAverage, reversedMarketApys],
   );
