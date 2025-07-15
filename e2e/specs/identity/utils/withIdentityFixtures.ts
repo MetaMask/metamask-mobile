@@ -10,13 +10,6 @@ import {
 import { MockttpServer } from 'mockttp';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
-/**
- * Creates a new UserStorageMockttpController instance for sharing between tests
- * @returns {UserStorageMockttpController} A new controller instance
- */
-export function createSharedUserStorageController(): UserStorageMockttpController {
-  return createUserStorageController();
-}
 
 export interface IdentityFixtureOptions {
   fixture?: object;

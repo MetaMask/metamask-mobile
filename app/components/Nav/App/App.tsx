@@ -148,6 +148,7 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
@@ -621,6 +622,19 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const SolanaNewFeatureContentView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+      component={SolanaNewFeatureContent}
+    />
+  </Stack.Navigator>
+);
+
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -763,6 +777,11 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
+      />
+      <Stack.Screen
+        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+        component={SolanaNewFeatureContentView}
+        options={{ animationEnabled: true }}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
@@ -964,18 +983,36 @@ const App: React.FC = () => {
       dispatch,
     });
 
+    const getBranchDeeplink = async (uri?: string) => {
+      if (uri) {
+        handleDeeplink({ uri });
+        return;
+      }
+
+      try {
+        const latestParams = await branch.getLatestReferringParams();
+        const deeplink = latestParams?.['+non_branch_link'] as string;
+        if (deeplink) {
+          handleDeeplink({ uri: deeplink });
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error getting Branch deeplink');
+      }
+    };
+
+    // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
+    // This is a workaround to ensure that the deeplink is processed for iOS cold start.
+    // TODO: Remove this once branch.subscribe is called for iOS cold start.
+    getBranchDeeplink();
+
     branch.subscribe((opts) => {
       const { error } = opts;
 
-      // Log error for analytics and continue handling deeplink
       if (error) {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
+      getBranchDeeplink(opts.uri);
     });
   }, [dispatch, handleDeeplink, navigation]);
 
