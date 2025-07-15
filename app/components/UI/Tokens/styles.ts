@@ -35,7 +35,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 130,
     },
     emptyTokensViewText: {
-      fontFamily: 'GeistMedium',
+      fontFamily: 'Geist Medium',
     },
     text: {
       fontSize: 20,
