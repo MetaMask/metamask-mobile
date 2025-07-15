@@ -8,16 +8,89 @@ import { BridgeToken } from '../../../components/UI/Bridge/types';
 import Engine from '../../Engine';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { fetchEvmAtomicBalance } from '../../../components/UI/Bridge/hooks/useLatestBalance';
+import { getProviderByChainId } from '../../../util/notifications/methods/common';
+import { formatUnits } from 'ethers/lib/utils';
+import { isCaipChainId } from '@metamask/utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
 import { isSolanaAccount } from '../../Multichain/utils';
+import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 ///: END:ONLY_INCLUDE_IF
 
 interface HandleSwapUrlParams {
   swapPath: string;
 }
+
+/**
+ * Fetches the balance for a token
+ * @param token - The token to fetch balance for
+ * @param selectedAddress - The selected address
+ * @returns The token with balance information
+ */
+const fetchTokenBalance = async (
+  token: BridgeToken,
+  selectedAddress: string,
+): Promise<BridgeToken> => {
+  try {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // For Solana tokens, get balance from multichain token list
+    if (isCaipChainId(token.chainId) && isSolanaChainId(token.chainId)) {
+      const { AccountsController } = Engine.context;
+      const selectedAccount = Object.values(
+        AccountsController.state.internalAccounts.accounts,
+      ).find((account) => account.address.toLowerCase() === selectedAddress.toLowerCase());
+      
+      if (selectedAccount) {
+        // Get the multichain token list for the selected account
+        const storeState = Engine.context.store.getState();
+        const nonEvmTokens = selectMultichainTokenListForAccountId(storeState, selectedAccount.id);
+        
+        const matchingToken = nonEvmTokens.find((nonEvmToken) =>
+          nonEvmToken.address === token.address && nonEvmToken.chainId === token.chainId
+        );
+        
+        if (matchingToken?.balance) {
+          return {
+            ...token,
+            balance: matchingToken.balance,
+          };
+        }
+      }
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    // For EVM tokens, fetch balance using web3 provider
+    if (token.address && token.decimals && !isCaipChainId(token.chainId)) {
+      const web3Provider = getProviderByChainId(token.chainId as Hex);
+      if (web3Provider) {
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          token.address,
+          token.chainId as Hex,
+        );
+        
+        if (atomicBalance && token.decimals) {
+          const displayBalance = formatUnits(atomicBalance, token.decimals);
+          return {
+            ...token,
+            balance: displayBalance,
+          };
+        }
+      }
+    }
+
+    return token;
+  } catch (error) {
+    console.warn('Error fetching token balance:', error);
+    return token;
+  }
+};
 
 /**
  * Validates and looks up a token from the bridge token list
@@ -223,8 +296,25 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
         ? processAmount(amount, sourceToken.decimals)
         : undefined;
 
+    // Get the selected address for balance fetching
+    const { AccountsController } = Engine.context;
+    const selectedAddress = AccountsController.getSelectedAccount()?.address;
+
+    // Fetch balance information for tokens if we have a selected address
+    let sourceTokenWithBalance = sourceToken;
+    let destTokenWithBalance = destToken;
+
+    if (selectedAddress) {
+      if (sourceToken) {
+        sourceTokenWithBalance = await fetchTokenBalance(sourceToken, selectedAddress);
+      }
+      if (destToken) {
+        destTokenWithBalance = await fetchTokenBalance(destToken, selectedAddress);
+      }
+    }
+
     // Switch to the source token's network if we have a valid source token
-    if (sourceToken?.chainId) {
+    if (sourceTokenWithBalance?.chainId) {
       try {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
@@ -232,13 +322,13 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
         // Check if we have the network configuration
         let networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
-            sourceToken.chainId as Hex,
+            sourceTokenWithBalance.chainId as Hex,
           );
 
         // If network doesn't exist, try to add it from popular networks
         if (!networkConfiguration) {
           const popularNetwork = PopularList.find(
-            (network) => network.chainId === sourceToken.chainId,
+            (network) => network.chainId === sourceTokenWithBalance.chainId,
           );
 
           if (popularNetwork) {
@@ -262,7 +352,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
             // Get the updated network configuration
             networkConfiguration =
               NetworkController.getNetworkConfigurationByChainId(
-                sourceToken.chainId as Hex,
+                sourceTokenWithBalance.chainId as Hex,
               );
           }
         }
@@ -281,13 +371,13 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       }
     }
 
-    // Navigate with route params - let component handle the Redux updates
+    // Navigate with route params - use tokens with balance information
     NavigationService.navigation.navigate('Bridge', {
       screen: 'BridgeView',
       params: {
         sourcePage: 'deeplink',
-        sourceToken,
-        destToken,
+        sourceToken: sourceTokenWithBalance,
+        destToken: destTokenWithBalance,
         sourceAmount,
       },
     });

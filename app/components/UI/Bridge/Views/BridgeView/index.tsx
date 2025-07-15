@@ -175,7 +175,9 @@ const BridgeView = () => {
     !!destToken &&
     // Prevent quote fetching when destination address is not set
     // Destinations address is only needed for EVM <> Solana bridges
-    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
+    (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress)) &&
+    // For tokens from deep links, ensure balance has been fetched to avoid quote loading issues
+    (route?.params?.sourcePage !== 'deeplink' || !!latestSourceBalance);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
@@ -194,7 +196,15 @@ const BridgeView = () => {
   // Update quote parameters when relevant state changes
   useEffect(() => {
     if (hasValidBridgeInputs) {
-      updateQuoteParams();
+      // Add a small delay to ensure balance has been fetched for tokens from deep links
+      const timeoutId = setTimeout(() => {
+        updateQuoteParams();
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        updateQuoteParams.cancel();
+      };
     }
     return () => {
       updateQuoteParams.cancel();

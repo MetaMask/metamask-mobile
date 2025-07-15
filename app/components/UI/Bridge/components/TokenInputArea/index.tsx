@@ -209,6 +209,8 @@ export const TokenInputArea = forwardRef<
     const formattedBalance =
       token?.symbol && tokenBalance
         ? `${parseFloat(tokenBalance).toFixed(3).replace(/\.?0+$/, '')} ${token?.symbol}`
+        : token?.symbol && tokenType === TokenInputAreaType.Source
+        ? `... ${token.symbol}` // Show loading indicator for source tokens when balance is not available
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero
