@@ -21,8 +21,8 @@ export async function withSolanaAccountEnabled(
   }: {
     numberOfAccounts?: number;
     dappPath?: string;
-    solanaAccountPermitted?: boolean
-    evmAccountPermitted?: boolean
+    solanaAccountPermitted?: boolean;
+    evmAccountPermitted?: boolean;
   },
   test: () => Promise<void>,
 ) {
