@@ -6,7 +6,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS, KycStatus } from '../constants';
+import {
+  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
+  KycStatus,
+  REDIRECTION_URL,
+} from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import {
@@ -94,7 +98,7 @@ export const useDepositRouting = ({
 
   const handleNavigationStateChange = useCallback(
     async (navState: { url: string }) => {
-      if (navState.url.startsWith('https://metamask.io')) {
+      if (navState.url.startsWith(REDIRECTION_URL)) {
         try {
           const urlObj = new URL(navState.url);
           const orderId = urlObj.searchParams.get('orderId');
