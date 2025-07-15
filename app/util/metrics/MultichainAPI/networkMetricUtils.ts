@@ -35,9 +35,9 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
  * @returns An array of CAIP chain IDs for all configured networks.
  */
 export function getConfiguredCaipChainIds(): CaipChainId[] {
-  // We're accessing state directly and safely here because there's a potential race condition
-  // that causes the state to be undefined where we access it.
-  // Issue described here: https://github.com/MetaMask/metamask-mobile/issues/17167
+  // We're accessing state with optional chaining here because there's a race condition
+  // that causes redux state to be undefined when we access it.
+  // Issue here: https://github.com/MetaMask/metamask-mobile/issues/17167
 
   const state = store.getState();
   const evmNetworkConfigurations =
