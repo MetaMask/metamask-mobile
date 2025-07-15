@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-evenly',
-      padding: 16,
+      paddingVertical: 16,
     },
     buttonWrapper: {
       display: 'flex',
