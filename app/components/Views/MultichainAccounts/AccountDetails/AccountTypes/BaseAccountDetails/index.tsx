@@ -30,6 +30,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
+import { selectWalletByAccount } from '../../../../../../multichain-accounts/selectors/accountTreeController';
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -48,7 +49,8 @@ export const BaseAccountDetails = ({
   )
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
-  const walletName = 'Wallet 1'; //TODO: replace with useSelector(selectWalletName);
+  const selectWallet = useSelector(selectWalletByAccount);
+  const wallet = selectWallet?.(account.id);
 
   const handleEditAccountName = useCallback(() => {
     navigation.navigate(
@@ -65,9 +67,15 @@ export const BaseAccountDetails = ({
     });
   }, [navigation, account]);
 
-  const handleEditWalletName = useCallback(() => {
-    // TODO: implement when the account group
-  }, []);
+  const handleWalletClick = useCallback(() => {
+    if (!wallet) {
+      return;
+    }
+
+    navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
+      walletId: wallet.id,
+    });
+  }, [navigation, wallet]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -149,7 +157,7 @@ export const BaseAccountDetails = ({
         <TouchableOpacity
           style={styles.wallet}
           testID={AccountDetailsIds.WALLET_NAME_LINK}
-          onPress={handleEditWalletName}
+          onPress={handleWalletClick}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.wallet')}
@@ -160,7 +168,7 @@ export const BaseAccountDetails = ({
             gap={8}
           >
             <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {walletName}
+              {wallet?.metadata.name}
             </Text>
             <Icon
               name={IconName.ArrowRight}
