@@ -375,6 +375,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
 
+    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
+      setLoading(false);
+      handleSeedlessOnboardingControllerError(
+        loginError as SeedlessOnboardingControllerRecoveryError,
+      );
+      return;
+    }
+
     const isPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
@@ -406,14 +414,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
       setLoading(false);
       updateBiometryChoice(false);
-      return;
-    }
-
-    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
-      setLoading(false);
-      handleSeedlessOnboardingControllerError(
-        loginError as SeedlessOnboardingControllerRecoveryError,
-      );
       return;
     }
 
