@@ -293,16 +293,17 @@ class TransactionElement extends PureComponent {
     const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
-    return `${(!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-      ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-        tx.time,
-      )} ${strings(
-        'transactions.from_device_label',
-        // eslint-disable-next-line no-mixed-spaces-and-tabs
-      )}`
-      : `${toDateFormat(tx.time)}
+    return `${
+      (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
+        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
+            tx.time,
+          )} ${strings(
+            'transactions.from_device_label',
+            // eslint-disable-next-line no-mixed-spaces-and-tabs
+          )}`
+        : `${toDateFormat(tx.time)}
       `
-      }`;
+    }`;
   };
 
   /**
@@ -441,8 +442,8 @@ class TransactionElement extends PureComponent {
                 {title}
               </ListItem.Title>
               {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-                isBridgeTransaction &&
-                !isBridgeComplete ? (
+              isBridgeTransaction &&
+              !isBridgeComplete ? (
                 <BridgeActivityItemTxSegments
                   bridgeTxHistoryItem={bridgeTxHistoryItem}
                   transactionStatus={this.props.tx.status}
@@ -720,8 +721,7 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.tx.chainId),
-  conversionRate: selectConversionRateByChainId(
-    state, ownProps.txChainId),
+  conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;
