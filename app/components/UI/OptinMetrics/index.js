@@ -155,10 +155,6 @@ class OptinMetrics extends PureComponent {
 
   state = {
     /**
-     * Used to control the action buttons state.
-     */
-    isActionEnabled: false,
-    /**
      * Tracks the scroll view's content height.
      */
     scrollViewContentHeight: undefined,
@@ -512,7 +508,6 @@ class OptinMetrics extends PureComponent {
   };
 
   renderActionButtons = () => {
-    const { isActionEnabled } = this.state;
     const styles = this.getStyles();
 
     return (
@@ -526,7 +521,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
-          isDisabled={!isActionEnabled}
         />
         <View style={styles.buttonDivider} />
         <Button
@@ -536,7 +530,6 @@ class OptinMetrics extends PureComponent {
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
-          isDisabled={!isActionEnabled}
         />
       </View>
     );
@@ -547,7 +540,6 @@ class OptinMetrics extends PureComponent {
    */
   onScrollEndReached = () => {
     this.setState({ isEndReached: true });
-    this.setState({ isActionEnabled: true });
   };
 
   /**
