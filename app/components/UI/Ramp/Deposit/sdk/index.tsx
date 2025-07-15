@@ -31,6 +31,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
 import { getGeolocation } from '../utils/geolocation';
+import Logger from '../../../../../util/Logger';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -119,13 +120,14 @@ export const DepositSDKProvider = ({
             (r) => r.isoCode === geo.ipCountryCode && r.supported,
           );
           if (region) {
-            dispatch(setFiatOrdersRegionDeposit(region));
+            setSelectedRegionCallback(region);
           } else if (defaultRegion) {
-            dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+            setSelectedRegionCallback(defaultRegion);
           }
         } catch (error) {
+          Logger.error(error as Error, 'Error setting region by geolocation:');
           if (defaultRegion) {
-            dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+            setSelectedRegionCallback(defaultRegion);
           }
         }
       }
