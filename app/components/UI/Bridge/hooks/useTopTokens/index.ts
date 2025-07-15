@@ -109,7 +109,7 @@ export const useTopTokens = ({
         address: tokenAddress,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
-        image: bridgeAsset.iconUrl || bridgeAsset.icon,
+        image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
         decimals: bridgeAsset.decimals,
         chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
       };

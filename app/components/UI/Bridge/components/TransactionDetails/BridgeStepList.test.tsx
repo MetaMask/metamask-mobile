@@ -3,11 +3,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeStepList from './BridgeStepList';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import {
-  BridgeHistoryItem,
-  ActionTypes,
-} from '@metamask/bridge-status-controller';
-import { StatusTypes, Step } from '@metamask/bridge-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { StatusTypes, Step, ActionTypes } from '@metamask/bridge-controller';
 
 jest.mock('./StepProgressBarItem', () => ({
   __esModule: true,

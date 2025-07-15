@@ -67,8 +67,9 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () =>
-  jest.fn(() => mockUseDepositTokenExchange()),
+jest.mock(
+  '../../hooks/useDepositTokenExchange',
+  () => () => mockUseDepositTokenExchange(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
