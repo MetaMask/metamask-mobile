@@ -23,7 +23,10 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { OnboardingActionTypes, saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { connect, useDispatch } from 'react-redux';
@@ -92,7 +95,10 @@ import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
-import { IMetaMetricsEvent, ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 // In android, having {} will cause the styles to update state
@@ -347,7 +353,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const handlePasswordError = (loginErrorMessage: string, newFailedAttempts: number) => {
+  const handlePasswordError = (
+    loginErrorMessage: string,
+    newFailedAttempts: number,
+  ) => {
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
         account_type: 'social',
