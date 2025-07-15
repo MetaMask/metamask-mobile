@@ -54,8 +54,8 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
+import useDepositEnabled from '../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
@@ -79,9 +79,7 @@ const WalletActions = () => {
   );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
-  const isDepositWalletActionEnabled = useSelector(
-    selectDepositEntrypointWalletActions,
-  );
+  const { isDepositEnabled } = useDepositEnabled();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -402,7 +400,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {isDepositWalletActionEnabled && (
+        {isDepositEnabled && (
           <WalletAction
             actionType={WalletActionType.Deposit}
             iconName={IconName.Cash}
