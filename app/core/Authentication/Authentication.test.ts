@@ -915,7 +915,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet, and 2 trace buffer calls
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -971,7 +971,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         seedPhrase: mockSeedPhrase2,
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet, and 2 trace buffer calls
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1019,7 +1019,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(4); // logIn, passwordSet, and 2 trace buffer calls
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
   });

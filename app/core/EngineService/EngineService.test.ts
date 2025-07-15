@@ -150,6 +150,7 @@ describe('EngineService', () => {
   it('should log Engine initialization with empty state', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ engine: { backgroundState: {} } }),
+      dispatch: jest.fn(),
     } as unknown as ReduxStore);
 
     engineService.start();
@@ -224,9 +225,10 @@ describe('EngineService', () => {
 
       // Wait for batcher to process and verify each key in order
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledTimes(keys.length);
+        expect(mockDispatch).toHaveBeenCalledTimes(keys.length + 2); // 3 keys + 2 trace buffer calls
         keys.forEach((key, index) => {
-          expect(mockDispatch).toHaveBeenNthCalledWith(index + 1, {
+          expect(mockDispatch).toHaveBeenNthCalledWith(index + 3, {
+            // offset by 2 for trace calls
             type: UPDATE_BG_STATE_KEY,
             payload: { key },
           });
