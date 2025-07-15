@@ -622,7 +622,7 @@ class Amount extends PureComponent {
     const allTokensFilteredByChainId =
       this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
         this.props.selectedAddress?.toLowerCase()
-      ];
+      ] ?? [];
 
     this.tokens = [getEther(ticker), ...allTokensFilteredByChainId];
     this.collectibles = this.processCollectibles();
