@@ -175,6 +175,18 @@ export const useDepositRouting = ({
     [navigation, popToBuildQuote],
   );
 
+  const navigateToOrderProcessingCallback = useCallback(
+    ({ orderId }: { orderId: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createOrderProcessingNavDetails({
+          orderId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote],
+  );
+
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
       if (url.startsWith(REDIRECTION_URL)) {
@@ -201,11 +213,9 @@ export const useDepositRouting = ({
 
               await handleNewOrder(processedOrder);
 
-              navigation.navigate(
-                ...createOrderProcessingNavDetails({
-                  orderId: order.id,
-                }),
-              );
+              navigateToOrderProcessingCallback({
+                orderId: order.id,
+              });
             } catch (error) {
               throw new Error(
                 error instanceof Error && error.message
@@ -219,7 +229,12 @@ export const useDepositRouting = ({
         }
       }
     },
-    [getOrder, selectedWalletAddress, handleNewOrder, navigation],
+    [
+      getOrder,
+      selectedWalletAddress,
+      handleNewOrder,
+      navigateToOrderProcessingCallback,
+    ],
   );
 
   const navigateToWebviewModalCallback = useCallback(
