@@ -283,11 +283,13 @@ describe('Vault', () => {
           throw expectedError;
         });
 
-      await recreateVaultWithNewPassword(
-        'password',
-        newPassword,
-        mockHdAccount1.address,
-      );
+      await expect(
+        recreateVaultWithNewPassword(
+          'password',
+          newPassword,
+          mockHdAccount1.address,
+        ),
+      ).rejects.toThrow('Change password error - Error: test error');
 
       // Expect change password on the keyring controller to be called twice
       // The second call should be to revert to the old password
