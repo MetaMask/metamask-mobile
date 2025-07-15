@@ -513,6 +513,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
+      params: {
+        oauthLoginSuccess: true,
+      },
     });
   };
 
