@@ -90,7 +90,8 @@ const createStyles = (colors) =>
       lineHeight: 40,
       textAlign: 'center',
       paddingHorizontal: 60,
-      fontFamily: 'MMSans-Regular',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
       width: '100%',
       marginVertical: 16,
@@ -181,18 +182,6 @@ const createStyles = (colors) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       color: colors.text.default,
-    },
-    createWalletButton: {
-      borderRadius: 12,
-      color: importedColors.whiteTransparent,
-      backgroundColor: importedColors.btnBlack,
-    },
-    existingWalletButton: {
-      borderRadius: 12,
-      color: importedColors.btnBlack,
-      backgroundColor: colors.transparent,
-      borderWidth: 1,
-      borderColor: importedColors.btnBlack,
     },
   });
 
@@ -562,7 +551,6 @@ class Onboarding extends PureComponent {
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.createWalletButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -570,7 +558,6 @@ class Onboarding extends PureComponent {
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.existingWalletButton}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}

@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
@@ -108,7 +108,11 @@ class SettingsView {
   }
 
   async tapNotifications() {
-    await Gestures.waitAndTap(this.notificationsButton);
+    await Gestures.waitAndTap(this.notificationsButton,
+      {
+        elemDescription: 'Settings - Notifications Button',
+      },
+    );
   }
 
   async tapContacts() {

@@ -8,6 +8,7 @@ import 'react-native-gesture-handler';
 import 'react-native-url-polyfill/auto';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
+import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
@@ -20,12 +21,17 @@ import { name } from './app.config.js';
 import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
-import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+import {
+  handleCustomError,
+  setReactNativeDefaultHandler,
+} from './app/core/ErrorHandler';
 
 // polyfill crypto
 global.crypto = {
   ...crypto,
   ...global.crypto,
+  randomUUID,
+  getRandomValues,
 };
 
 Performance.setupPerformanceObservers();
@@ -109,4 +115,3 @@ function setupGlobalErrorHandler() {
 }
 
 setupGlobalErrorHandler();
-

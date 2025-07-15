@@ -864,7 +864,6 @@ describe('Authentication', () => {
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-
       OAuthService = jest.requireMock('../OAuthService/OAuthService');
       Logger = jest.requireMock('../../util/Logger');
 

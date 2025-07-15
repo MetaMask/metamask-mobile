@@ -1,15 +1,16 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
+import { KycStatus } from '../../constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
 const mockStartPolling = jest.fn();
+const mockHandleApprovedKycFlow = jest.fn();
 
 const mockKycForms = { forms: [] };
 const mockQuote = {
@@ -54,21 +55,27 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: (...args: unknown[]) => mockUseDepositSdkMethod(...args),
 }));
 
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  __esModule: true,
-  default: () => mockUseUserDetailsPolling,
-  KycStatus: {
+jest.mock('../../hooks/useUserDetailsPolling', () => {
+  const mockHook = () => mockUseUserDetailsPolling;
+  mockHook.KycStatus = {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
-  },
-}));
+  };
+  return mockHook;
+});
 
 jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'KYC Processing',
   }),
+}));
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: jest.fn(() => ({
+    handleApprovedKycFlow: mockHandleApprovedKycFlow,
+  })),
 }));
 
 function render(Component: React.ComponentType) {
@@ -84,6 +91,7 @@ describe('KycProcessing Component', () => {
     mockUseUserDetailsPolling.userDetails = null;
     mockUseUserDetailsPolling.loading = false;
     mockUseUserDetailsPolling.error = null;
+    mockHandleApprovedKycFlow.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -134,5 +142,25 @@ describe('KycProcessing Component', () => {
     ]);
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  describe('handleContinue button behavior', () => {
+    beforeEach(() => {
+      mockUseUserDetailsPolling.userDetails = {
+        kyc: { l1: { status: KycStatus.APPROVED } },
+      };
+    });
+
+    it('calls handleApprovedKycFlow when continue button is pressed', async () => {
+      mockHandleApprovedKycFlow.mockResolvedValueOnce(undefined);
+      render(KycProcessing);
+
+      const continueButton = screen.getByText('Complete your order');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockHandleApprovedKycFlow).toHaveBeenCalledWith(mockQuote);
+      });
+    });
   });
 });

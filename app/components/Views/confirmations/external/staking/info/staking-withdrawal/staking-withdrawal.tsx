@@ -14,6 +14,8 @@ import StakingContractInteractionDetails from '../../components/staking-contract
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import UnstakingTimeSection from '../../components/unstaking-time/unstaking-time';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
+import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
+import { TraceName } from '../../../../../../../util/trace';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const amountWei = route?.params?.amountWei;
@@ -39,6 +41,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   }, [amount, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+  useEndTraceOnMount(TraceName.EarnWithdrawConfirmationScreen);
 
   return (
     <View testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>

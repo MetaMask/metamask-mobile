@@ -67,8 +67,9 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () =>
-  jest.fn(() => mockUseDepositTokenExchange()),
+jest.mock(
+  '../../hooks/useDepositTokenExchange',
+  () => () => mockUseDepositTokenExchange(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
@@ -271,6 +272,22 @@ describe('BuildQuote Component', () => {
     it('displays error when quote fetch fails', async () => {
       mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('displays error when quote is falsy', async () => {
+      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockGetQuote.mockReturnValue(null);
 
       render(BuildQuote);
 

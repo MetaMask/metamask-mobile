@@ -31,6 +31,7 @@ import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-loc
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -43,7 +44,8 @@ type RevealSRPProp = RouteProp<RootNavigationParamList, 'RevealSRP'>;
 export const RevealSRP = () => {
   const route = useRoute<RevealSRPProp>();
   const { account } = route.params;
-  const { styles } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
+  const { styles } = useStyles(styleSheet, { insets });
   const { navigate, goBack } = useNavigation();
 
   const keyringId = useKeyringId(account);

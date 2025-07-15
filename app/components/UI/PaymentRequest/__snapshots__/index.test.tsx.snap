@@ -178,7 +178,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
@@ -327,7 +327,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
@@ -722,7 +722,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
@@ -871,7 +871,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                       "padding": 15,
                     },
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "transparent",
                       "borderColor": "#4459ff",
                       "borderWidth": 1,
                     },
