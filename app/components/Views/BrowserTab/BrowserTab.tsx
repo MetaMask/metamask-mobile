@@ -1353,6 +1353,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           event,
         )}`,
       );
+
+      const newOrigin = new URLParse(url).origin;
+      const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
+      
+      // Reset bridge if origin changed
+      if (newOrigin !== currentOrigin) {
+        backgroundBridgeRef.current?.onDisconnect();
+        backgroundBridgeRef.current = undefined;
+        // Re-initialize for new origin
+        initializeBackgroundBridge(newOrigin, true);
+      }
+
       // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
       if (navigationType === 'backforward') {
         const payload = {
