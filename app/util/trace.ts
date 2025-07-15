@@ -107,7 +107,7 @@ export enum TraceOperation {
   CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
-  DiscoverAccounts = 'discover.accounts'
+  DiscoverAccounts = 'discover.accounts',
 }
 
 const ID_DEFAULT = 'default';

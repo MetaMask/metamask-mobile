@@ -1,5 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
-import { TransactionStatus, TransactionType, TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
 import { useStakingTransactionTracing } from './useStakingTransactionTracing';
@@ -23,15 +27,22 @@ jest.mock('../../../Views/confirmations/utils/confirm', () => ({
   isStakingConfirmation: jest.fn(),
 }));
 
-jest.mock('../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: jest.fn(),
-}));
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: jest.fn(),
+  }),
+);
 
 const mockTrace = jest.mocked(trace);
 const mockEndTrace = jest.mocked(endTrace);
 const mockIsStakingConfirmation = jest.mocked(isStakingConfirmation);
-const mockUseTransactionMetadataRequest = jest.mocked(useTransactionMetadataRequest);
-const mockSubscribeOnceIf = jest.mocked(Engine.controllerMessenger.subscribeOnceIf);
+const mockUseTransactionMetadataRequest = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const mockSubscribeOnceIf = jest.mocked(
+  Engine.controllerMessenger.subscribeOnceIf,
+);
 
 describe('useStakingTransactionTracing', () => {
   const mockStakingDepositTransaction: TransactionMeta = {
@@ -67,7 +78,9 @@ describe('useStakingTransactionTracing', () => {
   });
 
   it('should set up event listeners for staking deposit transactions', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue(mockStakingDepositTransaction);
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      mockStakingDepositTransaction,
+    );
     mockIsStakingConfirmation.mockReturnValue(true);
 
     renderHook(() => useStakingTransactionTracing());
@@ -88,7 +101,9 @@ describe('useStakingTransactionTracing', () => {
   });
 
   it('should not set up event listeners for non-staking transactions', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue(mockNonStakingTransaction);
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      mockNonStakingTransaction,
+    );
     mockIsStakingConfirmation.mockReturnValue(false);
 
     renderHook(() => useStakingTransactionTracing());
@@ -106,21 +121,25 @@ describe('useStakingTransactionTracing', () => {
 
   describe('Transaction event handlers', () => {
     it('should start trace when transaction is submitted', () => {
-      mockUseTransactionMetadataRequest.mockReturnValue(mockStakingDepositTransaction);
+      mockUseTransactionMetadataRequest.mockReturnValue(
+        mockStakingDepositTransaction,
+      );
       mockIsStakingConfirmation.mockReturnValue(true);
 
-      let transactionSubmittedCallback: 
+      let transactionSubmittedCallback:
         | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
         | undefined;
 
-      mockSubscribeOnceIf.mockImplementation((eventName: string, callback: unknown) => {
-        if (eventName === 'TransactionController:transactionSubmitted') {
-          transactionSubmittedCallback = callback as (event: {
-            transactionMeta: Partial<TransactionMeta>;
-          }) => void;
-        }
-        return jest.fn();
-      });
+      mockSubscribeOnceIf.mockImplementation(
+        (eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionSubmitted') {
+            transactionSubmittedCallback = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        },
+      );
 
       renderHook(() => useStakingTransactionTracing());
 
@@ -145,21 +164,25 @@ describe('useStakingTransactionTracing', () => {
     });
 
     it('should end trace when transaction is confirmed', () => {
-      mockUseTransactionMetadataRequest.mockReturnValue(mockStakingDepositTransaction);
+      mockUseTransactionMetadataRequest.mockReturnValue(
+        mockStakingDepositTransaction,
+      );
       mockIsStakingConfirmation.mockReturnValue(true);
 
-      let transactionConfirmedCallback: 
+      let transactionConfirmedCallback:
         | ((transactionMeta: Partial<TransactionMeta>) => void)
         | undefined;
 
-      mockSubscribeOnceIf.mockImplementation((eventName: string, callback: unknown) => {
-        if (eventName === 'TransactionController:transactionConfirmed') {
-          transactionConfirmedCallback = callback as (
-            transactionMeta: Partial<TransactionMeta>,
-          ) => void;
-        }
-        return jest.fn();
-      });
+      mockSubscribeOnceIf.mockImplementation(
+        (eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionConfirmed') {
+            transactionConfirmedCallback = callback as (
+              transactionMeta: Partial<TransactionMeta>,
+            ) => void;
+          }
+          return jest.fn();
+        },
+      );
 
       renderHook(() => useStakingTransactionTracing());
 
@@ -186,21 +209,25 @@ describe('useStakingTransactionTracing', () => {
         type: TransactionType.stakingUnstake,
       };
 
-      mockUseTransactionMetadataRequest.mockReturnValue(mockStakingWithdrawalTransaction);
+      mockUseTransactionMetadataRequest.mockReturnValue(
+        mockStakingWithdrawalTransaction,
+      );
       mockIsStakingConfirmation.mockReturnValue(true);
 
-      let transactionSubmittedCallback: 
+      let transactionSubmittedCallback:
         | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
         | undefined;
 
-      mockSubscribeOnceIf.mockImplementation((eventName: string, callback: unknown) => {
-        if (eventName === 'TransactionController:transactionSubmitted') {
-          transactionSubmittedCallback = callback as (event: {
-            transactionMeta: Partial<TransactionMeta>;
-          }) => void;
-        }
-        return jest.fn();
-      });
+      mockSubscribeOnceIf.mockImplementation(
+        (eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionSubmitted') {
+            transactionSubmittedCallback = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        },
+      );
 
       renderHook(() => useStakingTransactionTracing());
 
@@ -231,21 +258,25 @@ describe('useStakingTransactionTracing', () => {
         type: TransactionType.stakingClaim,
       };
 
-      mockUseTransactionMetadataRequest.mockReturnValue(mockStakingClaimTransaction);
+      mockUseTransactionMetadataRequest.mockReturnValue(
+        mockStakingClaimTransaction,
+      );
       mockIsStakingConfirmation.mockReturnValue(true);
 
-      let transactionSubmittedCallback: 
+      let transactionSubmittedCallback:
         | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
         | undefined;
 
-      mockSubscribeOnceIf.mockImplementation((eventName: string, callback: unknown) => {
-        if (eventName === 'TransactionController:transactionSubmitted') {
-          transactionSubmittedCallback = callback as (event: {
-            transactionMeta: Partial<TransactionMeta>;
-          }) => void;
-        }
-        return jest.fn();
-      });
+      mockSubscribeOnceIf.mockImplementation(
+        (eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionSubmitted') {
+            transactionSubmittedCallback = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        },
+      );
 
       renderHook(() => useStakingTransactionTracing());
 
@@ -269,4 +300,4 @@ describe('useStakingTransactionTracing', () => {
       });
     });
   });
-}); 
+});

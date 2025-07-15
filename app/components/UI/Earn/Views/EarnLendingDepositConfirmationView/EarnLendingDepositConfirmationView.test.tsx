@@ -1422,7 +1422,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnDepositConfirmationScreen
+        name: TraceName.EarnDepositConfirmationScreen,
       });
     });
 

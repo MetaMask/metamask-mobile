@@ -929,7 +929,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnWithdrawConfirmationScreen
+        name: TraceName.EarnWithdrawConfirmationScreen,
       });
     });
 

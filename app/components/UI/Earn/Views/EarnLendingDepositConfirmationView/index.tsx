@@ -196,8 +196,7 @@ const EarnLendingDepositConfirmationView = () => {
   useEffect(() => {
     if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
       endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
-    }
-    else {
+    } else {
       endTrace({ name: TraceName.EarnDepositReviewScreen });
     }
   }, [action]);
@@ -445,7 +444,13 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot, earnToken?.chainId],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      tokenSnapshot,
+      earnToken?.chainId,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(
