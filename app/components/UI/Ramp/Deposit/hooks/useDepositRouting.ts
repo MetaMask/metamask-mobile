@@ -185,7 +185,7 @@ export const useDepositRouting = ({
             const ottResponse = await requestOtt();
 
             if (!ottResponse) {
-              throw new Error(strings('deposit.buildQuote.unexpectedError'));
+              throw new Error('Failed to get OTT token');
             }
 
             const paymentUrl = await generatePaymentUrl(
@@ -196,7 +196,7 @@ export const useDepositRouting = ({
             );
 
             if (!paymentUrl) {
-              throw new Error(strings('deposit.buildQuote.unexpectedError'));
+              throw new Error('Failed to generate payment URL');
             }
 
             navigation.navigate(
