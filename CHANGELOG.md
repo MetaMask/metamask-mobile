@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
 ## [7.50.1]
 
 ### Fixed
@@ -644,7 +643,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix (cp-7.47.0): Ensure we pass the correct type when rendering the price overview ([#15711](https://github.com/MetaMask/metamask-mobile/pull/15711))
 - fix(snaps): Add fix for missing Snap permission labels ([#15265](https://github.com/MetaMask/metamask-mobile/pull/15265))
 - fix(bridge): add auto slippage option and improve slippage selection UI ([#15159](https://github.com/MetaMask/metamask-mobile/pull/15159))
-
 
 ## [7.47.3]
 
@@ -6183,7 +6181,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...HEAD
+[7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1
 [7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.3...v7.50.0
 [7.47.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.2...v7.47.3
 [7.47.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.1...v7.47.2
