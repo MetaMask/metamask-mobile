@@ -774,4 +774,50 @@ describe('handleSwapUrl', () => {
     });
   });
   ///: END:ONLY_INCLUDE_IF
+
+  it('handles Solana tokens in bridge token list lookup correctly', async () => {
+    // Mock Solana bridge tokens with raw addresses as keys
+    mockFetchBridgeTokens.mockResolvedValue({
+      'So11111111111111111111111111111111111111112': {
+        symbol: 'SOL',
+        name: 'Solana',
+        decimals: 9,
+        iconUrl: 'https://example.com/sol.png',
+      },
+      'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc-sol.png',
+      },
+    });
+
+    // Mock Solana chain detection
+    mockIsSolanaChainId.mockImplementation(
+      (chainId) => chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+
+    const swapPath =
+      'from=eip155:1/slip44:60&to=solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/solana:So11111111111111111111111111111111111111112&amount=1000000000000000000';
+
+    await handleSwapUrl({ swapPath });
+
+    // Should navigate to bridge view with properly resolved Solana destination token
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: null, // Native ETH may not be in bridge list
+        destToken: {
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/solana:So11111111111111111111111111111111111111112',
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image: 'https://example.com/sol.png',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
 });
