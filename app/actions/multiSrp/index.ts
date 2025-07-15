@@ -105,7 +105,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
         name: TraceName.OnboardingAddSrpError,
       });
 
-      // Don't throw the error - log it but allow the import process to continue
+      throw error;
     } finally {
       endTrace({
         name: TraceName.OnboardingAddSrp,
