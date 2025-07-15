@@ -6,7 +6,7 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import useBalance from '../Ramp/Aggregator/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../util/number';
-import { fireEvent } from '@testing-library/react-native';
+import { userEvent } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
@@ -14,6 +14,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -108,24 +109,24 @@ describe('ConfirmAddAsset', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
-    expect(getByText('Tether USD')).toBeTruthy();
-    expect(getByText('USDT')).toBeTruthy();
-    expect(getByText('$27.02')).toBeTruthy();
+    expect(getByText('Tether USD')).toBeOnTheScreen();
+    expect(getByText('USDT')).toBeOnTheScreen();
+    expect(getByText('$27.02')).toBeOnTheScreen();
   });
 
-  it('handles cancel button click', () => {
+  it('handles cancel button click', async () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
     const cancelButton = getByText('Cancel');
-    fireEvent.press(cancelButton);
-    expect(getByText('Are you sure you want to exit?')).toBeTruthy();
+    await userEvent.press(cancelButton);
+    expect(getByText('Are you sure you want to exit?')).toBeOnTheScreen();
     expect(
       getByText('Your search information will not be saved.'),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('should call addTokenList when confirm button is pressed', () => {
+  it('should call addTokenList and navigate when confirm button is pressed', async () => {
     const mockAsset = {
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       symbol: 'USDT',
@@ -163,8 +164,14 @@ describe('ConfirmAddAsset', () => {
     const confirmButton = getByTestId(
       TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
     );
-    fireEvent.press(confirmButton);
+    await userEvent.press(confirmButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
   });
 });
