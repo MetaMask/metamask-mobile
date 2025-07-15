@@ -46,3 +46,5 @@ export const VALIDATION_REGEX = {
   state: /^(?!\s+$)(?=.*[a-zA-Z]).{2,100}$/,
   postCode: /^(?!\s*$).+/,
 };
+
+export const REDIRECTION_URL = 'https://metamask.io/';
