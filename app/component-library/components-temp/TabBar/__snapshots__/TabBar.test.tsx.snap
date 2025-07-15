@@ -25,7 +25,6 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
           "borderBottomColor": "#b7bbc866",
           "borderBottomWidth": 1,
           "borderColor": "#ffffff",
-          "marginBottom": 8,
         },
       ]
     }
@@ -66,9 +65,9 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
                 "fontWeight": "bold",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -115,9 +114,9 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
                 "fontWeight": "normal",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -212,7 +211,6 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           "borderBottomColor": "#b7bbc866",
           "borderBottomWidth": 1,
           "borderColor": "#ffffff",
-          "marginBottom": 8,
         },
       ]
     }
@@ -253,9 +251,9 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
                 "fontWeight": "bold",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -302,9 +300,9 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
                 "fontWeight": "normal",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -437,9 +435,9 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
                 "fontWeight": "bold",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -486,9 +484,9 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
                 "fontWeight": "normal",
               },
               {
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
+                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },

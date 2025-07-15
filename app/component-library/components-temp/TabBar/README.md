@@ -94,18 +94,6 @@ const MyTabView = () => {
 };
 ```
 
-## Styling
-
-The TabBar component applies the following styling based on the theme:
-
-- **Tab Underline**: 2px height with icon default color
-- **Tab Style**: 8px padding bottom and vertical, 32px horizontal padding
-- **Tab Bar**: Border color matches background default, 8px margin bottom, 1px bottom border with border.muted color
-- **Text Style**: Uses sBodyMD typography with BodyMD font family and 500 font weight
-- **Active Text Color**: Uses text default color from theme
-- **Inactive Text Color**: Uses text alternative color from theme
-- **Background Color**: Uses background default color from theme
-
 ## Examples
 
 ### Wallet-style Tabs
@@ -139,34 +127,6 @@ The TabBar component applies the following styling based on the theme:
   </View>
 </ScrollableTabView>
 ```
-
-## Testing
-
-The TabBar component includes comprehensive unit tests that cover:
-
-- **Rendering**: Tests that the component renders correctly with default props
-- **Custom Styling**: Verifies that custom styles are applied properly
-- **ScrollableTabView Integration**: Tests tab label and content display when used with ScrollableTabView
-- **Event Handling**: Ensures proper handling of tab change events
-- **Multiple Tabs**: Tests rendering with various numbers of tabs
-- **Props Passing**: Verifies that additional props are passed through to DefaultTabBar
-- **Different Initial Pages**: Tests tab behavior with different starting positions
-
-### Running Tests
-
-```bash
-yarn test:unit app/component-library/components-temp/TabBar/TabBar.test.tsx
-```
-
-### Test Coverage
-
-The tests follow the MetaMask unit testing guidelines:
-
-- Use AAA pattern (Arrange, Act, Assert)
-- Meaningful test names that describe behavior
-- Strong matchers like `toBeOnTheScreen()` instead of weak ones
-- Test public behavior, not implementation details
-- Isolated tests with proper mocking
 
 ## Notes
 

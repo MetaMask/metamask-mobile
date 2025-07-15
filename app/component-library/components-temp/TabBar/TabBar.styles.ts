@@ -30,7 +30,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: colors.background.default,
-      marginBottom: 8,
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
     },
