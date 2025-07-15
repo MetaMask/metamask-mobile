@@ -21,11 +21,14 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
           "backgroundColor": "blue",
           "paddingHorizontal": 0,
         },
-        {
-          "borderBottomColor": "#b7bbc866",
-          "borderBottomWidth": 1,
-          "borderColor": "#ffffff",
-        },
+        [
+          {
+            "borderBottomColor": "#b7bbc866",
+            "borderBottomWidth": 1,
+            "borderColor": "#ffffff",
+          },
+          undefined,
+        ],
       ]
     }
   >
@@ -207,11 +210,14 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
           "backgroundColor": "#ffffff",
           "paddingHorizontal": 0,
         },
-        {
-          "borderBottomColor": "#b7bbc866",
-          "borderBottomWidth": 1,
-          "borderColor": "#ffffff",
-        },
+        [
+          {
+            "borderBottomColor": "#b7bbc866",
+            "borderBottomWidth": 1,
+            "borderColor": "#ffffff",
+          },
+          undefined,
+        ],
       ]
     }
   >
@@ -393,9 +399,16 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
           "backgroundColor": "#ffffff",
           "paddingHorizontal": 0,
         },
-        {
-          "backgroundColor": "red",
-        },
+        [
+          {
+            "borderBottomColor": "#b7bbc866",
+            "borderBottomWidth": 1,
+            "borderColor": "#ffffff",
+          },
+          {
+            "backgroundColor": "red",
+          },
+        ],
       ]
     }
   >
