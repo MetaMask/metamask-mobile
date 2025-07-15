@@ -60,7 +60,7 @@ if (typeof process === 'undefined') {
 }
 
 // Polyfill crypto after process is polyfilled
-const crypto = require('crypto'); // eslint-disable-line import/no-nodejs-modules
+const crypto = require('crypto'); // eslint-disable-line import/no-commonjs
 
 // Needed to polyfill crypto
 global.crypto = {
