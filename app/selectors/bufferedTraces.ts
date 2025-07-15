@@ -5,5 +5,5 @@ const selectBufferedTracesState = (state: RootState) => state.bufferedTraces;
 
 export const selectBufferedTraces = createSelector(
   [selectBufferedTracesState],
-  (bufferedTracesState) => bufferedTracesState.bufferedTraces || [],
+  (bufferedTracesState) => bufferedTracesState?.bufferedTraces || [],
 );
