@@ -112,7 +112,6 @@ export const createStyles = (colors: Colors) =>
     actionsSection: {
       margin: 16,
     },
-
     closeSection: {
       backgroundColor: colors.background.alternative,
       borderRadius: 12,
@@ -161,7 +160,6 @@ export const createStyles = (colors: Colors) =>
     headerPlaceholder: {
       width: 32,
     },
-    // TP/SL Modal styles
     modalOverlay: {
       flex: 1,
       backgroundColor: colors.overlay.default,

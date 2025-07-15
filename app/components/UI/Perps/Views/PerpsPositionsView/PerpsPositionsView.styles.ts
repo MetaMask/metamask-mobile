@@ -17,20 +17,17 @@ export const createStyles = (colors: Colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
     },
-
     accountSummary: {
       backgroundColor: colors.background.alternative,
       margin: 16,
       borderRadius: 12,
       padding: 16,
     },
-
     summaryRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginBottom: 8,
     },
-
     positionsSection: {
       flex: 1,
     },
@@ -41,7 +38,6 @@ export const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
-
     emptyContainer: {
       flex: 1,
       alignItems: 'center',
@@ -52,14 +48,12 @@ export const createStyles = (colors: Colors) =>
     emptyIcon: {
       marginBottom: 16,
     },
-
     loadingContainer: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 64,
     },
-
     errorContainer: {
       flex: 1,
       alignItems: 'center',
@@ -67,7 +61,6 @@ export const createStyles = (colors: Colors) =>
       paddingHorizontal: 32,
       paddingVertical: 64,
     },
-
     headerPlaceholder: {
       width: 32,
     },
