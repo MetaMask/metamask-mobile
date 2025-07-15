@@ -32,10 +32,12 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
     spendingWith: {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
-      paddingHorizontal: 16,
       paddingBottom: 16,
       height: itemHeight,
       width: deviceWidth - 16 * 2, // Subtracting horizontal padding
+    },
+    addFundsButtonContainer: {
+      paddingHorizontal: 16,
     },
     spendingWithContainer: {
       marginTop: 16,

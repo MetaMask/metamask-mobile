@@ -4796,9 +4796,9 @@
     "card": {
     "card": "Card",
     "allowance_states": {
-      "unlimited": "Unlimited",
-      "limited": "Limit on",
-      "not_activated": "Not activated" 
+      "enabled": "Enabled",
+      "limited": "Limited",
+      "not_enabled": "Not enabled" 
     },
     "card_home": {
       "spending_with": "Spending with",

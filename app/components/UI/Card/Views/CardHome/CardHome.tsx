@@ -15,7 +15,6 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   NavigationProp,
   ParamListBase,
@@ -194,17 +193,20 @@ const CardHome = () => {
               <CardAssetItem
                 assetKey={priorityToken}
                 privacyMode={privacyMode}
+                shouldShowAllowance={false}
                 disabled
               />
-              <Button
-                variant={ButtonVariants.Primary}
-                label={strings('card.card_home.add_funds')}
-                size={ButtonSize.Sm}
-                onPress={navigateToAddFunds}
-                disabled={!isSwapEnabled}
-                width={ButtonWidthTypes.Full}
-                testID="add-funds-button"
-              />
+              <View style={styles.addFundsButtonContainer}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('card.card_home.add_funds')}
+                  size={ButtonSize.Sm}
+                  onPress={navigateToAddFunds}
+                  disabled={!isSwapEnabled}
+                  width={ButtonWidthTypes.Full}
+                  testID="add-funds-button"
+                />
+              </View>
             </View>
           )}
         </View>
@@ -268,8 +270,8 @@ CardHome.navigationOptions = ({
     <ButtonIcon
       style={headerStyle.icon}
       size={ButtonIconSizes.Md}
-      iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      iconName={IconName.ArrowLeft}
+      onPress={() => navigation.goBack()}
     />
   ),
   headerTitle: () => (

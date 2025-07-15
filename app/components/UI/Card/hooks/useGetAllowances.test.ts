@@ -137,9 +137,9 @@ describe('useGetAllowances', () => {
     expect(allowances).not.toBeNull();
 
     expect(allowances?.[0]).toEqual({
-      allowanceState: AllowanceState.Unlimited,
+      allowanceState: AllowanceState.Enabled,
       address: '0xToken1',
-      tag: AllowanceState.Unlimited,
+      tag: AllowanceState.Enabled,
       isStaked: false,
       decimals: 18,
       name: 'Token 1',
@@ -161,9 +161,9 @@ describe('useGetAllowances', () => {
     });
 
     expect(allowances?.[2]).toEqual({
-      allowanceState: AllowanceState.NotActivated,
+      allowanceState: AllowanceState.NotEnabled,
       address: '0xToken3',
-      tag: AllowanceState.NotActivated,
+      tag: AllowanceState.NotEnabled,
       isStaked: false,
       decimals: 18,
       name: 'Token 3',
@@ -308,12 +308,12 @@ describe('useGetAllowances', () => {
     expect(allowances).not.toBeNull();
     expect(allowances).toHaveLength(6);
 
-    expect(allowances?.[0].allowanceState).toBe(AllowanceState.NotActivated);
+    expect(allowances?.[0].allowanceState).toBe(AllowanceState.NotEnabled);
     expect(allowances?.[1].allowanceState).toBe(AllowanceState.Limited);
-    expect(allowances?.[2].allowanceState).toBe(AllowanceState.Unlimited);
-    expect(allowances?.[3].allowanceState).toBe(AllowanceState.Unlimited);
+    expect(allowances?.[2].allowanceState).toBe(AllowanceState.Enabled);
+    expect(allowances?.[3].allowanceState).toBe(AllowanceState.Enabled);
     expect(allowances?.[4].allowanceState).toBe(AllowanceState.Limited);
-    expect(allowances?.[5].allowanceState).toBe(AllowanceState.Unlimited);
+    expect(allowances?.[5].allowanceState).toBe(AllowanceState.Enabled);
   });
 
   it('should refetch allowances when SDK becomes available', async () => {
@@ -366,7 +366,7 @@ describe('useGetAllowances', () => {
     });
     expect(result.current.allowances).toHaveLength(1);
     expect(result.current.allowances?.[0].allowanceState).toBe(
-      AllowanceState.NotActivated,
+      AllowanceState.NotEnabled,
     );
 
     mockGetSupportedTokensAllowances.mockResolvedValueOnce(mockTokensSets[2]);
@@ -375,7 +375,7 @@ describe('useGetAllowances', () => {
     });
     expect(result.current.allowances).toHaveLength(1);
     expect(result.current.allowances?.[0].allowanceState).toBe(
-      AllowanceState.Unlimited,
+      AllowanceState.Enabled,
     );
 
     expect(mockGetSupportedTokensAllowances).toHaveBeenCalledTimes(3);

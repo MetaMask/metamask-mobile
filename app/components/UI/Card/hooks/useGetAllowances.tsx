@@ -34,11 +34,11 @@ export const useGetAllowances = (address?: string, autoFetch = false) => {
           let allowanceState;
 
           if (allowance.isZero()) {
-            allowanceState = AllowanceState.NotActivated;
+            allowanceState = AllowanceState.NotEnabled;
           } else if (allowance.lt(ARBITRARY_ALLOWANCE)) {
             allowanceState = AllowanceState.Limited;
           } else {
-            allowanceState = AllowanceState.Unlimited;
+            allowanceState = AllowanceState.Enabled;
           }
 
           if (!tokenInfo) {

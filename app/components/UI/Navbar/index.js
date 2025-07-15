@@ -1025,14 +1025,15 @@ export function getWalletNavbarOptions(
   };
 
   function openQRScanner() {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_QR_SCANNER,
-      ).build(),
-    );
+    navigation.navigate(Routes.CARD.ROOT);
+    // navigation.navigate(Routes.QR_TAB_SWITCHER, {
+    //   onScanSuccess,
+    // });
+    // trackEvent(
+    //   MetricsEventBuilder.createEventBuilder(
+    //     MetaMetricsEvents.WALLET_QR_SCANNER,
+    //   ).build(),
+    // );
   }
 
   function handleNotificationOnPress() {

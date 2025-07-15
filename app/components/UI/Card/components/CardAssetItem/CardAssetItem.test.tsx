@@ -4,8 +4,8 @@ import CardAssetItem from './CardAssetItem';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { TokenI } from '../../../Tokens/types';
-import { FlashListAssetKey } from '../../../Tokens/TokenList';
-import { AllowanceState } from '../../types';
+import { AllowanceState, CardTokenAllowance } from '../../types';
+import { ethers } from 'ethers';
 
 // Mock dependencies
 jest.mock('../../hooks/useAssetBalance');
@@ -15,6 +15,7 @@ jest.mock(
   '../../../Tokens/TokenList/TokenListItem/CustomNetworkNativeImgMapping',
 );
 jest.mock('../../util/mapAllowanceStateToLabel');
+jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
@@ -41,7 +42,9 @@ const mockGetTestNetImageByChainId =
     typeof getTestNetImageByChainId
   >;
 
-function renderWithProvider(component: React.ComponentType) {
+function renderWithProvider(
+  component: React.ComponentType | (() => React.ReactElement | null),
+) {
   return renderScreen(
     component,
     {
@@ -74,11 +77,15 @@ describe('CardAssetItem Component', () => {
     isETH: true,
   };
 
-  const mockAssetKey: FlashListAssetKey & { tag?: AllowanceState } = {
+  const mockAssetKey: CardTokenAllowance = {
     chainId: '0x1',
     address: '0x0000000000000000000000000000000000000000',
     isStaked: false,
-    tag: AllowanceState.NotActivated,
+    allowanceState: AllowanceState.NotEnabled,
+    allowance: ethers.BigNumber.from('1000000000000000000'),
+    decimals: 18,
+    symbol: 'ETH',
+    name: 'Ethereum',
   };
 
   const mockAssetBalance = {
@@ -155,27 +162,33 @@ describe('CardAssetItem Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with tag and matches snapshot', () => {
-    const assetKeyWithTag = {
+  it('renders with different allowanceState and matches snapshot', () => {
+    const assetKeyWithAllowanceState = {
       ...mockAssetKey,
-      tag: AllowanceState.Limited,
+      allowanceState: AllowanceState.Limited,
     };
     mockMapAllowanceStateToLabel.mockReturnValue('Expired');
 
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={assetKeyWithTag} privacyMode={false} />
+      <CardAssetItem
+        assetKey={assetKeyWithAllowanceState}
+        privacyMode={false}
+      />
     ));
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders without tag and matches snapshot', () => {
-    const assetKeyWithoutTag = {
+  it('renders with enabled allowanceState and matches snapshot', () => {
+    const assetKeyWithEnabledAllowance = {
       ...mockAssetKey,
-      tag: undefined,
+      allowanceState: AllowanceState.Enabled,
     };
     const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={assetKeyWithoutTag} privacyMode={false} />
+      <CardAssetItem
+        assetKey={assetKeyWithEnabledAllowance}
+        privacyMode={false}
+      />
     ));
 
     expect(toJSON()).toMatchSnapshot();
@@ -205,21 +218,6 @@ describe('CardAssetItem Component', () => {
 
     const { toJSON } = render(
       <CardAssetItem assetKey={assetKeyWithoutChainId} privacyMode={false} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
-
-  it('returns null when asset is missing', () => {
-    mockUseAssetBalance.mockReturnValue({
-      asset: undefined,
-      mainBalance: '',
-      secondaryBalance: '',
-      balanceFiat: undefined,
-    });
-
-    const { toJSON } = render(
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />,
     );
 
     expect(toJSON()).toBeNull();

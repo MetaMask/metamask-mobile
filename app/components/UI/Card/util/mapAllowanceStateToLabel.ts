@@ -3,10 +3,10 @@ import { AllowanceState } from '../types';
 
 export const mapAllowanceStateToLabel = (state: AllowanceState): string => {
   switch (state) {
-    case AllowanceState.NotActivated:
-      return strings('card.allowance_states.not_activated');
-    case AllowanceState.Unlimited:
-      return strings('card.allowance_states.unlimited');
+    case AllowanceState.NotEnabled:
+      return strings('card.allowance_states.not_enabled');
+    case AllowanceState.Enabled:
+      return strings('card.allowance_states.enabled');
     case AllowanceState.Limited:
       return strings('card.allowance_states.limited');
   }

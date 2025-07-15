@@ -10,7 +10,7 @@ const styleSheet = () =>
     assetName: {
       flexDirection: 'row',
     },
-    percentageChange: {
+    allowanceStatusContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
@@ -22,7 +22,7 @@ const styleSheet = () =>
       overflow: 'hidden',
     },
     badge: {
-      marginTop: 8,
+      marginTop: 12,
     },
   });
 

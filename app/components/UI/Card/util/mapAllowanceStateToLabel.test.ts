@@ -13,18 +13,18 @@ describe('mapAllowanceStateToLabel', () => {
     jest.clearAllMocks();
   });
 
-  it('should return the correct label for NotActivated state', () => {
-    const result = mapAllowanceStateToLabel(AllowanceState.NotActivated);
+  it('should return the correct label for NotEnabled state', () => {
+    const result = mapAllowanceStateToLabel(AllowanceState.NotEnabled);
 
-    expect(strings).toHaveBeenCalledWith('card.allowance_states.not_activated');
-    expect(result).toBe('card.allowance_states.not_activated');
+    expect(strings).toHaveBeenCalledWith('card.allowance_states.not_enabled');
+    expect(result).toBe('card.allowance_states.not_enabled');
   });
 
-  it('should return the correct label for Unlimited state', () => {
-    const result = mapAllowanceStateToLabel(AllowanceState.Unlimited);
+  it('should return the correct label for Enabled state', () => {
+    const result = mapAllowanceStateToLabel(AllowanceState.Enabled);
 
-    expect(strings).toHaveBeenCalledWith('card.allowance_states.unlimited');
-    expect(result).toBe('card.allowance_states.unlimited');
+    expect(strings).toHaveBeenCalledWith('card.allowance_states.enabled');
+    expect(result).toBe('card.allowance_states.enabled');
   });
 
   it('should return the correct label for Limited state', () => {
@@ -46,12 +46,12 @@ describe('mapAllowanceStateToLabel', () => {
   it('should call strings function with correct parameters for each state', () => {
     const testCases = [
       {
-        state: AllowanceState.NotActivated,
-        expectedKey: 'card.allowance_states.not_activated',
+        state: AllowanceState.NotEnabled,
+        expectedKey: 'card.allowance_states.not_enabled',
       },
       {
-        state: AllowanceState.Unlimited,
-        expectedKey: 'card.allowance_states.unlimited',
+        state: AllowanceState.Enabled,
+        expectedKey: 'card.allowance_states.enabled',
       },
       {
         state: AllowanceState.Limited,

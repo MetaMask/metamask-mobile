@@ -1,5 +1,5 @@
 import AssetElement from '../../../AssetElement';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TokenI } from '../../../Tokens/types';
 import BadgeWrapper, {
   BadgePosition,
@@ -19,7 +19,6 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { FlashListAssetKey } from '../../../Tokens/TokenList';
 import {
   CustomNetworkImgMapping,
   getNonEvmNetworkImageSourceByChainId,
@@ -30,16 +29,15 @@ import { CustomNetworkNativeImgMapping } from '../../../Tokens/TokenList/TokenLi
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { View } from 'react-native';
-import Tag from '../../../../../component-library/components/Tags/Tag';
-import { AllowanceState } from '../../types';
+import { CardTokenAllowance } from '../../types';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
+import { useTheme } from '../../../../../util/theme';
 
 interface CardAssetItemProps {
-  assetKey: FlashListAssetKey & {
-    tag?: AllowanceState;
-  };
+  assetKey: CardTokenAllowance;
   privacyMode: boolean;
+  shouldShowAllowance?: boolean;
   disabled?: boolean;
   onPress?: (asset: TokenI) => void;
 }
@@ -48,15 +46,48 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   assetKey,
   onPress,
   disabled = false,
+  shouldShowAllowance = true,
   privacyMode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const chainId = assetKey.chainId as Hex;
+  const theme = useTheme();
 
   const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
 
+  // Fallback asset mapping
+  // If asset is not found, we create a default TokenI object with minimal properties
+  // This is to ensure that the component can render without crashing
+  // and to provide a consistent structure for the asset data.
+  const mappedAsset = useMemo(
+    () =>
+      asset ??
+      ({
+        address: assetKey.address,
+        aggregators: [],
+        decimals: assetKey.decimals,
+        image: '',
+        name: assetKey.name,
+        symbol: assetKey.symbol,
+        balance: '0',
+        balanceFiat: '0',
+        logo: '',
+        isETH: false,
+      } as TokenI),
+    [asset, assetKey],
+  );
+  const mappedMainBalance = useMemo(() => mainBalance ?? '0', [mainBalance]);
+  const mappedSecondaryBalance = useMemo(
+    () => secondaryBalance ?? '0',
+    [secondaryBalance],
+  );
+
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
+      if (!currentChainId) {
+        return null;
+      }
+
       if (isTestNet(currentChainId))
         return getTestNetImageByChainId(currentChainId);
       const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
@@ -94,18 +125,15 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   );
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!asset) {
-      return null;
-    }
-    if (asset.isNative) {
+    if (mappedAsset.isNative) {
       const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
 
       if (isCustomNetwork) {
         return (
           <AvatarToken
-            name={asset.symbol}
+            name={mappedAsset.symbol}
             imageSource={CustomNetworkNativeImgMapping[chainId]}
-            size={AvatarSize.Md}
+            size={AvatarSize.Xl}
           />
         );
       }
@@ -114,24 +142,25 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
         <NetworkAssetLogo
           chainId={chainId as Hex}
           style={styles.ethLogo}
-          ticker={asset.ticker || ''}
-          big={false}
-          biggest={false}
-          testID={asset.name}
+          ticker={mappedAsset.ticker || ''}
+          big
+          biggest
+          testID={mappedAsset.name}
         />
       );
     }
 
     return (
       <AvatarToken
-        name={asset.symbol}
-        imageSource={{ uri: asset.image }}
-        size={AvatarSize.Md}
+        name={mappedAsset.symbol}
+        imageSource={mappedAsset.image ? { uri: mappedAsset.image } : undefined}
+        size={AvatarSize.Xl}
       />
     );
-  }, [asset, styles.ethLogo, chainId]);
+  }, [mappedAsset, styles.ethLogo, chainId]);
 
-  if (!chainId || !asset) {
+  // Return null if chainId is missing
+  if (!chainId) {
     return null;
   }
 
@@ -139,14 +168,14 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
     <AssetElement
       onPress={onPress}
       disabled={disabled}
-      asset={asset}
-      balance={mainBalance}
-      secondaryBalance={secondaryBalance}
+      asset={mappedAsset}
+      balance={mappedMainBalance}
+      secondaryBalance={mappedSecondaryBalance}
       privacyMode={privacyMode}
     >
       <BadgeWrapper
         style={styles.badge}
-        badgePosition={BadgePosition.TopRight}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
@@ -159,12 +188,18 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
       <View style={styles.balances}>
         <View style={styles.assetName}>
           <Text variant={TextVariant.BodyMD} numberOfLines={1}>
-            {asset.name || asset.symbol}
+            {mappedAsset.name || mappedAsset.symbol}
           </Text>
         </View>
-        <View style={styles.percentageChange}>
-          {assetKey.tag && (
-            <Tag label={mapAllowanceStateToLabel(assetKey.tag)} />
+        <View style={styles.allowanceStatusContainer}>
+          {assetKey.allowanceState && shouldShowAllowance && (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={theme.colors.text.alternative}
+              numberOfLines={1}
+            >
+              {mapAllowanceStateToLabel(assetKey.allowanceState)}
+            </Text>
           )}
         </View>
       </View>

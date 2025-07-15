@@ -437,49 +437,56 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   "borderRadius": 8,
                                   "height": 130,
                                   "paddingBottom": 16,
-                                  "paddingHorizontal": 16,
                                   "width": 718,
                                 }
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[MockFunction]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                              <View
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
-                                    "borderRadius": 12,
-                                    "flexDirection": "row",
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                testID="add-funds-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[MockFunction]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
-                                      "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 32,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="add-funds-button"
                                 >
-                                  Add funds
-                                </Text>
-                              </TouchableOpacity>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Add funds
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                           <Text
@@ -1231,49 +1238,56 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   "borderRadius": 8,
                                   "height": 130,
                                   "paddingBottom": 16,
-                                  "paddingHorizontal": 16,
                                   "width": 718,
                                 }
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[MockFunction]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
+                              <View
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
-                                    "borderRadius": 12,
-                                    "flexDirection": "row",
-                                    "height": 32,
-                                    "justifyContent": "center",
-                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                testID="add-funds-button"
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[MockFunction]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
                                   style={
                                     {
-                                      "color": "#ffffff",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "alignItems": "center",
+                                      "alignSelf": "stretch",
+                                      "backgroundColor": "#121314",
+                                      "borderRadius": 12,
+                                      "flexDirection": "row",
+                                      "height": 32,
+                                      "justifyContent": "center",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 16,
                                     }
                                   }
+                                  testID="add-funds-button"
                                 >
-                                  Add funds
-                                </Text>
-                              </TouchableOpacity>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#ffffff",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Add funds
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                           <Text
