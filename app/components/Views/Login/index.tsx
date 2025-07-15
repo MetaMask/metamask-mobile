@@ -45,7 +45,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import SecureKeychain from '../../../core/SecureKeychain';
+
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -186,10 +186,8 @@ const Login: React.FC = () => {
       } else if (authData.availableBiometryType) {
         Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
-        const hasCredentials = await SecureKeychain.getGenericPassword();
         setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-            !!hasCredentials, // ← Check if credentials actually exist
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
         setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));

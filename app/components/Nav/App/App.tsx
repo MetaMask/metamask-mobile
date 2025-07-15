@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute, useNavigationState } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useNavigationState,
+} from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -862,12 +866,12 @@ const App: React.FC = () => {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
           const previousRoute = routes[routes.length - 2]?.name; // Get the previous route
-          
+
           // Skip auto-authentication if we came from Settings screen
-          if (previousRoute === 'Settings') {
+          if (previousRoute === 'SettingsView') {
             return;
           }
-          
+
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -923,7 +927,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, routes]);
+  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {

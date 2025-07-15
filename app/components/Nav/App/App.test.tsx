@@ -71,12 +71,36 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
 // Mock the navigation hook
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockRoutes = [
+  {
+    name: 'OnboardingRootNav',
+    state: {
+      index: 0,
+      routes: [
+        {
+          name: 'OnboardingNav',
+          state: {
+            index: 0,
+            routes: [
+              {
+                name: 'OnboardingCarousel',
+                params: {},
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+];
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     reset: mockReset,
   }),
+  useNavigationState: (selector: (state: { routes: typeof mockRoutes }) => unknown) => selector({ routes: mockRoutes }),
 }));
 
 jest.mock('../../../core/Analytics/MetaMetrics');
