@@ -18,7 +18,11 @@ import type { Position, PriceUpdate } from '../../controllers/types';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { styleSheet } from './PerpsPositionHeader.styles';
-import { formatPnl, formatPercentage } from '../../utils/formatUtils';
+import {
+  formatPnl,
+  formatPercentage,
+  formatPrice,
+} from '../../utils/formatUtils';
 
 interface PerpsPositionHeaderProps {
   position: Position;
@@ -33,14 +37,6 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(position.coin);
-
-  // Format currency
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-    }).format(value);
 
   // Calculate 24-hour fiat amount change
   const priceChange24hFiat =
@@ -92,7 +88,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
               color={TextColor.Default}
               style={styles.positionValue}
             >
-              {formatCurrency(parseFloat(priceData.price))}
+              {formatPrice(parseFloat(priceData.price))}
             </Text>
           ) : (
             <Skeleton height={16} width={80} />

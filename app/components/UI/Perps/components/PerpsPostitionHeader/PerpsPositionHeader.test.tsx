@@ -160,6 +160,14 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPnl: (value: number) =>
     `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}`,
   formatPercentage: (value: string | number) => `${value}%`,
+  formatPrice: (value: string | number) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(num);
+  },
 }));
 
 // Mock styles
