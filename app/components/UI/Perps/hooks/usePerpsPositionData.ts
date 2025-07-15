@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
 import type { PriceUpdate } from '../controllers/types';
 
 interface CandleData {
@@ -31,7 +30,7 @@ export const usePerpsPositionData = ({
 
   const fetchHistoricalCandles = useCallback(async () => {
     const historicalData =
-      await HyperLiquidSubscriptionService.fetchHistoricalCandles(
+      await Engine.context.PerpsController.fetchHistoricalCandles(
         coin,
         selectedInterval,
         100,

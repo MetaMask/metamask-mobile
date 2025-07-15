@@ -175,6 +175,112 @@ export class HyperLiquidClientService {
   }
 
   /**
+   * Fetch historical candle data from the Hyperliquid API
+   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
+   * @param limit - Number of candles to fetch (default: 100)
+   * @returns Promise<CandleData | null>
+   */
+  public async fetchHistoricalCandles(
+    coin: string,
+    interval: string,
+    limit: number = 100,
+  ): Promise<{
+    coin: string;
+    interval: string;
+    candles: {
+      time: number;
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      volume: string;
+    }[];
+  } | null> {
+    try {
+      // Calculate start and end times based on interval and limit
+      const now = Date.now();
+      const intervalMs = this.getIntervalMilliseconds(interval);
+      const startTime = now - limit * intervalMs;
+
+      // Determine the API endpoint based on testnet mode
+      const apiEndpoint = this.isTestnet
+        ? 'https://api.hyperliquid-testnet.xyz/info'
+        : 'https://api.hyperliquid.xyz/info';
+
+      // Make API request to candleSnapshot endpoint
+      const response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'candleSnapshot',
+          req: {
+            coin,
+            interval,
+            startTime,
+            endTime: now,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Transform API response to match expected format
+      if (Array.isArray(data) && data.length > 0) {
+        const candles = data.map((candle) => ({
+          time: candle.t, // open time
+          open: candle.o.toString(),
+          high: candle.h.toString(),
+          low: candle.l.toString(),
+          close: candle.c.toString(),
+          volume: candle.v.toString(),
+        }));
+
+        return {
+          coin,
+          interval,
+          candles,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      DevLogger.log('Error fetching historical candles:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert interval string to milliseconds
+   */
+  private getIntervalMilliseconds(interval: string): number {
+    const intervalMap: Record<string, number> = {
+      '1m': 60 * 1000,
+      '3m': 3 * 60 * 1000,
+      '5m': 5 * 60 * 1000,
+      '15m': 15 * 60 * 1000,
+      '30m': 30 * 60 * 1000,
+      '1h': 60 * 60 * 1000,
+      '2h': 2 * 60 * 60 * 1000,
+      '4h': 4 * 60 * 60 * 1000,
+      '8h': 8 * 60 * 60 * 1000,
+      '12h': 12 * 60 * 60 * 1000,
+      '1d': 24 * 60 * 60 * 1000,
+      '3d': 3 * 24 * 60 * 60 * 1000,
+      '1w': 7 * 24 * 60 * 60 * 1000,
+      '1M': 30 * 24 * 60 * 60 * 1000, // Approximate
+    };
+
+    return intervalMap[interval] || 60 * 60 * 1000; // Default to 1 hour
+  }
+
+  /**
    * Disconnect and cleanup all clients
    */
   public async disconnect(): Promise<void> {

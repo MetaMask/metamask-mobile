@@ -791,6 +791,75 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Fetch historical candle data
+   */
+  async fetchHistoricalCandles(
+    coin: string,
+    interval: string,
+    limit: number = 100,
+  ): Promise<{
+    coin: string;
+    interval: string;
+    candles: {
+      time: number;
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      volume: string;
+    }[];
+  } | null> {
+    try {
+      const provider = this.getActiveProvider() as IPerpsProvider & {
+        clientService?: {
+          fetchHistoricalCandles: (
+            coin: string,
+            interval: string,
+            limit: number,
+          ) => Promise<{
+            coin: string;
+            interval: string;
+            candles: {
+              time: number;
+              open: string;
+              high: string;
+              low: string;
+              close: string;
+              volume: string;
+            }[];
+          } | null>;
+        };
+      };
+
+      // Check if provider has a client service with fetchHistoricalCandles
+      if (provider.clientService?.fetchHistoricalCandles) {
+        return await provider.clientService.fetchHistoricalCandles(
+          coin,
+          interval,
+          limit,
+        );
+      }
+
+      // Fallback: throw error if method not available
+      throw new Error('Historical candles not supported by current provider');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch historical candles';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
    * Get supported deposit routes - returns complete asset and routing information
    */
   getDepositRoutes(): AssetRoute[] {
