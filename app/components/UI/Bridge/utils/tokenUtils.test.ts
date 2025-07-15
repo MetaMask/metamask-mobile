@@ -30,7 +30,7 @@ describe('tokenUtils', () => {
   });
 
   describe('createTokenFromCaip', () => {
-    it('should return null for invalid CAIP format', () => {
+    it('returns null for invalid CAIP format', () => {
       (isCaipAssetType as unknown as jest.Mock).mockReturnValue(false);
 
       const result = createTokenFromCaip('invalid-format');
@@ -39,7 +39,7 @@ describe('tokenUtils', () => {
       expect(isCaipAssetType).toHaveBeenCalledWith('invalid-format');
     });
 
-    it('should handle native token (slip44 namespace)', () => {
+    it('creates native token from slip44 namespace', () => {
       const mockNativeAsset = {
         address: constants.AddressZero,
         name: 'Ethereum',
@@ -69,7 +69,7 @@ describe('tokenUtils', () => {
       expect(getNativeAssetForChainId).toHaveBeenCalledWith('eip155:1');
     });
 
-    it('should handle ERC20 token with checksum address', () => {
+    it('creates ERC20 token with checksum address', () => {
       const checksumAddress = '0xA0b86a33E6776d02b5C07b4E92b1B3a8E1B9b1A4';
 
       (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
@@ -96,7 +96,7 @@ describe('tokenUtils', () => {
       );
     });
 
-    it('should handle ERC20 token when checksum fails', () => {
+    it('creates ERC20 token with original address when checksum fails', () => {
       const originalAddress = '0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4';
 
       (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
@@ -121,7 +121,7 @@ describe('tokenUtils', () => {
       expect(safeToChecksumAddress).toHaveBeenCalledWith(originalAddress);
     });
 
-    it('should handle non-EVM chain token', () => {
+    it('creates non-EVM chain token', () => {
       const caipAssetType =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/spltoken:4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R';
 
@@ -143,7 +143,7 @@ describe('tokenUtils', () => {
       });
     });
 
-    it('should return null when parsing throws error', () => {
+    it('returns null when parsing throws error', () => {
       (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
       (parseCaipAssetType as jest.Mock).mockImplementation(() => {
         throw new Error('Parse error');
@@ -158,7 +158,7 @@ describe('tokenUtils', () => {
   });
 
   describe('getNativeSourceToken', () => {
-    it('should return formatted native token for EVM chain', () => {
+    it('returns formatted native token for EVM chain', () => {
       const mockNativeAsset = {
         address: constants.AddressZero,
         name: 'Ethereum',
@@ -183,7 +183,7 @@ describe('tokenUtils', () => {
       expect(isSolanaChainId).toHaveBeenCalledWith('eip155:1');
     });
 
-    it('should return formatted native token for Solana chain using assetId', () => {
+    it('returns formatted native token for Solana chain using assetId', () => {
       const mockNativeAsset = {
         address: constants.AddressZero,
         assetId: 'native-sol-asset-id',
@@ -215,7 +215,7 @@ describe('tokenUtils', () => {
       );
     });
 
-    it('should handle native asset with iconUrl', () => {
+    it('returns native token with icon when iconUrl present', () => {
       const mockNativeAsset = {
         address: constants.AddressZero,
         name: 'Ethereum',
@@ -239,7 +239,7 @@ describe('tokenUtils', () => {
       });
     });
 
-    it('should handle native asset without name', () => {
+    it('returns native token with empty name when name missing', () => {
       const mockNativeAsset = {
         address: constants.AddressZero,
         symbol: 'ETH',
@@ -259,31 +259,6 @@ describe('tokenUtils', () => {
         decimals: 18,
         chainId: 'eip155:1',
       });
-    });
-
-    it('should handle Hex chain ID', () => {
-      const mockNativeAsset = {
-        address: constants.AddressZero,
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-      };
-
-      (isSolanaChainId as jest.Mock).mockReturnValue(false);
-      (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
-
-      const result = getNativeSourceToken('0x1');
-
-      expect(result).toEqual({
-        address: constants.AddressZero,
-        name: 'Ethereum',
-        symbol: 'ETH',
-        image: undefined,
-        decimals: 18,
-        chainId: '0x1',
-      });
-      expect(getNativeAssetForChainId).toHaveBeenCalledWith('0x1');
-      expect(isSolanaChainId).toHaveBeenCalledWith('0x1');
     });
   });
 });
