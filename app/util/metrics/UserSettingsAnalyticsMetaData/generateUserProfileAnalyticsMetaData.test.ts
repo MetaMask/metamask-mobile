@@ -17,21 +17,16 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-const mockSelectNetworkConfigurations = jest.fn();
-jest.mock('../../../selectors/networkController', () => ({
-  selectNetworkConfigurations: jest.fn(() => mockSelectNetworkConfigurations()),
+const mockGetConfiguredCaipChainIds = jest.fn();
+jest.mock('../MultichainAPI/networkMetricUtils', () => ({
+  getConfiguredCaipChainIds: jest.fn(() => mockGetConfiguredCaipChainIds()),
 }));
 
 describe('generateUserProfileAnalyticsMetaData', () => {
   beforeEach(() => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
-    mockSelectNetworkConfigurations.mockReturnValue({
-      '0x1': {
-        chainId: '0x1',
-        name: 'Ethereum Mainnet',
-      },
-    });
+    mockGetConfiguredCaipChainIds.mockReturnValue(['eip155:1']);
   });
 
   afterEach(() => {
