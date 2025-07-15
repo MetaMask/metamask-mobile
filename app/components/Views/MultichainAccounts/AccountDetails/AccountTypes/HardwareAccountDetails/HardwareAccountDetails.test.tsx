@@ -5,7 +5,6 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountSelectors } from '../../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
 
 const mockNavigate = jest.fn();
@@ -94,11 +93,7 @@ describe('HardwareAccountDetails', () => {
       { state: mockInitialState },
     );
 
-    expect(
-      getByTestId(
-        MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-      ),
-    ).toBeTruthy();
+    expect(getByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON)).toBeTruthy();
   });
 
   it.each(hardwareWalletTypes)(
@@ -122,11 +117,7 @@ describe('HardwareAccountDetails', () => {
       expect(getByTestId(HEADERBASE_TITLE_TEST_ID).children).toStrictEqual([
         name,
       ]);
-      expect(
-        getByTestId(
-          MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-        ),
-      ).toBeTruthy();
+      expect(getByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON)).toBeTruthy();
     },
   );
 });
