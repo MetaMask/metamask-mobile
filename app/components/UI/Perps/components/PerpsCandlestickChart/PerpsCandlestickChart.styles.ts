@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Theme, Colors } from '../../../../../util/theme/models';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 
 export const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -45,11 +46,11 @@ export const styleSheet = (params: { theme: Theme }) => {
     // Grid line styles
     gridLine: {
       color: colors.border.muted,
-      opacity: 0.6,
+      opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
     },
     majorGridLine: {
       color: colors.border.muted,
-      opacity: 0.8,
+      opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MAJOR,
     },
     gridContainer: {
       position: 'absolute',
@@ -164,7 +165,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       height: 2,
       zIndex: 10,
       backgroundColor: colors.border.muted,
-      opacity: 0.8,
+      opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MAJOR,
     },
     minorGridLineStyle: {
       position: 'absolute',
@@ -173,7 +174,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       height: 1,
       zIndex: 10,
       backgroundColor: colors.border.muted,
-      opacity: 0.6,
+      opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
     },
   });
 };
@@ -190,5 +191,7 @@ export const getGridLineStyle = (
   height: isEdge ? 2 : 1,
   zIndex: 10,
   backgroundColor: colors.border.muted,
-  opacity: isEdge ? 0.8 : 0.6,
+  opacity: isEdge
+    ? PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MAJOR
+    : PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
 });

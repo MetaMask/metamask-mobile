@@ -110,6 +110,12 @@ jest.mock('../../../../../component-library/hooks', () => ({
         opacity: isEdge ? 0.8 : 0.6,
       }),
     },
+    theme: {
+      colors: {
+        success: { default: '#00D68F' },
+        error: { default: '#FF6B6B' },
+      },
+    },
   }),
 }));
 
@@ -254,6 +260,7 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       const candles = screen.getByTestId('candlestick-candles');
+      // The colors come from the mocked theme in the useStyles mock
       expect(candles).toHaveProp('data-positive-color', '#00D68F');
       expect(candles).toHaveProp('data-negative-color', '#FF6B6B');
     });

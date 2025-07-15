@@ -7,6 +7,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  CHART_INTERVALS,
+  PERPS_CHART_CONFIG,
+  getCandlestickColors,
+} from '../../constants/chartConfig';
 interface CandleData {
   coin: string;
   interval: string;
@@ -28,28 +33,28 @@ interface CandlestickChartComponentProps {
   onIntervalChange?: (interval: string) => void;
 }
 
+const screenWidth = Dimensions.get('window').width;
+const chartWidth = screenWidth - PERPS_CHART_CONFIG.PADDING.HORIZONTAL * 2; // Account for padding
+
 const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
   isLoading = false,
-  height = 300,
+  height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
   selectedInterval = '1h',
   onIntervalChange,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const screenWidth = Dimensions.get('window').width;
-  const chartWidth = screenWidth - 48; // Account for padding
 
-  // Available intervals
-  const intervals = [
-    { label: '1M', value: '1m' },
-    { label: '5M', value: '5m' },
-    { label: '15M', value: '15m' },
-    { label: '30M', value: '30m' },
-    { label: '1H', value: '1h' },
-    { label: '2H', value: '2h' },
-    { label: '4H', value: '4h' },
-    { label: '8H', value: '8h' },
-  ];
+  // Get candlestick colors from centralized configuration
+  // This allows for easy customization and potential user settings integration
+  // useMemo prevents object recreation on every render
+  const candlestickColors = React.useMemo(
+    () => getCandlestickColors(theme.colors),
+    [theme.colors],
+  );
+
+  // Available intervals from configuration
+  const intervals = CHART_INTERVALS;
 
   // Transform data to wagmi-charts format
   const transformedData = React.useMemo(() => {
@@ -91,7 +96,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       lines.push({
         price,
         isEdge: isEdgeLine,
-        position: (i / (gridLineCount - 1)) * (height - 120), // Direct pixel positioning
+        position:
+          (i / (gridLineCount - 1)) *
+          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL), // Direct pixel positioning
       });
     }
 
@@ -241,13 +248,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
           {/* Main Candlestick Chart */}
           <CandlestickChart
-            height={height - 120} // Account for labels and padding
+            height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
             width={chartWidth}
           >
             {/* Candlestick Data */}
             <CandlestickChart.Candles
-              positiveColor={theme.colors.success.default} // Green for positive candles
-              negativeColor={theme.colors.error.default} // Red for negative candles
+              positiveColor={candlestickColors.positive} // Green for positive candles
+              negativeColor={candlestickColors.negative} // Red for negative candles
             />
 
             {/* Interactive Crosshair */}
