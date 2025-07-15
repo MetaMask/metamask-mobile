@@ -437,7 +437,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 3, direction); // Scroll a third of the amount to avoid overshooting
+            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

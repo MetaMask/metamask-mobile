@@ -2,7 +2,10 @@ import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { SEPA_PAYMENT_METHOD } from '../constants';
+import {
+  WIRE_TRANSFER_PAYMENT_METHOD,
+  SEPA_PAYMENT_METHOD,
+} from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 
 jest.mock('@react-navigation/compat', () => ({
@@ -137,7 +140,7 @@ describe('useDepositRouting', () => {
   it('should create the hook with correct parameters', () => {
     const mockParams = {
       cryptoCurrencyChainId: 'eip155:1',
-      paymentMethodId: SEPA_PAYMENT_METHOD.id,
+      paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
     };
 
     const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -150,12 +153,12 @@ describe('useDepositRouting', () => {
     expect(typeof result.current.handleApprovedKycFlow).toBe('function');
   });
 
-  describe('SEPA payment method routing', () => {
-    it('should navigate to BankDetails when SEPA payment method is used and KYC is approved', async () => {
+  describe('Manual bank transfer payment method routing', () => {
+    it('should navigate to BankDetails when manual bank transfer payment method is used and KYC is approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
       };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -174,11 +177,11 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should throw error when SEPA reservation fails', async () => {
+    it('should throw error when manual bank transfer reservation fails', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+        paymentMethodId: WIRE_TRANSFER_PAYMENT_METHOD.id,
       };
 
       mockCreateReservation = jest.fn().mockResolvedValue(null);
@@ -212,6 +215,13 @@ describe('useDepositRouting', () => {
         'test-ott-token',
         mockQuote,
         '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
@@ -426,6 +436,13 @@ describe('useDepositRouting', () => {
         'test-ott-token',
         mockQuote,
         '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',

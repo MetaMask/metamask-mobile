@@ -3,12 +3,16 @@ import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
+import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS, KycStatus } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
-import { getCryptoCurrencyFromTransakId } from '../utils';
+import {
+  generateThemeParameters,
+  getCryptoCurrencyFromTransakId,
+} from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
@@ -32,6 +36,7 @@ export const useDepositRouting = ({
   const handleNewOrder = useHandleNewOrder();
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
+  const { themeAppearance, colors } = useTheme();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -134,7 +139,10 @@ export const useDepositRouting = ({
       }
 
       if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-        if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
+        const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+          (method) => method.id === paymentMethodId,
+        );
+        if (isManualBankTransfer) {
           const reservation = await createReservation(
             quote,
             selectedWalletAddress,
@@ -175,6 +183,7 @@ export const useDepositRouting = ({
             ottResponse.token,
             quote,
             selectedWalletAddress,
+            { ...generateThemeParameters(themeAppearance, colors) },
           );
 
           if (!paymentUrl) {
@@ -206,6 +215,8 @@ export const useDepositRouting = ({
       requestOtt,
       generatePaymentUrl,
       handleNavigationStateChange,
+      themeAppearance,
+      colors,
     ],
   );
 
