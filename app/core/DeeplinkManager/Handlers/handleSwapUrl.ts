@@ -1,10 +1,19 @@
 import NavigationService from '../../NavigationService';
-import { isCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, Hex } from '@metamask/utils';
 import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
 import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
 import { BridgeToken } from '../../../components/UI/Bridge/types';
+import Engine from '../../Engine';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { RpcEndpointType } from '@metamask/network-controller';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
+import { isSolanaAccount } from '../../Multichain/utils';
+///: END:ONLY_INCLUDE_IF
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -100,6 +109,59 @@ const processAmount = (
   }
 };
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+/**
+ * Checks if user has a Solana account and redirects to account creation if needed
+ * @param fromCaip - The source CAIP identifier from the deep link
+ * @param toCaip - The destination CAIP identifier from the deep link
+ * @returns true if user has Solana account or no Solana tokens involved, false if redirecting to account creation
+ */
+const checkSolanaAccountAndRedirect = (
+  fromCaip?: string | null,
+  toCaip?: string | null,
+): boolean => {
+  // Check if either CAIP identifier is Solana
+  const hasSolanaToken =
+    fromCaip?.startsWith('solana:') || toCaip?.startsWith('solana:');
+
+  if (!hasSolanaToken) {
+    return true; // No Solana tokens involved, proceed normally
+  }
+
+  try {
+    // Check if user has a Solana account
+    const { AccountsController } = Engine.context;
+    const accounts = Object.values(
+      AccountsController.state.internalAccounts.accounts,
+    );
+    const hasSolanaAccount = accounts.some((account) =>
+      isSolanaAccount(account),
+    );
+
+    if (!hasSolanaAccount) {
+      // Redirect to Solana account creation
+      NavigationService.navigation.navigate('Modal', {
+        screen: 'RootModalFlow',
+        params: {
+          screen: 'AddAccount',
+          params: {
+            scope: SolScope.Mainnet,
+            clientType: WalletClientType.Solana,
+          },
+        },
+      });
+      return false; // Don't proceed with bridge navigation
+    }
+
+    return true; // User has Solana account, proceed normally
+  } catch (error) {
+    console.warn('Error checking Solana account:', error);
+    // Continue with bridge navigation if account checking fails
+    return true;
+  }
+};
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Handles deeplinks for the unified swap/bridge experience
  * Expected format: https://metamask.app.link/swap?from=0x...&to=0x...&amount=1
@@ -140,19 +202,85 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
         ? await validateAndLookupToken(toCaip)
         : undefined;
 
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Check if user needs to create a Solana account
+    if (!checkSolanaAccountAndRedirect(fromCaip, toCaip)) {
+      return; // User was redirected to account creation
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     // Process amount if we have a source token and amount
     const sourceAmount =
       amount && sourceToken?.decimals !== undefined
         ? processAmount(amount, sourceToken.decimals)
         : undefined;
 
+    // Switch to the source token's network if we have a valid source token
+    if (sourceToken?.chainId) {
+      try {
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
+
+        // Check if we have the network configuration
+        let networkConfiguration =
+          NetworkController.getNetworkConfigurationByChainId(
+            sourceToken.chainId as Hex,
+          );
+
+        // If network doesn't exist, try to add it from popular networks
+        if (!networkConfiguration) {
+          const popularNetwork = PopularList.find(
+            (network) => network.chainId === sourceToken.chainId,
+          );
+
+          if (popularNetwork) {
+            await NetworkController.addNetwork({
+              chainId: popularNetwork.chainId as Hex,
+              rpcEndpoints: [
+                {
+                  url: popularNetwork.rpcUrl,
+                  name: popularNetwork.nickname,
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              name: popularNetwork.nickname,
+              nativeCurrency: popularNetwork.ticker,
+              blockExplorerUrls: popularNetwork.rpcPrefs?.blockExplorerUrl
+                ? [popularNetwork.rpcPrefs.blockExplorerUrl]
+                : [],
+            });
+
+            // Get the updated network configuration
+            networkConfiguration =
+              NetworkController.getNetworkConfigurationByChainId(
+                sourceToken.chainId as Hex,
+              );
+          }
+        }
+
+        // Switch to the network if we have a valid configuration
+        if (networkConfiguration) {
+          const { rpcEndpoints, defaultRpcEndpointIndex } =
+            networkConfiguration;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
+        }
+      } catch (error) {
+        console.warn('Error switching network for deep link:', error);
+        // Continue with navigation even if network switch fails
+      }
+    }
+
+    // Navigate with route params - let component handle the Redux updates
     NavigationService.navigation.navigate('Bridge', {
       screen: 'BridgeView',
       params: {
+        sourcePage: 'deeplink',
         sourceToken,
         destToken,
         sourceAmount,
-        sourcePage: 'deeplink',
       },
     });
   } catch (error) {
