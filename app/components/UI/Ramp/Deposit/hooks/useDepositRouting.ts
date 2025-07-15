@@ -336,7 +336,7 @@ export const useDepositRouting = ({
         // Auto submit the Purpose of Usage form if it's the only remaining form
         if (purposeOfUsageKycForm && requiredForms?.length === 1) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          await routeAfterAuthentication({ quote });
+          await routeAfterAuthentication(quote);
           return;
         }
 
