@@ -107,12 +107,11 @@ export const useDepositRouting = ({
   }, [navigation]);
 
   const navigateToVerifyIdentityCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+    ({ quote }: { quote: BuyQuote }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createVerifyIdentityNavDetails({
           quote,
-          kycUrl,
           cryptoCurrencyChainId,
           paymentMethodId,
         }),
@@ -307,7 +306,7 @@ export const useDepositRouting = ({
   );
 
   const routeAfterAuthentication = useCallback(
-    async ({ quote }: { quote: BuyQuote }) => {
+    async (quote: BuyQuote) => {
       try {
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};

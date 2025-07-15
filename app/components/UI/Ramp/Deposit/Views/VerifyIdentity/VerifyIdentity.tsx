@@ -24,7 +24,6 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 
 export interface VerifyIdentityParams {
   quote: BuyQuote;
-  kycUrl?: string;
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
 }
@@ -37,10 +36,10 @@ const VerifyIdentity = () => {
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { quote, kycUrl, cryptoCurrencyChainId, paymentMethodId } =
+  const { quote, cryptoCurrencyChainId, paymentMethodId } =
     useParams<VerifyIdentityParams>();
 
-  const { navigateToKycWebview, navigateToEnterEmail } = useDepositRouting({
+  const { navigateToEnterEmail } = useDepositRouting({
     cryptoCurrencyChainId,
     paymentMethodId,
   });
@@ -56,11 +55,7 @@ const VerifyIdentity = () => {
   }, [navigation, theme]);
 
   const handleSubmit = async () => {
-    if (kycUrl) {
-      navigateToKycWebview(quote, kycUrl);
-    } else {
-      navigateToEnterEmail(quote);
-    }
+    navigateToEnterEmail({ quote });
   };
 
   return (

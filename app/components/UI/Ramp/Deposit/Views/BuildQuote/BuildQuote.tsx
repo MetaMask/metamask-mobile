@@ -195,7 +195,7 @@ const BuildQuote = () => {
 
     try {
       if (!isAuthenticated) {
-        navigateToVerifyIdentity(quote);
+        navigateToVerifyIdentity({ quote });
         return;
       }
 
