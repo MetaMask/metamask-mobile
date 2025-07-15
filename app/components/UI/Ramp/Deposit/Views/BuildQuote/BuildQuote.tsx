@@ -185,8 +185,6 @@ const BuildQuote = () => {
         currency_destination: cryptoCurrency.assetId,
         currency_source: fiatCurrency.id,
         is_authenticated: isAuthenticated,
-        quote_session_id: quote?.quoteId || '',
-        user_id: '123',
       });
 
       quote = await getQuote(
@@ -207,9 +205,7 @@ const BuildQuote = () => {
       );
 
       trackEvent('RAMPS_ORDER_FAILED', {
-        quote_session_id: quote?.quoteId || '',
         ramp_type: 'DEPOSIT',
-        user_id: '123',
         amount_source: amountAsNumber,
         amount_destination: Number(tokenAmount),
         payment_method_id: paymentMethod.id,
@@ -240,9 +236,7 @@ const BuildQuote = () => {
 
       await routeAfterAuthentication(quote);
       trackEvent('RAMPS_ORDER_SELECTED', {
-        quote_session_id: quote.quoteId,
         ramp_type: 'DEPOSIT',
-        user_id: '123',
         amount_source: quote.fiatAmount,
         amount_destination: quote.cryptoAmount,
         exchange_rate: Number(quote.conversionPrice || 0),
@@ -268,9 +262,7 @@ const BuildQuote = () => {
       );
 
       trackEvent('RAMPS_ORDER_FAILED', {
-        quote_session_id: quote?.quoteId || '',
         ramp_type: 'DEPOSIT',
-        user_id: '123',
         amount_source: quote?.fiatAmount || amountAsNumber,
         amount_destination: quote?.cryptoAmount || Number(tokenAmount),
         payment_method_id: quote?.paymentMethod || paymentMethod.id,
@@ -325,9 +317,7 @@ const BuildQuote = () => {
       );
       if (selectedToken) {
         trackEvent('RAMPS_TOKEN_SELECTED', {
-          quote_session_id: '123',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           region: selectedRegion?.isoCode || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
@@ -365,9 +355,7 @@ const BuildQuote = () => {
       );
       if (selectedPaymentMethod) {
         trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
-          quote_session_id: '123',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           region: selectedRegion?.isoCode || '',
           payment_method_id: selectedPaymentMethod.id,
           is_authenticated: isAuthenticated,

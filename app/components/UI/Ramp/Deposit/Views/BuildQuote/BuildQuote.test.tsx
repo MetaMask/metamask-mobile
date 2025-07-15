@@ -203,7 +203,8 @@ describe('BuildQuote Component', () => {
         screen: 'DepositTokenSelectorModal',
         params: {
           handleSelectAssetId: expect.any(Function),
-          selectedAssetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          selectedAssetId:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
       });
     });
@@ -272,11 +273,10 @@ describe('BuildQuote Component', () => {
           payment_method_id: 'credit_debit_card',
           region: 'US',
           chain_id: 'eip155:1',
-          currency_destination: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
           is_authenticated: false,
-          quote_session_id: '',
-          user_id: '123',
         });
       });
     });
@@ -345,9 +345,7 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
-          quote_session_id: 'test-quote',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           amount_source: 100,
           amount_destination: 0.05,
           exchange_rate: 2000,
@@ -357,7 +355,8 @@ describe('BuildQuote Component', () => {
           payment_method_id: 'credit_debit_card',
           region: 'US',
           chain_id: 'eip155:1',
-          currency_destination: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
         });
       });
@@ -392,15 +391,14 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
-          quote_session_id: '',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           amount_source: 0,
           amount_destination: 0,
           payment_method_id: 'credit_debit_card',
           region: 'US',
           chain_id: 'eip155:1',
-          currency_destination: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
@@ -437,15 +435,14 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
-          quote_session_id: '',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           amount_source: 0,
           amount_destination: 0,
           payment_method_id: 'credit_debit_card',
           region: 'US',
           chain_id: 'eip155:1',
-          currency_destination: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
           error_message: 'BuildQuote - Error fetching quote',
           is_authenticated: false,
@@ -502,15 +499,14 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
-          quote_session_id: 'test-quote',
           ramp_type: 'DEPOSIT',
-          user_id: '123',
           amount_source: 100,
           amount_destination: 0.05,
           payment_method_id: 'credit_debit_card',
           region: 'US',
           chain_id: 'eip155:1',
-          currency_destination: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,

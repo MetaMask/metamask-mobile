@@ -91,8 +91,6 @@ function RegionSelectorModal() {
           ramp_type: 'DEPOSIT',
           region: region.isoCode,
           is_authenticated: isAuthenticated,
-          quote_session_id: '123', // TODO: get quote session id
-          user_id: '123', // TODO: get user id
         });
 
         setSelectedRegion(region);
