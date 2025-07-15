@@ -4,7 +4,6 @@ import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants';
 import {
   loadFixture,
   startFixtureServer,
@@ -19,11 +18,15 @@ import {
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from './helpers/swap-mocks';
 import QuoteView from '../../pages/Bridge/QuoteView.ts';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
+import { startMockServer } from '../swaps/helpers/swap-mocks.ts';
+import {
+  localNodeOptions,
+  testSpecificMock,
+} from '../swaps/helpers/constants.ts';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
