@@ -6,7 +6,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
+import {
+  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
+  KycStatus,
+  REDIRECTION_URL,
+} from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import {
@@ -22,6 +26,7 @@ import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModa
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
+import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -92,11 +97,89 @@ export const useDepositRouting = ({
     throws: true,
   });
 
+  const popToBuildQuote = useCallback(() => {
+    navigation.dispatch((state) => {
+      const buildQuoteIndex = state.routes.findIndex(
+        (route) => route.name === 'BuildQuote',
+      );
+
+      return {
+        payload: {
+          count: state.routes.length - buildQuoteIndex - 1,
+          params: {
+            animationEnabled: false,
+          },
+        },
+        type: 'POP',
+      };
+    });
+  }, [navigation]);
+
+  const navigateToVerifyIdentityCallback = useCallback(
+    ({ quote }: { quote: BuyQuote }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createVerifyIdentityNavDetails({
+          quote,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+  );
+
+  const navigateToEnterEmailCallback = useCallback(
+    ({ quote }: { quote: BuyQuote }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createEnterEmailNavDetails({
+          quote,
+          paymentMethodId,
+          cryptoCurrencyChainId,
+        }),
+      );
+    },
+    [navigation, paymentMethodId, cryptoCurrencyChainId, popToBuildQuote],
+  );
+
+  const navigateToBasicInfoCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+      popToBuildQuote();
+      navigation.navigate(...createBasicInfoNavDetails({ quote, kycUrl }));
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToKycProcessingCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+      popToBuildQuote();
+      navigation.navigate(...createKycProcessingNavDetails({ quote, kycUrl }));
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToBankDetailsCallback = useCallback(
+    ({
+      orderId,
+      shouldUpdate,
+    }: {
+      orderId: string;
+      shouldUpdate?: boolean;
+    }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createBankDetailsNavDetails({ orderId, shouldUpdate }),
+      );
+    },
+    [navigation, popToBuildQuote],
+  );
+
   const handleNavigationStateChange = useCallback(
-    async (navState: { url: string }) => {
-      if (navState.url.startsWith('https://metamask.io')) {
+    async ({ url }: { url: string }) => {
+      if (url.startsWith(REDIRECTION_URL)) {
         try {
-          const urlObj = new URL(navState.url);
+          const urlObj = new URL(url);
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
@@ -131,6 +214,19 @@ export const useDepositRouting = ({
     [getOrder, selectedWalletAddress, handleNewOrder, navigation],
   );
 
+  const navigateToWebviewModalCallback = useCallback(
+    ({ paymentUrl }: { paymentUrl: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createWebviewModalNavigationDetails({
+          sourceUrl: paymentUrl,
+          handleNavigationStateChange,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, handleNavigationStateChange],
+  );
+
   const handleApprovedKycFlow = useCallback(
     async (quote: BuyQuote) => {
       const userDetails = await fetchUserDetails();
@@ -139,7 +235,10 @@ export const useDepositRouting = ({
       }
 
       if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-        if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
+        const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+          (method) => method.id === paymentMethodId,
+        );
+        if (isManualBankTransfer) {
           const reservation = await createReservation(
             quote,
             selectedWalletAddress,
@@ -163,12 +262,10 @@ export const useDepositRouting = ({
 
           await handleNewOrder(processedOrder);
 
-          navigation.navigate(
-            ...createBankDetailsNavDetails({
-              orderId: order.id,
-              shouldUpdate: false,
-            }),
-          );
+          navigateToBankDetailsCallback({
+            orderId: order.id,
+            shouldUpdate: false,
+          });
         } else {
           const ottResponse = await requestOtt();
 
@@ -187,17 +284,12 @@ export const useDepositRouting = ({
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
 
-          navigation.navigate(
-            ...createWebviewModalNavigationDetails({
-              sourceUrl: paymentUrl,
-              handleNavigationStateChange,
-            }),
-          );
+          navigateToWebviewModalCallback({ paymentUrl });
         }
         return true;
       }
 
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      navigateToKycProcessingCallback({ quote });
       return false;
     },
     [
@@ -207,26 +299,25 @@ export const useDepositRouting = ({
       createOrder,
       selectedWalletAddress,
       handleNewOrder,
-      navigation,
       cryptoCurrencyChainId,
       requestOtt,
       generatePaymentUrl,
-      handleNavigationStateChange,
+      navigateToKycProcessingCallback,
+      navigateToBankDetailsCallback,
+      navigateToWebviewModalCallback,
       themeAppearance,
       colors,
     ],
   );
 
-  const navigateToKycWebview = useCallback(
-    (quote: BuyQuote, kycUrl: string) => {
+  const navigateToKycWebviewCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+      popToBuildQuote();
       navigation.navigate(
-        ...createKycWebviewModalNavigationDetails({
-          quote,
-          sourceUrl: kycUrl,
-        }),
+        ...createKycWebviewModalNavigationDetails({ quote, sourceUrl: kycUrl }),
       );
     },
-    [navigation],
+    [navigation, popToBuildQuote],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -257,10 +348,9 @@ export const useDepositRouting = ({
           (form) => form.id === 'purposeOfUsage',
         );
 
-        // Handle Purpose of Usage form if it's the only remaining form
+        // Auto submit the Purpose of Usage form if it's the only remaining form
         if (purposeOfUsageKycForm && requiredForms?.length === 1) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          // After successful purpose of usage submission, check forms again
           await routeAfterAuthentication(quote);
           return;
         }
@@ -269,32 +359,30 @@ export const useDepositRouting = ({
           ? await fetchKycFormData(quote, idProofKycForm)
           : null;
 
-        // Navigate to BasicInfo if personal details, address, or SSN forms are required
         const shouldShowSsnForm =
           ssnKycForm && selectedRegion?.isoCode === 'US';
+
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
-          navigation.navigate(
-            ...createBasicInfoNavDetails({
-              quote,
-              kycUrl: idProofData?.data?.kycUrl,
-            }),
-          );
+          navigateToBasicInfoCallback({
+            quote,
+            kycUrl: idProofData?.data?.kycUrl,
+          });
           return;
         } else if (idProofData?.data?.kycUrl) {
-          navigateToKycWebview(quote, idProofData.data.kycUrl);
+          // should we show a welcome screen here?
+          // right now it is possible to go straight from build quote to verify identity
+          // jarring UX - camera access poppup right after build quote
+          navigateToKycWebviewCallback({
+            quote,
+            kycUrl: idProofData.data.kycUrl,
+          });
           return;
         }
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           clearAuthToken();
-          navigation.navigate(
-            ...createEnterEmailNavDetails({
-              quote,
-              paymentMethodId,
-              cryptoCurrencyChainId,
-            }),
-          );
+          navigateToEnterEmailCallback({ quote });
           return;
         }
         throw error;
@@ -306,17 +394,19 @@ export const useDepositRouting = ({
       selectedRegion?.isoCode,
       handleApprovedKycFlow,
       submitPurposeOfUsage,
-      navigation,
       clearAuthToken,
-      paymentMethodId,
-      cryptoCurrencyChainId,
-      navigateToKycWebview,
+      navigateToKycWebviewCallback,
+      navigateToEnterEmailCallback,
+      navigateToBasicInfoCallback,
     ],
   );
 
   return {
     routeAfterAuthentication,
-    navigateToKycWebview,
+    navigateToKycWebview: navigateToKycWebviewCallback,
+    navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
+    navigateToBasicInfo: navigateToBasicInfoCallback,
+    navigateToEnterEmail: navigateToEnterEmailCallback,
     handleApprovedKycFlow,
   };
 };

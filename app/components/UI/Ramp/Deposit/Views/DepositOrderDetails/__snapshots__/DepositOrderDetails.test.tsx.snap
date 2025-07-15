@@ -269,6 +269,126 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     width={32}
                   />
                 </View>
+                <View
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                      "position": "relative",
+                    }
+                  }
+                  testID="badge-wrapper-badge"
+                >
+                  <View>
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 20,
+                          "height": 40,
+                          "overflow": "hidden",
+                          "width": 40,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={
+                          {
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                          }
+                        }
+                        style={
+                          {
+                            "flex": 1,
+                            "height": undefined,
+                            "width": undefined,
+                          }
+                        }
+                        testID="token-avatar-image"
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "bottom": 0,
+                        "height": 0,
+                        "justifyContent": "center",
+                        "position": "absolute",
+                        "right": 0,
+                        "transform": [
+                          {
+                            "translateX": 0,
+                          },
+                          {
+                            "translateY": 0,
+                          },
+                        ],
+                      }
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "height": "50%",
+                          "justifyContent": "center",
+                          "maxHeight": 24,
+                          "minHeight": 8,
+                          "opacity": 0,
+                        }
+                      }
+                      testID="badgenetwork"
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "borderColor": "#ffffff",
+                            "borderRadius": 8,
+                            "borderWidth": 2,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "overflow": "hidden",
+                            "shadowColor": "#0000001a",
+                            "shadowOffset": {
+                              "height": 2,
+                              "width": 0,
+                            },
+                            "shadowOpacity": 1,
+                            "shadowRadius": 4,
+                            "transform": [
+                              {
+                                "scale": 1,
+                              },
+                            ],
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={1}
+                          style={
+                            {
+                              "height": 32,
+                              "width": 32,
+                            }
+                          }
+                          testID="network-avatar-image"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
               </View>
               <Text
                 accessibilityRole="text"
@@ -286,7 +406,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
               >
                 0.05
                  
-                ETH
+                USDC
               </Text>
               <Text
                 accessibilityRole="text"
@@ -425,7 +545,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
@@ -769,6 +889,126 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     />
                   </View>
                 </View>
+                <View
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                      "position": "relative",
+                    }
+                  }
+                  testID="badge-wrapper-badge"
+                >
+                  <View>
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 20,
+                          "height": 40,
+                          "overflow": "hidden",
+                          "width": 40,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={
+                          {
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                          }
+                        }
+                        style={
+                          {
+                            "flex": 1,
+                            "height": undefined,
+                            "width": undefined,
+                          }
+                        }
+                        testID="token-avatar-image"
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "bottom": 0,
+                        "height": 0,
+                        "justifyContent": "center",
+                        "position": "absolute",
+                        "right": 0,
+                        "transform": [
+                          {
+                            "translateX": 0,
+                          },
+                          {
+                            "translateY": 0,
+                          },
+                        ],
+                      }
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "height": "50%",
+                          "justifyContent": "center",
+                          "maxHeight": 24,
+                          "minHeight": 8,
+                          "opacity": 0,
+                        }
+                      }
+                      testID="badgenetwork"
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "borderColor": "#ffffff",
+                            "borderRadius": 8,
+                            "borderWidth": 2,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "overflow": "hidden",
+                            "shadowColor": "#0000001a",
+                            "shadowOffset": {
+                              "height": 2,
+                              "width": 0,
+                            },
+                            "shadowOpacity": 1,
+                            "shadowRadius": 4,
+                            "transform": [
+                              {
+                                "scale": 1,
+                              },
+                            ],
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={1}
+                          style={
+                            {
+                              "height": 32,
+                              "width": 32,
+                            }
+                          }
+                          testID="network-avatar-image"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
               </View>
               <Text
                 accessibilityRole="text"
@@ -786,7 +1026,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
               >
                 0.05
                  
-                ETH
+                USDC
               </Text>
               <Text
                 accessibilityRole="text"
@@ -925,7 +1165,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
@@ -1196,6 +1436,126 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     width={32}
                   />
                 </View>
+                <View
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                      "position": "relative",
+                    }
+                  }
+                  testID="badge-wrapper-badge"
+                >
+                  <View>
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 20,
+                          "height": 40,
+                          "overflow": "hidden",
+                          "width": 40,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={
+                          {
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                          }
+                        }
+                        style={
+                          {
+                            "flex": 1,
+                            "height": undefined,
+                            "width": undefined,
+                          }
+                        }
+                        testID="token-avatar-image"
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "bottom": 0,
+                        "height": 0,
+                        "justifyContent": "center",
+                        "position": "absolute",
+                        "right": 0,
+                        "transform": [
+                          {
+                            "translateX": 0,
+                          },
+                          {
+                            "translateY": 0,
+                          },
+                        ],
+                      }
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "height": "50%",
+                          "justifyContent": "center",
+                          "maxHeight": 24,
+                          "minHeight": 8,
+                          "opacity": 0,
+                        }
+                      }
+                      testID="badgenetwork"
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "borderColor": "#ffffff",
+                            "borderRadius": 8,
+                            "borderWidth": 2,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "overflow": "hidden",
+                            "shadowColor": "#0000001a",
+                            "shadowOffset": {
+                              "height": 2,
+                              "width": 0,
+                            },
+                            "shadowOpacity": 1,
+                            "shadowRadius": 4,
+                            "transform": [
+                              {
+                                "scale": 1,
+                              },
+                            ],
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={1}
+                          style={
+                            {
+                              "height": 32,
+                              "width": 32,
+                            }
+                          }
+                          testID="network-avatar-image"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
               </View>
               <Text
                 accessibilityRole="text"
@@ -1213,7 +1573,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
               >
                 0.05
                  
-                ETH
+                USDC
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1352,7 +1712,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
