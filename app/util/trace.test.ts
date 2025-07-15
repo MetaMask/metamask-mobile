@@ -477,5 +477,35 @@ describe('Trace', () => {
       expect(startSpanManualMock).toHaveBeenCalledTimes(2);
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
     });
+
+    it('should handle traces with same name but different IDs correctly', async () => {
+      const mockBufferedTraces = [
+        {
+          type: 'start',
+          request: { name: TraceName.NetworkSwitch, id: 'request1' },
+        },
+        {
+          type: 'start',
+          request: { name: TraceName.NetworkSwitch, id: 'request2' },
+        },
+        {
+          type: 'end',
+          request: { name: TraceName.NetworkSwitch, id: 'request1' },
+        },
+        {
+          type: 'end',
+          request: { name: TraceName.NetworkSwitch, id: 'request2' },
+        },
+      ];
+      selectBufferedTracesMock.mockReturnValue(mockBufferedTraces);
+
+      updateCachedConsent(true);
+
+      await flushBufferedTraces();
+
+      // Both traces should be processed (2 start calls)
+      expect(startSpanManualMock).toHaveBeenCalledTimes(2);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

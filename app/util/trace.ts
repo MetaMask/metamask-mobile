@@ -364,12 +364,19 @@ export async function flushBufferedTraces() {
 
   for (const bufferedItem of bufferedTraces) {
     if (bufferedItem.type === 'start') {
-      const traceName = bufferedItem.request.name as string;
+      const traceKey = getTraceKey(bufferedItem.request);
 
       // Get parent if applicable
       let parentSpan: Span | undefined;
       if (bufferedItem.parentTraceName) {
-        parentSpan = activeSpans.get(bufferedItem.parentTraceName);
+        // Find parent span by iterating through active spans with matching name
+        for (const [key, span] of activeSpans.entries()) {
+          const [spanName] = key.split(':');
+          if (spanName === bufferedItem.parentTraceName) {
+            parentSpan = span;
+            break;
+          }
+        }
       }
 
       const span = trace({
@@ -378,11 +385,12 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
-        activeSpans.set(traceName, span);
+        activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {
       endTrace(bufferedItem.request);
-      activeSpans.delete(bufferedItem.request.name);
+      const traceKey = getTraceKey(bufferedItem.request);
+      activeSpans.delete(traceKey);
     }
   }
 }
