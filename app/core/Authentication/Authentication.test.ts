@@ -1213,7 +1213,7 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController.state.vault = undefined;
 
       await expect(
-        Authentication.submitLatestGlobalSeedlessPassword(mockGlobalPassword),
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow(
         'This method is only available for seedless onboarding flow',
       );
@@ -1234,9 +1234,7 @@ describe('Authentication', () => {
       ).mockResolvedValueOnce(false);
       recreateVaultWithNewPassword.mockResolvedValueOnce(undefined);
 
-      await Authentication.submitLatestGlobalSeedlessPassword(
-        mockGlobalPassword,
-      );
+      await Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword);
 
       expect(
         Engine.context.SeedlessOnboardingController.submitGlobalPassword,
@@ -1277,7 +1275,7 @@ describe('Authentication', () => {
       recreateVaultWithNewPassword.mockRejectedValueOnce(vaultError);
 
       await expect(
-        Authentication.submitLatestGlobalSeedlessPassword(mockGlobalPassword),
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('Vault recreation failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });

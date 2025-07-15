@@ -49,6 +49,11 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -677,23 +682,41 @@ class AuthenticationService {
   };
 
   /**
-   * Sync latest global seedless password.
-   * Swap current device password with latest global password.
+   * Sync latest global seedless password and override the current device password with latest global password.
+   * Unlock the vault with the latest global password.
    *
-   * @param {string} globalPassword - latest global seedless password
+   * @param {string} password - latest global seedless password
    */
-  submitLatestGlobalSeedlessPassword = async (
+  syncPasswordAndUnlockWallet = async (
     globalPassword: string,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
     // If vault is not created, user is not using social login, return undefined
-    if (!SeedlessOnboardingController.state.vault) {
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       // this is only available for seedless onboarding flow
       throw new Error(
         'This method is only available for seedless onboarding flow',
       );
     }
 
+    try {
+      await KeyringController.submitPassword(globalPassword);
+      throw new SeedlessOnboardingControllerError(
+        'Password Recently Updated',
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+      );
+    } catch (error) {
+      if (error instanceof SeedlessOnboardingControllerError) {
+        if (
+          error.code ===
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+        ) {
+          throw error;
+        }
+      }
+    }
+
+    // const releaseLock = await this.syncSeedlessGlobalPasswordMutex.acquire();
     // recover the current keyring encryption key
     await SeedlessOnboardingController.submitGlobalPassword({
       globalPassword,
@@ -705,11 +728,6 @@ class AuthenticationService {
     await KeyringController.submitEncryptionKey(keyringEncryptionKey);
 
     try {
-      // update seedlessOnboardingController to use latest global password
-      await SeedlessOnboardingController.syncLatestGlobalPassword({
-        globalPassword,
-      });
-
       // update vault password to global password
       await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
@@ -727,6 +745,7 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
+    // releaseLock();
   };
 
   /**
