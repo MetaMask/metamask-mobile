@@ -642,6 +642,22 @@ describe('handleSwapUrl', () => {
     });
 
     it('proceeds to bridge view when user has Solana account and tokens are Solana', async () => {
+      // Mock Solana bridge tokens
+      mockFetchBridgeTokens.mockResolvedValue({
+        So11111111111111111111111111111111111111112: {
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          iconUrl: 'https://example.com/sol.png',
+        },
+        Es9vMFrzaCERaQeKX5Rdm1hTgFJ4QyP1gC1tF5uQW5Q: {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdc-sol.png',
+        },
+      });
+
       // Mock Solana chain detection
       mockIsSolanaChainId.mockImplementation(
         (chainId) => chainId === 'solana:solana',
@@ -665,13 +681,29 @@ describe('handleSwapUrl', () => {
 
       await handleSwapUrl({ swapPath });
 
-      // Should navigate to bridge view normally (tokens may be null if not found in bridge list)
+      // Should navigate to bridge view with resolved tokens
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: null,
-          destToken: null,
-          sourceAmount: undefined,
+          sourceToken: {
+            address:
+              'solana:solana/solana:So11111111111111111111111111111111111111112',
+            chainId: 'solana:solana',
+            decimals: 9,
+            name: 'Solana',
+            symbol: 'SOL',
+            image: 'https://example.com/sol.png',
+          },
+          destToken: {
+            address:
+              'solana:solana/solana:Es9vMFrzaCERaQeKX5Rdm1hTgFJ4QyP1gC1tF5uQW5Q',
+            chainId: 'solana:solana',
+            decimals: 6,
+            name: 'USD Coin',
+            symbol: 'USDC',
+            image: 'https://example.com/usdc-sol.png',
+          },
+          sourceAmount: '0.001',
           sourcePage: 'deeplink',
         },
       });
@@ -714,6 +746,16 @@ describe('handleSwapUrl', () => {
     });
 
     it('handles mixed EVM and Solana tokens when user has Solana account', async () => {
+      // Mock Solana bridge tokens for destination
+      mockFetchBridgeTokens.mockResolvedValue({
+        So11111111111111111111111111111111111111112: {
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          iconUrl: 'https://example.com/sol.png',
+        },
+      });
+
       // Mock Solana chain detection for destination only
       mockIsSolanaChainId.mockImplementation(
         (chainId) => chainId === 'solana:solana',
@@ -727,13 +769,21 @@ describe('handleSwapUrl', () => {
 
       await handleSwapUrl({ swapPath });
 
-      // Should navigate to bridge view normally (tokens may be null if not found in bridge list)
+      // Should navigate to bridge view with resolved destination token
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: null,
-          destToken: null,
-          sourceAmount: undefined,
+          sourceToken: null, // EVM ETH token not in bridge list
+          destToken: {
+            address:
+              'solana:solana/solana:So11111111111111111111111111111111111111112',
+            chainId: 'solana:solana',
+            decimals: 9,
+            name: 'Solana',
+            symbol: 'SOL',
+            image: 'https://example.com/sol.png',
+          },
+          sourceAmount: undefined, // No source token means no amount processing
           sourcePage: 'deeplink',
         },
       });
@@ -746,6 +796,16 @@ describe('handleSwapUrl', () => {
     });
 
     it('handles error in Solana account checking gracefully', async () => {
+      // Mock Solana bridge tokens for source
+      mockFetchBridgeTokens.mockResolvedValue({
+        So11111111111111111111111111111111111111112: {
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          iconUrl: 'https://example.com/sol.png',
+        },
+      });
+
       // Mock Solana chain detection
       mockIsSolanaChainId.mockImplementation(
         (chainId) => chainId === 'solana:solana',
@@ -761,17 +821,87 @@ describe('handleSwapUrl', () => {
 
       await handleSwapUrl({ swapPath });
 
-      // Should still navigate to bridge view despite error (tokens may be null if not found in bridge list)
+      // Should still navigate to bridge view despite error with resolved source token
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: null,
-          destToken: null,
-          sourceAmount: undefined,
+          sourceToken: {
+            address:
+              'solana:solana/solana:So11111111111111111111111111111111111111112',
+            chainId: 'solana:solana',
+            decimals: 9,
+            name: 'Solana',
+            symbol: 'SOL',
+            image: 'https://example.com/sol.png',
+          },
+          destToken: null, // EVM ETH token not in bridge list
+          sourceAmount: '0.001',
           sourcePage: 'deeplink',
         },
       });
     });
   });
   ///: END:ONLY_INCLUDE_IF
+
+  it('handles Solana tokens in bridge token list lookup correctly', async () => {
+    // Mock Solana bridge tokens with raw addresses as keys
+    mockFetchBridgeTokens.mockResolvedValue({
+      So11111111111111111111111111111111111111112: {
+        symbol: 'SOL',
+        name: 'Solana',
+        decimals: 9,
+        iconUrl: 'https://example.com/sol.png',
+      },
+      EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc-sol.png',
+      },
+    });
+
+    // Mock Solana chain detection
+    mockIsSolanaChainId.mockImplementation(
+      (chainId) => chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Mock that user has a Solana account to bypass account creation redirect
+    mockIsSolanaAccount.mockReturnValue(true);
+
+    // Mock Engine context to have Solana accounts
+    const mockEngine = jest.requireMock('../../Engine');
+    mockEngine.context.AccountsController.state.internalAccounts.accounts = {
+      'solana-account': {
+        metadata: {
+          caipAccountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      },
+    };
+    ///: END:ONLY_INCLUDE_IF
+
+    const swapPath =
+      'from=eip155:1/slip44:60&to=solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/solana:So11111111111111111111111111111111111111112&amount=1000000000';
+
+    await handleSwapUrl({ swapPath });
+
+    // Should navigate to bridge view with properly resolved Solana destination token
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: null, // EVM ETH token should be null if not in bridge list
+        destToken: {
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/solana:So11111111111111111111111111111111111111112',
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image: 'https://example.com/sol.png',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
 });

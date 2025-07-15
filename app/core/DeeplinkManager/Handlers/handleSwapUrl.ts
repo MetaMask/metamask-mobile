@@ -1,5 +1,5 @@
 import NavigationService from '../../NavigationService';
-import { isCaipAssetType, Hex } from '@metamask/utils';
+import { isCaipAssetType, Hex, parseCaipAssetType } from '@metamask/utils';
 import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
 import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
@@ -40,12 +40,22 @@ const validateAndLookupToken = async (
       BRIDGE_API_BASE_URL,
     );
 
-    // 3. Find matching token (check both original and lowercase addresses)
-    const matchingToken =
-      bridgeTokens[basicToken.address] ||
-      bridgeTokens[basicToken.address.toLowerCase()];
+    // 3. For Solana tokens, extract assetReference for lookup
+    // but preserve the full CAIP format for the final token
+    let lookupAddress = basicToken.address;
+    if (
+      basicToken.chainId.startsWith('solana:') &&
+      isCaipAssetType(caipAssetType)
+    ) {
+      const parsedAsset = parseCaipAssetType(caipAssetType);
+      lookupAddress = parsedAsset.assetReference;
+    }
 
-    // 4. Return complete token or null if not found
+    // 4. Find matching token using the appropriate lookup address
+    const matchingToken =
+      bridgeTokens[lookupAddress] || bridgeTokens[lookupAddress.toLowerCase()];
+
+    // 5. Return complete token or null if not found
     if (matchingToken) {
       return {
         address: basicToken.address,
