@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -54,9 +54,9 @@ const VerifyIdentity = () => {
     );
   }, [navigation, theme]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     navigateToEnterEmail({ quote });
-  };
+  }, [navigateToEnterEmail, quote]);
 
   return (
     <ScreenLayout>

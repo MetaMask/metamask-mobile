@@ -42,6 +42,33 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 });
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+
+const verifyPopToBuildQuoteCalled = () => {
+  expect(mockDispatch).toHaveBeenCalledWith(expect.any(Function));
+  const dispatchCall = mockDispatch.mock.calls.find(
+    (call) => typeof call[0] === 'function',
+  );
+  const dispatchFunction = dispatchCall?.[0];
+  const mockState = {
+    routes: [
+      { name: 'SomeOtherScreen' },
+      { name: 'BuildQuote' },
+      { name: 'CurrentScreen' },
+    ],
+    length: 3,
+  };
+  const action = dispatchFunction(mockState);
+  expect(action).toEqual(
+    expect.objectContaining({
+      type: 'POP',
+      payload: expect.objectContaining({
+        count: 1,
+        params: { animationEnabled: false },
+      }),
+    }),
+  );
+};
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -96,6 +123,7 @@ jest.mock('react-redux', () => ({
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -135,6 +163,21 @@ describe('useDepositRouting', () => {
     mockUseHandleNewOrder.mockReturnValue(
       jest.fn().mockResolvedValue(undefined),
     );
+
+    mockDispatch.mockImplementation((actionOrFunction) => {
+      if (typeof actionOrFunction === 'function') {
+        const mockState = {
+          routes: [
+            { name: 'SomeOtherScreen' },
+            { name: 'BuildQuote' },
+            { name: 'CurrentScreen' },
+          ],
+          length: 3,
+        };
+        return actionOrFunction(mockState);
+      }
+      return actionOrFunction;
+    });
   });
 
   it('should create the hook with correct parameters', () => {
@@ -171,6 +214,8 @@ describe('useDepositRouting', () => {
       expect(mockFetchUserDetails).toHaveBeenCalled();
       expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
       expect(mockCreateOrder).toHaveBeenCalledWith({ id: 'reservation-id' });
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
         orderId: 'order-id',
         shouldUpdate: false,
@@ -223,6 +268,8 @@ describe('useDepositRouting', () => {
           borderColors: expect.any(String),
         }),
       );
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
         params: {
@@ -255,6 +302,8 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
@@ -282,6 +331,8 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
@@ -306,6 +357,8 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
         kycUrl: undefined,
@@ -340,6 +393,8 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
       expect(mockRequestOtt).toHaveBeenCalled();
       expect(mockGeneratePaymentUrl).toHaveBeenCalled();
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
         params: expect.objectContaining({
@@ -369,6 +424,8 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
         id: 'idProof',
       });
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositKycWebviewModal',
         params: {
@@ -413,6 +470,8 @@ describe('useDepositRouting', () => {
       expect(success).toBe(true);
       expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
       expect(mockCreateOrder).toHaveBeenCalled();
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
         orderId: 'order-id',
         shouldUpdate: false,
@@ -444,6 +503,8 @@ describe('useDepositRouting', () => {
           borderColors: expect.any(String),
         }),
       );
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositWebviewModal',
         params: expect.objectContaining({
@@ -469,6 +530,8 @@ describe('useDepositRouting', () => {
       const success = await result.current.handleApprovedKycFlow(mockQuote);
 
       expect(success).toBe(false);
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
         quote: mockQuote,
       });
@@ -541,6 +604,8 @@ describe('useDepositRouting', () => {
       const { result } = renderHook(() => useDepositRouting(mockParams));
       await result.current.routeAfterAuthentication(mockQuote);
       expect(mockClearAuthToken).toHaveBeenCalled();
+
+      verifyPopToBuildQuoteCalled();
       expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
         [
           [
@@ -674,6 +739,87 @@ describe('useDepositRouting', () => {
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Navigation callback methods', () => {
+    it('should call popToBuildQuote before navigating in navigateToVerifyIdentity', () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      result.current.navigateToVerifyIdentity({ quote: mockQuote });
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('VerifyIdentity', {
+        quote: mockQuote,
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      });
+    });
+
+    it('should call popToBuildQuote before navigating in navigateToEnterEmail', () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      result.current.navigateToEnterEmail({ quote: mockQuote });
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {
+        quote: mockQuote,
+        paymentMethodId: 'credit_debit_card',
+        cryptoCurrencyChainId: 'eip155:1',
+      });
+    });
+
+    it('should call popToBuildQuote before navigating in navigateToBasicInfo', () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      result.current.navigateToBasicInfo({ quote: mockQuote });
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
+        quote: mockQuote,
+      });
+    });
+
+    it('should call popToBuildQuote before navigating in navigateToKycWebview', () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      result.current.navigateToKycWebview({
+        quote: mockQuote,
+        kycUrl: 'test-url',
+      });
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositKycWebviewModal',
+        params: {
+          quote: mockQuote,
+          sourceUrl: 'test-url',
+        },
+      });
     });
   });
 });

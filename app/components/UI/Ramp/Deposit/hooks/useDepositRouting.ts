@@ -144,17 +144,17 @@ export const useDepositRouting = ({
   );
 
   const navigateToBasicInfoCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
       popToBuildQuote();
-      navigation.navigate(...createBasicInfoNavDetails({ quote }));
+      navigation.navigate(...createBasicInfoNavDetails({ quote, kycUrl }));
     },
     [navigation, popToBuildQuote],
   );
 
   const navigateToKycProcessingCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
       popToBuildQuote();
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      navigation.navigate(...createKycProcessingNavDetails({ quote, kycUrl }));
     },
     [navigation, popToBuildQuote],
   );
@@ -363,7 +363,10 @@ export const useDepositRouting = ({
           ssnKycForm && selectedRegion?.isoCode === 'US';
 
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
-          navigateToBasicInfoCallback({ quote });
+          navigateToBasicInfoCallback({
+            quote,
+            kycUrl: idProofData?.data?.kycUrl,
+          });
           return;
         } else if (idProofData?.data?.kycUrl) {
           // should we show a welcome screen here?
