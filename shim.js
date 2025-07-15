@@ -49,6 +49,41 @@ if (typeof process === 'undefined') {
 process.browser = false;
 if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer;
 
+// EventTarget polyfills for Hyperliquid SDK WebSocket support
+if (typeof global.EventTarget === 'undefined' || typeof global.Event === 'undefined') {
+  const { Event, EventTarget } = require('event-target-shim');
+  global.EventTarget = EventTarget;
+  global.Event = Event;
+}
+
+if (typeof global.CustomEvent === 'undefined') {
+  global.CustomEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.detail = params.detail || null;
+    return event;
+  };
+}
+
+if (typeof global.AbortSignal.timeout === 'undefined') {
+  global.AbortSignal.timeout = function (delay) {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), delay);
+    return controller.signal;
+  };
+}
+
+if (typeof global.Promise.withResolvers === 'undefined') {
+  global.Promise.withResolvers = function () {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });

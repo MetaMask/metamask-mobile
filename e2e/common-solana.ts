@@ -36,16 +36,11 @@ export async function withSolanaAccountEnabled(
       await TestHelpers.reverseServerPort();
       await loginToApp();
 
-      // Create 1st Solana account through the new feature sheet
-      await SolanaNewFeatureSheet.tapCreateAccountButton();
-      await AddNewHdAccountComponent.tapConfirm();
-      await Assertions.checkIfElementToHaveText(
-        WalletView.accountName,
-        `Solana Account 1`,
-      );
+      // Dismiss the new feature view
+      await SolanaNewFeatureSheet.tapNotNowButton();
 
-      // Create remaining Solana accounts through the wallet view
-      for (let i = 1; i < numberOfAccounts; i++) {
+      // Create Solana accounts through the wallet view
+      for (let i = 0; i < numberOfAccounts; i++) {
         await WalletView.tapCurrentMainWalletAccountActions();
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();

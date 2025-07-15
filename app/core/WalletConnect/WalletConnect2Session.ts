@@ -152,7 +152,7 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
-    this.lastChainId = this.getCurrentChainId()
+    this.lastChainId = this.getCurrentChainId();
     // Subscribe to store changes to detect chain switches
     store.subscribe(this.onStoreChange.bind(this));
   }
@@ -518,7 +518,7 @@ class WalletConnect2Session {
         hooks: getRpcMethodMiddlewareHooks(channelId),
       });
     }
-  }
+  };
 
   handleRequest = async (requestEvent: WalletKitTypes.SessionRequest) => {
     DevLogger.log(
@@ -546,7 +546,7 @@ class WalletConnect2Session {
     let caip2ChainId: CaipChainId;
     let hexChainId: Hex;
     try {
-      hexChainId = isSwitchingChain ? requestEvent.params.request.params[0].chainId : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId)
+      hexChainId = isSwitchingChain ? requestEvent.params.request.params[0].chainId : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId);
       caip2ChainId = `eip155:${parseInt(hexChainId, 16)}`as CaipChainId;
     } catch (err) {
       this._isHandlingRequest = false;
@@ -572,7 +572,7 @@ class WalletConnect2Session {
     store.dispatch(updateWC2Metadata({
       ...currentMetadata,
       lastVerifiedUrl: origin,
-    }))
+    }));
 
     DevLogger.log(
       `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,

@@ -217,7 +217,16 @@ class AesCryptoTestForm {
       encryptionKey,
     );
     await this.scrollToDecrypt();
-    await Gestures.waitAndTap(this.decryptButton);
+
+    //handle UI flakiness when using keypad on small screens
+    try {
+      await Gestures.waitAndTap(this.decryptButton, {
+        timeout: 5000,
+      });
+    } catch (error) {
+      await this.scrollToDecrypt();
+      await Gestures.waitAndTap(this.decryptButton);
+    }
   }
 
   async encryptWithKey(encryptionKey, data) {

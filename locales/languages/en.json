@@ -516,6 +516,11 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
     "payment_modal": {
       "select_a_payment_method": "Select a Payment Method"
     },
@@ -581,7 +586,16 @@
       "date_of_birth": "Date of Birth",
       "social_security_number": "Social Security Number",
       "enter_phone_number": "Enter phone number",
-      "select_region": "Select region"
+      "select_region": "Select region",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
       "title": "Enter your address",
@@ -592,7 +606,17 @@
       "state": "State/Region",
       "city": "City",
       "postal_code": "Postal/Zip Code",
-      "country": "Country"
+      "country": "Country",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code"
     },
     "privacy_section":{
       "transak": "Transak encrypts and stores this information.",
@@ -683,6 +707,135 @@
       "title": "There was an error",
       "description": "There was an error processing your deposit. Please contact support if the problem persists.",
       "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Amount to deposit",
+      "payWith": "Pay with",
+      "available": "Available",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "continue": "Continue",
+      "confirmDeposit": "Confirm deposit",
+      "confirming": "Confirming...",
+      "processingTitle": "Processing deposit",
+      "depositCompleted": "Deposit completed successfully!",
+      "depositFailed": "Deposit Failed",
+      "retryDeposit": "Retry Deposit",
+      "goBack": "Go Back",
+      "viewBalance": "View Balance",
+      "selectToken": "Select token to pay with",
+      "steps": {
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositingDirect": "Transferring USDC directly to your HyperLiquid account..."
+      },
+      "stepDescriptions": {
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account"
+      },
+      "processing": "Processing...",
+      "completed": "Transaction completed",
+      "confirming": "Confirming on blockchain",
+      "transactionHash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
+      "success": {
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processingTime": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "viewBalance": "View Balance",
+        "viewTransaction": "View Transaction"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Success"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "longTitle": "Long {{asset}}",
+      "shortTitle": "Short {{asset}}",
+      "market": "Market",
+      "marginRequired": "Margin required",
+      "leverage": "Leverage",
+      "liquidationPrice": "Liquidation price",
+      "takeProfitStopLoss": "Take profit/Stop loss",
+      "addTPSL": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "placeOrder": "Place order",
+      "cannotPlaceOrder": "Cannot place order ({{count}} errors)",
+      "tpslModal": {
+        "title": "Set take profit/stop loss",
+        "markPrice": "Mark price",
+        "setLimit": "Set limit",
+        "takeProfitShort": "TP",
+        "stopLossShort": "SL",
+        "addTP": "+ TP",
+        "removeTP": "✕ TP",
+        "addSL": "+ SL",
+        "removeSL": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amountRequired": "Order amount must be greater than 0",
+        "minimumAmount": "Minimum order size is ${{amount}}",
+        "maximumAmount": "Maximum order size is ${{amount}}",
+        "insufficientBalance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalidLeverage": "Leverage must be between {{min}}x and {{max}}x",
+        "highLeverageWarning": "High leverage increases liquidation risk",
+        "invalidTakeProfit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidationWarning": "Position is close to liquidation price"
+      },
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "orderPlaced": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order"
+      },
+      "error": {
+        "placementFailed": "Order placement failed",
+        "networkError": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "title": "Position Details"
+      }
+    },
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
     }
   },
   "receive": {
@@ -1693,6 +1846,7 @@
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -1705,7 +1859,8 @@
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
-      "earn": "Earning not supported for this account"
+      "earn": "Earning not supported for this account",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -1722,6 +1877,7 @@
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -1812,7 +1968,8 @@
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
-    "open_settings": "Settings"
+    "open_settings": "Settings",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -3924,17 +4081,12 @@
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
   "solana_new_feature_content": {
-    "title": "Solana on MetaMask",
-    "create_solana_account": "Create Solana account",
+    "title": "solana is here",
+    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
     "not_now": "Not now",
     "view_solana_account": "View Solana account",
-    "feature_1_title": "Send, receive, and swap tokens",
-    "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
-    "feature_2_title": "Import Solana accounts",
-    "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
-    "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
-    "learn_more": "Learn more about Solana accounts"
+    "learn_more": "Learn more about Solana accounts",
+    "import_your_wallet": "Import your wallet"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -4423,6 +4575,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network Fee",
+    "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "quote_details": "Quote Details",

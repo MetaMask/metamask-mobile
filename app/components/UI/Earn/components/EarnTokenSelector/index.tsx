@@ -50,7 +50,7 @@ const EarnTokenSelector = ({
 
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });
-    
+
     const tokenFilter = {
       includeReceiptTokens: false,
     };

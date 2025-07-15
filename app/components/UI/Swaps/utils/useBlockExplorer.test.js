@@ -23,7 +23,7 @@ const renderUseBlockExplorerHook = (overrides) => {
     providerConfig
   ));
   return result.current;
-}
+};
 
 describe('useBlockExplorer', () => {
   it('returns a correct explorer object for a custom network', () => {
@@ -55,7 +55,7 @@ describe('useBlockExplorer', () => {
       'https://arbitrumscan.io/address/0x789'
     );
   });
-  
+
   it('returns a correct explorer object for build-in network', () => {
     const explorer = renderUseBlockExplorerHook({
         chainId: '0x1',
@@ -66,7 +66,7 @@ describe('useBlockExplorer', () => {
         rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID',
         type: RpcEndpointType.Infura
     });
-    
+
     expect(explorer).toStrictEqual({
       name: 'Etherscan',
       value: 'https://etherscan.io',

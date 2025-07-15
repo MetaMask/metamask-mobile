@@ -12,7 +12,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
@@ -37,6 +36,8 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { renderShortAddress } from '../../../../../util/address';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;
@@ -81,8 +82,15 @@ export enum TokenInputAreaType {
   Destination = 'destination',
 }
 
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+const formatAddress = (address?: string) => {
+  if (!address) return undefined;
+
+  if (isCaipAssetType(address)) {
+    const { assetReference } = parseCaipAssetType(address);
+    return renderShortAddress(assetReference, 4);
+  }
+  return renderShortAddress(address, 4);
+};
 
 export const getDisplayAmount = (
   amount?: string,
@@ -200,7 +208,7 @@ export const TokenInputArea = forwardRef<
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+        ? `${parseFloat(tokenBalance).toFixed(3).replace(/\.?0+$/, '')} ${token?.symbol}`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero

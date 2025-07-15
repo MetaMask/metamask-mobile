@@ -56,7 +56,7 @@ class ImportWalletView {
     );
   }
   async clearSecretRecoveryPhraseInputBox() {
-    await Gestures.clearField(this.seedPhraseInput, 
+    await Gestures.clearField(this.seedPhraseInput,
       {
         elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
       }

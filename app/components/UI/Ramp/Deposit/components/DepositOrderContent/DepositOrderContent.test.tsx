@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -16,13 +15,6 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
-jest.mock('react-native', () => ({
-  ...jest.requireActual('react-native'),
-  Linking: {
-    openURL: jest.fn(),
-  },
-}));
-
 describe('DepositOrderContent Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',
@@ -31,11 +23,11 @@ describe('DepositOrderContent Component', () => {
     amount: '100',
     currency: 'USD',
     cryptoAmount: '0.05',
-    cryptocurrency: 'ETH',
+    cryptocurrency: 'USDC',
     fee: '2.50',
     state: FIAT_ORDER_STATES.COMPLETED,
     account: '0x1234567890123456789012345678901234567890',
-    network: '1',
+    network: 'eip155:1',
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
@@ -45,7 +37,7 @@ describe('DepositOrderContent Component', () => {
       createdAt: Date.now(),
       fiatAmount: 100,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'eth',
+      cryptoCurrency: 'USDC',
       network: 'ethereum',
       status: 'COMPLETED',
       orderType: 'DEPOSIT',
@@ -147,23 +139,6 @@ describe('DepositOrderContent Component', () => {
     );
   });
 
-  it('opens Transak link when view details button is pressed', () => {
-    renderWithProvider(<DepositOrderContent order={mockOrder} />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-
-    const viewDetailsButton = screen.getByText('View order details in Transak');
-    fireEvent.press(viewDetailsButton);
-
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://transak.com/order/123',
-    );
-  });
-
   it('renders without fee when fee is not provided', () => {
     const orderWithoutFee = { ...mockOrder, fee: undefined };
 
@@ -185,24 +160,6 @@ describe('DepositOrderContent Component', () => {
     };
 
     renderWithProvider(<DepositOrderContent order={orderWithCryptoFee} />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    });
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders without provider link when not available', () => {
-    const { providerOrderLink, ...dataWithoutLink } = mockOrder.data;
-    const orderWithoutLink = {
-      ...mockOrder,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: dataWithoutLink as any,
-    };
-
-    renderWithProvider(<DepositOrderContent order={orderWithoutLink} />, {
       state: {
         engine: {
           backgroundState,

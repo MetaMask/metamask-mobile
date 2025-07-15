@@ -71,7 +71,7 @@ export async function initializeRpcProviderDomains(): Promise<void> {
       state.setKnownDomainsSet(new Set<string>());
     }
   })();
-  
+
   state.setInitPromise(promise);
   return promise;
 }

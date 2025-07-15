@@ -18,4 +18,4 @@ class PaymentRequestQrBottomSheet {
   }
 }
 
-export default new PaymentRequestQrBottomSheet(); 
+export default new PaymentRequestQrBottomSheet();

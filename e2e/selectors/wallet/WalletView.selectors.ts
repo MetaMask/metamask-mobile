@@ -7,7 +7,6 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCAN_BUTTON: 'wallet-scan-button',
   WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
-  PORTFOLIO_BUTTON: 'portfolio-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   STAKE_BUTTON: 'stake-button',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
@@ -31,7 +30,6 @@ export const WalletViewSelectorsIDs = {
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
   NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
-  IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
@@ -92,4 +90,4 @@ export const WalletViewSelectorsText = {
 
 // Type definitions for the selectors
 export type WalletViewSelectorsIDsType = typeof WalletViewSelectorsIDs;
-export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText; 
+export type WalletViewSelectorsTextType = typeof WalletViewSelectorsText;

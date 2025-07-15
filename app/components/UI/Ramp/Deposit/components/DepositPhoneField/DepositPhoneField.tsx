@@ -114,6 +114,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
         }
         keyboardType="phone-pad"
         textContentType="telephoneNumber"
+        autoComplete="tel"
         startAccessory={countryPrefixAccessory}
         onSubmitEditing={onSubmitEditing}
         ref={ref}
