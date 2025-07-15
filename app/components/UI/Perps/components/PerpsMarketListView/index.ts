@@ -1,1 +1,1 @@
-export { default } from './PerpsMarketListView';
+export { default } from '../../Views/PerpsMarketListView';
