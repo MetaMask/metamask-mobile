@@ -62,7 +62,7 @@ describe('tokenUtils', () => {
         address: mockNativeAsset.address,
         name: mockNativeAsset.name,
         symbol: mockNativeAsset.symbol,
-        image: '',
+        image: undefined,
         decimals: mockNativeAsset.decimals,
         chainId: 'eip155:1',
       });
@@ -175,7 +175,7 @@ describe('tokenUtils', () => {
         address: constants.AddressZero,
         name: 'Ethereum',
         symbol: 'ETH',
-        image: '',
+        image: undefined,
         decimals: 18,
         chainId: 'eip155:1',
       });
@@ -203,7 +203,7 @@ describe('tokenUtils', () => {
         address: 'native-sol-asset-id',
         name: 'Solana',
         symbol: 'SOL',
-        image: '',
+        image: undefined,
         decimals: 9,
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       });
@@ -255,7 +255,7 @@ describe('tokenUtils', () => {
         address: constants.AddressZero,
         name: '',
         symbol: 'ETH',
-        image: '',
+        image: undefined,
         decimals: 18,
         chainId: 'eip155:1',
       });
@@ -278,7 +278,7 @@ describe('tokenUtils', () => {
         address: constants.AddressZero,
         name: 'Ethereum',
         symbol: 'ETH',
-        image: '',
+        image: undefined,
         decimals: 18,
         chainId: '0x1',
       });
