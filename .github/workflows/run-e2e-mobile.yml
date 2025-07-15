@@ -207,6 +207,13 @@ jobs:
           
           echo "Running ${{ inputs.smoke-category }} tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
           
+          # Rebuild Detox framework cache for iOS to ensure it's ready
+          if [[ "$platform" == "ios" ]]; then
+            echo "🔧 Rebuilding Detox framework cache for iOS..."
+            yarn detox build-framework-cache
+            echo "✅ Detox framework cache rebuilt"
+          fi
+          
           if [[ "$is_api_specs" == "true" ]]; then
             if [[ "$platform" != "ios" ]]; then
               echo "API specs are iOS-only, skipping $platform"
