@@ -40,6 +40,11 @@ describe(
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapAddSolanaAccount();
       await AddNewHdAccountComponent.tapConfirm();
+
+      await TestHelpers.delay(2000);
+
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
+      await NetworkEducationModal.tapGotItButton();
     });
 
     it('should validate recipient address format correctly', async () => {
