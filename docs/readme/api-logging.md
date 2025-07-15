@@ -21,11 +21,13 @@ LOG_API_CALLS=true yarn start:android
 
 1. Open a new terminal window
 2. Run the following command:
+
 ```bash
 yarn start:api-logging-server
 ```
 
 The monitor will start and display:
+
 - The port it's running on
 - Detailed logs for all API calls including:
   - Request method and URL
@@ -38,6 +40,32 @@ The monitor will start and display:
 ### Stopping the Monitor
 
 To stop the API monitor, press `Ctrl+C` in the terminal where it's running.
+
+## Using Reactotron
+
+Reactotron is already configured in the app and can be used to monitor API calls
+
+### Install the Reactotron Desktop App
+
+```bash
+brew install --cask reactotron
+```
+
+### Start monitoring
+
+- Open Reactotron
+- Refresh simulator
+- API logs should appear under Timeline tab in Reactotron.
+
+### Troubleshooting (Android)
+
+If Reactotron isn’t picking up connections on Android, run:
+
+```bash
+adb reverse tcp:9090 tcp:9090
+```
+
+Then refresh the app again.
 
 ## E2E Tests
 
@@ -53,11 +81,13 @@ The API call logging functionality is implemented using the following components
 4. The API monitor script uses `mockttp` to intercept and log all API calls
 
 When using the API monitor, you'll see detailed logs in the console showing:
+
 - All API requests with their methods, URLs, headers, and bodies
 - All API responses with their status codes, headers, and bodies
 - Pretty-formatted JSON for better readability
 
 This is particularly useful for:
+
 - Debugging API-related issues
 - Understanding the network traffic of the app
-- Verifying that API calls are being made correctly 
+- Verifying that API calls are being made correctly
