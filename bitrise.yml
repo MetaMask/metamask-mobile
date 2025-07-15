@@ -922,6 +922,7 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
       - ios_e2e_test
+
   run_wallet_platform_swimlane_android_smoke:
     meta:
       bitrise.io:
@@ -1738,7 +1739,7 @@ workflows:
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - script:
           inputs:
-            - content: |-
+            - content: |- 
                 # Add cache directory to environment variable
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
