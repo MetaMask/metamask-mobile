@@ -433,7 +433,7 @@ const ManualBackupStep2 = ({
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
         ).build(),
-        this.props.saveOnboardingEvent,
+        saveOnboardingEvent,
       );
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
