@@ -8,24 +8,24 @@ import {
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import styleSheet from '../components/PerpsMarketListView/PerpsMarketListView.styles';
+} from '../../../../../component-library/components/Texts/Text';
+import { useNavigation } from '@react-navigation/native';
+import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import styleSheet from './PerpsMarketListView.styles';
 import {
   PerpsMarketData,
   PerpsMarketListViewProps,
-} from '../components/PerpsMarketListView/PerpsMarketListView.types';
-import { useNavigation } from '@react-navigation/native';
-import PerpsMarketRowItem from '../components/PerpsMarketRowItem';
-import { usePerpsMarkets } from '../hooks/usePerpsMarkets';
+} from './PerpsMarketListView.types';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});

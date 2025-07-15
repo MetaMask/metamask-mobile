@@ -1,4 +1,4 @@
-import { PerpsMarketData } from '../PerpsMarketListView/PerpsMarketListView.types';
+import { PerpsMarketData } from '../../Views/PerpsMarketListView/PerpsMarketListView.types';
 
 /**
  * Props for PerpsMarketRowItem component

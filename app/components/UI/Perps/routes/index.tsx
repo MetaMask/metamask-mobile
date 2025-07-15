@@ -4,7 +4,7 @@ import PerpsView from '../Views/PerpsView';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
-import PerpsMarketListView from '../Views/PerpsMarketListView';
+import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 
 const Stack = createStackNavigator();
 
