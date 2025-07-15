@@ -966,6 +966,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
+  // executed when URL changes or BrowserTab starts up
+  // 
   const sendActiveAccount = useCallback(async (targetUrl?: string) => {
     try {
       const urlToCheck = targetUrl || resolvedUrlRef.current;
@@ -981,6 +983,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
       const permittedOrigins = Object.keys(permissionsControllerState.subjects);
       const isPermittedOrigin = permittedOrigins.includes(origin);
+      console.log('****KYLAN**** isPermittedOrigin', origin, isPermittedOrigin);
+      console.log('****KYLAN**** permittedAccountsForTarget', permittedAccountsForTarget);
       if (!isPermittedOrigin) return;
 
       notifyAllConnections({

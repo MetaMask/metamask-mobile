@@ -20,7 +20,7 @@ class Port extends EventEmitter {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   postMessage = (msg: any, origin = '*') => {
-    console.log('postMessage', origin, msg);
+    console.log('****KYLAN**** postMessage', origin, msg?.data?.method);
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
       : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
