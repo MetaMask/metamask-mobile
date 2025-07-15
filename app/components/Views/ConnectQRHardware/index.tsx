@@ -139,7 +139,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
           })
           .build(),
       );
-      Engine.resolveQrKeyringScanRequest({
+      Engine.getQrKeyringScanner().resolvePendingScan({
         type: ur.type,
         cbor: ur.cbor.toString('hex'),
       });
@@ -150,11 +150,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onScanError = useCallback(async (error: string) => {
     setErrorMsg(error);
-    Engine.rejectQrKeyringScanRequest(new Error(error));
+    Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
   }, []);
 
   const cancelScan = useCallback(() => {
-    Engine.rejectQrKeyringScanRequest(new Error('Scan cancelled'));
+    Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
   }, []);
 
   const nextPage = useCallback(async () => {

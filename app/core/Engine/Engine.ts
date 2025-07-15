@@ -115,12 +115,7 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import {
-  DeferredPromise,
-  Hex,
-  Json,
-  createDeferredPromise,
-} from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -242,6 +237,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
+import { QrKeyringScanner } from '../QrKeyring/QrKeyringScanner';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -293,11 +289,17 @@ export class Engine {
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
 
-  #pendingQrKeyringScan: {
-    request: DeferredPromise<SerializedUR> | null;
-  } = {
-    request: null,
-  };
+  readonly qrKeyringScanner = new QrKeyringScanner({
+    onScanRequested: (request) => {
+      store.dispatch(scanRequested(request));
+    },
+    onScanResolved: () => {
+      store.dispatch(scanCompleted());
+    },
+    onScanRejected: () => {
+      store.dispatch(scanCompleted());
+    },
+  });
 
   /**
    * Creates a CoreController instance
@@ -570,7 +572,7 @@ export class Engine {
     const additionalKeyrings = [];
 
     const qrKeyringBridge = new QrKeyringScannerBridge({
-      requestScan: (request) => this.requestQrKeyringScan(request),
+      requestScan: (request) => this.qrKeyringScanner.requestScan(request),
     });
     const qrKeyringBuilder = () => {
       const keyring = new QrKeyring({ bridge: qrKeyringBridge });
@@ -2272,38 +2274,6 @@ export class Engine {
     }
   }
 
-  async requestQrKeyringScan(request: QrScanRequest): Promise<SerializedUR> {
-    if (this.#pendingQrKeyringScan.request) {
-      throw new Error(
-        'A QR keyring scan request is already pending. Please wait for it to complete before requesting a new scan.',
-      );
-    }
-    const deferredPromise = createDeferredPromise<SerializedUR>({
-      suppressUnhandledRejection: true,
-    });
-    this.#pendingQrKeyringScan.request = deferredPromise;
-    store.dispatch(scanRequested(request));
-    return deferredPromise.promise;
-  }
-
-  resolveQrKeyringScanRequest(response: SerializedUR) {
-    if (!this.#pendingQrKeyringScan.request) {
-      throw new Error('No pending QR keyring scan request to resolve.');
-    }
-    this.#pendingQrKeyringScan.request.resolve(response);
-    this.#pendingQrKeyringScan.request = null;
-    store.dispatch(scanCompleted());
-  }
-
-  rejectQrKeyringScanRequest(error: Error) {
-    if (!this.#pendingQrKeyringScan.request) {
-      throw new Error('No pending QR keyring scan request to reject.');
-    }
-    this.#pendingQrKeyringScan.request.reject(error);
-    this.#pendingQrKeyringScan.request = null;
-    store.dispatch(scanCompleted());
-  }
-
   // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
   setSelectedAccount(address: string) {
     const { AccountsController, PreferencesController } = this.context;
@@ -2520,16 +2490,6 @@ export default {
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
 
-  resolveQrKeyringScanRequest: (response: SerializedUR) => {
-    assertEngineExists(instance);
-    instance.resolveQrKeyringScanRequest(response);
-  },
-
-  rejectQrKeyringScanRequest: (error: Error) => {
-    assertEngineExists(instance);
-    instance.rejectQrKeyringScanRequest(error);
-  },
-
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
@@ -2538,6 +2498,11 @@ export default {
   setAccountLabel: (address: string, label: string) => {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
+  },
+
+  getQrKeyringScanner: () => {
+    assertEngineExists(instance);
+    return instance.qrKeyringScanner;
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

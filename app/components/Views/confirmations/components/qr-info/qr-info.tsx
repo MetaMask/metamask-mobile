@@ -44,7 +44,7 @@ const QRInfo = () => {
       if (buffer) {
         const requestId = uuidStringify(buffer);
         if (pendingScanRequest?.request?.requestId === requestId) {
-          Engine.resolveQrKeyringScanRequest({
+          Engine.getQrKeyringScanner().resolvePendingScan({
             type: ur.type,
             cbor: ur.cbor.toString('hex'),
           });
@@ -120,7 +120,7 @@ const QRInfo = () => {
       <AnimatedQRScannerModal
         pauseQRCode={setShouldPause}
         visible={scannerVisible}
-        purpose={'sign'}
+        purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
         hideModal={() => setScannerVisible(false)}

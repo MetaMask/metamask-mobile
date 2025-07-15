@@ -53,7 +53,9 @@ export const QRHardwareContextProvider: React.FC<{
         return;
       }
       e.preventDefault();
-      Engine.rejectQrKeyringScanRequest(new Error('Request cancelled'));
+      Engine.getQrKeyringScanner().rejectPendingScan(
+        new Error('Request cancelled'),
+      );
       navigation.dispatch(e.data.action);
     },
     [isRequestCompleted, navigation],
@@ -68,7 +70,9 @@ export const QRHardwareContextProvider: React.FC<{
     if (!isQRSigningInProgress) {
       return;
     }
-    Engine.rejectQrKeyringScanRequest(new Error('Request cancelled'));
+    Engine.getQrKeyringScanner().rejectPendingScan(
+      new Error('Request cancelled'),
+    );
     setRequestCompleted(true);
     setScannerVisible(false);
   }, [isQRSigningInProgress, setRequestCompleted, setScannerVisible]);

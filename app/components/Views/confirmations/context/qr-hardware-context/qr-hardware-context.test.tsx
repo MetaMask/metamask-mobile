@@ -2,7 +2,6 @@ import React from 'react';
 import { userEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
@@ -17,6 +16,12 @@ import {
 } from './qr-hardware-context';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
+const mockQrScanner = {
+  requestScan: jest.fn(),
+  resolvePendingScan: jest.fn(),
+  rejectPendingScan: jest.fn(),
+};
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -29,6 +34,7 @@ jest.mock('../../../../../core/Engine', () => ({
     unsubscribe: jest.fn(),
   },
   rejectPendingApproval: jest.fn(),
+  getQrKeyringScanner: jest.fn(() => mockQrScanner),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -110,7 +116,7 @@ describe('QRHardwareContext', () => {
       },
     );
     await userEvent.press(getByText('Cancel'));
-    expect(Engine.rejectQrKeyringScanRequest).toHaveBeenCalledTimes(0);
+    expect(mockQrScanner.rejectPendingScan).toHaveBeenCalledTimes(0);
   });
 
   it('invokes KeyringController.cancelQRSignRequest when request is cancelled', async () => {
@@ -129,7 +135,7 @@ describe('QRHardwareContext', () => {
       },
     );
     await userEvent.press(getByText('Cancel'));
-    expect(Engine.rejectQrKeyringScanRequest).toHaveBeenCalledTimes(1);
+    expect(mockQrScanner.rejectPendingScan).toHaveBeenCalledTimes(1);
   });
 
   it('passes correct value of QRState components', () => {
