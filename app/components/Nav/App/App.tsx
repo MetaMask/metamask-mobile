@@ -939,7 +939,6 @@ const App: React.FC = () => {
     ({ uri }: { uri?: string }) => {
       try {
         if (uri && typeof uri === 'string') {
-          Logger.log('handleDeeplink:: received universal link', uri);
           AppStateEventProcessor.setCurrentDeeplink(uri);
           dispatch(checkForDeeplink());
         }
