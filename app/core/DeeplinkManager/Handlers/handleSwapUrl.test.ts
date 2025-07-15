@@ -1,6 +1,9 @@
 import { handleSwapUrl } from './handleSwapUrl';
 import NavigationService from '../../NavigationService';
-import { fetchBridgeTokens } from '@metamask/bridge-controller';
+import {
+  fetchBridgeTokens,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../NavigationService', () => ({
   navigation: {
@@ -12,10 +15,36 @@ jest.mock('../../NavigationService', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
   fetchBridgeTokens: jest.fn(),
+  isSolanaChainId: jest.fn(),
 }));
+
+// Mock Engine and related utilities
+jest.mock('../../Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+        },
+      },
+    },
+  },
+}));
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+jest.mock('../../Multichain/utils', () => ({
+  isSolanaAccount: jest.fn(),
+}));
+///: END:ONLY_INCLUDE_IF
 
 const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 const mockFetchBridgeTokens = fetchBridgeTokens as jest.Mock;
+const mockIsSolanaChainId = isSolanaChainId as jest.Mock;
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+const mockIsSolanaAccount = jest.requireMock('../../Multichain/utils')
+  .isSolanaAccount as jest.Mock;
+///: END:ONLY_INCLUDE_IF
 
 describe('handleSwapUrl', () => {
   const expectedSourceToken = {
@@ -54,6 +83,12 @@ describe('handleSwapUrl', () => {
         icon: 'https://example.com/usdt.png',
       },
     });
+
+    // Default mocks for Solana functionality
+    mockIsSolanaChainId.mockReturnValue(false);
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    mockIsSolanaAccount.mockReturnValue(false);
+    ///: END:ONLY_INCLUDE_IF
   });
 
   it('navigates to Bridge view with processed tokens from valid CAIP-19 parameters', async () => {
@@ -506,4 +541,237 @@ describe('handleSwapUrl', () => {
       },
     });
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  describe('Solana Account Checking', () => {
+    beforeEach(() => {
+      // Mock Solana tokens in bridge list
+      mockFetchBridgeTokens.mockResolvedValue({
+        So11111111111111111111111111111111111111112: {
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          iconUrl: 'https://example.com/sol.png',
+        },
+        Es9vMFrzaCERaQeKX5Rdm1hTgFJ4QyP1gC1tF5uQW5Q: {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdc-sol.png',
+        },
+        // Keep existing EVM tokens for mixed tests
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdc.png',
+        },
+        '0xdAC17F958D2ee523a2206206994597C13D831ec7': {
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6,
+          iconUrl: 'https://example.com/usdt.png',
+        },
+      });
+    });
+
+    it('redirects to Solana account creation when user has no Solana account and source token is Solana', async () => {
+      // Mock Solana chain detection
+      mockIsSolanaChainId.mockImplementation(
+        (chainId) => chainId === 'solana:solana',
+      );
+
+      // Mock no Solana account exists
+      mockIsSolanaAccount.mockReturnValue(false);
+
+      const swapPath =
+        'from=solana:solana/solana:So11111111111111111111111111111111111111112&to=eip155:1/slip44:60&amount=1000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should redirect to account creation instead of bridge view
+      expect(mockNavigate).toHaveBeenCalledWith('Modal', {
+        screen: 'RootModalFlow',
+        params: {
+          screen: 'AddAccount',
+          params: {
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            clientType: 'solana',
+          },
+        },
+      });
+
+      // Should not navigate to bridge view
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'Bridge',
+        expect.any(Object),
+      );
+    });
+
+    it('redirects to Solana account creation when user has no Solana account and destination token is Solana', async () => {
+      // Mock Solana chain detection
+      mockIsSolanaChainId.mockImplementation(
+        (chainId) => chainId === 'solana:solana',
+      );
+
+      // Mock no Solana account exists
+      mockIsSolanaAccount.mockReturnValue(false);
+
+      const swapPath =
+        'from=eip155:1/slip44:60&to=solana:solana/solana:So11111111111111111111111111111111111111112&amount=1000000000000000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should redirect to account creation instead of bridge view
+      expect(mockNavigate).toHaveBeenCalledWith('Modal', {
+        screen: 'RootModalFlow',
+        params: {
+          screen: 'AddAccount',
+          params: {
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            clientType: 'solana',
+          },
+        },
+      });
+
+      // Should not navigate to bridge view
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'Bridge',
+        expect.any(Object),
+      );
+    });
+
+    it('proceeds to bridge view when user has Solana account and tokens are Solana', async () => {
+      // Mock Solana chain detection
+      mockIsSolanaChainId.mockImplementation(
+        (chainId) => chainId === 'solana:solana',
+      );
+
+      // Mock Solana account exists
+      mockIsSolanaAccount.mockReturnValue(true);
+
+      // Mock Engine context to have Solana accounts
+      const mockEngine = jest.requireMock('../../Engine');
+      mockEngine.context.AccountsController.state.internalAccounts.accounts = {
+        'solana-account': {
+          metadata: {
+            caipAccountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          },
+        },
+      };
+
+      const swapPath =
+        'from=solana:solana/solana:So11111111111111111111111111111111111111112&to=solana:solana/solana:Es9vMFrzaCERaQeKX5Rdm1hTgFJ4QyP1gC1tF5uQW5Q&amount=1000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should navigate to bridge view normally (tokens may be null if not found in bridge list)
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: null,
+          destToken: null,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+        },
+      });
+
+      // Should not redirect to account creation
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'Modal',
+        expect.any(Object),
+      );
+    });
+
+    it('proceeds to bridge view when no Solana tokens are involved', async () => {
+      // Mock no Solana chains
+      mockIsSolanaChainId.mockReturnValue(false);
+
+      // Mock no Solana account exists (should not matter)
+      mockIsSolanaAccount.mockReturnValue(false);
+
+      const swapPath =
+        'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should navigate to bridge view normally
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: expectedSourceToken,
+          destToken: expectedDestToken,
+          sourceAmount: '1',
+          sourcePage: 'deeplink',
+        },
+      });
+
+      // Should not redirect to account creation
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'Modal',
+        expect.any(Object),
+      );
+    });
+
+    it('handles mixed EVM and Solana tokens when user has Solana account', async () => {
+      // Mock Solana chain detection for destination only
+      mockIsSolanaChainId.mockImplementation(
+        (chainId) => chainId === 'solana:solana',
+      );
+
+      // Mock Solana account exists
+      mockIsSolanaAccount.mockReturnValue(true);
+
+      const swapPath =
+        'from=eip155:1/slip44:60&to=solana:solana/solana:So11111111111111111111111111111111111111112&amount=1000000000000000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should navigate to bridge view normally (tokens may be null if not found in bridge list)
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: null,
+          destToken: null,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+        },
+      });
+
+      // Should not redirect to account creation
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'Modal',
+        expect.any(Object),
+      );
+    });
+
+    it('handles error in Solana account checking gracefully', async () => {
+      // Mock Solana chain detection
+      mockIsSolanaChainId.mockImplementation(
+        (chainId) => chainId === 'solana:solana',
+      );
+
+      // Mock error in account checking
+      mockIsSolanaAccount.mockImplementation(() => {
+        throw new Error('Account checking error');
+      });
+
+      const swapPath =
+        'from=solana:solana/solana:So11111111111111111111111111111111111111112&to=eip155:1/slip44:60&amount=1000000';
+
+      await handleSwapUrl({ swapPath });
+
+      // Should still navigate to bridge view despite error (tokens may be null if not found in bridge list)
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: null,
+          destToken: null,
+          sourceAmount: undefined,
+          sourcePage: 'deeplink',
+        },
+      });
+    });
+  });
+  ///: END:ONLY_INCLUDE_IF
 });
