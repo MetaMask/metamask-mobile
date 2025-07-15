@@ -293,17 +293,16 @@ class TransactionElement extends PureComponent {
     const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
-    return `${
-      (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
+    return `${(!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
         ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-            tx.time,
-          )} ${strings(
-            'transactions.from_device_label',
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )}`
+          tx.time,
+        )} ${strings(
+          'transactions.from_device_label',
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )}`
         : `${toDateFormat(tx.time)}
       `
-    }`;
+      }`;
   };
 
   /**
@@ -442,8 +441,8 @@ class TransactionElement extends PureComponent {
                 {title}
               </ListItem.Title>
               {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
-              isBridgeTransaction &&
-              !isBridgeComplete ? (
+                isBridgeTransaction &&
+                !isBridgeComplete ? (
                 <BridgeActivityItemTxSegments
                   bridgeTxHistoryItem={bridgeTxHistoryItem}
                   transactionStatus={this.props.tx.status}
