@@ -991,30 +991,19 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -2305,30 +2294,19 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -3664,30 +3642,19 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
