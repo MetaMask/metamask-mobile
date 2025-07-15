@@ -966,33 +966,42 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
-  const sendActiveAccount = useCallback(async (targetUrl?: string) => {
-    try {
-      const urlToCheck = targetUrl || resolvedUrlRef.current;
-      if (!urlToCheck) return;
-      const hostname = new URLParse(urlToCheck).hostname;
-      const permissionsControllerState = Engine.context.PermissionController.state;
+  const sendActiveAccount = useCallback(
+    async (targetUrl?: string) => {
+      // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+      const urlToCheck =
+        targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-      // Get permitted accounts specifically for the target hostname
-      const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-
-      // Only send account information if the target URL has explicit permissions
-      if (permittedAccountsForTarget.length > 0) {
+      if (!urlToCheck) {
+        // If no URL to check, send empty accounts
         notifyAllConnections({
           method: NOTIFICATION_NAMES.accountsChanged,
-          params: permittedAccountsForTarget,
+          params: [],
         });
+        return;
       }
-    } catch (err) {
-      Logger.log(err as Error, 'Error in sendActiveAccount');
-      return;
-    }
-    // Use the target URL if provided, otherwise use current resolved URL
 
-  }, [notifyAllConnections]);
+      try {
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        const hostname = new URLParse(urlToCheck).hostname;
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          hostname,
+        );
+
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
+      } catch (err) {
+        Logger.log(err);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [notifyAllConnections],
+  );
 
   /**
    * Website started to load
@@ -1016,8 +1025,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         return false;
       }
 
-      // Only send active account for the specific URL being navigated to
-      // This ensures we only send account info to sites that have explicit permissions
       sendActiveAccount(nativeEvent.url);
 
       iconRef.current = undefined;
@@ -1375,6 +1382,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
           event,
         )}`,
       );
+
+      const newOrigin = new URLParse(url).origin;
+      const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
+
+      // Reset bridge if origin changed
+      if (newOrigin !== currentOrigin) {
+        backgroundBridgeRef.current?.onDisconnect();
+        backgroundBridgeRef.current = undefined;
+        // Re-initialize for new origin
+        initializeBackgroundBridge(newOrigin, true);
+      }
+
       // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
       if (navigationType === 'backforward') {
         const payload = {
@@ -1391,7 +1410,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         });
       }
     },
-    [onLoadEnd],
+    [onLoadEnd, initializeBackgroundBridge],
   );
 
   // Don't render webview unless ready to load. This should save on performance for initial app start.
