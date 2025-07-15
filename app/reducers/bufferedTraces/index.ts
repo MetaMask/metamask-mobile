@@ -1,4 +1,3 @@
-import type { Event as SentryEvent } from '@sentry/react-native';
 import { EndTraceRequest, TraceRequest } from '../../util/trace';
 
 export interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
@@ -23,7 +22,7 @@ export enum BufferedTraceActionType {
 export interface AddBufferedTraceAction {
   type: BufferedTraceActionType.ADD_BUFFERED_TRACE;
   payload: {
-    trace: SentryEvent;
+    trace: BufferedTrace;
   };
 }
 
