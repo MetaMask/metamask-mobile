@@ -129,8 +129,9 @@ export const useDepositRouting = ({
               );
             } catch (error) {
               throw new Error(
-                (error as Error).message ||
-                  strings('deposit.buildQuote.unexpectedError'),
+                error instanceof Error && error.message
+                  ? error.message
+                  : 'Failed to process order from navigation',
               );
             }
           }
@@ -217,7 +218,9 @@ export const useDepositRouting = ({
         return false;
       } catch (error) {
         throw new Error(
-          (error as Error).message || 'Failed to process KYC flow',
+          error instanceof Error && error.message
+            ? error.message
+            : 'Failed to process KYC flow',
         );
       }
     },

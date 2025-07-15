@@ -92,8 +92,9 @@ const DepositOrderDetails = () => {
           order,
         });
         setError(
-          (fetchError as Error).message ||
-            strings('deposit.order_details.error_message'),
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
+            : strings('deposit.order_details.error_message'),
         );
       } finally {
         if (fromInterval) {
