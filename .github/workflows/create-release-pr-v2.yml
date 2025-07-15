@@ -20,13 +20,15 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@d1ba843333b920fc9b0e1823fd519b7a64d07f5f
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@feat/INFRA-2772-add-main-version-bump-to-release-workflow
     with:
       platform: mobile
       base-branch: ${{ inputs.base-branch }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
+      test-only: true
+      github-tools-version: feat/INFRA-2772-add-main-version-bump-to-release-workflow
 
     secrets:
       # This token needs read permissions to metamask-planning & write permissions to metamask-mobile
