@@ -512,8 +512,8 @@ class ResetPassword extends PureComponent {
       MetaMetrics.getInstance().trackEvent(eventBuilder.build());
 
       this.setState({ loading: false });
+      this.props.navigation.navigate('SecuritySettings');
       InteractionManager.runAfterInteractions(() => {
-        this.props.navigation.navigate('SecuritySettings');
         NotificationManager.showSimpleNotification({
           status: 'success',
           duration: 5000,
