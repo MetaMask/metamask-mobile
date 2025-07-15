@@ -58,7 +58,7 @@ describe(Regression('Permission System'), () => {
         await Assertions.checkIfVisible(LoginView.container);
 
         // should tap reset wallet button
-        await LoginView.tapResetWalletButton();
+        await LoginView.tapForgotPassword();
 
         await Assertions.checkIfVisible(DeleteWalletModal.container);
 

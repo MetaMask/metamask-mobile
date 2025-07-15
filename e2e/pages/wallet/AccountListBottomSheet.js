@@ -96,9 +96,7 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElementName(index), {
-      checkEnabled: false
-    });
+    await Gestures.tap(this.getSelectWithMenuElementName(index));
   }
 
   async longPressAccountAtIndex(index) {

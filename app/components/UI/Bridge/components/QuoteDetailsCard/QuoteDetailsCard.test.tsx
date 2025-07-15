@@ -5,7 +5,9 @@ import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -198,7 +200,41 @@ describe('QuoteDetailsCard', () => {
     const expandButton = getByLabelText('Expand quote details');
     fireEvent.press(expandButton);
 
-    // Verify slippage value
+        // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
+  });
+
+  it('displays "Included" fee when gasIncluded is true', () => {
+    // Temporarily replace the mock with one that has gasIncluded = true
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: mockQuotesGasIncluded[0],
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is displayed
+    expect(getByText('Included')).toBeDefined();
+
+    // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 });
