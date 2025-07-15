@@ -515,9 +515,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
-    track(MetaMetricsEvents.RESET_WALLET, {
-      account_type: oauthLoginSuccess ? 'social' : 'metamask',
-    });
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
