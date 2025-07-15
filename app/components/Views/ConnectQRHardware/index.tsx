@@ -24,12 +24,11 @@ import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes, {
+  HardwareDeviceTypes,
+} from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
-import { RootState } from 'app/reducers';
-import { useSelector } from 'react-redux';
-import { QrKeyring, QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from 'app/core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 
@@ -107,19 +106,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     });
   }, [KeyringController]);
 
-  useEffect(() => {
-    KeyringController.withKeyring(
-      { type: KeyringTypes.qr },
-      async (_opt: { keyring: QrKeyring }) => {
-        // This ensures that a QR keyring gets created if it doesn't already exist.
-        // This is intentionally not awaited (the subscription still gets setup correctly if called
-        // before the keyring is created).
-        // TODO: Stop automatically creating keyrings
-      },
-      { createIfMissing: true },
-    );
-  }, [KeyringController]);
-
   const onConnectHardware = async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET)
@@ -129,25 +115,23 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
         .build(),
     );
     resetError();
-    Logger.log('Fetching first accounts page from QR Keyring');
     try {
       setIsScanning(true);
       const firstAccountsPage = await withQrKeyring(({ keyring }) =>
         keyring.getFirstPage(),
       );
-      setIsScanning(false);
-      Logger.log('First accounts page', firstAccountsPage);
       setAccounts(
         // TODO: Add `balance` to the QR Keyring accounts or remove it from the expected type
         firstAccountsPage.map((account) => ({ ...account, balance: '0x0' })),
       );
-    } catch (error) {
-      Logger.log('Error fetching first accounts page from QR Keyring', error);
+    } finally {
+      setIsScanning(false);
     }
   };
 
   const onScanSuccess = useCallback(
     async (ur: UR) => {
+      setIsScanning(false);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS)
           .addProperties({
@@ -155,16 +139,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
           })
           .build(),
       );
-      try {
-        Engine.resolveQrKeyringScanRequest({
-          type: ur.type,
-          cbor: ur.cbor.toString('hex'),
-        });
-        Logger.log('QR hardware wallet connected successfully');
-        resetError();
-      } catch (e) {
-        Logger.log('Error: Connecting QR hardware wallet', e);
-      }
+      Engine.resolveQrKeyringScanRequest({
+        type: ur.type,
+        cbor: ur.cbor.toString('hex'),
+      });
+      resetError();
     },
     [resetError, trackEvent, createEventBuilder],
   );
@@ -229,14 +208,15 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onForget = useCallback(async () => {
     resetError();
-    // removedAccounts and remainingAccounts are not checksummed here.
+    const remainingAccounts = KeyringController.state.keyrings
+      .filter((keyring) => keyring.type !== ExtendedKeyringTypes.qr)
+      .flatMap((keyring) => keyring.accounts);
+    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
     const removedAccounts = await withQrKeyring(async ({ keyring }) => {
       const existingQrAccounts = await keyring.getAccounts();
       await keyring.forgetDevice();
       return existingQrAccounts;
     });
-    const remainingAccounts = await KeyringController.getAccounts();
-    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
     const checksummedRemovedAccounts = removedAccounts.map(getChecksumAddress);
     removeAccountsFromPermissions(checksummedRemovedAccounts);
     navigation.pop(2);

@@ -5142,17 +5142,18 @@
     "@metamask/eth-sig-util" "^8.2.0"
     hdkey "^2.1.0"
 
-"@metamask/eth-qr-keyring@../accounts/packages/keyring-eth-qr/":
-  version "0.0.0"
+"@metamask/eth-qr-keyring@npm:@metamask-previews/eth-qr-keyring@0.0.0-a9b0f29":
+  version "0.0.0-a9b0f29"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/eth-qr-keyring/-/eth-qr-keyring-0.0.0-a9b0f29.tgz#d42d886880db1474cb7f75137e10bbbab7de8b85"
+  integrity sha512-x/U7jCTJtFS8eqaXuwWitMhc2Qz05IZkIxVcSsvuM+a/4+tG+1BnqYSqJePb8Av+ncky+MFR9zzInUeJrBU2fQ==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^5.4.0"
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/bc-ur-registry-eth" "^0.19.1"
     "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/keyring-utils" "^3.0.0"
+    "@metamask/keyring-utils" "3.0.0"
     "@metamask/utils" "^11.1.0"
-    async-mutex "^0.5.0"
     hdkey "^2.1.0"
     uuid "^9.0.1"
 
@@ -5389,7 +5390,7 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-utils@^3.0.0":
+"@metamask/keyring-utils@3.0.0", "@metamask/keyring-utils@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.0.0.tgz#37ad4b948e7306ef7d157ed074377073526ea143"
   integrity sha512-bo6Bgmz2uJ+DI5r9qyZjp435VCrc0A4nES/awTPnRWETqpbOBfMDVlLeQxQE88exCrE8efK2hTJ1by5fw8+N2g==

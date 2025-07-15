@@ -22,8 +22,12 @@ export const withQrKeyring = async <CallbackResult = void>(
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> =>
   Engine.context.KeyringController.withKeyring(
-    { type: ExtendedKeyringTypes.qr, index: 0 },
+    { type: ExtendedKeyringTypes.qr },
     operation,
+    // TODO: Refactor this to stop creating the keyring on-demand
+    // Instead create it only in response to an explicit user action, and do
+    // not allow Ledger interactions until after that has been done.
+    { createIfMissing: true },
   );
 
 /**

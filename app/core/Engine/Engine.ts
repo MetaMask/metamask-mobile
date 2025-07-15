@@ -293,7 +293,11 @@ export class Engine {
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
 
-  pendingQrKeyringScanRequest?: DeferredPromise<SerializedUR>;
+  #pendingQrKeyringScan: {
+    request: DeferredPromise<SerializedUR> | null;
+  } = {
+    request: null,
+  };
 
   /**
    * Creates a CoreController instance
@@ -2269,33 +2273,34 @@ export class Engine {
   }
 
   async requestQrKeyringScan(request: QrScanRequest): Promise<SerializedUR> {
-    if (this.pendingQrKeyringScanRequest) {
+    if (this.#pendingQrKeyringScan.request) {
       throw new Error(
         'A QR keyring scan request is already pending. Please wait for it to complete before requesting a new scan.',
       );
     }
-    this.pendingQrKeyringScanRequest = createDeferredPromise<SerializedUR>({
+    const deferredPromise = createDeferredPromise<SerializedUR>({
       suppressUnhandledRejection: true,
     });
+    this.#pendingQrKeyringScan.request = deferredPromise;
     store.dispatch(scanRequested(request));
-    return this.pendingQrKeyringScanRequest.promise;
+    return deferredPromise.promise;
   }
 
   resolveQrKeyringScanRequest(response: SerializedUR) {
-    if (!this.pendingQrKeyringScanRequest) {
+    if (!this.#pendingQrKeyringScan.request) {
       throw new Error('No pending QR keyring scan request to resolve.');
     }
-    this.pendingQrKeyringScanRequest.resolve(response);
-    this.pendingQrKeyringScanRequest = undefined;
+    this.#pendingQrKeyringScan.request.resolve(response);
+    this.#pendingQrKeyringScan.request = null;
     store.dispatch(scanCompleted());
   }
 
   rejectQrKeyringScanRequest(error: Error) {
-    if (!this.pendingQrKeyringScanRequest) {
+    if (!this.#pendingQrKeyringScan.request) {
       throw new Error('No pending QR keyring scan request to reject.');
     }
-    this.pendingQrKeyringScanRequest.reject(error);
-    this.pendingQrKeyringScanRequest = undefined;
+    this.#pendingQrKeyringScan.request.reject(error);
+    this.#pendingQrKeyringScan.request = null;
     store.dispatch(scanCompleted());
   }
 
