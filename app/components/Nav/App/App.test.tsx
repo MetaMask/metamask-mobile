@@ -9,9 +9,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  OPTIN_META_METRICS_UI_SEEN,
-} from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
 import { NavigationContainer } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
@@ -152,15 +150,19 @@ describe('App', () => {
 
   describe('Authentication flow logic', () => {
     it('navigates to onboarding when user does not exist', async () => {
-      renderScreen(App, { name: 'App' }, { 
-        state: {
-          ...initialState,
-          user: {
-            ...initialState.user,
-            existingUser: false,
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: false,
+            },
           },
-        }
-      });
+        },
+      );
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
@@ -175,15 +177,19 @@ describe('App', () => {
         return null; // Default for other keys
       });
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-      renderScreen(App, { name: 'App' }, { 
-        state: {
-          ...initialState,
-          user: {
-            ...initialState.user,
-            existingUser: true,
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
           },
-        }
-      });
+        },
+      );
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.HOME_NAV }],

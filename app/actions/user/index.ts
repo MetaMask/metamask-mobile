@@ -187,5 +187,3 @@ export function setExistingUser(existingUser: boolean): SetExistingUserAction {
     payload: { existingUser },
   };
 }
-
-

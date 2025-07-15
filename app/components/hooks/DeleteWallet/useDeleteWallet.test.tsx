@@ -61,7 +61,10 @@ describe('useDeleteWallet', () => {
       Authentication,
       'newWalletAndKeychain',
     );
-    const clearStateSpy = jest.spyOn(Engine.context.SeedlessOnboardingController, 'clearState');
+    const clearStateSpy = jest.spyOn(
+      Engine.context.SeedlessOnboardingController,
+      'clearState',
+    );
     const loggerSpy = jest.spyOn(Logger, 'log');
 
     await resetWalletState();
@@ -77,15 +80,20 @@ describe('useDeleteWallet', () => {
     const { result } = renderHookWithProvider(() => useDeleteWallet());
     const [resetWalletState] = result.current;
 
-    const newWalletAndKeychain = jest.spyOn(Authentication, 'newWalletAndKeychain');
+    const newWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
     const loggerSpy = jest.spyOn(Logger, 'log');
-    newWalletAndKeychain.mockRejectedValueOnce(new Error('Authentication failed'));
+    newWalletAndKeychain.mockRejectedValueOnce(
+      new Error('Authentication failed'),
+    );
 
     await expect(resetWalletState()).resolves.not.toThrow();
     expect(newWalletAndKeychain).toHaveBeenCalled();
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.stringContaining('Failed to createNewVaultAndKeychain')
+      expect.stringContaining('Failed to createNewVaultAndKeychain'),
     );
   });
 

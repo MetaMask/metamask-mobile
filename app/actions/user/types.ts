@@ -97,8 +97,6 @@ export type SetExistingUserAction = Action<UserActionType.SET_EXISTING_USER> & {
   payload: { existingUser: boolean };
 };
 
-
-
 /**
  * User actions union type
  */
