@@ -573,7 +573,6 @@ class Send extends PureComponent {
         networkClientId: globalNetworkClientId,
         origin: TransactionTypes.MMM,
       });
-      await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
       });

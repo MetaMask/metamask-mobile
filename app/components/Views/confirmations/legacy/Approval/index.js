@@ -565,7 +565,6 @@ class Approval extends PureComponent {
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
         );
-      await KeyringController.resetQRKeyringState();
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
 

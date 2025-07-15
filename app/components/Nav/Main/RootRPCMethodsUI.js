@@ -321,8 +321,6 @@ const RootRPCMethodsUI = (props) => {
         // Queue txMetaId to listen for confirmation event
         addTransactionMetaIdForListening(transactionMeta.id);
 
-        await KeyringController.resetQRKeyringState();
-
         const isLedgerAccount = isHardwareAccount(
           transactionMeta.txParams.from,
           [ExtendedKeyringTypes.ledger],
