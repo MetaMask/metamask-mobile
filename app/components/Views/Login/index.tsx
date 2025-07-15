@@ -23,9 +23,11 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import { OnboardingActionTypes, saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
+import { Dispatch } from 'redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -88,19 +90,23 @@ import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import { IMetaMetricsEvent, ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
 const EmptyRecordConstant = {};
 
+interface LoginProps {
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+}
+
 /**
  * View where returning users can authenticate
  */
-const Login: React.FC = () => {
+const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [disabledInput, setDisabledInput] = useState(false);
 
   const fieldRef = useRef<TextInput>(null);
@@ -116,6 +122,7 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
+  const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<
@@ -135,6 +142,7 @@ const Login: React.FC = () => {
     setAllowLoginWithRememberMeUtil(enabled);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -143,6 +151,7 @@ const Login: React.FC = () => {
       MetricsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
+      saveOnboardingEvent,
     );
   };
 
@@ -338,36 +347,111 @@ const Login: React.FC = () => {
     }
   };
 
+  const handlePasswordError = (loginErrorMessage: string, newFailedAttempts: number) => {
+    if (oauthLoginSuccess) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: newFailedAttempts,
+      });
+    }
+
+    setLoading(false);
+    setError(strings('login.invalid_password'));
+    trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
+  };
+
+  const handleLoginError = async (loginErr: unknown) => {
+    const loginError = loginErr as Error;
+    const loginErrorMessage = loginError.toString();
+    const newFailedAttempts = rehydrationFailedAttempts + 1;
+    setRehydrationFailedAttempts(newFailedAttempts);
+
+    const isPasswordError =
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
+      loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
+
+    if (isPasswordError) {
+      handlePasswordError(loginErrorMessage, newFailedAttempts);
+      return;
+    }
+
+    if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      Alert.alert(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+      setLoading(false);
+      return;
+    }
+
+    if (
+      containsErrorMessage(loginError, VAULT_ERROR) ||
+      containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+    ) {
+      await handleVaultCorruption();
+      return;
+    }
+
+    if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      setLoading(false);
+      updateBiometryChoice(false);
+      return;
+    }
+
+    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
+      setLoading(false);
+      handleSeedlessOnboardingControllerError(
+        loginError as SeedlessOnboardingControllerRecoveryError,
+      );
+      return;
+    }
+
+    setLoading(false);
+    setError(loginErrorMessage);
+  };
+
+  const performAuthentication = async () => {
+    const authType = await Authentication.componentAuthenticationType(
+      biometryChoice,
+      rememberMe,
+    );
+
+    if (oauthLoginSuccess) {
+      await Authentication.rehydrateSeedPhrase(password, authType);
+    } else {
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
+    }
+  };
+
   const onLogin = async () => {
+    if (oauthLoginSuccess) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: 'social',
+        biometrics: biometryChoice,
+      });
+    }
+
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
-        // This will be caught by the catch block below
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
       if (loading || locked) return;
 
       setLoading(true);
       setError(null);
-      const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        rememberMe,
-      );
 
-      if (oauthLoginSuccess) {
-        await Authentication.rehydrateSeedPhrase(password, authType);
-      } else {
-        await trace(
-          {
-            name: TraceName.AuthenticateUser,
-            op: TraceOperation.Login,
-          },
-          async () => {
-            await Authentication.userEntryAuth(password, authType);
-          },
-        );
-      }
-
+      await performAuthentication();
       Keyboard.dismiss();
 
       await checkMetricsUISeen();
@@ -378,8 +462,9 @@ const Login: React.FC = () => {
       setHasBiometricCredentials(false);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
-      const loginError = loginErr as Error;
-      const loginErrorMessage = loginError.toString();
+      await handleLoginError(loginErr);
+      Logger.error(loginErr as Error, 'Failed to unlock');
+      const loginErrorMessage = (loginErr as Error).toString();
 
       if (
         toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
@@ -398,8 +483,8 @@ const Login: React.FC = () => {
         );
         setLoading(false);
       } else if (
-        containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+        containsErrorMessage(loginErr as Error, VAULT_ERROR) ||
+        containsErrorMessage(loginErr as Error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
         try {
           await handleVaultCorruption();
@@ -421,13 +506,13 @@ const Login: React.FC = () => {
       ) {
         setLoading(false);
         handleSeedlessOnboardingControllerError(
-          loginError as SeedlessOnboardingControllerRecoveryError,
+          loginErr as SeedlessOnboardingControllerRecoveryError,
         );
       } else {
         setLoading(false);
         setError(loginErrorMessage);
       }
-      Logger.error(loginError, 'Failed to unlock');
+      Logger.error(loginErr as Error, 'Failed to unlock');
     }
   };
 
@@ -462,6 +547,9 @@ const Login: React.FC = () => {
 
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD, {});
+    track(MetaMetricsEvents.RESET_WALLET, {
+      account_type: oauthLoginSuccess ? 'social' : 'metamask',
+    });
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
@@ -641,4 +729,9 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(Login);
