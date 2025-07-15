@@ -342,6 +342,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleSeedlessOnboardingControllerError = (
     seedlessError: SeedlessOnboardingControllerRecoveryError,
   ) => {
+    // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+    if (seedlessError.data?.numberOfAttempts !== undefined) {
+      setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+    }
+
     if (seedlessError.data?.remainingTime) {
       tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
     } else {
@@ -353,14 +358,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const handlePasswordError = (
-    loginErrorMessage: string,
-    newFailedAttempts: number,
-  ) => {
+  const handlePasswordError = (loginErrorMessage: string) => {
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
         account_type: 'social',
-        failed_attempts: newFailedAttempts,
+        failed_attempts: rehydrationFailedAttempts,
       });
     }
 
@@ -372,8 +374,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleLoginError = async (loginErr: unknown) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
-    const newFailedAttempts = rehydrationFailedAttempts + 1;
-    setRehydrationFailedAttempts(newFailedAttempts);
 
     const isPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
@@ -382,7 +382,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
 
     if (isPasswordError) {
-      handlePasswordError(loginErrorMessage, newFailedAttempts);
+      handlePasswordError(loginErrorMessage);
       return;
     }
 
@@ -519,7 +519,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
       params: {
-        oauthLoginSuccess: true,
+        oauthLoginSuccess,
       },
     });
   };

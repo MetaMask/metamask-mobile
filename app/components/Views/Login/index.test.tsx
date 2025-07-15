@@ -203,6 +203,9 @@ describe('Login', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
+        params: {
+          oauthLoginSuccess: false,
+        },
       });
     });
   });
