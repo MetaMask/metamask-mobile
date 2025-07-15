@@ -195,11 +195,14 @@ const QRSigningDetails = ({
         return;
       }
       e.preventDefault();
-      KeyringController.cancelQRSignRequest().then(() => {
-        navigation.dispatch(e.data.action);
-      });
+      if (pendingScanRequest) {
+        Engine.getQrKeyringScanner().rejectPendingScan(
+          new Error('Scan canceled'),
+        );
+      }
+      navigation.dispatch(e.data.action);
     });
-  }, [KeyringController, hasSentOrCanceled, navigation]);
+  }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
   const resetError = () => {
     setErrorMessage('');
@@ -215,11 +218,15 @@ const QRSigningDetails = ({
   };
 
   const onCancel = useCallback(async () => {
-    await KeyringController.cancelQRSignRequest();
+    if (pendingScanRequest) {
+      Engine.getQrKeyringScanner().rejectPendingScan(
+        new Error('Scan canceled'),
+      );
+    }
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [KeyringController, cancelCallback]);
+  }, [pendingScanRequest, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {

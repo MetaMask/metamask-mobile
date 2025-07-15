@@ -23,11 +23,6 @@ const mockQrScanner = {
 };
 
 jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      cancelQRSignRequest: jest.fn().mockResolvedValue(undefined),
-    },
-  },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
@@ -137,7 +132,7 @@ describe('QRHardwareContext', () => {
     expect(mockQrScanner.rejectPendingScan).toHaveBeenCalledTimes(1);
   });
 
-  it('passes correct value of QRState components', () => {
+  it('passes correct value of pendingScanRequest components', () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
