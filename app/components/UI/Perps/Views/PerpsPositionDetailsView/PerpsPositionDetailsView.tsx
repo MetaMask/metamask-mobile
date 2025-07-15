@@ -7,8 +7,10 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
-
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
@@ -67,7 +69,7 @@ const PerpsPositionDetailsView: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
             {strings('perps.position.details.errorMessage')}
           </Text>
         </View>
@@ -98,7 +100,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
         {/* Positions Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('perps.position.details.sectionTitle')}
           </Text>
           <PerpsPositionCard

@@ -6,7 +6,10 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type {
@@ -100,20 +103,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
-            <Text style={styles.leverageText}>
+            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
               {position.leverage.value}x{' '}
               <Text
-                style={[
-                  styles.directionText,
-                  isLong ? styles.longText : styles.shortText,
-                ]}
+                variant={TextVariant.BodySMMedium}
+                color={isLong ? TextColor.Success : TextColor.Error}
               >
                 {direction}
               </Text>
             </Text>
           </View>
           <View style={styles.headerRow}>
-            <Text style={styles.tokenAmount}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
               {formatPositionSize(absoluteSize.toString())} {position.coin}
             </Text>
           </View>
@@ -121,17 +122,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={styles.headerRight}>
           <View style={styles.headerRow}>
-            <Text style={styles.positionValue}>
+            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
               {formatPrice(position.positionValue)}
             </Text>
           </View>
           <View style={styles.headerRow}>
             <Text
-              style={
-                isPositive24h
-                  ? styles.positionValuePositive
-                  : styles.positionValueNegative
-              }
+              variant={TextVariant.BodySMBold}
+              color={isPositive24h ? TextColor.Success : TextColor.Error}
             >
               {formatPnl(pnlNum)} ({formatPercentage(pnlPercentage)})
             </Text>
@@ -143,26 +141,26 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       <View style={styles.body}>
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.entryPrice')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(position.entryPrice)}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.marketPrice')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(position.liquidationPrice || position.entryPrice)}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.liquidityPrice')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {position.liquidationPrice
                 ? formatPrice(position.liquidationPrice)
                 : 'N/A'}
@@ -172,26 +170,26 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.takeProfit')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {strings('perps.position.card.notSet')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.stopLoss')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {strings('perps.position.card.notSet')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
-            <Text style={styles.bodyLabel}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
               {strings('perps.position.card.margin')}
             </Text>
-            <Text style={styles.bodyValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(position.marginUsed)}
             </Text>
           </View>

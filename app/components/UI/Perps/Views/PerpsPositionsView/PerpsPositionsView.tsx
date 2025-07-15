@@ -10,7 +10,10 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -101,7 +104,7 @@ const PerpsPositionsView: React.FC = () => {
     if (isLoading) {
       return (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             {strings('perps.position.list.loading')}
           </Text>
         </View>
@@ -111,10 +114,12 @@ const PerpsPositionsView: React.FC = () => {
     if (error) {
       return (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>
+          <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
             {strings('perps.position.list.errorTitle')}
           </Text>
-          <Text style={styles.errorDescription}>{error}</Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            {error}
+          </Text>
         </View>
       );
     }
@@ -122,10 +127,10 @@ const PerpsPositionsView: React.FC = () => {
     if (positions.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>
+          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.emptyTitle')}
           </Text>
-          <Text style={styles.emptyDescription}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
             {strings('perps.position.list.emptyDescription')}
           </Text>
         </View>
@@ -135,10 +140,10 @@ const PerpsPositionsView: React.FC = () => {
     return (
       <View style={styles.positionsSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.openPositions')}
           </Text>
-          <Text style={styles.positionCount}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
             {strings('perps.position.list.positionCount', {
               count: positions.length,
             })}
@@ -163,7 +168,7 @@ const PerpsPositionsView: React.FC = () => {
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
         />
-        <Text style={styles.headerTitle}>
+        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}
         </Text>
         <View style={styles.headerPlaceholder} />
@@ -181,48 +186,46 @@ const PerpsPositionsView: React.FC = () => {
       >
         {/* Account Summary */}
         <View style={styles.accountSummary}>
-          <Text style={styles.summaryTitle}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('perps.position.account.summaryTitle')}
           </Text>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.totalBalance')}
             </Text>
-            <Text style={styles.summaryValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.totalBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.availableBalance')}
             </Text>
-            <Text style={styles.summaryValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.availableBalance || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.marginUsed')}
             </Text>
-            <Text style={styles.summaryValue}>
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.marginUsed || '0')}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.totalUnrealizedPnl')}
             </Text>
             <Text
-              style={[
-                styles.totalPnlValue,
-                totalUnrealizedPnl >= 0
-                  ? styles.positivePnl
-                  : styles.negativePnl,
-              ]}
+              variant={TextVariant.BodySMMedium}
+              color={
+                totalUnrealizedPnl >= 0 ? TextColor.Success : TextColor.Error
+              }
             >
               {formatPnl(totalUnrealizedPnl)}
             </Text>

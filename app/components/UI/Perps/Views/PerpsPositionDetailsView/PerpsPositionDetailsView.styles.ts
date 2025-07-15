@@ -48,6 +48,7 @@ export const createStyles = (colors: Colors) =>
       backgroundColor: colors.success.muted,
     },
     section: {
+      paddingHorizontal: 16,
       marginBottom: 8,
     },
     shortBadge: {
@@ -111,14 +112,7 @@ export const createStyles = (colors: Colors) =>
     actionsSection: {
       margin: 16,
     },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text.default,
-      marginTop: 8,
-      marginBottom: 8,
-      marginLeft: 16,
-    },
+
     closeSection: {
       backgroundColor: colors.background.alternative,
       borderRadius: 12,
@@ -163,11 +157,7 @@ export const createStyles = (colors: Colors) =>
       padding: 16,
       margin: 16,
     },
-    errorText: {
-      fontSize: 14,
-      color: colors.error.default,
-      textAlign: 'center',
-    },
+
     headerPlaceholder: {
       width: 32,
     },

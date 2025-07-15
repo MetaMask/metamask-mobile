@@ -26,11 +26,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
       alignSelf: 'flex-start',
     },
-    priceText: {
-      color: colors.text.default,
-      fontSize: 14,
-      fontWeight: '600',
-    },
+
     dateLabel: {
       backgroundColor: colors.background.alternative,
       paddingHorizontal: 8,
@@ -39,10 +35,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
       alignSelf: 'flex-start',
     },
-    dateText: {
-      color: colors.text.muted,
-      fontSize: 12,
-    },
+
     // Grid line styles
     gridLine: {
       color: colors.border.muted,
@@ -76,15 +69,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 4,
       minWidth: 60,
     },
-    gridPriceLabelText: {
-      fontSize: 10,
-      fontWeight: '600',
-      color: colors.text.muted,
-      textAlign: 'right',
-      textShadowColor: colors.background.default,
-      textShadowOffset: { width: 0, height: 0 },
-      textShadowRadius: 2,
-    },
+
     // Tooltip styling
     tooltipContainer: {
       backgroundColor: colors.background.alternative,
@@ -103,11 +88,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.default,
       fontSize: 12,
       fontWeight: '600',
-    },
-    tooltipDateText: {
-      color: colors.text.muted,
-      fontSize: 10,
-      marginTop: 2,
     },
 
     chartLoadingContainer: {
