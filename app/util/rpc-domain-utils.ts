@@ -112,6 +112,29 @@ function parseDomain(url: string): string | undefined {
 }
 
 /**
+ * Checks if a domain is a subdomain of a given base domain.
+ * @param domain - The domain to check.
+ * @param baseDomain - The base domain to validate against.
+ * @returns True if the domain is a subdomain of the base domain, false otherwise.
+ */
+function isSubdomainOf(domain: string, baseDomain: string): boolean {
+  const domainParts = domain.split('.').reverse();
+  const baseDomainParts = baseDomain.split('.').reverse();
+  
+  if (domainParts.length < baseDomainParts.length) {
+    return false;
+  }
+  
+  for (let i = 0; i < baseDomainParts.length; i++) {
+    if (domainParts[i] !== baseDomainParts[i]) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
  * Extracts the domain from an RPC URL for analytics tracking
  * @param rpcUrl - The RPC URL to extract domain from
  * @returns The domain extracted from the URL, or "private" for non-known domains, or "invalid" for invalid URLs
@@ -121,23 +144,28 @@ export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!domain) {
     return RpcDomainStatus.Invalid;
   }
+  
   // Check if this is a known domain
   if (isKnownDomain(domain)) {
     return domain;
   }
+  
   // Special case for Infura subdomains - always return the actual domain
   // even if not in the known domains list
-  if (domain.includes('infura.io')) {
+  if (isSubdomainOf(domain, 'infura.io')) {
     return domain;
   }
+  
   // Special case for Alchemy subdomains
-  if (domain.endsWith('alchemyapi.io')) {
+  if (isSubdomainOf(domain, 'alchemyapi.io')) {
     return domain;
   }
+  
   // Special case for local/development nodes
   if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
   }
+  
   // For all other domains, return "private" for privacy
   return RpcDomainStatus.Private;
 }
