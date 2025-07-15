@@ -5,10 +5,10 @@ import {
   isHexString,
   toCaipChainId,
 } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { UserProfileProperty } from '../UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 /**
  * Converts a chain ID to CAIP format.
@@ -36,9 +36,31 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
  */
 export function getConfiguredCaipChainIds(): CaipChainId[] {
   const state = store.getState();
-  const networks = selectNetworkConfigurations(state);
+  try {
+    const evmNetworkConfigurations =
+      state?.engine?.backgroundState?.NetworkController
+        ?.networkConfigurationsByChainId || {};
 
-  return Object.values(networks).map((n) => caipifyChainId(n.chainId));
+    const multichainNetworkController =
+      state?.engine?.backgroundState?.MultichainNetworkController;
+
+    const nonEvmNetworkConfigurations =
+      multichainNetworkController?.multichainNetworkConfigurationsByChainId ||
+      {};
+
+    const allNetworkConfigurations: Record<string, NetworkConfiguration> = {
+      ...evmNetworkConfigurations,
+      ...nonEvmNetworkConfigurations,
+    };
+
+    const chainIds = Object.values(allNetworkConfigurations)
+      .filter((network) => network && network?.chainId)
+      .map((network) => caipifyChainId(network.chainId));
+
+    return chainIds;
+  } catch (error) {
+    return [];
+  }
 }
 
 /**
