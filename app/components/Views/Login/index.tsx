@@ -463,6 +463,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       await performAuthentication();
       Keyboard.dismiss();
 
+      if (oauthLoginSuccess) {
+        track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+          account_type: 'social',
+          biometrics: biometryChoice,
+          failed_attempts: rehydrationFailedAttempts,
+        });
+      }
+
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
