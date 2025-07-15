@@ -56,8 +56,16 @@ function getTokenTransfer(args) {
 
   const [, , encodedAmount] = decodeTransferData('transfer', data);
   const amount = hexToBN(encodedAmount);
-  const userHasToken = toFormattedAddress(to) in tokens;
-  const token = userHasToken ? tokens[toFormattedAddress(to)] : null;
+  let tokensByAddress = {};
+  
+  try {
+    const tokenArray = [...(tokens[txChainId][selectedAddress?.toLowerCase()] || [])];
+    tokensByAddress = Object.fromEntries(tokenArray.map(token => [token.address, token]));
+  } catch (error) {
+    console.log('Error accessing token data:', error);
+  }
+  const userHasToken = toFormattedAddress(to) in tokensByAddress;
+  const token = userHasToken ? tokensByAddress[toFormattedAddress(to)] : null;
   const renderActionKey = token
     ? `${strings('transactions.sent')} ${token.symbol}`
     : actionKey;
@@ -66,7 +74,7 @@ function getTokenTransfer(args) {
     : undefined;
   const exchangeRate =
     token && contractExchangeRates
-      ? contractExchangeRates[token.address]?.price
+      ? contractExchangeRates[txChainId][token.address]?.price
       : undefined;
   let renderTokenFiatAmount, renderTokenFiatNumber;
   if (exchangeRate) {
