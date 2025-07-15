@@ -26,7 +26,10 @@ import Logger from '../../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../../util/blockaid';
 import Device from '../../../../../../util/device';
-import { isMultiLayerFeeNetwork, isPerDappSelectedNetworkEnabled } from '../../../../../../util/networks';
+import {
+  isMultiLayerFeeNetwork,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
@@ -248,7 +251,7 @@ class TransactionReview extends PureComponent {
      */
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
-    QRState: PropTypes.object,
+    pendingScanRequest: PropTypes.object,
     /**
      * Returns the selected gas type
      * @returns {string}
@@ -612,7 +615,11 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
-                          origin={isPerDappSelectedNetworkEnabled() ? origin : undefined }
+                          origin={
+                            isPerDappSelectedNetworkEnabled()
+                              ? origin
+                              : undefined
+                          }
                         />
                       </View>
                     )}
@@ -685,7 +692,7 @@ class TransactionReview extends PureComponent {
   renderQRDetails() {
     const currentPageInformation = { url: this.getUrlFromBrowser() };
     const {
-      QRState,
+      pendingScanRequest,
       transaction: { from },
       onCancel,
       onConfirm,
@@ -696,7 +703,7 @@ class TransactionReview extends PureComponent {
       <View style={styles.actionViewQRObject}>
         <TransactionHeader currentPageInformation={currentPageInformation} />
         <QRSigningDetails
-          QRState={QRState}
+          pendingScanRequest={pendingScanRequest}
           tighten
           showCancelButton
           showHint={false}

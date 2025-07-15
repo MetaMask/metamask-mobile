@@ -164,7 +164,7 @@ class SignatureRequest extends PureComponent {
      */
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
-    QRState: PropTypes.object,
+    pendingScanRequest: PropTypes.object,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
     /**
@@ -292,11 +292,7 @@ class SignatureRequest extends PureComponent {
 
     return (
       <View style={styles.arrowIconWrapper}>
-        <Ionicons
-          name={'arrow-forward'}
-          size={20}
-          style={styles.arrowIcon}
-        />
+        <Ionicons name={'arrow-forward'} size={20} style={styles.arrowIcon} />
       </View>
     );
   };
@@ -375,13 +371,13 @@ class SignatureRequest extends PureComponent {
   }
 
   renderQRDetails() {
-    const { QRState, fromAddress } = this.props;
+    const { pendingScanRequest, fromAddress } = this.props;
     const styles = this.getStyles();
 
     return (
       <View style={[styles.root]}>
         <QRSigningDetails
-          QRState={QRState}
+          pendingScanRequest={pendingScanRequest}
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
