@@ -6,7 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { KycStatus, SEPA_PAYMENT_METHOD } from '../constants';
+import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS, KycStatus } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import {
@@ -147,73 +147,64 @@ export const useDepositRouting = ({
         }
 
         if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          if (paymentMethodId === SEPA_PAYMENT_METHOD.id) {
-            try {
-              const reservation = await createReservation(
-                quote,
-                selectedWalletAddress,
-              );
+          const isManualBankTransfer =
+            MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+              (method) => method.id === paymentMethodId,
+            );
+          if (isManualBankTransfer) {
+            const reservation = await createReservation(
+              quote,
+              selectedWalletAddress,
+            );
 
-              if (!reservation) {
-                throw new Error('Missing reservation');
-              }
-
-              const order = await createOrder(reservation);
-
-              if (!order) {
-                throw new Error('Missing order');
-              }
-
-              const processedOrder = {
-                ...depositOrderToFiatOrder(order),
-                account: selectedWalletAddress || order.walletAddress,
-                network: cryptoCurrencyChainId,
-              };
-
-              await handleNewOrder(processedOrder);
-
-              navigation.navigate(
-                ...createBankDetailsNavDetails({
-                  orderId: order.id,
-                  shouldUpdate: false,
-                }),
-              );
-            } catch (error) {
-              throw new Error(
-                (error as Error).message ||
-                  strings('deposit.buildQuote.unexpectedError'),
-              );
+            if (!reservation) {
+              throw new Error('Missing reservation');
             }
+
+            const order = await createOrder(reservation);
+
+            if (!order) {
+              throw new Error('Missing order');
+            }
+
+            const processedOrder = {
+              ...depositOrderToFiatOrder(order),
+              account: selectedWalletAddress || order.walletAddress,
+              network: cryptoCurrencyChainId,
+            };
+
+            await handleNewOrder(processedOrder);
+
+            navigation.navigate(
+              ...createBankDetailsNavDetails({
+                orderId: order.id,
+                shouldUpdate: false,
+              }),
+            );
           } else {
-            try {
-              const ottResponse = await requestOtt();
+            const ottResponse = await requestOtt();
 
-              if (!ottResponse) {
-                throw new Error('Failed to get OTT token');
-              }
-
-              const paymentUrl = await generatePaymentUrl(
-                ottResponse.token,
-                quote,
-                selectedWalletAddress,
-                { ...generateThemeParameters(themeAppearance, colors) },
-              );
-
-              if (!paymentUrl) {
-                throw new Error('Failed to generate payment URL');
-              }
-
-              navigation.navigate(
-                ...createWebviewModalNavigationDetails({
-                  sourceUrl: paymentUrl,
-                  handleNavigationStateChange,
-                }),
-              );
-            } catch (error) {
-              throw new Error(
-                (error as Error).message || 'Failed to generate payment URL',
-              );
+            if (!ottResponse) {
+              throw new Error(strings('deposit.buildQuote.unexpectedError'));
             }
+
+            const paymentUrl = await generatePaymentUrl(
+              ottResponse.token,
+              quote,
+              selectedWalletAddress,
+              { ...generateThemeParameters(themeAppearance, colors) },
+            );
+
+            if (!paymentUrl) {
+              throw new Error(strings('deposit.buildQuote.unexpectedError'));
+            }
+
+            navigation.navigate(
+              ...createWebviewModalNavigationDetails({
+                sourceUrl: paymentUrl,
+                handleNavigationStateChange,
+              }),
+            );
           }
           return true;
         }
