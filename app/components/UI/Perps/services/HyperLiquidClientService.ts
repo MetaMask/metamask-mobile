@@ -12,6 +12,25 @@ import {
 import type { HyperLiquidNetwork } from '../types/config';
 
 /**
+ * Valid time intervals for historical candle data
+ */
+export type ValidCandleInterval =
+  | '1m'
+  | '3m'
+  | '5m'
+  | '15m'
+  | '30m'
+  | '1h'
+  | '2h'
+  | '4h'
+  | '8h'
+  | '12h'
+  | '1d'
+  | '3d'
+  | '1w'
+  | '1M';
+
+/**
  * Service for managing HyperLiquid SDK clients
  * Handles initialization, transport creation, and client lifecycle
  */
@@ -175,7 +194,7 @@ export class HyperLiquidClientService {
   }
 
   /**
-   * Fetch historical candle data from the Hyperliquid API
+   * Fetch historical candle data using the HyperLiquid SDK
    * @param coin - The coin symbol (e.g., "BTC", "ETH")
    * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
    * @param limit - Number of candles to fetch (default: 100)
@@ -183,7 +202,7 @@ export class HyperLiquidClientService {
    */
   public async fetchHistoricalCandles(
     coin: string,
-    interval: string,
+    interval: ValidCandleInterval,
     limit: number = 100,
   ): Promise<{
     coin: string;
@@ -197,39 +216,22 @@ export class HyperLiquidClientService {
       volume: string;
     }[];
   } | null> {
+    this.ensureInitialized();
+
     try {
       // Calculate start and end times based on interval and limit
       const now = Date.now();
       const intervalMs = this.getIntervalMilliseconds(interval);
       const startTime = now - limit * intervalMs;
 
-      // Determine the API endpoint based on testnet mode
-      const apiEndpoint = this.isTestnet
-        ? 'https://api.hyperliquid-testnet.xyz/info'
-        : 'https://api.hyperliquid.xyz/info';
-
-      // Make API request to candleSnapshot endpoint
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'candleSnapshot',
-          req: {
-            coin,
-            interval,
-            startTime,
-            endTime: now,
-          },
-        }),
+      // Use the SDK's InfoClient to fetch candle data
+      const infoClient = this.getInfoClient();
+      const data = await infoClient.candleSnapshot({
+        coin,
+        interval,
+        startTime,
+        endTime: now,
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
 
       // Transform API response to match expected format
       if (Array.isArray(data) && data.length > 0) {
@@ -249,18 +251,22 @@ export class HyperLiquidClientService {
         };
       }
 
-      return null;
+      return {
+        coin,
+        interval,
+        candles: [],
+      };
     } catch (error) {
       DevLogger.log('Error fetching historical candles:', error);
-      return null;
+      throw error;
     }
   }
 
   /**
    * Convert interval string to milliseconds
    */
-  private getIntervalMilliseconds(interval: string): number {
-    const intervalMap: Record<string, number> = {
+  private getIntervalMilliseconds(interval: ValidCandleInterval): number {
+    const intervalMap: Record<ValidCandleInterval, number> = {
       '1m': 60 * 1000,
       '3m': 3 * 60 * 1000,
       '5m': 5 * 60 * 1000,
@@ -277,7 +283,7 @@ export class HyperLiquidClientService {
       '1M': 30 * 24 * 60 * 60 * 1000, // Approximate
     };
 
-    return intervalMap[interval] || 60 * 60 * 1000; // Default to 1 hour
+    return intervalMap[interval];
   }
 
   /**

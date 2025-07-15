@@ -6,7 +6,10 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { HyperLiquidClientService } from './HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  type ValidCandleInterval,
+} from './HyperLiquidClientService';
 
 // Mock HyperLiquid SDK
 const mockExchangeClient = { initialized: true };
@@ -386,19 +389,19 @@ describe('HyperLiquidClientService', () => {
 
     it('should fetch historical candles successfully', async () => {
       // Arrange
-      const mockResponse = {
-        coin: 'BTC',
-        interval: '1h',
-        candles: [
-          { t: 1700000000000, o: 50000, h: 51000, l: 49000, c: 50500, v: 100 },
-          { t: 1700003600000, o: 50500, h: 51500, l: 50000, c: 51000, v: 150 },
-        ],
-      };
+      const mockResponse = [
+        { t: 1700000000000, o: 50000, h: 51000, l: 49000, c: 50500, v: 100 },
+        { t: 1700003600000, o: 50500, h: 51500, l: 50000, c: 51000, v: 150 },
+      ];
 
       mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.fetchHistoricalCandles('BTC', '1h', 100);
+      const result = await service.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
 
       // Assert
       expect(result).toEqual({
@@ -433,16 +436,16 @@ describe('HyperLiquidClientService', () => {
 
     it('should handle empty candles response', async () => {
       // Arrange
-      const mockResponse = {
-        coin: 'BTC',
-        interval: '1h',
-        candles: [],
-      };
+      const mockResponse: any[] = [];
 
       mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.fetchHistoricalCandles('BTC', '1h', 100);
+      const result = await service.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
 
       // Assert
       expect(result).toEqual({
@@ -461,7 +464,7 @@ describe('HyperLiquidClientService', () => {
 
       // Act & Assert
       await expect(
-        service.fetchHistoricalCandles('BTC', '1h', 100),
+        service.fetchHistoricalCandles('BTC', '1h' as ValidCandleInterval, 100),
       ).rejects.toThrow(errorMessage);
     });
 
@@ -476,7 +479,11 @@ describe('HyperLiquidClientService', () => {
       mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
 
       // Act
-      await service.fetchHistoricalCandles('ETH', '5m', 50);
+      await service.fetchHistoricalCandles(
+        'ETH',
+        '5m' as ValidCandleInterval,
+        50,
+      );
 
       // Assert
       expect(mockInfoClient.candleSnapshot).toHaveBeenCalledWith({
@@ -502,18 +509,18 @@ describe('HyperLiquidClientService', () => {
       ];
 
       for (const { interval, expected } of testCases) {
-        const mockResponse = {
-          coin: 'BTC',
-          interval,
-          candles: [],
-        };
+        const mockResponse: any[] = [];
 
         mockInfoClient.candleSnapshot = jest
           .fn()
           .mockResolvedValue(mockResponse);
 
         // Act
-        await service.fetchHistoricalCandles('BTC', interval, 10);
+        await service.fetchHistoricalCandles(
+          'BTC',
+          interval as ValidCandleInterval,
+          10,
+        );
 
         // Assert
         const callArgs = mockInfoClient.candleSnapshot.mock.calls[0][0];
@@ -527,16 +534,16 @@ describe('HyperLiquidClientService', () => {
       const testnetService = new HyperLiquidClientService({ isTestnet: true });
       testnetService.initialize(mockWallet);
 
-      const mockResponse = {
-        coin: 'BTC',
-        interval: '1h',
-        candles: [],
-      };
+      const mockResponse: any[] = [];
 
       mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
 
       // Act
-      await testnetService.fetchHistoricalCandles('BTC', '1h', 100);
+      await testnetService.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
 
       // Assert
       expect(mockInfoClient.candleSnapshot).toHaveBeenCalled();
@@ -549,7 +556,11 @@ describe('HyperLiquidClientService', () => {
 
       // Act & Assert
       await expect(
-        uninitializedService.fetchHistoricalCandles('BTC', '1h', 100),
+        uninitializedService.fetchHistoricalCandles(
+          'BTC',
+          '1h' as ValidCandleInterval,
+          100,
+        ),
       ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
     });
   });
