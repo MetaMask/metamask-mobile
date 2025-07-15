@@ -38,6 +38,13 @@ jest.mock('../store', () => ({
   },
 }));
 
+jest.mock('../core/redux/ReduxService', () => ({
+  store: {
+    dispatch: jest.fn(),
+    getState: jest.fn(),
+  },
+}));
+
 jest.mock('../actions/bufferedTraces', () => ({
   addBufferedTrace: jest.fn(),
   clearBufferedTraces: jest.fn(),
@@ -463,14 +470,8 @@ describe('Trace', () => {
       ];
       selectBufferedTracesMock.mockReturnValue(mockBufferedTraces);
 
-      bufferTraceStartCall({ name: TraceName.Middleware, id: 'test1' });
-      bufferTraceStartCall({ name: TraceName.NestedTest1, id: 'test2' });
-      bufferTraceEndCall({ name: TraceName.Middleware, id: 'test1' });
-      bufferTraceEndCall({ name: TraceName.NestedTest1, id: 'test2' });
-
       storageGetItemMock.mockResolvedValue(AGREED);
       updateCachedConsent(true);
-      jest.clearAllMocks();
 
       await flushBufferedTraces();
 
