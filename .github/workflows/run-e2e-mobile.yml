@@ -60,30 +60,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up E2E environment
-        uses: ./.github/actions/setup-e2e-env
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
           cache-unique-id: ${{ github.repository }}-${{ inputs.platform }}
 
-      - name: Build E2E app
-        if: ${{ !inputs.use_prebuilt_apps }}
-        run: |
-          platform="${{ inputs.platform }}"
-          
-          # Set environment variables for build
-          export METAMASK_ENVIRONMENT='local'
-          export METAMASK_BUILD_TYPE='main'
-          export IS_TEST='true'
-          export IGNORE_BOXLOGS_DEVELOPMENT="true"
-          
-          echo "Building E2E app for $platform..."
-          
-          if [[ "$platform" == "ios" ]]; then
-            yarn test:e2e:ios:build:qa-release
-          else
-            yarn test:e2e:android:build:qa-release
-          fi
+      #- name: Build E2E app
+      #  if: ${{ !inputs.use_prebuilt_apps }}
+      #  run: |
+      #    platform="${{ inputs.platform }}"
+      #    
+      #    # Set environment variables for build
+      #    export METAMASK_ENVIRONMENT='local'
+      #    export METAMASK_BUILD_TYPE='main'
+      #    export IS_TEST='true'
+      #    export IGNORE_BOXLOGS_DEVELOPMENT="true"
+      #    
+      #    echo "Building E2E app for $platform..."
+      #    
+      #    if [[ "$platform" == "ios" ]]; then
+      #      yarn test:e2e:ios:build:qa-release
+      #    else
+      #      yarn test:e2e:android:build:qa-release
+      #    fi
 
       - name: Setup pre-built apps from GitHub release
         if: ${{ inputs.use_prebuilt_apps }}
