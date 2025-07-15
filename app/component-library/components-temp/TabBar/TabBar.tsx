@@ -21,7 +21,7 @@ const TabBar = (props: TabBarProps) => {
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
       textStyle={styles.textStyle}
-      style={styles.tabBar}
+      style={[styles.tabBar, props.style]}
       {...props}
     />
   );
