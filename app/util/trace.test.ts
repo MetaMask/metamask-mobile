@@ -13,6 +13,7 @@ import {
   bufferTraceStartCall,
   bufferTraceEndCall,
   discardBufferedTraces,
+  updateCachedConsent,
 } from './trace';
 import { AGREED, DENIED } from '../constants/storage';
 
@@ -74,6 +75,11 @@ describe('Trace', () => {
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
 
+  const bufferedTracesModule = jest.requireMock('../selectors/bufferedTraces');
+  const selectBufferedTracesMock = jest.mocked(
+    bufferedTracesModule.selectBufferedTraces,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -88,6 +94,12 @@ describe('Trace', () => {
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
       fn({ setTag: setTagMock } as unknown as Scope),
     );
+
+    // Mock selectBufferedTraces to return empty array by default
+    selectBufferedTracesMock.mockReturnValue([]);
+
+    // Reset consent state to false by default
+    updateCachedConsent(false);
   });
 
   describe('trace', () => {
@@ -107,6 +119,8 @@ describe('Trace', () => {
     });
 
     it('invokes Sentry if callback provided', () => {
+      updateCachedConsent(true);
+
       trace(
         {
           name: NAME_MOCK,
@@ -139,6 +153,8 @@ describe('Trace', () => {
     });
 
     it('invokes Sentry if no callback provided', () => {
+      updateCachedConsent(true);
+
       trace({
         id: ID_MOCK,
         name: NAME_MOCK,
@@ -168,7 +184,28 @@ describe('Trace', () => {
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
     });
 
+    it('buffers traces when consent is not given', () => {
+      updateCachedConsent(false);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+
+      // Sentry functions should not be called when consent is denied
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(0);
+      expect(startSpanMock).toHaveBeenCalledTimes(0);
+      expect(startSpanManualMock).toHaveBeenCalledTimes(0);
+      expect(setTagMock).toHaveBeenCalledTimes(0);
+      expect(setMeasurementMock).toHaveBeenCalledTimes(0);
+    });
+
     it('invokes Sentry if no callback provided with custom start time', () => {
+      updateCachedConsent(true);
+
       trace({
         id: ID_MOCK,
         name: NAME_MOCK,
@@ -203,6 +240,8 @@ describe('Trace', () => {
 
   describe('endTrace', () => {
     it('ends Sentry span matching name and specified ID', () => {
+      updateCachedConsent(true);
+
       const spanEndMock = jest.fn();
       const spanMock = { end: spanEndMock } as unknown as Span;
 
@@ -226,6 +265,8 @@ describe('Trace', () => {
     });
 
     it('ends Sentry span matching name and default ID', () => {
+      updateCachedConsent(true);
+
       const spanEndMock = jest.fn();
       const spanMock = { end: spanEndMock } as unknown as Span;
 
@@ -248,6 +289,8 @@ describe('Trace', () => {
     });
 
     it('ends Sentry span with custom timestamp', () => {
+      updateCachedConsent(true);
+
       const spanEndMock = jest.fn();
       const spanMock = { end: spanEndMock } as unknown as Span;
 
@@ -295,6 +338,8 @@ describe('Trace', () => {
     });
 
     it('clears timeout when trace ends', () => {
+      updateCachedConsent(true);
+
       const spanEndMock = jest.fn();
       const spanMock = { end: spanEndMock } as unknown as Span;
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
@@ -329,6 +374,8 @@ describe('Trace', () => {
     });
 
     it('removes trace after timeout period', () => {
+      updateCachedConsent(true);
+
       const spanEndMock = jest.fn();
       const spanMock = { end: spanEndMock } as unknown as Span;
 
@@ -395,12 +442,34 @@ describe('Trace', () => {
     it('should flush buffered traces when consent is given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
+      // Mock selectBufferedTraces to return the buffered traces we expect
+      const mockBufferedTraces = [
+        {
+          type: 'start',
+          request: { name: TraceName.Middleware, id: 'test1' },
+        },
+        {
+          type: 'start',
+          request: { name: TraceName.NestedTest1, id: 'test2' },
+        },
+        {
+          type: 'end',
+          request: { name: TraceName.Middleware, id: 'test1' },
+        },
+        {
+          type: 'end',
+          request: { name: TraceName.NestedTest1, id: 'test2' },
+        },
+      ];
+      selectBufferedTracesMock.mockReturnValue(mockBufferedTraces);
+
       bufferTraceStartCall({ name: TraceName.Middleware, id: 'test1' });
       bufferTraceStartCall({ name: TraceName.NestedTest1, id: 'test2' });
       bufferTraceEndCall({ name: TraceName.Middleware, id: 'test1' });
       bufferTraceEndCall({ name: TraceName.NestedTest1, id: 'test2' });
 
       storageGetItemMock.mockResolvedValue(AGREED);
+      updateCachedConsent(true);
       jest.clearAllMocks();
 
       await flushBufferedTraces();
