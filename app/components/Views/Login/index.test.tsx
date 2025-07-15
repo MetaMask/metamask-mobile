@@ -3,7 +3,7 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager } from 'react-native';
+import { BackHandler, InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -146,6 +146,9 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
+const mockBackHandlerAddEventListener = jest.fn();
+const mockBackHandlerRemoveEventListener = jest.fn();
+
 describe('Login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -169,6 +172,11 @@ describe('Login', () => {
       if (callback) await callback();
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerRemoveEventListener.mockClear();
+
+    BackHandler.addEventListener = mockBackHandlerAddEventListener;
+    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
   });
 
   it('renders matching snapshot', () => {
@@ -549,6 +557,90 @@ describe('Login', () => {
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual('Too many attempts');
     });
+
+    it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 3, numberOfAttempts: 1 },
+      );
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:3s',
+      );
+
+      expect(passwordInput.props.editable).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:2s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:1s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
+      expect(passwordInput.props.editable).not.toBe(false);
+    });
+
+    it('should clean up timeout on component unmount during countdown', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 5, numberOfAttempts: 1 },
+      );
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
   });
 
   describe('tryBiometric', () => {
@@ -628,6 +720,65 @@ describe('Login', () => {
       expect(mockReplace).not.toHaveBeenCalled();
       // The component should still show biometric option after failure
       expect(biometryButton).toBeTruthy();
+    });
+  });
+
+  describe('handleBackPress', () => {
+    it('registers and deregisters back handler on mount and unmount', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { unmount } = renderWithProvider(<Login />);
+      unmount();
+
+      expect(mockBackHandlerAddEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+      expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('handleBackPress locks app when oauthLoginSuccess is false', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      renderWithProvider(<Login />);
+
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      const result = handleBackPress();
+
+      expect(Authentication.lockApp).toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    it('handleBackPress navigates back when oauthLoginSuccess is true', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+
+      renderWithProvider(<Login />);
+
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      const result = handleBackPress();
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(Authentication.lockApp).not.toHaveBeenCalled();
+      expect(result).toBe(false);
     });
   });
 });
