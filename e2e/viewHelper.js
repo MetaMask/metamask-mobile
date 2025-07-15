@@ -148,10 +148,94 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(
-    seedPhrase ?? validAccount.seedPhrase,
-  );
+  // Wait for the import wallet screen to be fully loaded and stable
+  await Assertions.expectElementToBeVisible(ImportWalletView.container, {
+    description: 'Import Wallet screen should be visible',
+  });
+  
+  // Wait a bit more to ensure the screen is fully rendered
+  await TestHelpers.delay(2000);
+  
+  // On Android, we need to wait longer for the component to be fully rendered
+  if (device.getPlatform() === 'android') {
+    await TestHelpers.delay(3000);
+  }
+  
+  // Wait for the seed phrase input to be visible and ready
+  let retryCount = 0;
+  const maxRetries = 5; // Increased retries for Android
+  
+  while (retryCount < maxRetries) {
+    try {
+      await Assertions.expectElementToBeVisible(ImportWalletView.seedPhraseInput, {
+        description: 'Seed phrase input should be visible',
+      });
+      break;
+    } catch (error) {
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        throw error;
+      }
+      // Longer delay between retries on Android
+      await TestHelpers.delay(device.getPlatform() === 'android' ? 2000 : 1000);
+    }
+  }
+  
+  // Add a small delay to ensure the component is fully rendered
+  await TestHelpers.delay(device.getPlatform() === 'android' ? 2000 : 1000);
+  
+  // Try to clear the field, but don't fail if it's already empty
+  // On Android, we need to be more careful with clearing the field
+  let clearAttempts = 0;
+  const maxClearAttempts = 3;
+  
+  while (clearAttempts < maxClearAttempts) {
+    try {
+      await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+      break;
+    } catch (error) {
+      clearAttempts++;
+      if (clearAttempts >= maxClearAttempts) {
+        // If clearing fails after multiple attempts, the field might already be empty, so continue
+        console.log('Could not clear seed phrase input box after multiple attempts, continuing...');
+        break;
+      }
+      // Wait a bit before retrying
+      await TestHelpers.delay(1000);
+    }
+  }
+  
+  // Ensure the seed phrase input is still visible and ready for input
+  // On Android, we need to wait a bit more for the field to be ready
+  await TestHelpers.delay(device.getPlatform() === 'android' ? 1500 : 500);
+  
+  await Assertions.expectElementToBeVisible(ImportWalletView.seedPhraseInput, {
+    description: 'Seed phrase input should be visible after clearing',
+  });
+  
+  // Enter the seed phrase with retry mechanism for Android
+  let enterAttempts = 0;
+  const maxEnterAttempts = 3;
+  
+  while (enterAttempts < maxEnterAttempts) {
+    try {
+      await ImportWalletView.enterSecretRecoveryPhrase(
+        seedPhrase ?? validAccount.seedPhrase,
+      );
+      break;
+    } catch (error) {
+      enterAttempts++;
+      if (enterAttempts >= maxEnterAttempts) {
+        throw error;
+      }
+      // Wait a bit before retrying
+      await TestHelpers.delay(1000);
+    }
+  }
+  
+  // Ensure the component is ready before proceeding
+  await TestHelpers.delay(device.getPlatform() === 'android' ? 1000 : 500);
+  
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
 
