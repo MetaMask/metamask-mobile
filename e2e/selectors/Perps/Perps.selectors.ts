@@ -53,7 +53,7 @@ export const PerpsPositionHeaderSelectorsIDs = {
   HEADER: 'position-header',
   COIN: 'position-header-coin',
   PNL: 'position-header-pnl',
-  BACK_BUTTON: 'position-header-back',
+  BACK_BUTTON: 'perps-position-header-back-button',
 };
 
 // ========================================

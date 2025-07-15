@@ -21,6 +21,7 @@ import {
 } from '../../utils/formatUtils';
 import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionCard.styles';
+import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -207,6 +208,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           onPress={handleEditPress}
           disabled={disabled}
           style={styles.footerButton}
+          testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
         />
         <Button
           variant={ButtonVariants.Primary}
@@ -216,6 +218,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           onPress={handleClosePress}
           disabled={disabled}
           style={styles.footerButton}
+          testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
         />
       </View>
     </TouchableOpacity>

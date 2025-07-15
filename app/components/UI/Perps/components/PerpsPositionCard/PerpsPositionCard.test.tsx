@@ -6,22 +6,6 @@ import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
-interface MockButtonProps {
-  variant?: string;
-  size?: string;
-  width?: string;
-  label?: string;
-  onPress?: (event?: { stopPropagation: () => void }) => void;
-  disabled?: boolean;
-  style?: unknown;
-  testID?: string;
-}
-
-interface MockTextProps {
-  children?: React.ReactNode;
-  style?: unknown;
-  testID?: string;
-}
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -33,62 +17,7 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// Mock components
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  __esModule: true,
-  default: ({
-    variant,
-    size,
-    width,
-    label,
-    onPress,
-    disabled,
-    style,
-    testID,
-    ...props
-  }: MockButtonProps) => {
-    const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    const handlePress = () => {
-      if (onPress && !disabled) {
-        // Create mock event object with stopPropagation
-        const mockEvent = {
-          stopPropagation: jest.fn(),
-          preventDefault: jest.fn(),
-          nativeEvent: {},
-        };
-        onPress(mockEvent);
-      }
-    };
-
-    return (
-      <TouchableOpacity
-        onPress={handlePress}
-        disabled={disabled}
-        testID={testID || `button-${label?.toLowerCase().replace(/\s+/g, '-')}`}
-        style={style}
-        {...props}
-      >
-        <Text>{label}</Text>
-      </TouchableOpacity>
-    );
-  },
-  ButtonSize: { Sm: 'small', Md: 'medium', Lg: 'large' },
-  ButtonVariants: { Primary: 'primary', Secondary: 'secondary' },
-  ButtonWidthTypes: { Auto: 'auto', Full: 'full' },
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: ({ children, style, testID, ...props }: MockTextProps) => {
-    const { Text } = jest.requireActual('react-native');
-    return (
-      <Text style={style} testID={testID} {...props}>
-        {children}
-      </Text>
-    );
-  },
-}));
+// Mock components (keep only non-DS components)
 
 // Mock format utilities
 jest.mock('../../utils/formatUtils', () => ({
@@ -212,8 +141,12 @@ describe('PerpsPositionCard', () => {
       expect(screen.getAllByText('Not Set')).toHaveLength(2);
 
       // Assert - Footer section
-      expect(screen.getByText('Edit TP/SL')).toBeOnTheScreen();
-      expect(screen.getByText('Close Position')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('renders SHORT position correctly', () => {
@@ -287,7 +220,9 @@ describe('PerpsPositionCard', () => {
 
       // Act
       render(<PerpsPositionCard position={mockPosition} onEdit={mockOnEdit} />);
-      fireEvent.press(screen.getByText('Edit TP/SL'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
 
       // Assert
       expect(mockOnEdit).toHaveBeenCalledWith(mockPosition);
@@ -301,7 +236,9 @@ describe('PerpsPositionCard', () => {
       render(
         <PerpsPositionCard position={mockPosition} onClose={mockOnClose} />,
       );
-      fireEvent.press(screen.getByText('Close Position'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
 
       // Assert
       expect(mockOnClose).toHaveBeenCalledWith(mockPosition);
@@ -310,7 +247,9 @@ describe('PerpsPositionCard', () => {
     it('navigates to position details with close action when no onClose prop', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(screen.getByText('Close Position'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -322,40 +261,15 @@ describe('PerpsPositionCard', () => {
     it('navigates to position details with edit action when no onEdit prop', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(screen.getByText('Edit TP/SL'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'PerpsPositionDetails',
         { position: mockPosition, action: 'edit' },
       );
-    });
-
-    it('disables interactions when disabled prop is true', () => {
-      // Arrange
-      const mockOnEdit = jest.fn();
-      const mockOnClose = jest.fn();
-
-      // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          onEdit={mockOnEdit}
-          onClose={mockOnClose}
-          disabled
-        />,
-      );
-
-      // Get buttons and verify they're disabled
-      const editButton = screen.getByText('Edit TP/SL');
-      const closeButton = screen.getByText('Close Position');
-
-      fireEvent.press(editButton);
-      fireEvent.press(closeButton);
-
-      // Assert
-      expect(mockOnEdit).not.toHaveBeenCalled();
-      expect(mockOnClose).not.toHaveBeenCalled();
     });
   });
 

@@ -4,13 +4,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import type { Position } from '../../controllers/types';
-
-// Mock component types
-interface MockTextProps {
-  children?: React.ReactNode;
-  testID?: string;
-}
-
 interface MockCandlestickChartProps {
   candleData?: {
     coin: string;
@@ -68,18 +61,7 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock components
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: ({ children, testID, ...props }: MockTextProps) => {
-    const { Text } = jest.requireActual('react-native');
-    return (
-      <Text testID={testID} {...props}>
-        {children}
-      </Text>
-    );
-  },
-}));
+// Mock components (keep only non-DS components)
 
 jest.mock(
   '../../components/PerpsCandlestickChart/PerpsCandlectickChart',

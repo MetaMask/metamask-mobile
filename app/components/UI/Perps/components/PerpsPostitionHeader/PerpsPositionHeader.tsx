@@ -23,6 +23,7 @@ import {
   formatPercentage,
   formatPrice,
 } from '../../utils/formatUtils';
+import { PerpsPositionHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsPositionHeaderProps {
   position: Position;
@@ -59,6 +60,7 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
+            testID={PerpsPositionHeaderSelectorsIDs.BACK_BUTTON}
           />
         </View>
       )}

@@ -21,12 +21,6 @@ interface MockButtonIconProps {
   testID?: string;
 }
 
-interface MockTextProps {
-  children?: React.ReactNode;
-  style?: object;
-  testID?: string;
-}
-
 interface MockRefreshControlProps {
   refreshing?: boolean;
   onRefresh?: () => void;
@@ -96,23 +90,6 @@ jest.mock(
     ButtonIconSizes: { Md: 'md' },
   }),
 );
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  IconName: { ArrowLeft: 'arrow-left' },
-  IconColor: { Default: 'default' },
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: ({ children, style, testID, ...props }: MockTextProps) => {
-    const { Text } = jest.requireActual('react-native');
-    return (
-      <Text testID={testID} style={style} {...props}>
-        {children}
-      </Text>
-    );
-  },
-}));
 
 jest.mock('../../components/PerpsPositionCard', () => ({
   __esModule: true,
