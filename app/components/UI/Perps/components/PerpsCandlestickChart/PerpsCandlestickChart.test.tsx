@@ -1,26 +1,51 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import CandlestickChartComponent from './PerpsCandlectickChart';
 
-// Mock the external chart library
+// Mock the external chart library with more integration validation
 jest.mock('react-native-wagmi-charts', () => {
   const { View: MockView } = jest.requireActual('react-native');
 
   // Base CandlestickChart component
   const MockCandlestickChart = ({
     children,
-    height: _height,
-    width: _width,
+    height,
+    width,
+    data,
   }: {
     children: React.ReactNode;
     height: number;
     width: number;
-  }) => <MockView testID="candlestick-chart">{children}</MockView>;
+    data?: unknown[];
+  }) => (
+    <MockView
+      testID="candlestick-chart"
+      data-height={height}
+      data-width={width}
+      data-points={data?.length || 0}
+    >
+      {children}
+    </MockView>
+  );
 
   return {
     CandlestickChart: Object.assign(MockCandlestickChart, {
-      Provider: ({ children }: { children: React.ReactNode }) => (
-        <MockView testID="candlestick-provider">{children}</MockView>
+      Provider: ({
+        children,
+        data,
+      }: {
+        children: React.ReactNode;
+        data: unknown[];
+      }) => (
+        <MockView
+          testID="candlestick-provider"
+          data-data-points={data?.length || 0}
+        >
+          {children}
+        </MockView>
       ),
       Candles: ({
         positiveColor,
@@ -49,76 +74,6 @@ jest.mock('react-native-wagmi-charts', () => {
   };
 });
 
-// Mock useStyles hook
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      chartContainer: { justifyContent: 'center', alignItems: 'center' },
-      relativeContainer: { position: 'relative' },
-      chartLoadingContainer: {
-        height: 300,
-        width: '100%',
-        backgroundColor: 'transparent',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      loadingText: { textAlign: 'center' },
-      noDataContainer: {
-        backgroundColor: 'transparent',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-      noDataText: { textAlign: 'center' },
-      intervalSelector: {
-        flexDirection: 'row',
-        alignSelf: 'center',
-        marginTop: 24,
-      },
-      intervalTab: {
-        paddingVertical: 6,
-        borderRadius: 6,
-        padding: 10,
-        alignItems: 'center',
-      },
-      intervalTabActive: { backgroundColor: '#000' },
-      intervalTabInactive: { backgroundColor: 'transparent' },
-      intervalTabText: { fontSize: 12 },
-      intervalTabTextActive: { color: '#fff' },
-      intervalTabTextInactive: { color: '#666' },
-      gridContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1,
-        pointerEvents: 'none',
-      },
-      tooltipContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 12,
-      },
-      tooltipText: { color: '#000', fontSize: 12, fontWeight: '600' },
-      getGridLineStyle: (isEdge: boolean, position: number) => ({
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: position,
-        height: isEdge ? 2 : 1,
-        zIndex: 10,
-        backgroundColor: '#ccc',
-        opacity: isEdge ? 0.8 : 0.6,
-      }),
-    },
-    theme: {
-      colors: {
-        success: { default: '#00D68F' },
-        error: { default: '#FF6B6B' },
-      },
-    },
-  }),
-}));
-
 // Mock Dimensions
 const mockGetDimensions = jest.fn();
 jest.mock('react-native', () => ({
@@ -127,6 +82,28 @@ jest.mock('react-native', () => ({
     get: mockGetDimensions,
   },
 }));
+
+// Create mock store and theme
+const mockStore = configureMockStore();
+const initialState = {
+  user: {
+    appTheme: 'light',
+  },
+};
+const store = mockStore(initialState);
+
+// Using the actual mockTheme from theme system (imported above)
+
+// Test wrapper with providers
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Provider store={store}>
+    <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
+  </Provider>
+);
+
+// Helper render function
+const renderWithWrapper = (component: React.ReactElement) =>
+  render(component, { wrapper: TestWrapper });
 
 describe('CandlestickChartComponent', () => {
   const mockCandleData = {
@@ -171,7 +148,7 @@ describe('CandlestickChartComponent', () => {
       const props = { ...defaultProps, isLoading: true };
 
       // Act
-      render(<CandlestickChartComponent {...props} />);
+      renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
       expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
@@ -182,7 +159,7 @@ describe('CandlestickChartComponent', () => {
       const props = { ...defaultProps, isLoading: true };
 
       // Act
-      render(<CandlestickChartComponent {...props} />);
+      renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
       expect(screen.getByText('1H')).toBeOnTheScreen();
@@ -195,7 +172,7 @@ describe('CandlestickChartComponent', () => {
       const props = { ...defaultProps, isLoading: true, onIntervalChange };
 
       // Act
-      render(<CandlestickChartComponent {...props} />);
+      renderWithWrapper(<CandlestickChartComponent {...props} />);
       fireEvent.press(screen.getByText('5M'));
 
       // Assert
@@ -256,20 +233,20 @@ describe('CandlestickChartComponent', () => {
 
     it('renders with correct candle colors', () => {
       // Arrange & Act
-      render(<CandlestickChartComponent {...defaultProps} />);
+      renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
       const candles = screen.getByTestId('candlestick-candles');
-      // The colors come from the mocked theme in the useStyles mock
-      expect(candles).toHaveProp('data-positive-color', '#00D68F');
-      expect(candles).toHaveProp('data-negative-color', '#FF6B6B');
+      // The colors come from the actual theme system
+      expect(candles).toHaveProp('data-positive-color', '#1c7e33'); // Actual success color
+      expect(candles).toHaveProp('data-negative-color', '#ca3542'); // Actual error color
     });
   });
 
   describe('Props Handling', () => {
     it('uses custom height prop', () => {
       // Arrange
-      const props = { ...defaultProps, height: 400 };
+      const props = { ...defaultProps, height: 280 };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
@@ -410,6 +387,28 @@ describe('CandlestickChartComponent', () => {
       // The transformed data is used internally by the CandlestickChart.Provider
     });
 
+    it('passes correct data count to chart components', () => {
+      // Arrange & Act
+      render(<CandlestickChartComponent {...defaultProps} />);
+
+      // Assert
+      const provider = screen.getByTestId('candlestick-provider');
+      expect(provider).toHaveProp('data-data-points', 2); // mockCandleData has 2 candles
+    });
+
+    it('passes chart dimensions correctly', () => {
+      // Arrange
+      const props = { ...defaultProps, height: 400 };
+
+      // Act
+      render(<CandlestickChartComponent {...props} />);
+
+      // Assert
+      const chart = screen.getByTestId('candlestick-chart');
+      expect(chart).toHaveProp('data-height', 280); // 400 - 120 (PADDING.VERTICAL)
+      expect(chart).toHaveProp('data-width', 702); // Actual width from test environment
+    });
+
     it('handles missing candle data gracefully', () => {
       // Arrange
       const props = { ...defaultProps, candleData: null };
@@ -513,7 +512,7 @@ describe('CandlestickChartComponent', () => {
       const props = { ...defaultProps, selectedInterval: 'invalid' };
 
       // Act
-      render(<CandlestickChartComponent {...props} />);
+      renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
       expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
