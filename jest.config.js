@@ -12,8 +12,6 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
-process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
-
 process.env.ANDROID_APPLE_CLIENT_ID = 'androidAppleClientId';
 process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 
