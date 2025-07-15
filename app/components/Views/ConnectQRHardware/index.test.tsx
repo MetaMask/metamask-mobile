@@ -113,7 +113,6 @@ jest.mock('../../../core/Engine', () => ({
           keyring: mockQrKeyring,
           metadata: { id: '1234' },
         }),
-      connectQRHardware: jest.fn(),
     },
     AccountTrackerController: {
       syncBalanceWithAddresses: jest.fn(),

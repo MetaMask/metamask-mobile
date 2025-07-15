@@ -7,11 +7,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 const Stack = createStackNavigator();
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      getOrAddQRKeyring: jest.fn(),
-    },
-  },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),

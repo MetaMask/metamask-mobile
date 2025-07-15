@@ -84,10 +84,9 @@ jest.mock('../../../../../core/Engine', () => ({
               id: '01JNG7170V9X27V5NFDTY04PJ4',
               name: '',
             },
-          }
+          },
         ],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),

@@ -11,7 +11,6 @@ jest.mock('../../../../../../core/Engine', () => ({
       state: {
         keyrings: [],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     AccountsController: {
       state: {
@@ -23,7 +22,7 @@ jest.mock('../../../../../../core/Engine', () => ({
               metadata: {
                 name: 'Account 1',
                 keyring: {
-                  type: 'HD Key Tree'
+                  type: 'HD Key Tree',
                 },
               },
             },

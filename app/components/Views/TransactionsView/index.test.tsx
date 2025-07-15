@@ -138,7 +138,6 @@ jest.mock('../../UI/Transactions', () => () => null);
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
-      getOrAddQRKeyring: jest.fn(),
       cancelQRSignRequest: jest.fn().mockResolvedValue(undefined),
       state: {
         keyrings: [],

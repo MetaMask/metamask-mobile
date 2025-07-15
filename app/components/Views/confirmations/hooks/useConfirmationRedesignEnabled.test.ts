@@ -39,7 +39,6 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         keyrings: [],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
   },
   controllerMessenger: {
