@@ -8,11 +8,15 @@ class ImportAccountView {
   }
 
   get importButton() {
-    return Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON);
+    return Matchers.getElementByID(
+      ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON,
+    );
   }
 
   get privateKeyField() {
-    return Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX);
+    return Matchers.getElementByID(
+      ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX,
+    );
   }
 
   async tapImportButton() {
@@ -20,10 +24,7 @@ class ImportAccountView {
   }
 
   async enterPrivateKey(privateKey) {
-    await Gestures.typeTextAndHideKeyboard(
-      this.privateKeyField,
-      privateKey,
-    );
+    await Gestures.typeTextAndHideKeyboard(this.privateKeyField, privateKey);
   }
 }
 
