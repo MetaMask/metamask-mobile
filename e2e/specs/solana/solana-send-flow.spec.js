@@ -3,12 +3,15 @@ import { SmokeNetworkExpansion } from '../../tags';
 import { importWalletWithRecoveryPhrase, loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import WalletView from '../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 
 // Test constants
 const INVALID_ADDRESS = 'invalid address';
@@ -20,7 +23,7 @@ const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
 // TODO: Enable when we come back after the new feature view is released
-describe.skip(
+describe(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {
@@ -31,9 +34,13 @@ describe.skip(
     it('should import wallet with a Solana account', async () => {
       await importWalletWithRecoveryPhrase({
         seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
-        solanaSheetAction: 'viewAccount',
+        solanaSheetAction: 'dismiss',
       });
-      await NetworkEducationModal.tapGotItButton();
+      
+      await WalletView.tapCurrentMainWalletAccountActions();
+      await AccountListBottomSheet.tapAddAccountButton();
+      await AddAccountBottomSheet.tapAddSolanaAccount();
+      await AddNewHdAccountComponent.tapConfirm();
     });
 
     it('should validate recipient address format correctly', async () => {
