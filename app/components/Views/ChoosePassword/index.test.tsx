@@ -31,7 +31,12 @@ jest.mock('../../../util/trace', () => ({
 
 import ChoosePassword from './';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { TraceName, TraceOperation, trace, endTrace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+} from '../../../util/trace';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding

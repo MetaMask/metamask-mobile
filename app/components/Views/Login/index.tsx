@@ -129,7 +129,7 @@ const Login: React.FC = () => {
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route = useRoute<RouteProp< { params: LoginRouteParams }, 'params'>>();
+  const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },

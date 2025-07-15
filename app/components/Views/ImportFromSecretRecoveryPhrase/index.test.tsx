@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider, { renderScreen } from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
@@ -17,7 +19,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { passcodeType } from '../../../util/authentication';
-import { TraceName, TraceOperation, trace, endTrace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+} from '../../../util/trace';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
@@ -574,21 +581,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const mockGoBack = jest.fn();
       const Stack = createStackNavigator();
 
-      const customRender = (children: React.ReactElement) => renderWithProvider(
-        <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="TestScreen">
-              {({ navigation }) => {
-                const navigationSpy = jest.spyOn(navigation, 'goBack');
-                navigationSpy.mockImplementation(mockGoBack);
-                return React.cloneElement(children, { navigation });
-              }}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>,
-        { state: initialState },
-        false,
-      );
+      const customRender = (children: React.ReactElement) =>
+        renderWithProvider(
+          <NavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name="TestScreen">
+                {({ navigation }) => {
+                  const navigationSpy = jest.spyOn(navigation, 'goBack');
+                  navigationSpy.mockImplementation(mockGoBack);
+                  return React.cloneElement(children, { navigation });
+                }}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>,
+          { state: initialState },
+          false,
+        );
 
       const { getByTestId } = customRender(<ImportFromSecretRecoveryPhrase />);
 
@@ -860,36 +868,43 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     describe('onQrCodePress', () => {
-      let customRender: (children: React.ReactElement) => ReturnType<typeof renderWithProvider>;
+      let customRender: (
+        children: React.ReactElement,
+      ) => ReturnType<typeof renderWithProvider>;
       let navigationSpy: jest.SpyInstance;
 
-        beforeEach(() => {
-         const Stack = createStackNavigator();
-         customRender = (children: React.ReactElement) => renderWithProvider(
-           <NavigationContainer>
-             <Stack.Navigator>
-               <Stack.Screen name="TestScreen">
-                 {({ navigation }) => {
-                   navigationSpy = jest.spyOn(navigation, 'navigate');
-                   navigationSpy.mockImplementation(() => undefined);
-                   return React.cloneElement(children, { navigation });
-                 }}
-               </Stack.Screen>
-             </Stack.Navigator>
-           </NavigationContainer>,
-           { state: initialState },
-           false,
-         );
-       });
+      beforeEach(() => {
+        const Stack = createStackNavigator();
+        customRender = (children: React.ReactElement) =>
+          renderWithProvider(
+            <NavigationContainer>
+              <Stack.Navigator>
+                <Stack.Screen name="TestScreen">
+                  {({ navigation }) => {
+                    navigationSpy = jest.spyOn(navigation, 'navigate');
+                    navigationSpy.mockImplementation(() => undefined);
+                    return React.cloneElement(children, { navigation });
+                  }}
+                </Stack.Screen>
+              </Stack.Navigator>
+            </NavigationContainer>,
+            { state: initialState },
+            false,
+          );
+      });
 
-       afterEach(() => {
+      afterEach(() => {
         navigationSpy.mockRestore();
-       });
+      });
 
       it('navigates to QR scanner with correct parameters when QR button is pressed', async () => {
-        const { getByTestId } = customRender(<ImportFromSecretRecoveryPhrase />);
+        const { getByTestId } = customRender(
+          <ImportFromSecretRecoveryPhrase />,
+        );
 
-        const qrButton = getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID);
+        const qrButton = getByTestId(
+          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+        );
         expect(qrButton).toBeOnTheScreen();
 
         await act(async () => {
@@ -905,9 +920,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       it('calls handleClear and handleSeedPhraseChangeAtIndex when onScanSuccess is called with seed', async () => {
-        const { getByTestId } = customRender(<ImportFromSecretRecoveryPhrase />);
+        const { getByTestId } = customRender(
+          <ImportFromSecretRecoveryPhrase />,
+        );
 
-        const qrButton = getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID);
+        const qrButton = getByTestId(
+          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+        );
         await act(async () => {
           fireEvent.press(qrButton);
         });
@@ -916,15 +935,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const [, params] = navigationSpy.mock.calls[0];
         const { onScanSuccess } = params;
 
-        const scannedSeed = 'abandon ability able about above absent absorb abstract absurd abuse access';
+        const scannedSeed =
+          'abandon ability able about above absent absorb abstract absurd abuse access';
         await act(async () => {
           onScanSuccess({ seed: scannedSeed });
         });
 
         await waitFor(() => {
-          const firstInput = getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`);
-          const secondInput = getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`);
-          const thirdInput = getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`);
+          const firstInput = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+          );
+          const secondInput = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+          );
+          const thirdInput = getByTestId(
+            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`,
+          );
 
           expect(firstInput.props.value).toBe('abandon');
           expect(secondInput.props.value).toBe('ability');
@@ -932,30 +958,34 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         });
       });
 
-       it('shows alert when onScanSuccess is called without seed', async () => {
-         const mockAlert = jest.spyOn(Alert, 'alert');
-         const { getByTestId } = customRender(<ImportFromSecretRecoveryPhrase />);
+      it('shows alert when onScanSuccess is called without seed', async () => {
+        const mockAlert = jest.spyOn(Alert, 'alert');
+        const { getByTestId } = customRender(
+          <ImportFromSecretRecoveryPhrase />,
+        );
 
-         const qrButton = getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID);
-         await act(async () => {
-           fireEvent.press(qrButton);
-         });
+        const qrButton = getByTestId(
+          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+        );
+        await act(async () => {
+          fireEvent.press(qrButton);
+        });
 
-         expect(navigationSpy).toHaveBeenCalled();
-         const [, params] = navigationSpy.mock.calls[0];
-         const { onScanSuccess } = params;
+        expect(navigationSpy).toHaveBeenCalled();
+        const [, params] = navigationSpy.mock.calls[0];
+        const { onScanSuccess } = params;
 
-         await act(async () => {
-           onScanSuccess({});
-         });
+        await act(async () => {
+          onScanSuccess({});
+        });
 
-         expect(mockAlert).toHaveBeenCalledWith(
-           strings('import_from_seed.invalid_qr_code_title'),
-           strings('import_from_seed.invalid_qr_code_message'),
-         );
+        expect(mockAlert).toHaveBeenCalledWith(
+          strings('import_from_seed.invalid_qr_code_title'),
+          strings('import_from_seed.invalid_qr_code_message'),
+        );
 
-         mockAlert.mockRestore();
-       });
+        mockAlert.mockRestore();
+      });
     });
 
     it('toggles show all seed phrase when button is pressed', async () => {
@@ -999,7 +1029,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Should show "Show all" button again
       await waitFor(() => {
-        const showAllButtonAgain = getByText(strings('import_from_seed.show_all'));
+        const showAllButtonAgain = getByText(
+          strings('import_from_seed.show_all'),
+        );
         expect(showAllButtonAgain).toBeOnTheScreen();
       });
     });
@@ -1020,13 +1052,21 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`)).toBeOnTheScreen();
-        expect(getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`)).toBeOnTheScreen();
-        expect(getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`)).toBeOnTheScreen();
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeOnTheScreen();
       });
 
       // Clear the second input field
-      const input1 = getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`);
+      const input1 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+      );
       await act(async () => {
         fireEvent.changeText(input1, '');
       });
@@ -1040,14 +1080,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Should focus on the previous input field (index 0) and remove the current empty field
       await waitFor(() => {
-        expect(getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`)).toBeOnTheScreen();
-        expect(getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`)).toBeOnTheScreen();
-        expect(queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`)).toBeNull();
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
+        ).toBeNull();
       });
     });
   });
 
-  const renderCreatePasswordUI = async (onboardingTraceCtx?: { traceId: string }) => {
+  const renderCreatePasswordUI = async (onboardingTraceCtx?: {
+    traceId: string;
+  }) => {
     const { getByText, getByPlaceholderText, getByRole, getByTestId } =
       renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1388,14 +1436,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        }).mockResolvedValueOnce({
+        })
+        .mockResolvedValueOnce({
           // Mock second call in handleRejectedOsBiometricPrompt
           currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
       const mockNewWalletAndRestore = jest
         .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(new Error('The user name or passphrase you entered is not correct.'))
+        .mockRejectedValueOnce(
+          new Error('The user name or passphrase you entered is not correct.'),
+        )
         // Mock second call in handleRejectedOsBiometricPrompt
         .mockResolvedValueOnce();
 
@@ -1422,8 +1473,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await act(async () => Promise.resolve());
 
       expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(1, true, false);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(2, false, false);
+      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
+        1,
+        true,
+        false,
+      );
+      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
+        2,
+        false,
+        false,
+      );
       expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
     });
 
@@ -1434,14 +1493,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        }).mockResolvedValueOnce({
+        })
+        .mockResolvedValueOnce({
           // Mock second call in handleRejectedOsBiometricPrompt
           currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
       const mockNewWalletAndRestore = jest
         .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(new Error('The user name or passphrase you entered is not correct.'))
+        .mockRejectedValueOnce(
+          new Error('The user name or passphrase you entered is not correct.'),
+        )
         // Mock second call in handleRejectedOsBiometricPrompt: this should also fail
         .mockRejectedValueOnce(new Error('Wallet creation failed'));
 
@@ -1468,8 +1530,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await act(async () => Promise.resolve());
 
       expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(1, true, false);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(2, false, false);
+      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
+        1,
+        true,
+        false,
+      );
+      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
+        2,
+        false,
+        false,
+      );
       expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
     });
   });
@@ -1585,10 +1655,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const testError = new Error('Authentication failed');
 
       // Mock failing authentication to trigger outer catch block
-      const mockComponentAuthenticationType = jest.spyOn(Authentication, 'componentAuthenticationType');
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId, getByPlaceholderText } = await renderCreatePasswordUI(mockOnboardingTraceCtx);
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI(mockOnboardingTraceCtx);
 
       const passwordInput = getByPlaceholderText(
         strings('import_from_seed.enter_strong_password'),
@@ -1604,31 +1678,39 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       fireEvent.press(learnMoreCheckbox);
 
-      const importButton = getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+      const importButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
       fireEvent.press(importButton);
 
-      await waitFor(() => {
-        expect(mockTrace).toHaveBeenCalledWith({
-          name: TraceName.OnboardingPasswordSetupError,
-          op: TraceOperation.OnboardingUserJourney,
-          parentContext: mockOnboardingTraceCtx,
-          tags: { errorMessage: 'Error: Authentication failed' },
-        });
-        expect(mockEndTrace).toHaveBeenCalledWith({
-          name: TraceName.OnboardingPasswordSetupError,
-        });
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(mockTrace).toHaveBeenCalledWith({
+            name: TraceName.OnboardingPasswordSetupError,
+            op: TraceOperation.OnboardingUserJourney,
+            parentContext: mockOnboardingTraceCtx,
+            tags: { errorMessage: 'Error: Authentication failed' },
+          });
+          expect(mockEndTrace).toHaveBeenCalledWith({
+            name: TraceName.OnboardingPasswordSetupError,
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('does not trace error when wallet import fails without onboardingTraceCtx', async () => {
       const testError = new Error('Authentication failed');
 
       // Mock failing authentication to trigger outer catch block
-      const mockComponentAuthenticationType = jest.spyOn(Authentication, 'componentAuthenticationType');
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId, getByPlaceholderText } = await renderCreatePasswordUI();
-
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
       const passwordInput = getByPlaceholderText(
         strings('import_from_seed.enter_strong_password'),
@@ -1644,7 +1726,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       fireEvent.press(learnMoreCheckbox);
 
-      const importButton = getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+      const importButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
       fireEvent.press(importButton);
 
       await waitFor(() => {

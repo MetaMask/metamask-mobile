@@ -20,12 +20,7 @@ import {
 } from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../util/trace';
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
  * Restore the given serialized QR keyring.

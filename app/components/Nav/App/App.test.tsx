@@ -292,11 +292,11 @@ describe('App', () => {
                     routes: [
                       {
                         name: 'OnboardingCarousel',
-                        params: {}
-                      }
-                    ]
-                  }
-                }
+                        params: {},
+                      },
+                    ],
+                  },
+                },
               ],
             },
           },
@@ -317,10 +317,12 @@ describe('App', () => {
 
       const { getByText } = render(<App />, { wrapper: Providers });
 
-      expect(getByText(strings('onboarding_carousel.get_started'))).toBeTruthy();
+      expect(
+        getByText(strings('onboarding_carousel.get_started')),
+      ).toBeTruthy();
     });
   });
-  
+
   describe('Branch deeplink handling', () => {
     it('initializes SharedDeeplinkManager with navigation and dispatch', async () => {
       renderScreen(App, { name: 'App' }, { state: initialState });

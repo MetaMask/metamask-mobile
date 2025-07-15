@@ -1,4 +1,4 @@
-import React, { useEffect }  from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Image,
@@ -67,9 +67,10 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   };
 
   useEffect(() => {
-    const traceName = type === 'found'
-      ? TraceName.OnboardingNewSocialAccountExists
-      : TraceName.OnboardingExistingSocialAccountNotFound;
+    const traceName =
+      type === 'found'
+        ? TraceName.OnboardingNewSocialAccountExists
+        : TraceName.OnboardingExistingSocialAccountNotFound;
 
     trace({
       name: traceName,
@@ -87,9 +88,10 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
     previousScreen: string,
     metricEvent: string,
   ) => {
-    const nextScenarioTraceName = type === 'found'
-      ? TraceName.OnboardingExistingSocialLogin
-      : TraceName.OnboardingNewSocialCreateWallet;
+    const nextScenarioTraceName =
+      type === 'found'
+        ? TraceName.OnboardingExistingSocialLogin
+        : TraceName.OnboardingNewSocialCreateWallet;
     trace({
       name: nextScenarioTraceName,
       op: TraceOperation.OnboardingUserJourney,

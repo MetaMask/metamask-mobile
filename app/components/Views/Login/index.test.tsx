@@ -20,8 +20,16 @@ import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { VAULT_ERROR } from './constants';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
-import { TraceName, TraceOperation, endTrace, trace } from '../../../util/trace';
-import { ONBOARDING_WIZARD, OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+} from '../../../constants/storage';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -163,7 +171,9 @@ jest.mock('../../../util/trace', () => {
 const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
 
-const mockUseMetrics = jest.fn().mockReturnValue({ isEnabled: jest.fn().mockReturnValue(true) });
+const mockUseMetrics = jest
+  .fn()
+  .mockReturnValue({ isEnabled: jest.fn().mockReturnValue(true) });
 jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: () => mockUseMetrics(),
   withMetricsAwareness: jest.fn().mockImplementation((Component) => Component),
@@ -188,7 +198,9 @@ describe('Login', () => {
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
-    mockUseMetrics.mockReturnValue({ isEnabled: jest.fn().mockReturnValue(true) });
+    mockUseMetrics.mockReturnValue({
+      isEnabled: jest.fn().mockReturnValue(true),
+    });
     (Authentication.rehydrateSeedPhrase as jest.Mock).mockResolvedValue(true);
     (Authentication.userEntryAuth as jest.Mock).mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
@@ -241,12 +253,13 @@ describe('Login', () => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    expect(mockTrace).toHaveBeenNthCalledWith(2,
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      2,
       {
         name: TraceName.AuthenticateUser,
         op: TraceOperation.Login,
       },
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
   });
@@ -496,7 +509,9 @@ describe('Login', () => {
     });
 
     it('should handle WRONG_PASSWORD_ERROR', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('Decrypt failed'));
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Decrypt failed'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -510,11 +525,17 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(strings('login.invalid_password'));
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
     });
 
     it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT'));
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error(
+          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+        ),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -528,11 +549,15 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(strings('login.invalid_password'));
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
     });
 
     it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('Password requirements not met'));
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Password requirements not met'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -546,11 +571,15 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual(strings('login.invalid_password'));
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
     });
 
     it('should handle generic error (else case)', async () => {
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('Some unexpected error'));
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Some unexpected error'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -564,7 +593,9 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Error: Some unexpected error');
+      expect(errorElement.props.children).toEqual(
+        'Error: Some unexpected error',
+      );
     });
 
     it('should handle OnboardingPasswordLoginError trace during onboarding flow', async () => {
@@ -576,7 +607,9 @@ describe('Login', () => {
         },
       });
 
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('Some unexpected error'));
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Some unexpected error'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -590,7 +623,9 @@ describe('Login', () => {
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Error: Some unexpected error');
+      expect(errorElement.props.children).toEqual(
+        'Error: Some unexpected error',
+      );
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordLoginError,
@@ -598,7 +633,9 @@ describe('Login', () => {
         tags: { errorMessage: 'Error: Some unexpected error' },
         parentContext: 'mockTraceContext',
       });
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginError });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginError,
+      });
     });
   });
 
@@ -617,8 +654,12 @@ describe('Login', () => {
     });
 
     it('should handle PASSCODE_NOT_SET_ERROR with alert', async () => {
-      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(new Error('Passcode not set.'));
+      const mockAlert = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Passcode not set.'),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -632,7 +673,7 @@ describe('Login', () => {
 
       expect(mockAlert).toHaveBeenCalledWith(
         strings('login.security_alert_title'),
-        strings('login.security_alert_desc')
+        strings('login.security_alert_desc'),
       );
 
       mockAlert.mockRestore();
@@ -719,9 +760,15 @@ describe('Login', () => {
       });
 
       expect(Authentication.rehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSocialLogin,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
@@ -750,9 +797,15 @@ describe('Login', () => {
       });
 
       expect(Authentication.rehydrateSeedPhrase).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingPasswordLoginAttempt });
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingExistingSocialLogin });
-      expect(mockEndTrace).toHaveBeenCalledWith({ name: TraceName.OnboardingJourneyOverall });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSocialLogin,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
       expect(mockReset).toHaveBeenCalledWith({
         routes: [
           {
@@ -874,9 +927,11 @@ describe('Login', () => {
     it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
-        { remainingTime: 3, numberOfAttempts: 1 }
+        { remainingTime: 3, numberOfAttempts: 1 },
       );
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(seedlessError);
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -890,7 +945,9 @@ describe('Login', () => {
 
       let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Too many attempts. Please try again in 0m:3s');
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:3s',
+      );
 
       expect(passwordInput.props.editable).toBe(false);
 
@@ -899,14 +956,18 @@ describe('Login', () => {
       });
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('Too many attempts. Please try again in 0m:2s');
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:2s',
+      );
 
       await act(async () => {
         jest.advanceTimersByTime(1000);
       });
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement.props.children).toEqual('Too many attempts. Please try again in 0m:1s');
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:1s',
+      );
 
       await act(async () => {
         jest.advanceTimersByTime(1000);
@@ -920,9 +981,11 @@ describe('Login', () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
-        { remainingTime: 5, numberOfAttempts: 1 }
+        { remainingTime: 5, numberOfAttempts: 1 },
       );
-      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(seedlessError);
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
 
       const { getByTestId, unmount } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -966,7 +1029,9 @@ describe('Login', () => {
     });
 
     it('should successfully authenticate with biometrics and navigate to home', async () => {
-      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(true);
+      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
+        true,
+      );
       (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
@@ -991,15 +1056,17 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
-        routes: [{
-          name: Routes.ONBOARDING.ROOT_NAV,
-          params: {
-            screen: Routes.ONBOARDING.NAV,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
             params: {
-              screen: Routes.ONBOARDING.OPTIN_METRICS
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
             },
           },
-        }],
+        ],
       });
     });
 
@@ -1041,11 +1108,11 @@ describe('Login', () => {
 
       expect(mockBackHandlerAddEventListener).toHaveBeenCalledWith(
         'hardwareBackPress',
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
         'hardwareBackPress',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -1086,4 +1153,3 @@ describe('Login', () => {
     });
   });
 });
-
