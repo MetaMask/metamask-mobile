@@ -66,7 +66,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -229,11 +229,7 @@ const BridgeView = () => {
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
       trackEvent(
-        createEventBuilder(
-          bridgeViewMode === BridgeViewMode.Bridge
-            ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
-            : MetaMetricsEvents.SWAP_PAGE_VIEWED,
-        )
+        createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
           .addProperties({
             chain_id_source: getDecimalChainId(sourceToken.chainId),
             chain_id_destination: getDecimalChainId(destToken?.chainId),

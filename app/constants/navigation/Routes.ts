@@ -198,6 +198,20 @@ const Routes = {
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
+  PERPS: {
+    ROOT: 'Perps',
+    TRADING_VIEW: 'PerpsTradingView',
+    ORDER: 'PerpsOrder',
+    ORDER_SUCCESS: 'PerpsOrderSuccess',
+    DEPOSIT: 'PerpsDeposit',
+    DEPOSIT_PREVIEW: 'PerpsDepositPreview',
+    DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
+    DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
+    POSITIONS: 'PerpsPositions',
+    POSITION_DETAILS: 'PerpsPositionDetails',
+    ORDER_HISTORY: 'PerpsOrderHistory',
+    ORDER_DETAILS: 'PerpsOrderDetails',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
@@ -245,6 +259,7 @@ const Routes = {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
   },
+  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

@@ -50,4 +50,4 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
       },
     );
   });
-}); 
+});

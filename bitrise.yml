@@ -1657,7 +1657,7 @@ workflows:
                 if [ -n "$YARN_COMMAND" ]; then
                     GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:local
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1884,29 +1884,22 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   # Actual workflows that inherit from templates
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_release:
-    envs:
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
-      - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'
     after_run:
-      - _android_build_template
+      - build_android_main_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_main_prod:
     envs:
-      - YARN_COMMAND: 'build:android:main:prod'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
+      - YARN_COMMAND: 'build:android:main:prod'
     after_run:
       - _android_build_template
     meta:
@@ -1973,31 +1966,18 @@ workflows:
   build_android_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
-      - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'
     after_run:
-      - _android_build_template
+      - build_android_main_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: This is exactly the same as build_android_release_and_upload_sourcemaps, remove once consolidated
   build_android_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'pre-release'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
-      - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'
     after_run:
-      - _android_build_template
+      - build_android_main_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2020,12 +2000,10 @@ workflows:
   build_android_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
-      - BUILD_COMMAND: 'yarn test:e2e:android:debug:build'
+      - BUILD_COMMAND: 'yarn build:android:main:local'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -2405,7 +2383,7 @@ workflows:
                         GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:local
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
@@ -2481,23 +2459,17 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
-    envs:
-      - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask"
-      - INFO_PLIST_NAME: "Info.plist"
     after_run:
-      - _ios_build_template
+      - build_ios_main_prod
   build_ios_main_prod:
     envs:
-      - YARN_COMMAND: 'build:ios:main:prod'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
+      - YARN_COMMAND: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
   build_ios_main_beta:
@@ -2530,25 +2502,14 @@ workflows:
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask"
-      - INFO_PLIST_NAME: "Info.plist"
     after_run:
-      - _ios_build_template
+      - build_ios_main_prod
+  # TODO: This is exactly the same as build_ios_release_and_upload_sourcemaps, remove once consolidated
   build_ios_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'pre-release'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask"
-      - INFO_PLIST_NAME: "Info.plist"
     after_run:
-      - _ios_build_template
+      - build_ios_main_prod
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
@@ -2583,13 +2544,11 @@ workflows:
       - _ios_build_template
   build_ios_devbuild:
     envs:
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
       - INFO_PLIST_NAME: 'Info.plist'
+      - YARN_COMMAND: 'build:ios:main:local'
     after_run:
       - _ios_build_template
   build_ios_flask_devbuild:
@@ -2901,13 +2860,13 @@ app:
       VERSION_NAME: 7.47.3
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2051
+      VERSION_NUMBER: 2103
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.47.3
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2051
+      FLASK_VERSION_NUMBER: 2103
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

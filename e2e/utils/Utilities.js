@@ -65,7 +65,7 @@ export default class Utilities {
       let stableChecks = 0;
       const fallBackTimeout = 2000;
       const start = Date.now();
-  
+
       const getPosition = async (element) => {
         try {
           const attributes = await element.getAttributes();
@@ -77,22 +77,22 @@ export default class Utilities {
             return { x: attributes.frame.x, y: attributes.frame.y };
           }
             return null;
-  
+
         } catch {
           return null;
         }
       };
-  
+
       while (Date.now() - start < timeout) {
         const el = await element;
-  
+
         const position = await getPosition(el);
-  
+
         if (!position) {
           await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
           return; // Return early if position is not available
         }
-  
+
         if (
           lastPosition &&
           position.x === lastPosition.x &&
@@ -104,10 +104,10 @@ export default class Utilities {
           lastPosition = position;
           stableChecks = 1;
         }
-  
+
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
-  
+
       throw new Error('Element did not become stable in time');
     }
 

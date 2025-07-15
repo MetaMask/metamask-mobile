@@ -1026,7 +1026,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -3022,7 +3022,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -5018,7 +5018,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -7053,7 +7053,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -9049,7 +9049,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -11045,7 +11045,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -13513,7 +13513,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -15509,7 +15509,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >

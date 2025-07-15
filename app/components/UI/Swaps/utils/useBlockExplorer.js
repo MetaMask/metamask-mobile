@@ -33,14 +33,14 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
 
       if (type === RPC) {
         blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
-        name = 
+        name =
           getBlockExplorerName(blockExplorer) ||
           strings('swaps.block_explorer');
       } else {
         blockExplorer = getEtherscanBaseUrl(type);
         name = 'Etherscan';
       }
- 
+
       if (!blockExplorer) {
         throw new Error('No block explorer url');
       }
