@@ -394,7 +394,7 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
           // start trace of time between tx submitted and tx confirmed
           trace({
-            name: TraceName.EarnDepositTxConfirmed,
+            name: TraceName.EarnLendingDepositTxConfirmed,
             data: {
               chainId: earnToken?.chainId || '',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -412,7 +412,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
-          endTrace({ name: TraceName.EarnDepositTxConfirmed });
+          endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
             const networkClientId =

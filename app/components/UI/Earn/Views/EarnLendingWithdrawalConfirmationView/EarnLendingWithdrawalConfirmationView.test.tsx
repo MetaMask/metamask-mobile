@@ -933,7 +933,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       });
     });
 
-    it('should call trace with EarnWithdrawTxConfirmed when transaction is submitted', async () => {
+    it('should call trace with EarnLendingWithdrawTxConfirmed when transaction is submitted', async () => {
       const mockExecuteLendingWithdraw = Engine.context.EarnController
         .executeLendingWithdraw as jest.MockedFunction<
         typeof Engine.context.EarnController.executeLendingWithdraw
@@ -986,7 +986,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       });
 
       expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnWithdrawTxConfirmed,
+        name: TraceName.EarnLendingWithdrawTxConfirmed,
         data: {
           chainId: mockLineaAUsdc.chainId,
           experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -994,7 +994,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       });
     });
 
-    it('should call endTrace with EarnWithdrawTxConfirmed when transaction is confirmed', async () => {
+    it('should call endTrace with EarnLendingWithdrawTxConfirmed when transaction is confirmed', async () => {
       const mockExecuteLendingWithdraw = Engine.context.EarnController
         .executeLendingWithdraw as jest.MockedFunction<
         typeof Engine.context.EarnController.executeLendingWithdraw
@@ -1061,7 +1061,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnWithdrawTxConfirmed,
+        name: TraceName.EarnLendingWithdrawTxConfirmed,
       });
     });
   });
