@@ -112,7 +112,7 @@ enum EVENT_NAME {
   WALLET_SECURITY_SKIP_CONFIRMED = 'SRP Backup Skipped',
   WALLET_SECURITY_SKIP_CANCELED = 'SRP Skip Backup Canceled',
   WALLET_SECURITY_RECOVERY_HINT_SAVED = 'Recovery Hint Saved',
-  WALLET_SECURITY_COMPLETED = 'Wallet Security Completed',
+  WALLET_SECURITY_COMPLETED = 'SRP Backup Confirmed',
   WALLET_SECURITY_PROTECT_VIEWED = 'Wallet Security Reminder Viewed',
   WALLET_SECURITY_PROTECT_ENGAGED = 'Wallet Security Reminder Engaged',
   WALLET_SECURITY_PROTECT_DISMISSED = 'Wallet Security Reminder Dismissed',
