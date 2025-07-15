@@ -9,6 +9,11 @@ import CandlestickChartComponent from './PerpsCandlectickChart';
 // Minimal mock - only what we actually test
 jest.mock('react-native-wagmi-charts', () => {
   const { View } = jest.requireActual('react-native');
+  const {
+    PerpsCandlestickChartSelectorsIDs: PerpsCandlestickChartSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
 
   const MockChart = ({
     children,
@@ -20,7 +25,7 @@ jest.mock('react-native-wagmi-charts', () => {
     width: number;
   }) => (
     <View
-      testID={PerpsCandlestickChartSelectorsIDs.CONTAINER}
+      testID={PerpsCandlestickChartSelectorsIDsMock.CONTAINER}
       data-height={height}
       data-width={width}
     >
@@ -36,7 +41,7 @@ jest.mock('react-native-wagmi-charts', () => {
     data: unknown[];
   }) => (
     <View
-      testID={PerpsCandlestickChartSelectorsIDs.PROVIDER}
+      testID={PerpsCandlestickChartSelectorsIDsMock.PROVIDER}
       data-data-points={data?.length || 0}
     >
       {children}
@@ -51,18 +56,20 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
+      testID={PerpsCandlestickChartSelectorsIDsMock.CANDLES}
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID={PerpsCandlestickChartSelectorsIDs.CROSSHAIR}>{children}</View>
+    <View testID={PerpsCandlestickChartSelectorsIDsMock.CROSSHAIR}>
+      {children}
+    </View>
   );
 
   MockChart.Tooltip = () => (
-    <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
+    <View testID={PerpsCandlestickChartSelectorsIDsMock.TOOLTIP} />
   );
 
   return { CandlestickChart: MockChart };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { SafeAreaView, ScrollView, RefreshControl, View } from 'react-native';
 import {
   useNavigation,
@@ -39,6 +39,18 @@ const PerpsPositionsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Memoize position count text to avoid recalculating on every render
+  const positionCountText = useMemo(() => {
+    const positionCount = positions.length;
+    return positionCount > 1
+      ? strings('perps.position.list.positionCount_plural', {
+          count: positionCount,
+        })
+      : strings('perps.position.list.positionCount', {
+          count: positionCount,
+        });
+  }, [positions]);
 
   // Load positions data
   const loadPositions = useCallback(
@@ -144,9 +156,7 @@ const PerpsPositionsView: React.FC = () => {
             {strings('perps.position.list.openPositions')}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-            {strings('perps.position.list.positionCount', {
-              count: positions.length,
-            })}
+            {positionCountText}
           </Text>
         </View>
         {positions.map((position, index) => (

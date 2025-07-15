@@ -236,7 +236,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       expect(screen.getByText('Positions')).toBeOnTheScreen();
-      expect(screen.getByTestId('button-icon-arrow-left')).toBeOnTheScreen();
+      expect(screen.getByTestId('button-icon-arrowleft')).toBeOnTheScreen();
     });
 
     it('renders account summary with formatted values', async () => {
@@ -370,7 +370,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('ETH')).toBeOnTheScreen();
       });
 
-      fireEvent.press(screen.getByTestId('button-icon-arrow-left'));
+      fireEvent.press(screen.getByTestId('button-icon-arrowleft'));
 
       // Assert
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
