@@ -97,7 +97,7 @@ runs:
 
     - name: Install JavaScript dependencies
       id: yarn-install
-      run: yarn install --frozen-lockfile --network-concurrency 1
+      run: yarn install --frozen-lockfile
       shell: bash
       env:
         NODE_OPTIONS: --max-old-space-size=4096 # Increase memory limit for Node.js due to large dependencies
