@@ -1339,7 +1339,7 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+            - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
@@ -1519,6 +1519,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1533,6 +1534,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:prod'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1547,6 +1549,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1561,6 +1564,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1576,6 +1580,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1592,6 +1597,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1608,6 +1614,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'pre-release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1623,6 +1630,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
