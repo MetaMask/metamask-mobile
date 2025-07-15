@@ -23,6 +23,9 @@ jobs:
           echo "🔧 Node.js Version:"
           node -v || echo "Node not found"
 
+          echo "Android Studio Version:"
+          /Applications/Android\ Studio.app/Contents/MacOS/studio --version || echo "Check manually via finder"
+
           echo "🧶 Yarn Version:"
           yarn -v || echo "Yarn not found"
 
