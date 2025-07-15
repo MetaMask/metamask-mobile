@@ -874,6 +874,23 @@ const App: React.FC = () => {
     isFirstRender.current = false;
   }
 
+  useEffect(()=> {
+    if (isSeedlessOnboardingLoginFlow) {
+      // check if the seedless password is outdated at app init
+      // if app is locked, check skip cache to ensure user need to input latest global password
+      try {
+        const isOutdated =
+          await Authentication.checkIsSeedlessPasswordOutdated(true);
+        Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'App: Error in checkIsSeedlessPasswordOutdated',
+        );
+      }
+    }
+  }, [isSeedlessOnboardingLoginFlow]);
+
   useEffect(() => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
@@ -897,20 +914,7 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          if (isSeedlessOnboardingLoginFlow) {
-            // check if the seedless password is outdated at app init
-            // if app is locked, check skip cache to ensure user need to input latest global password
-            try {
-              const isOutdated =
-                await Authentication.checkIsSeedlessPasswordOutdated(true);
-              Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
-            } catch (error) {
-              Logger.error(
-                error as Error,
-                'App: Error in checkIsSeedlessPasswordOutdated',
-              );
-            }
-          }
+          
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
