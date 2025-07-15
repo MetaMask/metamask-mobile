@@ -211,14 +211,11 @@ export default class TestHelpers {
   }
 
   static async openDeepLink(inputURL) {
-    await device.launchApp({
-      newInstance: true,
+    // Use device.openURL() to send deep link to already running app
+    // This matches the behavior of: xcrun simctl openurl booted "URL"
+    return device.openURL({
       url: inputURL,
       sourceApp: 'io.metamask',
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-      },
     });
   }
 
