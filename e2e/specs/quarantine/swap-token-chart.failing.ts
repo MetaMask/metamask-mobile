@@ -13,7 +13,10 @@ import {
 } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -39,9 +42,7 @@ describe(Regression('Swap from Token view'), (): void => {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .build();
+    const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({

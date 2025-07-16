@@ -3,15 +3,15 @@ import { renderInterface } from '../testUtils';
 import { act, fireEvent, within } from '@testing-library/react-native';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
-    controllerMessenger: {
-      call: jest.fn(),
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+  context: {
+    SnapInterfaceController: {
+      updateInterfaceState: jest.fn(),
     },
-    context: {
-      SnapInterfaceController: {
-        updateInterfaceState: jest.fn(),
-      },
-    },
-  }));
+  },
+}));
 
 describe('SnapUIAssetSelector', () => {
   const mockBalances = {
@@ -116,17 +116,18 @@ describe('SnapUIAssetSelector', () => {
       },
     },
     MultichainNetworkController: {
-        multichainNetworkConfigurationsByChainId: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-                isEvm: false,
-                nativeCurrency: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:105',
-                name: 'Solana',
-            }
+      multichainNetworkConfigurationsByChainId: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          isEvm: false,
+          nativeCurrency: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:105',
+          name: 'Solana',
         },
-        selectedMultichainNetworkChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
+      selectedMultichainNetworkChainId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     },
     PreferencesController: {
-        isIpfsGatewayEnabled: false,
+      isIpfsGatewayEnabled: false,
     },
   };
 
@@ -138,7 +139,8 @@ describe('SnapUIAssetSelector', () => {
     },
   };
 
-  const mockSolanaAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
+  const mockSolanaAddress =
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
   const mockChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
   it('should render', () => {
@@ -202,7 +204,9 @@ describe('SnapUIAssetSelector', () => {
     const usdcNameOnButton = await within(selectorButton).findByText('USDC');
     expect(usdcNameOnButton).toBeTruthy();
 
-    const solanaNetworkOnButton = await within(selectorButton).findByText('Solana');
+    const solanaNetworkOnButton = await within(selectorButton).findByText(
+      'Solana',
+    );
     expect(solanaNetworkOnButton).toBeTruthy();
 
     const solSymbolOnButton = queryByText('SOL');
@@ -214,7 +218,11 @@ describe('SnapUIAssetSelector', () => {
       Box({
         children: Field({
           label: 'Asset Selector',
-          children: AssetSelector({ name: 'asset-selector', addresses: [mockSolanaAddress], chainIds: [mockChainId] }),
+          children: AssetSelector({
+            name: 'asset-selector',
+            addresses: [mockSolanaAddress],
+            chainIds: [mockChainId],
+          }),
         }),
       }),
       { state: mockInterfaceState, backgroundState: mockState },
@@ -227,7 +235,11 @@ describe('SnapUIAssetSelector', () => {
     const { getByText } = renderInterface(
       Box({
         children: Field({
-          children: AssetSelector({ name: 'asset-selector', addresses: [mockSolanaAddress], chainIds: [mockChainId] }),
+          children: AssetSelector({
+            name: 'asset-selector',
+            addresses: [mockSolanaAddress],
+            chainIds: [mockChainId],
+          }),
           error: 'Error message',
         }),
       }),

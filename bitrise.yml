@@ -1943,7 +1943,7 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+            - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
@@ -2196,10 +2196,26 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_prod:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:prod'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_prod:
     envs:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2215,6 +2231,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2229,6 +2246,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2243,6 +2261,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2258,6 +2277,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2286,17 +2306,10 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_flask_release:
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
-      - APP_NAME: 'flask'
-      - OUTPUT_PATH: 'flaskRelease'
     after_run:
-      - _android_build_template
+      - build_android_flask_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2824,14 +2837,17 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_release:
+    after_run:
+      - build_ios_flask_prod
+  build_ios_flask_prod:
     envs:
-      - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
   build_ios_simbuild:
@@ -3122,7 +3138,7 @@ app:
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      BRIDGE_USE_DEV_APIS: true
+      BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
       MM_BRIDGE_ENABLED: true
@@ -3161,13 +3177,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.47.3
+      VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
       VERSION_NUMBER: 2103
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.47.3
+      FLASK_VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2103

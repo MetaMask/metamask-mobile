@@ -7,7 +7,9 @@ import Gestures from '../../utils/Gestures';
 
 class ContractApprovalBottomSheet {
   get container() {
-    return Matchers.getElementByID(ContractApprovalBottomSheetSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(
+      ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
+    );
   }
 
   get addNickName() {
@@ -23,7 +25,9 @@ class ContractApprovalBottomSheet {
   }
 
   get rejectButton() {
-    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.REJECT);
+    return Matchers.getElementByText(
+      ContractApprovalBottomSheetSelectorsText.REJECT,
+    );
   }
 
   get approveButton() {
@@ -39,7 +43,9 @@ class ContractApprovalBottomSheet {
   }
 
   get nextButton() {
-    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.NEXT);
+    return Matchers.getElementByText(
+      ContractApprovalBottomSheetSelectorsText.NEXT,
+    );
   }
 
   get approveTokenAmount() {
@@ -49,7 +55,9 @@ class ContractApprovalBottomSheet {
   }
 
   get confirmButton() {
-    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.CONFIRM);
+    return Matchers.getElementByText(
+      ContractApprovalBottomSheetSelectorsText.CONFIRM,
+    );
   }
 
   async tapAddNickName() {

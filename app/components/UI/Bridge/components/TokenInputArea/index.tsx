@@ -12,7 +12,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { ethers } from 'ethers';
@@ -99,9 +98,10 @@ export const getDisplayAmount = (
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount = tokenType === TokenInputAreaType.Source
-    ? amount
-    : parseAmount(amount, MAX_DECIMALS);
+  const displayAmount =
+    tokenType === TokenInputAreaType.Source
+      ? amount
+      : parseAmount(amount, MAX_DECIMALS);
 
   return displayAmount;
 };
@@ -209,7 +209,9 @@ export const TokenInputArea = forwardRef<
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+        ? `${parseFloat(tokenBalance)
+            .toFixed(3)
+            .replace(/\.?0+$/, '')} ${token?.symbol}`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero
@@ -273,7 +275,9 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to')}
+                label={strings(
+                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
+                )}
                 onPress={navigateToDestNetworkSelector}
               />
             )}
