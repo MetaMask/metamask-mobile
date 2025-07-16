@@ -335,7 +335,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       )?.assetId;
 
       if (!assetId) {
-        setError(`Token ${sourceToken.symbol} not supported for deposits`);
+        setError(strings('perps.errors.tokenNotSupported', { token: sourceToken.symbol }));
         return;
       }
 
@@ -352,7 +352,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         transactionHash: '',
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : strings('perps.errors.unknownError'));
     } finally {
       setIsSubmittingTx(false);
     }

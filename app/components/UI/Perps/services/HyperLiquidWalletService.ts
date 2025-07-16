@@ -9,6 +9,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
+import { strings } from '../../../../../locales/i18n';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -40,7 +41,7 @@ export class HyperLiquidWalletService {
             );
             if (!selectedAddress) {
               throw new Error(
-                'No account selected. Please ensure MetaMask has an active account.',
+                strings('perps.errors.noAccountSelected'),
               );
             }
             return [selectedAddress];
@@ -54,13 +55,13 @@ export class HyperLiquidWalletService {
 
             // Check if account is selected
             if (!selectedAddress) {
-              throw new Error('No account selected');
+              throw new Error(strings('perps.errors.noAccountSelected'));
             }
 
             // Verify the signing address matches the selected account
             if (address.toLowerCase() !== selectedAddress.toLowerCase()) {
               throw new Error(
-                'Signing address does not match selected account',
+                strings('perps.errors.noAccountSelected'),
               );
             }
 
@@ -82,7 +83,7 @@ export class HyperLiquidWalletService {
           }
 
           default:
-            throw new Error(`Unsupported method: ${args.method}`);
+            throw new Error(strings('perps.errors.unsupportedMethod', { method: args.method }));
         }
       },
     };
@@ -98,7 +99,7 @@ export class HyperLiquidWalletService {
 
     if (!selectedAddress) {
       throw new Error(
-        'No account selected. Please ensure MetaMask has an active account.',
+        strings('perps.errors.noAccountSelected'),
       );
     }
 
@@ -116,7 +117,7 @@ export class HyperLiquidWalletService {
     const address = parsed.address as Hex;
 
     if (!isValidHexAddress(address)) {
-      throw new Error(`Invalid address format: ${address}`);
+      throw new Error(strings('perps.errors.invalidAddressFormat', { address }));
     }
 
     return address;

@@ -12,6 +12,7 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
+import { strings } from '../../../../../locales/i18n';
 
 // Import PerpsController hooks
 import {
@@ -111,8 +112,8 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       setResult(resultLines.join('\n'));
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      const fullErrorMessage = `❌ Failed to get account balance: ${errorMessage}`;
+        error instanceof Error ? error.message : strings('perps.errors.unknownError');
+      const fullErrorMessage = strings('perps.errors.accountBalanceFailed', { error: errorMessage });
       setResult(fullErrorMessage);
     } finally {
       setIsLoading(false);
@@ -142,12 +143,12 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
           `✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`,
         );
       } else {
-        setResult(`❌ Failed to toggle network: ${toggleResult.error}`);
+        setResult(strings('perps.errors.networkToggleFailed', { error: toggleResult.error }));
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      setResult(`❌ Failed to toggle network: ${errorMessage}`);
+        error instanceof Error ? error.message : strings('perps.errors.unknownError');
+      setResult(strings('perps.errors.networkToggleFailed', { error: errorMessage }));
     } finally {
       setIsToggling(false);
     }

@@ -17,6 +17,7 @@ import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
 // TODO: Import Engine when implementing real quote API calls
 // import Engine from '../../../../core/Engine';
 import I18n from '../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import { getBridgeInfo } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -139,7 +140,7 @@ export const usePerpsDepositQuote = ({
       // Should call Engine.context.BridgeController for cross-chain quotes
       return 'Calculating...';
     } catch (error) {
-      console.warn('Failed to estimate gas fee:', error);
+      console.warn(strings('perps.errors.gasFeeEstimateFailed'), error);
       return '-';
     }
   }, [
@@ -337,7 +338,7 @@ export const usePerpsDepositQuote = ({
       // TODO: Integrate with proper token price APIs for other tokens
       return `1 ${selectedToken.symbol} ≈ ? USDC`;
     } catch (error) {
-      console.warn('Failed to get exchange rate:', error);
+      console.warn(strings('perps.errors.exchangeRateFailed'), error);
       return `1 ${selectedToken.symbol} ≈ ? USDC`;
     }
   }, [selectedToken, currencyRates]);
@@ -361,8 +362,8 @@ export const usePerpsDepositQuote = ({
         setLastRefreshTime(Date.now());
         setIsLoading(false);
       } catch (error) {
-        console.error('Failed to refresh quote:', error);
-        setQuoteFetchError('Failed to refresh quote data');
+        console.error(strings('perps.errors.refreshQuoteFailed'), error);
+        setQuoteFetchError(strings('perps.errors.refreshQuoteFailed'));
         setIsLoading(false);
       }
     };

@@ -10,6 +10,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { strings } from '../../../../../locales/i18n';
 import type {
   AccountState,
   AssetRoute,
@@ -242,7 +243,7 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
     this.initializeProviders().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     });
@@ -311,7 +312,7 @@ export class PerpsController extends BaseController<
    */
   getActiveProvider(): IPerpsProvider {
     if (!this.isInitialized) {
-      const error = 'PerpsController not initialized. Call initialize() first.';
+      const error = strings('perps.errors.clientNotInitialized');
       this.update((state) => {
         state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
@@ -321,7 +322,7 @@ export class PerpsController extends BaseController<
 
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
-      const error = `Provider ${this.state.activeProvider} not found`;
+      const error = strings('perps.errors.providerNotAvailable', { providerId: this.state.activeProvider });
       this.update((state) => {
         state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
@@ -473,7 +474,7 @@ export class PerpsController extends BaseController<
 
     if (depositRoutes.length === 0) {
       throw new Error(
-        `No deposit routes available for asset ${params.assetId}`,
+        strings('perps.errors.tokenNotSupported', { token: params.assetId })
       );
     }
 
@@ -483,7 +484,7 @@ export class PerpsController extends BaseController<
       route;
 
     if (!bridgeContractAddress) {
-      throw new Error('Unable to get HyperLiquid bridge contract address');
+      throw new Error(strings('perps.errors.bridgeContractNotFound'));
     }
 
     // For now, we only support direct deposits (same chain, same token)
@@ -500,7 +501,7 @@ export class PerpsController extends BaseController<
     }
 
     // TODO: Add other flow types
-    throw new Error('Only direct deposits are currently supported');
+    throw new Error(strings('perps.errors.onlyDirectDepositsSupported'));
   }
 
   async deposit(params: DepositParams): Promise<DepositResult> {
@@ -567,9 +568,9 @@ export class PerpsController extends BaseController<
         const supportedAssets = supportedRoutes.map(
           (supportedRoute) => supportedRoute.assetId,
         );
-        const error = `Asset ${
-          params.assetId
-        } not supported for deposits. Supported: ${supportedAssets.join(', ')}`;
+        const error = strings('perps.errors.tokenNotSupported', { 
+          token: params.assetId 
+        });
         this.updateDepositProgress('error', 0, undefined, error);
         return { success: false, error };
       }
@@ -700,7 +701,7 @@ export class PerpsController extends BaseController<
       return positions;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to get positions';
+        error instanceof Error ? error.message : strings('perps.errors.positionsFailed');
 
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
@@ -736,7 +737,7 @@ export class PerpsController extends BaseController<
       return accountState;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to get account state';
+        error instanceof Error ? error.message : strings('perps.errors.accountStateFailed');
 
       // Update error state but don't modify accountState (keep existing data)
       this.update((state) => {
@@ -775,7 +776,7 @@ export class PerpsController extends BaseController<
       return allMarkets;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to get markets';
+        error instanceof Error ? error.message : strings('perps.errors.marketsFailed');
 
       // Update error state
       this.update((state) => {
@@ -840,7 +841,7 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
       };
     }
   }
@@ -1048,7 +1049,7 @@ export class PerpsController extends BaseController<
       };
     } catch (error) {
       DevLogger.log('❌ PerpsController: DIRECT DEPOSIT TRANSACTION FAILED', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
         transaction,
         timestamp: new Date().toISOString(),
       });

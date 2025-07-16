@@ -50,6 +50,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * HyperLiquid provider implementation
@@ -121,7 +122,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         coins: Array.from(this.coinToAssetId.keys()),
       });
     } catch (error) {
-      DevLogger.log('Failed to build asset mapping:', error);
+      DevLogger.log(strings('perps.errors.assetMappingFailed'), error);
       throw error;
     }
   }
@@ -619,7 +620,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error('assetId is required for withdrawals');
+        throw new Error(strings('perps.errors.withdrawValidation.assetIdRequired'));
       }
 
       const assetValidation = validateAssetSupport(
@@ -648,7 +649,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error('amount is required for withdrawals');
+        throw new Error(strings('perps.errors.withdrawValidation.amountRequired'));
       }
 
       const withdrawAmount = parseFloat(params.amount);
@@ -782,7 +783,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         ready: false,
         walletConnected: false,
         networkSupported: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
       };
     }
   }
