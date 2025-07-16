@@ -49,7 +49,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
           },
         );
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
         await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
         await WalletView.tapIdenticon();
