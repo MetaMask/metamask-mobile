@@ -2,7 +2,12 @@ import React from 'react';
 import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+  calculateFontSize,
+  getDisplayAmount,
+} from '.';
 import { BridgeToken } from '../../types';
 
 jest.mock('../../hooks/useLatestBalance', () => ({
@@ -204,6 +209,8 @@ describe('getDisplayAmount', () => {
 
   it('parses amount for destination type', () => {
     const amount = '1234567890123456789.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('1234567890123456789.12345');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
+      '1234567890123456789.12345',
+    );
   });
 });
