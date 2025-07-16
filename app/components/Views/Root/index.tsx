@@ -18,12 +18,28 @@ import { isTest } from '../../../util/test/utils';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { AppState, AppStateStatus, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  StyleSheet,
+  View,
+  Platform,
+  NativeEventEmitter,
+  NativeModules,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
+
+const { DeviceEventManagerModule } = NativeModules;
+const nativeEmitter = new NativeEventEmitter(DeviceEventManagerModule);
 
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+  },
+  androidOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     zIndex: 1000,
   },
 });
@@ -32,31 +48,43 @@ export function BackgroundSecurityOverlay() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      setVisible(nextAppState !== 'active');
-    };
+    // iOS / general background
+    const subAppState = AppState.addEventListener('change', (state) => {
+      if (Platform.OS === 'ios') {
+        setVisible(state !== 'active');
+      }
+    });
 
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
+    // Android: window focus lost / regained
+    const subNative = nativeEmitter.addListener(
+      'windowFocusChanged',
+      (hasFocus: boolean) => {
+        console.log('XXXXXX - windowFocusChanged', hasFocus);
+        // blur when focus lost (Recent‑Apps, lock screen, etc.)
+        setVisible(!hasFocus);
+      },
     );
 
-    // Set initial state
-    setVisible(AppState.currentState !== 'active');
+    // initialize on mount
+    if (Platform.OS === 'ios') {
+      setVisible(AppState.currentState !== 'active');
+    } else {
+      // assume we start focused
+      setVisible(false);
+    }
 
     return () => {
-      subscription?.remove();
+      subAppState.remove();
+      subNative.remove();
     };
   }, []);
 
   if (!visible) return null;
 
-  return (
-    <BlurView
-      intensity={50}
-      style={styles.container}
-      experimentalBlurMethod="dimezisBlurView"
-    />
+  return Platform.OS === 'ios' ? (
+    <BlurView intensity={50} style={styles.container} />
+  ) : (
+    <View style={styles.androidOverlay} />
   );
 }
 

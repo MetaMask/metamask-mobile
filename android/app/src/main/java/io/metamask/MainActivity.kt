@@ -46,6 +46,21 @@ class MainActivity : ReactActivity() {
       RNBranchModule.onNewIntent(intent);
     }
 
+    /**  
+      * Fired when window focus changes (e.g. Recent‑Apps opened/closed).  
+    */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        val reactContext = (applicationContext as ReactApplication)
+        .reactNativeHost
+        .reactInstanceManager
+        .currentReactContext
+
+        reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        ?.emit("windowFocusChanged", hasFocus)
+    }
+
     /**
     * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
     * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
