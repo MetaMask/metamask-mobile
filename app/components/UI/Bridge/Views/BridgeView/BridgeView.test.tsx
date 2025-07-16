@@ -1390,21 +1390,30 @@ describe('BridgeView', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      // Reset route params to default
+      // Reset route params to default for deep link testing
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'deeplink',
       } as BridgeRouteParams;
     });
 
-    it('uses sourceToken from route params when provided', () => {
+    it('uses sourceToken from route params when provided', async () => {
       mockRoute.params.sourceToken = mockDeepLinkSourceToken;
+
+      // Update the mock state to include the deep link source token
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+        },
+      };
 
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
       // Should display the deep link token symbol
@@ -1442,7 +1451,7 @@ describe('BridgeView', () => {
       expect(input.props.value).toBe('1000000');
     });
 
-    it('uses all deep link params when all are provided', () => {
+    it('uses all deep link params when all are provided', async () => {
       mockRoute.params = {
         ...mockRoute.params,
         sourceToken: mockDeepLinkSourceToken,
@@ -1450,12 +1459,23 @@ describe('BridgeView', () => {
         sourceAmount: '1000000',
       } as BridgeRouteParams;
 
+      // Update the mock state to include the deep link tokens and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+          destToken: mockDeepLinkDestToken,
+          sourceAmount: '1000000',
+        },
+      };
+
       const { getByText, getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
       // Should display all deep link data

@@ -1,18 +1,10 @@
 import NavigationService from '../../NavigationService';
-import {
-  isCaipAssetType,
-  parseCaipAssetType,
-  parseCaipChainId,
-  isCaipChainId,
-} from '@metamask/utils';
-import { isNonEvmChainId } from '../../Multichain/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
 import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
 import { BridgeToken } from '../../../components/UI/Bridge/types';
-import { handleNetworkSwitch } from '../../../util/networks/handleNetworkSwitch';
-import Engine from '../../Engine';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -50,7 +42,8 @@ const validateAndLookupToken = async (
 
     if (!matchingToken) return null;
 
-    return {
+    // Create the token with metadata (balance will be fetched by Bridge view)
+    const token: BridgeToken = {
       address: basicToken.address,
       symbol: matchingToken.symbol,
       name: matchingToken.name,
@@ -58,6 +51,8 @@ const validateAndLookupToken = async (
       image: matchingToken.iconUrl || matchingToken.icon || '',
       chainId: basicToken.chainId,
     };
+
+    return token;
   } catch (error) {
     // Token validation failed - return null to indicate unsupported token
     return null;
@@ -86,37 +81,6 @@ const processAmount = (
   } catch (error) {
     // Amount processing failed - return undefined to indicate invalid amount
     return undefined;
-  }
-};
-
-/**
- * Switches to the appropriate network for the given token
- */
-const switchToTokenNetwork = async (chainId: string): Promise<void> => {
-  try {
-    if (isNonEvmChainId(chainId)) {
-      // For non-EVM networks, use the CAIP chain ID directly
-      await Engine.context.MultichainNetworkController.setActiveNetwork(
-        chainId,
-      );
-    } else {
-      // For EVM networks, convert to decimal chain ID
-      let decimalChainId: string;
-
-      if (isCaipChainId(chainId)) {
-        const { reference } = parseCaipChainId(chainId);
-        decimalChainId = reference;
-      } else {
-        decimalChainId = chainId.startsWith('0x')
-          ? parseInt(chainId, 16).toString()
-          : chainId;
-      }
-
-      handleNetworkSwitch(decimalChainId);
-    }
-  } catch (error) {
-    // Network switching failed - continue with navigation
-    // This is expected behavior when network is not configured
   }
 };
 
@@ -162,11 +126,6 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       amount && sourceToken?.decimals !== undefined
         ? processAmount(amount, sourceToken.decimals)
         : undefined;
-
-    // Switch to source token's network
-    if (sourceToken?.chainId) {
-      await switchToTokenNetwork(sourceToken.chainId);
-    }
 
     // Navigate to bridge view with deep link parameters
     NavigationService.navigation.navigate('Bridge', {

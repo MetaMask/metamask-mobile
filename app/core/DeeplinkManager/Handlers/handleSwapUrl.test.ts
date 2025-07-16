@@ -33,7 +33,7 @@ const mockFetchBridgeTokens = fetchBridgeTokens as jest.Mock;
 describe('handleSwapUrl', () => {
   const expectedSourceToken = {
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    chainId: 'eip155:1',
+    chainId: '0x1',
     decimals: 6,
     name: 'USD Coin',
     symbol: 'USDC',
@@ -41,7 +41,7 @@ describe('handleSwapUrl', () => {
   };
   const expectedDestToken = {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    chainId: 'eip155:1',
+    chainId: '0x1',
     decimals: 6,
     name: 'Tether USD',
     symbol: 'USDT',

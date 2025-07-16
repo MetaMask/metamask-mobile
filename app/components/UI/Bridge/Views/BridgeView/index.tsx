@@ -41,8 +41,6 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
-  setSourceToken,
-  setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -77,7 +75,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
-
+import { useDeepLinkHandler } from '../../hooks/useDeepLinkHandler.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
@@ -138,6 +136,7 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+  useDeepLinkHandler({ route });
 
   const initialSourceToken = route.params?.token;
   useInitialSourceToken(initialSourceToken);
@@ -158,6 +157,8 @@ const BridgeView = () => {
   const hasDestinationPicker = isEvmSolanaBridge;
 
   const hasQuoteDetails = activeQuote && !isLoading;
+
+  // // Handle deep link functionality (tokens, amounts, balance, view mode)
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -200,24 +201,6 @@ const BridgeView = () => {
       updateQuoteParams.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
-
-  // Handle deep link route params - trigger Redux updates if params exist
-  useEffect(() => {
-    if (route?.params?.sourceToken) {
-      dispatch(setSourceToken(route.params.sourceToken));
-    }
-    if (route?.params?.destToken) {
-      dispatch(setDestToken(route.params.destToken));
-    }
-    if (route?.params?.sourceAmount) {
-      dispatch(setSourceAmount(route.params.sourceAmount));
-    }
-  }, [
-    route?.params?.sourceToken,
-    route?.params?.destToken,
-    route?.params?.sourceAmount,
-    dispatch,
-  ]);
 
   // Blur input when quotes have loaded
   useEffect(() => {
