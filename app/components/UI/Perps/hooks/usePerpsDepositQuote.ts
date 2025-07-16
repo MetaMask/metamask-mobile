@@ -71,7 +71,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
 
   // Network fee calculation using real gas estimation
   const getNetworkFee = useCallback(async () => {
-    if (!selectedAccount || !amount || parseFloat(amount) === 0) return '-';
+    if (!selectedAccount || !amount || parseFloat(amount) === 0 || !selectedToken) return '-';
 
     try {
       // Path determination logic
@@ -138,8 +138,11 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
     });
 
     // Use gas fee estimates to get real network-based time estimates
-    if (!gasFeeEstimates) {
-      DevLogger.log('PerpsDepositQuote: No gas fee estimates available');
+    if (!gasFeeEstimates || !selectedToken) {
+      DevLogger.log('PerpsDepositQuote: Missing requirements', {
+        hasGasFeeEstimates: !!gasFeeEstimates,
+        hasSelectedToken: !!selectedToken,
+      });
       return '';
     }
 
@@ -235,6 +238,9 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
   const getReceivingAmount = useCallback(() => {
     const depositAmount = parseFloat(amount || '0');
     if (depositAmount === 0) return '0.00';
+    
+    // Check if token is selected
+    if (!selectedToken) return '0.00';
 
     // For USDC deposits, it's 1:1
     if (selectedToken.symbol === 'USDC') {
@@ -248,6 +254,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
 
   // Exchange rate display (if not direct USDC) using real price data
   const getExchangeRate = useCallback(() => {
+    if (!selectedToken) return undefined;
     if (selectedToken.symbol === 'USDC') return undefined;
 
     try {
