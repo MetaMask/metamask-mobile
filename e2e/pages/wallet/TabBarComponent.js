@@ -24,7 +24,9 @@ class TabBarComponent {
   }
 
   async tapBrowser() {
-    await Gestures.waitAndTap(this.tabBarBrowserButton);
+    await Gestures.waitAndTap(this.tabBarBrowserButton, {
+      elemDescription: 'Tab Bar - Browser Button',
+    });
   }
 
   async tapWallet() {
@@ -34,7 +36,9 @@ class TabBarComponent {
   }
 
   async tapActions() {
-    await Gestures.waitAndTap(this.tabBarActionButton);
+    await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar - Actions Button',
+    });
   }
 
   async tapSettings() {
@@ -44,7 +48,9 @@ class TabBarComponent {
   }
 
   async tapActivity() {
-    await Gestures.waitAndTap(this.tabBarActivityButton);
+    await Gestures.waitAndTap(this.tabBarActivityButton, {
+      elemDescription: 'Tab Bar - Activity Button',
+    });
   }
 }
 

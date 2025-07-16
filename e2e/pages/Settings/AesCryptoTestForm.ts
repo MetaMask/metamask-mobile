@@ -5,9 +5,9 @@ import {
   aesCryptoFormScrollIdentifier,
   accountAddress,
   responseText,
-} from '../../selectors/Settings/AesCrypto.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+} from '../../selectors/Settings/AesCrypto.selectors.ts';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class AesCryptoTestForm {
   get scrollViewIdentifier() {
@@ -123,7 +123,9 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.generateSaltBytesCountInput,
       this.scrollViewIdentifier,
-      'up',
+      {
+        direction: 'up',
+      },
     );
   }
 
@@ -131,7 +133,9 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.generateEncryptionKeyPasswordInput,
       this.scrollViewIdentifier,
-      'up',
+      {
+        direction: 'up',
+      },
     );
   }
 
@@ -163,13 +167,15 @@ class AesCryptoTestForm {
     );
   }
 
-  async generateSalt(saltBytesCount) {
+  async generateSalt(saltBytesCount: string) {
     await this.scrollUpToGenerateSalt();
-    await Gestures.typeTextAndHideKeyboard(
-      this.generateSaltBytesCountInput,
-      saltBytesCount,
-    );
-    await Gestures.waitAndTap(this.generateSaltButton);
+    await Gestures.typeText(this.generateSaltBytesCountInput, saltBytesCount, {
+      hideKeyboard: true,
+      elemDescription: 'Generate Salt Bytes Count Input',
+    });
+    await Gestures.waitAndTap(this.generateSaltButton, {
+      elemDescription: 'Generate Salt Button',
+    });
 
     const responseFieldAtts = await (
       await this.generateSaltResponse
@@ -179,18 +185,24 @@ class AesCryptoTestForm {
     return responseFieldAtts.label;
   }
 
-  async generateEncryptionKey(password, salt) {
+  async generateEncryptionKey(password: string, salt: string) {
     await this.scrollUpToGenerateEncryptionKey();
-    await Gestures.typeTextAndHideKeyboard(
-      this.generateEncryptionKeyPasswordInput,
-      password,
-    );
-    await Gestures.typeTextAndHideKeyboard(
-      this.generateEncryptionKeySaltInput,
-      salt,
-    );
-    await Gestures.waitAndTap(this.generateEncryptionKeyButton);
-    await Gestures.waitAndTap(this.generateEncryptionKeyResponse);
+    await Gestures.typeText(this.generateEncryptionKeyPasswordInput, password, {
+      hideKeyboard: true,
+      elemDescription: 'Generate Encryption Key Password Input',
+    });
+    await Gestures.typeText(this.generateEncryptionKeySaltInput, salt, {
+      hideKeyboard: true,
+      elemDescription: 'Generate Encryption Key Salt Input',
+    });
+
+    await Gestures.waitAndTap(this.generateEncryptionKeyButton, {
+      elemDescription: 'Generate Encryption Key Button',
+    });
+    // todo: can remove?
+    await Gestures.waitAndTap(this.generateEncryptionKeyResponse, {
+      elemDescription: 'Generate Encryption Key Response',
+    });
 
     const responseFieldAtts = await (
       await this.generateEncryptionKeyResponse
@@ -200,52 +212,65 @@ class AesCryptoTestForm {
     return responseFieldAtts.label;
   }
 
-  async encrypt(data, encryptionKey) {
+  async encrypt(data: string, encryptionKey: string) {
     await this.scrollToEncrypt();
-    await Gestures.typeTextAndHideKeyboard(this.encryptDataInput, data);
-    await Gestures.typeTextAndHideKeyboard(
-      this.encryptPasswordInput,
-      encryptionKey,
-    );
-    await Gestures.waitAndTap(this.encryptButton);
+    await Gestures.typeText(this.encryptDataInput, data, {
+      hideKeyboard: true,
+      elemDescription: 'Encrypt Data Input',
+    });
+    await Gestures.typeText(this.encryptPasswordInput, encryptionKey, {
+      hideKeyboard: true,
+      elemDescription: 'Encrypt Password Input',
+    });
+    await Gestures.waitAndTap(this.encryptButton, {
+      elemDescription: 'Encrypt Button',
+    });
   }
 
-  async decrypt(encryptionKey) {
+  async decrypt(encryptionKey: string) {
     await this.scrollToDecrypt();
-    await Gestures.typeTextAndHideKeyboard(
-      this.decryptPasswordInput,
-      encryptionKey,
-    );
+    await Gestures.typeText(this.decryptPasswordInput, encryptionKey, {
+      hideKeyboard: true,
+      elemDescription: 'Decrypt Password Input',
+    });
     await this.scrollToDecrypt();
-
-    //handle UI flakiness when using keypad on small screens
-    try {
-      await Gestures.waitAndTap(this.decryptButton, {
-        timeout: 5000,
-      });
-    } catch (error) {
-      await this.scrollToDecrypt();
-      await Gestures.waitAndTap(this.decryptButton);
-    }
+    await Gestures.waitAndTap(this.decryptButton, {
+      elemDescription: 'Decrypt Button',
+    });
   }
 
-  async encryptWithKey(encryptionKey, data) {
+  async encryptWithKey(encryptionKey: string, data: string) {
     await this.scrollToEncryptWithKey();
-    await Gestures.typeTextAndHideKeyboard(
+    await Gestures.typeText(
       this.encryptWithKeyEncryptionKeyInput,
       encryptionKey,
+      {
+        hideKeyboard: true,
+        elemDescription: 'Encrypt With Key Encryption Key Input',
+      },
     );
-    await Gestures.typeTextAndHideKeyboard(this.encryptWithKeyDataInput, data);
-    await Gestures.waitAndTap(this.encryptWithKeyButton);
+    await Gestures.typeText(this.encryptWithKeyDataInput, data, {
+      hideKeyboard: true,
+      elemDescription: 'Encrypt With Key Data Input',
+    });
+    await Gestures.waitAndTap(this.encryptWithKeyButton, {
+      elemDescription: 'Encrypt With Key Button',
+    });
   }
 
-  async decryptWithKey(encryptionKey) {
+  async decryptWithKey(encryptionKey: string) {
     await this.scrollToDecryptWithKey();
-    await Gestures.typeTextAndHideKeyboard(
+    await Gestures.typeText(
       this.decryptWithKeyEncryptionKeyInput,
       encryptionKey,
+      {
+        hideKeyboard: true,
+        elemDescription: 'Decrypt With Key Encryption Key Input',
+      },
     );
-    await Gestures.waitAndTap(this.decryptWithKeyButton);
+    await Gestures.waitAndTap(this.decryptWithKeyButton, {
+      elemDescription: 'Decrypt With Key Button',
+    });
   }
 }
 
