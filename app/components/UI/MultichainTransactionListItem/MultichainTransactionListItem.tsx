@@ -22,7 +22,8 @@ import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-histor
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
+import { selectTheme } from '../../../selectors/preferencesController';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -39,7 +40,7 @@ const MultichainTransactionListItem = ({
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
-  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const appTheme = useSelector(selectTheme) as AppThemeKey;
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { type, status, to, from, asset } = useMultichainTransactionDisplay({

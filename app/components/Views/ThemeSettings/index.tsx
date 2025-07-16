@@ -2,9 +2,10 @@ import React, { useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useTheme } from '../../../util/theme';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { AppThemeKey } from '../../../util/theme/models';
-import { setAppTheme } from '../../../actions/user';
+import { updateTheme } from '../../../actions/preferencesController';
+import { selectTheme } from '../../../selectors/preferencesController';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fontStyles } from '../../../styles/common';
@@ -52,14 +53,9 @@ const createStyles = (colors: any, safeAreaPaddingBottom: number) =>
 const ThemeSettings = () => {
   const safeAreaInsets = useSafeAreaInsets();
   const modalRef = useRef<ReusableModalRef>(null);
-  const dispatch = useDispatch();
   const triggerSetAppTheme = (theme: AppThemeKey) =>
-    dispatch(setAppTheme(theme));
-  const appTheme: AppThemeKey = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.appTheme,
-  );
+    updateTheme(theme);
+  const appTheme = useSelector(selectTheme) as AppThemeKey;
   const { colors } = useTheme();
   const styles = createStyles(colors, safeAreaInsets.bottom);
 

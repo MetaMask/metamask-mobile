@@ -5,8 +5,8 @@ import { toDataUrl } from '../../../util/blockies';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { useTheme } from '../../../util/theme';
-import { RootState } from '../../../reducers';
 import { useSelector } from 'react-redux';
+import { selectUseBlockie } from '../../../selectors/preferencesController';
 
 interface IdenticonProps {
   /**
@@ -46,9 +46,7 @@ const Identicon: React.FC<IdenticonProps> = ({
 }) => {
   const { colors } = useTheme();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const useBlockieIcon =
-    useSelector((state: RootState) => state.settings.useBlockieIcon) ?? true;
+  const useBlockieIcon = useSelector(selectUseBlockie) ?? true;
 
   if (!address && !imageUri) return null;
 

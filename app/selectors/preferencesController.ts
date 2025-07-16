@@ -172,3 +172,40 @@ export const selectSmartAccountOptIn = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartAccountOptIn ?? false,
 );
+
+// General settings selectors
+export const selectCurrentLocale = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.currentLocale,
+);
+
+export const selectTheme = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.theme,
+);
+
+export const selectUseBlockie = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.useBlockie,
+);
+
+export const selectCurrentCurrency = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.currentCurrency,
+);
+
+export const selectHideZeroBalanceTokens = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.hideZeroBalanceTokens,
+);
+
+export const selectShowNativeTokenAsMainBalance = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.showNativeTokenAsMainBalance,
+);

@@ -38,7 +38,8 @@ import { Result } from './Result';
 import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
-import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '../../../selectors/preferencesController';
+import { selectUsdConversionRate } from '../../../selectors/currencyRateController';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 
 export * from './types';

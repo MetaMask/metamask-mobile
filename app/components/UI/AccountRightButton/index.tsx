@@ -32,6 +32,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
+import { selectUseBlockie } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -63,13 +64,9 @@ const AccountRightButton = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectUseBlockie)
+    ? AvatarAccountType.Blockies
+    : AvatarAccountType.JazzIcon;
   /**
    * Current network
    */

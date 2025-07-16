@@ -5733,13 +5733,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^18.4.0":
-  version "18.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-18.4.0.tgz#480daabce79b993a7d8e4c46af154d37218f75d3"
-  integrity sha512-mhtlt+yg2hu2BhENS5pwhB5ZwnFTcS/PdeivBUBKMyeZkMfVDU+xwQWnd66pjTbCz5mIlu6EjSuKd0vntqSBdQ==
+"@metamask/preferences-controller@npm:@metamask-previews/preferences-controller@18.4.1-preview-32f9004a":
+  version "18.4.1-preview-32f9004a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/preferences-controller/-/preferences-controller-18.4.1-preview-32f9004a.tgz#68cf839da737df44cde8e418ce57589778aa3543"
+  integrity sha512-o8wYx+J/zPvh2vUp3Ouec09TzkxlPb4rOFh5koPP1cHi0KYvkKIPYcf0tU257MEZTtJcXdKn2x6E/KQSCE4iiQ==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/controller-utils" "^11.11.0"
 
 "@metamask/profile-sync-controller@^20.0.0":
   version "20.0.0"

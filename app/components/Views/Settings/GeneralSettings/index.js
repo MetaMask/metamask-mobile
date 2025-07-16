@@ -29,7 +29,8 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectCurrentCurrency, selectHideZeroBalanceTokens, selectUseBlockie } from '../../../../selectors/preferencesController';
+import { updateHideZeroBalanceTokens, updateUseBlockie } from '../../../../actions/preferencesController';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
@@ -521,9 +522,9 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
-  useBlockieIcon: state.settings.useBlockieIcon,
+  useBlockieIcon: selectUseBlockie(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  hideZeroBalanceTokens: selectHideZeroBalanceTokens(state),
   // appTheme: state.user.appTheme,
 });
 
@@ -532,9 +533,9 @@ const mapDispatchToProps = (dispatch) => ({
   setPrimaryCurrency: (primaryCurrency) =>
     dispatch(setPrimaryCurrency(primaryCurrency)),
   setUseBlockieIcon: (useBlockieIcon) =>
-    dispatch(setUseBlockieIcon(useBlockieIcon)),
+    updateUseBlockie(useBlockieIcon),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
-    dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
+    updateHideZeroBalanceTokens(hideZeroBalanceTokens),
 });
 
 export default connect(

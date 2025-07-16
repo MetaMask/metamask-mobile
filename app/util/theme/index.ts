@@ -11,6 +11,7 @@ import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
+import { selectTheme } from '../../selectors/preferencesController';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -104,11 +105,7 @@ const useColorSchemeCustom = (
 
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorSchemeCustom();
-  const appTheme: AppThemeKey = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.appTheme,
-  );
+  const appTheme: AppThemeKey = useSelector(selectTheme) as AppThemeKey;
   const themeAppearance = getAssetFromTheme(
     appTheme,
     osThemeName,
@@ -203,9 +200,7 @@ export const useTheme = (): Theme => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useAssetFromTheme = (light: any, dark: any) => {
   const osColorScheme = useColorScheme();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const appTheme = useSelector((state: any) => state.user.appTheme);
+  const appTheme = useSelector(selectTheme) as AppThemeKey;
   const asset = getAssetFromTheme(appTheme, osColorScheme, light, dark);
 
   return asset;

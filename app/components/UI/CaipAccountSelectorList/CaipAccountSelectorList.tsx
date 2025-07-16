@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { shallowEqual, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -39,7 +39,7 @@ import { CaipAccountSelectorListProps } from './CaipAccountSelectorList.types';
 import styleSheet from './CaipAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { RootState } from '../../../reducers';
+
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator/AccountNetworkIndicator';
@@ -48,6 +48,7 @@ import {
   parseCaipAccountId,
   CaipChainId,
 } from '@metamask/utils';
+import { selectUseBlockie } from '../../../selectors/preferencesController';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -72,13 +73,9 @@ const CaipAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const accountAvatarType = useSelector(selectUseBlockie)
+    ? AvatarAccountType.Blockies
+    : AvatarAccountType.JazzIcon;
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(

@@ -20,6 +20,7 @@ import { getLabelTextByAddress } from '../../../util/address';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
 import Logger from '../../../util/Logger';
+import { selectUseBlockie } from '../../../selectors/preferencesController';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
@@ -48,13 +49,9 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     accountActionsRef,
   }));
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectUseBlockie)
+    ? AvatarAccountType.Blockies
+    : AvatarAccountType.JazzIcon;
 
   const onNavigateToAccountActions = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
