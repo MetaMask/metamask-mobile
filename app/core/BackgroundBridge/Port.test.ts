@@ -36,7 +36,9 @@ describe('Port', () => {
         port.postMessage(message, wildcardOrigin);
 
         // Assert
-        expect(consoleWarnSpy).toHaveBeenCalledWith('Wildcard origin not allowed');
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          'Wildcard origin not allowed',
+        );
         expect(mockBrowserWindow.injectJavaScript).not.toHaveBeenCalled();
       });
     });
@@ -53,7 +55,9 @@ describe('Port', () => {
 
         // Assert
         expect(consoleWarnSpy).not.toHaveBeenCalled();
-        expect(mockBrowserWindow.injectJavaScript).toHaveBeenCalledWith('mocked-main-frame-script');
+        expect(mockBrowserWindow.injectJavaScript).toHaveBeenCalledWith(
+          'mocked-main-frame-script',
+        );
       });
 
       it('injects JavaScript for iframe when isMainFrame is false', () => {
@@ -67,7 +71,9 @@ describe('Port', () => {
 
         // Assert
         expect(consoleWarnSpy).not.toHaveBeenCalled();
-        expect(mockBrowserWindow.injectJavaScript).toHaveBeenCalledWith('mocked-iframe-script');
+        expect(mockBrowserWindow.injectJavaScript).toHaveBeenCalledWith(
+          'mocked-iframe-script',
+        );
       });
 
       it('handles null browserWindow gracefully', () => {

@@ -78,7 +78,7 @@ else if (document.selection) {document.selection.empty();}`;
 
 export const JS_POST_MESSAGE_TO_PROVIDER = (
   message: object,
-  origin: string
+  origin: string,
 ) => `(function () {
   try {
     // Only send message if origins match
@@ -94,9 +94,8 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
 
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,
-  _origin: string
-) =>
-  `(function () {})()`;
+  _origin: string,
+) => `(function () {})()`;
 /** Disable sending messages to iframes for now
  *
 `(function () {
