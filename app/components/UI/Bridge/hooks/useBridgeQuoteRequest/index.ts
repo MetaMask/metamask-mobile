@@ -36,7 +36,9 @@ export const useBridgeQuoteRequest = () => {
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const context = useUnifiedSwapBridgeContext();
-  const shouldUseSmartTransaction = useSelector(selectShouldUseSmartTransaction);
+  const shouldUseSmartTransaction = useSelector(
+    selectShouldUseSmartTransaction,
+  );
   /**
    * Updates quote parameters in the bridge controller
    */
