@@ -138,9 +138,9 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
     importFormat: 'raw' | 'jwk',
     key: unknown,
   ): Promise<string> => {
-    // @ts-expect-error - This should be as CryptoKey but the type is not exported
     const keyBuffer = (await Crypto.subtle.exportKey(
       importFormat,
+      // @ts-expect-error - This should be as CryptoKey but the type is not exported
       key,
     )) as ArrayBuffer;
     const base64Key = Buffer.from(keyBuffer).toString('base64');
