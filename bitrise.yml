@@ -1957,6 +1957,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
