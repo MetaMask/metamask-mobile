@@ -1409,7 +1409,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   }
                                 }
                               >
-                                An error occurred while sending the email
+                                API Error
                               </Text>
                             </View>
                           </View>
