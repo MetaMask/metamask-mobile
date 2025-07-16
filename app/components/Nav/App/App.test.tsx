@@ -22,6 +22,8 @@ import {
   NavigationState,
   PartialState,
 } from '@react-navigation/native';
+// eslint-disable-next-line
+import * as NavigationNative from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
@@ -54,13 +56,20 @@ jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
   getInstance: () => ({
     init: jest.fn().mockResolvedValue(undefined),
-    postInit: (cb: () => void) => cb(),
+    postInit: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 
+let mockIsWC2Enabled = true;
 jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
   init: jest.fn().mockResolvedValue(undefined),
+  get isWC2Enabled() {
+    return mockIsWC2Enabled;
+  },
 }));
+
+import WC2ManagerMock from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { DevLogger as DevLoggerMock } from '../../../../app/core/SDKConnect/utils/DevLogger';
 
 jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
 
@@ -78,6 +87,12 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 jest.mock('../../../core/NavigationService', () => ({
   navigation: {
     reset: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../app/core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
   },
 }));
 
@@ -228,6 +243,46 @@ describe('App', () => {
   });
 
   describe('Authentication flow logic', () => {
+    it('skips auto-authentication if previous route is SettingsView', async () => {
+      // Arrange: mock routes so previous route is SettingsView
+      const mockRoutesSettings = [
+        { name: 'SomeOtherRoute' },
+        { name: Routes.SETTINGS_VIEW },
+      ];
+      jest.spyOn(NavigationNative, 'useNavigationState').mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (selector: unknown) =>
+          (selector as (arg: any) => any)({ routes: mockRoutesSettings }),
+      );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true); // existingUser = true
+
+      renderScreen(App, { name: 'App' }, { state: initialState });
+
+      await waitFor(() => {
+        expect(Authentication.appTriggeredAuth).not.toHaveBeenCalled();
+      });
+    });
+
+    it('runs auto-authentication if previous route is not SettingsView', async () => {
+      // Arrange: mock routes so previous route is not SettingsView
+      const mockRoutesOther = [
+        { name: 'SomeOtherRoute' },
+        { name: 'AnotherRoute' },
+      ];
+      jest.spyOn(NavigationNative, 'useNavigationState').mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (selector: unknown) =>
+          (selector as (arg: any) => any)({ routes: mockRoutesOther }),
+      );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true); // existingUser = true
+
+      renderScreen(App, { name: 'App' }, { state: initialState });
+
+      await waitFor(() => {
+        expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+      });
+    });
+
     it('navigates to onboarding when user does not exist', async () => {
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -566,6 +621,72 @@ describe('App', () => {
         expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
           mockUri,
         );
+      });
+    });
+  });
+
+  describe('WalletConnect initialization', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockIsWC2Enabled = true;
+      (WC2ManagerMock.init as jest.Mock).mockClear();
+    });
+
+    it('initializes WalletConnect when isWC2Enabled is true', async () => {
+      mockIsWC2Enabled = true;
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(WC2ManagerMock.init).toHaveBeenCalledWith({
+          navigation: expect.any(Object),
+        });
+      });
+    });
+
+    it('does not initialize WalletConnect when isWC2Enabled is false', async () => {
+      mockIsWC2Enabled = false;
+      (WC2ManagerMock.init as jest.Mock).mockClear();
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(WC2ManagerMock.init).not.toHaveBeenCalled();
+      });
+    });
+
+    it('logs initialization message when WalletConnect is enabled', async () => {
+      const devLoggerSpy = jest
+        .spyOn(DevLoggerMock, 'log')
+        .mockImplementation();
+      mockIsWC2Enabled = true;
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(devLoggerSpy).toHaveBeenCalledWith(
+          'WalletConnect: Initializing WalletConnect Manager',
+        );
+      });
+      devLoggerSpy.mockRestore();
+    });
+
+    it('handles WalletConnect initialization errors gracefully', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockError = new Error('WalletConnect initialization failed');
+      mockIsWC2Enabled = true;
+      (WC2ManagerMock.init as jest.Mock).mockRejectedValue(mockError);
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Cannot initialize WalletConnect Manager.',
+          mockError,
+        );
+      });
+      consoleSpy.mockRestore();
+    });
+
+    it('passes NavigationService.navigation to WalletConnect init', async () => {
+      mockIsWC2Enabled = true;
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(WC2ManagerMock.init).toHaveBeenCalledWith({
+          navigation: expect.any(Object),
+        });
       });
     });
   });

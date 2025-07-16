@@ -923,9 +923,8 @@ const App: React.FC = () => {
       try {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
-          const previousRoute = routes[routes.length - 2]?.name; // Get the previous route
+          const previousRoute = routes[routes.length - 2]?.name;
 
-          // Skip auto-authentication if we came from Settings screen
           if (previousRoute === Routes.SETTINGS_VIEW) {
             return;
           }
