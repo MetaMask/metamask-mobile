@@ -12,7 +12,7 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
 import CommonView from '../../../pages/CommonView.js';

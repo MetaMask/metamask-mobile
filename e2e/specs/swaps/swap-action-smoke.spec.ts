@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import { Mockttp, MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Ganache from '../../../app/util/test/ganache';
