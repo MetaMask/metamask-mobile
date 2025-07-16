@@ -52,23 +52,24 @@ describe(SmokeConfirmations('Send to contract address'), () => {
         );
         await loginToApp();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
-
-        await SendView.inputAddress(hstAddress);
-        await SendView.tapNextButton();
-
-        await Assertions.checkIfVisible(AmountView.title);
-
-        await AmountView.typeInTransactionAmount(AMOUNT);
-        await AmountView.tapNextButton();
-
-        await TransactionConfirmationView.tapConfirmButton();
-        await TabBarComponent.tapActivity();
-
-        await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
-        );
+        //await TabBarComponent.tapActions();
+        //await WalletActionsBottomSheet.tapSendButton();
+//
+        //await SendView.inputAddress(hstAddress);
+        //await SendView.tapNextButton();
+//
+        //await Assertions.checkIfVisible(AmountView.title);
+//
+        //await AmountView.typeInTransactionAmount(AMOUNT);
+        //await AmountView.tapNextButton();
+//
+        //await TransactionConfirmationView.tapConfirmButton();
+        //await TabBarComponent.tapActivity();
+//
+        //await Assertions.checkIfTextIsDisplayed(
+        //  ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
+        //);
+        expect(true).toBe(false);
       },
     );
   });
