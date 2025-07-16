@@ -9,6 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginBottom: 16,
+      fontWeight: 'bold',
     },
     getStartedImageWrapper: {
       alignItems: 'center',

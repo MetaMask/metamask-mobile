@@ -38,26 +38,26 @@ const bulletPoints = [
 ];
 
 const GetStarted: React.FC = () => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
   const { getStarted, setGetStarted } = useDepositSDK();
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Deposit' }, theme),
-    );
-  }, [navigation, theme]);
+  // useEffect(() => {
+  //   navigation.setOptions(
+  //     getDepositNavbarOptions(navigation, { title: 'Deposit' }, theme),
+  //   );
+  // }, [navigation, theme]);
 
   const handleOnPress = useCallback(() => {
     setGetStarted(true);
   }, [setGetStarted]);
 
-  if (getStarted) {
-    // Avoid flashing the original content when the user has already seen it
-    return <ScreenLayout />;
-  }
+  // if (getStarted) {
+  //   // Avoid flashing the original content when the user has already seen it
+  //   return <ScreenLayout />;
+  // }
 
   return (
     <ScreenLayout>
