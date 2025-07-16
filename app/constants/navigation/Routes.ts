@@ -73,6 +73,7 @@ const Routes = {
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
     DEEP_LINK_MODAL: 'DeepLinkModal',
+    MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -157,6 +158,7 @@ const Routes = {
       DELETE_ACCOUNT: 'DeleteAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
+      SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
     },
   },
   BROWSER: {
