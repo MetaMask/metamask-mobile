@@ -29,19 +29,15 @@ class CreatePasswordView {
   get iUnderstandCheckboxNewWallet() {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-     );
+    );
   }
 
   get submitButton() {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
+    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   get passwordError() {
-    return Matchers.getElementByText(
-      enContent.import_from_seed.password_error,
-    );
+    return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
   async resetPasswordInputs() {

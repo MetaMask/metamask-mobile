@@ -51,9 +51,7 @@ class SettingsView {
   }
 
   get backupAndSyncSectionButton() {
-    return Matchers.getElementByID(
-      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
-    );
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
   get alertButton() {
@@ -108,11 +106,9 @@ class SettingsView {
   }
 
   async tapNotifications() {
-    await Gestures.waitAndTap(this.notificationsButton,
-      {
-        elemDescription: 'Settings - Notifications Button',
-      },
-    );
+    await Gestures.waitAndTap(this.notificationsButton, {
+      elemDescription: 'Settings - Notifications Button',
+    });
   }
 
   async tapContacts() {

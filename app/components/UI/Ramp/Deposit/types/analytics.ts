@@ -1,42 +1,33 @@
 interface RampsButtonClicked {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   region: string;
   location: string;
 }
 
 interface RampsDepositCashButtonClicked {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   region: string;
   location: string;
   is_authenticated: boolean;
 }
 
 interface RampsPaymentMethodSelected {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
-  region: string;
-  payment_method_id: string;
-  is_authenticated: boolean;
-}
-
-interface RampsPaymentMethodSelected {
-  quote_session_id: string;
-  ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   region: string;
   payment_method_id: string;
   is_authenticated: boolean;
 }
 
 interface RampsTokenSelected {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   region: string;
   chain_id: string;
   currency_destination: string;
@@ -45,17 +36,17 @@ interface RampsTokenSelected {
 }
 
 interface RampsRegionSelected {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   region: string;
   is_authenticated: boolean;
 }
 
 interface RampsOrderProposed {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   payment_method_id: string;
@@ -67,9 +58,9 @@ interface RampsOrderProposed {
 }
 
 interface RampsOrderSelected {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   exchange_rate: number;
@@ -84,9 +75,9 @@ interface RampsOrderSelected {
 }
 
 interface RampsOrderFailed {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   payment_method_id: string;
@@ -99,60 +90,60 @@ interface RampsOrderFailed {
 }
 
 interface RampsEmailSubmitted {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   attempts: number;
 }
 
 interface RampsOtpConfirmed {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
 }
 
 interface RampsOtpFailed {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
 }
 
 interface RampsOtpResent {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
 }
 
 interface RampsKycStarted {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
 }
 
 interface RampsBasicInfoEntered {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   kyc_type: string;
 }
 
 interface RampsAddressEntered {
-  quote_session_id: string;
+  quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   kyc_type: string;
 }
 
 interface RampsTransactionConfirmed {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   exchange_rate: number;
@@ -167,9 +158,9 @@ interface RampsTransactionConfirmed {
 }
 
 interface RampsTransactionCompleted {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   exchange_rate: number;
@@ -184,9 +175,9 @@ interface RampsTransactionCompleted {
 }
 
 interface RampsTransactionFailed {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   amount_source: number;
   amount_destination: number;
   exchange_rate: number;
@@ -202,23 +193,23 @@ interface RampsTransactionFailed {
 }
 
 interface RampsKycApplicationFailed {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   kyc_type: string;
 }
 
 interface RampsKycApplicationApproved {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   kyc_type: string;
 }
 
 interface RampsPaymentMethodAdded {
-  quote_session_id: string;
+  quote_session_id?: string;
   ramp_type: 'DEPOSIT';
-  user_id: string;
+  user_id?: string;
   payment_method_id: string;
 }
 
