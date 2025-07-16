@@ -1,6 +1,60 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { BridgeViewMode, BridgeToken } from '../types';
+import { BridgeRouteParams } from '../Views/BridgeView';
+import { RouteProp } from '@react-navigation/native';
+
+// Mock Redux hooks
+jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
+  useSelector: jest.fn(),
+}));
+
+// Mock useSwitchNetworks hook
+jest.mock('../../../Views/NetworkSelector/useSwitchNetworks', () => ({
+  useSwitchNetworks: jest.fn(),
+}));
+
+// Mock network selectors
+jest.mock('../../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(),
+  selectEvmChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+
+// Mock bridge slice actions and selectors
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  setSourceToken: jest.fn((token) => ({
+    type: 'bridge/setSourceToken',
+    payload: token,
+  })),
+  setDestToken: jest.fn((token) => ({
+    type: 'bridge/setDestToken',
+    payload: token,
+  })),
+  setSourceAmount: jest.fn((amount) => ({
+    type: 'bridge/setSourceAmount',
+    payload: amount,
+  })),
+  setBridgeViewMode: jest.fn((mode) => ({
+    type: 'bridge/setBridgeViewMode',
+    payload: mode,
+  })),
+  selectIsUnifiedSwapsEnabled: jest.fn(),
+  selectSourceToken: jest.fn(),
+}));
+
+const mockDispatch = jest.fn();
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Import the mocked modules
+import { useSwitchNetworks } from '../../../Views/NetworkSelector/useSwitchNetworks';
+import {
+  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../../../../selectors/networkController';
 import {
   setSourceToken,
   setDestToken,
@@ -9,24 +63,18 @@ import {
   selectIsUnifiedSwapsEnabled,
   selectSourceToken,
 } from '../../../../core/redux/slices/bridge';
-import { BridgeRouteParams } from '../Views/BridgeView';
-import { RouteProp } from '@react-navigation/native';
 import { useDeepLinkHandler } from './useDeepLinkHandler';
 
-// Mock Redux hooks
-jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
-  useSelector: jest.fn(),
-}));
-
-const mockDispatch = jest.fn();
-const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseSwitchNetworks = useSwitchNetworks as jest.MockedFunction<
+  typeof useSwitchNetworks
+>;
 
 describe('useDeepLinkHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
+
+    // Mock useSelector for different selectors
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) {
         return null;
@@ -34,7 +82,23 @@ describe('useDeepLinkHandler', () => {
       if (selector === selectIsUnifiedSwapsEnabled) {
         return true;
       }
+      if (selector === selectChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {};
+      }
       return null;
+    });
+
+    // Mock useSwitchNetworks
+    mockUseSwitchNetworks.mockReturnValue({
+      onSetRpcTarget: jest.fn(),
+      onNetworkChange: jest.fn(),
+      onNonEvmNetworkChange: jest.fn(),
     });
   });
 
@@ -123,6 +187,15 @@ describe('useDeepLinkHandler', () => {
       if (selector === selectIsUnifiedSwapsEnabled) {
         return false;
       }
+      if (selector === selectChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {};
+      }
       return null;
     });
 
@@ -144,6 +217,15 @@ describe('useDeepLinkHandler', () => {
       }
       if (selector === selectIsUnifiedSwapsEnabled) {
         return true;
+      }
+      if (selector === selectChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmChainId) {
+        return '0x1';
+      }
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {};
       }
       return null;
     });
