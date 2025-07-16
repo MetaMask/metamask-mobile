@@ -9,7 +9,7 @@ jobs:
     #runs-on: macos-14
 
 
-    runs-on: macos-14-large
+    runs-on: macos-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
