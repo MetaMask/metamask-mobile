@@ -344,3 +344,11 @@ jobs:
           name: ${{ inputs.test-suite-name }}
           path: e2e/reports/
           retention-days: 7
+      
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.test-suite-name }}
+          path: artifacts/
+          retention-days: 1
