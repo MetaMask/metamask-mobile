@@ -593,20 +593,54 @@ const MultichainAccountDetails = () => {
         component={AccountDetails}
         initialParams={route?.params}
       />
+    </Stack.Navigator>
+  );
+};
+
+const MultichainAccountDetailsActions = () => {
+  const route = useRoute();
+
+  // Configure transparent background to show AccountDetails screen beneath modal overlays
+  const commonScreenOptions = {
+    //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+    cardStyle: { backgroundColor: importedColors.transparent },
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  };
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
         component={MultichainEditAccountName}
         initialParams={route?.params}
+        options={commonScreenOptions}
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
         initialParams={route?.params}
+        options={commonScreenOptions}
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
         component={DeleteAccount}
         initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
+        component={SRPQuiz}
+        initialParams={route?.params}
+        options={commonScreenOptions}
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
@@ -749,6 +783,7 @@ const AppFlow = () => {
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow}
       />
+
       <Stack.Screen
         name="ImportPrivateKeyView"
         component={ImportPrivateKeyView}
@@ -779,13 +814,17 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
-        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-        component={SolanaNewFeatureContentView}
-        options={{ animationEnabled: true }}
+        name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
+        component={MultichainAccountDetailsActions}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
         component={MultichainWalletDetails}
+      />
+      <Stack.Screen
+        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+        component={SolanaNewFeatureContentView}
+        options={{ animationEnabled: true }}
       />
       <Stack.Screen
         options={{
