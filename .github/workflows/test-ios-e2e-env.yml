@@ -6,10 +6,8 @@ on:
 
 jobs:
   ios-e2e:
-    #runs-on: macos-14
 
-
-    runs-on: macos-14-large
+    runs-on: macos-14
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
     steps:
