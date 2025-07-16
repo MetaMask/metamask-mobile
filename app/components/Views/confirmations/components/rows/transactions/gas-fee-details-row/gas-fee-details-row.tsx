@@ -87,7 +87,7 @@ const ClickableEstimationInfo = ({
     <TouchableOpacity onPress={onPress} style={styles.editButton}>
       <Icon
         name={IconName.Edit}
-        size={IconSize.Sm}
+        size={IconSize.Md}
         color={theme.colors.info.default}
         style={styles.editIcon}
       />

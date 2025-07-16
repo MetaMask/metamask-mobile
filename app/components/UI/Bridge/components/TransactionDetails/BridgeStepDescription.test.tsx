@@ -3,18 +3,15 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import {
-  ActionTypes,
   BridgeHistoryItem,
   StatusResponse,
-  SrcChainStatus,
 } from '@metamask/bridge-status-controller';
-import { StatusTypes, Step } from '@metamask/bridge-controller';
+import { StatusTypes, Step, ActionTypes } from '@metamask/bridge-controller';
 import {
   TransactionMeta,
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { CaipChainId } from '@metamask/utils';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
@@ -129,7 +126,10 @@ describe('BridgeStepDescription', () => {
     );
 
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('fontWeight', '500');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Medium',
+    );
   });
 
   it('should render with correct text color based on status', () => {
@@ -155,7 +155,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Regular',
+    );
   });
 
   it('should render swap action with COMPLETE status text', () => {
@@ -170,7 +173,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Regular',
+    );
   });
 
   it('should render with time and COMPLETE status', () => {
@@ -186,7 +192,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Regular',
+    );
   });
 
   it('should handle bridge action with missing destChainId', () => {
@@ -204,7 +213,10 @@ describe('BridgeStepDescription', () => {
 
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '500');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Medium',
+    );
   });
 
   it('should handle bridge action with missing network configuration', () => {
@@ -222,7 +234,10 @@ describe('BridgeStepDescription', () => {
 
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#121314');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '500');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Medium',
+    );
   });
 
   it('should handle swap action with missing srcSymbol', () => {
@@ -268,7 +283,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Regular',
+    );
   });
 
   it('should handle bridge action with null status', () => {
@@ -279,7 +297,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
-    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+    expect(textElement.props.style).toHaveProperty(
+      'fontFamily',
+      'Geist Regular',
+    );
   });
 
   describe('getStepStatus', () => {
@@ -287,9 +308,13 @@ describe('BridgeStepDescription', () => {
       status: {
         status: StatusTypes.COMPLETE,
         srcChain: {
-          chainId: 'eip155:1' as CaipChainId,
-          status: StatusTypes.COMPLETE,
-        } as unknown as SrcChainStatus,
+          chainId: 1,
+          txHash: '0x123',
+        },
+        destChain: {
+          chainId: 1,
+          txHash: '0x456',
+        },
       } as StatusResponse,
       quote: {
         srcChainId: 1,

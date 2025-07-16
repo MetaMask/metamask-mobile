@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -377,7 +376,6 @@ const RevealPrivateCredential = ({
       inactiveTextColor={colors.text.alternative}
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
-      // @ts-expect-error - TextStyle is not correctly at react-native-scrollable-tab-view, this library is outdated
       textStyle={styles.textStyle}
       style={styles.tabBar}
     />
@@ -543,7 +541,7 @@ const RevealPrivateCredential = ({
       })}
       body={
         <>
-          <Text style={[styles.normalText, styles.revealModalText]}>
+          <Text variant={TextVariant.BodyMD} style={styles.revealModalText}>
             {
               strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
@@ -551,19 +549,19 @@ const RevealPrivateCredential = ({
                   : strings('reveal_credential.srp_text'),
               })[0]
             }
-            <Text style={styles.boldText}>
+            <Text variant={TextVariant.BodyMDBold}>
               {isPrivateKeyReveal
                 ? strings('reveal_credential.reveal_credential_modal')[1]
                 : strings('reveal_credential.reveal_credential_modal')[2]}
             </Text>
             {strings('reveal_credential.reveal_credential_modal')[3]}
-            <TouchableOpacity
+            <Text
+              color={colors.primary.default}
+              variant={TextVariant.BodyMDBold}
               onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
             >
-              <Text style={[styles.blueText, styles.link]}>
-                {strings('reveal_credential.reveal_credential_modal')[4]}
-              </Text>
-            </TouchableOpacity>
+              {strings('reveal_credential.reveal_credential_modal')[4]}
+            </Text>
           </Text>
           {isTest ? (
             <Button

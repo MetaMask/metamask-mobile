@@ -2,11 +2,13 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
+    scrollView: {
+      paddingHorizontal: 16,
+    },
     textContainer: {
       flex: 1,
     },
     bodyTextContainer: {
-      paddingHorizontal: 16,
       paddingBottom: 16,
     },
     row: {
@@ -19,6 +21,7 @@ const styleSheet = () =>
       paddingTop: 2,
     },
     footer: {
+      paddingTop: 16,
       paddingHorizontal: 16,
       paddingBottom: 16,
     },

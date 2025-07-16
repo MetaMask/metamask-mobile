@@ -11,8 +11,12 @@ import {
 import { ZERO_ADDRESS } from '../../constants/address';
 
 const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-const approvalSpenderMock = '0x9876543210987654321098765432109876543210';
 const permit2TokenMock = '0x1234567890123456789012345678901234567890';
+
+export const approvalSpenderMock = '0x9876543210987654321098765432109876543210';
+export const shortenedSpenderMock = '0x98765...43210';
+export const tokenAddressMock = '0x97cb1fdd071da9960d38306c07f146bc98b2d317';
+export const shortenedTokenAddressMock = '0x97cb1...2D317';
 
 const baseTransactionMock = {
   actionId: undefined,
@@ -59,7 +63,7 @@ const baseTransactionMock = {
     gas: '0x664e',
     maxFeePerGas: '0xcdfe60',
     maxPriorityFeePerGas: '0x012345',
-    to: '0x97cb1fdd071da9960d38306c07f146bc98b2d317',
+    to: tokenAddressMock,
     type: '0x2',
   },
   type: 'simpleSend',
@@ -143,21 +147,21 @@ const increaseAllowanceERC20Transaction = merge({}, baseApproveTransaction, {
   txParams: {
     data: buildIncreaseAllowanceTransactionData(approvalSpenderMock, 100),
   },
-  type: 'increaseAllowance',
+  type: TransactionType.tokenMethodIncreaseAllowance,
 });
 
 const approveAllERC721Transaction = merge({}, baseApproveTransaction, {
   txParams: {
     data: buildSetApproveForAllTransactionData(approvalSpenderMock, true),
   },
-  type: 'setApprovalForAll',
+  type: TransactionType.tokenMethodSetApprovalForAll,
 });
 
 const revokeAllERC721Transaction = merge({}, baseApproveTransaction, {
   txParams: {
     data: buildSetApproveForAllTransactionData(approvalSpenderMock, false),
   },
-  type: 'setApprovalForAll',
+  type: TransactionType.tokenMethodSetApprovalForAll,
 });
 
 const approveERC20Permit2Transaction = merge({}, baseApproveTransaction, {

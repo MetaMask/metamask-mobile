@@ -24,7 +24,7 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -132,9 +132,8 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
             {
               "alignSelf": "center",
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingBottom": 16,
@@ -179,9 +178,8 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "width": "100%",
@@ -336,9 +334,8 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "width": "100%",

@@ -59,6 +59,7 @@ import { accountTreeControllerInit } from '../../../multichain-accounts/controll
 import { samplePetnamesControllerInit } from '../../../features/SampleFeature/controllers/sample-petnames-controller-init.ts';
 import { SamplePetnamesController } from '@metamask/sample-controllers';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
+import { perpsControllerInit } from '../controllers/perps-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -146,6 +147,8 @@ describe('initModularizedControllers', () => {
   const mockSamplePetnamesControllerInit = jest.mocked(
     samplePetnamesControllerInit,
   );
+  const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
+
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -181,6 +184,7 @@ describe('initModularizedControllers', () => {
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
           SamplePetnamesController: mockSamplePetnamesControllerInit,
+          PerpsController: mockPerpsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),

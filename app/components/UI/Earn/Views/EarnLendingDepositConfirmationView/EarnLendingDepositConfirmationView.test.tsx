@@ -37,6 +37,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
@@ -184,6 +185,12 @@ jest.mock('../../../../hooks/useMetrics', () => {
   };
 });
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
+}));
+
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
 
@@ -198,6 +205,9 @@ describe('EarnLendingDepositConfirmationView', () => {
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
+
+  const mockEndTrace = jest.mocked(endTrace);
+  const mockTrace = jest.mocked(trace);
 
   const mockInitialState = {
     engine: {
@@ -819,6 +829,11 @@ describe('EarnLendingDepositConfirmationView', () => {
           .build(),
       );
 
+      // Wait for setTimeout to complete before checking navigation
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       // Clear and test confirmed status
@@ -1339,5 +1354,200 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Tracing', () => {
+    it('calls endTrace for EarnDepositReviewScreen when action is DEPOSIT', () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls endTrace for EarnDepositSpendingCapScreen when action is ALLOWANCE_INCREASE', () => {
+      const routeParamsWithAllowanceIncrease = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+        },
+      };
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithAllowanceIncrease);
+
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositSpendingCapScreen,
+      });
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call trace and endTrace with EarnDepositConfirmationScreen when confirm button is pressed', async () => {
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: '123',
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositConfirmationScreen,
+        data: {
+          chainId: MOCK_USDC_MAINNET_ASSET.chainId,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositConfirmationScreen
+      });
+    });
+
+    it('should call trace with EarnDepositTxConfirmed when transaction is submitted', async () => {
+      const transactionId = '123';
+
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackSubmitted:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionSubmitted') {
+            transactionStatusCallbackSubmitted = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      mockTrace.mockClear();
+
+      await act(async () => {
+        if (transactionStatusCallbackSubmitted) {
+          transactionStatusCallbackSubmitted({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositTxConfirmed,
+        data: {
+          chainId: MOCK_USDC_MAINNET_ASSET.chainId,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
+    });
+
+    it('should call endTrace with EarnDepositTxConfirmed when transaction is confirmed', async () => {
+      const transactionId = '123';
+
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackConfirmed1:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackConfirmed2:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let confirmedCallbackCount = 0;
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionConfirmed') {
+            if (confirmedCallbackCount === 0) {
+              transactionStatusCallbackConfirmed1 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            } else {
+              transactionStatusCallbackConfirmed2 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            }
+            confirmedCallbackCount++;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      mockEndTrace.mockClear();
+
+      // Test transaction confirmed (both listeners)
+      await act(async () => {
+        if (transactionStatusCallbackConfirmed1) {
+          transactionStatusCallbackConfirmed1({ id: transactionId });
+        }
+        if (transactionStatusCallbackConfirmed2) {
+          transactionStatusCallbackConfirmed2({ id: transactionId });
+        }
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositTxConfirmed,
+      });
+    });
   });
 });

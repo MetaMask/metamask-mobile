@@ -144,9 +144,8 @@ exports[`Regions View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -168,9 +167,8 @@ exports[`Regions View renders correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -609,9 +607,8 @@ exports[`Regions View renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -900,9 +897,8 @@ exports[`Regions View renders correctly while loading 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -924,9 +920,8 @@ exports[`Regions View renders correctly while loading 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -1505,9 +1500,8 @@ exports[`Regions View renders correctly with error 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1529,9 +1523,8 @@ exports[`Regions View renders correctly with error 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -2149,9 +2142,8 @@ exports[`Regions View renders correctly with no data 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2173,9 +2165,8 @@ exports[`Regions View renders correctly with no data 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -2754,9 +2745,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2778,9 +2768,8 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3398,9 +3387,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3422,9 +3410,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -3863,9 +3850,8 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4152,9 +4138,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -4176,9 +4161,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -4617,9 +4601,8 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4799,7 +4782,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#00000066",
+                                  "backgroundColor": "#3f434a66",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -5311,9 +5294,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -5335,9 +5317,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -5776,9 +5757,8 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5958,7 +5938,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#00000066",
+                                  "backgroundColor": "#3f434a66",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -6470,9 +6450,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -6494,9 +6473,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -6935,9 +6913,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "fontFamily": "Geist Medium",
                                               "fontSize": 18,
-                                              "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -7119,7 +7096,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#00000066",
+                                  "backgroundColor": "#3f434a66",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -7617,9 +7594,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Book",
+                                                                  "fontFamily": "Geist Regular",
                                                                   "fontSize": 16,
-                                                                  "fontWeight": "400",
                                                                   "letterSpacing": 0,
                                                                   "lineHeight": 24,
                                                                 }
@@ -7634,9 +7610,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Medium",
+                                                                  "fontFamily": "Geist Medium",
                                                                   "fontSize": 18,
-                                                                  "fontWeight": "500",
                                                                   "letterSpacing": 0,
                                                                   "lineHeight": 24,
                                                                 }
@@ -7725,9 +7700,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Book",
+                                                                  "fontFamily": "Geist Regular",
                                                                   "fontSize": 16,
-                                                                  "fontWeight": "400",
                                                                   "letterSpacing": 0,
                                                                   "lineHeight": 24,
                                                                 }
@@ -7742,9 +7716,8 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "CentraNo1-Medium",
+                                                                  "fontFamily": "Geist Medium",
                                                                   "fontSize": 18,
-                                                                  "fontWeight": "500",
                                                                   "letterSpacing": 0,
                                                                   "lineHeight": 24,
                                                                 }

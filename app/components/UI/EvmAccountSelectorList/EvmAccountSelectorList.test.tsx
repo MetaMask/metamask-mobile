@@ -777,7 +777,9 @@ describe('EvmAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+    const actionButtons = getAllByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
+    );
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button
@@ -981,7 +983,7 @@ describe('EvmAccountSelectorList', () => {
   it('should display ENS name instead of account name when available', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(true);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(true);
 
     // Mock accounts with ENS names
     setAccountsMock(
@@ -1004,23 +1006,18 @@ describe('EvmAccountSelectorList', () => {
       },
     );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId(
-        CellComponentSelectorsIDs.BASE_TITLE,
-      );
-      // Should use ENS name instead of account name
-      expect(
-        within(accountNameItems[0]).getByText('vitalik.eth'),
-      ).toBeDefined();
+      expect(getByText('vitalik.eth')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('should use account name when ENS name is available but not a default account name', async () => {
     // Access the mocked function directly from the jest mock
     const mockENSUtils = jest.requireMock('../../../util/ENSUtils');
-    mockENSUtils.isDefaultAccountName.mockReturnValueOnce(false);
+    mockENSUtils.isDefaultAccountName.mockReturnValue(false);
 
     // Mock accounts with a custom name
     setAccountsMock(
@@ -1043,17 +1040,12 @@ describe('EvmAccountSelectorList', () => {
       },
     );
 
-    const { getAllByTestId } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await waitFor(() => {
-      const accountNameItems = getAllByTestId(
-        CellComponentSelectorsIDs.BASE_TITLE,
-      );
-      // Should use the custom account name since it's not a default name
-      expect(
-        within(accountNameItems[0]).getByText('My Custom Account Name'),
-      ).toBeDefined();
+      expect(getByText('My Custom Account Name')).toBeDefined();
     });
+    mockENSUtils.isDefaultAccountName.mockRestore();
   });
 
   it('selects an account when tapped', async () => {

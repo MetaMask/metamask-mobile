@@ -597,6 +597,10 @@
     "solana": {
       "title": "Kini mendukung Solana",
       "subtitle": "Buat akun Solana untuk memulai"
+    },
+    "backupAndSync": {
+      "title": "Memperkenalkan pencadangan dan sinkronisasi",
+      "subtitle": "Cadangkan akun Anda dan sinkronkan pengaturan."
     }
   },
   "wallet": {

@@ -84,7 +84,7 @@ jest.mock('../../../../../core/Engine', () => ({
               id: '01JNG7170V9X27V5NFDTY04PJ4',
               name: '',
             },
-          }
+          },
         ],
       },
       getOrAddQRKeyring: jest.fn(),
@@ -277,7 +277,9 @@ describe('Confirm', () => {
       .mockReturnValue({ isRedesignedEnabled: true });
 
     const { getByText } = renderWithProvider(<Confirm />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
     });
 
     await act(async () => {
@@ -285,7 +287,6 @@ describe('Confirm', () => {
     });
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {

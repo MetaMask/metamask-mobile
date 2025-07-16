@@ -167,9 +167,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -587,9 +586,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 20,
@@ -626,9 +624,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -680,7 +677,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -714,9 +711,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -768,7 +764,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -787,10 +783,13 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -798,9 +797,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -814,118 +812,106 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
                                     </View>
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
                                           "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
-                                      testID="textfield"
                                     >
-                                      <View
+                                      <TextInput
+                                        autoComplete="tel"
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#9ca1af"
                                         style={
                                           {
-                                            "flex": 1,
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
                                           }
                                         }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
-                                          style={
-                                            {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 24,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
-                                            }
-                                          }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value="(123) 456-7890"
-                                        />
-                                      </View>
+                                        testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
+                                        value="(234) 567-890"
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -970,9 +956,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -1006,30 +991,19 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -1054,7 +1028,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -1064,7 +1038,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/1990"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
@@ -1086,9 +1060,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -1142,7 +1115,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "height": 24,
@@ -1170,76 +1143,150 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <View
+                              accessibilityRole="none"
+                              accessible={true}
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={0.2}
-                                onPress={[Function]}
+                              <View
                                 style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 12,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#4459ff",
-                                        "minHeight": 50,
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
-                                }
-                                testID="continue-button"
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      [
-                                        {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#ffffff",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
                                   }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
                                 >
-                                  Continue
-                                </Text>
-                              </TouchableOpacity>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="continue-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Continue
+                              </Text>
+                            </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -1423,9 +1470,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1843,9 +1889,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 20,
@@ -1882,9 +1927,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -1936,7 +1980,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -1970,9 +2014,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -2024,7 +2067,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -2043,10 +2086,13 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -2054,9 +2100,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -2070,118 +2115,106 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
                                     </View>
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
                                           "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
-                                      testID="textfield"
                                     >
-                                      <View
+                                      <TextInput
+                                        autoComplete="tel"
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#9ca1af"
                                         style={
                                           {
-                                            "flex": 1,
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
                                           }
                                         }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
-                                          style={
-                                            {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 24,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
-                                            }
-                                          }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value=""
-                                        />
-                                      </View>
+                                        testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
+                                        value=""
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -2226,9 +2259,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -2262,30 +2294,19 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -2310,7 +2331,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -2320,7 +2341,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/2000"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
@@ -2342,9 +2363,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -2398,7 +2418,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "height": 24,
@@ -2426,76 +2446,150 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <View
+                              accessibilityRole="none"
+                              accessible={true}
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={0.2}
-                                onPress={[Function]}
+                              <View
                                 style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 12,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#4459ff",
-                                        "minHeight": 50,
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
-                                }
-                                testID="continue-button"
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      [
-                                        {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#ffffff",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
                                   }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
                                 >
-                                  Continue
-                                </Text>
-                              </TouchableOpacity>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="continue-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Continue
+                              </Text>
+                            </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -2679,9 +2773,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 16,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3099,9 +3192,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginBottom": 20,
@@ -3138,9 +3230,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -3192,7 +3283,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -3212,9 +3303,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "color": "#ca3542",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 12,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginTop": 4,
@@ -3242,9 +3332,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -3296,7 +3385,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -3316,9 +3405,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "color": "#ca3542",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 12,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginTop": 4,
@@ -3331,10 +3419,13 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                 </View>
                                 <View
                                   style={
-                                    {
-                                      "flexDirection": "column",
-                                      "marginBottom": 16,
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   <Text
@@ -3342,9 +3433,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -3358,118 +3448,106 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
+                                    testID="textfield"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 8,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRightWidth": 0,
-                                          "borderTopLeftRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "paddingHorizontal": 12,
+                                          "marginRight": 8,
                                         }
                                       }
+                                      testID="textfield-startacccessory"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <TouchableOpacity
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        onPress={[Function]}
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "marginRight": 4,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
                                       >
-                                        🇺🇸
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 16,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
                                           }
-                                        }
-                                      >
-                                        +
-                                        1
-                                      </Text>
+                                        >
+                                          🇺🇸
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#9ca1af",
+                                              "fontFamily": "Geist Regular",
+                                              "fontSize": 14,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "marginLeft": 4,
+                                            }
+                                          }
+                                        >
+                                          +1
+                                        </Text>
+                                      </TouchableOpacity>
                                     </View>
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderBottomLeftRadius": 0,
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderTopLeftRadius": 0,
-                                          "borderWidth": 1,
                                           "flex": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
-                                      testID="textfield"
                                     >
-                                      <View
+                                      <TextInput
+                                        autoComplete="tel"
+                                        autoFocus={false}
+                                        editable={true}
+                                        keyboardAppearance="light"
+                                        keyboardType="phone-pad"
+                                        onBlur={[Function]}
+                                        onChangeText={[Function]}
+                                        onFocus={[Function]}
+                                        onSubmitEditing={[Function]}
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#9ca1af"
                                         style={
                                           {
-                                            "flex": 1,
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "transparent",
+                                            "borderWidth": 1,
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": "400",
+                                            "height": 24,
+                                            "letterSpacing": 0,
+                                            "opacity": 1,
+                                            "paddingVertical": 0,
                                           }
                                         }
-                                      >
-                                        <TextInput
-                                          autoComplete="tel"
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          keyboardType="phone-pad"
-                                          onBlur={[Function]}
-                                          onChangeText={[Function]}
-                                          onFocus={[Function]}
-                                          onSubmitEditing={[Function]}
-                                          placeholder="(234) 567-8910"
-                                          placeholderTextColor="#9ca1af"
-                                          returnKeyType="next"
-                                          style={
-                                            {
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 24,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
-                                            }
-                                          }
-                                          testID="phone-number-input"
-                                          textContentType="telephoneNumber"
-                                          value=""
-                                        />
-                                      </View>
+                                        testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
+                                        value=""
+                                      />
                                     </View>
                                   </View>
                                   <Text
@@ -3477,9 +3555,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "color": "#ca3542",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginTop": 4,
@@ -3530,9 +3607,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 16,
-                                          "fontWeight": "400",
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "marginBottom": 6,
@@ -3566,30 +3642,19 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -3614,7 +3679,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 24,
@@ -3624,26 +3689,10 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/2000"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#ca3542",
-                                          "fontFamily": "CentraNo1-Book",
-                                          "fontSize": 12,
-                                          "fontWeight": "400",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginTop": 4,
-                                        }
-                                      }
-                                    >
-                                      Date of birth is required
-                                    </Text>
                                   </View>
                                 </View>
                                 <View
@@ -3662,9 +3711,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginBottom": 6,
@@ -3718,7 +3766,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "height": 24,
@@ -3738,9 +3786,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     style={
                                       {
                                         "color": "#ca3542",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 12,
-                                        "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                         "marginTop": 4,
@@ -3762,76 +3809,150 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <View
+                              accessibilityRole="none"
+                              accessible={true}
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                ]
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={0.2}
-                                onPress={[Function]}
+                              <View
                                 style={
-                                  [
-                                    [
-                                      {
-                                        "borderRadius": 12,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      {
-                                        "backgroundColor": "#4459ff",
-                                        "minHeight": 50,
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
-                                }
-                                testID="continue-button"
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      [
-                                        {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#ffffff",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
                                   }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
                                 >
-                                  Continue
-                                </Text>
-                              </TouchableOpacity>
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="continue-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Continue
+                              </Text>
+                            </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>

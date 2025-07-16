@@ -1,11 +1,13 @@
 import {
-  formatUSPhoneNumber,
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
+  hasDepositOrderField,
+  generateThemeParameters,
+  timestampToTransakFormat,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -16,22 +18,12 @@ import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { DepositPaymentMethod } from '../constants';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
-
-describe('formatUSPhoneNumber', () => {
-  it('should return empty string for empty input', () => {
-    expect(formatUSPhoneNumber('')).toBe('');
-  });
-
-  it('should format phone number correctly', () => {
-    expect(formatUSPhoneNumber('1234567890')).toBe('(123) 456-7890');
-    expect(formatUSPhoneNumber('123')).toBe('(123');
-    expect(formatUSPhoneNumber('123456')).toBe('(123) 456');
-  });
-});
 
 describe('formatCurrency', () => {
   it('should format currency amounts correctly', () => {
@@ -58,7 +50,6 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          logo: 'usdc-logo',
           iconUrl: 'usdc-icon',
           name: 'USD Coin',
           chainId: 'eip155:1',
@@ -73,7 +64,6 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-          logo: 'usdt-logo',
           iconUrl: 'usdt-icon',
           name: 'Tether USD',
           chainId: 'eip155:1',
@@ -88,7 +78,6 @@ describe('Transak Utils', () => {
       expect(() =>
         getTransakCryptoCurrencyId({
           assetId: 'unsupported',
-          logo: 'unsupported-logo',
           iconUrl: 'unsupported-icon',
           name: 'Unsupported',
           chainId: 'eip155:1',
@@ -282,4 +271,158 @@ describe('getNotificationDetails', () => {
       status: 'pending',
     });
   });
+});
+
+describe('hasDepositOrderField', () => {
+  it('should return true when object has the specified field', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+      txHash: '0x987654321',
+    } as DepositOrder;
+
+    const result = hasDepositOrderField(validDepositOrder, 'cryptoCurrency');
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false for null or undefined data', () => {
+    expect(hasDepositOrderField(null, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(undefined, 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false for non-object data', () => {
+    expect(hasDepositOrderField('string', 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField(123, 'cryptoCurrency')).toBe(false);
+    expect(hasDepositOrderField([], 'cryptoCurrency')).toBe(false);
+  });
+
+  it('should return false when field does not exist', () => {
+    const objectWithoutField = {
+      id: 'test-id',
+      provider: 'test-provider',
+    };
+
+    const result = hasDepositOrderField(objectWithoutField, 'cryptoCurrency');
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false when field exists but is undefined', () => {
+    const objectWithUndefinedField = {
+      id: 'test-id',
+      provider: 'test-provider',
+      cryptoCurrency: undefined,
+    };
+
+    const result = hasDepositOrderField(
+      objectWithUndefinedField,
+      'cryptoCurrency',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('should return true for different valid fields', () => {
+    const validDepositOrder: DepositOrder = {
+      id: 'test-id',
+      provider: 'test-provider',
+      createdAt: 1673886669608,
+      fiatAmount: 123,
+      fiatCurrency: 'USD',
+      cryptoCurrency: 'ETH',
+      network: 'ethereum',
+      status: 'COMPLETED',
+      orderType: 'DEPOSIT',
+      walletAddress: '0x1234',
+    } as DepositOrder;
+
+    expect(hasDepositOrderField(validDepositOrder, 'id')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
+    expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
+  });
+});
+
+describe('generateThemeParameters', () => {
+  it('should generate correct theme parameters for light mode', () => {
+    const themeAppearance = AppThemeKey.light;
+    const colors = lightTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'LIGHT',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
+  });
+
+  it('should generate correct theme parameters for dark mode', () => {
+    const themeAppearance = AppThemeKey.dark;
+    const colors = darkTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'DARK',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
+  });
+});
+
+describe('timestampToTransakFormat', () => {
+  it.each([
+    [new Date(2021, 6, 4).getTime().toString(), '04-07-2021'],
+    [new Date(2015, 4, 10).getTime().toString(), '10-05-2015'],
+    [new Date(1998, 3, 6).getTime().toString(), '06-04-1998'],
+    [new Date(1958, 2, 31).getTime().toString(), '31-03-1958'],
+    [new Date(2025, 11, 31).getTime().toString(), '31-12-2025'],
+    [new Date(2010, 9, 10).getTime().toString(), '10-10-2010'],
+    [new Date(1996, 0, 1).getTime().toString(), '01-01-1996'],
+  ])(
+    'should return correct Transak format for timestamp %s',
+    (timestamp, expected) => {
+      expect(timestampToTransakFormat(timestamp)).toBe(expected);
+    },
+  );
 });

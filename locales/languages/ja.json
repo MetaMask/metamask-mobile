@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solanaのサポート開始",
       "subtitle": "さっそくSolanaアカウントを作成しましょう"
+    },
+    "backupAndSync": {
+      "title": "バックアップと同期のご紹介",
+      "subtitle": "アカウントをバックアップして設定を同期します。"
     }
   },
   "wallet": {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import styleSheet from '../AddAsset.styles';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../hooks/useStyles';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -20,6 +20,7 @@ import {
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -28,16 +29,36 @@ export default function NetworkListBottomSheet({
   setSelectedNetwork,
   setOpenNetworkSelector,
   sheetRef,
+  displayEvmNetworksOnly = true,
 }: {
   selectedNetwork: Hex | null;
   setSelectedNetwork: (network: Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
+  displayEvmNetworksOnly?: boolean;
 }) {
   const { styles } = useStyles(styleSheet, {});
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const filteredNetworkConfigurations = useMemo(() => {
+    const configs = {} as Record<string, MultichainNetworkConfiguration>;
+
+    for (const [chainId, config] of Object.entries(networkConfigurations)) {
+      // If displayEvmNetworksOnly is true, filter out non-EVM networks
+      const shouldBeFilteredOut =
+        displayEvmNetworksOnly &&
+        ((Object.hasOwnProperty.call(config, 'isEvm') && !config.isEvm) ||
+          config.isEvm === false);
+
+      if (shouldBeFilteredOut) {
+        continue;
+      }
+
+      configs[chainId] = config;
+    }
+
+    return configs;
+  }, [displayEvmNetworksOnly, networkConfigurations]);
 
   return (
     <BottomSheet
@@ -55,7 +76,7 @@ export default function NetworkListBottomSheet({
       </BottomSheetHeader>
 
       <ScrollView>
-        {Object.values(networkConfigurations).map((network) => (
+        {Object.values(filteredNetworkConfigurations).map((network) => (
           <View style={styles.bottomSheetWrapper} key={network.chainId}>
             <Cell
               variant={CellVariant.Select}
@@ -69,7 +90,7 @@ export default function NetworkListBottomSheet({
                 size: AvatarSize.Sm,
               }}
               onPress={() => {
-                setSelectedNetwork(network.chainId);
+                setSelectedNetwork(network.chainId as Hex);
                 setOpenNetworkSelector(false);
               }}
               isSelected={selectedNetwork === network.chainId}

@@ -44,6 +44,8 @@ import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLend
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -87,6 +89,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
+
+  useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
   useEffect(() => {
     navigation.setOptions(
@@ -246,6 +250,110 @@ const EarnLendingWithdrawalConfirmationView = () => {
     [createEventBuilder, getTrackEventProperties, trackEvent],
   );
 
+  const createTransactionEventListeners = useCallback(
+    (transactionId: string) => {
+      if (!transactionId) return;
+
+      const emitWithdrawalTxMetaMetric = emitTxMetaMetric(
+        TransactionType.lendingWithdraw,
+      )(transactionId);
+
+      emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
+      // generic confirmation bottom sheet shows after transaction has been added
+      endTrace({ name: TraceName.EarnWithdrawConfirmationScreen });
+
+      // Transaction Event Listeners
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionDropped',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionRejected',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
+          );
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          setIsConfirmButtonDisabled(false);
+          emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionSubmitted',
+        () => {
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
+          );
+          // start trace of time between tx submitted and tx confirmed
+          trace({
+            name: TraceName.EarnWithdrawTxConfirmed,
+            data: {
+              chainId: outputToken?.chainId || '',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            },
+          });
+          // There is variance in when navigation can be called across chains
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          }, 0);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          emitWithdrawalTxMetaMetric(
+            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
+          );
+          endTrace({ name: TraceName.EarnWithdrawTxConfirmed });
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          if (!earnToken) {
+            const tokenNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId: tokenNetworkClientId,
+            }).catch((error) => {
+              console.error(
+                error,
+                'error adding counter-token on confirmation',
+              );
+            });
+          }
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+    },
+    [emitTxMetaMetric, tokenSnapshot, earnToken, navigation, outputToken?.chainId],
+  );
+
   // Guards
   if (
     !token?.chainId ||
@@ -293,6 +401,15 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .build(),
       );
 
+      // start trace between user intiating withdrawal and generic confirmation bottom sheet showing
+      trace({
+        name: TraceName.EarnWithdrawConfirmationScreen,
+        data: {
+          chainId: outputToken?.chainId || '',
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
+
       // if sending max amount, send max uint256 (aave specific)
       // TODO: STAKE-1044 move this logic to earn controller and sdk.
       let amountTokenMinimalUnitToSend: string;
@@ -320,90 +437,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const transactionId = txRes?.transactionMeta?.id;
 
-      if (!transactionId) return;
-
-      const emitWithdrawalTxMetaMetric = emitTxMetaMetric(
-        TransactionType.lendingWithdraw,
-      )(transactionId);
-
-      emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
-
-      // Transaction Event Listeners
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionDropped',
-        () => {
-          setIsConfirmButtonDisabled(false);
-          emitWithdrawalTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_DROPPED,
-          );
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionRejected',
-        () => {
-          setIsConfirmButtonDisabled(false);
-          emitWithdrawalTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_REJECTED,
-          );
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFailed',
-        () => {
-          setIsConfirmButtonDisabled(false);
-          emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_FAILED);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionSubmitted',
-        () => {
-          emitWithdrawalTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
-          );
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          emitWithdrawalTxMetaMetric(
-            MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
-          );
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          if (!earnToken) {
-            const tokenNetworkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                tokenSnapshot?.chainId as Hex,
-              );
-            Engine.context.TokensController.addToken({
-              decimals: tokenSnapshot?.token?.decimals || 0,
-              symbol: tokenSnapshot?.token?.symbol || '',
-              address: tokenSnapshot?.token?.address || '',
-              name: tokenSnapshot?.token?.name || '',
-              networkClientId: tokenNetworkClientId,
-            }).catch((error) => {
-              console.error(
-                error,
-                'error adding counter-token on confirmation',
-              );
-            });
-          }
-        },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
+      createTransactionEventListeners(transactionId);
     } catch (e) {
       setIsConfirmButtonDisabled(false);
     }

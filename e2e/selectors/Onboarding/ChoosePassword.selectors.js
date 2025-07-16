@@ -7,7 +7,10 @@ export const ChoosePasswordSelectorsIDs = {
   ANDROID_I_UNDERSTAND_BUTTON_ID: 'i-understand-text',
   I_UNDERSTAND_CHECKBOX_ID: 'password-understand-box',
   SUBMIT_BUTTON_ID: 'submit-button',
+  RESET_PASSWORD_BUTTON_TEXT: 'Reset password',
   CHECKBOX_TEXT_ID: 'checkbox-text',
   LEARN_MORE_LINK_ID: 'learn-more-link',
   PASSWORD_STRENGTH_ID: 'password-strength',
+  NEW_PASSWORD_SHOW_ICON_ID: 'new-password-show-hide-id',
+  CONFIRM_PASSWORD_SHOW_ICON_ID: 'confirm-password-show-hide-id',
 };

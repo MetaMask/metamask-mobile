@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana est désormais pris en charge",
       "subtitle": "Créez un compte Solana pour commencer"
+    },
+    "backupAndSync": {
+      "title": "Présentation de la fonction de sauvegarde et de synchronisation",
+      "subtitle": "Sauvegardez vos comptes et synchronisez vos paramètres."
     }
   },
   "wallet": {

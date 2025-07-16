@@ -464,9 +464,9 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -476,23 +476,21 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                 }
                               >
                                 Hang tight!
-We’re verifying your identity now.
                               </Text>
                               <Text
                                 accessibilityRole="text"
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -505,62 +503,22 @@ We’re verifying your identity now.
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={0.2}
-                              onPress={[Function]}
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
                                 }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -1063,9 +1021,9 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1081,9 +1039,8 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1103,62 +1060,58 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Complete your order
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -1647,9 +1600,9 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1665,9 +1618,8 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -1687,62 +1639,58 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Retry verification
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -2223,9 +2171,9 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2235,23 +2183,21 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                 }
                               >
                                 Hang tight!
-We’re verifying your identity now.
                               </Text>
                               <Text
                                 accessibilityRole="text"
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -2264,62 +2210,22 @@ We’re verifying your identity now.
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={0.2}
-                              onPress={[Function]}
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
-                              }
-                            >
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
                                 }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -2808,9 +2714,9 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2826,9 +2732,8 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -2848,62 +2753,58 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Retry verification
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>
@@ -3392,9 +3293,9 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 16,
-                                    "fontWeight": "700",
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -3410,9 +3311,8 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",
@@ -3432,62 +3332,58 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                   "padding": 15,
                                 },
                                 undefined,
-                                undefined,
+                                {
+                                  "gap": 8,
+                                },
                               ]
                             }
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={0.2}
+                              activeOpacity={1}
                               onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
-                                [
-                                  [
-                                    {
-                                      "borderRadius": 12,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#4459ff",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
-                                  [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
-                                    [
-                                      {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
-                                      },
-                                      {
-                                        "color": "#ffffff",
-                                      },
-                                      undefined,
-                                    ],
-                                    null,
-                                  ]
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
                                 }
                               >
                                 Retry verification
                               </Text>
                             </TouchableOpacity>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "height": 24,
+                                }
+                              }
+                            />
                           </View>
                         </View>
                       </View>

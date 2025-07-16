@@ -263,14 +263,18 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  PerpsController,
+  PerpsControllerState,
+  PerpsControllerActions,
+  PerpsControllerEvents,
+} from '../../components/UI/Perps/controllers/PerpsController';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
 } from '@metamask/seedless-onboarding-controller';
 import { EncryptionKey } from '../Encryptor/types';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -380,6 +384,7 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | PerpsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -435,16 +440,14 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | PerpsControllerEvents
   | AppMetadataControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | SeedlessOnboardingControllerEvents
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  | SamplePetnamesControllerEvents
-  ///: END:ONLY_INCLUDE_IF
-  ;
+  | SamplePetnamesControllerEvents;
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -509,7 +512,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
-  WebSocketService: WebSocketService,
+  WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -524,9 +527,8 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  PerpsController: PerpsController;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -592,7 +594,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  PerpsController: PerpsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -653,14 +655,12 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'MultichainNetworkController'
   | 'SignatureController'
-  | 'TransactionController'
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
+  | 'TransactionController'
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
-  ;
+  | 'PerpsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

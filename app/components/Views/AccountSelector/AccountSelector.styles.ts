@@ -1,9 +1,18 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface AccountSelectorStyleSheetVars {
+  screenHeight: number;
+}
+const styleSheet = (params: {
+  theme: Theme;
+  vars: AccountSelectorStyleSheetVars;
+}) => {
+  const { vars, theme } = params;
   const { colors } = theme;
+
+  const { screenHeight } = vars;
+
   return StyleSheet.create({
     sheet: {
       marginVertical: 16,
@@ -11,6 +20,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     bottomSheetContent: {
       backgroundColor: colors.background.default,
+      display: 'flex',
+      maxHeight: screenHeight * 0.9,
     },
   });
 };

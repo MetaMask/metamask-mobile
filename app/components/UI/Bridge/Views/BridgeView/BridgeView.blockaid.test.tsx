@@ -50,7 +50,7 @@ describe('Blockaid Validation Logic', () => {
   ) => {
     if (activeQuote) {
       dispatch({ type: 'setIsSubmittingTx', payload: true });
-      
+
       try {
         const validationResult = await validateBridgeTx({
           quoteResponse: activeQuote,
@@ -62,17 +62,17 @@ describe('Blockaid Validation Logic', () => {
             screen: 'BLOCKAID_MODAL',
             params: {
               errorType: isValidationError ? 'validation' : 'simulation',
-              errorMessage: isValidationError 
-                ? (validationResult.result?.validation?.reason || '') 
+              errorMessage: isValidationError
+                ? (validationResult.result?.validation?.reason || '')
                 : validationResult.error,
             },
           });
           return;
         }
-        
+
         // If validation passes, continue with transaction submission
         // TODO: Implement actual transaction submission logic
-        
+
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Error submitting bridge tx', error);
@@ -94,7 +94,7 @@ describe('Blockaid Validation Logic', () => {
 
   it('should navigate to blockaid modal with validation error', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue({
       result: {
         validation: {
@@ -125,7 +125,7 @@ describe('Blockaid Validation Logic', () => {
 
   it('should navigate to blockaid modal with simulation error', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue({
       error: 'Simulation failed: Insufficient balance for transaction',
       result: {
@@ -150,7 +150,7 @@ describe('Blockaid Validation Logic', () => {
 
   it('should prioritize validation error over simulation error', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue({
       error: 'Simulation failed: Some simulation error',
       result: {
@@ -175,7 +175,7 @@ describe('Blockaid Validation Logic', () => {
 
   it('should proceed without blockaid modal when validation passes', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue({
       result: {
         validation: {
@@ -197,7 +197,7 @@ describe('Blockaid Validation Logic', () => {
   it('should handle validation hook errors gracefully', async () => {
     const mockQuote = createMockQuote('test-quote');
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    
+
     mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
 
     await act(async () => {
@@ -205,20 +205,20 @@ describe('Blockaid Validation Logic', () => {
     });
 
     expect(consoleSpy).toHaveBeenCalledWith('Error submitting bridge tx', expect.any(Error));
-    
+
     expect(mockNavigate).not.toHaveBeenCalledWith('BRIDGE_MODALS_ROOT', {
       screen: 'BLOCKAID_MODAL',
       params: expect.any(Object),
     });
 
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'setIsSubmittingTx', payload: false });
-    
+
     consoleSpy.mockRestore();
   });
 
   it('should handle malformed validation responses', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue({
       // Missing result property
     } as Partial<Awaited<ReturnType<ValidateBridgeTx>>>);
@@ -238,7 +238,7 @@ describe('Blockaid Validation Logic', () => {
 
   it('should handle undefined validation responses', async () => {
     const mockQuote = createMockQuote('test-quote');
-    
+
     mockValidateBridgeTx.mockResolvedValue(undefined as unknown as Awaited<ReturnType<ValidateBridgeTx>>);
 
     await act(async () => {
@@ -251,4 +251,4 @@ describe('Blockaid Validation Logic', () => {
       params: expect.any(Object),
     });
   });
-}); 
+});

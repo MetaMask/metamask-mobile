@@ -21,6 +21,7 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.tokenMethodApprove,
+  TransactionType.tokenMethodIncreaseAllowance,
   TransactionType.tokenMethodSetApprovalForAll,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,

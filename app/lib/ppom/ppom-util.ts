@@ -37,6 +37,7 @@ export interface PPOMRequest {
   id?: number | string;
   jsonrpc?: string;
   origin?: string;
+  networkClientId?: string;
 }
 
 export type PPOMMessenger = Messenger<
@@ -89,19 +90,29 @@ async function validateRequest(
     PPOMController: ppomController,
   } = Engine.context;
 
+  const { method, networkClientId: requestNetworkClientId } = req;
+  const { networkClientId: transactionNetworkClientId } = transactionMeta;
+
+  const globalNetworkClientId =
+    NetworkController.state?.selectedNetworkClientId;
+
+  const networkClientId =
+    transactionNetworkClientId ??
+    requestNetworkClientId ??
+    globalNetworkClientId;
+
   const {
     configuration: { chainId },
-  } = NetworkController.getNetworkClientById(
-    NetworkController.state?.selectedNetworkClientId,
-  );
-  const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
+  } = NetworkController.getNetworkClientById(networkClientId);
+
+  const isConfirmationMethod = CONFIRMATION_METHODS.includes(method);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
 
   if (!ppomController || !isBlockaidFeatEnabled || !isConfirmationMethod) {
     return;
   }
 
-  if (req.method === METHOD_SEND_TRANSACTION) {
+  if (method === METHOD_SEND_TRANSACTION) {
     const internalAccounts = AccountsController.listAccounts();
     const { from: fromAddress, to: toAddress } = req
       ?.params?.[0] as Partial<TransactionParams>;
@@ -166,6 +177,8 @@ async function validateWithController(
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
   try {
+    log('Validating with controller', request);
+
     const response = (await ppomController.usePPOM((ppom) =>
       ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
     )) as SecurityAlertResponse;
@@ -189,6 +202,8 @@ async function validateWithAPI(
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
   try {
+    log('Validating with API', chainId, request);
+
     const response = await validateWithSecurityAlertsAPI(chainId, request);
 
     return {
@@ -305,7 +320,7 @@ function normalizeSignatureRequest(request: PPOMRequest): PPOMRequest {
 
 function normalizeRequest(
   request: PPOMRequest,
-  transactionMeta?: TransactionMeta
+  transactionMeta?: TransactionMeta,
 ): PPOMRequest {
   let normalizedRequest = cloneDeep(request);
 
@@ -331,11 +346,15 @@ function normalizeTransactionRequest(
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
-  const txParams = (Array.isArray(request.params) ? request.params[0] : {}) as TransactionParams;
+  const txParams = (
+    Array.isArray(request.params) ? request.params[0] : {}
+  ) as TransactionParams;
 
   // Provide the estimated gas to PPOM rather than relying on PPOM to estimate the gas values
   txParams.gas = transactionMeta?.txParams?.gas;
-  txParams.gasPrice = transactionMeta?.txParams?.maxFeePerGas ?? transactionMeta?.txParams?.gasPrice;
+  txParams.gasPrice =
+    transactionMeta?.txParams?.maxFeePerGas ??
+    transactionMeta?.txParams?.gasPrice;
 
   // Remove unused request params for PPOM
   delete txParams.gasLimit;

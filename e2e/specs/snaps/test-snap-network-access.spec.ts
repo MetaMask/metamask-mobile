@@ -47,7 +47,7 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
 
         // Use WebSockets
         const webSocketUrl = `ws://localhost:${AnvilPort()}`;
-        await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl)
+        await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
         await TestSnaps.tapButton('startWebSocket');
 
         await TestSnaps.waitForWebSocketUpdate({

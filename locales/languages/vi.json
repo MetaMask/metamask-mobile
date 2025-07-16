@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana hiện đã được hỗ trợ",
       "subtitle": "Tạo tài khoản Solana để bắt đầu"
+    },
+    "backupAndSync": {
+      "title": "Giới thiệu về sao lưu và đồng bộ",
+      "subtitle": "Sao lưu tài khoản và đồng bộ chế độ cài đặt của bạn."
     }
   },
   "wallet": {

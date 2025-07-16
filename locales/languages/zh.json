@@ -597,6 +597,10 @@
     "solana": {
       "title": "Solana 现已获支持",
       "subtitle": "创建 Solana 账户以开始使用"
+    },
+    "backupAndSync": {
+      "title": "备份与同步简介",
+      "subtitle": "备份您的账户与同步设置。"
     }
   },
   "wallet": {

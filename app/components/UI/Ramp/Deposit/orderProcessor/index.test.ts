@@ -1,7 +1,7 @@
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { DepositSDKOrders } from '../sdk';
 import { depositOrderToFiatOrder, processDepositOrder } from './';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { DepositOrder, NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 jest.mock('../sdk', () => ({
   DepositSDKOrders: {
@@ -343,5 +343,25 @@ describe('processDepositOrder', () => {
     const updatedOrder = await processDepositOrder(mockOrder);
     expect(DepositSDKOrders.getOrder).toHaveBeenCalledWith('test-id', '0x1234');
     expect(updatedOrder).toEqual(mockOrder);
+  });
+
+  it('should use provided SDK instance when available', async () => {
+    const mockSdk = {
+      getOrder: jest.fn().mockImplementation(() => ({
+        ...mockOrder.data,
+        status: 'PENDING',
+      })),
+    } as unknown as NativeRampsSdk;
+    jest.spyOn(Date, 'now').mockImplementation(() => 1673886669600);
+
+    const updatedOrder = await processDepositOrder(mockOrder, { sdk: mockSdk });
+    expect(mockSdk.getOrder).toHaveBeenCalledWith('test-id', '0x1234');
+    expect(DepositSDKOrders.getOrder).not.toHaveBeenCalled();
+    expect(updatedOrder).toEqual({
+      ...mockOrder,
+      state: 'PENDING',
+      lastTimeFetched: 1673886669600,
+      data: { ...mockOrder.data, status: 'PENDING' },
+    });
   });
 });

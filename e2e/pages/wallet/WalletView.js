@@ -2,18 +2,14 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 
 class WalletView {
   get container() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
-  }
-
-  get portfolioButton() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
   }
 
   get earnButton() {
@@ -78,12 +74,6 @@ class WalletView {
 
   get importTokensButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
-  }
-
-  get importTokensFooterLink() {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
-    );
   }
 
   get networkName() {
@@ -178,11 +168,15 @@ class WalletView {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.accountIcon);
+    await Gestures.waitAndTap(this.accountIcon, {
+      elemDescription: 'Top Account Icon',
+    });
   }
 
   async tapBellIcon() {
-    await Gestures.waitAndTap(this.notificationBellIcon);
+    await Gestures.waitAndTap(this.notificationBellIcon, {
+      elemDescription: 'Notification Bell Icon',
+    });
   }
 
   async tapNetworksButtonOnNavBar() {
@@ -202,6 +196,16 @@ class WalletView {
     await Gestures.swipe(tokensContainer, 'up', 'slow', 0.2);
   }
 
+  async scrollToToken(tokenName, direction = 'down') {
+    await Gestures.scrollToElement(
+      this.tokenInWallet(tokenName),
+      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        direction,
+      },
+    );
+  }
+
   async scrollUpOnNFTsTab() {
     await Gestures.swipe(this.nftTabContainer, 'down', 'slow', 0.6);
   }
@@ -211,15 +215,13 @@ class WalletView {
   }
 
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.testCollectible, {
+      elemDescription: 'NFT Name',
+    });
   }
 
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
-  }
-
-  async tapImportTokensFooterLink() {
-    await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
   async tapOnNFTInWallet(nftName) {
@@ -253,10 +255,6 @@ class WalletView {
 
   async tapNewTokensFound() {
     await Gestures.waitAndTap(this.tokenDetectionLinkButton);
-  }
-
-  async tapPortfolio() {
-    await Gestures.waitAndTap(this.portfolioButton);
   }
 
   async tapTokenNetworkFilter() {
@@ -357,7 +355,7 @@ class WalletView {
   async getBalanceText() {
     const balanceElement = this.totalBalance;
     await Assertions.checkIfVisible(balanceElement);
-    
+
     const balanceAttributes = await (await balanceElement).getAttributes();
     return balanceAttributes.text || balanceAttributes.label;
   }

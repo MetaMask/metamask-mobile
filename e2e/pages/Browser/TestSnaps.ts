@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../utils/Utilities';
+import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -38,6 +39,10 @@ class TestSnaps {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
+  }
+
+  get confirmSignatureButton() {
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
   async checkResultSpan(
@@ -69,6 +74,7 @@ class TestSnaps {
   }
 
   async navigateToTestSnap() {
+    await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
@@ -94,16 +100,16 @@ class TestSnaps {
     );
   }
 
-  async selectEntropySource(
+  async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
-    entropySource: string,
+    text: string,
   ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
-    const source = await this.getOptionValueByText(webElement, entropySource);
+    const source = await this.getOptionValueByText(webElement, text);
 
     await webElement.runScript(
       (el, value) => {
@@ -139,6 +145,10 @@ class TestSnaps {
     await Gestures.waitAndTap(this.getApproveSignRequestButton);
   }
 
+  async approveNativeConfirmation() {
+    await Gestures.waitAndTap(this.confirmSignatureButton);
+  }
+
   async waitForWebSocketUpdate(state: {
     open: boolean;
     origin: string | null;
@@ -148,7 +158,7 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
-    
+
     await Utilities.waitUntil(
       async () => {
         try {

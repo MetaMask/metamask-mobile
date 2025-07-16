@@ -10,6 +10,8 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockLinkingOpenURL = jest.fn();
+const mockUseDepositSDK = jest.fn();
+const mockCancelOrder = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -42,16 +44,32 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
   getOrderById: jest.fn(),
 }));
 
+jest.mock('../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: jest.fn().mockImplementation((config) => {
+    if (config?.method === 'cancelOrder') {
+      return [{ error: null }, mockCancelOrder];
+    }
+    return [{ error: null }, jest.fn()];
+  }),
+}));
+
 describe('OrderProcessing Component', () => {
   const mockOrder = {
     id: 'test-order-id',
     amount: '100',
     currency: 'USD',
     cryptoAmount: '0.05',
-    cryptocurrency: 'ETH',
+    cryptocurrency: 'USDC',
     fee: '2.50',
     state: FIAT_ORDER_STATES.COMPLETED,
+    network: 'eip155:1',
     data: {
+      cryptoCurrency: 'USDC',
       providerOrderLink: 'https://transak.com/order/123',
     },
   };
@@ -59,6 +77,9 @@ describe('OrderProcessing Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getOrderById as jest.Mock).mockReturnValue(mockOrder);
+    mockUseDepositSDK.mockReturnValue({
+      isAuthenticated: false,
+    });
   });
 
   it('renders success state correctly', () => {

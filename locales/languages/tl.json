@@ -597,6 +597,10 @@
     "solana": {
       "title": "Sinusuportahan na ngayon ang Solana",
       "subtitle": "Gumawa ng Solana account para magsimula"
+    },
+    "backupAndSync": {
+      "title": "Ipinapakilala ang backup at sync",
+      "subtitle": "I-back up ang mga account mo at i-sync ang mga setting."
     }
   },
   "wallet": {
