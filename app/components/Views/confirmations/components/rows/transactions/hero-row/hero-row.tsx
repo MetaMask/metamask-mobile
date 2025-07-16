@@ -20,8 +20,8 @@ export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
       style={styles.wrapper}
       testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
-      {!isPending && isNft && <HeroNft />}
-      {!isPending && !isNft && <HeroToken amountWei={amountWei} />}
+      {!isPending && isNft === true && <HeroNft />}
+      {!isPending && isNft === false && <HeroToken amountWei={amountWei} />}
     </View>
   );
 };
