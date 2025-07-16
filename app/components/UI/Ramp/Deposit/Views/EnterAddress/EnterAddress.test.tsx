@@ -54,6 +54,14 @@ let mockSsnValues = [
   mockSsnFunction,
 ];
 
+const mockNavigateToKycWebview = jest.fn();
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: jest.fn(() => ({
+    navigateToKycWebview: mockNavigateToKycWebview,
+  })),
+}));
+
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
     if (config?.method === 'patchUser') {
@@ -116,11 +124,14 @@ function fillFormAndSubmit({
   }
   fireEvent.changeText(screen.getByTestId('city-input'), city);
   fireEvent.press(screen.getByTestId('state-input'));
-  act(() =>
-    mockNavigate.mock.calls[
-      mockNavigate.mock.calls.length - 1
-    ][1].params.onStateSelect(state),
-  );
+  // Wait for the navigation to happen and then call the onStateSelect callback
+  act(() => {
+    const lastNavigateCall =
+      mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1];
+    if (lastNavigateCall?.[1]?.params?.onStateSelect) {
+      lastNavigateCall[1].params.onStateSelect(state);
+    }
+  });
   fireEvent.changeText(screen.getByTestId('postal-code-input'), postCode);
   fireEvent.press(screen.getByTestId('address-continue-button'));
 }
@@ -147,6 +158,7 @@ describe('EnterAddress Component', () => {
       { ...mockUseDepositSdkMethodInitialState },
       mockSsnFunction,
     ];
+    mockNavigateToKycWebview.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -190,12 +202,21 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        params: expect.objectContaining({
-          quote: mockQuote,
-          sourceUrl: kycUrl,
-        }),
-        screen: 'DepositKycWebviewModal',
+      expect(mockKycFunction).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockSsnFunction).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockPurposeFunction).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
+        quote: mockQuote,
+        kycUrl,
       });
     });
   });

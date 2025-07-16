@@ -75,7 +75,7 @@ describe(
         await Assertions.checkIfVisible(LoginView.container);
 
         // should tap reset wallet button
-        await LoginView.tapResetWalletButton();
+        await LoginView.tapForgotPassword();
 
         // should reset wallet
         await ForgotPasswordModal.tapResetWalletButton();

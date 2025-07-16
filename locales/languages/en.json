@@ -616,7 +616,8 @@
       "state_required": "State/Region is required",
       "state_invalid": "Please enter a valid state",
       "postal_code_required": "Postal/Zip Code is required",
-      "postal_code_invalid": "Please enter a valid postal code"
+      "postal_code_invalid": "Please enter a valid postal code",
+      "unexpected_error": "Unexpected error."
     },
     "privacy_section":{
       "transak": "Transak encrypts and stores this information.",
@@ -1968,7 +1969,8 @@
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
-    "open_settings": "Settings"
+    "open_settings": "Settings",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -4574,6 +4576,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network Fee",
+    "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
     "quote_details": "Quote Details",

@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     EarnController: {
-      refreshStakingEligibility: jest.fn(),
+      refreshEarnEligibility: jest.fn(),
     },
   },
 }));
@@ -41,7 +41,7 @@ describe('useStakingEligibility', () => {
   describe('when fetching staking eligibility', () => {
     it('handles error while fetching staking eligibility', async () => {
       (
-        Engine.context.EarnController.refreshStakingEligibility as jest.Mock
+        Engine.context.EarnController.refreshEarnEligibility as jest.Mock
       ).mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHookWithProvider(() => useStakingEligibility(), {

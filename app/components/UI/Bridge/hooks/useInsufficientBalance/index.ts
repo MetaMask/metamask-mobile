@@ -1,12 +1,12 @@
 import { useSelector } from 'react-redux';
 import {
-  selectBridgeControllerState,
   selectMinSolBalance,
 } from '../../../../../selectors/bridgeController';
 import { useLatestBalance } from '../useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
 import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
@@ -32,7 +32,7 @@ const useIsInsufficientBalance = ({
   amount,
   token,
 }: UseIsInsufficientBalanceParams): boolean => {
-  const { quoteRequest } = useSelector(selectBridgeControllerState);
+  const quotes = useSelector(selectBridgeQuotes);
   const minSolBalance = useSelector(selectMinSolBalance);
   const latestBalance = useLatestBalance({
     address: token?.address,
@@ -40,6 +40,9 @@ const useIsInsufficientBalance = ({
     chainId: token?.chainId,
     balance: token?.balance,
   });
+
+  const bestQuote = quotes?.recommendedQuote;
+  const { gasIncluded } = bestQuote?.quote ?? {};
 
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
@@ -56,14 +59,15 @@ const useIsInsufficientBalance = ({
       return decimalPlaces <= token.decimals;
     })();
 
-  // Only perform calculations if we have valid inputs
+  // Only perform calculations if we have valid inputs and gas is not included
   if (
     !isValidAmount ||
     !hasValidDecimals ||
     !token ||
-    !latestBalance?.atomicBalance
+    !latestBalance?.atomicBalance ||
+    !!gasIncluded
   ) {
-    return Boolean(quoteRequest?.insufficientBal);
+    return false;
   }
 
   const inputAmount = parseUnits(
@@ -75,7 +79,7 @@ const useIsInsufficientBalance = ({
     isSolanaChainId(token.chainId) &&
     isNativeAddress(token.address);
 
-  let isInsufficientBalance = quoteRequest?.insufficientBal || false;
+  let isInsufficientBalance = false;
 
   if (isSOL) {
     // For SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
