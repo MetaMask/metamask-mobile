@@ -20,12 +20,17 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+import WalletView from '../../../pages/wallet/WalletView';
+import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
+import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
+const SMALL_AMOUNT = '0.0000001';
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
-  const testSpecificMock = {
+  const localTestSpecificMock = {
     POST: [SEND_ETH_SIMULATION_MOCK],
     GET: [
       SIMULATION_ENABLED_NETWORKS_MOCK,
@@ -49,7 +54,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        testSpecificMock,
+        testSpecificMock: localTestSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -83,4 +88,80 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
       },
     );
   });
+
+  // Table-driven tests for network switching
+  for (const networkConfig of NETWORK_TEST_CONFIGS) {
+    it(`should switch to ${networkConfig.name} network`, async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: networkConfig.providerConfig,
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(networkConfig.permissions)
+            )
+            .build(),
+          restartDevice: true,
+          ganacheOptions: networkConfig.ganacheOptions,
+          testSpecificMock: networkConfig.testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+
+          await WalletView.tapNetworksButtonOnNavBar();
+          await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+          await NetworkListModal.scrollToBottomOfNetworkList();
+          await NetworkListModal.changeNetworkTo(networkConfig.networkConfig.nickname);
+          await Assertions.checkIfVisible(NetworkEducationModal.container);
+
+          await NetworkEducationModal.tapGotItButton();
+
+          // Verify we're on the correct network
+          await Assertions.checkIfTextIsDisplayed(networkConfig.networkConfig.nickname);
+        },
+      );
+    });
+  }
+
+  // Table-driven tests for wallet transfers
+  for (const networkConfig of NETWORK_TEST_CONFIGS) {
+    it(`should send native ${networkConfig.name} from inside the wallet`, async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withNetworkController({
+              providerConfig: networkConfig.providerConfig,
+            })
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions(networkConfig.permissions)
+            )
+            .build(),
+          restartDevice: true,
+          ganacheOptions: networkConfig.ganacheOptions,
+          testSpecificMock: networkConfig.testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+
+          // Network should already be configured, no need to switch
+          await TabBarComponent.tapActions();
+          await WalletActionsBottomSheet.tapSendButton();
+
+          await SendView.inputAddress(RECIPIENT);
+          await SendView.tapNextButton();
+
+          await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
+          await AmountView.tapNextButton();
+
+          await FooterActions.tapConfirmButton();
+          await TestHelpers.delay(3000);
+          await TabBarComponent.tapActivity();
+
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
+        },
+      );
+    });
+  }
+
 });

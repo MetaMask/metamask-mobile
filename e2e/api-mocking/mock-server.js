@@ -60,11 +60,33 @@ export const startMockServer = async (events, port) => {
       const urlEndpoint = new URL(request.url).searchParams.get('url');
       const method = request.method;
 
+      // For POST requests, get the request body first to help with matching
+      let requestBodyJson = null;
+      if (method === 'POST') {
+        try {
+          requestBodyJson = await request.body.getJson();
+        } catch (error) {
+          console.log('Could not parse request body:', error);
+        }
+      }
+
       // Find matching mock event
       const methodEvents = events[method] || [];
-      const matchingEvent = methodEvents.find(
+      let matchingEvent = methodEvents.find(
         (event) => event.urlEndpoint === urlEndpoint,
       );
+
+      // For POST requests with JSON-RPC, try to find a more specific match based on the request body method
+      if (method === 'POST' && requestBodyJson && requestBodyJson.method && methodEvents.length > 0) {
+        const specificMatch = methodEvents.find(
+          (event) => event.urlEndpoint === urlEndpoint &&
+                    event.requestBody &&
+                    event.requestBody.method === requestBodyJson.method
+        );
+        if (specificMatch) {
+          matchingEvent = specificMatch;
+        }
+      }
 
       if (matchingEvent) {
         console.log(`Mocking ${method} request to: ${urlEndpoint}`);
@@ -72,8 +94,7 @@ export const startMockServer = async (events, port) => {
         console.log('Response:', matchingEvent.response);
 
         // For POST requests, verify the request body if specified
-        if (method === 'POST' && matchingEvent.requestBody) {
-          const requestBodyJson = await request.body.getJson();
+        if (method === 'POST' && matchingEvent.requestBody && requestBodyJson) {
 
           // Ensure both objects exist before comparison
           if (!requestBodyJson || !matchingEvent.requestBody) {
@@ -129,9 +150,14 @@ export const startMockServer = async (events, port) => {
           }
         }
 
+        // Handle dynamic responses (functions)
+        const response = typeof matchingEvent.response === 'function'
+          ? matchingEvent.response()
+          : matchingEvent.response;
+
         return {
           statusCode: matchingEvent.responseCode,
-          body: JSON.stringify(matchingEvent.response),
+          body: JSON.stringify(response),
         };
       }
 
