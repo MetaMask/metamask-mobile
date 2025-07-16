@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PerpsMarketData } from '../components/PerpsMarketListView/PerpsMarketListView.types';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
+import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -93,15 +93,18 @@ export const usePerpsMarkets = (
         Logger.log('Perps: Failed to fetch market data', err);
 
         // Keep existing data on error to prevent UI flash
-        if (markets.length === 0) {
-          setMarkets([]);
-        }
+        setMarkets((currentMarkets) => {
+          if (currentMarkets.length === 0) {
+            return [];
+          }
+          return currentMarkets;
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [markets.length],
+    [], // Remove markets.length dependency to prevent unnecessary re-renders
   );
 
   const refresh = useCallback(
