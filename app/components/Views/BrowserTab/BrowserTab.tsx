@@ -967,8 +967,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   );
 
   const sendActiveAccount = useCallback(async (targetUrl?: string) => {
-    // Use targetUrl if provided, otherwise fall back to resolvedUrlRef.current
-    const urlToCheck = targetUrl || resolvedUrlRef.current;
+    // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+    const urlToCheck = targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
     
     if (!urlToCheck) {
       // If no URL to check, send empty accounts
