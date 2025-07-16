@@ -200,7 +200,7 @@ describe('QuoteDetailsCard', () => {
     const expandButton = getByLabelText('Expand quote details');
     fireEvent.press(expandButton);
 
-        // Verify slippage value
+    // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
   });
 
