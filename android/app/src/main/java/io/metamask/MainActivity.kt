@@ -5,9 +5,9 @@ import android.os.Build
 import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.ReactRootView
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import expo.modules.ReactActivityDelegateWrapper
 import io.branch.rnbranch.RNBranchModule
 
@@ -42,29 +42,30 @@ class MainActivity : ReactActivity() {
          * To force a new session,
          * set intent extra, "branch_force_new_session", to true.
          */
-      intent.putExtra("branch_force_new_session", true)
-      RNBranchModule.onNewIntent(intent);
+        intent.putExtra("branch_force_new_session", true)
+        RNBranchModule.onNewIntent(intent)
     }
 
     /**  
-      * Fired when window focus changes (e.g. Recent‑Apps opened/closed).  
-    */
+     * Fired when window focus changes (e.g. Recent‑Apps opened/closed).  
+     */
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
 
-        val reactContext = (applicationContext as ReactApplication)
-        .reactNativeHost
-        .reactInstanceManager
-        .currentReactContext
+        // grab the ReactContext via the built‑in reactNativeHost
+        val reactContext = reactNativeHost
+            .reactInstanceManager
+            .currentReactContext
 
-        reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        ?.emit("windowFocusChanged", hasFocus)
+        reactContext
+            ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            ?.emit("windowFocusChanged", hasFocus)
     }
 
     /**
-    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
-    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
-    */
+     * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
+     * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
+     */
     override fun createReactActivityDelegate(): ReactActivityDelegate {
         return ReactActivityDelegateWrapper(
             this,
@@ -73,7 +74,7 @@ class MainActivity : ReactActivity() {
                 this,
                 mainComponentName,
                 fabricEnabled
-            ){
+            ) {
                 override fun getLaunchOptions(): Bundle {
                     return Bundle().apply {
                         putString(
@@ -104,4 +105,4 @@ class MainActivity : ReactActivity() {
         // because it's doing more than [Activity.moveTaskToBack] in fact.
         super.invokeDefaultOnBackPressed()
     }
-} 
+}
