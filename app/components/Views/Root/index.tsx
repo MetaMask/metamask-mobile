@@ -51,7 +51,13 @@ export function BackgroundSecurityOverlay() {
 
   if (!visible) return null;
 
-  return <BlurView intensity={50} style={styles.container} />;
+  return (
+    <BlurView
+      intensity={50}
+      style={styles.container}
+      experimentalBlurMethod="dimezisBlurView"
+    />
+  );
 }
 
 /**
