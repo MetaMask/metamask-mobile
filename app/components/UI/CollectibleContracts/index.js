@@ -88,10 +88,7 @@ const createStyles = (colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
-      paddingRight: 8,
-      paddingBottom: 16,
-      paddingTop: 8,
+      paddingHorizontal: 12,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -106,28 +103,20 @@ const createStyles = (colors) =>
     controlButtonText: {
       color: colors.text.default,
     },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      marginRight: 4,
+      maxWidth: '60%',
+      paddingHorizontal: 0,
+    },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
+      paddingHorizontal: 0,
       opacity: 0.5,
-      borderRadius: 20,
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
-      maxWidth: '60%',
-      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
@@ -622,6 +611,7 @@ const CollectibleContracts = ({
                   </TextComponent>
                 ) : (
                   <TextComponent
+                    variant={TextVariant.BodyMDMedium}
                     style={styles.controlButtonText}
                     numberOfLines={1}
                   >

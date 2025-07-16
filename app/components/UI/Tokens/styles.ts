@@ -6,7 +6,6 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -178,9 +177,7 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
-      paddingBottom: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
-      paddingTop: 8,
+      paddingHorizontal: 16,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -194,50 +191,32 @@ const createStyles = (colors: Colors) =>
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
+      borderColor: colors.border.default,
       marginRight: 4,
       maxWidth: '60%',
-      borderRadius: 20,
+      paddingHorizontal: 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
+      paddingHorizontal: 0,
       opacity: 0.5,
-      borderRadius: 20,
     },
     controlButtonText: {
       color: colors.text.default,
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: 5,
-      marginRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      borderRadius: 50,
-      width: isRemoveGlobalNetworkSelectorEnabled() ? 30 : 50,
-      height: 40,
     },
     controlIconButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      borderWidth: 1,
       marginLeft: 5,
-      marginRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
+      marginRight: 5,
       borderRadius: 50,
       width: 50,
       height: 40,

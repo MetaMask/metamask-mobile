@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 /**
  *
@@ -16,46 +15,29 @@ const styleSheet = (params: { theme: Theme }) => {
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
-      paddingBottom: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
-      paddingTop: 8,
+      paddingHorizontal: 16,
+      alignItems: 'center',
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
+      borderColor: colors.border.default,
+      marginRight: 4,
       maxWidth: '60%',
-    },
-    controlButtonText: {
-      color: colors.text.default,
+      paddingHorizontal: 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
+      paddingHorizontal: 0,
       opacity: 0.5,
+    },
+    controlButtonText: {
+      color: colors.text.default,
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
-      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
-        ? colors.border.default
-        : undefined,
-      borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      borderRadius: 50,
-      width: 50,
-      height: 40,
     },
   });
 };
