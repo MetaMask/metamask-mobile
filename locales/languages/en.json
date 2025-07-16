@@ -572,8 +572,18 @@
     },
     "verify_identity": {
       "title": "Verify your identity",
-      "description": "To deposit cash, we’ll need to verify your identity. This helps keep your account secure and your information private.",
-      "privacy_policy_link": "Learn how we protect your privacy in our Privacy Policy.",
+      "navbar_title": "Deposit",
+      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "description_2_transak": "Transak",
+      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
+      "description_3_part1": "Check out our ",
+      "description_3_privacy_policy": "Privacy Policy",
+      "description_3_part2": " to learn more.",
+      "agreement_text_part1": "By clicking the button below, you agree to ",
+      "agreement_text_transak_terms": "Transak's Terms of Use",
+      "agreement_text_and": " and ",
+      "agreement_text_privacy_policy": "Privacy Policy",
+      "agreement_text_part2": ".",
       "button": "Get started"
     },
     "basic_info": {
