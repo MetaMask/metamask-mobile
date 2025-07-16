@@ -122,12 +122,9 @@ describe('EnterEmail Component', () => {
     fireEvent.changeText(emailInput, 'test@example.com');
     fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
     await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_EMAIL_SUBMITTED',
-        {
-          ramp_type: 'DEPOSIT',
-        },
-      );
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_EMAIL_SUBMITTED', {
+        ramp_type: 'DEPOSIT',
+      });
     });
   });
 
