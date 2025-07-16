@@ -157,7 +157,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       const getInput = (index: number) =>
         getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+          index === 0 
+            ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+            : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
         );
 
       for (let i = 0; i < 12; i++) {
@@ -366,7 +368,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const fields = [];
         for (let i = 0; i < 3; i++) {
           const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+            i === 0 
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+              : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
           fields.push(field);
         }
@@ -388,7 +392,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const updatedFields = [];
         for (let i = 0; i < 2; i++) {
           const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+            i === 0 
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+              : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
           updatedFields.push(field);
         }
@@ -404,7 +410,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Wait for the component to update and verify the final input value
       await waitFor(() => {
         const finalField = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+          ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
         );
         expect(finalField.props.value).toBe('word1');
       });
@@ -466,7 +472,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const fields = [];
         for (let i = 0; i < 12; i++) {
           const field = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
+            i === 0 
+              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+              : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
           fields.push(field);
         }
@@ -512,7 +520,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       const getInput = (index: number) =>
         getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
+          index === 0 
+            ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+            : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
         );
 
       const input0 = getInput(0);
@@ -569,12 +579,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Wait for the individual input fields to be created
       await waitFor(() => {
         expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+          getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID),
         ).toBeOnTheScreen();
       });
 
       const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
       const input1 = getByTestId(
         `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
@@ -619,12 +629,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+          getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID),
         ).toBeOnTheScreen();
       });
 
       const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
       // Test blur with a valid word ("say" is a valid BIP39 word)
@@ -658,12 +668,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+          getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID),
         ).toBeOnTheScreen();
       });
 
       const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
       // Test blur with an invalid word
@@ -697,12 +707,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
+          getByTestId(ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID),
         ).toBeOnTheScreen();
       });
 
       const input0 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
 
       // Test blur with empty word
@@ -784,11 +794,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.changeText(textArea, 'test');
       });
 
-      // Verify individual inputs are shown
-      const firstInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-      );
-      expect(firstInput).toBeOnTheScreen();
+      // Wait for the component to transition to individual inputs
+      let firstInput: ReturnType<typeof getByTestId>;
+      await waitFor(() => {
+        firstInput = getByTestId(
+          ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+        );
+        expect(firstInput).toBeOnTheScreen();
+      });
 
       // Clear the input
       await act(async () => {
