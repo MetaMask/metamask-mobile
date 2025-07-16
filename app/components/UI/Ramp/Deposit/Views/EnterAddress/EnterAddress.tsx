@@ -217,13 +217,17 @@ const EnterAddress = (): JSX.Element => {
       await submitPurpose();
 
       if (kycUrl) {
-        navigateToKycWebview(quote, kycUrl);
+        navigateToKycWebview({ quote, kycUrl });
       } else {
         navigation.navigate(...createKycProcessingNavDetails({ quote }));
       }
     } catch (submissionError) {
       setLoading(false);
-      setError('Unexpected error.');
+      setError(
+        submissionError instanceof Error && submissionError.message
+          ? submissionError.message
+          : strings('deposit.enter_address.unexpected_error'),
+      );
       Logger.error(
         submissionError as Error,
         'Unexpected error during form submission',
