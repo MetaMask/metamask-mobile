@@ -361,7 +361,7 @@ const BankDetails = () => {
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                {confirmPaymentError ??
+                {confirmPaymentError ||
                   strings('deposit.bank_details.error_message')}
               </Text>
             ) : null}
