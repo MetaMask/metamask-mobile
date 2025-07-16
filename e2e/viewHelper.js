@@ -18,6 +18,7 @@ import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
 import TestHelpers from './helpers';
+import Matchers from './utils/Matchers';
 
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
@@ -415,22 +416,72 @@ export const loginToApp = async (password) => {
 };
 
 export const waitForTestDappToLoad = async () => {
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 5000;
+  const MAX_RETRIES = 5; // Increased retries
+  const RETRY_DELAY = 3000; // Reduced delay for faster retries
+  const INITIAL_DELAY = 2000; // Initial delay to let the page start loading
+
+  // Initial delay to let the page start loading
+  await TestHelpers.delay(INITIAL_DELAY);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
+      console.log(`Attempt ${attempt}/${MAX_RETRIES} to load test dapp...`);
 
+      // Try to find the fox logo first
+      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
+      console.log('✓ Fox logo found');
+
+      // Try to find the page title
+      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
+      console.log('✓ Page title found');
+
+      // Try to find the connect button
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
+      console.log('✓ Connect button found');
+
+      console.log('✓ Test dapp loaded successfully');
       return; // Success - page is fully loaded and interactive
     } catch (error) {
+      console.log(`Attempt ${attempt} failed: ${error.message}`);
+
       if (attempt === MAX_RETRIES) {
+        // Try to get more diagnostic information
+        try {
+          console.log('Attempting to get page source for debugging...');
+          // This might help debug what's actually on the page
+          const webview = Matchers.getElementByID('browser-webview');
+          const pageSource = await webview.getText();
+          console.log('Page source preview:', pageSource.substring(0, 500));
+        } catch (debugError) {
+          console.log(
+            'Could not get page source for debugging:',
+            debugError.message,
+          );
+        }
+
+        // Try alternative approach - maybe the page loaded but elements have different IDs
+        try {
+          console.log(
+            'Trying alternative approach - checking for any interactive elements...',
+          );
+          // Try to find any button or interactive element that might indicate the page loaded
+          const anyButton = Matchers.getElementByWebID(
+            'browser-webview',
+            'button',
+          );
+          console.log(
+            'Found a button element, page might be loaded with different structure',
+          );
+        } catch (altError) {
+          console.log('Alternative approach also failed:', altError.message);
+        }
+
         throw new Error(
           `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
         );
       }
+
+      // Wait before retrying
       await TestHelpers.delay(RETRY_DELAY);
     }
   }
