@@ -129,10 +129,11 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
           result.isRevoke =
             spender?.toLowerCase() === ZERO_ADDRESS.toLowerCase();
         } else {
-          const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
-            amount?.toString() as string,
-            details.decimalsNumber,
-          );
+          const { amount: amountInDecimals, rawAmount } =
+            calculateApprovalTokenAmount(
+              amount?.toString() as string,
+              details.decimalsNumber,
+            );
           result.amount = amountInDecimals;
           result.rawAmount = rawAmount;
           result.isRevoke = amount?.toString() === ZERO_AMOUNT;
@@ -148,10 +149,11 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
       case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE: {
         const [spender, amount] = parsedData?.args ?? [];
-        const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
-          amount?.toString() as string,
-          details.decimalsNumber,
-        );
+        const { amount: amountInDecimals, rawAmount } =
+          calculateApprovalTokenAmount(
+            amount?.toString() as string,
+            details.decimalsNumber,
+          );
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
         result.spender = spender;
@@ -177,10 +179,11 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         const [token, spender, amount, expiration] = parsedData?.args ?? [];
         result.token = token;
         result.spender = spender;
-        const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
-          amount?.toString() as string,
-          details.decimalsNumber,
-        );
+        const { amount: amountInDecimals, rawAmount } =
+          calculateApprovalTokenAmount(
+            amount?.toString() as string,
+            details.decimalsNumber,
+          );
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
         result.expiration = expiration?.toString();
