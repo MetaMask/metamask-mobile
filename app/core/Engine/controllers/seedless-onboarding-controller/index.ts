@@ -24,7 +24,6 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
   SeedlessOnboardingController<EncryptionKey>,
   SeedlessOnboardingControllerMessenger
 > = (request) => {
-
   if (!web3AuthNetwork) {
     throw new Error(
       `Missing environment variables for SeedlessOnboardingController\n

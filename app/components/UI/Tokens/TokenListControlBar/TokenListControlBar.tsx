@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
@@ -14,7 +14,9 @@ import { strings } from '../../../../../locales/i18n';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
@@ -23,6 +25,9 @@ import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
+import TextComponent, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -76,17 +81,25 @@ export const TokenListControlBar = ({
           label={
             <>
               {isRemoveGlobalNetworkSelectorEnabled() ? (
-                <Text style={styles.controlButtonText} numberOfLines={1}>
+                <TextComponent
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.controlButtonText}
+                  numberOfLines={1}
+                >
                   {enabledNetworks.length > 1
                     ? strings('networks.enabled_networks')
                     : currentNetworkName ?? strings('wallet.current_network')}
-                </Text>
+                </TextComponent>
               ) : (
-                <Text style={styles.controlButtonText} numberOfLines={1}>
+                <TextComponent
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.controlButtonText}
+                  numberOfLines={1}
+                >
                   {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                     ? strings('wallet.popular_networks')
                     : networkName ?? strings('wallet.current_network')}
-                </Text>
+                </TextComponent>
               )}
             </>
           }
@@ -101,19 +114,18 @@ export const TokenListControlBar = ({
         <View style={styles.controlButtonInnerWrapper}>
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}
+            size={ButtonIconSizes.Lg}
             onPress={showSortControls}
             iconName={IconName.Filter}
             style={styles.controlIconButton}
           />
           <ButtonIcon
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+            size={ButtonIconSizes.Lg}
             onPress={goToAddToken}
             iconName={IconName.Add}
-            style={
-              isEvmSelected
-                ? styles.controlIconButton
-                : styles.controlIconButtonDisabled
-            }
+            isDisabled={!isEvmSelected}
+            style={styles.controlIconButton}
             disabled={!isEvmSelected}
           />
         </View>

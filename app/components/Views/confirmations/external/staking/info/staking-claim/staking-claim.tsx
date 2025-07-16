@@ -16,6 +16,8 @@ import StakingContractInteractionDetails from '../../components/staking-contract
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
+import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
+import { TraceName } from '../../../../../../../util/trace';
 
 const StakingClaim = ({
   route,
@@ -45,6 +47,7 @@ const StakingClaim = ({
   }, [amount, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+  useEndTraceOnMount(TraceName.EarnClaimConfirmationScreen);
 
   return (
     <View testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>

@@ -63,13 +63,7 @@ const PaymentMethodSelector: React.FC<IProps> = ({
       <ListItem>
         {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
         <ListItemColumn widthType={WidthType.Fill}>
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {name}
-          </Text>
+          <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
         </ListItemColumn>
         <DownChevronText text="Change" />
       </ListItem>

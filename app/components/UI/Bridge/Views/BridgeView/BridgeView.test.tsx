@@ -323,9 +323,6 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: BridgeViewMode.Bridge,
-      },
     });
   });
 
@@ -418,7 +415,7 @@ describe('BridgeView', () => {
 
     // Verify balance is displayed
     await waitFor(() => {
-      expect(getByText('2.0 ETH')).toBeTruthy();
+      expect(getByText('2 ETH')).toBeTruthy();
     });
   });
 

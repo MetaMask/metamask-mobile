@@ -760,11 +760,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -1479,11 +1480,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -2284,11 +2286,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }

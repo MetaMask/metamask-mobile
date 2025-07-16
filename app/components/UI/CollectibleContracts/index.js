@@ -14,7 +14,6 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  Text,
 } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -70,6 +69,10 @@ import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -213,6 +216,7 @@ const CollectibleContracts = ({
   const allNetworkClientIds = useMemo(
     () =>
       Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+        if (isNonEvmChainId(chainId)) return [];
         const entry = allNetworks[chainId];
         if (!entry) {
           return [];
@@ -395,17 +399,17 @@ const CollectibleContracts = ({
           />
         ) : null}
 
-        <Text style={styles.emptyText}>
+        <TextComponent style={styles.emptyText}>
           {strings('wallet.no_collectibles')}
-        </Text>
+        </TextComponent>
         <TouchableOpacity
           onPress={goToAddCollectible}
           disabled={!isAddNFTEnabled}
           testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
         >
-          <Text style={styles.addText}>
+          <TextComponent style={styles.addText}>
             {strings('wallet.add_collectibles')}
-          </Text>
+          </TextComponent>
         </TouchableOpacity>
       </View>
     ),
@@ -534,12 +538,12 @@ const CollectibleContracts = ({
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
-        <Text center style={styles.emptyTitleText} bold>
+        <TextComponent center style={styles.emptyTitleText} bold>
           {strings('wallet.no_nfts_yet')}
-        </Text>
-        <Text center big link onPress={goToLearnMore}>
+        </TextComponent>
+        <TextComponent center big link onPress={goToLearnMore}>
           {strings('wallet.learn_more')}
-        </Text>
+        </TextComponent>
       </View>
     ),
     [goToLearnMore, styles],
@@ -607,17 +611,24 @@ const CollectibleContracts = ({
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
-                  <Text style={styles.controlButtonText} numberOfLines={1}>
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    numberOfLines={1}
+                    style={styles.controlButtonText}
+                  >
                     {enabledNetworks.length > 1
                       ? strings('networks.enabled_networks')
                       : currentNetworkName ?? strings('wallet.current_network')}
-                  </Text>
+                  </TextComponent>
                 ) : (
-                  <Text style={styles.controlButtonText} numberOfLines={1}>
+                  <TextComponent
+                    style={styles.controlButtonText}
+                    numberOfLines={1}
+                  >
                     {isAllNetworks && isPopularNetwork && isEvmSelected
                       ? strings('wallet.popular_networks')
                       : networkName ?? strings('wallet.current_network')}
-                  </Text>
+                  </TextComponent>
                 )}
               </>
             }

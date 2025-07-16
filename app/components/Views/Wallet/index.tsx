@@ -29,6 +29,9 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+
 import {
   ToastContext,
   ToastVariants,
@@ -112,9 +115,6 @@ import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
-///: END:ONLY_INCLUDE_IF
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -134,9 +134,6 @@ import {
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -144,7 +141,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     walletAccount: { marginTop: 28 },
     tabUnderlineStyle: {
       height: 2,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.icon.default,
     },
     tabStyle: {
       paddingBottom: 8,
@@ -199,19 +196,17 @@ const WalletTokensTabView = React.memo(
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <View style={styles.base}>
-          <DefaultTabBar
-            underlineStyle={styles.tabUnderlineStyle}
-            activeTextColor={colors.primary.default}
-            inactiveTextColor={colors.text.default}
-            backgroundColor={colors.background.default}
-            tabStyle={styles.tabStyle}
-            textStyle={styles.textStyle}
-            tabPadding={16}
-            style={styles.tabBar}
-            {...tabBarProps}
-          />
-        </View>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.text.default}
+          inactiveTextColor={colors.text.alternative}
+          backgroundColor={colors.background.default}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          style={styles.tabBar}
+          tabPadding={32}
+          {...tabBarProps}
+        />
       ),
       [styles, colors],
     );
@@ -355,6 +350,22 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  const checkAndNavigateToSolanaFeature = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(
+      SOLANA_FEATURE_MODAL_SHOWN,
+    );
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+    }
+  }, [navigate]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useEffect(() => {
+    checkAndNavigateToSolanaFeature();
+  }, [checkAndNavigateToSolanaFeature]);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     addTraitsToUser({
@@ -797,11 +808,6 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
         </>
       </View>
     ),

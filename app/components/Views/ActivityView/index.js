@@ -35,7 +35,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
 import { typography } from '@metamask/design-tokens';
 import { useStyles } from '../../hooks/useStyles';
-import {
+import TextComponent, {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -203,17 +203,25 @@ const ActivityView = () => {
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
-                  <Text style={styles.titleText} numberOfLines={1}>
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.titleText}
+                    numberOfLines={1}
+                  >
                     {enabledNetworks.length > 1
                       ? strings('networks.enabled_networks')
                       : currentNetworkName ?? strings('wallet.current_network')}
-                  </Text>
+                  </TextComponent>
                 ) : (
-                  <Text style={styles.titleText} numberOfLines={1}>
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.titleText}
+                    numberOfLines={1}
+                  >
                     {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                       ? strings('wallet.popular_networks')
                       : networkName ?? strings('wallet.current_network')}
-                  </Text>
+                  </TextComponent>
                 )}
               </>
             }

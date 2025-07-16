@@ -84,9 +84,9 @@ const createStyles = (colors: Colors) =>
       textTransform: 'capitalize',
     },
     ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
     },
     emptyText: {
@@ -178,8 +178,7 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
-      paddingRight: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 8,
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
       paddingBottom: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 16,
       paddingTop: 8,
     },
@@ -187,9 +186,11 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       width: '100%',
       justifyContent: 'space-between',
+      alignItems: 'center',
     },
     controlButtonInnerWrapper: {
       flexDirection: 'row',
+      gap: 12,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -199,7 +200,7 @@ const createStyles = (colors: Colors) =>
       borderStyle: 'solid',
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
       marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
       borderRadius: 20,
     },

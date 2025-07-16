@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Linking, ScrollView, Switch, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { ScrollView, View } from 'react-native';
 
-import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import Text, {
@@ -16,8 +15,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import Device from '../../../../../app/util/device';
-import { SES_URL } from '../../../../../app/constants/urls';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useSelector } from 'react-redux';
@@ -30,22 +27,12 @@ import {
   getBuildNumber,
 } from 'react-native-device-info';
 
-const storage = new MMKV(); // id: mmkv.default
-
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const [sesEnabled, setSesEnabled] = useState(
-    storage.getBoolean('is-ses-enabled'),
-  );
 
   const performanceMetrics = useSelector(selectPerformanceMetrics);
-
-  const toggleSesEnabled = () => {
-    storage.set('is-ses-enabled', !sesEnabled);
-    setSesEnabled(!sesEnabled);
-  };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
@@ -73,8 +60,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
   };
 
-  const openSesLink = () => Linking.openURL(SES_URL);
-
   const renderWalletConnectSettings = () => (
     <>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
@@ -95,49 +80,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         width={ButtonWidthTypes.Full}
         style={styles.accessory}
       />
-    </>
-  );
-
-  const renderSesSettings = () => (
-    <>
-      <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
-        style={styles.heading}
-      >
-        {strings('app_settings.security_heading')}
-      </Text>
-      <View style={styles.setting}>
-        <View style={styles.switchElement}>
-          <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-            {strings('app_settings.ses_heading')}
-          </Text>
-          <Switch
-            value={sesEnabled}
-            onValueChange={toggleSesEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-        <Text
-          color={TextColor.Alternative}
-          variant={TextVariant.BodyMD}
-          style={styles.desc}
-        >
-          {strings('app_settings.ses_description')}{' '}
-          <Button
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Auto}
-            onPress={openSesLink}
-            label={strings('app_settings.ses_link')}
-          />
-          .
-        </Text>
-      </View>
     </>
   );
 
@@ -191,7 +133,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       {renderWalletConnectSettings()}
-      {Device.isIos() && renderSesSettings()}
       {isTest && renderPerformanceSettings()}
     </ScrollView>
   );

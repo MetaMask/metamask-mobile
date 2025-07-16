@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
@@ -26,6 +28,9 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import TextComponent, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
@@ -59,17 +64,25 @@ const DeFiPositionsControlBar: React.FC = () => {
         label={
           <>
             {isRemoveGlobalNetworkSelectorEnabled() ? (
-              <Text style={styles.controlButtonText} numberOfLines={1}>
+              <TextComponent
+                variant={TextVariant.BodyMDMedium}
+                style={styles.controlButtonText}
+                numberOfLines={1}
+              >
                 {enabledNetworks.length > 1
                   ? strings('networks.enabled_networks')
                   : currentNetworkName ?? strings('wallet.current_network')}
-              </Text>
+              </TextComponent>
             ) : (
-              <Text style={styles.controlButtonText} numberOfLines={1}>
+              <TextComponent
+                variant={TextVariant.BodyMDMedium}
+                style={styles.controlButtonText}
+                numberOfLines={1}
+              >
                 {isAllNetworks && isPopularNetwork
                   ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
-              </Text>
+              </TextComponent>
             )}
           </>
         }
@@ -87,6 +100,7 @@ const DeFiPositionsControlBar: React.FC = () => {
         onPress={showSortControls}
         iconName={IconName.Filter}
         style={styles.controlIconButton}
+        size={ButtonIconSizes.Lg}
       />
     </View>
   );

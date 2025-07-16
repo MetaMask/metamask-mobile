@@ -706,7 +706,7 @@ class Amount extends PureComponent {
         .build(),
     );
 
-    const shouldUseRedesignedTransferConfirmation = 
+    const shouldUseRedesignedTransferConfirmation =
       isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
 
     setSelectedAsset(selectedAsset);

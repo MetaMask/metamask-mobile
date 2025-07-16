@@ -2,6 +2,7 @@ import { type AppThemeKey } from '../../util/theme/models';
 import {
   type InterruptBiometricsAction,
   type LockAppAction,
+  type CheckForDeeplinkAction,
   type AuthSuccessAction,
   type AuthErrorAction,
   type PasswordSetAction,
@@ -22,7 +23,6 @@ import {
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
   UserActionType,
-  type SetMetaMetricsUISeenAction,
 } from './types';
 
 export * from './types';
@@ -36,6 +36,12 @@ export function interruptBiometrics(): InterruptBiometricsAction {
 export function lockApp(): LockAppAction {
   return {
     type: UserActionType.LOCKED_APP,
+  };
+}
+
+export function checkForDeeplink(): CheckForDeeplinkAction {
+  return {
+    type: UserActionType.CHECK_FOR_DEEPLINK,
   };
 }
 
@@ -168,16 +174,5 @@ export function onPersistedDataLoaded(): PersistedDataLoadedAction {
 export function setAppServicesReady(): SetAppServicesReadyAction {
   return {
     type: UserActionType.SET_APP_SERVICES_READY,
-  };
-}
-
-export function setMetaMetricsUISeen(
-  isMetaMetricsUISeen: boolean,
-): SetMetaMetricsUISeenAction {
-  return {
-    type: UserActionType.SET_META_METRICS_UI_SEEN,
-    payload: {
-      isMetaMetricsUISeen,
-    },
   };
 }

@@ -322,7 +322,7 @@ export const TokenListItem = React.memo(
             <AvatarToken
               name={asset.symbol}
               imageSource={CustomNetworkNativeImgMapping[chainId]}
-              size={AvatarSize.Md}
+              size={AvatarSize.Lg}
             />
           );
         }
@@ -343,7 +343,7 @@ export const TokenListItem = React.memo(
         <AvatarToken
           name={asset.symbol}
           imageSource={{ uri: asset.image }}
-          size={AvatarSize.Md}
+          size={AvatarSize.Lg}
         />
       );
     }, [asset, styles.ethLogo, chainId]);
@@ -388,7 +388,7 @@ export const TokenListItem = React.memo(
       >
         <BadgeWrapper
           style={styles.badge}
-          badgePosition={BadgePosition.TopRight}
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

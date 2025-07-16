@@ -4,6 +4,7 @@ import {
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
   accountAddress,
+  responseText,
 } from '../../selectors/Settings/AesCrypto.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -16,6 +17,11 @@ class AesCryptoTestForm {
   // Get account address
   get accountAddress() {
     return Matchers.getElementByID(accountAddress);
+  }
+
+  // Get response text
+  get responseText() {
+    return Matchers.getElementByID(responseText);
   }
 
   // Generate salt getters
@@ -211,7 +217,16 @@ class AesCryptoTestForm {
       encryptionKey,
     );
     await this.scrollToDecrypt();
-    await Gestures.waitAndTap(this.decryptButton);
+
+    //handle UI flakiness when using keypad on small screens
+    try {
+      await Gestures.waitAndTap(this.decryptButton, {
+        timeout: 5000,
+      });
+    } catch (error) {
+      await this.scrollToDecrypt();
+      await Gestures.waitAndTap(this.decryptButton);
+    }
   }
 
   async encryptWithKey(encryptionKey, data) {

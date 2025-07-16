@@ -40,7 +40,7 @@ export const styleSheet = (params: {
       height: CAROUSEL_HEIGHT,
     },
     slideContainer: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       height: CAROUSEL_HEIGHT,
       borderWidth: 1,
@@ -48,9 +48,10 @@ export const styleSheet = (params: {
       width: BANNER_WIDTH,
       marginHorizontal: PEEK_WIDTH,
       position: 'relative',
+      overflow: 'hidden',
     },
     slideContainerPressed: {
-      backgroundColor: colors.background.alternativePressed,
+      backgroundColor: colors.background.mutedPressed,
     },
     slideContent: {
       width: '100%',
@@ -88,13 +89,9 @@ export const styleSheet = (params: {
       marginTop: -4,
     },
     closeButton: {
-      position: 'absolute',
-      top: 4,
-      right: 6,
-      width: 26,
-      height: 26,
-      justifyContent: 'center',
-      alignItems: 'center',
+      alignSelf: 'flex-start',
+      marginTop: 4,
+      marginRight: 4,
     },
     progressContainer: {
       flexDirection: 'row',

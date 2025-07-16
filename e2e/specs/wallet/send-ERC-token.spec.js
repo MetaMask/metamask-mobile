@@ -24,12 +24,12 @@ describe(Regression('Send ERC Token'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    
+
     // Start mock server to force old confirmation UI
     mockServer = await startMockServer({
       GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
     });
-    
+
     await TestHelpers.launchApp();
   });
 
