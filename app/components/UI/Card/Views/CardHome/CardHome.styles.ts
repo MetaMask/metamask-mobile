@@ -3,6 +3,12 @@ import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
   StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.background.default,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: theme.colors.background.default,

@@ -19,6 +19,7 @@ import createStyles from './ManageCardListItem.styles';
 export interface ManageCardListItemProps {
   title: string;
   description: string | React.ReactNode;
+  descriptionOrientation?: 'row' | 'column';
   rightIcon?: IconName;
   testID?: string;
   onPress?: () => void;
@@ -28,15 +29,17 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   title,
   onPress,
   description,
+  descriptionOrientation = 'column',
   rightIcon = IconName.ArrowRight,
   testID = 'manage-card-list-item',
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, descriptionOrientation);
+
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root} gap={16}>
-        <ListItemColumn widthType={WidthType.Fill}>
+        <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
           <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
           {typeof description === 'string' ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

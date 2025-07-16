@@ -102,6 +102,7 @@ import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOn
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
+import CardRoutes from '../../UI/Card/routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -916,6 +917,7 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      <Stack.Screen name={Routes.CARD.ROOT} component={() => <CardRoutes />} />
     </Stack.Navigator>
   );
 };

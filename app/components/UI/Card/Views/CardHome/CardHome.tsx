@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -50,6 +56,12 @@ import { useNavigateToAddFunds } from '../../hooks/useNavigateToAddFunds';
 import { CardTokenAllowance } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
+import TagBase, {
+  TagSeverity,
+  TagShape,
+} from '../../../../../component-library/base-components/TagBase';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
 /**
  * CardHome Component
@@ -90,7 +102,11 @@ const CardHome = () => {
   );
   const { fetchPriorityToken, isLoading: isLoadingPriorityToken } =
     useGetPriorityCardToken(currentAddress);
-  const { mainBalance, secondaryBalance } = useAssetBalance(priorityToken);
+  const {
+    mainBalance,
+    secondaryBalance,
+    asset: priorityTokenAsset,
+  } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { navigateToAddFunds, isSwapEnabled } = useNavigateToAddFunds(
     navigation,
@@ -132,9 +148,14 @@ const CardHome = () => {
     }
   }, [allowances, currentAddress, fetchPriorityToken, priorityToken]);
 
-  if (isLoadingAllowances || isLoadingPriorityToken) {
+  const isLoading = useMemo(
+    () => (isLoadingAllowances && !priorityToken) || isLoadingPriorityToken,
+    [isLoadingAllowances, isLoadingPriorityToken, priorityToken],
+  );
+
+  if (isLoading) {
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator
           size="large"
           color={theme.colors.primary.default}
@@ -145,7 +166,11 @@ const CardHome = () => {
   }
 
   return (
-    <ScrollView style={styles.wrapper} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.wrapper}
+      showsVerticalScrollIndicator={false}
+      alwaysBounceVertical={false}
+    >
       <View style={styles.defaultPadding}>
         <View style={styles.balanceContainer}>
           <View style={styles.balanceTextContainer}>
@@ -221,7 +246,25 @@ const CardHome = () => {
 
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.change_asset')}
-        description={priorityToken?.symbol}
+        description={
+          <TagBase
+            shape={TagShape.Pill}
+            includesBorder
+            severity={TagSeverity.Default}
+          >
+            <AvatarToken
+              name={priorityToken?.symbol || ''}
+              imageSource={
+                priorityTokenAsset?.image || priorityTokenAsset?.logo
+                  ? { uri: priorityTokenAsset.image || priorityTokenAsset.logo }
+                  : undefined
+              }
+              size={AvatarSize.Xs}
+            />
+            <Text variant={TextVariant.BodySM}>{priorityToken?.symbol}</Text>
+          </TagBase>
+        }
+        descriptionOrientation="row"
         onPress={() => {
           setOpenAssetListBottomSheet(true);
         }}
@@ -276,7 +319,7 @@ CardHome.navigationOptions = ({
   ),
   headerTitle: () => (
     <Text
-      variant={TextVariant.HeadingMD}
+      variant={TextVariant.HeadingSM}
       style={headerStyle.title}
       testID={'card-view-title'}
     >

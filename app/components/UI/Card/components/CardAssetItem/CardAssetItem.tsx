@@ -1,5 +1,5 @@
 import AssetElement from '../../../AssetElement';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { TokenI } from '../../../Tokens/types';
 import BadgeWrapper, {
   BadgePosition,
@@ -54,33 +54,9 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   const theme = useTheme();
 
   const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
-
-  // Fallback asset mapping
-  // If asset is not found, we create a default TokenI object with minimal properties
-  // This is to ensure that the component can render without crashing
-  // and to provide a consistent structure for the asset data.
-  const mappedAsset = useMemo(
-    () =>
-      asset ??
-      ({
-        address: assetKey.address,
-        aggregators: [],
-        decimals: assetKey.decimals,
-        image: '',
-        name: assetKey.name,
-        symbol: assetKey.symbol,
-        balance: '0',
-        balanceFiat: '0',
-        logo: '',
-        isETH: false,
-      } as TokenI),
-    [asset, assetKey],
-  );
-  const mappedMainBalance = useMemo(() => mainBalance ?? '0', [mainBalance]);
-  const mappedSecondaryBalance = useMemo(
-    () => secondaryBalance ?? '0',
-    [secondaryBalance],
-  );
+  // const swapTokens = useSelector((state: RootState) =>
+  //   swapsTokensSelector(state),
+  // );
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
@@ -125,13 +101,13 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   );
 
   const renderNetworkAvatar = useCallback(() => {
-    if (mappedAsset.isNative) {
+    if (asset?.isNative) {
       const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
 
       if (isCustomNetwork) {
         return (
           <AvatarToken
-            name={mappedAsset.symbol}
+            name={asset.symbol}
             imageSource={CustomNetworkNativeImgMapping[chainId]}
             size={AvatarSize.Xl}
           />
@@ -142,25 +118,25 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
         <NetworkAssetLogo
           chainId={chainId as Hex}
           style={styles.ethLogo}
-          ticker={mappedAsset.ticker || ''}
+          ticker={asset.ticker || ''}
+          testID={asset.name}
           big
-          biggest
-          testID={mappedAsset.name}
+          biggest={false}
         />
       );
     }
 
     return (
       <AvatarToken
-        name={mappedAsset.symbol}
-        imageSource={mappedAsset.image ? { uri: mappedAsset.image } : undefined}
+        name={asset?.symbol}
+        imageSource={asset?.image ? { uri: asset.image } : undefined}
         size={AvatarSize.Xl}
       />
     );
-  }, [mappedAsset, styles.ethLogo, chainId]);
+  }, [asset, styles.ethLogo, chainId]);
 
   // Return null if chainId is missing
-  if (!chainId) {
+  if (!chainId || !asset) {
     return null;
   }
 
@@ -168,9 +144,9 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
     <AssetElement
       onPress={onPress}
       disabled={disabled}
-      asset={mappedAsset}
-      balance={mappedMainBalance}
-      secondaryBalance={mappedSecondaryBalance}
+      asset={asset}
+      balance={mainBalance}
+      secondaryBalance={secondaryBalance}
       privacyMode={privacyMode}
     >
       <BadgeWrapper
@@ -188,7 +164,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
       <View style={styles.balances}>
         <View style={styles.assetName}>
           <Text variant={TextVariant.BodyMD} numberOfLines={1}>
-            {mappedAsset.name || mappedAsset.symbol}
+            {asset.name || asset.symbol}
           </Text>
         </View>
         <View style={styles.allowanceStatusContainer}>
