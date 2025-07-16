@@ -67,23 +67,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       flexDirection: 'row',
       gap: 16,
     },
-
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingBottom: 0,
-      paddingVertical: 8,
-    },
-    tabBar: {
-      borderColor: colors.background.default,
-    },
-    textStyle: {
-      ...typography.sBodyMDMedium,
-      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
-      fontWeight: '500',
-    },
     loader: {
       backgroundColor: colors.background.default,
       flex: 1,
