@@ -42,9 +42,11 @@ const _selectSortedTokenKeys = createSelector(
     nonEvmTokens,
     ///: END:ONLY_INCLUDE_IF
   ) => {
+    // Use selectorSafe to prevent infinite loops (trace -> Redux dispatch -> selector re-run)
     trace({
       name: TraceName.Tokens,
       tags: getTraceTags(store.getState()),
+      selectorSafe: true,
     });
 
     const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
@@ -56,7 +58,10 @@ const _selectSortedTokenKeys = createSelector(
 
     const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
 
-    endTrace({ name: TraceName.Tokens });
+    endTrace({
+      name: TraceName.Tokens,
+      selectorSafe: true,
+    });
 
     return tokensSorted.map(({ address, chainId, isStaked }) => ({
       address,

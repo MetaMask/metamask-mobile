@@ -153,6 +153,9 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
+// Local buffer for traces with skipReduxBuffering flag
+const localBufferedTraces: BufferedTrace[] = [];
+
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
@@ -213,6 +216,12 @@ export interface TraceRequest {
    * Custom operation name to associate with the trace.
    */
   op?: string;
+
+  /**
+   * Set to true when tracing from within Redux selectors to prevent infinite loops.
+   * Uses local memory buffering instead of Redux actions when consent is not given.
+   */
+  selectorSafe?: boolean;
 }
 /**
  * A request to end a pending trace.
@@ -239,6 +248,12 @@ export interface EndTraceRequest {
    * These will be set as attributes on the span.
    */
   data?: Record<string, TraceValue>;
+
+  /**
+   * Set to true when tracing from within Redux selectors to prevent infinite loops.
+   * Uses local memory buffering instead of Redux actions when consent is not given.
+   */
+  selectorSafe?: boolean;
 }
 
 interface SentrySpanWithName extends Span {
@@ -281,7 +296,12 @@ export function endTrace(request: EndTraceRequest): void {
   const id = getTraceId(request);
 
   if (getCachedConsent() !== true) {
-    bufferTraceEndCall(request);
+    // Check if we should skip Redux buffering
+    if (request.selectorSafe) {
+      bufferTraceEndCallLocal(request);
+    } else {
+      bufferTraceEndCall(request);
+    }
     return;
   }
 
@@ -324,6 +344,24 @@ function getStoreIfReady() {
 }
 
 /**
+ * Create a buffered trace object for start trace requests
+ */
+function createBufferedStartTrace(
+  request: TraceRequest,
+  parentTraceName?: string,
+): BufferedTrace {
+  return {
+    type: 'start',
+    request: {
+      ...request,
+      parentContext: undefined, // Remove original parentContext to avoid invalid references
+      startTime: request.startTime ?? Date.now(),
+    },
+    parentTraceName,
+  } as BufferedTrace;
+}
+
+/**
  * Buffer a trace start call with parent context information
  * @param {*} request - trace request
  * @param {string | undefined} parentTraceName - parent trace name for reconnection
@@ -338,16 +376,21 @@ export function bufferTraceStartCall(
   }
 
   storeInstance.dispatch(
-    addBufferedTrace({
-      type: 'start',
-      request: {
-        ...request,
-        parentContext: undefined, // Remove original parentContext to avoid invalid references
-        startTime: request.startTime ?? Date.now(),
-      },
-      parentTraceName,
-    } as BufferedTrace),
+    addBufferedTrace(createBufferedStartTrace(request, parentTraceName)),
   );
+}
+
+/**
+ * Create a buffered trace object for end trace requests
+ */
+function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
+  return {
+    type: 'end',
+    request: {
+      ...request,
+      timestamp: request.timestamp ?? Date.now(),
+    },
+  } as BufferedTrace;
 }
 
 /**
@@ -360,15 +403,24 @@ export function bufferTraceEndCall(request: EndTraceRequest) {
     return;
   }
 
-  storeInstance.dispatch(
-    addBufferedTrace({
-      type: 'end',
-      request: {
-        ...request,
-        timestamp: request.timestamp ?? Date.now(),
-      },
-    } as BufferedTrace),
-  );
+  storeInstance.dispatch(addBufferedTrace(createBufferedEndTrace(request)));
+}
+
+/**
+ * Buffer a trace start call in local memory (for selectorSafe cases)
+ */
+function bufferTraceStartCallLocal(
+  request: TraceRequest,
+  parentTraceName?: string,
+) {
+  localBufferedTraces.push(createBufferedStartTrace(request, parentTraceName));
+}
+
+/**
+ * Buffer a trace end call in local memory (for selectorSafe cases)
+ */
+function bufferTraceEndCallLocal(request: EndTraceRequest) {
+  localBufferedTraces.push(createBufferedEndTrace(request));
 }
 
 /**
@@ -380,15 +432,25 @@ export async function flushBufferedTraces() {
     return;
   }
 
-  const bufferedTraces = selectBufferedTraces(storeInstance.getState());
-  if (bufferedTraces.length === 0) {
+  const reduxBufferedTraces = selectBufferedTraces(storeInstance.getState());
+  const localBufferedTracesCopy = [...localBufferedTraces];
+
+  // Combine Redux buffered traces with local buffered traces
+  const allBufferedTraces = [
+    ...reduxBufferedTraces,
+    ...localBufferedTracesCopy,
+  ];
+
+  if (allBufferedTraces.length === 0) {
     return;
   }
+
   storeInstance.dispatch(clearBufferedTraces());
+  localBufferedTraces.length = 0;
 
   const activeSpans = new Map<string, Span>();
 
-  for (const bufferedItem of bufferedTraces) {
+  for (const bufferedItem of allBufferedTraces) {
     if (bufferedItem.type === 'start') {
       const traceKey = getTraceKey(bufferedItem.request);
 
@@ -457,6 +519,7 @@ export function discardBufferedTraces() {
     return;
   }
   storeInstance.dispatch(clearBufferedTraces());
+  localBufferedTraces.length = 0; // Clear local buffer as well
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -469,10 +532,21 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
       const parentSpan = request.parentContext as SentrySpanWithName;
       parentTraceName = parentSpan._name;
     }
+
+    // Check if we should skip Redux buffering
+    if (request.selectorSafe) {
+      bufferTraceStartCallLocal(request, parentTraceName);
+      const result = fn(undefined);
+      bufferTraceEndCallLocal({
+        name: request.name,
+        id: request.id,
+        selectorSafe: true,
+      });
+      return result;
+    }
     bufferTraceStartCall(request, parentTraceName);
     const result = fn(undefined);
     bufferTraceEndCall({ name: request.name, id: request.id });
-
     return result;
   }
 
@@ -518,8 +592,13 @@ function startTrace(request: TraceRequest): TraceContext {
       const parentSpan = request.parentContext as SentrySpanWithName;
       parentTraceName = parentSpan._name;
     }
-    bufferTraceStartCall(request, parentTraceName);
 
+    // Check if we should skip Redux buffering
+    if (request.selectorSafe) {
+      bufferTraceStartCallLocal(request, parentTraceName);
+      return { _buffered: true, _name: name, _id: id, _local: true };
+    }
+    bufferTraceStartCall(request, parentTraceName);
     return { _buffered: true, _name: name, _id: id };
   }
 
