@@ -80,7 +80,7 @@ describe(
 
           // Create second account with sync enabled - this should sync to user storage
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           // Wait for sync operation to complete
           await waitUntilEventsEmittedNumberEquals(1);
@@ -125,7 +125,7 @@ describe(
           // Create third account with sync disabled - this should NOT sync to user storage
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           // Verify third account was created locally
           await Assertions.expectElementToBeVisible(

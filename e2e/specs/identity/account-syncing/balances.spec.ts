@@ -63,7 +63,7 @@ describe(
 
           // Add another second EVM account
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           await waitUntilEventsEmittedNumberEquals(1);
         },

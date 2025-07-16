@@ -16,7 +16,7 @@ export async function prepareSwapsTestEnvironment(): Promise<void> {
         // Add a new account
         await WalletView.tapIdenticon();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
          await AccountListBottomSheet.swipeToDismissAccountsModal();
 
         // Disable Smart Transactions (stx)
