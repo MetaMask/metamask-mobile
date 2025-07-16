@@ -3218,7 +3218,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 }
                               }
                             >
-                              An error occurred while verifying the code
+                              API call failed
                             </Text>
                             <View
                               style={
