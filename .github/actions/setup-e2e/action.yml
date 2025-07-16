@@ -1,0 +1,400 @@
+name: 'Setup E2E Test Environment'
+description: 'Sets up the environment for running E2E tests'
+inputs:
+  platform:
+    description: 'Platform (ios or android)'
+    required: true
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20.18.0'
+  yarn-version:
+    description: Yarn version to use with Corepack
+    required: false
+    default: '1.22.22'
+  setup-simulator:
+    description: 'Whether to setup simulator/emulator'
+    required: false
+    default: 'false'
+  # See https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md#installed-simulators
+  ios-device:
+    description: Name of iOS device to boot (e.g., "iPhone 15")
+    required: false
+    default: 'iPhone 15'
+  bundler-version:
+    description: 'Bundler version to use (only for iOS)'
+    required: false
+    default: '2.5.8'
+  cache-prefix:
+    description: 'Cache key prefix'
+    required: false
+    default: 'e2e'
+  ruby-version:
+    description: Ruby version to use (only for iOS)
+    required: false
+    default: '3.1'
+  xcode-version:
+    description: Xcode version to select (e.g., 16.2)
+    required: false
+    default: '16.2'
+  jdk-version:
+    description: JDK version to use (only for Android)
+    required: false
+    default: '17'
+  jdk-distribution:
+    description: JDK distribution to use (only for Android)
+    required: false
+    default: 'temurin'
+  ndk-version:
+    description: NDK version to use (only for Android)
+    required: false
+    default: '26.1.10909125'
+  foundry-version:
+    description: Foundry version to install
+    required: false
+    default: 'v1.2.3'
+  android-avd-name:
+    description: 'Name of AVD to create and boot (for Android)'
+    required: false
+    default: 'test_e2e_avd'
+  android-device:
+    description: 'AVD device profile (e.g. "pixel")'
+    required: false
+    default: 'pixel'
+  android-api-level:
+    description: 'Android API level to use (e.g. "34")'
+    required: false
+    default: '34'
+  android-abi:
+    description: 'System architecture ABI for the Android system image (e.g. x86_64, arm64-v8a, armeabi-v7a)'
+    required: false
+    default: 'x86_64'
+
+runs:
+  using: 'composite'
+  steps:
+    ## Common Setup ##
+    - run: echo "Setup E2E Environment started"
+      shell: bash
+
+    ## Yarn Setup & Cache Management
+
+    - name: Corepack
+      id: corepack
+      run: corepack enable && corepack prepare yarn@${{ inputs.yarn-version }} --activate
+      shell: bash
+
+    - name: Restore Yarn cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-
+
+    - name: Install JavaScript dependencies
+      id: yarn-install
+      run: yarn install --frozen-lockfile
+      shell: bash
+      env:
+        NODE_OPTIONS: --max-old-space-size=4096 # Increase memory limit for Node.js due to large dependencies
+
+    - name: Install Detox CLI
+      id: install-detox-cli
+      run: yarn global add detox-cli
+      shell: bash
+
+    - name: Install Foundry
+      shell: bash
+      run: |
+        echo "Installing Foundry via foundryup..."
+
+        export FOUNDRY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/.foundry"
+        export FOUNDRY_BIN="$FOUNDRY_DIR/bin"
+
+        mkdir -p "$FOUNDRY_BIN"
+
+        curl -sL https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/foundryup -o "$FOUNDRY_BIN/foundryup"
+        chmod +x "$FOUNDRY_BIN/foundryup"
+
+        echo "$FOUNDRY_BIN" >> "$GITHUB_PATH"
+
+        "$FOUNDRY_BIN/foundryup"
+
+    ## IOS Setup ##
+
+    ## Ruby Setup & Cache Management
+    - name: Setup Ruby
+      if: ${{ inputs.platform == 'ios' }}
+      uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    # Install Bundler first
+    - name: Install bundler
+      if: ${{ inputs.platform == 'ios' }}
+      run: gem install bundler -v ${{ inputs.bundler-version }}
+      shell: bash
+
+    # Restore cached Ruby gems
+    - name: Restore Bundler cache
+      if: ${{ inputs.platform == 'ios' }}
+      uses: actions/cache@v4
+      with:
+        path: ios/vendor/bundle
+        key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('ios/Gemfile.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-
+
+    # Configure bundler to use a specific path for gem installation
+    - name: Configure bundler install path
+      if: ${{ inputs.platform == 'ios' }}
+      run: bundle config set path 'vendor/bundle'
+      working-directory: ios
+      shell: bash
+
+    # Install Ruby gems into ios/vendor/bundle ( cache management & awareness )
+    - name: Install Ruby gems via bundler
+      if: ${{ inputs.platform == 'ios' }}
+      run: bundle install
+      working-directory: ios
+      shell: bash
+
+    # Select Xcode version
+    - name: Select Xcode version
+      if: ${{ inputs.platform == 'ios' }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ inputs.xcode-version }}.app
+      shell: bash
+
+    # Restore CocoaPods cache
+    - name: Restore CocoaPods cache
+      if: ${{ inputs.platform == 'ios' && inputs.setup-simulator == 'true' }}
+      uses: actions/cache@v4
+      with:
+        path: ios/Pods
+        key: ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-pods-${{ inputs.platform }}-${{ runner.os }}-
+
+    # Install CocoaPods w/ cached bundler environment
+    - name: Install CocoaPods via bundler
+      if: ${{ inputs.platform == 'ios' && inputs.setup-simulator == 'true' }}
+      run: bundle exec pod install
+      working-directory: ios
+      shell: bash
+
+    - name: Install applesimutils
+      if: ${{ inputs.platform == 'ios' }}
+      run: brew tap wix/brew && brew install applesimutils
+      shell: bash
+
+    - name: Boot iOS Simulator (if not already booted)
+      if: ${{ inputs.platform == 'ios' && inputs.setup-simulator == 'true' }}
+      run: |
+        echo "Looking for simulator named: ${{ inputs.ios-device }}"
+
+        SIMULATOR_LINE=$(xcrun simctl list devices | grep -m1 "${{ inputs.ios-device }}")
+        if [ -z "$SIMULATOR_LINE" ]; then
+          echo "No simulator found with name '${{ inputs.ios-device }}'"
+          exit 1
+        fi
+
+        SIMULATOR_ID=$(echo "$SIMULATOR_LINE" | awk -F '[()]' '{print $2}')
+        SIMULATOR_STATE=$(echo "$SIMULATOR_LINE" | awk -F '[()]' '{print $(NF-1)}')
+
+        echo "Simulator ID: $SIMULATOR_ID"
+        echo "Simulator State: $SIMULATOR_STATE"
+
+        if [ "$SIMULATOR_STATE" = "Booted" ]; then
+          echo "Simulator is already booted. Skipping boot step."
+        else
+          echo "Booting simulator..."
+          xcrun simctl boot "$SIMULATOR_ID"
+        fi
+      shell: bash
+
+    ## Android Setup ##
+
+    ## JDK Setup
+    - name: Setup Java
+      if: ${{ inputs.platform == 'android' }}
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+      with:
+        java-version: ${{ inputs.jdk-version }}
+        distribution: ${{ inputs.jdk-distribution }}
+
+    ## Android SDK Setup
+
+    - name: Install required emulator dependencies
+      if: ${{ inputs.platform == 'android' && runner.os == 'Linux' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libpulse0 \
+          libglu1-mesa \
+          libnss3 \
+          libxss1
+        
+        echo "✅ Linux dependencies installed successfully"
+      shell: bash
+
+    - name: Install Android SDK packages
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        echo "Accepting SDK licenses..."
+        printf 'y\n%.0s' {1..10} | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses
+
+        echo "Installing Android SDK components..."
+        "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --install \
+          "platform-tools" \
+          "platforms;android-${{ inputs.android-api-level }}" \
+          "build-tools;34.0.0" \
+          "emulator" \
+          "system-images;android-${{ inputs.android-api-level }};google_apis;${{ inputs.android-abi }}" \
+
+        echo "Updating SDK packages..."
+        "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --update
+        
+        echo "✅ Android SDK packages installed successfully"
+      shell: bash
+
+    ## NDK Setup
+
+    - name: Debug Android SDK Paths
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+      shell: bash
+
+    - name: Install Android NDK
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${{ inputs.ndk-version }}"
+      shell: bash
+
+    - name: Add Android tools to PATH
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+        echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+      shell: bash
+
+    - name: Add NDK related toolchains to PATH
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          NDK_TOOLCHAIN="$ANDROID_SDK_ROOT/ndk/${{ inputs.ndk-version }}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+        else
+          NDK_TOOLCHAIN="$ANDROID_SDK_ROOT/ndk/${{ inputs.ndk-version }}/toolchains/llvm/prebuilt/darwin-x86_64/bin"
+        fi
+        echo "$NDK_TOOLCHAIN" >> "$GITHUB_PATH"
+        echo "$ANDROID_SDK_ROOT/ndk/${{ inputs.ndk-version }}" >> "$GITHUB_PATH"
+      shell: bash
+
+    ## Launch AVD
+
+    - name: Set ANDROID_AVD_HOME for downstream steps
+      if: ${{ inputs.platform == 'android'}}
+      shell: bash
+      run: |
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
+        mkdir -p "$HOME/.android/avd"
+
+    - name: Create Android Virtual Device (AVD)
+      if: ${{ inputs.platform == 'android'}}
+      run: |
+        IMAGE="system-images;android-${{ inputs.android-api-level }};google_apis;${{ inputs.android-abi }}"
+        echo "Creating AVD with image: $IMAGE"
+        echo "no" | "${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager" create avd \
+          --name "${{ inputs.android-avd-name }}" \
+          --package "$IMAGE" \
+          --device "${{ inputs.android-device }}"
+      shell: bash
+
+    # Launch Android Emulator
+    - name: Launch Android Emulator
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          # Linux with KVM hardware acceleration
+          nohup "$ANDROID_HOME/emulator/emulator" \
+            -avd "${{ inputs.android-avd-name }}" \
+            -no-audio \
+            -no-boot-anim \
+            -no-window \
+            -gpu swiftshader_indirect \
+            -no-snapshot \
+            -wipe-data \
+            -accel on \
+            -verbose > /dev/null 2>&1 &
+        else
+          # macOS
+          nohup "$ANDROID_HOME/emulator/emulator" \
+            -avd "${{ inputs.android-avd-name }}" \
+            -no-audio \
+            -no-boot-anim \
+            -no-window \
+            -verbose > /dev/null 2>&1 &
+        fi
+      shell: bash
+
+    ## Wait for Emulator to Boot
+    - name: Wait for Android Emulator to Boot
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      run: |
+        echo "Waiting for emulator to be ready on $RUNNER_OS..."
+        
+        # Wait for device to be detected by ADB
+        echo "Waiting for ADB to detect device..."
+        adb wait-for-device
+        
+        # Additional wait for emulator to stabilize
+        sleep 10
+        
+        # Check emulator status
+        echo "Checking emulator processes..."
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          ps aux | grep emulator || echo "No emulator processes found"
+        fi
+        
+        # Wait for boot to complete
+        bootanim=""
+        timeout=600  # 10 minutes for initial boot (Linux might be slower)
+        elapsed=0
+
+        while [[ "$elapsed" -lt "$timeout" ]]; do
+          bootanim=$(adb shell getprop init.svc.bootanim 2>/dev/null || echo "unknown")
+          sys_boot_completed=$(adb shell getprop sys.boot_completed 2>/dev/null || echo "0")
+          
+          echo "Waiting for emulator... bootanim: $bootanim, boot_completed: $sys_boot_completed (${elapsed}s elapsed)"
+
+          if [[ "$bootanim" == *"stopped"* ]] && [[ "$sys_boot_completed" == "1" ]]; then
+            echo "✅ Emulator booted successfully"
+            
+            # Unlock screen and disable animations for testing
+            adb shell input keyevent 82  # Unlock
+            adb shell settings put global window_animation_scale 0
+            adb shell settings put global transition_animation_scale 0
+            adb shell settings put global animator_duration_scale 0
+            
+            echo "✅ Emulator is ready for testing"
+            exit 0
+          fi
+
+          sleep 10
+          elapsed=$((elapsed + 10))
+        done
+
+        echo "❌ Timeout waiting for emulator to boot"
+        
+        # Debug information on failure
+        echo "Debug: ADB devices:"
+        adb devices
+        echo "Debug: Emulator processes:"
+        ps aux | grep emulator || echo "No emulator processes found"
+        
+        exit 1
+      shell: bash 
