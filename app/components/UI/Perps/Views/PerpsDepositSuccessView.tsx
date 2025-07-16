@@ -18,7 +18,6 @@ import Text, {
   TextColor,
   TextVariant
 } from '../../../../component-library/components/Texts/Text';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import Routes from '../../../../constants/navigation/Routes';
@@ -125,7 +124,6 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute();
-  // No PerpsController needed - balance refresh handled by PerpsView
 
   const params = route.params as DepositSuccessParams;
   const { amount, selectedToken, txHash, processingTime } = params || {};
@@ -154,30 +152,14 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
     });
   }, [selectedToken, tokenList, isIpfsGatewayEnabled]);
 
-  // No manual refresh needed - PerpsView automatically refreshes HyperLiquid
-  // account state when navigated back to it
 
   const handleViewBalance = useCallback(() => {
-    DevLogger.log('PerpsDepositSuccess: Navigating back to Perps view', {
-      amount,
-      selectedToken,
-      txHash,
-      timestamp: new Date().toISOString()
-    });
-
-    // Navigate back to main Perps view - it will auto-refresh HyperLiquid balance
     navigation.navigate(Routes.PERPS.TRADING_VIEW);
-  }, [navigation, amount, selectedToken, txHash]);
+  }, [navigation]);
 
   const handleViewTransaction = useCallback(() => {
-    DevLogger.log('PerpsDepositSuccess: View transaction requested', {
-      txHash,
-      timestamp: new Date().toISOString()
-    });
-
-    // In real implementation, open blockchain explorer
-    // For now, just log the action
-  }, [txHash]);
+    // TODO: Open blockchain explorer
+  }, []);
 
   const formatProcessingTime = (seconds?: number) => {
     if (!seconds) return 'Unknown';

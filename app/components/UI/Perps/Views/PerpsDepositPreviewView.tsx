@@ -33,7 +33,6 @@ import { addCurrencySymbol } from '../../../../util/number';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import { ARBITRUM_MAINNET_CHAIN_ID, HYPERLIQUID_ASSET_CONFIGS } from '../constants/hyperLiquidConfig';
 import { usePerpsDepositQuote, usePerpsTrading } from '../hooks';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
@@ -158,7 +157,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
   const { amount, selectedToken } = route.params;
 
-  // Real pricing and gas data selectors
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -167,21 +165,17 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
-  // Get enabled chains from Redux instead of hardcoding
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledChainIds = useMemo(
     () => enabledSourceChains.map((chain) => chain.chainId),
     [enabledSourceChains]
   );
 
-  // Get real token data with balances using enabled chains from Redux
   const tokens = useTokensWithBalance({
     chainIds: enabledChainIds
   });
 
-  // Convert string selectedToken to PerpsToken object with enhanced token metadata
   const selectedTokenObject: PerpsToken = useMemo(() => {
-    // Find the selected token in our real token data
     const selectedTokenData = tokens.find(token =>
       token.symbol.toUpperCase() === selectedToken.toUpperCase()
     );
@@ -197,7 +191,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         balanceFiat: selectedTokenData.balanceFiat ? addCurrencySymbol(parseFloat(selectedTokenData.balanceFiat.toString()), currentCurrency) : undefined,
       };
 
-      // Enhance with proper token icon using our utility
       return enhanceTokenWithIcon({
         token: baseToken,
         tokenList,
@@ -205,7 +198,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
       });
     }
 
-    // Fallback for USDC on Arbitrum with enhanced icon
     const fallbackToken = {
       symbol: 'USDC',
       address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
@@ -221,23 +213,13 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     });
   }, [selectedToken, tokens, tokenList, isIpfsGatewayEnabled, currentCurrency]);
 
-  // Get deposit functionality
   const { deposit, getDepositRoutes } = usePerpsTrading();
-  // Get quote data using Bridge patterns
   const { formattedQuoteData, isLoading: isQuoteLoading } = usePerpsDepositQuote({
     amount,
     selectedToken: selectedTokenObject,
     getDepositRoutes,
   });
 
-  // Debug logging
-  DevLogger.log('PerpsDepositPreviewView: Quote data', {
-    amount,
-    selectedToken,
-    selectedTokenObject,
-    formattedQuoteData,
-    isQuoteLoading,
-  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -245,46 +227,36 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
   const handleConfirm = useCallback(async () => {
     try {
-      // Check if this is a direct deposit (USDC on Arbitrum only)
       const isDirectDeposit = selectedToken === 'USDC' && selectedTokenObject.chainId === `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`;
 
-      // Navigate to processing screen first
       navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
         amount,
         selectedToken,
         isDirectDeposit,
       });
 
-      // Start the deposit process
-      // TODO: Convert selectedToken to proper CAIP asset ID format
-      // Using configuration constants instead of hardcoded values
       const usdcArbitrumAssetId = HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
       await deposit({
         amount,
         assetId: usdcArbitrumAssetId,
       });
     } catch (error) {
-      console.error('Failed to initiate deposit:', error);
       // Error handling is managed by the processing screen
     }
   }, [navigation, amount, selectedToken, selectedTokenObject.chainId, deposit]);
 
-  // Real exchange rate calculation using MetaMask pricing data - NO HARDCODED VALUES
   const exchangeAmount = useMemo(() => {
     const usdcAmount = parseFloat(amount || '0');
     if (usdcAmount === 0 || !selectedToken) return '0.00';
 
-    // Find the selected token in our real token data
     const selectedTokenData = tokens.find(token =>
       token.symbol.toUpperCase() === selectedToken.toUpperCase()
     );
 
     if (!selectedTokenData) {
-      // No token data available, cannot calculate exchange rate
       return '0.00';
     }
 
-    // Get token price using the same utilities as Bridge
     try {
       const displayValue = getDisplayCurrencyValue({
         token: selectedTokenData,
@@ -296,7 +268,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         nonEvmMultichainAssetRates: multichainAssetRates
       });
 
-      // Parse the display value to get numeric price
       const tokenPriceInUsd = parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
 
       if (tokenPriceInUsd > 0) {
@@ -304,18 +275,14 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         return tokenAmount.toFixed(4);
       }
     } catch (error) {
-      console.warn('Failed to calculate token exchange rate:', error);
+      // Silent failure - return 0 if pricing data unavailable
     }
 
-    // If we can't get real pricing data, return 0 instead of using fallbacks
     return '0.00';
   }, [amount, selectedToken, tokens, tokenMarketData, currencyRates, currentCurrency, networkConfigurations, multichainAssetRates]);
 
-  // Use formattedQuoteData instead of manual calculations
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}

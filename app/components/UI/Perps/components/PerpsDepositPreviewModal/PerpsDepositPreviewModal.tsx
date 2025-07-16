@@ -20,7 +20,6 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsDepositPreviewModal.styles';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsDepositPreviewModalProps {
   isVisible: boolean;
@@ -51,16 +50,6 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  // Debug logging
-  DevLogger.log('PerpsDepositPreviewModal: Props received', {
-    amount,
-    selectedToken,
-    tokenAmount,
-    networkFee,
-    estimatedTime,
-    isLoading,
-    error,
-  });
 
   const handleConfirm = useCallback(() => {
     onConfirm();

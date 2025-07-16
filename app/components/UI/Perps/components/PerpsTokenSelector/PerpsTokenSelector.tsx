@@ -18,7 +18,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { getDefaultNetworkByChainId, getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useTheme } from '../../../../../util/theme';
@@ -164,18 +163,6 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
       item.chainId === selectedTokenChainId;
     const isLast = index === supportedTokens.length - 1;
 
-    DevLogger.log('PerpsTokenSelector: Token selection debug', {
-      symbol: item.symbol,
-      address: item.address,
-      addressLower: item.address.toLowerCase(),
-      chainId: item.chainId,
-      selectedTokenAddress,
-      selectedTokenAddressLower: selectedTokenAddress?.toLowerCase(),
-      selectedTokenChainId,
-      isSelected,
-      addressMatch: item.address.toLowerCase() === selectedTokenAddress?.toLowerCase(),
-      chainIdMatch: item.chainId === selectedTokenChainId,
-    });
 
     return (
       <TouchableOpacity
@@ -202,14 +189,7 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
             }
           >
             <AvatarToken
-              imageSource={(() => {
-                DevLogger.log('PerpsTokenSelector: Token icon debug', {
-                  symbol: item.symbol,
-                  image: item.image,
-                  hasImage: !!item.image,
-                });
-                return item.image ? { uri: item.image } : undefined;
-              })()}
+              imageSource={item.image ? { uri: item.image } : undefined}
               name={item.symbol}
               size={AvatarSize.Md}
             />

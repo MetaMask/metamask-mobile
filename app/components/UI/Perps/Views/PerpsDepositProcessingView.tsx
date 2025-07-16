@@ -18,7 +18,6 @@ import Text, {
   TextColor,
   TextVariant
 } from '../../../../component-library/components/Texts/Text';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import {
@@ -149,9 +148,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute();
-  // No PerpsController needed - balance refresh handled by PerpsView
 
-  // Get reactive state from PerpsController
   const {
     status: depositStatus,
     steps: depositSteps,
@@ -161,15 +158,12 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
   const { amount, selectedToken, txHash, isDirectDeposit = false } = (route.params as DepositProcessingParams) || {};
 
-  // Get token list for icon enhancement
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
-  // Create enhanced token object with proper icon
   const enhancedToken = useMemo(() => {
     if (!selectedToken) return null;
 
-    // Create base token object (fallback to USDC on Arbitrum)
     const baseToken = {
       symbol: selectedToken,
       address: '', // Let the icon enhancement find the address from token list
@@ -185,23 +179,10 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     });
   }, [selectedToken, tokenList, isIpfsGatewayEnabled]);
 
-  // Use the actual transaction hash from controller if available, otherwise fallback to route param
   const actualTxHash = currentTxHash || txHash;
 
-  // No manual balance refresh needed - PerpsView automatically refreshes
-  // HyperLiquid account state when navigated to via useEffect
-
-  // Navigate to success screen when deposit completes successfully
   useEffect(() => {
     if (depositStatus === 'success' && actualTxHash) {
-      DevLogger.log('PerpsDepositProcessing: Navigating to success screen', {
-        depositStatus,
-        actualTxHash,
-        amount,
-        selectedToken
-      });
-
-      // Navigate to success after short delay to show success state
       const timer = setTimeout(() => {
         navigation.navigate(Routes.PERPS.DEPOSIT_SUCCESS, {
           amount,
@@ -219,7 +200,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [navigation]);
 
   const handleRetry = useCallback(() => {
-    // For now, just navigate back to deposit screen
     navigation.goBack();
   }, [navigation]);
 
@@ -228,7 +208,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [navigation]);
 
   const getStatusContent = () => {
-    // Use controller state if available, otherwise fall back to local logic
     const currentStep = depositSteps.currentStep;
     const stepName = depositSteps.stepNames[currentStep - 1];
 
@@ -289,7 +268,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
         };
       case 'idle':
       default:
-        // Fallback for when controller state is not yet set
         return {
           icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
           title: isDirectDeposit ? strings('perps.deposit.steps.depositing') : strings('perps.deposit.steps.preparing'),
@@ -302,7 +280,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.placeholder} />
         <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
@@ -318,7 +295,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
       </View>
 
       <View style={styles.content}>
-        {/* Status Content */}
         <View style={styles.statusContainer}>
           <View style={styles.statusIcon}>
             {statusContent?.icon}
@@ -358,7 +334,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           </Text>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actionButton}>
           {depositStatus === 'success' && (
             <Button

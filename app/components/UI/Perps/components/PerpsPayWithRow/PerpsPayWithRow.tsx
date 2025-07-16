@@ -23,7 +23,6 @@ import { useTheme } from '../../../../../util/theme';
 import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsPayWithRow.styles';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsPayWithRowProps {
   selectedToken: PerpsToken;
@@ -57,16 +56,6 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
 
   const networkName = getNetworkName(selectedToken.chainId || '0x1');
 
-  // Debug token icon data
-  DevLogger.log('PerpsPayWithRow: Token icon debug', {
-    symbol: selectedToken.symbol,
-    name: selectedToken.name,
-    image: selectedToken.image,
-    hasImage: !!selectedToken.image,
-    chainId: selectedToken.chainId,
-    address: selectedToken.address,
-    fullToken: selectedToken,
-  });
 
   return (
     <TouchableOpacity

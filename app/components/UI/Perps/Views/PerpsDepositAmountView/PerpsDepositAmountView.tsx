@@ -1,8 +1,9 @@
-import { type Hex, parseCaipAssetId } from '@metamask/utils';
-import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
+import { type Hex, parseCaipAssetId } from '@metamask/utils';
+
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -19,7 +20,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-// Removed swapsTokensWithBalanceSelector - using Bridge's useTokensWithBalance instead
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectSourceToken as selectBridgeSourceToken,
@@ -29,7 +29,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { selectEvmChainId, selectNetworkConfigurations, selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import { selectNetworkConfigurations, selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
 import { selectContractBalances, selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
@@ -47,7 +47,6 @@ import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
-  ARBITRUM_SEPOLIA_CHAIN_ID,
   HYPERLIQUID_ASSET_CONFIGS,
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
@@ -59,7 +58,7 @@ import {
   ZERO_ADDRESS
 } from '../../constants/hyperLiquidConfig';
 import type { AssetRoute, DepositParams, PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsTrading } from '../../hooks';
+import { usePerpsTrading, usePerpsNetwork } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
@@ -83,7 +82,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
 
   // Selectors
-  const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const balances = useSelector(selectContractBalances);
@@ -94,16 +92,12 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const bridgeSourceToken = useSelector(selectBridgeSourceToken);
 
-  // Start gas polling
   useGasFeeEstimates(selectedNetworkClientId);
 
-  // Hooks
   const { getDepositRoutes, deposit } = usePerpsTrading();
+  const perpsNetwork = usePerpsNetwork();
+  const isTestnet = perpsNetwork === 'testnet';
 
-  // Check if we're on testnet
-  const isTestnet = chainId === HYPERLIQUID_TESTNET_CHAIN_ID || chainId === ARBITRUM_SEPOLIA_CHAIN_ID;
-
-  // Default destination token (USDC on Hyperliquid)
   const destToken = useMemo<PerpsToken>(() => {
     const hyperliquidChainId = isTestnet ? HYPERLIQUID_TESTNET_CHAIN_ID : HYPERLIQUID_MAINNET_CHAIN_ID;
     const baseToken: PerpsToken = {
@@ -112,16 +106,13 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       decimals: USDC_DECIMALS,
       name: USDC_NAME,
       chainId: hyperliquidChainId,
-      // Add exchange rate for USDC (1:1 with USD)
       currencyExchangeRate: 1,
     };
 
-    // Try to get USDC icon from source token or token list
     if (sourceToken?.symbol === USDC_SYMBOL && sourceToken.image) {
       return { ...baseToken, image: sourceToken.image };
     }
 
-    // Fallback to searching token list
     if (tokenList) {
       const usdcToken = Object.values(tokenList).find(
         (token) => token.symbol === USDC_SYMBOL
@@ -135,7 +126,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return baseToken;
   }, [tokenList, sourceToken, isTestnet]);
 
-  // Initialize default source token (USDC on Arbitrum)
   useEffect(() => {
     if (!sourceToken && tokenList) {
       try {
@@ -143,7 +133,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         const parsedAsset = parseCaipAssetId(usdcConfig);
 
         if (!parsedAsset.assetNamespace || parsedAsset.assetNamespace !== 'erc20' || !parsedAsset.assetReference) {
-          console.error('Invalid USDC asset configuration:', usdcConfig);
           return;
         }
 
@@ -163,20 +152,17 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         setSourceToken(enhancedToken);
       } catch (err) {
-        console.error('Failed to initialize default USDC token:', err);
+        // Silent failure - token selector will allow user to pick a token
       }
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
 
-
-  // Use deposit quote hook - only run when sourceToken is loaded
   const { formattedQuoteData, isLoading: isQuoteLoading } = usePerpsDepositQuote({
     amount: sourceToken ? (sourceAmount || '0') : '0',
     selectedToken: sourceToken || destToken,
     getDepositRoutes,
   });
 
-  // Calculate token balance
   const sourceBalance = useMemo(() => {
     if (!sourceToken || !selectedAddress) return undefined;
 
@@ -203,48 +189,37 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return '0';
   }, [sourceToken, selectedAddress, accountsByChainId, balances, balancesPerChain]);
 
-  // Get all EVM chain IDs
   const allChainIds = useMemo(() => {
     if (!networkConfigurations) return [];
 
-    // Get all chain IDs from network configurations
     return Object.keys(networkConfigurations)
       .filter(id => {
-        // Filter out non-EVM chains (Solana, etc)
         const networkChainId = id as Hex;
-        // Solana chain IDs start with 'solana:'
         return !networkChainId.startsWith('solana:');
       }) as Hex[];
   }, [networkConfigurations]);
 
-  // Initialize Bridge state for token selector
   useEffect(() => {
     if (allChainIds.length > 0) {
-      // Set Bridge view mode to enable proper token filtering
       dispatch(setBridgeViewMode(BridgeViewMode.Bridge));
-      // Set all chain IDs as source chains
       dispatch(setSelectedSourceChainIds(allChainIds));
     }
   }, [allChainIds, dispatch]);
 
-  // Listen for token selection from Bridge token selector
   useFocusEffect(
     useCallback(() => {
       if (bridgeSourceToken && bridgeSourceToken !== sourceToken) {
         setSourceToken(bridgeSourceToken as PerpsToken);
-        // Clear the bridge source token to avoid re-selecting on next focus
         dispatch(setBridgeSourceToken(undefined));
       }
     }, [bridgeSourceToken, sourceToken, dispatch])
   );
 
-  // Check if user has sufficient balance
   const hasInsufficientBalance = useMemo(() => {
     if (!sourceAmount || !sourceBalance) return false;
     return parseFloat(sourceAmount) > parseFloat(sourceBalance);
   }, [sourceAmount, sourceBalance]);
 
-  // Check minimum deposit amount
   const minimumDepositAmount = isTestnet ? TRADING_DEFAULTS.amount.testnet : TRADING_DEFAULTS.amount.mainnet;
 
   const isBelowMinimumDeposit = useMemo(() => {
@@ -252,9 +227,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return parseFloat(sourceAmount) < minimumDepositAmount;
   }, [sourceAmount, sourceToken, minimumDepositAmount]);
 
-  // Remove auto-blur - user should control when to close keypad
-
-  // Handlers
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -267,27 +239,22 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   }, []);
 
   const handleTokenSelectPress = useCallback(() => {
-    // Navigate to Bridge's source token selector
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
     });
   }, [navigation]);
 
-
-  // Percentage keypad handlers
   const handlePercentagePress = useCallback((percentage: number) => {
     if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
 
     const balanceNum = parseFloat(sourceBalance);
     const newAmount = (balanceNum * percentage).toFixed(sourceToken?.decimals || USDC_DECIMALS);
     setSourceAmount(newAmount);
-    // Don't close the keypad, let user continue editing
   }, [sourceBalance, sourceToken]);
 
   const handleMaxPress = useCallback(() => {
     if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
     setSourceAmount(sourceBalance);
-    // Don't close the keypad, let user continue editing
   }, [sourceBalance]);
 
   const handleDonePress = useCallback(() => {
@@ -296,7 +263,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     if (inputRef.current) {
       inputRef.current.blur();
     }
-    // Reset shouldBlur after a short delay
     setTimeout(() => setShouldBlur(false), 100);
   }, []);
 
@@ -309,7 +275,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       setIsSubmittingTx(true);
       setError(null);
 
-      // Find matching deposit route
       const supportedRoutes = getDepositRoutes();
       const selectedTokenAddress = sourceToken.address.toLowerCase();
       const assetId = supportedRoutes.find((route: AssetRoute) =>
@@ -328,11 +293,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
       await deposit(depositParams);
 
-      // Navigate to processing view
       navigation.navigate('PerpsDepositProcessing', {
         amount: sourceAmount,
         fromToken: sourceToken.symbol,
-        transactionHash: '', // Will be updated by deposit state
+        transactionHash: '',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -341,13 +305,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
   }, [sourceToken, sourceAmount, selectedAddress, getDepositRoutes, deposit, navigation]);
 
-  // Component conditions
   const hasAmount = sourceAmount && parseFloat(sourceAmount) > 0;
   const hasValidInputs = hasAmount && sourceToken && !hasInsufficientBalance && !isBelowMinimumDeposit;
   const shouldDisplayQuoteDetails = hasAmount && !isQuoteLoading && sourceToken;
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
-  // Get button label
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('perps.deposit.insufficient_funds');
     if (isBelowMinimumDeposit) return strings('perps.deposit.minimum_deposit_error', { amount: minimumDepositAmount });
@@ -357,14 +319,12 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return strings('perps.deposit.get_usdc');
   };
 
-  // Calculate destination amount (1:1 for USDC)
   const destAmount = sourceAmount || '';
 
   return (
     // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -387,7 +347,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Token Input Areas */}
           <Box style={styles.inputsContainer} gap={8}>
             <TokenInputArea
               ref={inputRef}
@@ -400,7 +359,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               onTokenPress={handleTokenSelectPress}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => {
-                // Only hide keypad if Done button was pressed
                 if (shouldBlur) {
                   setIsInputFocused(false);
                 }
@@ -427,7 +385,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             />
           </Box>
 
-          {/* Quote Details - Always visible when amount is entered */}
           {shouldDisplayQuoteDetails && (
             <Box style={styles.quoteContainer}>
               <PerpsQuoteDetailsCard
@@ -441,10 +398,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           )}
         </ScrollView>
 
-        {/* Floating Keypad with Action Button */}
         {isInputFocused && (
           <View style={styles.floatingKeypadContainer}>
-            {/* Action button */}
             <Button
               variant={ButtonVariants.Primary}
               label={getButtonLabel()}
@@ -454,7 +409,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               testID="continue-button"
             />
 
-            {/* Percentage buttons */}
             {shouldShowPercentageButtons && (
               <View style={styles.percentageButtonsRow}>
                 <Button
@@ -488,7 +442,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               </View>
             )}
 
-            {/* Keypad */}
             <Keypad
               style={styles.keypad}
               value={sourceAmount}
@@ -499,7 +452,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           </View>
         )}
 
-        {/* Fixed bottom button when keypad is hidden */}
         {!isInputFocused && (
           <View style={styles.fixedBottomContainer}>
             {error && (
