@@ -228,13 +228,13 @@ const ImportPrivateKey = () => {
         </View>
         <View style={styles.buttonWrapper}>
           <Button
-            testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
             onPress={() => goNext()}
             label={strings('import_private_key.cta_text')}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             loading={loading}
+            testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
           />
         </View>
       </KeyboardAwareScrollView>
