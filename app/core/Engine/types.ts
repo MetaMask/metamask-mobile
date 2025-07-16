@@ -596,7 +596,6 @@ export type EngineState = {
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: SamplePetnamesControllerState;
   ///: END:ONLY_INCLUDE_IF

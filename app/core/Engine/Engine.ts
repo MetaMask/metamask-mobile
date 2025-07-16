@@ -1275,7 +1275,6 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -1651,7 +1650,6 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: controllersByName.SamplePetnamesController,
       ///: END:ONLY_INCLUDE_IF
@@ -2379,7 +2377,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
       ///: END:ONLY_INCLUDE_IF
@@ -2438,7 +2435,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
       ///: END:ONLY_INCLUDE_IF
