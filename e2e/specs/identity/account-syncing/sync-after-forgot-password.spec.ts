@@ -15,7 +15,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.j
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import LoginView from '../../../pages/wallet/LoginView.js';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
