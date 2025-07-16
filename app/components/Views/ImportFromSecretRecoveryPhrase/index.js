@@ -118,8 +118,15 @@ const ImportFromSecretRecoveryPhrase = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const seedPhraseInputRefs = useRef([]);
+  const seedPhraseInputRefs = useRef(null);
   const confirmPasswordInput = useRef();
+
+  function getSeedPhraseInputRef() {
+    if (!seedPhraseInputRefs.current) {
+      seedPhraseInputRefs.current = new Map();
+    }
+    return seedPhraseInputRefs.current;
+  }
 
   const { toastRef } = useContext(ToastContext);
 
@@ -178,6 +185,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleSeedPhraseChangeAtIndex = useCallback(
     (seedPhraseText, index) => {
       try {
+        // Logger.log('handleSeedPhraseChangeAtIndex', seedPhraseText, index);
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
         if (text.includes(SPACE_CHAR)) {
@@ -214,11 +222,12 @@ const ImportFromSecretRecoveryPhrase = ({
         Logger.error('Error handling seed phrase change:', error);
       }
     },
-    [setSeedPhrase, setNextSeedPhraseInputFocusedIndex, seedPhrase],
+    [seedPhrase],
   );
 
   const handleSeedPhraseChange = useCallback(
     (seedPhraseText) => {
+      // Logger.log('handleSeedPhraseChange', seedPhraseText);
       const text = formatSeedPhraseToSingleLine(seedPhraseText);
       const trimmedText = text.trim();
       const updatedTrimmedText = trimmedText
@@ -458,7 +467,7 @@ const ImportFromSecretRecoveryPhrase = ({
           setNextSeedPhraseInputFocusedIndex(index - 1);
         }
         const newData = seedPhrase.filter((_, idx) => idx !== index);
-        setSeedPhrase(newData);
+        setSeedPhrase([...newData]);
       }
     }
   };
@@ -669,7 +678,11 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
-    seedPhraseInputRefs.current[nextSeedPhraseInputFocusedIndex]?.focus();
+    const refElement = seedPhraseInputRefs.current.get(
+      nextSeedPhraseInputFocusedIndex,
+    );
+    // Logger.log('refElement', refElement?.focus);
+    refElement?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
@@ -703,12 +716,14 @@ const ImportFromSecretRecoveryPhrase = ({
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
       >
         <ScrollView
           contentContainerStyle={styles.container}
           testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
-          keyboardShouldPersistTaps
-          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
         >
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('import_from_seed.steps', {
@@ -755,7 +770,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       {seedPhrase.length <= 1 ? (
                         <TextInput
                           ref={(ref) => {
-                            seedPhraseInputRefs.current[0] = ref;
+                            const inputRefs = getSeedPhraseInputRef();
+                            inputRefs.set(0, ref);
+
+                            return () => {
+                              inputRefs.delete(0);
+                            };
                           }}
                           textAlignVertical="top"
                           placeholder={strings(
@@ -792,7 +812,8 @@ const ImportFromSecretRecoveryPhrase = ({
                             data={seedPhrase}
                             numColumns={NUM_COLUMNS}
                             keyExtractor={(_, index) => `seed-phrase-${index}`}
-                            extraData={seedPhraseInputFocusedIndex}
+                            keyboardShouldPersistTaps="always"
+                            keyboardDismissMode="none"
                             onBlur={() => {
                               setSeedPhraseInputFocusedIndex(null);
                             }}
@@ -808,7 +829,12 @@ const ImportFromSecretRecoveryPhrase = ({
                               >
                                 <TextField
                                   ref={(ref) => {
-                                    seedPhraseInputRefs.current[index] = ref;
+                                    const inputRefs = getSeedPhraseInputRef();
+                                    inputRefs.set(index, ref);
+
+                                    return () => {
+                                      inputRefs.delete(index);
+                                    };
                                   }}
                                   startAccessory={
                                     <Text
