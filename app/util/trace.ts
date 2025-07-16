@@ -73,16 +73,19 @@ export enum TraceName {
   EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
   EarnDepositReviewScreen = 'Earn Deposit Review Screen',
   EarnDepositConfirmationScreen = 'Earn Deposit Confirmation Screen',
-  EarnDepositTxConfirmed = 'Earn Deposit Tx Confirmed',
+  EarnLendingDepositTxConfirmed = 'Earn Lending Deposit Tx Confirmed',
+  EarnPooledStakingDepositTxConfirmed = 'Earn Pooled Staking Deposit Tx Confirmed',
   EarnWithdrawScreen = 'Earn Withdraw Screen',
   EarnWithdrawReviewScreen = 'Earn Withdraw Review Screen',
   EarnWithdrawConfirmationScreen = 'Earn Withdraw Confirmation Screen',
-  EarnWithdrawTxConfirmed = 'Earn Withdraw Tx Confirmed',
+  EarnLendingWithdrawTxConfirmed = 'Earn Lending Withdraw Tx Confirmed',
+  EarnPooledStakingWithdrawTxConfirmed = 'Earn Pooled Staking Withdraw Tx Confirmed',
   EarnEarnings = 'Earn Earnings',
   EarnFaq = 'Earn FAQ',
   EarnFaqApys = 'Earn FAQ APYs',
   EarnTokenList = 'Earn Token List',
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
+  EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
 }
 
 export enum TraceOperation {
@@ -104,7 +107,7 @@ export enum TraceOperation {
   CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
-  DiscoverAccounts = 'discover.accounts'
+  DiscoverAccounts = 'discover.accounts',
 }
 
 const ID_DEFAULT = 'default';

@@ -122,8 +122,11 @@ describe('BaseAccountDetails', () => {
     fireEvent.press(accountNameLink);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      { account: mockAccount },
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        params: { account: mockAccount },
+      },
     );
   });
 
@@ -139,8 +142,11 @@ describe('BaseAccountDetails', () => {
     fireEvent.press(accountAddressLink);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
-      { account: mockAccount },
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+        params: { account: mockAccount },
+      },
     );
   });
 

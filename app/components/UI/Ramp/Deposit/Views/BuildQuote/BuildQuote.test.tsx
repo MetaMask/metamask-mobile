@@ -22,6 +22,7 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockGetQuote = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
+const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -76,6 +77,7 @@ jest.mock(
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
+    navigateToVerifyIdentity: mockNavigateToVerifyIdentity,
   })),
 }));
 
@@ -281,7 +283,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to EnterEmail when user is not authenticated', async () => {
+    it('calls navigateToVerifyIdentity when user is not authenticated', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
@@ -292,10 +294,8 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {
+        expect(mockNavigateToVerifyIdentity).toHaveBeenCalledWith({
           quote: mockQuote,
-          paymentMethodId: 'credit_debit_card',
-          cryptoCurrencyChainId: 'eip155:1',
         });
       });
     });
