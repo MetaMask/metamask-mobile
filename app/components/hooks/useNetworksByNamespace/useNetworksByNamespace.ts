@@ -6,9 +6,9 @@ import {
   selectPopularNetworkConfigurationsByCaipChainId,
   selectCustomNetworkConfigurationsByCaipChainId,
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
-} from '../../selectors/networkController';
-import { getNetworkImageSource } from '../../util/networks';
-import { useNetworkEnablement } from './useNetworkEnablement';
+} from '../../../selectors/networkController';
+import { getNetworkImageSource } from '../../../util/networks';
+import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 
 export interface ProcessedNetwork {
   id: string;

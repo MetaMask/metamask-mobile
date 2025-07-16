@@ -39,11 +39,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
   NetworkType,
   useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;

@@ -31,8 +31,8 @@ import Device from '../../../util/device';
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';

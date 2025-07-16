@@ -35,8 +35,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   NetworkType,
   useNetworksByNamespace,
-} from '../../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../../hooks/useNetworkSelection';
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/network';
 
 interface RpcSelectionModalProps {

@@ -15,8 +15,8 @@ import {
 import {
   NetworkType,
   useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 const SwitchChainApproval = () => {
   const {

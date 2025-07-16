@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 import { parseCaipChainId, CaipChainId, Hex } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import Engine from '../../core/Engine';
-import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
-import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
-import { selectChainId } from '../../selectors/networkController';
+import Engine from '../../../core/Engine';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Hook that provides network enablement functionality including:

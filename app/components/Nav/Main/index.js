@@ -101,8 +101,8 @@ import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/use
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 const Stack = createStackNavigator();
 

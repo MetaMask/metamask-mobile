@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectPopularNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
-import { useNetworkEnablement } from './useNetworkEnablement';
-import { ProcessedNetwork } from './useNetworksByNamespace';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../constants/network';
+import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
+import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
+import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/network';
 
 interface UseNetworkSelectionOptions {
   networks: ProcessedNetwork[];

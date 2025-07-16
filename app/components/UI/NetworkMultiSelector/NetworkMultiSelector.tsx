@@ -15,12 +15,12 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';

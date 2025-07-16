@@ -45,8 +45,8 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/net
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 // internal dependencies
 import createStyles from './index.styles';

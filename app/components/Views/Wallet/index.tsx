@@ -126,11 +126,11 @@ import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({

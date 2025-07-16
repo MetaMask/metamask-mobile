@@ -53,11 +53,11 @@ import {
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { Hex } from '@metamask/utils';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../hooks/useNetworksByNamespace';
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 export interface SafeChain {
   chainId: string;

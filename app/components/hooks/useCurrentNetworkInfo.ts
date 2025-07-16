@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
-import { useNetworkEnablement } from './useNetworkEnablement';
+import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
 
 export interface NetworkInfo {
   caipChainId: string;

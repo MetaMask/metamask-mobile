@@ -25,8 +25,8 @@ import NetworkImageComponent from '../../NetworkImages';
 import {
   useNetworksByNamespace,
   NetworkType,
-} from '../../../hooks/useNetworksByNamespace';
-import { useNetworkSelection } from '../../../hooks/useNetworkSelection';
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 enum FilterOption {
