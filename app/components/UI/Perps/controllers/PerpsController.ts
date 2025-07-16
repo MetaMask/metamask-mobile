@@ -38,6 +38,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from './types';
+import type { CandleData } from '../types';
 
 /**
  * State shape for PerpsController
@@ -797,18 +798,7 @@ export class PerpsController extends BaseController<
     coin: string,
     interval: string,
     limit: number = 100,
-  ): Promise<{
-    coin: string;
-    interval: string;
-    candles: {
-      time: number;
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      volume: string;
-    }[];
-  } | null> {
+  ): Promise<CandleData | null> {
     try {
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
@@ -816,18 +806,7 @@ export class PerpsController extends BaseController<
             coin: string,
             interval: string,
             limit: number,
-          ) => Promise<{
-            coin: string;
-            interval: string;
-            candles: {
-              time: number;
-              open: string;
-              high: string;
-              low: string;
-              close: string;
-              volume: string;
-            }[];
-          } | null>;
+          ) => Promise<CandleData | null>;
         };
       };
 

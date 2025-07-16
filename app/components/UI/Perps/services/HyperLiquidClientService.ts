@@ -10,6 +10,7 @@ import {
   HYPERLIQUID_TRANSPORT_CONFIG,
 } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
+import type { CandleData } from '../types';
 
 /**
  * Valid time intervals for historical candle data
@@ -204,18 +205,7 @@ export class HyperLiquidClientService {
     coin: string,
     interval: ValidCandleInterval,
     limit: number = 100,
-  ): Promise<{
-    coin: string;
-    interval: string;
-    candles: {
-      time: number;
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      volume: string;
-    }[];
-  } | null> {
+  ): Promise<CandleData | null> {
     this.ensureInitialized();
 
     try {

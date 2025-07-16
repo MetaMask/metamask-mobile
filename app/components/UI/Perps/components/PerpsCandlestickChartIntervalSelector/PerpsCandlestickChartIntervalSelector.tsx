@@ -5,7 +5,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { CHART_INTERVALS } from '../../constants/chartConfig';
+import {
+  CHART_INTERVALS,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
@@ -31,7 +34,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
               : styles.intervalTabInactive,
           ]}
           onPress={() => onIntervalChange?.(interval.value)}
-          activeOpacity={0.7}
+          activeOpacity={PERPS_CHART_CONFIG.INTERVAL_SELECTOR_OPACITY}
           testID={`${testID}-${interval.value}`}
         >
           <Text

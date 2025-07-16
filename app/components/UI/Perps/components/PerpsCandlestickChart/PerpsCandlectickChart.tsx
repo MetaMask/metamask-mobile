@@ -13,18 +13,7 @@ import {
 } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector';
 import { strings } from '../../../../../../locales/i18n';
-interface CandleData {
-  coin: string;
-  interval: string;
-  candles: {
-    time: number;
-    open: string;
-    high: string;
-    low: string;
-    close: string;
-    volume: string;
-  }[];
-}
+import type { CandleData } from '../../types';
 
 interface CandlestickChartComponentProps {
   candleData: CandleData | null;
@@ -100,7 +89,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     const priceRange = maxPrice - minPrice;
 
     // Create 6 horizontal grid lines (including top and bottom)
-    const gridLineCount = 6;
+    const gridLineCount = PERPS_CHART_CONFIG.GRID_LINE_COUNT;
     const lines = [];
 
     for (let i = 0; i < gridLineCount; i++) {
@@ -128,7 +117,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             style={[
               styles.chartLoadingContainer,
               {
-                height: height - 120, // Same as loaded chart
+                height: height - PERPS_CHART_CONFIG.PADDING.VERTICAL, // Same as loaded chart
                 width: chartWidth, // Same as loaded chart
               },
             ]}

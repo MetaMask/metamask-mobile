@@ -1,19 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PriceUpdate } from '../controllers/types';
-
-interface CandleData {
-  coin: string;
-  interval: string;
-  candles: {
-    time: number;
-    open: string;
-    high: string;
-    low: string;
-    close: string;
-    volume: string;
-  }[];
-}
+import type { CandleData } from '../types';
 
 interface UsePerpsPositionDataProps {
   coin: string;
