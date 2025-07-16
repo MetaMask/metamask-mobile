@@ -1448,6 +1448,7 @@ export class Engine {
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
             'TokensController:addTokens',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
           allowedEvents: [
             'KeyringController:lock',
