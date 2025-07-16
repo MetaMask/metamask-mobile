@@ -12,6 +12,7 @@ export const PERPS_CHART_CONFIG = {
     MAJOR: 0.8,
     MINOR: 0.6,
   },
+  INTERVAL_SELECTOR_OPACITY: 0.7,
   GRID_LINE_COUNT: 6,
   PADDING: {
     HORIZONTAL: 24, // Account for horizontal padding
