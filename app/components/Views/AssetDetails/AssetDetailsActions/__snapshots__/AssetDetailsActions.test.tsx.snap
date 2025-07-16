@@ -7,7 +7,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       "display": "flex",
       "flexDirection": "row",
       "justifyContent": "space-evenly",
-      "padding": 16,
+      "paddingVertical": 16,
     }
   }
 >
