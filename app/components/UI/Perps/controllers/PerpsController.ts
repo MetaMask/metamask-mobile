@@ -513,17 +513,16 @@ export class PerpsController extends BaseController<
         state.currentDepositTxHash = null;
       });
 
-      // Validate required parameters
-      if (!params.amount || params.amount === '0') {
-        const error = 'Amount is required and must be greater than 0';
-        this.updateDepositProgress('error', 0, undefined, error);
-        return { success: false, error };
-      }
+      // Get provider first for validation
+      const provider = this.getActiveProvider();
 
-      if (!params.assetId) {
-        const error = 'AssetId is required for deposit validation';
-        this.updateDepositProgress('error', 0, undefined, error);
-        return { success: false, error };
+      // Validate deposit parameters using the provider's validation
+      // This allows each protocol to enforce its own specific rules
+      const validation = provider.validateDeposit(params);
+
+      if (!validation.isValid) {
+        this.updateDepositProgress('error', 0, undefined, validation.error);
+        return { success: false, error: validation.error };
       }
 
       // Get current account
@@ -556,7 +555,6 @@ export class PerpsController extends BaseController<
       });
 
       // Step 3: Check if asset is supported
-      const provider = this.getActiveProvider();
       const supportedRoutes = provider.getDepositRoutes({
         assetId: params.assetId,
       });

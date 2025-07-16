@@ -1,6 +1,6 @@
 import { parseCaipAssetId, parseCaipChainId } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
@@ -43,6 +43,11 @@ interface FormattedQuoteData {
  * Current implementation uses mock data with TODOs for real API integration
  */
 export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }: PerpsDepositQuoteParams) => {
+  // Store getDepositRoutes in a ref to prevent it from causing re-renders
+  const getDepositRoutesRef = useRef(getDepositRoutes);
+  useEffect(() => {
+    getDepositRoutesRef.current = getDepositRoutes;
+  }, [getDepositRoutes]);
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const ticker = useSelector(selectTicker);
   const fiatFormatter = useFiatFormatter();
@@ -141,8 +146,8 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
     try {
       // For direct deposits on Arbitrum (no bridging needed)
       // Get deposit routes from PerpsController if available
-      if (getDepositRoutes) {
-        const depositRoutes = getDepositRoutes();
+      if (getDepositRoutesRef.current) {
+        const depositRoutes = getDepositRoutesRef.current();
         DevLogger.log('PerpsDepositQuote: Got deposit routes', { depositRoutes });
         const matchingRoute = depositRoutes.find((route: AssetRoute) => {
           // Parse token asset ID using MetaMask CAIP utilities
@@ -224,7 +229,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
       DevLogger.log('PerpsDepositQuote: Error in getEstimatedTime', { error });
       return '';
     }
-  }, [gasFeeEstimates, getDepositRoutes, selectedToken]);
+  }, [gasFeeEstimates, selectedToken]);
 
   // Calculate receiving amount (1:1 for USDC, estimated for other tokens)
   const getReceivingAmount = useCallback(() => {
@@ -293,7 +298,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
     const interval = setInterval(refreshQuotes, REFRESH_RATE);
 
     return () => clearInterval(interval);
-  }, [amount, selectedToken, REFRESH_RATE, getDepositRoutes]);
+  }, [amount, selectedToken, REFRESH_RATE]);
 
   // State for async network fee calculation
   const [networkFee, setNetworkFee] = useState<string>('-');
@@ -306,7 +311,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
     };
 
     calculateNetworkFee();
-  }, [getNetworkFee]);
+  }, [amount, selectedToken, selectedAccount, providerConfig.chainId]); // Use stable dependencies instead of getNetworkFee
 
   const formattedQuoteData: FormattedQuoteData = useMemo(() => {
     const estimatedTime = getEstimatedTime();

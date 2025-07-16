@@ -83,4 +83,35 @@ export const createStyles = (colors: Colors) =>
       padding: 32,
       alignItems: 'center',
     },
+    networkFilterContainer: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
+      paddingVertical: 8,
+    },
+    networkFilterScroll: {
+      flexGrow: 0,
+    },
+    networkFilterContent: {
+      paddingHorizontal: 24,
+      gap: 8,
+    },
+    networkFilterChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      backgroundColor: colors.background.alternative,
+      marginRight: 8,
+      gap: 6,
+    },
+    networkFilterChipSelected: {
+      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.muted,
+    },
+    networkFilterText: {
+      fontSize: 12,
+    },
   });

@@ -2,6 +2,7 @@ import { isValidHexAddress, type CaipAssetId, type Hex } from '@metamask/utils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   getSupportedAssets,
+  TRADING_DEFAULTS,
 } from '../constants/hyperLiquidConfig';
 import type { GetSupportedPathsParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -46,6 +47,38 @@ export function validateWithdrawalParams(params: {
     return {
       isValid: false,
       error: `Invalid destination address format: ${params.destination}`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validate deposit parameters
+ */
+export function validateDepositParams(params: {
+  assetId?: CaipAssetId;
+  amount?: string;
+  isTestnet?: boolean;
+}): { isValid: boolean; error?: string } {
+  // Validate required parameters
+  if (!params.assetId) {
+    return { isValid: false, error: 'assetId is required for deposits' };
+  }
+
+  // Validate amount
+  if (!params.amount || parseFloat(params.amount) <= 0) {
+    return { isValid: false, error: 'Amount must be a positive number' };
+  }
+
+  // Check minimum deposit amount
+  const amount = parseFloat(params.amount);
+  const minimumAmount = params.isTestnet ? TRADING_DEFAULTS.amount.testnet : TRADING_DEFAULTS.amount.mainnet;
+
+  if (amount < minimumAmount) {
+    return {
+      isValid: false,
+      error: `Minimum deposit amount is ${minimumAmount} USDC`
     };
   }
 

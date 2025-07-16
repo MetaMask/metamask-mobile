@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { FlatList, TouchableOpacity, View } from 'react-native';
+import { FlatList, TouchableOpacity, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -47,6 +47,7 @@ interface PerpsTokenSelectorProps {
   selectedTokenAddress?: string;
   selectedTokenChainId?: string;
   title?: string;
+  minimumBalance?: number;
 }
 
 
@@ -58,16 +59,63 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   selectedTokenAddress,
   selectedTokenChainId,
   title = 'Select Token',
+  minimumBalance = 0,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  // State for selected networks
+  const [selectedNetworks, setSelectedNetworks] = React.useState<Set<string>>(new Set());
+
+  // Get unique networks from tokens
+  const availableNetworks = useMemo(() => {
+    const networksMap = new Map<string, { chainId: string; name: string; count: number }>();
+
+    tokens.forEach(token => {
+      const tokenBalance = parseFloat(token.balance || '0');
+      if (token.chainId && tokenBalance >= minimumBalance) {
+        const network = getDefaultNetworkByChainId(String(token.chainId)) as NetworkInfo | undefined;
+        const networkName = network?.name || 'Unknown';
+
+        if (networksMap.has(token.chainId)) {
+          const existing = networksMap.get(token.chainId);
+          if (existing) {
+            existing.count += 1;
+          }
+        } else {
+          networksMap.set(token.chainId, {
+            chainId: token.chainId,
+            name: networkName,
+            count: 1,
+          });
+        }
+      }
+    });
+
+    return Array.from(networksMap.values()).sort((a, b) => {
+      // Sort Arbitrum first
+      if (a.chainId === '0xa4b1') return -1;
+      if (b.chainId === '0xa4b1') return 1;
+      // Then by count
+      return b.count - a.count;
+    });
+  }, [tokens, minimumBalance]);
+
+  // Initialize selected networks with all available networks
+  React.useEffect(() => {
+    if (availableNetworks.length > 0 && selectedNetworks.size === 0) {
+      setSelectedNetworks(new Set(availableNetworks.map(n => n.chainId)));
+    }
+  }, [availableNetworks, selectedNetworks.size]);
 
   // Show all tokens with balances, prioritizing USDC on Arbitrum
   const supportedTokens = useMemo(() => {
     // Filter tokens that have balances and add network information
     const tokensWithBalances = tokens.filter(token => {
-      const hasBalance = token.balance && parseFloat(token.balance) > 0;
-      return hasBalance;
+      const tokenBalance = parseFloat(token.balance || '0');
+      const hasMinimumBalance = tokenBalance >= minimumBalance;
+      const isInSelectedNetwork = selectedNetworks.size === 0 || selectedNetworks.has(token.chainId);
+      return hasMinimumBalance && isInSelectedNetwork;
     });
 
     // Sort by preference: USDC on Arbitrum first, then other USDC, then others
@@ -85,11 +133,30 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
       const bBalance = parseFloat(b.balance || '0');
       return bBalance - aBalance;
     });
-  }, [tokens]);
+  }, [tokens, selectedNetworks, minimumBalance]);
 
   const handleTokenPress = useCallback((token: PerpsToken) => {
     onTokenSelect(token);
   }, [onTokenSelect]);
+
+  const handleNetworkToggle = useCallback((chainId: string) => {
+    setSelectedNetworks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(chainId)) {
+        // Don't allow deselecting if it's the last network
+        if (newSet.size > 1) {
+          newSet.delete(chainId);
+        }
+      } else {
+        newSet.add(chainId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectAllNetworks = useCallback(() => {
+    setSelectedNetworks(new Set(availableNetworks.map(n => n.chainId)));
+  }, [availableNetworks]);
 
   const renderTokenItem = useCallback(({ item, index }: { item: PerpsToken; index: number }) => {
     // Case-insensitive address comparison to handle checksum differences
@@ -233,6 +300,61 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
             testID="close-token-selector"
           />
         </View>
+
+        {/* Network Filter Bar */}
+        {availableNetworks.length > 1 && (
+          <View style={styles.networkFilterContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.networkFilterScroll}
+              contentContainerStyle={styles.networkFilterContent}
+            >
+              {availableNetworks.map((network) => {
+                const isSelected = selectedNetworks.has(network.chainId);
+                return (
+                  <TouchableOpacity
+                    key={network.chainId}
+                    style={[
+                      styles.networkFilterChip,
+                      isSelected && styles.networkFilterChipSelected,
+                    ]}
+                    onPress={() => handleNetworkToggle(network.chainId)}
+                    testID={`network-filter-${network.chainId}`}
+                  >
+                    <Badge
+                      imageSource={getNetworkImageSource({ chainId: network.chainId })}
+                      name={network.name}
+                      variant={BadgeVariant.Network}
+                    />
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={isSelected ? TextColor.Primary : TextColor.Muted}
+                      style={styles.networkFilterText}
+                    >
+                      {network.name} ({network.count})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+              {selectedNetworks.size < availableNetworks.length && (
+                <TouchableOpacity
+                  style={styles.networkFilterChip}
+                  onPress={handleSelectAllNetworks}
+                  testID="network-filter-all"
+                >
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Primary}
+                    style={styles.networkFilterText}
+                  >
+                    Select All
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Token List */}
         {supportedTokens.length > 0 ? (

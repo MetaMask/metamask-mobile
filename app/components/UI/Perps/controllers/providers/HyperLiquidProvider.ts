@@ -19,6 +19,7 @@ import {
   validateAssetSupport,
   validateBalance,
   validateCoinExists,
+  validateDepositParams,
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
@@ -28,6 +29,7 @@ import type {
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
+  DepositParams,
   DisconnectResult,
   EditOrderParams,
   GetAccountStateParams,
@@ -579,6 +581,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Error getting markets:', error);
       return [];
     }
+  }
+
+  /**
+   * Validate deposit parameters according to HyperLiquid-specific rules
+   * This method enforces protocol-specific requirements like minimum amounts
+   */
+  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
+    return validateDepositParams({
+      amount: params.amount,
+      assetId: params.assetId,
+      isTestnet: this.clientService.isTestnetMode(),
+    });
   }
 
   // NOTE: deposit() method removed from provider - handled by PerpsController routing
