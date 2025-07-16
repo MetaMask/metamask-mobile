@@ -18,7 +18,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { getDefaultNetworkByChainId, getNetworkImageSource } from '../../../../../util/networks';
+import {
+  getDefaultNetworkByChainId,
+  getNetworkImageSource,
+} from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useTheme } from '../../../../../util/theme';
 import type { BridgeToken } from '../../../Bridge/types';
@@ -49,7 +52,6 @@ interface PerpsTokenSelectorProps {
   minimumBalance?: number;
 }
 
-
 const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   isVisible,
   onClose,
@@ -64,16 +66,23 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   const styles = createStyles(colors);
 
   // State for selected networks
-  const [selectedNetworks, setSelectedNetworks] = React.useState<Set<string>>(new Set());
+  const [selectedNetworks, setSelectedNetworks] = React.useState<Set<string>>(
+    new Set(),
+  );
 
   // Get unique networks from tokens
   const availableNetworks = useMemo(() => {
-    const networksMap = new Map<string, { chainId: string; name: string; count: number }>();
+    const networksMap = new Map<
+      string,
+      { chainId: string; name: string; count: number }
+    >();
 
-    tokens.forEach(token => {
+    tokens.forEach((token) => {
       const tokenBalance = parseFloat(token.balance || '0');
       if (token.chainId && tokenBalance >= minimumBalance) {
-        const network = getDefaultNetworkByChainId(String(token.chainId)) as NetworkInfo | undefined;
+        const network = getDefaultNetworkByChainId(String(token.chainId)) as
+          | NetworkInfo
+          | undefined;
         const networkName = network?.name || 'Unknown';
 
         if (networksMap.has(token.chainId)) {
@@ -103,17 +112,18 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   // Initialize selected networks with all available networks
   React.useEffect(() => {
     if (availableNetworks.length > 0 && selectedNetworks.size === 0) {
-      setSelectedNetworks(new Set(availableNetworks.map(n => n.chainId)));
+      setSelectedNetworks(new Set(availableNetworks.map((n) => n.chainId)));
     }
   }, [availableNetworks, selectedNetworks.size]);
 
   // Show all tokens with balances, prioritizing USDC on Arbitrum
   const supportedTokens = useMemo(() => {
     // Filter tokens that have balances and add network information
-    const tokensWithBalances = tokens.filter(token => {
+    const tokensWithBalances = tokens.filter((token) => {
       const tokenBalance = parseFloat(token.balance || '0');
       const hasMinimumBalance = tokenBalance >= minimumBalance;
-      const isInSelectedNetwork = selectedNetworks.size === 0 || selectedNetworks.has(token.chainId);
+      const isInSelectedNetwork =
+        selectedNetworks.size === 0 || selectedNetworks.has(token.chainId);
       return hasMinimumBalance && isInSelectedNetwork;
     });
 
@@ -134,12 +144,15 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
     });
   }, [tokens, selectedNetworks, minimumBalance]);
 
-  const handleTokenPress = useCallback((token: PerpsToken) => {
-    onTokenSelect(token);
-  }, [onTokenSelect]);
+  const handleTokenPress = useCallback(
+    (token: PerpsToken) => {
+      onTokenSelect(token);
+    },
+    [onTokenSelect],
+  );
 
   const handleNetworkToggle = useCallback((chainId: string) => {
-    setSelectedNetworks(prev => {
+    setSelectedNetworks((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(chainId)) {
         // Don't allow deselecting if it's the last network
@@ -154,101 +167,112 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   }, []);
 
   const handleSelectAllNetworks = useCallback(() => {
-    setSelectedNetworks(new Set(availableNetworks.map(n => n.chainId)));
+    setSelectedNetworks(new Set(availableNetworks.map((n) => n.chainId)));
   }, [availableNetworks]);
 
-  const renderTokenItem = useCallback(({ item, index }: { item: PerpsToken; index: number }) => {
-    // Case-insensitive address comparison to handle checksum differences
-    const isSelected = item.address.toLowerCase() === selectedTokenAddress?.toLowerCase() &&
-      item.chainId === selectedTokenChainId;
-    const isLast = index === supportedTokens.length - 1;
+  const renderTokenItem = useCallback(
+    ({ item, index }: { item: PerpsToken; index: number }) => {
+      // Case-insensitive address comparison to handle checksum differences
+      const isSelected =
+        item.address.toLowerCase() === selectedTokenAddress?.toLowerCase() &&
+        item.chainId === selectedTokenChainId;
+      const isLast = index === supportedTokens.length - 1;
 
-
-    return (
-      <TouchableOpacity
-        style={[styles.tokenItem, isLast && styles.lastTokenItem]}
-        onPress={() => handleTokenPress(item)}
-        testID={`token-${item.symbol}`}
-      >
-        <View style={styles.tokenIcon}>
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              item.chainId ? (
-                <Badge
-                  imageSource={getNetworkImageSource({
-                    chainId: item.chainId,
-                  })}
-                  name={(() => {
-                    const network = getDefaultNetworkByChainId(String(item.chainId)) as NetworkInfo | undefined;
-                    return network?.name || 'Unknown';
-                  })()}
-                  variant={BadgeVariant.Network}
-                />
-              ) : null
-            }
-          >
-            <AvatarToken
-              imageSource={item.image ? { uri: item.image } : undefined}
-              name={item.symbol}
-              size={AvatarSize.Md}
-            />
-          </BadgeWrapper>
-        </View>
-
-        <View style={styles.tokenInfo}>
-          <View style={styles.tokenTitleRow}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.tokenSymbol}
-              testID={`token-symbol-${item.symbol}`}
+      return (
+        <TouchableOpacity
+          style={[styles.tokenItem, isLast && styles.lastTokenItem]}
+          onPress={() => handleTokenPress(item)}
+          testID={`token-${item.symbol}`}
+        >
+          <View style={styles.tokenIcon}>
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                item.chainId ? (
+                  <Badge
+                    imageSource={getNetworkImageSource({
+                      chainId: item.chainId,
+                    })}
+                    name={(() => {
+                      const network = getDefaultNetworkByChainId(
+                        String(item.chainId),
+                      ) as NetworkInfo | undefined;
+                      return network?.name || 'Unknown';
+                    })()}
+                    variant={BadgeVariant.Network}
+                  />
+                ) : null
+              }
             >
-              {item.symbol}
-            </Text>
+              <AvatarToken
+                imageSource={item.image ? { uri: item.image } : undefined}
+                name={item.symbol}
+                size={AvatarSize.Md}
+              />
+            </BadgeWrapper>
           </View>
-          {item.name && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Muted}
-              style={styles.tokenName}
-              testID={`token-name-${item.symbol}`}
-            >
-              {item.name}
-            </Text>
-          )}
-        </View>
 
-        <View style={styles.tokenBalance}>
-          {item.balance && (
-            <Text
-              variant={TextVariant.BodyMD}
-              testID={`token-balance-${item.symbol}`}
-            >
-              {renderFromTokenMinimalUnit(item.balance, item.decimals)}
-            </Text>
-          )}
-          {item.balanceFiat && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Muted}
-              testID={`token-fiat-${item.symbol}`}
-            >
-              {item.balanceFiat}
-            </Text>
-          )}
-        </View>
-
-        {isSelected && (
-          <View style={styles.selectedIndicator}>
-            <ButtonIcon
-              iconName={IconName.Confirmation}
-              iconColor={IconColor.Inverse}
-            />
+          <View style={styles.tokenInfo}>
+            <View style={styles.tokenTitleRow}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.tokenSymbol}
+                testID={`token-symbol-${item.symbol}`}
+              >
+                {item.symbol}
+              </Text>
+            </View>
+            {item.name && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Muted}
+                style={styles.tokenName}
+                testID={`token-name-${item.symbol}`}
+              >
+                {item.name}
+              </Text>
+            )}
           </View>
-        )}
-      </TouchableOpacity>
-    );
-  }, [selectedTokenAddress, selectedTokenChainId, supportedTokens.length, styles, handleTokenPress]);
+
+          <View style={styles.tokenBalance}>
+            {item.balance && (
+              <Text
+                variant={TextVariant.BodyMD}
+                testID={`token-balance-${item.symbol}`}
+              >
+                {renderFromTokenMinimalUnit(item.balance, item.decimals)}
+              </Text>
+            )}
+            {item.balanceFiat && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Muted}
+                testID={`token-fiat-${item.symbol}`}
+              >
+                {item.balanceFiat}
+              </Text>
+            )}
+          </View>
+
+          {isSelected && (
+            <View style={styles.selectedIndicator}>
+              <ButtonIcon
+                iconName={IconName.Confirmation}
+                iconColor={IconColor.Inverse}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [
+      selectedTokenAddress,
+      selectedTokenChainId,
+      supportedTokens.length,
+      styles,
+      handleTokenPress,
+    ],
+  );
 
   return (
     <Modal
@@ -303,7 +327,9 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
                     testID={`network-filter-${network.chainId}`}
                   >
                     <Badge
-                      imageSource={getNetworkImageSource({ chainId: network.chainId })}
+                      imageSource={getNetworkImageSource({
+                        chainId: network.chainId,
+                      })}
                       name={network.name}
                       variant={BadgeVariant.Network}
                     />
@@ -341,7 +367,7 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
           <FlatList
             data={supportedTokens}
             renderItem={renderTokenItem}
-            keyExtractor={item => item.address}
+            keyExtractor={(item) => item.address}
             style={styles.tokenList}
             showsVerticalScrollIndicator={false}
             testID="token-list"

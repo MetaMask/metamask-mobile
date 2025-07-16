@@ -39,7 +39,7 @@ const selectPerpsDepositState = createSelector(
       requiresModalDismissal: perpsState.requiresModalDismissal || false,
       steps: perpsState.depositSteps || defaultDepositSteps,
     };
-  }
+  },
 );
 
 /**

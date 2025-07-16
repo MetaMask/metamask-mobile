@@ -31,7 +31,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { PerpsNavigationParamList } from '../types/navigation';
 
-interface PerpsViewProps { }
+interface PerpsViewProps {}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -95,7 +95,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     setResult('');
 
     try {
-
       const accountState = await getAccountState();
 
       const resultLines = [
@@ -122,7 +121,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Automatically load account state on mount and when network changes
   useEffect(() => {
-
     // Only load account state if we're connected and initialized
     if (isConnected && isInitialized) {
       getAccountState().catch(() => {
@@ -136,7 +134,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     setResult('');
 
     try {
-
       const toggleResult = await toggleTestnet();
 
       if (toggleResult.success) {
@@ -233,7 +230,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             style={styles.button}
           />
 
-
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
@@ -247,8 +243,9 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={`Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
-              }`}
+            label={`Switch to ${
+              currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
+            }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
             style={styles.button}

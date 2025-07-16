@@ -1,12 +1,21 @@
 import { enhanceTokenWithIcon } from './tokenIconUtils';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
-import type { TokenListMap, TokenListToken } from '@metamask/assets-controllers';
+import type {
+  TokenListMap,
+  TokenListToken,
+} from '@metamask/assets-controllers';
 
 // Mock isUrl to avoid import issues
-jest.mock('is-url', () => jest.fn((url: string) => {
-  if (!url || url === 'ipfs://') return false; // ipfs:// alone is not valid
-  return url.startsWith('http') || url.startsWith('data:') || (url.startsWith('ipfs://') && url.length > 7);
-}));
+jest.mock('is-url', () =>
+  jest.fn((url: string) => {
+    if (!url || url === 'ipfs://') return false; // ipfs:// alone is not valid
+    return (
+      url.startsWith('http') ||
+      url.startsWith('data:') ||
+      (url.startsWith('ipfs://') && url.length > 7)
+    );
+  }),
+);
 
 // Mock isIPFSUri
 jest.mock('../../../../util/general', () => ({
@@ -115,7 +124,9 @@ describe('tokenIconUtils', () => {
         isIpfsGatewayEnabled: true,
       });
 
-      expect(result.image).toBe('ipfs://QmXfzKRvjZz3u5JRgC4v5mGVbm9ahrUiB4DgzHBsnWbTMM');
+      expect(result.image).toBe(
+        'ipfs://QmXfzKRvjZz3u5JRgC4v5mGVbm9ahrUiB4DgzHBsnWbTMM',
+      );
     });
 
     it('should skip IPFS URLs when gateway is disabled', () => {
@@ -276,7 +287,9 @@ describe('tokenIconUtils', () => {
         tokenList: tokenListWithVariousURLs,
         isIpfsGatewayEnabled: true,
       });
-      expect(result1.image).toBe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA');
+      expect(result1.image).toBe(
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA',
+      );
 
       // Test https URL
       const token2 = {

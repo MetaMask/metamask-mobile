@@ -1,7 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  type NavigationProp,
+} from '@react-navigation/native';
 import { type Hex, parseCaipAssetId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -29,16 +39,30 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { selectNetworkConfigurations, selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectSelectedNetworkClientId,
+} from '../../../../../selectors/networkController';
 import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
-import { selectContractBalances, selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
+import {
+  selectContractBalances,
+  selectContractBalancesPerChainId,
+} from '../../../../../selectors/tokenBalancesController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../../util/number';
+import {
+  renderFromTokenMinimalUnit,
+  renderFromWei,
+} from '../../../../../util/number';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
-import { MAX_INPUT_LENGTH, TokenInputArea, TokenInputAreaType, type TokenInputAreaRef } from '../../../../UI/Bridge/components/TokenInputArea';
+import {
+  MAX_INPUT_LENGTH,
+  TokenInputArea,
+  TokenInputAreaType,
+  type TokenInputAreaRef,
+} from '../../../../UI/Bridge/components/TokenInputArea';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { BridgeViewMode } from '../../../Bridge/types';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
@@ -55,15 +79,19 @@ import {
   USDC_SYMBOL,
   USDC_NAME,
   USDC_DECIMALS,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
-import type { AssetRoute, DepositParams, PerpsNavigationParamList } from '../../controllers/types';
+import type {
+  AssetRoute,
+  DepositParams,
+  PerpsNavigationParamList,
+} from '../../controllers/types';
 import { usePerpsTrading, usePerpsNetwork } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
 
-interface PerpsDepositAmountViewProps { }
+interface PerpsDepositAmountViewProps {}
 
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
@@ -82,7 +110,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
 
   // Selectors
-  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const balances = useSelector(selectContractBalances);
   const balancesPerChain = useSelector(selectContractBalancesPerChainId);
@@ -99,7 +129,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const isTestnet = perpsNetwork === 'testnet';
 
   const destToken = useMemo<PerpsToken>(() => {
-    const hyperliquidChainId = isTestnet ? HYPERLIQUID_TESTNET_CHAIN_ID : HYPERLIQUID_MAINNET_CHAIN_ID;
+    const hyperliquidChainId = isTestnet
+      ? HYPERLIQUID_TESTNET_CHAIN_ID
+      : HYPERLIQUID_MAINNET_CHAIN_ID;
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS,
@@ -115,7 +147,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
     if (tokenList) {
       const usdcToken = Object.values(tokenList).find(
-        (token) => token.symbol === USDC_SYMBOL
+        (token) => token.symbol === USDC_SYMBOL,
       );
       if (usdcToken && 'iconUrl' in usdcToken) {
         const tokenWithIcon = usdcToken as { iconUrl: string };
@@ -129,10 +161,16 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   useEffect(() => {
     if (!sourceToken && tokenList) {
       try {
-        const usdcConfig = isTestnet ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+        const usdcConfig = isTestnet
+          ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+          : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
         const parsedAsset = parseCaipAssetId(usdcConfig);
 
-        if (!parsedAsset.assetNamespace || parsedAsset.assetNamespace !== 'erc20' || !parsedAsset.assetReference) {
+        if (
+          !parsedAsset.assetNamespace ||
+          parsedAsset.assetNamespace !== 'erc20' ||
+          !parsedAsset.assetReference
+        ) {
           return;
         }
 
@@ -157,11 +195,12 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
 
-  const { formattedQuoteData, isLoading: isQuoteLoading } = usePerpsDepositQuote({
-    amount: sourceToken ? (sourceAmount || '0') : '0',
-    selectedToken: sourceToken || destToken,
-    getDepositRoutes,
-  });
+  const { formattedQuoteData, isLoading: isQuoteLoading } =
+    usePerpsDepositQuote({
+      amount: sourceToken ? sourceAmount || '0' : '0',
+      selectedToken: sourceToken || destToken,
+      getDepositRoutes,
+    });
 
   const sourceBalance = useMemo(() => {
     if (!sourceToken || !selectedAddress) return undefined;
@@ -169,34 +208,38 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     const tokenChainId = sourceToken.chainId as Hex;
 
     if (isSwapsNativeAsset(sourceToken)) {
-      const balance = accountsByChainId[tokenChainId]?.[selectedAddress]?.balance;
+      const balance =
+        accountsByChainId[tokenChainId]?.[selectedAddress]?.balance;
       return renderFromWei(balance || '0x0');
     }
 
     const tokenAddress = safeToChecksumAddress(sourceToken.address);
     if (tokenAddress) {
-      const tokenBalance = balancesPerChain[tokenChainId]?.[tokenAddress] ||
+      const tokenBalance =
+        balancesPerChain[tokenChainId]?.[tokenAddress] ||
         balances[tokenAddress];
 
       if (tokenBalance) {
-        return renderFromTokenMinimalUnit(
-          tokenBalance,
-          sourceToken.decimals
-        );
+        return renderFromTokenMinimalUnit(tokenBalance, sourceToken.decimals);
       }
     }
 
     return '0';
-  }, [sourceToken, selectedAddress, accountsByChainId, balances, balancesPerChain]);
+  }, [
+    sourceToken,
+    selectedAddress,
+    accountsByChainId,
+    balances,
+    balancesPerChain,
+  ]);
 
   const allChainIds = useMemo(() => {
     if (!networkConfigurations) return [];
 
-    return Object.keys(networkConfigurations)
-      .filter(id => {
-        const networkChainId = id as Hex;
-        return !networkChainId.startsWith('solana:');
-      }) as Hex[];
+    return Object.keys(networkConfigurations).filter((id) => {
+      const networkChainId = id as Hex;
+      return !networkChainId.startsWith('solana:');
+    }) as Hex[];
   }, [networkConfigurations]);
 
   useEffect(() => {
@@ -212,7 +255,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         setSourceToken(bridgeSourceToken as PerpsToken);
         dispatch(setBridgeSourceToken(undefined));
       }
-    }, [bridgeSourceToken, sourceToken, dispatch])
+    }, [bridgeSourceToken, sourceToken, dispatch]),
   );
 
   const hasInsufficientBalance = useMemo(() => {
@@ -220,7 +263,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return parseFloat(sourceAmount) > parseFloat(sourceBalance);
   }, [sourceAmount, sourceBalance]);
 
-  const minimumDepositAmount = isTestnet ? TRADING_DEFAULTS.amount.testnet : TRADING_DEFAULTS.amount.mainnet;
+  const minimumDepositAmount = isTestnet
+    ? TRADING_DEFAULTS.amount.testnet
+    : TRADING_DEFAULTS.amount.mainnet;
 
   const isBelowMinimumDeposit = useMemo(() => {
     if (!sourceAmount || sourceToken?.symbol !== USDC_SYMBOL) return false;
@@ -231,12 +276,15 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleKeypadChange = useCallback(({ value }: { value: string; valueAsNumber: number }) => {
-    if (value.length >= MAX_INPUT_LENGTH) {
-      return;
-    }
-    setSourceAmount(value || undefined);
-  }, []);
+  const handleKeypadChange = useCallback(
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      if (value.length >= MAX_INPUT_LENGTH) {
+        return;
+      }
+      setSourceAmount(value || undefined);
+    },
+    [],
+  );
 
   const handleTokenSelectPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -244,13 +292,18 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     });
   }, [navigation]);
 
-  const handlePercentagePress = useCallback((percentage: number) => {
-    if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
 
-    const balanceNum = parseFloat(sourceBalance);
-    const newAmount = (balanceNum * percentage).toFixed(sourceToken?.decimals || USDC_DECIMALS);
-    setSourceAmount(newAmount);
-  }, [sourceBalance, sourceToken]);
+      const balanceNum = parseFloat(sourceBalance);
+      const newAmount = (balanceNum * percentage).toFixed(
+        sourceToken?.decimals || USDC_DECIMALS,
+      );
+      setSourceAmount(newAmount);
+    },
+    [sourceBalance, sourceToken],
+  );
 
   const handleMaxPress = useCallback(() => {
     if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
@@ -278,7 +331,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const supportedRoutes = getDepositRoutes();
       const selectedTokenAddress = sourceToken.address.toLowerCase();
       const assetId = supportedRoutes.find((route: AssetRoute) =>
-        route.assetId.toLowerCase().includes(selectedTokenAddress)
+        route.assetId.toLowerCase().includes(selectedTokenAddress),
       )?.assetId;
 
       if (!assetId) {
@@ -303,17 +356,33 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     } finally {
       setIsSubmittingTx(false);
     }
-  }, [sourceToken, sourceAmount, selectedAddress, getDepositRoutes, deposit, navigation]);
+  }, [
+    sourceToken,
+    sourceAmount,
+    selectedAddress,
+    getDepositRoutes,
+    deposit,
+    navigation,
+  ]);
 
   const hasAmount = sourceAmount && parseFloat(sourceAmount) > 0;
-  const hasValidInputs = hasAmount && sourceToken && !hasInsufficientBalance && !isBelowMinimumDeposit;
+  const hasValidInputs =
+    hasAmount &&
+    sourceToken &&
+    !hasInsufficientBalance &&
+    !isBelowMinimumDeposit;
   const shouldDisplayQuoteDetails = hasAmount && !isQuoteLoading && sourceToken;
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
   const getButtonLabel = () => {
-    if (hasInsufficientBalance) return strings('perps.deposit.insufficient_funds');
-    if (isBelowMinimumDeposit) return strings('perps.deposit.minimum_deposit_error', { amount: minimumDepositAmount });
-    if (!sourceAmount || parseFloat(sourceAmount) === 0) return strings('perps.deposit.enter_amount');
+    if (hasInsufficientBalance)
+      return strings('perps.deposit.insufficient_funds');
+    if (isBelowMinimumDeposit)
+      return strings('perps.deposit.minimum_deposit_error', {
+        amount: minimumDepositAmount,
+      });
+    if (!sourceAmount || parseFloat(sourceAmount) === 0)
+      return strings('perps.deposit.enter_amount');
     if (isQuoteLoading) return strings('perps.deposit.fetching_quote');
     if (isSubmittingTx) return strings('perps.deposit.submitting');
     return strings('perps.deposit.get_usdc');
@@ -343,7 +412,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollViewContent,
-            isInputFocused && styles.scrollViewContentWithKeypad
+            isInputFocused && styles.scrollViewContentWithKeypad,
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -353,7 +422,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               amount={sourceAmount}
               token={sourceToken}
               tokenBalance={sourceBalance}
-              networkImageSource={sourceToken?.chainId ? getNetworkImageSource({ chainId: sourceToken.chainId }) : undefined}
+              networkImageSource={
+                sourceToken?.chainId
+                  ? getNetworkImageSource({ chainId: sourceToken.chainId })
+                  : undefined
+              }
               testID="source-token-area"
               tokenType={TokenInputAreaType.Source}
               onTokenPress={handleTokenSelectPress}
@@ -377,7 +450,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             <TokenInputArea
               amount={destAmount}
               token={destToken}
-              networkImageSource={getNetworkImageSource({ chainId: destToken.chainId })}
+              networkImageSource={getNetworkImageSource({
+                chainId: destToken.chainId,
+              })}
               networkName="Hyperliquid"
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
@@ -475,4 +550,3 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 };
 
 export default PerpsDepositAmountView;
-

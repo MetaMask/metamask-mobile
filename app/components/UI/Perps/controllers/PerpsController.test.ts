@@ -482,8 +482,14 @@ describe('PerpsController', () => {
 
         // Mock validateDeposit to return validation errors
         mockHyperLiquidProvider.validateDeposit
-          .mockReturnValueOnce({ isValid: false, error: 'Amount is required and must be greater than 0' })
-          .mockReturnValueOnce({ isValid: false, error: 'AssetId is required for deposit validation' });
+          .mockReturnValueOnce({
+            isValid: false,
+            error: 'Amount is required and must be greater than 0',
+          })
+          .mockReturnValueOnce({
+            isValid: false,
+            error: 'AssetId is required for deposit validation',
+          });
 
         await controller.initializeProviders();
 
@@ -522,9 +528,11 @@ describe('PerpsController', () => {
               '0x5678901234567890123456789012345678901234' as any,
           },
         ]);
-        
+
         // Mock validateDeposit to pass validation
-        mockHyperLiquidProvider.validateDeposit.mockReturnValue({ isValid: true });
+        mockHyperLiquidProvider.validateDeposit.mockReturnValue({
+          isValid: true,
+        });
 
         await controller.initializeProviders();
 

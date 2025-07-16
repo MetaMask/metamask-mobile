@@ -73,12 +73,14 @@ export function validateDepositParams(params: {
 
   // Check minimum deposit amount
   const amount = parseFloat(params.amount);
-  const minimumAmount = params.isTestnet ? TRADING_DEFAULTS.amount.testnet : TRADING_DEFAULTS.amount.mainnet;
+  const minimumAmount = params.isTestnet
+    ? TRADING_DEFAULTS.amount.testnet
+    : TRADING_DEFAULTS.amount.mainnet;
 
   if (amount < minimumAmount) {
     return {
       isValid: false,
-      error: `Minimum deposit amount is ${minimumAmount} USDC`
+      error: `Minimum deposit amount is ${minimumAmount} USDC`,
     };
   }
 

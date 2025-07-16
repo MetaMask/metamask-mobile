@@ -6,7 +6,10 @@ import type { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectGasFeeEstimatesByChainId } from '../../../../selectors/gasFeeController';
-import { selectProviderConfig, selectTicker } from '../../../../selectors/networkController';
+import {
+  selectProviderConfig,
+  selectTicker,
+} from '../../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { formatAmount } from '../../SimulationDetails/formatAmount';
@@ -42,7 +45,11 @@ interface FormattedQuoteData {
  *
  * Current implementation uses mock data with TODOs for real API integration
  */
-export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }: PerpsDepositQuoteParams) => {
+export const usePerpsDepositQuote = ({
+  amount,
+  selectedToken,
+  getDepositRoutes,
+}: PerpsDepositQuoteParams) => {
   // Store getDepositRoutes in a ref to prevent it from causing re-renders
   const getDepositRoutesRef = useRef(getDepositRoutes);
   useEffect(() => {
@@ -66,12 +73,18 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
   const currencyRates = useSelector(selectCurrencyRates);
   const chainId = providerConfig.chainId;
   const gasFeeEstimates = useSelector((state: RootState) =>
-    selectGasFeeEstimatesByChainId(state, chainId)
+    selectGasFeeEstimatesByChainId(state, chainId),
   );
 
   // Network fee calculation using real gas estimation
   const getNetworkFee = useCallback(async () => {
-    if (!selectedAccount || !amount || parseFloat(amount) === 0 || !selectedToken) return '-';
+    if (
+      !selectedAccount ||
+      !amount ||
+      parseFloat(amount) === 0 ||
+      !selectedToken
+    )
+      return '-';
 
     try {
       // Path determination logic
@@ -100,7 +113,9 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
         if (gasEstimates.maxFeePerGas) {
           // Estimate gas limit for deposit transaction (typical ERC20 transfer + bridge call)
           const estimatedGasLimit = new BigNumber('150000'); // Reasonable estimate for bridge deposit
-          const gasFeeWei = new BigNumber(gasEstimates.maxFeePerGas).multipliedBy(estimatedGasLimit);
+          const gasFeeWei = new BigNumber(
+            gasEstimates.maxFeePerGas,
+          ).multipliedBy(estimatedGasLimit);
           const gasFeeEth = gasFeeWei.dividedBy(new BigNumber(10).pow(18));
 
           if (primaryCurrency === 'ETH') {
@@ -127,7 +142,17 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
       console.warn('Failed to estimate gas fee:', error);
       return '-';
     }
-  }, [selectedAccount, amount, selectedToken, providerConfig, primaryCurrency, ticker, locale, fiatFormatter, currencyRates]);
+  }, [
+    selectedAccount,
+    amount,
+    selectedToken,
+    providerConfig,
+    primaryCurrency,
+    ticker,
+    locale,
+    fiatFormatter,
+    currencyRates,
+  ]);
 
   // Dynamic estimated time calculation using real gas fee estimates and path analysis
   const getEstimatedTime = useCallback((): string => {
@@ -151,13 +176,22 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
       // Get deposit routes from PerpsController if available
       if (getDepositRoutesRef.current) {
         const depositRoutes = getDepositRoutesRef.current();
-        DevLogger.log('PerpsDepositQuote: Got deposit routes', { depositRoutes });
+        DevLogger.log('PerpsDepositQuote: Got deposit routes', {
+          depositRoutes,
+        });
         const matchingRoute = depositRoutes.find((route: AssetRoute) => {
           // Parse token asset ID using MetaMask CAIP utilities
           const parsedAsset = parseCaipAssetId(route.assetId);
-          const chainHex = `0x${parseInt(parsedAsset.chainId.split(':')[1], 10).toString(16)}`;
+          const chainHex = `0x${parseInt(
+            parsedAsset.chainId.split(':')[1],
+            10,
+          ).toString(16)}`;
 
-          return chainHex === selectedToken.chainId && parsedAsset.assetReference.toLowerCase() === selectedToken.address.toLowerCase();
+          return (
+            chainHex === selectedToken.chainId &&
+            parsedAsset.assetReference.toLowerCase() ===
+              selectedToken.address.toLowerCase()
+          );
         });
 
         DevLogger.log('PerpsDepositQuote: Route matching', {
@@ -166,10 +200,17 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
           selectedTokenSymbol: selectedToken.symbol,
         });
 
-        if (matchingRoute && selectedToken.chainId && selectedToken.symbol === 'USDC') {
+        if (
+          matchingRoute &&
+          selectedToken.chainId &&
+          selectedToken.symbol === 'USDC'
+        ) {
           // Use MetaMask's CAIP utilities to parse chain ID
           const parsedChain = parseCaipChainId(matchingRoute.chainId);
-          const targetChainHex = `0x${parseInt(parsedChain.reference, 10).toString(16)}`;
+          const targetChainHex = `0x${parseInt(
+            parsedChain.reference,
+            10,
+          ).toString(16)}`;
 
           DevLogger.log('PerpsDepositQuote: Chain comparison', {
             selectedTokenChainId: selectedToken.chainId,
@@ -179,12 +220,24 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
 
           if (selectedToken.chainId === targetChainHex) {
             // Use medium gas level time estimates
-            if (gasFeeEstimates && typeof gasFeeEstimates === 'object' && 'medium' in gasFeeEstimates) {
+            if (
+              gasFeeEstimates &&
+              typeof gasFeeEstimates === 'object' &&
+              'medium' in gasFeeEstimates
+            ) {
               const medium = gasFeeEstimates.medium;
-              if (medium && typeof medium === 'object' &&
-                'minWaitTimeEstimate' in medium && 'maxWaitTimeEstimate' in medium) {
-                const minWait = Math.ceil((medium.minWaitTimeEstimate as number) / 1000); // Convert ms to seconds
-                const maxWait = Math.ceil((medium.maxWaitTimeEstimate as number) / 1000);
+              if (
+                medium &&
+                typeof medium === 'object' &&
+                'minWaitTimeEstimate' in medium &&
+                'maxWaitTimeEstimate' in medium
+              ) {
+                const minWait = Math.ceil(
+                  (medium.minWaitTimeEstimate as number) / 1000,
+                ); // Convert ms to seconds
+                const maxWait = Math.ceil(
+                  (medium.maxWaitTimeEstimate as number) / 1000,
+                );
 
                 DevLogger.log('PerpsDepositQuote: Gas estimates timing', {
                   minWaitTimeEstimate: medium.minWaitTimeEstimate,
@@ -205,28 +258,39 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
 
                 if (realisticMinWait < 60 && realisticMaxWait < 60) {
                   const result = `${realisticMinWait}-${realisticMaxWait} seconds`;
-                  DevLogger.log('PerpsDepositQuote: Final time result', { result });
+                  DevLogger.log('PerpsDepositQuote: Final time result', {
+                    result,
+                  });
                   return result;
                 }
                 const minMin = Math.ceil(realisticMinWait / 60);
                 const maxMin = Math.ceil(realisticMaxWait / 60);
                 const result = `${minMin}-${maxMin} minutes`;
-                DevLogger.log('PerpsDepositQuote: Final time result (minutes)', { result });
+                DevLogger.log(
+                  'PerpsDepositQuote: Final time result (minutes)',
+                  { result },
+                );
                 return result;
               }
             }
             // Fallback for direct deposits if no gas estimates
-            DevLogger.log('PerpsDepositQuote: No gas estimates structure found');
+            DevLogger.log(
+              'PerpsDepositQuote: No gas estimates structure found',
+            );
             return '';
           }
         }
       } else {
-        DevLogger.log('PerpsDepositQuote: No getDepositRoutes function available');
+        DevLogger.log(
+          'PerpsDepositQuote: No getDepositRoutes function available',
+        );
       }
 
       // For cross-chain deposits that require bridging
       // TODO: Integrate with Bridge API for real bridge time estimates
-      DevLogger.log('PerpsDepositQuote: No matching route found, returning empty');
+      DevLogger.log(
+        'PerpsDepositQuote: No matching route found, returning empty',
+      );
       return ''; // Don't show estimate until we have real data
     } catch (error) {
       DevLogger.log('PerpsDepositQuote: Error in getEstimatedTime', { error });
@@ -238,7 +302,7 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
   const getReceivingAmount = useCallback(() => {
     const depositAmount = parseFloat(amount || '0');
     if (depositAmount === 0) return '0.00';
-    
+
     // Check if token is selected
     if (!selectedToken) return '0.00';
 
@@ -259,8 +323,13 @@ export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }
 
     try {
       // For ETH, use currency rates
-      if (selectedToken.symbol === 'ETH' && currencyRates?.ETH?.usdConversionRate) {
-        const ethPriceUsd = new BigNumber(currencyRates.ETH.usdConversionRate).toFixed(2);
+      if (
+        selectedToken.symbol === 'ETH' &&
+        currencyRates?.ETH?.usdConversionRate
+      ) {
+        const ethPriceUsd = new BigNumber(
+          currencyRates.ETH.usdConversionRate,
+        ).toFixed(2);
         return `1 ETH ≈ ${ethPriceUsd} USDC`;
       }
 

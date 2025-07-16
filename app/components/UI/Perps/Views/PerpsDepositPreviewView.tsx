@@ -1,4 +1,9 @@
-import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import React, { useCallback, useMemo } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
@@ -7,7 +12,7 @@ import KeyValueRow from '../../../../component-library/components-temp/KeyValueR
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import Card from '../../../../component-library/components/Cards/Card';
@@ -17,11 +22,14 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
-import { selectCurrencyRates, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
@@ -31,7 +39,10 @@ import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { getDisplayCurrencyValue } from '../../Bridge/utils/exchange-rates';
 import { addCurrencySymbol } from '../../../../util/number';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
-import { ARBITRUM_MAINNET_CHAIN_ID, HYPERLIQUID_ASSET_CONFIGS } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID,
+  HYPERLIQUID_ASSET_CONFIGS,
+} from '../constants/hyperLiquidConfig';
 import { usePerpsDepositQuote, usePerpsTrading } from '../hooks';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
@@ -39,8 +50,13 @@ import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, { BadgePosition } from '../../../../component-library/components/Badges/BadgeWrapper';
-import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../util/networks';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import {
+  getNetworkImageSource,
+  BLOCKAID_SUPPORTED_NETWORK_NAMES,
+} from '../../../../util/networks';
 
 interface DepositPreviewParams {
   amount: string;
@@ -49,16 +65,22 @@ interface DepositPreviewParams {
 
 // Define proper navigation types for this screen
 interface DepositPreviewParamList {
-  'PerpsDepositPreview': DepositPreviewParams;
-  'PerpsDepositSuccess': DepositPreviewParams;
-  'PerpsDepositProcessing': DepositPreviewParams;
+  PerpsDepositPreview: DepositPreviewParams;
+  PerpsDepositSuccess: DepositPreviewParams;
+  PerpsDepositProcessing: DepositPreviewParams;
   [key: string]: object | undefined;
 }
 
-type DepositPreviewScreenNavigationProp = NavigationProp<DepositPreviewParamList, 'PerpsDepositPreview'>;
-type DepositPreviewScreenRouteProp = RouteProp<DepositPreviewParamList, 'PerpsDepositPreview'>;
+type DepositPreviewScreenNavigationProp = NavigationProp<
+  DepositPreviewParamList,
+  'PerpsDepositPreview'
+>;
+type DepositPreviewScreenRouteProp = RouteProp<
+  DepositPreviewParamList,
+  'PerpsDepositPreview'
+>;
 
-interface DepositPreviewViewProps { }
+interface DepositPreviewViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -168,16 +190,16 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledChainIds = useMemo(
     () => enabledSourceChains.map((chain) => chain.chainId),
-    [enabledSourceChains]
+    [enabledSourceChains],
   );
 
   const tokens = useTokensWithBalance({
-    chainIds: enabledChainIds
+    chainIds: enabledChainIds,
   });
 
   const selectedTokenObject: PerpsToken = useMemo(() => {
-    const selectedTokenData = tokens.find(token =>
-      token.symbol.toUpperCase() === selectedToken.toUpperCase()
+    const selectedTokenData = tokens.find(
+      (token) => token.symbol.toUpperCase() === selectedToken.toUpperCase(),
     );
 
     if (selectedTokenData) {
@@ -186,9 +208,15 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         address: selectedTokenData.address || '',
         decimals: selectedTokenData.decimals || 18,
         name: selectedTokenData.name || selectedTokenData.symbol,
-        chainId: selectedTokenData.chainId || `0x${parseInt('1', 10).toString(16)}`,
+        chainId:
+          selectedTokenData.chainId || `0x${parseInt('1', 10).toString(16)}`,
         balance: selectedTokenData.balance,
-        balanceFiat: selectedTokenData.balanceFiat ? addCurrencySymbol(parseFloat(selectedTokenData.balanceFiat.toString()), currentCurrency) : undefined,
+        balanceFiat: selectedTokenData.balanceFiat
+          ? addCurrencySymbol(
+              parseFloat(selectedTokenData.balanceFiat.toString()),
+              currentCurrency,
+            )
+          : undefined,
       };
 
       return enhanceTokenWithIcon({
@@ -203,7 +231,9 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
       address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
       decimals: 6,
       name: 'USD Coin',
-      chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}` as Hex,
+      chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(
+        16,
+      )}` as Hex,
     };
 
     return enhanceTokenWithIcon({
@@ -214,12 +244,12 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   }, [selectedToken, tokens, tokenList, isIpfsGatewayEnabled, currentCurrency]);
 
   const { deposit, getDepositRoutes } = usePerpsTrading();
-  const { formattedQuoteData, isLoading: isQuoteLoading } = usePerpsDepositQuote({
-    amount,
-    selectedToken: selectedTokenObject,
-    getDepositRoutes,
-  });
-
+  const { formattedQuoteData, isLoading: isQuoteLoading } =
+    usePerpsDepositQuote({
+      amount,
+      selectedToken: selectedTokenObject,
+      getDepositRoutes,
+    });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -227,7 +257,10 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
   const handleConfirm = useCallback(async () => {
     try {
-      const isDirectDeposit = selectedToken === 'USDC' && selectedTokenObject.chainId === `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`;
+      const isDirectDeposit =
+        selectedToken === 'USDC' &&
+        selectedTokenObject.chainId ===
+          `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`;
 
       navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
         amount,
@@ -249,8 +282,8 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     const usdcAmount = parseFloat(amount || '0');
     if (usdcAmount === 0 || !selectedToken) return '0.00';
 
-    const selectedTokenData = tokens.find(token =>
-      token.symbol.toUpperCase() === selectedToken.toUpperCase()
+    const selectedTokenData = tokens.find(
+      (token) => token.symbol.toUpperCase() === selectedToken.toUpperCase(),
     );
 
     if (!selectedTokenData) {
@@ -265,10 +298,11 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         networkConfigurationsByChainId: networkConfigurations,
         evmMultiChainCurrencyRates: currencyRates,
         currentCurrency,
-        nonEvmMultichainAssetRates: multichainAssetRates
+        nonEvmMultichainAssetRates: multichainAssetRates,
       });
 
-      const tokenPriceInUsd = parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
+      const tokenPriceInUsd =
+        parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
 
       if (tokenPriceInUsd > 0) {
         const tokenAmount = usdcAmount / tokenPriceInUsd;
@@ -279,7 +313,16 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     }
 
     return '0.00';
-  }, [amount, selectedToken, tokens, tokenMarketData, currencyRates, currentCurrency, networkConfigurations, multichainAssetRates]);
+  }, [
+    amount,
+    selectedToken,
+    tokens,
+    tokenMarketData,
+    currencyRates,
+    currentCurrency,
+    networkConfigurations,
+    multichainAssetRates,
+  ]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -291,7 +334,11 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
           style={styles.backButton}
           testID="buttonicon-arrowleft"
         />
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID="header-title"
+        >
           Amount to deposit
         </Text>
         <View style={styles.placeholder} />
@@ -311,7 +358,12 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
 
         {/* Pay With Section */}
         <View style={styles.payWithSection}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted} style={styles.sectionLabel} testID="pay-with-label">
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Muted}
+            style={styles.sectionLabel}
+            testID="pay-with-label"
+          >
             PAY WITH
           </Text>
 
@@ -320,17 +372,29 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
               badgePosition={BadgePosition.BottomRight}
               badgeElement={
                 <BadgeNetwork
-                  name={getNetworkImageSource({ chainId: selectedTokenObject.chainId || '' }) ?
-                    BLOCKAID_SUPPORTED_NETWORK_NAMES[selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES] || selectedTokenObject.chainId :
-                    selectedTokenObject.chainId}
-                  imageSource={getNetworkImageSource({ chainId: selectedTokenObject.chainId || '' })}
+                  name={
+                    getNetworkImageSource({
+                      chainId: selectedTokenObject.chainId || '',
+                    })
+                      ? BLOCKAID_SUPPORTED_NETWORK_NAMES[
+                          selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
+                        ] || selectedTokenObject.chainId
+                      : selectedTokenObject.chainId
+                  }
+                  imageSource={getNetworkImageSource({
+                    chainId: selectedTokenObject.chainId || '',
+                  })}
                 />
               }
             >
               <AvatarToken
                 size={AvatarSize.Xs}
                 name={selectedTokenObject.name || selectedTokenObject.symbol}
-                imageSource={selectedTokenObject.image ? { uri: selectedTokenObject.image } : undefined}
+                imageSource={
+                  selectedTokenObject.image
+                    ? { uri: selectedTokenObject.image }
+                    : undefined
+                }
               />
             </BadgeWrapper>
             <Text variant={TextVariant.BodyMDMedium} testID="exchange-amount">

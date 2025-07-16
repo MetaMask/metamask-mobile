@@ -17,10 +17,13 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
+import {
+  getNetworkImageSource,
+  BLOCKAID_SUPPORTED_NETWORK_NAMES,
+} from '../../../../../util/networks';
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsPayWithRow.styles';
 
@@ -32,7 +35,6 @@ interface PerpsPayWithRowProps {
   showUsdEquivalent?: boolean;
   usdEquivalent?: string;
 }
-
 
 const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
   selectedToken,
@@ -56,7 +58,6 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
 
   const networkName = getNetworkName(selectedToken.chainId || '0x1');
 
-
   return (
     <TouchableOpacity
       style={styles.container}
@@ -68,10 +69,7 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
           <Text variant={TextVariant.BodyMD}>
             {strings('perps.deposit.payWith')}
           </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-          >
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {tokenAmount} {selectedToken.symbol}
           </Text>
           {showUsdEquivalent && usdEquivalent && (
@@ -87,9 +85,7 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
 
         <ListItemColumn>
           <View style={styles.tokenSelector}>
-            <Text variant={TextVariant.BodyMD}>
-              {selectedToken.symbol}
-            </Text>
+            <Text variant={TextVariant.BodyMD}>{selectedToken.symbol}</Text>
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
               badgeElement={
@@ -102,7 +98,9 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
               <AvatarToken
                 key={selectedToken.image || selectedToken.symbol} // Force re-render when image changes
                 name={selectedToken.name || selectedToken.symbol}
-                imageSource={selectedToken.image ? { uri: selectedToken.image } : undefined}
+                imageSource={
+                  selectedToken.image ? { uri: selectedToken.image } : undefined
+                }
                 size={AvatarSize.Md}
               />
             </BadgeWrapper>

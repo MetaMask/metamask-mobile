@@ -1,4 +1,9 @@
-import { ClosePositionParams, DepositParams, LiveDataConfig, OrderParams } from '../types';
+import {
+  ClosePositionParams,
+  DepositParams,
+  LiveDataConfig,
+  OrderParams,
+} from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
@@ -668,10 +673,11 @@ describe('HyperLiquidProvider', () => {
   describe('validateDeposit', () => {
     it('should validate valid deposit parameters', () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
-      
+
       const params: DepositParams = {
         amount: '100',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -681,83 +687,96 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should reject empty amount', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Amount is required and must be greater than 0' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Amount is required and must be greater than 0',
       });
-      
+
       const params: DepositParams = {
         amount: '',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Amount is required and must be greater than 0');
+      expect(result.error).toBe(
+        'Amount is required and must be greater than 0',
+      );
     });
 
     it('should reject zero amount', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Amount is required and must be greater than 0' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Amount is required and must be greater than 0',
       });
-      
+
       const params: DepositParams = {
         amount: '0',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Amount is required and must be greater than 0');
+      expect(result.error).toBe(
+        'Amount is required and must be greater than 0',
+      );
     });
 
     it('should reject negative amount', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Amount is required and must be greater than 0' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Amount is required and must be greater than 0',
       });
-      
+
       const params: DepositParams = {
         amount: '-10',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Amount is required and must be greater than 0');
+      expect(result.error).toBe(
+        'Amount is required and must be greater than 0',
+      );
     });
 
     it('should reject invalid amount format', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Amount is required and must be greater than 0' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Amount is required and must be greater than 0',
       });
-      
+
       const params: DepositParams = {
         amount: 'abc',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Amount is required and must be greater than 0');
+      expect(result.error).toBe(
+        'Amount is required and must be greater than 0',
+      );
     });
 
     it('should reject amount below minimum for mainnet', () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Minimum deposit amount is 5 USDC' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Minimum deposit amount is 5 USDC',
       });
 
       const params: DepositParams = {
         amount: '4.99',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -768,14 +787,15 @@ describe('HyperLiquidProvider', () => {
 
     it('should reject amount below minimum for testnet', () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Minimum deposit amount is 10 USDC' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Minimum deposit amount is 10 USDC',
       });
 
       const params: DepositParams = {
         amount: '9.99',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -790,7 +810,8 @@ describe('HyperLiquidProvider', () => {
 
       const params: DepositParams = {
         amount: '5',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -805,7 +826,8 @@ describe('HyperLiquidProvider', () => {
 
       const params: DepositParams = {
         amount: '10',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -815,11 +837,11 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should reject empty assetId', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'AssetId is required for deposit validation' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'AssetId is required for deposit validation',
       });
-      
+
       const params: DepositParams = {
         amount: '100',
         assetId: '' as CaipAssetId,
@@ -832,14 +854,15 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('should reject unsupported assetId', () => {
-      mockValidateDepositParams.mockReturnValue({ 
-        isValid: false, 
-        error: 'Asset not supported' 
+      mockValidateDepositParams.mockReturnValue({
+        isValid: false,
+        error: 'Asset not supported',
       });
-      
+
       const params: DepositParams = {
         amount: '100',
-        assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890/default',
+        assetId:
+          'eip155:1/erc20:0x1234567890123456789012345678901234567890/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -850,10 +873,11 @@ describe('HyperLiquidProvider', () => {
 
     it('should handle decimal amounts correctly', () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
-      
+
       const params: DepositParams = {
         amount: '100.123456',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -864,10 +888,11 @@ describe('HyperLiquidProvider', () => {
 
     it('should handle large amounts correctly', () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
-      
+
       const params: DepositParams = {
         amount: '1000000',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);
@@ -878,10 +903,11 @@ describe('HyperLiquidProvider', () => {
 
     it('should handle scientific notation', () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
-      
+
       const params: DepositParams = {
         amount: '1e6',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const result = provider.validateDeposit(params);

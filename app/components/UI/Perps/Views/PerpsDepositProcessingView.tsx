@@ -1,13 +1,22 @@
-import { useNavigation, useRoute, type NavigationProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+} from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import type { PerpsNavigationParamList } from '../controllers/types';
-import React, { useCallback, useEffect , useMemo } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -16,13 +25,11 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
-  TextVariant
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
-import {
-  usePerpsDeposit,
-} from '../hooks';
+import { usePerpsDeposit } from '../hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -31,8 +38,13 @@ import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, { BadgePosition } from '../../../../component-library/components/Badges/BadgeWrapper';
-import { getNetworkImageSource, BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../util/networks';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import {
+  getNetworkImageSource,
+  BLOCKAID_SUPPORTED_NETWORK_NAMES,
+} from '../../../../util/networks';
 import { ARBITRUM_MAINNET_CHAIN_ID } from '../constants/hyperLiquidConfig';
 
 interface DepositProcessingParams {
@@ -42,7 +54,7 @@ interface DepositProcessingParams {
   isDirectDeposit?: boolean; // true for USDC on Arbitrum, false for complex routes
 }
 
-interface DepositProcessingViewProps { }
+interface DepositProcessingViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -156,7 +168,12 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     currentTxHash,
   } = usePerpsDeposit();
 
-  const { amount, selectedToken, txHash, isDirectDeposit = false } = (route.params as DepositProcessingParams) || {};
+  const {
+    amount,
+    selectedToken,
+    txHash,
+    isDirectDeposit = false,
+  } = (route.params as DepositProcessingParams) || {};
 
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
@@ -169,7 +186,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
       address: '', // Let the icon enhancement find the address from token list
       decimals: selectedToken === 'USDC' ? 6 : 18,
       name: selectedToken === 'USDC' ? 'USD Coin' : selectedToken,
-      chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}` as Hex,
+      chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(
+        16,
+      )}` as Hex,
     };
 
     return enhanceTokenWithIcon({
@@ -214,25 +233,51 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     switch (depositStatus) {
       case 'preparing':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: strings('perps.deposit.steps.preparing'),
           description: strings('perps.deposit.stepDescriptions.preparing'),
         };
       case 'swapping':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: strings('perps.deposit.steps.swapping', { token: selectedToken || 'token' }),
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
+          title: strings('perps.deposit.steps.swapping', {
+            token: selectedToken || 'token',
+          }),
           description: strings('perps.deposit.stepDescriptions.swapping'),
         };
       case 'bridging':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: strings('perps.deposit.steps.bridging'),
           description: strings('perps.deposit.stepDescriptions.bridging'),
         };
       case 'depositing':
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
           title: stepName || strings('perps.deposit.steps.depositing'),
           description: isDirectDeposit
             ? strings('perps.deposit.steps.depositingDirect')
@@ -250,7 +295,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             </View>
           ),
           title: strings('perps.deposit.depositCompleted'),
-          description: strings('perps.deposit.stepDescriptions.success', { amount }),
+          description: strings('perps.deposit.stepDescriptions.success', {
+            amount,
+          }),
         };
       case 'error':
         return {
@@ -264,13 +311,22 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             </View>
           ),
           title: strings('perps.deposit.depositFailed'),
-          description: depositError || strings('perps.deposit.stepDescriptions.error'),
+          description:
+            depositError || strings('perps.deposit.stepDescriptions.error'),
         };
       case 'idle':
       default:
         return {
-          icon: <ActivityIndicator size="large" color={colors.primary.default} testID="processing-animation" />,
-          title: isDirectDeposit ? strings('perps.deposit.steps.depositing') : strings('perps.deposit.steps.preparing'),
+          icon: (
+            <ActivityIndicator
+              size="large"
+              color={colors.primary.default}
+              testID="processing-animation"
+            />
+          ),
+          title: isDirectDeposit
+            ? strings('perps.deposit.steps.depositing')
+            : strings('perps.deposit.steps.preparing'),
           description: strings('perps.deposit.stepDescriptions.preparing'),
         };
     }
@@ -282,7 +338,11 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.placeholder} />
-        <Text variant={TextVariant.HeadingMD} style={styles.headerTitle} testID="header-title">
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID="header-title"
+        >
           {strings('perps.deposit.processingTitle')}
         </Text>
         <ButtonIcon
@@ -296,11 +356,13 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
       <View style={styles.content}>
         <View style={styles.statusContainer}>
-          <View style={styles.statusIcon}>
-            {statusContent?.icon}
-          </View>
+          <View style={styles.statusIcon}>{statusContent?.icon}</View>
 
-          <Text variant={TextVariant.HeadingMD} style={styles.statusText} testID="status-title">
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.statusText}
+            testID="status-title"
+          >
             {statusContent?.title}
           </Text>
 
@@ -310,17 +372,27 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
                 badgePosition={BadgePosition.BottomRight}
                 badgeElement={
                   <BadgeNetwork
-                    name={getNetworkImageSource({ chainId: enhancedToken.chainId }) ?
-                      BLOCKAID_SUPPORTED_NETWORK_NAMES[enhancedToken.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES] || enhancedToken.chainId :
-                      enhancedToken.chainId}
-                    imageSource={getNetworkImageSource({ chainId: enhancedToken.chainId })}
+                    name={
+                      getNetworkImageSource({ chainId: enhancedToken.chainId })
+                        ? BLOCKAID_SUPPORTED_NETWORK_NAMES[
+                            enhancedToken.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
+                          ] || enhancedToken.chainId
+                        : enhancedToken.chainId
+                    }
+                    imageSource={getNetworkImageSource({
+                      chainId: enhancedToken.chainId,
+                    })}
                   />
                 }
               >
                 <AvatarToken
                   size={AvatarSize.Md}
                   name={enhancedToken.name || enhancedToken.symbol}
-                  imageSource={enhancedToken.image ? { uri: enhancedToken.image } : undefined}
+                  imageSource={
+                    enhancedToken.image
+                      ? { uri: enhancedToken.image }
+                      : undefined
+                  }
                 />
               </BadgeWrapper>
               <Text variant={TextVariant.BodyMD} style={styles.tokenText}>
@@ -329,7 +401,12 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             </View>
           )}
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted} style={styles.progressText} testID="status-description">
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+            style={styles.progressText}
+            testID="status-description"
+          >
             {statusContent?.description}
           </Text>
         </View>

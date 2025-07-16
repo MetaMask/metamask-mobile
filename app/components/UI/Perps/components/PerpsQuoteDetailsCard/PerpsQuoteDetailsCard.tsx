@@ -45,7 +45,8 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
     });
   }, [navigation]);
 
-  const displaySlippage = slippage === undefined || slippage === null ? 'Auto' : `${slippage}%`;
+  const displaySlippage =
+    slippage === undefined || slippage === null ? 'Auto' : `${slippage}%`;
 
   if (isLoading) {
     return null;

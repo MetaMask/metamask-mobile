@@ -34,7 +34,6 @@ interface PerpsDepositPreviewModalProps {
   error?: string | null;
 }
 
-
 const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
   isVisible,
   onClose,
@@ -49,7 +48,6 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
 
   const handleConfirm = useCallback(() => {
     onConfirm();
@@ -85,10 +83,7 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
               {strings('perps.deposit.title').toUpperCase()}
             </Text>
 
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.amountText}
-            >
+            <Text variant={TextVariant.HeadingLG} style={styles.amountText}>
               {amount} {selectedToken.symbol}
             </Text>
           </View>
@@ -111,46 +106,28 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
 
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailLabel}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
                 {strings('perps.deposit.payWith')}
               </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailValue}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
                 {tokenAmount} {selectedToken.symbol}
               </Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailLabel}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
                 {strings('perps.deposit.networkFee')}
               </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailValue}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
                 {networkFee}
               </Text>
             </View>
 
             <View style={[styles.detailRow, styles.lastDetailRow]}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailLabel}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
                 {strings('perps.deposit.estimatedTime')}
               </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.detailValue}
-              >
+              <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
                 {estimatedTime}
               </Text>
             </View>
@@ -163,7 +140,11 @@ const PerpsDepositPreviewModal: React.FC<PerpsDepositPreviewModalProps> = ({
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={isLoading ? strings('perps.deposit.confirming') : strings('perps.deposit.confirmDeposit')}
+            label={
+              isLoading
+                ? strings('perps.deposit.confirming')
+                : strings('perps.deposit.confirmDeposit')
+            }
             onPress={handleConfirm}
             disabled={isLoading}
           />

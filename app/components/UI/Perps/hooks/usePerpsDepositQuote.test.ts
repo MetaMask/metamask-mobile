@@ -1,4 +1,7 @@
-import { renderHookWithProvider, type DeepPartial } from '../../../../util/test/renderWithProvider';
+import {
+  renderHookWithProvider,
+  type DeepPartial,
+} from '../../../../util/test/renderWithProvider';
 import { parseCaipAssetId, parseCaipChainId } from '@metamask/utils';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -15,7 +18,9 @@ jest.mock('@metamask/utils', () => ({
   parseCaipAssetId: jest.fn(),
   parseCaipChainId: jest.fn(),
 }));
-jest.mock('../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates');
+jest.mock(
+  '../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+);
 
 // Mock I18n
 jest.mock('../../../../../locales/i18n', () => ({
@@ -27,10 +32,13 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 // Mock useFiatFormatter
-jest.mock('../../../../components/UI/SimulationDetails/FiatDisplay/useFiatFormatter', () => ({
-  __esModule: true,
-  default: () => jest.fn((value: string) => `$${value}`),
-}));
+jest.mock(
+  '../../../../components/UI/SimulationDetails/FiatDisplay/useFiatFormatter',
+  () => ({
+    __esModule: true,
+    default: () => jest.fn((value: string) => `$${value}`),
+  }),
+);
 
 // Mock Date.now for consistent testing
 const mockNow = 123;
@@ -48,7 +56,8 @@ describe('usePerpsDepositQuote', () => {
 
   const mockRoutes: AssetRoute[] = [
     {
-      assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+      assetId:
+        'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       chainId: 'eip155:42161',
       contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
     },
@@ -63,7 +72,9 @@ describe('usePerpsDepositQuote', () => {
     gasEstimateType: 'fee-market',
   };
 
-  const createMockState = (overrides?: DeepPartial<RootState>): DeepPartial<RootState> => ({
+  const createMockState = (
+    overrides?: DeepPartial<RootState>,
+  ): DeepPartial<RootState> => ({
     fiatOrders: {
       networks: [
         {
@@ -188,12 +199,13 @@ describe('usePerpsDepositQuote', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '0',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '0',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current).toEqual({
@@ -215,12 +227,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: undefined as unknown as PerpsToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: undefined as unknown as PerpsToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current).toEqual({
@@ -241,16 +254,19 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(mockGetDepositRoutes).toHaveBeenCalled();
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '100.00 USDC',
+      );
       // Since we don't mock getTransaction1559GasFeeEstimates, networkFee will be '-'
       expect(result.current.formattedQuoteData.networkFee).toBe('-');
     });
@@ -261,15 +277,18 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '100.00 USDC',
+      );
     });
 
     it('should handle no matching route', () => {
@@ -277,19 +296,23 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBe('-');
     });
 
     it('should handle different chain IDs', () => {
-      const differentChainToken = { ...mockToken, chainId: '0x1' as `0x${string}` };
+      const differentChainToken = {
+        ...mockToken,
+        chainId: '0x1' as `0x${string}`,
+      };
       (parseCaipAssetId as jest.Mock).mockReturnValue({
         chainId: 'eip155:1',
         assetNamespace: 'erc20',
@@ -298,12 +321,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: differentChainToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: differentChainToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBe('-');
@@ -315,12 +339,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBeDefined();
@@ -336,12 +361,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBe('-');
@@ -358,12 +384,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBeDefined();
@@ -378,12 +405,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current).toEqual({
@@ -408,12 +436,13 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result.current).toEqual({
@@ -435,21 +464,23 @@ describe('usePerpsDepositQuote', () => {
       const state = createMockState();
 
       const { result: result1 } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       const { result: result2 } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       expect(result1.current).toEqual(result2.current);
@@ -460,16 +491,19 @@ describe('usePerpsDepositQuote', () => {
       let currentAmount = '100';
 
       const { result, rerender } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: currentAmount,
-          selectedToken: mockToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: currentAmount,
+            selectedToken: mockToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       // Check initial amount (100)
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '100.00 USDC',
+      );
 
       const initialResult = { ...result.current };
 
@@ -477,8 +511,12 @@ describe('usePerpsDepositQuote', () => {
       currentAmount = '200';
       rerender({});
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('200.00 USDC');
-      expect(result.current.formattedQuoteData.receivingAmount).not.toBe(initialResult.formattedQuoteData.receivingAmount);
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '200.00 USDC',
+      );
+      expect(result.current.formattedQuoteData.receivingAmount).not.toBe(
+        initialResult.formattedQuoteData.receivingAmount,
+      );
     });
 
     it('should recalculate when token changes', () => {
@@ -488,21 +526,24 @@ describe('usePerpsDepositQuote', () => {
         ...mockToken,
         symbol: 'ETH',
         name: 'Ethereum',
-        address: '0x0000000000000000000000000000000000000000'
+        address: '0x0000000000000000000000000000000000000000',
       } as PerpsToken;
       let currentToken: PerpsToken | undefined = mockToken;
 
       const { result, rerender } = renderHookWithProvider(
-        () => usePerpsDepositQuote({
-          amount: '100',
-          selectedToken: currentToken as PerpsToken,
-          getDepositRoutes: mockGetDepositRoutes,
-        }),
-        { state }
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: currentToken as PerpsToken,
+            getDepositRoutes: mockGetDepositRoutes,
+          }),
+        { state },
       );
 
       // Initial token is USDC
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '100.00 USDC',
+      );
       expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined(); // USDC has no exchange rate
 
       // Change token to ETH
@@ -510,7 +551,9 @@ describe('usePerpsDepositQuote', () => {
       rerender({});
 
       // ETH should show estimated USDC amount and have an exchange rate
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('~100.00 USDC');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '~100.00 USDC',
+      );
       expect(result.current.formattedQuoteData.exchangeRate).toBeDefined();
     });
   });

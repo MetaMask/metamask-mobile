@@ -1,5 +1,8 @@
 import type { RootState } from '../../../../reducers';
-import { renderHookWithProvider, type DeepPartial } from '../../../../util/test/renderWithProvider';
+import {
+  renderHookWithProvider,
+  type DeepPartial,
+} from '../../../../util/test/renderWithProvider';
 import type { DepositFlowType, DepositStatus } from '../controllers/types';
 import { usePerpsDeposit } from './usePerpsDeposit';
 
