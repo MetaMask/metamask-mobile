@@ -37,14 +37,6 @@ export class AppStateEventListener {
     this.pendingDeeplink = deeplink;
   }
 
-  public clearPendingDeeplink() {
-    this.pendingDeeplink = null;
-  }
-
-  public clearCurrentDeeplink() {
-    this.currentDeeplink = null;
-  }
-
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
     if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
       // delay to allow time for the deeplink to be set
@@ -61,6 +53,7 @@ export class AppStateEventListener {
         currentDeeplink: this.pendingDeeplink || this.currentDeeplink,
         store: ReduxService.store,
       });
+      console.log('XXXXXX - processAttribution', attribution);
       const metrics = MetaMetrics.getInstance();
       // identify user with the latest traits
       const consolidatedTraits = {

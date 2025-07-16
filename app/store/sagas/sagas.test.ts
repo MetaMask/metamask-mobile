@@ -81,8 +81,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     start: jest.fn(),
     pendingDeeplink: null,
-    clearPendingDeeplink: jest.fn(),
-    clearCurrentDeeplink: jest.fn(),
   },
 }));
 
@@ -256,12 +254,6 @@ describe('handleDeeplinkSaga', () => {
         .silentRun();
 
       expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-      expect(
-        AppStateEventProcessor.clearPendingDeeplink,
-      ).not.toHaveBeenCalled();
-      expect(
-        AppStateEventProcessor.clearCurrentDeeplink,
-      ).not.toHaveBeenCalled();
     });
   });
 
@@ -292,12 +284,6 @@ describe('handleDeeplinkSaga', () => {
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
         expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-        expect(
-          AppStateEventProcessor.clearPendingDeeplink,
-        ).not.toHaveBeenCalled();
-        expect(
-          AppStateEventProcessor.clearCurrentDeeplink,
-        ).not.toHaveBeenCalled();
       });
     });
     describe('when app is unlocked', () => {
@@ -314,12 +300,6 @@ describe('handleDeeplinkSaga', () => {
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).not.toHaveBeenCalled();
-          expect(
-            AppStateEventProcessor.clearCurrentDeeplink,
-          ).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is passed in and true', () => {
@@ -341,13 +321,6 @@ describe('handleDeeplinkSaga', () => {
 
           // Wait for the setTimeout to complete (1000ms delay)
           await new Promise((resolve) => setTimeout(resolve, 1100));
-
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).toHaveBeenCalled();
-          expect(
-            AppStateEventProcessor.clearCurrentDeeplink,
-          ).toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -384,13 +357,6 @@ describe('handleDeeplinkSaga', () => {
 
           // Wait for the setTimeout to complete (1000ms delay)
           await new Promise((resolve) => setTimeout(resolve, 1100));
-
-          expect(
-            AppStateEventProcessor.clearPendingDeeplink,
-          ).toHaveBeenCalled();
-          expect(
-            AppStateEventProcessor.clearCurrentDeeplink,
-          ).toHaveBeenCalled();
         });
       });
     });
@@ -428,13 +394,6 @@ describe('handleDeeplinkSaga', () => {
         .silentRun();
 
       // Initially, clear methods should not be called
-      expect(
-        AppStateEventProcessor.clearPendingDeeplink,
-      ).not.toHaveBeenCalled();
-      expect(
-        AppStateEventProcessor.clearCurrentDeeplink,
-      ).not.toHaveBeenCalled();
-
       // Wait for the saga to complete
       await saga;
 
@@ -442,12 +401,6 @@ describe('handleDeeplinkSaga', () => {
       await new Promise((resolve) => setTimeout(resolve, 1100));
 
       // After the timeout, both clear methods should be called
-      expect(AppStateEventProcessor.clearPendingDeeplink).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(AppStateEventProcessor.clearCurrentDeeplink).toHaveBeenCalledTimes(
-        1,
-      );
     }, 10000);
   });
 });
