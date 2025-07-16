@@ -55,16 +55,16 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: (...args: unknown[]) => mockUseDepositSdkMethod(...args),
 }));
 
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  __esModule: true,
-  default: () => mockUseUserDetailsPolling,
-  KycStatus: {
+jest.mock('../../hooks/useUserDetailsPolling', () => {
+  const mockHook = () => mockUseUserDetailsPolling;
+  mockHook.KycStatus = {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
-  },
-}));
+  };
+  return mockHook;
+});
 
 jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({

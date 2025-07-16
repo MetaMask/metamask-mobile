@@ -216,7 +216,6 @@ class WalletView {
 
   async tapOnNftName() {
     await Gestures.waitAndTap(this.testCollectible, {
-      checkEnabled: false,
       elemDescription: 'NFT Name',
     });
   }

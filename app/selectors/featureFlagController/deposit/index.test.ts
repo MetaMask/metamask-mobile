@@ -5,6 +5,8 @@ import {
   selectDepositEntrypoints,
   selectDepositProviderApiKey,
   selectDepositProviderFrontendAuth,
+  selectDepositMinimumVersionFlag,
+  selectDepositActiveFlag,
 } from './index';
 import { selectRemoteFeatureFlags } from '..';
 
@@ -18,6 +20,8 @@ describe('Deposit selectors', () => {
       entrypoints: {
         walletActions: true,
       },
+      minimumVersion: '1.5.0',
+      active: true,
     },
   };
 
@@ -62,6 +66,34 @@ describe('Deposit selectors', () => {
     it('should return null when providerFrontendAuth does not exist', () => {
       const result = selectDepositProviderFrontendAuth.resultFunc({});
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectDepositMinimumVersionFlag', () => {
+    it('should return the minimumVersion when it exists', () => {
+      const result = selectDepositMinimumVersionFlag.resultFunc(
+        mockRemoteFeatureFlags.depositConfig,
+      );
+      expect(result).toBe('1.5.0');
+    });
+
+    it('should return null when minimumVersion does not exist', () => {
+      const result = selectDepositMinimumVersionFlag.resultFunc({});
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectDepositActiveFlag', () => {
+    it('should return true when active is set to true', () => {
+      const result = selectDepositActiveFlag.resultFunc(
+        mockRemoteFeatureFlags.depositConfig,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('should return false when active is not set', () => {
+      const result = selectDepositActiveFlag.resultFunc({});
+      expect(result).toBe(false);
     });
   });
 

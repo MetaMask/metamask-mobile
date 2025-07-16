@@ -259,6 +259,7 @@ const Routes = {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
   },
+  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
