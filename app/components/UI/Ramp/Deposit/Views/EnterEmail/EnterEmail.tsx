@@ -31,6 +31,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterEmailParams {
   quote: BuyQuote;
@@ -51,6 +52,8 @@ const EnterEmail = () => {
     useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const trackEvent = useAnalytics();
 
   useEffect(() => {
     navigation.setOptions(
@@ -81,6 +84,10 @@ const EnterEmail = () => {
   const handleSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
+      trackEvent('RAMPS_EMAIL_SUBMITTED', {
+        ramp_type: 'DEPOSIT',
+      });
+
       if (validateEmail(email)) {
         setValidationError(false);
         await submitEmail();
@@ -112,6 +119,7 @@ const EnterEmail = () => {
     quote,
     paymentMethodId,
     cryptoCurrencyChainId,
+    trackEvent,
   ]);
 
   return (

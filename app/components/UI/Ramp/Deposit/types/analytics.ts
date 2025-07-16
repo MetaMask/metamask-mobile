@@ -93,7 +93,6 @@ interface RampsEmailSubmitted {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT';
   user_id?: string;
-  attempts: number;
 }
 
 interface RampsOtpConfirmed {

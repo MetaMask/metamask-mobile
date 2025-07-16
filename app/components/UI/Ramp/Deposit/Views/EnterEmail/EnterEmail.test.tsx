@@ -8,6 +8,7 @@ import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockTrackEvent = jest.fn();
 
 const mockResponse = {
   data: null,
@@ -41,6 +42,12 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
 
+jest.mock('../../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => (eventType: string, params: Record<string, unknown>) =>
+    mockTrackEvent(eventType, params),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -53,7 +60,11 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: { quote: mockQuote },
+      params: {
+        quote: mockQuote,
+        paymentMethodId: 'test-payment-method-id',
+        cryptoCurrencyChainId: '1',
+      },
     }),
   };
 });
@@ -99,7 +110,24 @@ describe('EnterEmail Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
         quote: mockQuote,
+        paymentMethodId: 'test-payment-method-id',
+        cryptoCurrencyChainId: '1',
       });
+    });
+  });
+
+  it('tracks analytics event when submit button is pressed with valid email', async () => {
+    render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_EMAIL_SUBMITTED',
+        {
+          ramp_type: 'DEPOSIT',
+        },
+      );
     });
   });
 
