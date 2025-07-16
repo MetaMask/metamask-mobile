@@ -241,13 +241,7 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    bridgeViewMode,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
 
   // Update isErrorBannerVisible when input focus changes
   useEffect(() => {
@@ -285,13 +279,19 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (validationResult.error || validationResult.result.validation.reason) {
-            const isValidationError = !!validationResult.result.validation.reason;
+          if (
+            validationResult.error ||
+            validationResult.result.validation.reason
+          ) {
+            const isValidationError =
+              !!validationResult.result.validation.reason;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError ? validationResult.result.validation.reason : validationResult.error,
+                errorMessage: isValidationError
+                  ? validationResult.result.validation.reason
+                  : validationResult.error,
               },
             });
             return;
@@ -405,9 +405,7 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance ||
-              isSubmittingTx ||
-              isHardwareAddress
+              hasInsufficientBalance || isSubmittingTx || isHardwareAddress
             }
           />
           <Button
