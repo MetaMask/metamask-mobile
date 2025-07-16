@@ -1,7 +1,7 @@
 import { SmokeAccounts } from '../../../tags.js';
 import TestHelpers from '../../../helpers.js';
 import Assertions from '../../../framework/Assertions';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import { loginToApp } from '../../../viewHelper.js';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm.ts';
