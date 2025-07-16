@@ -18,7 +18,6 @@ import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
 import TestHelpers from './helpers';
-import Matchers from './utils/Matchers';
 
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
@@ -80,11 +79,9 @@ have to have all these workarounds in the tests
   }
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    await Assertions.expectElementToBeVisible(
-      SolanaNewFeatureSheet.notNowButton,
-    );
-    await SolanaNewFeatureSheet.tapNotNowButton();
+     // Handle Solana New feature sheet
+      await Assertions.expectElementToBeVisible(SolanaNewFeatureSheet.notNowButton);
+      await SolanaNewFeatureSheet.tapNotNowButton();
   }
 };
 
@@ -160,99 +157,10 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   // should import wallet with secret recovery phrase
-  // Wait for the import wallet screen to be fully loaded and stable
-  await Assertions.expectElementToBeVisible(ImportWalletView.container, {
-    description: 'Import Wallet screen should be visible',
-  });
-
-  // Wait a bit more to ensure the screen is fully rendered
-  await TestHelpers.delay(2000);
-
-  // On Android, we need to wait longer for the component to be fully rendered
-  if (device.getPlatform() === 'android') {
-    await TestHelpers.delay(3000);
-  }
-
-  // Wait for the seed phrase input to be visible and ready
-  let retryCount = 0;
-  const maxRetries = 5; // Increased retries for Android
-
-  while (retryCount < maxRetries) {
-    try {
-      await Assertions.expectElementToBeVisible(
-        ImportWalletView.seedPhraseInput,
-        {
-          description: 'Seed phrase input should be visible',
-        },
-      );
-      break;
-    } catch (error) {
-      retryCount++;
-      if (retryCount >= maxRetries) {
-        throw error;
-      }
-      // Longer delay between retries on Android
-      await TestHelpers.delay(device.getPlatform() === 'android' ? 2000 : 1000);
-    }
-  }
-
-  // Add a small delay to ensure the component is fully rendered
-  await TestHelpers.delay(device.getPlatform() === 'android' ? 2000 : 1000);
-
-  // Try to clear the field, but don't fail if it's already empty
-  // On Android, we need to be more careful with clearing the field
-  let clearAttempts = 0;
-  const maxClearAttempts = 3;
-
-  while (clearAttempts < maxClearAttempts) {
-    try {
-      await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-      break;
-    } catch (error) {
-      clearAttempts++;
-      if (clearAttempts >= maxClearAttempts) {
-        // If clearing fails after multiple attempts, the field might already be empty, so continue
-        console.log(
-          'Could not clear seed phrase input box after multiple attempts, continuing...',
-        );
-        break;
-      }
-      // Wait a bit before retrying
-      await TestHelpers.delay(1000);
-    }
-  }
-
-  // Ensure the seed phrase input is still visible and ready for input
-  // On Android, we need to wait a bit more for the field to be ready
-  await TestHelpers.delay(device.getPlatform() === 'android' ? 1500 : 500);
-
-  await Assertions.expectElementToBeVisible(ImportWalletView.seedPhraseInput, {
-    description: 'Seed phrase input should be visible after clearing',
-  });
-
-  // Enter the seed phrase with retry mechanism for Android
-  let enterAttempts = 0;
-  const maxEnterAttempts = 3;
-
-  while (enterAttempts < maxEnterAttempts) {
-    try {
-      await ImportWalletView.enterSecretRecoveryPhrase(
-        seedPhrase ?? validAccount.seedPhrase,
-      );
-      break;
-    } catch (error) {
-      enterAttempts++;
-      if (enterAttempts >= maxEnterAttempts) {
-        throw error;
-      }
-      // Wait a bit before retrying
-      await TestHelpers.delay(1000);
-    }
-  }
-
-  // Ensure the component is ready before proceeding
-  await TestHelpers.delay(device.getPlatform() === 'android' ? 1000 : 500);
-
+  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
   await ImportWalletView.tapTitle();
   await ImportWalletView.tapContinueButton();
 
@@ -416,72 +324,22 @@ export const loginToApp = async (password) => {
 };
 
 export const waitForTestDappToLoad = async () => {
-  const MAX_RETRIES = 5; // Increased retries
-  const RETRY_DELAY = 3000; // Reduced delay for faster retries
-  const INITIAL_DELAY = 2000; // Initial delay to let the page start loading
-
-  // Initial delay to let the page start loading
-  await TestHelpers.delay(INITIAL_DELAY);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 5000;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      console.log(`Attempt ${attempt}/${MAX_RETRIES} to load test dapp...`);
-
-      // Try to find the fox logo first
       await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-      console.log('✓ Fox logo found');
-
-      // Try to find the page title
       await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
-      console.log('✓ Page title found');
 
-      // Try to find the connect button
       await Assertions.webViewElementExists(TestDApp.DappConnectButton);
-      console.log('✓ Connect button found');
-
-      console.log('✓ Test dapp loaded successfully');
       return; // Success - page is fully loaded and interactive
     } catch (error) {
-      console.log(`Attempt ${attempt} failed: ${error.message}`);
-
       if (attempt === MAX_RETRIES) {
-        // Try to get more diagnostic information
-        try {
-          console.log('Attempting to get page source for debugging...');
-          // This might help debug what's actually on the page
-          const webview = Matchers.getElementByID('browser-webview');
-          const pageSource = await webview.getText();
-          console.log('Page source preview:', pageSource.substring(0, 500));
-        } catch (debugError) {
-          console.log(
-            'Could not get page source for debugging:',
-            debugError.message,
-          );
-        }
-
-        // Try alternative approach - maybe the page loaded but elements have different IDs
-        try {
-          console.log(
-            'Trying alternative approach - checking for any interactive elements...',
-          );
-          // Try to find any button or interactive element that might indicate the page loaded
-          const anyButton = Matchers.getElementByWebID(
-            'browser-webview',
-            'button',
-          );
-          console.log(
-            'Found a button element, page might be loaded with different structure',
-          );
-        } catch (altError) {
-          console.log('Alternative approach also failed:', altError.message);
-        }
-
         throw new Error(
           `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
         );
       }
-
-      // Wait before retrying
       await TestHelpers.delay(RETRY_DELAY);
     }
   }
