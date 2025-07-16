@@ -966,13 +966,33 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
     [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
-  const sendActiveAccount = useCallback(async () => {
+  const sendActiveAccount = useCallback(async (targetUrl?: string) => {
+    // Use targetUrl if provided, otherwise fall back to resolvedUrlRef.current
+    const urlToCheck = targetUrl || resolvedUrlRef.current;
+    
+    if (!urlToCheck) {
+      // If no URL to check, send empty accounts
+      notifyAllConnections({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [],
+      });
+      return;
+    }
+    
+    // Get permitted accounts for the target URL
+    const permissionsControllerState = Engine.context.PermissionController.state;
+    const hostname = new URLParse(urlToCheck).hostname;
+    const permittedAcc = getPermittedEvmAddressesByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedEvmAccountsList,
+      params: permittedAcc,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedEvmAccountsList]);
+  }, [notifyAllConnections]);
 
   /**
    * Website started to load
@@ -996,7 +1016,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         return false;
       }
 
-      sendActiveAccount();
+      sendActiveAccount(nativeEvent.url);
 
       iconRef.current = undefined;
       if (isHomepage(nativeEvent.url)) {
