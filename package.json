@@ -155,6 +155,7 @@
     "sha256-uint8array": "0.10.3",
     "express": "4.21.2",
     "nanoid": "^3.3.8",
+    "ganache/@trufflesuite/uws-js-unofficial/ws": "^8.17.1",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
     "@metamask/keyring-controller/@ethereumjs/tx": "npm:@ethereumjs/tx@5.4.0",
