@@ -81,6 +81,7 @@ describe('PerpsController', () => {
       withdraw: jest.fn(),
       getDepositRoutes: jest.fn(),
       getWithdrawalRoutes: jest.fn(),
+      validateDeposit: jest.fn(),
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
@@ -478,6 +479,12 @@ describe('PerpsController', () => {
     it('should validate deposit parameters', async () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        // Mock validateDeposit to return validation errors
+        mockHyperLiquidProvider.validateDeposit
+          .mockReturnValueOnce({ isValid: false, error: 'Amount is required and must be greater than 0' })
+          .mockReturnValueOnce({ isValid: false, error: 'AssetId is required for deposit validation' });
+
         await controller.initializeProviders();
 
         // Test missing amount
@@ -515,6 +522,9 @@ describe('PerpsController', () => {
               '0x5678901234567890123456789012345678901234' as any,
           },
         ]);
+        
+        // Mock validateDeposit to pass validation
+        mockHyperLiquidProvider.validateDeposit.mockReturnValue({ isValid: true });
 
         await controller.initializeProviders();
 
