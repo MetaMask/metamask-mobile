@@ -150,7 +150,6 @@ const WalletRecovery = () => {
   const userEmail = useSelector(selectSeedlessOnboardingUserEmail);
   const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const styles = StyleSheet.create({
     root: {
       flex: 1,
