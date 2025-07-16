@@ -14,6 +14,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Import PerpsController hooks
 import {
@@ -74,7 +75,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
-
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
   DevLogger.log(
@@ -197,6 +197,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     navigation.navigate('PerpsMarketListView');
   };
 
+  const handlePositionsNavigation = async () => {
+    navigation.navigate(Routes.PERPS.POSITIONS);
+  };
+
   // Show connection error screen if there's an error
   if (connectionError) {
     return (
@@ -287,6 +291,15 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             width={ButtonWidthTypes.Full}
             label="View Markets"
             onPress={handleMarketListNavigation}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Positions"
+            onPress={handlePositionsNavigation}
+            loading={isLoading}
             style={styles.button}
           />
         </View>
