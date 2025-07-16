@@ -35,74 +35,64 @@ const withBrowser = async (fn: () => Promise<void>) => {
 };
 
 describe(SmokeWalletPlatform('Browser Tests'), () => {
-
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
   it('should connect to the test dapp', async () => {
-    await withBrowser(
-      async () => {
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-          description: 'Browser screen is visible',
-        });
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
 
-        await Browser.tapUrlInputBox();
-        await Browser.navigateToURL(ExternalSites.TEST_DAPP);
-        await Browser.waitForBrowserPageToLoad();
-        await Assertions.expectElementToHaveText(
-          Browser.urlInputBoxID,
-          getHostFromURL(ExternalSites.TEST_DAPP),
-          {
-            description: 'URL input box has the correct text',
-          },
-        );
-      },
-    );
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.TEST_DAPP);
+      await Browser.waitForBrowserPageToLoad();
+      await Assertions.expectElementToHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.TEST_DAPP),
+        {
+          description: 'URL input box has the correct text',
+        },
+      );
+    });
   });
 
   it('should test invalid URL', async () => {
-    await withBrowser(
-      async () => {
-        await Browser.tapBottomSearchBar();
-        // Clear text & Navigate to URL
-        await Browser.navigateToURL(ExternalSites.INVALID_URL);
-        await Browser.waitForBrowserPageToLoad();
-        await Browser.tapReturnHomeButton();
-        await Assertions.expectElementToNotHaveText(
-          Browser.urlInputBoxID,
-          getHostFromURL(ExternalSites.INVALID_URL),
-          {
-            description: 'URL input box does not have the invalid URL',
-          },
-        );
-      },
-    );
+    await withBrowser(async () => {
+      await Browser.tapBottomSearchBar();
+      // Clear text & Navigate to URL
+      await Browser.navigateToURL(ExternalSites.INVALID_URL);
+      await Browser.waitForBrowserPageToLoad();
+      await Browser.tapReturnHomeButton();
+      await Assertions.expectElementToNotHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.INVALID_URL),
+        {
+          description: 'URL input box does not have the invalid URL',
+        },
+      );
+    });
   });
 
   it('should test phishing sites', async () => {
-    await withBrowser(
-      async () => {
-        await Browser.tapBottomSearchBar();
-        // Clear text & Navigate to URL
-        await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
-        await Browser.waitForBrowserPageToLoad();
-        await Assertions.expectElementToBeVisible(
-          Browser.backToSafetyButton,
-          {
-            description: 'Back to safety button is visible',
-          },
-        );
+    await withBrowser(async () => {
+      await Browser.tapBottomSearchBar();
+      // Clear text & Navigate to URL
+      await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
+      await Browser.waitForBrowserPageToLoad();
+      await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
+        description: 'Back to safety button is visible',
+      });
 
-        await Browser.tapBackToSafetyButton();
-        await Assertions.expectElementToNotHaveText(
-          Browser.urlInputBoxID,
-          getHostFromURL(ExternalSites.PHISHING_SITE),
-          {
-              description: 'URL input box does not have the phishing site',
-          },
-        );
-      },
-    );
+      await Browser.tapBackToSafetyButton();
+      await Assertions.expectElementToNotHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.PHISHING_SITE),
+        {
+          description: 'URL input box does not have the phishing site',
+        },
+      );
+    });
   });
 });
