@@ -11,6 +11,8 @@ import imageIcons from '../../../../images/image-icons';
 const ethLogo = require('../../../../images/eth-logo-new.png');
 /* eslint-enable import/no-commonjs */
 
+const SMALL_SIZE = 16;
+const SMALL_RADIUS = 8;
 const REGULAR_SIZE = 24;
 const REGULAR_RADIUS = 12;
 const MEDIUM_SIZE = 36;
@@ -26,6 +28,11 @@ const createStyles = (colors) =>
       width: REGULAR_SIZE,
       height: REGULAR_SIZE,
       borderRadius: REGULAR_RADIUS,
+    },
+    iconSmall: {
+      width: SMALL_SIZE,
+      height: SMALL_SIZE,
+      borderRadius: SMALL_RADIUS,
     },
     iconMedium: {
       width: MEDIUM_SIZE,
@@ -90,7 +97,7 @@ EmptyIcon.propTypes = {
   testID: PropTypes.string,
 };
 
-function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
+function TokenIcon({ symbol, icon, small, medium, big, biggest, style, testID }) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -125,6 +132,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
         onError={() => setShowFallback(true)}
         style={[
           styles.icon,
+          small && styles.iconSmall,
           medium && styles.iconMedium,
           big && styles.iconBig,
           biggest && styles.iconBiggest,
@@ -163,6 +171,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
 TokenIcon.propTypes = {
   symbol: PropTypes.string,
   icon: PropTypes.string,
+  small: PropTypes.bool,
   medium: PropTypes.bool,
   big: PropTypes.bool,
   biggest: PropTypes.bool,

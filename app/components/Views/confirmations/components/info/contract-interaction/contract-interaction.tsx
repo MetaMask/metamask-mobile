@@ -13,6 +13,7 @@ import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row/adv
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import SwitchAccountTypeInfoRow from '../../rows/switch-account-type-info-row';
 import { isDappOrigin } from '../../../utils/origin';
+import { PayWithRow } from '../../rows/pay-with-row';
 
 const ContractInteraction = () => {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -34,6 +35,7 @@ const ContractInteraction = () => {
       />
       {isDappInteraction && <OriginRow isSignatureRequest={false} />}
       <GasFeesDetailsRow />
+      <PayWithRow />
       <AdvancedDetailsRow />
     </View>
   );
