@@ -466,6 +466,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -475,7 +476,6 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                 }
                               >
                                 Hang tight!
-We’re verifying your identity now.
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -490,7 +490,7 @@ We’re verifying your identity now.
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -509,41 +509,6 @@ We’re verifying your identity now.
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
                               name="powered-by-transak-logo"
@@ -1058,6 +1023,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1111,11 +1077,12 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1635,6 +1602,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1658,7 +1626,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Try uploading your documents again and resubmit for verification.
+                                Network error
                               </Text>
                             </View>
                           </View>
@@ -1688,11 +1656,12 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2204,6 +2173,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2213,7 +2183,6 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                 }
                               >
                                 Hang tight!
-We’re verifying your identity now.
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -2228,7 +2197,7 @@ We’re verifying your identity now.
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -2247,41 +2216,6 @@ We’re verifying your identity now.
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
                               name="powered-by-transak-logo"
@@ -2782,6 +2716,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2835,11 +2770,12 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -3359,6 +3295,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -3412,11 +3349,12 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

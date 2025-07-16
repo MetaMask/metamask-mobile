@@ -1793,7 +1793,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
-export function getBridgeNavbar(navigation, route, themeColors) {
+export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -1808,9 +1808,12 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   });
 
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
-  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
-  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+  } else if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
     title = strings('swaps.title');
   }
 

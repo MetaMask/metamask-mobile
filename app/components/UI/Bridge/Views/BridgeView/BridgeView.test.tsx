@@ -286,9 +286,6 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: BridgeViewMode.Bridge,
-      },
     });
   });
 
@@ -381,7 +378,7 @@ describe('BridgeView', () => {
 
     // Verify balance is displayed
     await waitFor(() => {
-      expect(getByText('2.0 ETH')).toBeTruthy();
+      expect(getByText('2 ETH')).toBeTruthy();
     });
   });
 
@@ -901,7 +898,7 @@ describe('BridgeView', () => {
 
   describe('handleContinue - Blockaid Validation', () => {
     const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
-    
+
     beforeEach(() => {
       jest.clearAllMocks();
       mockValidateBridgeTx.mockResolvedValue({
@@ -916,10 +913,10 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on validation error for Solana swap', async () => {
       // Mock validation result with validation error
       mockValidateBridgeTx.mockResolvedValue({
-        result: { 
-          validation: { 
-            reason: 'Transaction may result in loss of funds' 
-          } 
+        result: {
+          validation: {
+            reason: 'Transaction may result in loss of funds'
+          }
         },
         error: null,
       });
@@ -994,10 +991,10 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on simulation error for Solana to EVM bridge', async () => {
       // Mock validation result with simulation error
       mockValidateBridgeTx.mockResolvedValue({
-        result: { 
-          validation: { 
-            reason: null 
-          } 
+        result: {
+          validation: {
+            reason: null
+          }
         },
         error: 'Simulation failed',
       });
@@ -1072,10 +1069,10 @@ describe('BridgeView', () => {
     it('should prioritize validation error over simulation error', async () => {
       // Mock validation result with both validation and simulation errors
       mockValidateBridgeTx.mockResolvedValue({
-        result: { 
-          validation: { 
-            reason: 'Transaction may result in loss of funds' 
-          } 
+        result: {
+          validation: {
+            reason: 'Transaction may result in loss of funds'
+          }
         },
         error: 'Simulation failed',
       });
@@ -1144,10 +1141,10 @@ describe('BridgeView', () => {
     it('should proceed with transaction when no validation errors', async () => {
       // Mock validation result with no errors
       mockValidateBridgeTx.mockResolvedValue({
-        result: { 
-          validation: { 
-            reason: null 
-          } 
+        result: {
+          validation: {
+            reason: null
+          }
         },
         error: null,
       });

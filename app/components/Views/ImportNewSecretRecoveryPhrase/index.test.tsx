@@ -101,7 +101,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
       discoveredAccountsCount: 3,

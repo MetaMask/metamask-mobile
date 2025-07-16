@@ -23,7 +23,6 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
-  isMetaMetricsUISeen: false,
 };
 
 /**
@@ -115,11 +114,6 @@ const userReducer = (
       return {
         ...state,
         appServicesReady: true,
-      };
-    case UserActionType.SET_META_METRICS_UI_SEEN:
-      return {
-        ...state,
-        isMetaMetricsUISeen: action.payload.isMetaMetricsUISeen,
       };
     default:
       return state;

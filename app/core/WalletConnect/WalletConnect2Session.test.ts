@@ -1219,6 +1219,6 @@ describe('WalletConnect2Session', () => {
       expect(mockChainChangedEvent).toHaveBeenCalledWith('chainChanged', parseInt(testChainId, 16));
     });
 
-  })
+  });
 
-})
+});

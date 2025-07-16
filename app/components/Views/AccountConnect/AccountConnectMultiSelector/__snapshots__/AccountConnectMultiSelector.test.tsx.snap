@@ -209,6 +209,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
               "paddingRight": 0,
             }
@@ -677,12 +678,13 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#4459ff",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

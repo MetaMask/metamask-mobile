@@ -678,15 +678,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                       </RCTScrollView>
                       <View
                         style={
-                          [
-                            {
-                              "flexDirection": "row",
-                              "padding": 16,
-                            },
-                            {
-                              "opacity": 0.3,
-                            },
-                          ]
+                          {
+                            "flexDirection": "row",
+                            "padding": 16,
+                          }
                         }
                       >
                         <TouchableOpacity
@@ -700,14 +695,15 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "transparent",
-                              "borderColor": "#4459ff",
+                              "backgroundColor": "#3c4d9d1a",
+                              "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
                               "flex": 1,
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
+                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -717,7 +713,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#4459ff",
+                                "color": "#121314",
                                 "fontFamily": "Geist Medium",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -746,12 +742,13 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#4459ff",
+                              "backgroundColor": "#121314",
                               "borderRadius": 12,
                               "flex": 1,
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
+                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }

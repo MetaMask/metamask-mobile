@@ -99,19 +99,19 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
   });
 
   it('should expand the quotes section and select a provider', async () => {
-      // Disabling synchronization to avoid race conditions
-      await device.disableSynchronization();
-      try {
-        await QuotesView.tapExploreMoreOptions();
-        await Assertions.checkIfVisible(QuotesView.expandedQuotesSection);
-        await Assertions.checkIfVisible(QuotesView.continueWithProvider);
-        await QuotesView.tapContinueWithProvider();
-        await TestHelpers.pause(650); // Waiting for the last event to be sent
-      } catch (error) {
-        // We're ok catching this as there were not enough providers to select from
-        shouldCheckProviderSelectedEvents = false;
-        console.warn('No provider will be selected');
-      }
+    // Disabling synchronization to avoid race conditions
+    await device.disableSynchronization();
+    try {
+      await QuotesView.tapExploreMoreOptions();
+      await Assertions.checkIfVisible(QuotesView.expandedQuotesSection);
+      await Assertions.checkIfVisible(QuotesView.continueWithProvider);
+      await QuotesView.tapContinueWithProvider();
+      await TestHelpers.pause(650); // Waiting for the last event to be sent
+    } catch (error) {
+      // We're ok catching this as there were not enough providers to select from
+      shouldCheckProviderSelectedEvents = false;
+      console.warn('No provider will be selected');
+    }
   });
 
   it('should validate segment/metametric events for a successful onramp flow', async () => {
@@ -138,144 +138,261 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       expectedEvents.ONRAMP_PROVIDER_SELECTED,
     ]);
 
-    const buyButtonClicked = events.find((event) => event.event === expectedEvents.BUY_BUTTON_CLICKED);
-    await softAssert.checkAndCollect(async () => {
+    // Find all events
+    const buyButtonClicked = events.find(
+      (event) => event.event === expectedEvents.BUY_BUTTON_CLICKED,
+    );
+    const onRampGetStartedClicked = events.find(
+      (event) => event.event === expectedEvents.ONRAMP_GET_STARTED_CLICKED,
+    );
+    const onRampCanceled = events.find(
+      (event) => event.event === expectedEvents.ONRAMP_CANCELED,
+    );
+    const onRampQuotesRequested = events.find(
+      (event) => event.event === expectedEvents.ONRAMP_QUOTES_REQUESTED,
+    );
+    const onRampQuotesReceived = events.find(
+      (event) => event.event === expectedEvents.ONRAMP_QUOTES_RECEIVED,
+    );
+
+    // Define all base assertion calls as variables
+    const checkBuyButtonClicked = softAssert.checkAndCollect(async () => {
       await Assertions.checkIfValueIsDefined(buyButtonClicked);
     }, 'Buy Button Clicked: Should be present');
 
-    const onRampGetStartedClicked = events.find((event) => event.event === expectedEvents.ONRAMP_GET_STARTED_CLICKED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(onRampGetStartedClicked);
-    });
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectContains(onRampGetStartedClicked.properties, {
-        text: 'Get Started',
-        location: 'Get Started Screen',
-      });
-    }, 'On-ramp Get Started Clicked: Should be present');
+    const checkOnRampGetStartedClickedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(onRampGetStartedClicked);
+      },
+      'On-ramp Get Started Clicked: Should be defined',
+    );
 
-    const onRampCanceled = events.find((event) => event.event === expectedEvents.ONRAMP_CANCELED);
-    await softAssert.checkAndCollect(async () => {
+    const checkOnRampGetStartedClickedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectContains(
+          onRampGetStartedClicked.properties,
+          {
+            text: 'Get Started',
+            location: 'Get Started Screen',
+          },
+        );
+      },
+      'On-ramp Get Started Clicked: Should be present',
+    );
+
+    const checkOnRampCanceledDefined = softAssert.checkAndCollect(async () => {
       await Assertions.checkIfValueIsDefined(onRampCanceled);
     }, 'On-ramp Canceled: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectContains(onRampCanceled.properties, {
-        location: 'Amount to Buy Screen',
-        chain_id_destination: '1',
-      });
-    }, 'On-ramp Canceled: Should have correct properties');
 
-    const onRampQuotesRequested = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_REQUESTED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(onRampQuotesRequested);
-    }, 'On-ramp Quotes Requested: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesRequested.properties, {
-        amount: 'number',
-        payment_method_id: 'string',
-        location: 'string',
-        currency_source: 'string',
-        currency_destination: 'string',
-        chain_id_destination: 'string',
-      });
-    }, 'On-ramp Quotes Requested: Should have correct properties');
+    const checkOnRampCanceledProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectContains(onRampCanceled.properties, {
+          location: 'Amount to Buy Screen',
+          chain_id_destination: '1',
+        });
+      },
+      'On-ramp Canceled: Should have correct properties',
+    );
 
-    const onRampQuotesReceived = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_RECEIVED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(onRampQuotesReceived);
-    }, 'On-ramp Quotes Received: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesReceived.properties, {
-        amount: 'number',
-        payment_method_id: 'string',
-        refresh_count: 'number',
-        results_count: 'number',
-        average_total_fee: 'number',
-        average_gas_fee: 'number',
-        average_processing_fee: 'number',
-        average_total_fee_of_amount: 'number',
-        quotes_amount_list: 'array',
-        quotes_amount_first: 'number',
-        quotes_amount_last: 'number',
-        currency_source: 'string',
-        currency_destination: 'string',
-        average_crypto_out: 'number',
-        chain_id_destination: 'string',
-        provider_onramp_list: 'array',
-        provider_onramp_first: 'string',
-        provider_onramp_last: 'string',
-        provider_onramp_most_reliable: 'string',
-        provider_onramp_best_price: 'string',
-      });
-    }, 'On-ramp Quotes Received: Should have correct properties');
+    const checkOnRampQuotesRequestedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(onRampQuotesRequested);
+      },
+      'On-ramp Quotes Requested: Should be present',
+    );
 
-    // !!IMPORTANT!!
-    // Only iOS sends quote error currently because of the available providers on iOS.
+    const checkOnRampQuotesRequestedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          onRampQuotesRequested.properties,
+          {
+            amount: 'number',
+            payment_method_id: 'string',
+            location: 'string',
+            currency_source: 'string',
+            currency_destination: 'string',
+            chain_id_destination: 'string',
+          },
+        );
+      },
+      'On-ramp Quotes Requested: Should have correct properties',
+    );
+
+    const checkOnRampQuotesReceivedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(onRampQuotesReceived);
+      },
+      'On-ramp Quotes Received: Should be present',
+    );
+
+    const checkOnRampQuotesReceivedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          onRampQuotesReceived.properties,
+          {
+            amount: 'number',
+            payment_method_id: 'string',
+            refresh_count: 'number',
+            results_count: 'number',
+            average_total_fee: 'number',
+            average_gas_fee: 'number',
+            average_processing_fee: 'number',
+            average_total_fee_of_amount: 'number',
+            quotes_amount_list: 'array',
+            quotes_amount_first: 'number',
+            quotes_amount_last: 'number',
+            currency_source: 'string',
+            currency_destination: 'string',
+            average_crypto_out: 'number',
+            chain_id_destination: 'string',
+            provider_onramp_list: 'array',
+            provider_onramp_first: 'string',
+            provider_onramp_last: 'string',
+            provider_onramp_most_reliable: 'string',
+            provider_onramp_best_price: 'string',
+          },
+        );
+      },
+      'On-ramp Quotes Received: Should have correct properties',
+    );
+
+    // Collect all base assertions
+    const baseAssertions = [
+      checkBuyButtonClicked,
+      checkOnRampGetStartedClickedDefined,
+      checkOnRampGetStartedClickedProperties,
+      checkOnRampCanceledDefined,
+      checkOnRampCanceledProperties,
+      checkOnRampQuotesRequestedDefined,
+      checkOnRampQuotesRequestedProperties,
+      checkOnRampQuotesReceivedDefined,
+      checkOnRampQuotesReceivedProperties,
+    ];
+
+    // iOS-specific assertions
+    let iosAssertions = [];
     if (device.getPlatform() === 'ios') {
-      const onRampQuoteError = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTE_ERROR);
-      softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(onRampQuoteError);
-      });
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuoteError.properties, {
-          amount: 'number',
-          payment_method_id: 'string',
-          error_message: 'string',
-          currency_source: 'string',
-          currency_destination: 'string',
-          provider_onramp: 'string',
-          chain_id_destination: 'string',
-        });
-      }, 'On-ramp Quote Error: Should have correct properties');
+      const onRampQuoteError = events.find(
+        (event) => event.event === expectedEvents.ONRAMP_QUOTE_ERROR,
+      );
+
+      const checkOnRampQuoteErrorDefined = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfValueIsDefined(onRampQuoteError);
+        },
+        'On-ramp Quote Error: Should be defined',
+      );
+
+      const checkOnRampQuoteErrorProperties = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            onRampQuoteError.properties,
+            {
+              amount: 'number',
+              payment_method_id: 'string',
+              error_message: 'string',
+              currency_source: 'string',
+              currency_destination: 'string',
+              provider_onramp: 'string',
+              chain_id_destination: 'string',
+            },
+          );
+        },
+        'On-ramp Quote Error: Should have correct properties',
+      );
+
+      iosAssertions = [
+        checkOnRampQuoteErrorDefined,
+        checkOnRampQuoteErrorProperties,
+      ];
     }
 
-    // We only assert these events if there is more than one provider available
+    // Provider-specific assertions
+    let providerAssertions = [];
     if (shouldCheckProviderSelectedEvents) {
-      const onRampQuotesExpanded = events.find((event) => event.event === expectedEvents.ONRAMP_QUOTES_EXPANDED);
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(onRampQuotesExpanded);
-      }, 'On-ramp Quotes Expanded: Should be present');
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(onRampQuotesExpanded.properties, {
-          payment_method_id: 'string',
-          amount: 'number',
-          refresh_count: 'number',
-          results_count: 'number',
-          provider_onramp_first: 'string',
-          provider_onramp_list: 'array',
-          previously_used_count: 'number',
-          chain_id_destination: 'string',
-          currency_source: 'string',
-          currency_destination: 'string',
-        });
-      });
+      const onRampQuotesExpanded = events.find(
+        (event) => event.event === expectedEvents.ONRAMP_QUOTES_EXPANDED,
+      );
+      const onRampProviderSelected = events.find(
+        (event) => event.event === expectedEvents.ONRAMP_PROVIDER_SELECTED,
+      );
 
-      const onRampProviderSelected = events.find((event) => event.event === expectedEvents.ONRAMP_PROVIDER_SELECTED);
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(onRampProviderSelected);
-      }, 'On-ramp Provider Selected: Should be present');
+      const checkOnRampQuotesExpandedDefined = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfValueIsDefined(onRampQuotesExpanded);
+        },
+        'On-ramp Quotes Expanded: Should be present',
+      );
 
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(onRampProviderSelected.properties, {
-          refresh_count: 'number',
-          quote_position: 'number',
-          results_count: 'number',
-          payment_method_id: 'string',
-          total_fee: 'number',
-          gas_fee: 'number',
-          processing_fee: 'number',
-          exchange_rate: 'number',
-          amount: 'number',
-          is_best_rate: 'boolean',
-          is_recommended: 'boolean',
-          currency_source: 'string',
-          currency_destination: 'string',
-          provider_onramp: 'string',
-          crypto_out: 'number',
-          chain_id_destination: 'string',
-        });
-      }, 'On-ramp Provider Selected: Should have correct properties');
+      const checkOnRampQuotesExpandedProperties = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            onRampQuotesExpanded.properties,
+            {
+              payment_method_id: 'string',
+              amount: 'number',
+              refresh_count: 'number',
+              results_count: 'number',
+              provider_onramp_first: 'string',
+              provider_onramp_list: 'array',
+              previously_used_count: 'number',
+              chain_id_destination: 'string',
+              currency_source: 'string',
+              currency_destination: 'string',
+            },
+          );
+        },
+        'On-ramp Quotes Expanded: Should have correct properties',
+      );
+
+      const checkOnRampProviderSelectedDefined = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfValueIsDefined(onRampProviderSelected);
+        },
+        'On-ramp Provider Selected: Should be present',
+      );
+
+      const checkOnRampProviderSelectedProperties = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            onRampProviderSelected.properties,
+            {
+              refresh_count: 'number',
+              quote_position: 'number',
+              results_count: 'number',
+              payment_method_id: 'string',
+              total_fee: 'number',
+              gas_fee: 'number',
+              processing_fee: 'number',
+              exchange_rate: 'number',
+              amount: 'number',
+              is_best_rate: 'boolean',
+              is_recommended: 'boolean',
+              currency_source: 'string',
+              currency_destination: 'string',
+              provider_onramp: 'string',
+              crypto_out: 'number',
+              chain_id_destination: 'string',
+            },
+          );
+        },
+        'On-ramp Provider Selected: Should have correct properties',
+      );
+
+      providerAssertions = [
+        checkOnRampQuotesExpandedDefined,
+        checkOnRampQuotesExpandedProperties,
+        checkOnRampProviderSelectedDefined,
+        checkOnRampProviderSelectedProperties,
+      ];
     }
+
+
+    await Promise.all([
+      ...baseAssertions,
+      ...iosAssertions,
+      ...providerAssertions,
+    ]);
 
     softAssert.throwIfErrors();
   });

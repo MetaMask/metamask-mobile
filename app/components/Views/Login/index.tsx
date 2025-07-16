@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -37,6 +37,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -83,13 +84,14 @@ import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -99,6 +101,8 @@ const EmptyRecordConstant = {};
  * View where returning users can authenticate
  */
 const Login: React.FC = () => {
+  const [disabledInput, setDisabledInput] = useState(false);
+
   const fieldRef = useRef<TextInput>(null);
 
   const [password, setPassword] = useState('');
@@ -129,10 +133,8 @@ const Login: React.FC = () => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
+  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -145,7 +147,11 @@ const Login: React.FC = () => {
   };
 
   const handleBackPress = () => {
-    Authentication.lockApp();
+    if (!oauthLoginSuccess) {
+      Authentication.lockApp();
+    } else {
+      navigation.goBack();
+    }
     return false;
   };
 
@@ -177,6 +183,7 @@ const Login: React.FC = () => {
         setRememberMe(true);
         setAllowLoginWithRememberMe(true);
       } else if (authData.availableBiometryType) {
+        Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
         setHasBiometricCredentials(
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
@@ -258,18 +265,76 @@ const Login: React.FC = () => {
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
-    if (!isMetaMetricsUISeen) {
-      navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-        screen: Routes.ONBOARDING.NAV,
-        params: {
-          screen: Routes.ONBOARDING.OPTIN_METRICS,
-          params: {
-            onContinue: () => navigateToHome(),
+    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+      OPTIN_META_METRICS_UI_SEEN,
+    );
+
+    if (!isOptinMetaMetricsUISeen) {
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
           },
-        },
+        ],
       });
     } else {
       navigateToHome();
+    }
+  };
+
+  const handleUseOtherMethod = () => {
+    navigation.goBack();
+    OAuthService.resetOauthState();
+  };
+
+  const isMountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const tooManyAttemptsError = async (remainingTime: number) => {
+    setDisabledInput(true);
+    for (let i = remainingTime; i > 0; i--) {
+      if (!isMountedRef.current) {
+        setError(null);
+        setDisabledInput(false);
+        return; // Exit early if component unmounted
+      }
+
+      setError(
+        strings('login.too_many_attempts', {
+          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+        }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (isMountedRef.current) {
+      setError(null);
+      setDisabledInput(false);
+    }
+  };
+
+  const handleSeedlessOnboardingControllerError = (
+    seedlessError: SeedlessOnboardingControllerRecoveryError,
+  ) => {
+    if (seedlessError.data?.remainingTime) {
+      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    } else {
+      const errMessage = seedlessError.message.replace(
+        'SeedlessOnboardingController - ',
+        '',
+      );
+      setError(errMessage);
     }
   };
 
@@ -289,15 +354,20 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      if (oauthLoginSuccess) {
+        await Authentication.rehydrateSeedPhrase(password, authType);
+      } else {
+        await trace(
+          {
+            name: TraceName.AuthenticateUser,
+            op: TraceOperation.Login,
+          },
+          async () => {
+            await Authentication.userEntryAuth(password, authType);
+          },
+        );
+      }
+
       Keyboard.dismiss();
 
       await checkMetricsUISeen();
@@ -343,9 +413,16 @@ const Login: React.FC = () => {
           setLoading(false);
           setError(strings('login.clean_vault_error'));
         }
-      } else if (toLowerCaseEquals(loginError, DENY_PIN_ERROR_ANDROID)) {
+      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
+      } else if (
+        loginErr instanceof SeedlessOnboardingControllerRecoveryError
+      ) {
+        setLoading(false);
+        handleSeedlessOnboardingControllerError(
+          loginError as SeedlessOnboardingControllerRecoveryError,
+        );
       } else {
         setLoading(false);
         setError(loginErrorMessage);
@@ -391,13 +468,13 @@ const Login: React.FC = () => {
     });
   };
 
+  const shouldRenderBiometricLogin =
+    biometryType && !biometryPreviouslyDisabled ? biometryType : null;
+
   const renderSwitch = () => {
     const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
       setRememberMe(rememberMeChoice);
     };
-
-    const shouldRenderBiometricLogin =
-      biometryType && !biometryPreviouslyDisabled ? biometryType : null;
 
     return (
       <LoginOptionsSwitch
@@ -417,6 +494,7 @@ const Login: React.FC = () => {
   };
 
   const shouldHideBiometricAccessoryButton = !(
+    !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials
@@ -495,6 +573,7 @@ const Login: React.FC = () => {
                   />
                 }
                 keyboardAppearance={themeAppearance}
+                isDisabled={disabledInput}
               />
             </View>
 
@@ -528,18 +607,32 @@ const Login: React.FC = () => {
                     strings('login.unlock_button')
                   )
                 }
-                isDisabled={password.length === 0}
+                isDisabled={password.length === 0 || disabledInput}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               />
 
-              <Button
-                style={styles.goBack}
-                variant={ButtonVariants.Link}
-                onPress={toggleWarningModal}
-                testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.forgot_password')}
-              />
+              {!oauthLoginSuccess && (
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.forgot_password')}
+                />
+              )}
             </View>
+
+            {oauthLoginSuccess && (
+              <View style={styles.footer}>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={handleUseOtherMethod}
+                  testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  label={strings('login.other_methods')}
+                />
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />

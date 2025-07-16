@@ -34,6 +34,8 @@ import Logger from '../../../../../../util/Logger';
 
 export interface EnterEmailParams {
   quote: BuyQuote;
+  paymentMethodId: string;
+  cryptoCurrencyChainId: string;
 }
 
 export const createEnterEmailNavDetails =
@@ -42,8 +44,11 @@ export const createEnterEmailNavDetails =
 const EnterEmail = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState(false);
-  const { quote } = useParams<EnterEmailParams>();
+  const { quote, paymentMethodId, cryptoCurrencyChainId } =
+    useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -57,29 +62,57 @@ const EnterEmail = () => {
     );
   }, [navigation, theme]);
 
-  const [{ error, isFetching: loading }, submitEmail] = useDepositSdkMethod(
-    { method: 'sendUserOtp', onMount: false },
+  const [, submitEmail] = useDepositSdkMethod(
+    { method: 'sendUserOtp', onMount: false, throws: true },
     email,
   );
 
   const emailInputRef = useRef<TextInput>(null);
 
+  const handleTextChange = useCallback(
+    (text: string) => {
+      setEmail(text);
+      setValidationError(false);
+      setError(null);
+    },
+    [setEmail, setValidationError, setError],
+  );
+
   const handleSubmit = useCallback(async () => {
     try {
+      setIsLoading(true);
       if (validateEmail(email)) {
         setValidationError(false);
         await submitEmail();
-
-        if (!error) {
-          navigation.navigate(...createOtpCodeNavDetails({ quote, email }));
-        }
+        navigation.navigate(
+          ...createOtpCodeNavDetails({
+            quote,
+            email,
+            paymentMethodId,
+            cryptoCurrencyChainId,
+          }),
+        );
       } else {
         setValidationError(true);
       }
     } catch (e) {
+      setError(
+        e instanceof Error && e.message
+          ? e.message
+          : strings('deposit.enter_email.error'),
+      );
       Logger.error(e as Error, 'Error submitting email');
+    } finally {
+      setIsLoading(false);
     }
-  }, [email, error, navigation, submitEmail, quote]);
+  }, [
+    email,
+    navigation,
+    submitEmail,
+    quote,
+    paymentMethodId,
+    cryptoCurrencyChainId,
+  ]);
 
   return (
     <ScreenLayout>
@@ -101,10 +134,10 @@ const EnterEmail = () => {
               returnKeyType={'done'}
               autoCapitalize="none"
               ref={emailInputRef}
-              onChangeText={setEmail}
+              onChangeText={handleTextChange}
               value={email}
               keyboardAppearance={theme.themeAppearance}
-              isDisabled={loading}
+              isDisabled={isLoading}
             />
             {validationError && (
               <Text style={{ color: theme.colors.error.default }}>
@@ -127,8 +160,8 @@ const EnterEmail = () => {
             label={strings('deposit.enter_email.submit_button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-            loading={loading}
-            isDisabled={loading}
+            loading={isLoading}
+            isDisabled={isLoading}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>

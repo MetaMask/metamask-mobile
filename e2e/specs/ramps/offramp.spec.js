@@ -11,7 +11,7 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort , getMockServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
@@ -135,130 +135,224 @@ describe(SmokeTrade('Off-Ramp'), () => {
 
     const softAssert = new SoftAssert();
 
-    const sellButtonClicked = events.find((event) => event.event === expectedEvents.SELL_BUTTON_CLICKED);
-    await softAssert.checkAndCollect(async () => {
+    // Find all events
+    const sellButtonClicked = events.find(
+      (event) => event.event === expectedEvents.SELL_BUTTON_CLICKED,
+    );
+    const offRampCanceled = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_CANCELED,
+    );
+    const offRampGetStartedClicked = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_GET_STARTED_CLICKED,
+    );
+    const offRampQuotesRequested = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_QUOTES_REQUESTED,
+    );
+    const offRampQuotesReceived = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_QUOTES_RECEIVED,
+    );
+    const offRampQuoteError = events.find(
+      (event) => event.event === expectedEvents.OFFRAMP_QUOTE_ERROR,
+    );
+
+    // Define all assertion calls as variables
+    const checkSellButtonClicked = softAssert.checkAndCollect(async () => {
       await Assertions.checkIfValueIsDefined(sellButtonClicked);
     }, 'Sell Button Clicked: Should be present');
 
-    const offRampCanceled = events.find((event) => event.event === expectedEvents.OFFRAMP_CANCELED);
-    await softAssert.checkAndCollect(async () => {
+    const checkOffRampCanceled = softAssert.checkAndCollect(async () => {
       await Assertions.checkIfValueIsDefined(offRampCanceled);
     }, 'Off-ramp Canceled: Should be present');
 
-    const offRampGetStartedClicked = events.find((event) => event.event === expectedEvents.OFFRAMP_GET_STARTED_CLICKED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(offRampGetStartedClicked);
-    }, 'Off-ramp Get Started Clicked: Should be present');
+    const checkOffRampGetStartedClicked = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(offRampGetStartedClicked);
+      },
+      'Off-ramp Get Started Clicked: Should be present',
+    );
 
-    const offRampQuotesRequested = events.find((event) => event.event === expectedEvents.OFFRAMP_QUOTES_REQUESTED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(offRampQuotesRequested);
-    }, 'Off-ramp Quotes Requested: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(offRampQuotesRequested.properties, {
-        payment_method_id: 'string',
-        amount: 'number',
-        location: 'string',
-        currency_destination: 'string',
-        currency_source: 'string',
-        chain_id_source: 'string',
-      });
-    }, 'Off-ramp Quotes Requested: Should have correct properties');
+    const checkOffRampQuotesRequestedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(offRampQuotesRequested);
+      },
+      'Off-ramp Quotes Requested: Should be present',
+    );
 
-    const offRampQuotesReceived = events.find((event) => event.event === expectedEvents.OFFRAMP_QUOTES_RECEIVED);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(offRampQuotesReceived);
-    }, 'Off-ramp Quotes Received: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(offRampQuotesReceived.properties, {
-        amount: 'string',
-        payment_method_id: 'string',
-        refresh_count: 'number',
-        results_count: 'number',
-        average_total_fee: 'number',
-        average_gas_fee: 'number',
-        average_processing_fee: 'number',
-        average_total_fee_of_amount: 'number',
-        quotes_amount_list: 'array',
-        quotes_amount_first: 'number',
-        quotes_amount_last: 'number',
-        currency_destination: 'string',
-        currency_source: 'string',
-        average_fiat_out: 'number',
-        chain_id_source: 'string',
-        provider_offramp_list: 'array',
-        provider_offramp_first: 'string',
-        provider_offramp_last: 'string',
-        provider_offramp_most_reliable: 'string',
-        provider_offramp_best_price: 'string',
+    const checkOffRampQuotesRequestedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          offRampQuotesRequested.properties,
+          {
+            payment_method_id: 'string',
+            amount: 'number',
+            location: 'string',
+            currency_destination: 'string',
+            currency_source: 'string',
+            chain_id_source: 'string',
+          },
+        );
+      },
+      'Off-ramp Quotes Requested: Should have correct properties',
+    );
 
-      });
-    }, 'Off-ramp Quotes Received: Should have correct properties');
+    const checkOffRampQuotesReceivedDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(offRampQuotesReceived);
+      },
+      'Off-ramp Quotes Received: Should be present',
+    );
 
-    const offRampQuoteError = events.find((event) => event.event === expectedEvents.OFFRAMP_QUOTE_ERROR);
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(offRampQuoteError);
-    }, 'Off-ramp Quote Error: Should be present');
-    await softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfObjectHasKeysAndValidValues(offRampQuoteError.properties, {
-        amount: 'string',
-        payment_method_id: 'string',
-        error_message: 'string',
-        currency_destination: 'string',
-        currency_source: 'string',
-        provider_offramp: 'string',
-        chain_id_source: 'string',
-      });
-    }, 'Off-ramp Quote Error: Should have correct properties');
+    const checkOffRampQuotesReceivedProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          offRampQuotesReceived.properties,
+          {
+            amount: 'string',
+            payment_method_id: 'string',
+            refresh_count: 'number',
+            results_count: 'number',
+            average_total_fee: 'number',
+            average_gas_fee: 'number',
+            average_processing_fee: 'number',
+            average_total_fee_of_amount: 'number',
+            quotes_amount_list: 'array',
+            quotes_amount_first: 'number',
+            quotes_amount_last: 'number',
+            currency_destination: 'string',
+            currency_source: 'string',
+            average_fiat_out: 'number',
+            chain_id_source: 'string',
+            provider_offramp_list: 'array',
+            provider_offramp_first: 'string',
+            provider_offramp_last: 'string',
+            provider_offramp_most_reliable: 'string',
+            provider_offramp_best_price: 'string',
+          },
+        );
+      },
+      'Off-ramp Quotes Received: Should have correct properties',
+    );
 
-    // We only assert these events if there is more than one provider available
+    const checkOffRampQuoteErrorDefined = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfValueIsDefined(offRampQuoteError);
+      },
+      'Off-ramp Quote Error: Should be present',
+    );
+
+    const checkOffRampQuoteErrorProperties = softAssert.checkAndCollect(
+      async () => {
+        await Assertions.checkIfObjectHasKeysAndValidValues(
+          offRampQuoteError.properties,
+          {
+            amount: 'string',
+            payment_method_id: 'string',
+            error_message: 'string',
+            currency_destination: 'string',
+            currency_source: 'string',
+            provider_offramp: 'string',
+            chain_id_source: 'string',
+          },
+        );
+      },
+      'Off-ramp Quote Error: Should have correct properties',
+    );
+
+    // Collect all base assertions
+    const baseAssertions = [
+      checkSellButtonClicked,
+      checkOffRampCanceled,
+      checkOffRampGetStartedClicked,
+      checkOffRampQuotesRequestedDefined,
+      checkOffRampQuotesRequestedProperties,
+      checkOffRampQuotesReceivedDefined,
+      checkOffRampQuotesReceivedProperties,
+      checkOffRampQuoteErrorDefined,
+      checkOffRampQuoteErrorProperties,
+    ];
+
+    // Conditional assertions for provider selected events
+    let conditionalAssertions = [];
     if (shouldCheckProviderSelectedEvents) {
-      const offRampQuotesExpanded = events.find((event) => event.event === expectedEvents.OFFRAMP_QUOTES_EXPANDED);
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(offRampQuotesExpanded);
-      }, 'Off-ramp Quotes Expanded: Should be present');
+      const offRampQuotesExpanded = events.find(
+        (event) => event.event === expectedEvents.OFFRAMP_QUOTES_EXPANDED,
+      );
+      const offRampProviderSelected = events.find(
+        (event) => event.event === expectedEvents.OFFRAMP_PROVIDER_SELECTED,
+      );
 
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(offRampQuotesExpanded.properties, {
-          payment_method_id: 'string',
-          amount: 'string',
-          refresh_count: 'number',
-          results_count: 'number',
-          provider_onramp_first: 'string',
-          provider_onramp_list: 'array',
-          previously_used_count: 'number',
-          chain_id_source: 'string',
-          currency_source: 'string',
-          currency_destination: 'string',
-        });
-      }, 'Off-ramp Quotes Expanded: Should have correct properties');
+      const checkOffRampQuotesExpandedDefined = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfValueIsDefined(offRampQuotesExpanded);
+        },
+        'Off-ramp Quotes Expanded: Should be present',
+      );
 
-      const offRampProviderSelected = events.find((event) => event.event === expectedEvents.OFFRAMP_PROVIDER_SELECTED);
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfValueIsDefined(offRampProviderSelected);
-      }, 'Off-ramp Provider Selected: Should be present');
+      const checkOffRampQuotesExpandedProperties = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            offRampQuotesExpanded.properties,
+            {
+              payment_method_id: 'string',
+              amount: 'string',
+              refresh_count: 'number',
+              results_count: 'number',
+              provider_onramp_first: 'string',
+              provider_onramp_list: 'array',
+              previously_used_count: 'number',
+              chain_id_source: 'string',
+              currency_source: 'string',
+              currency_destination: 'string',
+            },
+          );
+        },
+        'Off-ramp Quotes Expanded: Should have correct properties',
+      );
 
-      await softAssert.checkAndCollect(async () => {
-        await Assertions.checkIfObjectHasKeysAndValidValues(offRampProviderSelected.properties, {
-          refresh_count: 'number',
-          quote_position: 'number',
-          results_count: 'number',
-          payment_method_id: 'string',
-          total_fee: 'number',
-          gas_fee: 'number',
-          processing_fee: 'number',
-          exchange_rate: 'number',
-          amount: 'number',
-          is_best_rate: 'boolean',
-          is_recommended: 'boolean',
-          currency_source: 'string',
-          currency_destination: 'string',
-          provider_onramp: 'string',
-          crypto_out: 'number',
-          chain_id_destination: 'string',
-        });
-      }, 'Off-ramp Provider Selected: Should have correct properties');
+      const checkOffRampProviderSelectedDefined = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfValueIsDefined(offRampProviderSelected);
+        },
+        'Off-ramp Provider Selected: Should be present',
+      );
+
+      const checkOffRampProviderSelectedProperties = softAssert.checkAndCollect(
+        async () => {
+          await Assertions.checkIfObjectHasKeysAndValidValues(
+            offRampProviderSelected.properties,
+            {
+              refresh_count: 'number',
+              quote_position: 'number',
+              results_count: 'number',
+              payment_method_id: 'string',
+              total_fee: 'number',
+              gas_fee: 'number',
+              processing_fee: 'number',
+              exchange_rate: 'number',
+              amount: 'number',
+              is_best_rate: 'boolean',
+              is_recommended: 'boolean',
+              currency_source: 'string',
+              currency_destination: 'string',
+              provider_onramp: 'string',
+              crypto_out: 'number',
+              chain_id_destination: 'string',
+            },
+          );
+        },
+        'Off-ramp Provider Selected: Should have correct properties',
+      );
+
+      conditionalAssertions = [
+        checkOffRampQuotesExpandedDefined,
+        checkOffRampQuotesExpandedProperties,
+        checkOffRampProviderSelectedDefined,
+        checkOffRampProviderSelectedProperties,
+      ];
     }
+
+
+    await Promise.all([...baseAssertions, ...conditionalAssertions]);
 
     softAssert.throwIfErrors();
   });

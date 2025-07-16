@@ -24,6 +24,29 @@ const styleSheet = (params: { theme: Theme }) => {
     footerContent: {
       gap: 8,
     },
+    countryPrefix: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    countryFlag: {
+      fontSize: 16,
+    },
+    countryName: {
+      fontSize: 14,
+      color: theme.colors.text.muted,
+      marginLeft: 4,
+    },
+    error: {
+      color: theme.colors.error.default,
+      fontSize: 12,
+      marginTop: 4,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text.default,
+      marginBottom: 6,
+    },
   });
 };
 

@@ -1,6 +1,6 @@
 'use strict';
 
-import { SmokeNetworkExpansion } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
 import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
@@ -31,7 +31,7 @@ const QUIZ_QUESTION_1 = 1;
 const QUIZ_QUESTION_2 = 2;
 
 describe(
-  SmokeNetworkExpansion('Secret Recovery Phrase Reveal from Settings'),
+  SmokeAccounts('Secret Recovery Phrase Reveal from Settings'),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

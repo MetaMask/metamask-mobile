@@ -1,6 +1,7 @@
 import { ForgotPasswordModalSelectorsIDs, ForgotPasswordModalSelectorsText } from '../../selectors/Common/ForgotPasswordModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
+import { OnboardingSelectorText } from '../../selectors/Onboarding/Onboarding.selectors.js';
 
 class ForgotPasswordModalView {
   get container(): DetoxElement {
@@ -55,8 +56,12 @@ class ForgotPasswordModalView {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING);
   }
 
+  get successBottomNotification(): DetoxElement {
+    return Matchers.getElementByText(OnboardingSelectorText.SUCCESSFUL_WALLET_RESET);
+  }
+
   async tapResetWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.resetWalletButton, { timeout: 25000, delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.resetWalletButton, { timeout: 25000 });
   }
 
   async tapYesResetWalletButton(): Promise<void> {
@@ -80,4 +85,4 @@ class ForgotPasswordModalView {
   }
 }
 
-export default new ForgotPasswordModalView(); 
+export default new ForgotPasswordModalView();
