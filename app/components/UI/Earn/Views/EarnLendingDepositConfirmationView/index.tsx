@@ -196,8 +196,7 @@ const EarnLendingDepositConfirmationView = () => {
   useEffect(() => {
     if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
       endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
-    }
-    else {
+    } else {
       endTrace({ name: TraceName.EarnDepositReviewScreen });
     }
   }, [action]);
@@ -394,7 +393,7 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
           // start trace of time between tx submitted and tx confirmed
           trace({
-            name: TraceName.EarnDepositTxConfirmed,
+            name: TraceName.EarnLendingDepositTxConfirmed,
             data: {
               chainId: earnToken?.chainId || '',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -412,7 +411,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
-          endTrace({ name: TraceName.EarnDepositTxConfirmed });
+          endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
             const networkClientId =
@@ -445,7 +444,13 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot, earnToken?.chainId],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      tokenSnapshot,
+      earnToken?.chainId,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(

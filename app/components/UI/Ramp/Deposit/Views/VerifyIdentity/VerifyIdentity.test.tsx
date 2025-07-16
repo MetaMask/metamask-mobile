@@ -1,26 +1,18 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockDispatch = jest.fn();
 
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-// Mock the quote object
-const mockQuote: MockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-};
+const mockQuote = {
+  quoteId: 'test-quote-id',
+} as BuyQuote;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -29,6 +21,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      dispatch: mockDispatch,
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -46,19 +39,7 @@ jest.mock('../../../../Navbar', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.VERIFY_IDENTITY,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.VERIFY_IDENTITY);
 }
 
 describe('VerifyIdentity Component', () => {
@@ -84,7 +65,7 @@ describe('VerifyIdentity Component', () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BASIC_INFO, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ENTER_EMAIL, {
         quote: mockQuote,
       });
     });
