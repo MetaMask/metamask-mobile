@@ -1381,7 +1381,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         });
       }
     },
-    [onLoadEnd],
+    [onLoadEnd, initializeBackgroundBridge],
   );
 
   // Don't render webview unless ready to load. This should save on performance for initial app start.
