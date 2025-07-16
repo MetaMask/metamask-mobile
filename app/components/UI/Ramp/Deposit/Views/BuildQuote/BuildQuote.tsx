@@ -42,7 +42,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
@@ -93,10 +92,11 @@ const BuildQuote = () => {
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId: cryptoCurrency.chainId,
-    paymentMethodId: paymentMethod.id,
-  });
+  const { routeAfterAuthentication, navigateToVerifyIdentity } =
+    useDepositRouting({
+      cryptoCurrencyChainId: cryptoCurrency.chainId,
+      paymentMethodId: paymentMethod.id,
+    });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -188,20 +188,18 @@ const BuildQuote = () => {
         quoteError as Error,
         'Deposit::BuildQuote - Error fetching quote',
       );
-      setError(strings('deposit.buildQuote.quoteFetchError'));
+      setError(
+        quoteError instanceof Error && quoteError.message
+          ? quoteError.message
+          : strings('deposit.buildQuote.quoteFetchError'),
+      );
       setIsLoading(false);
       return;
     }
 
     try {
       if (!isAuthenticated) {
-        navigation.navigate(
-          ...createEnterEmailNavDetails({
-            quote,
-            paymentMethodId: paymentMethod.id,
-            cryptoCurrencyChainId: cryptoCurrency.chainId,
-          }),
-        );
+        navigateToVerifyIdentity({ quote });
         return;
       }
 
@@ -211,7 +209,11 @@ const BuildQuote = () => {
         routeError as Error,
         'Deposit::BuildQuote - Error handling authentication',
       );
-      setError(strings('deposit.buildQuote.unexpectedError'));
+      setError(
+        routeError instanceof Error && routeError.message
+          ? routeError.message
+          : strings('deposit.buildQuote.unexpectedError'),
+      );
       return;
     } finally {
       setIsLoading(false);
@@ -223,8 +225,8 @@ const BuildQuote = () => {
     paymentMethod,
     amount,
     isAuthenticated,
-    navigation,
     routeAfterAuthentication,
+    navigateToVerifyIdentity,
   ]);
 
   const handleKeypadChange = useCallback(
