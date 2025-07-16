@@ -410,8 +410,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                         extraScrollHeight={0}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
-                        keyboardDismissMode="interactive"
+                        keyboardDismissMode="none"
                         keyboardOpeningTime={250}
+                        keyboardShouldPersistTaps="always"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}
@@ -439,8 +440,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 "flexDirection": "column",
                               }
                             }
-                            keyboardDismissMode="on-drag"
-                            keyboardShouldPersistTaps={true}
+                            keyboardDismissMode="none"
+                            keyboardShouldPersistTaps="always"
                             testID="import-from-seed-screen"
                           >
                             <View>
@@ -559,7 +560,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         multiline={true}
                                         onChangeText={[Function]}
                                         onKeyPress={[Function]}
-                                        placeholder="Add a space between each word and make sure no one is watching 👀"
+                                        placeholder="Add a space between each word and make sure no one is watching."
                                         placeholderStyle={
                                           {
                                             "fontFamily": "CentraNo1-Book",
@@ -571,13 +572,16 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         spellCheck={false}
                                         style={
                                           {
+                                            "backgroundColor": "transparent",
                                             "borderWidth": 0,
                                             "color": "#686e7d",
                                             "fontFamily": "CentraNo1-Book",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "height": 66,
+                                            "marginTop": -8,
                                             "paddingHorizontal": 0,
+                                            "width": "100%",
                                           }
                                         }
                                         submitBehavior="submit"

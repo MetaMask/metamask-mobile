@@ -185,13 +185,26 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleSeedPhraseChangeAtIndex = useCallback(
     (seedPhraseText, index) => {
       try {
-        // Logger.log('handleSeedPhraseChangeAtIndex', seedPhraseText, index);
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
 
         if (text.includes(SPACE_CHAR)) {
           const isEndWithSpace = text.at(-1) === SPACE_CHAR;
           // handle use pasting multiple words / whole seed phrase separated by spaces
-          const splitArray = text.trim().split(' ');
+          const splitArray = text
+            .trim()
+            .split(' ')
+            .filter((word) => word.trim() !== '');
+
+          // If no valid words (only spaces), don't navigate to next field
+          if (splitArray.length === 0) {
+            // User typed only spaces, stay in current field
+            setSeedPhrase((prev) => {
+              const newSeedPhrase = [...prev];
+              newSeedPhrase[index] = ''; // Clear the spaces
+              return newSeedPhrase;
+            });
+            return;
+          }
 
           // Build the new seed phrase array
           const newSeedPhrase = [
@@ -227,7 +240,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const handleSeedPhraseChange = useCallback(
     (seedPhraseText) => {
-      // Logger.log('handleSeedPhraseChange', seedPhraseText);
       const text = formatSeedPhraseToSingleLine(seedPhraseText);
       const trimmedText = text.trim();
       const updatedTrimmedText = trimmedText
@@ -681,7 +693,7 @@ const ImportFromSecretRecoveryPhrase = ({
     const refElement = seedPhraseInputRefs.current.get(
       nextSeedPhraseInputFocusedIndex,
     );
-    // Logger.log('refElement', refElement?.focus);
+
     refElement?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
@@ -804,82 +816,63 @@ const ImportFromSecretRecoveryPhrase = ({
                           autoFocus
                         />
                       ) : (
-                        <View
-                          style={[styles.seedPhraseInputContainer]}
-                          onLayout={handleLayout}
-                        >
-                          <FlatList
-                            data={seedPhrase}
-                            numColumns={NUM_COLUMNS}
-                            keyExtractor={(_, index) => `seed-phrase-${index}`}
-                            keyboardShouldPersistTaps="always"
-                            keyboardDismissMode="none"
-                            onBlur={() => {
-                              setSeedPhraseInputFocusedIndex(null);
-                            }}
-                            renderItem={({ item, index }) => (
-                              <View
-                                key={`seed-phrase-item-${index}`}
-                                style={[
-                                  {
-                                    width: containerWidth / NUM_COLUMNS,
-                                  },
-                                  styles.inputPadding,
-                                ]}
-                              >
-                                <TextField
-                                  ref={(ref) => {
-                                    const inputRefs = getSeedPhraseInputRef();
-                                    inputRefs.set(index, ref);
+                        <View style={styles.seedPhraseInputContainer}>
+                          {seedPhrase.map((item, index) => (
+                            <TextField
+                              key={`seed-phrase-item-${index}`}
+                              ref={(ref) => {
+                                const inputRefs = getSeedPhraseInputRef();
+                                inputRefs.set(index, ref);
 
-                                    return () => {
-                                      inputRefs.delete(index);
-                                    };
-                                  }}
-                                  startAccessory={
-                                    <Text
-                                      variant={TextVariant.BodyMD}
-                                      color={TextColor.Alternative}
-                                      style={styles.inputIndex}
-                                    >
-                                      {index + 1}.
-                                    </Text>
-                                  }
-                                  value={item}
-                                  secureTextEntry={
-                                    !canShowSeedPhraseWord(index)
-                                  }
-                                  onFocus={(e) => {
-                                    handleOnFocus(index);
-                                  }}
-                                  onChangeText={(text) =>
-                                    handleSeedPhraseChangeAtIndex(text, index)
-                                  }
-                                  placeholderTextColor={colors.text.muted}
-                                  onSubmitEditing={(e) => {
-                                    handleKeyPress(e, index);
-                                  }}
-                                  onKeyPress={(e) => handleKeyPress(e, index)}
-                                  size={TextFieldSize.Md}
-                                  style={[styles.input]}
-                                  autoComplete="off"
-                                  textAlignVertical="center"
-                                  showSoftInputOnFocus
-                                  isError={errorWordIndexes[index]}
-                                  autoCapitalize="none"
-                                  numberOfLines={1}
-                                  testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
-                                  keyboardType="default"
-                                  autoCorrect={false}
-                                  textContentType="oneTimeCode"
-                                  spellCheck={false}
-                                  autoFocus={
-                                    index === nextSeedPhraseInputFocusedIndex
-                                  }
-                                />
-                              </View>
-                            )}
-                          />
+                                return () => {
+                                  inputRefs.delete(index);
+                                };
+                              }}
+                              startAccessory={
+                                <Text
+                                  variant={TextVariant.BodyMD}
+                                  color={TextColor.Alternative}
+                                  style={styles.inputIndex}
+                                >
+                                  {index + 1}.
+                                </Text>
+                              }
+                              value={item}
+                              secureTextEntry={!canShowSeedPhraseWord(index)}
+                              onFocus={(e) => {
+                                handleOnFocus(index);
+                              }}
+                              onChangeText={(text) =>
+                                handleSeedPhraseChangeAtIndex(text, index)
+                              }
+                              placeholderTextColor={colors.text.muted}
+                              onSubmitEditing={(e) => {
+                                handleKeyPress(e, index);
+                              }}
+                              onKeyPress={(e) => handleKeyPress(e, index)}
+                              size={TextFieldSize.Md}
+                              style={[
+                                styles.input,
+                                styles.seedPhraseInputItem,
+                                (index + 1) % 3 === 0 &&
+                                  styles.seedPhraseInputItemLast,
+                              ]}
+                              autoComplete="off"
+                              textAlignVertical="center"
+                              showSoftInputOnFocus
+                              isError={errorWordIndexes[index]}
+                              autoCapitalize="none"
+                              numberOfLines={1}
+                              testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                              keyboardType="default"
+                              autoCorrect={false}
+                              textContentType="oneTimeCode"
+                              spellCheck={false}
+                              autoFocus={
+                                index === nextSeedPhraseInputFocusedIndex
+                              }
+                            />
+                          ))}
                         </View>
                       )}
                     </View>
