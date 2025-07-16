@@ -1,4 +1,4 @@
-import { type Hex } from '@metamask/utils';
+import { type Hex, parseCaipAssetId } from '@metamask/utils';
 import { useFocusEffect, useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -36,16 +36,28 @@ import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit, renderFromWei } from '../../../../../util/number';
-import Keypad from '../../../../Base/Keypad';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
 import { MAX_INPUT_LENGTH, TokenInputArea, TokenInputAreaType, type TokenInputAreaRef } from '../../../../UI/Bridge/components/TokenInputArea';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { BridgeViewMode } from '../../../Bridge/types';
+import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import { isSwapsNativeAsset } from '../../../Swaps/utils';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
-import { ARBITRUM_MAINNET_CHAIN_ID, HYPERLIQUID_ASSET_CONFIGS, TRADING_DEFAULTS } from '../../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID,
+  ARBITRUM_SEPOLIA_CHAIN_ID,
+  HYPERLIQUID_ASSET_CONFIGS,
+  HYPERLIQUID_MAINNET_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CHAIN_ID,
+  METAMASK_DEPOSIT_FEE,
+  TRADING_DEFAULTS,
+  USDC_SYMBOL,
+  USDC_NAME,
+  USDC_DECIMALS,
+  ZERO_ADDRESS
+} from '../../constants/hyperLiquidConfig';
 import type { AssetRoute, DepositParams, PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsTrading } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
@@ -65,6 +77,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const [sourceToken, setSourceToken] = useState<PerpsToken | undefined>();
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shouldBlur, setShouldBlur] = useState(false);
 
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
@@ -87,25 +100,31 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   // Hooks
   const { getDepositRoutes, deposit } = usePerpsTrading();
 
+  // Check if we're on testnet
+  const isTestnet = chainId === HYPERLIQUID_TESTNET_CHAIN_ID || chainId === ARBITRUM_SEPOLIA_CHAIN_ID;
+
   // Default destination token (USDC on Hyperliquid)
   const destToken = useMemo<PerpsToken>(() => {
+    const hyperliquidChainId = isTestnet ? HYPERLIQUID_TESTNET_CHAIN_ID : HYPERLIQUID_MAINNET_CHAIN_ID;
     const baseToken: PerpsToken = {
-      symbol: 'USDC',
-      address: '0x0000000000000000000000000000000000000000',
-      decimals: 6,
-      name: 'USD Coin',
-      chainId: '0x3e7' as Hex, // Hyperliquid mainnet chainId (999 in hex)
+      symbol: USDC_SYMBOL,
+      address: ZERO_ADDRESS,
+      decimals: USDC_DECIMALS,
+      name: USDC_NAME,
+      chainId: hyperliquidChainId,
+      // Add exchange rate for USDC (1:1 with USD)
+      currencyExchangeRate: 1,
     };
 
     // Try to get USDC icon from source token or token list
-    if (sourceToken?.symbol === 'USDC' && sourceToken.image) {
+    if (sourceToken?.symbol === USDC_SYMBOL && sourceToken.image) {
       return { ...baseToken, image: sourceToken.image };
     }
 
     // Fallback to searching token list
     if (tokenList) {
       const usdcToken = Object.values(tokenList).find(
-        (token) => token.symbol === 'USDC'
+        (token) => token.symbol === USDC_SYMBOL
       );
       if (usdcToken && 'iconUrl' in usdcToken) {
         const tokenWithIcon = usdcToken as { iconUrl: string };
@@ -114,31 +133,40 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
 
     return baseToken;
-  }, [tokenList, sourceToken]);
+  }, [tokenList, sourceToken, isTestnet]);
 
   // Initialize default source token (USDC on Arbitrum)
   useEffect(() => {
     if (!sourceToken && tokenList) {
-      const usdcMainnetConfig = HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
-      const usdcAddress = usdcMainnetConfig.split('/erc20:')[1]?.split('/')[0] || '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+      try {
+        const usdcConfig = isTestnet ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+        const parsedAsset = parseCaipAssetId(usdcConfig);
 
-      const defaultToken: PerpsToken = {
-        symbol: 'USDC',
-        address: usdcAddress,
-        decimals: 6,
-        name: 'USD Coin',
-        chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`,
-      };
+        if (!parsedAsset.assetNamespace || parsedAsset.assetNamespace !== 'erc20' || !parsedAsset.assetReference) {
+          console.error('Invalid USDC asset configuration:', usdcConfig);
+          return;
+        }
 
-      const enhancedToken = enhanceTokenWithIcon({
-        token: defaultToken,
-        tokenList,
-        isIpfsGatewayEnabled,
-      });
+        const defaultToken: PerpsToken = {
+          symbol: USDC_SYMBOL,
+          address: parsedAsset.assetReference,
+          decimals: USDC_DECIMALS,
+          name: USDC_NAME,
+          chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`,
+        };
 
-      setSourceToken(enhancedToken);
+        const enhancedToken = enhanceTokenWithIcon({
+          token: defaultToken,
+          tokenList,
+          isIpfsGatewayEnabled,
+        });
+
+        setSourceToken(enhancedToken);
+      } catch (err) {
+        console.error('Failed to initialize default USDC token:', err);
+      }
     }
-  }, [tokenList, isIpfsGatewayEnabled, sourceToken]);
+  }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
 
 
   // Use deposit quote hook - only run when sourceToken is loaded
@@ -155,9 +183,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     const tokenChainId = sourceToken.chainId as Hex;
 
     if (isSwapsNativeAsset(sourceToken)) {
-      return renderFromWei(
-        accountsByChainId[tokenChainId]?.[selectedAddress]?.balance || '0x0'
-      );
+      const balance = accountsByChainId[tokenChainId]?.[selectedAddress]?.balance;
+      return renderFromWei(balance || '0x0');
     }
 
     const tokenAddress = safeToChecksumAddress(sourceToken.address);
@@ -218,11 +245,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   }, [sourceAmount, sourceBalance]);
 
   // Check minimum deposit amount
-  const isTestnet = chainId === '0x3e6' || chainId === '0x66eee'; // Arbitrum Sepolia or other test networks
   const minimumDepositAmount = isTestnet ? TRADING_DEFAULTS.amount.testnet : TRADING_DEFAULTS.amount.mainnet;
 
   const isBelowMinimumDeposit = useMemo(() => {
-    if (!sourceAmount || sourceToken?.symbol !== 'USDC') return false;
+    if (!sourceAmount || sourceToken?.symbol !== USDC_SYMBOL) return false;
     return parseFloat(sourceAmount) < minimumDepositAmount;
   }, [sourceAmount, sourceToken, minimumDepositAmount]);
 
@@ -233,7 +259,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleKeypadChange = useCallback(({ value }: { value: string }) => {
+  const handleKeypadChange = useCallback(({ value }: { value: string; valueAsNumber: number }) => {
     if (value.length >= MAX_INPUT_LENGTH) {
       return;
     }
@@ -253,22 +279,25 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
 
     const balanceNum = parseFloat(sourceBalance);
-    const newAmount = (balanceNum * percentage).toFixed(sourceToken?.decimals || 6);
+    const newAmount = (balanceNum * percentage).toFixed(sourceToken?.decimals || USDC_DECIMALS);
     setSourceAmount(newAmount);
-    setIsInputFocused(false);
+    // Don't close the keypad, let user continue editing
   }, [sourceBalance, sourceToken]);
 
   const handleMaxPress = useCallback(() => {
     if (!sourceBalance || parseFloat(sourceBalance) === 0) return;
     setSourceAmount(sourceBalance);
-    setIsInputFocused(false);
+    // Don't close the keypad, let user continue editing
   }, [sourceBalance]);
 
   const handleDonePress = useCallback(() => {
+    setShouldBlur(true);
     setIsInputFocused(false);
     if (inputRef.current) {
       inputRef.current.blur();
     }
+    // Reset shouldBlur after a short delay
+    setTimeout(() => setShouldBlur(false), 100);
   }, []);
 
   const handleContinue = useCallback(async () => {
@@ -313,9 +342,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   }, [sourceToken, sourceAmount, selectedAddress, getDepositRoutes, deposit, navigation]);
 
   // Component conditions
-  const hasValidInputs = sourceAmount && sourceToken && !hasInsufficientBalance && !isBelowMinimumDeposit;
-  const shouldDisplayKeypad = isInputFocused || !sourceAmount || parseFloat(sourceAmount || '0') === 0;
-  const shouldDisplayQuoteDetails = sourceAmount && parseFloat(sourceAmount) > 0 && !isInputFocused && !isQuoteLoading && sourceToken;
+  const hasAmount = sourceAmount && parseFloat(sourceAmount) > 0;
+  const hasValidInputs = hasAmount && sourceToken && !hasInsufficientBalance && !isBelowMinimumDeposit;
+  const shouldDisplayQuoteDetails = hasAmount && !isQuoteLoading && sourceToken;
+  const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
   // Get button label
   const getButtonLabel = () => {
@@ -328,7 +358,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   };
 
   // Calculate destination amount (1:1 for USDC)
-  const destAmount = sourceAmount;
+  const destAmount = sourceAmount || '';
 
   return (
     // @ts-expect-error The type is incorrect, this will work
@@ -349,7 +379,14 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           <View style={styles.placeholder} />
         </View>
 
-        <Box style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            isInputFocused && styles.scrollViewContentWithKeypad
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Token Input Areas */}
           <Box style={styles.inputsContainer} gap={8}>
             <TokenInputArea
@@ -362,8 +399,15 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               tokenType={TokenInputAreaType.Source}
               onTokenPress={handleTokenSelectPress}
               onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              onInputPress={() => setIsInputFocused(true)}
+              onBlur={() => {
+                // Only hide keypad if Done button was pressed
+                if (shouldBlur) {
+                  setIsInputFocused(false);
+                }
+              }}
+              onInputPress={() => {
+                setIsInputFocused(true);
+              }}
             />
 
             <Box style={styles.arrowContainer}>
@@ -375,7 +419,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             <TokenInputArea
               amount={destAmount}
               token={destToken}
-              networkImageSource={getNetworkImageSource({ chainId: '0x3e7' })} // Hyperliquid mainnet chainId
+              networkImageSource={getNetworkImageSource({ chainId: destToken.chainId })}
               networkName="Hyperliquid"
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
@@ -383,85 +427,96 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             />
           </Box>
 
-          {/* Scrollable Dynamic Content */}
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Box style={styles.dynamicContent}>
-              {shouldDisplayQuoteDetails ? (
-                <PerpsQuoteDetailsCard
-                  networkFee={formattedQuoteData.networkFee}
-                  estimatedTime={formattedQuoteData.estimatedTime}
-                  rate="1 USDC = 1 USDC"
-                  isLoading={isQuoteLoading}
-                  metamaskFee="$0.00"
-                />
-              ) : shouldDisplayKeypad ? (
-                <Box style={styles.keypadContainer}>
-                  <View style={styles.percentageButtonsRow}>
-                    <Button
-                      variant={ButtonVariants.Secondary}
-                      size={ButtonSize.Md}
-                      label="10%"
-                      onPress={() => handlePercentagePress(0.1)}
-                      style={styles.percentageButton}
-                    />
-                    <Button
-                      variant={ButtonVariants.Secondary}
-                      size={ButtonSize.Md}
-                      label="25%"
-                      onPress={() => handlePercentagePress(0.25)}
-                      style={styles.percentageButton}
-                    />
-                    <Button
-                      variant={ButtonVariants.Secondary}
-                      size={ButtonSize.Md}
-                      label="Max"
-                      onPress={handleMaxPress}
-                      style={styles.percentageButton}
-                    />
-                    <Button
-                      variant={ButtonVariants.Secondary}
-                      size={ButtonSize.Md}
-                      label="Done"
-                      onPress={handleDonePress}
-                      style={styles.percentageButton}
-                    />
-                  </View>
-                  <Keypad
-                    style={styles.keypad}
-                    value={sourceAmount}
-                    onChange={handleKeypadChange}
-                    currency={sourceToken?.symbol || 'USDC'}
-                    decimals={sourceToken?.decimals || 6}
-                    deleteIcon={
-                      <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-                    }
-                  />
-                </Box>
-              ) : null}
+          {/* Quote Details - Always visible when amount is entered */}
+          {shouldDisplayQuoteDetails && (
+            <Box style={styles.quoteContainer}>
+              <PerpsQuoteDetailsCard
+                networkFee={formattedQuoteData.networkFee}
+                estimatedTime={formattedQuoteData.estimatedTime}
+                rate={`1 ${USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
+                isLoading={isQuoteLoading}
+                metamaskFee={METAMASK_DEPOSIT_FEE}
+              />
             </Box>
-          </ScrollView>
-        </Box>
-
-        {/* Fixed Bottom Button */}
-        <View style={styles.fixedBottomContainer}>
-          {error && (
-            <Text style={styles.errorText} color={TextColor.Error}>
-              {error}
-            </Text>
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            label={getButtonLabel()}
-            onPress={handleContinue}
-            style={styles.button}
-            disabled={!hasValidInputs || isQuoteLoading || hasInsufficientBalance || isBelowMinimumDeposit || isSubmittingTx}
-            testID="continue-button"
-          />
-        </View>
+        </ScrollView>
+
+        {/* Floating Keypad with Action Button */}
+        {isInputFocused && (
+          <View style={styles.floatingKeypadContainer}>
+            {/* Action button */}
+            <Button
+              variant={ButtonVariants.Primary}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.actionButton}
+              disabled={!hasValidInputs || isQuoteLoading || isSubmittingTx}
+              testID="continue-button"
+            />
+
+            {/* Percentage buttons */}
+            {shouldShowPercentageButtons && (
+              <View style={styles.percentageButtonsRow}>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Md}
+                  label="10%"
+                  onPress={() => handlePercentagePress(0.1)}
+                  style={styles.percentageButton}
+                />
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Md}
+                  label="25%"
+                  onPress={() => handlePercentagePress(0.25)}
+                  style={styles.percentageButton}
+                />
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Md}
+                  label="Max"
+                  onPress={handleMaxPress}
+                  style={styles.percentageButton}
+                />
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Md}
+                  label="Done"
+                  onPress={handleDonePress}
+                  style={styles.percentageButton}
+                />
+              </View>
+            )}
+
+            {/* Keypad */}
+            <Keypad
+              style={styles.keypad}
+              value={sourceAmount}
+              onChange={handleKeypadChange}
+              currency={sourceToken?.symbol || USDC_SYMBOL}
+              decimals={sourceToken?.decimals || USDC_DECIMALS}
+            />
+          </View>
+        )}
+
+        {/* Fixed bottom button when keypad is hidden */}
+        {!isInputFocused && (
+          <View style={styles.fixedBottomContainer}>
+            {error && (
+              <Text style={styles.errorText} color={TextColor.Error}>
+                {error}
+              </Text>
+            )}
+            <Button
+              variant={ButtonVariants.Primary}
+              label={getButtonLabel()}
+              onPress={handleContinue}
+              style={styles.actionButton}
+              disabled={!hasValidInputs || isQuoteLoading || isSubmittingTx}
+              testID="continue-button"
+            />
+          </View>
+        )}
       </View>
     </ScreenView>
   );

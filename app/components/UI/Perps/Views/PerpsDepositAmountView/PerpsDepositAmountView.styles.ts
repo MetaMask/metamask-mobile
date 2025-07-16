@@ -11,8 +11,15 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     container: {
       flex: 1,
     },
-    content: {
+    scrollView: {
       flex: 1,
+    },
+    scrollViewContent: {
+      flexGrow: 1,
+      paddingBottom: 100, // Space for fixed bottom button
+    },
+    scrollViewContentWithKeypad: {
+      paddingBottom: 400, // Extra space when keypad is visible
     },
     header: {
       paddingHorizontal: 8,
@@ -56,37 +63,10 @@ const createStyles = ({ theme }: { theme: Theme }) => {
       height: 32,
       borderColor: colors.border.default,
     },
-    scrollView: {
-      flex: 1,
-    },
-    scrollViewContent: {
-      flexGrow: 1,
-      paddingHorizontal: 16,
-      paddingBottom: 120, // Account for fixed bottom button
-    },
-    dynamicContent: {
-      flex: 1,
-      justifyContent: 'flex-start',
-    },
-    keypadContainer: {
-      marginTop: 24,
-    },
-    keypad: {
-      paddingHorizontal: 0,
-    },
-    percentageButtonsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingHorizontal: 25,
-      paddingBottom: 16,
-      gap: 8,
-    },
-    percentageButton: {
-      flex: 1,
-      height: 40,
-    },
     quoteContainer: {
-      marginTop: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      flex: 1,
     },
     quoteDetails: {
       backgroundColor: colors.background.alternative,
@@ -95,6 +75,35 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     },
     quoteRow: {
       marginVertical: 4,
+    },
+    floatingKeypadContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 24,
+    },
+    percentageButtonsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      marginBottom: 16,
+      gap: 8,
+    },
+    percentageButton: {
+      flex: 1,
+      height: 40,
+    },
+    keypad: {
+      paddingHorizontal: 0,
+    },
+    actionButton: {
+      width: '100%',
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -108,12 +117,9 @@ const createStyles = ({ theme }: { theme: Theme }) => {
       paddingTop: 16,
       paddingBottom: 24,
     },
-    button: {
-      width: '100%',
-    },
     errorText: {
       color: colors.error.default,
-      marginBottom: 16,
+      marginBottom: 8,
       textAlign: 'center',
     },
   });
