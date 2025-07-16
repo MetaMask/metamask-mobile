@@ -150,6 +150,8 @@
     "**/secp256k1": "4.0.4",
     "**/@metamask/rpc-errors": "7.0.2",
     "**/@expo/image-utils/semver": "7.5.2",
+    "@wdio/cli/**/tar-fs": "^2.1.3",
+    "**/puppeteer-core/tar-fs": "^2.1.3",
     "base58-js": "1.0.0",
     "bech32": "2.0.0",
     "sha256-uint8array": "0.10.3",
