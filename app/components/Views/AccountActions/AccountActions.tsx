@@ -338,13 +338,15 @@ const AccountActions = () => {
         return;
       }
 
-      await removeHardwareAccount();
+      sheetRef.current?.onCloseBottomSheet(async () => {
+        await removeHardwareAccount();
 
-      await selectFirstAccount();
+        await selectFirstAccount();
 
-      await forgetDeviceIfRequired();
+        await forgetDeviceIfRequired();
 
-      setBlockingModalVisible(false);
+        setBlockingModalVisible(false);
+      });
     }
   }, [
     blockingModalVisible,
@@ -429,8 +431,8 @@ const AccountActions = () => {
           )
           ///: END:ONLY_INCLUDE_IF
         }
-        {(networkSupporting7702Present &&
-          !isHardwareAccount(selectedAddress)) && (
+        {networkSupporting7702Present &&
+          !isHardwareAccount(selectedAddress) && (
             <AccountAction
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
