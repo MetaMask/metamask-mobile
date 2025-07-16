@@ -153,7 +153,7 @@ describe('sendActiveAccount function', () => {
 
                 mockURLParse.mockImplementation(() => ({
                     hostname: expectedHostname,
-                } as any));
+                } as MockURLParse));
                 mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
                 await sendActiveAccount(url);
@@ -277,7 +277,7 @@ describe('sendActiveAccount function', () => {
 
             mockURLParse.mockImplementation((url) => ({
                 hostname: new URL(url).hostname,
-            } as any));
+            } as MockURLParse));
 
             mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => {
                 if (hostname === 'dapp1.com') return dapp1Accounts;
@@ -352,7 +352,6 @@ describe('sendActiveAccount function', () => {
 
     describe('edge cases and error handling', () => {
         it('handles null URL gracefully', async () => {
-
             await sendActiveAccount(null as any);
 
             expect(mockNotifyAllConnections).toHaveBeenCalledWith({
