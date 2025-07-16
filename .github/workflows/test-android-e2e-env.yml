@@ -4,10 +4,10 @@ on:
   push:
 
 
-    
+
 jobs:
   android-e2e:
-    runs-on: macos-14-large
+    runs-on: macos-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
           platform: android
           setup-simulator: true
 
-        
+
       - name: Print Android Environment Info
         run: |
           echo "🔧 Node.js Version:"

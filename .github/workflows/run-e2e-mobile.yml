@@ -44,7 +44,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
-    runs-on: macos-14-large
+    runs-on: macos-latest
     env:
       METAMASK_ENVIRONMENT: 'local'
       METAMASK_BUILD_TYPE: 'main'
@@ -54,7 +54,7 @@ jobs:
       PLATFORM: ${{ inputs.platform }}
       JOB_NAME: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,15 +78,15 @@ jobs:
       #  if: ${{ !inputs.use_prebuilt_apps }}
       #  run: |
       #    platform="${{ inputs.platform }}"
-      #    
+      #
       #    # Set environment variables for build
       #    export METAMASK_ENVIRONMENT='local'
       #    export METAMASK_BUILD_TYPE='main'
       #    export IS_TEST='true'
       #    export IGNORE_BOXLOGS_DEVELOPMENT="true"
-      #    
+      #
       #    echo "Building E2E app for $platform..."
-      #    
+      #
       #    if [[ "$platform" == "ios" ]]; then
       #      yarn test:e2e:ios:build:qa-release
       #    else
@@ -97,40 +97,40 @@ jobs:
         if: ${{ inputs.use_prebuilt_apps }}
         run: |
           platform="${{ inputs.platform }}"
-          
+
           echo "🚀 Setting up pre-built apps for $platform..."
-          
+
           # Base URL for artifacts
           base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test"
-          
+
           # Create required directories
           mkdir -p android/app/build/outputs/apk/qa/release/
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
-          
+
           if [[ "$platform" == "ios" ]]; then
             echo "📥 Downloading iOS artifacts..."
-            
+
             # Clean up any existing lock files
             find . -name "*.lock" -type f -delete 2>/dev/null || true
-            
+
             # Download Release-iphonesimulator.zip
             if curl -L --fail -o /tmp/Release-iphonesimulator.zip "${base_url}/Release-iphonesimulator.zip"; then
               echo "✅ Downloaded Release-iphonesimulator.zip"
               echo "📦 Extracting iOS app..."
-              
+
               # Extract preserving directory structure (remove -j flag)
               cd ios/build/Build/Products/Release-iphonesimulator/
               unzip -o /tmp/Release-iphonesimulator.zip "MetaMask-QA.app/*"
               cd - > /dev/null
-              
+
               # Set proper permissions for the app bundle
               chmod -R 755 "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" 2>/dev/null || true
-              
+
             else
               echo "❌ Failed to download iOS artifacts (Release-iphonesimulator.zip)"
               exit 1
             fi
-            
+
             # Verify iOS setup
             if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
               echo "✅ iOS app ready for E2E tests"
@@ -142,23 +142,23 @@ jobs:
               ls -la "ios/build/Build/Products/Release-iphonesimulator/" || true
               exit 1
             fi
-            
+
           else
             echo "📥 Downloading Android artifacts..."
-            
+
             if curl -L --fail -o /tmp/outputs.zip "${base_url}/outputs.zip"; then
               echo "✅ Downloaded outputs.zip"
               echo "📦 Extracting Android APKs..."
-              
+
               # Create required directories for both main and test APKs
               mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
-              
+
               # Extract main APK
               unzip -o -j /tmp/outputs.zip "apk/qa/release/app-qa-release.apk" -d "android/app/build/outputs/apk/qa/release/"
-              
+
               # Extract test APK (androidTest)
               unzip -o -j /tmp/outputs.zip "apk/androidTest/qa/release/app-qa-release-androidTest.apk" -d "android/app/build/outputs/apk/androidTest/qa/release/"
-              
+
               # Verify Android setup
               if [[ -f "android/app/build/outputs/apk/qa/release/app-qa-release.apk" ]]; then
                 echo "✅ Android main APK ready for E2E tests"
@@ -166,7 +166,7 @@ jobs:
                 echo "❌ Android main APK setup failed"
                 exit 1
               fi
-              
+
               if [[ -f "android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk" ]]; then
                 echo "✅ Android test APK ready for E2E tests"
               else
@@ -183,20 +183,20 @@ jobs:
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "🧹 Cleaning iOS environment before E2E tests..."
-          
+
           # Clean up lock files (iOS-specific issue)
           find . -name "*.lock" -type f -delete 2>/dev/null || true
-          
+
           # Clean Detox cache
           yarn detox clean-framework-cache 2>/dev/null || true
-          
+
           # Reset iOS simulator
           xcrun simctl shutdown all 2>/dev/null || true
           xcrun simctl erase all 2>/dev/null || true
-          
+
           # Clean any hanging processes
           pkill -f "Metro\|node\|npm" 2>/dev/null || true
-          
+
           echo "✅ iOS environment cleaned"
 
       - name: Run E2E tests
@@ -204,16 +204,16 @@ jobs:
           platform="${{ inputs.platform }}"
           is_api_specs="${{ inputs.is_api_specs }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
-          
+
           echo "Running ${{ inputs.smoke-category }} tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
-          
+
           # Rebuild Detox framework cache for iOS to ensure it's ready
           if [[ "$platform" == "ios" ]]; then
             echo "🔧 Rebuilding Detox framework cache for iOS..."
             yarn detox build-framework-cache
             echo "✅ Detox framework cache rebuilt"
           fi
-          
+
           if [[ "$is_api_specs" == "true" ]]; then
             if [[ "$platform" != "ios" ]]; then
               echo "API specs are iOS-only, skipping $platform"
@@ -222,44 +222,44 @@ jobs:
             yarn test:api-specs --retries 1
             exit 0
           fi
-          
+
           if [[ -z "$test_suite_tag" ]]; then
             echo "Error: test_suite_tag is required for non-api-specs tests"
             exit 1
           fi
-          
+
           export TEST_SUITE_TAG="$test_suite_tag"
           echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
-          
+
           # Set environment variables needed for the script
           export METAMASK_ENVIRONMENT='local'
           export METAMASK_BUILD_TYPE='main'
           export IGNORE_BOXLOGS_DEVELOPMENT="true"
-          
+
           # Use the same approach as Bitrise: run the tag script which calls the appropriate yarn command
           if [[ "$platform" == "ios" ]]; then
             # iOS: Add retry logic for lock file issues
             echo "🍎 Running iOS tests with retry logic for lock file issues..."
             max_retries=3
             retry_count=0
-            
+
             while [ $retry_count -lt $max_retries ]; do
               echo "🚀 iOS Attempt $((retry_count + 1))/$max_retries"
-              
+
               # Clean lock files before each attempt (iOS-specific issue)
               find . -name "*.lock" -type f -delete 2>/dev/null || true
-              
+
               export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
               if ./scripts/run-e2e-tags.sh; then
                 echo "✅ iOS tests completed successfully"
                 break
               fi
-              
+
               retry_count=$((retry_count + 1))
               if [ $retry_count -lt $max_retries ]; then
                 echo "⚠️ iOS attempt failed, retrying in 30 seconds..."
                 sleep 30
-                
+
                 # Clean environment between retries
                 find . -name "*.lock" -type f -delete 2>/dev/null || true
                 pkill -f "Metro\|node\|npm" 2>/dev/null || true
@@ -272,55 +272,55 @@ jobs:
           else
             # Android: Add emulator cleanup and retry logic
             echo "🤖 Running Android tests with emulator cleanup..."
-            
+
             # Kill any running emulator instances before starting
             echo "🧹 Cleaning up any existing Android emulators..."
             adb devices | grep emulator | cut -f1 | while read line; do
               echo "Killing emulator: $line"
               adb -s "$line" emu kill 2>/dev/null || true
             done
-            
+
             # Kill emulator processes directly
             pkill -f "emulator.*avd" 2>/dev/null || true
             pkill -f "qemu-system" 2>/dev/null || true
             pkill -f "Metro\|node\|npm" 2>/dev/null || true
-            
+
             # Wait for cleanup
             sleep 5
             echo "✅ Android emulator environment cleaned"
-            
+
             # Run tests with retry logic for emulator issues
             max_retries=3
             retry_count=0
-            
+
             while [ $retry_count -lt $max_retries ]; do
               echo "🚀 Android Attempt $((retry_count + 1))/$max_retries"
-              
+
               export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
               if ./scripts/run-e2e-tags.sh; then
                 echo "✅ Android tests completed successfully"
                 break
               fi
-              
+
               retry_count=$((retry_count + 1))
               if [ $retry_count -lt $max_retries ]; then
                 echo "⚠️ Android attempt failed, retrying in 30 seconds..."
                 sleep 30
-                
+
                 # Clean Android environment between retries
                 echo "🧹 Cleaning Android emulator environment..."
-                
+
                 # Kill any running emulator instances
                 adb devices | grep emulator | cut -f1 | while read line; do
                   echo "Killing emulator: $line"
                   adb -s "$line" emu kill 2>/dev/null || true
                 done
-                
+
                 # Kill emulator processes directly
                 pkill -f "emulator.*avd" 2>/dev/null || true
                 pkill -f "qemu-system" 2>/dev/null || true
                 pkill -f "Metro\|node\|npm" 2>/dev/null || true
-                
+
                 sleep 5
                 echo "✅ Android environment cleaned"
               else
