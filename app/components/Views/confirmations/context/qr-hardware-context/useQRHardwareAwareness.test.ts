@@ -1,14 +1,18 @@
-import { renderHook } from '@testing-library/react-native';
 import { useQRHardwareAwareness } from './useQRHardwareAwareness';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 const initialState = {
-  pendingScanRequest: null,
+  pendingScanRequest: undefined,
   isSigningQRObject: false,
 };
 
 describe('useQRHardwareAwareness', () => {
   it('returns correct initial values', () => {
-    const { result } = renderHook(() => useQRHardwareAwareness());
+    const { result } = renderHookWithProvider(() => useQRHardwareAwareness(), {
+      state: {
+        qrKeyringScanner: {},
+      },
+    });
     expect(result.current).toMatchObject(initialState);
   });
 });

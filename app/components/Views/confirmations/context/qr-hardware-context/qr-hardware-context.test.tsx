@@ -66,7 +66,7 @@ describe('QRHardwareContext', () => {
 
   const createQRHardwareAwarenessSpy = (mockedValues: {
     isSigningQRObject: boolean;
-    pendingScanRequest: QrScanRequest;
+    pendingScanRequest: QrScanRequest | undefined;
   }) => {
     jest
       .spyOn(QRHardwareAwareness, 'useQRHardwareAwareness')
@@ -92,11 +92,11 @@ describe('QRHardwareContext', () => {
     ).toBe(true);
   });
 
-  it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', async () => {
+  it('does not invoke rejectPendingScan when request is cancelled id QR signing is not in progress', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
-      isSigningQRObject: true,
-      pendingScanRequest: mockPendingScanRequest,
+      isSigningQRObject: false,
+      pendingScanRequest: undefined,
     });
     const { getByText } = renderWithProvider(
       <QRHardwareContextProvider>
@@ -110,7 +110,7 @@ describe('QRHardwareContext', () => {
     expect(mockQrScanner.rejectPendingScan).toHaveBeenCalledTimes(0);
   });
 
-  it('invokes KeyringController.cancelQRSignRequest when request is cancelled', async () => {
+  it('invokes rejectPendingScan when request is cancelled', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
       isSigningQRObject: true,
