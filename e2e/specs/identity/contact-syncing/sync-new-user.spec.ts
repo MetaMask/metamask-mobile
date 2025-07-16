@@ -32,7 +32,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.addressBook],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
-        sharedUserStorageController
+        sharedUserStorageController,
       },
       async ({ userStorageMockttpController }) => {
         await importWalletWithRecoveryPhrase({
@@ -73,7 +73,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.addressBook],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
-        sharedUserStorageController
+        sharedUserStorageController,
       },
       async () => {
         await importWalletWithRecoveryPhrase({

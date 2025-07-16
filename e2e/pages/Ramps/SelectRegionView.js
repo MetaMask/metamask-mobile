@@ -8,7 +8,9 @@ class SelectRegionView {
   }
 
   get regionSearchInput() {
-    return Matchers.getElementByID(SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT);
+    return Matchers.getElementByID(
+      SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT,
+    );
   }
 
   async tapRegionOption(region) {

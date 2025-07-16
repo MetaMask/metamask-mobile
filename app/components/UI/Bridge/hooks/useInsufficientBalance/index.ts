@@ -1,7 +1,5 @@
 import { useSelector } from 'react-redux';
-import {
-  selectMinSolBalance,
-} from '../../../../../selectors/bridgeController';
+import { selectMinSolBalance } from '../../../../../selectors/bridgeController';
 import { useLatestBalance } from '../useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
