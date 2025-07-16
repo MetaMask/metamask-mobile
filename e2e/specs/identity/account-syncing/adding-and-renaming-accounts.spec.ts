@@ -78,7 +78,7 @@ describe(
             );
 
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
           await waitUntilEventsEmittedNumberEquals(1);
 
           await Assertions.expectElementToBeVisible(
@@ -143,7 +143,7 @@ describe(
           // Add another new EVM account
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           await waitUntilEventsEmittedNumberEquals(2);
         },
