@@ -55,9 +55,9 @@ describe.skip(
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
       await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapContinueButton();
-        SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
-      // Snap UI components prove tricky for testID's require more time
-      await SnapSendActionSheet.tapSendSOLTransactionButton();
+      SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
+        // Snap UI components prove tricky for testID's require more time
+        await SnapSendActionSheet.tapSendSOLTransactionButton();
       // Assert transaction is sent
       await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
     });

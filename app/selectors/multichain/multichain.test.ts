@@ -5,10 +5,8 @@ import {
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
-  MultichainNativeAssets,
   selectMultichainCoinRates,
   selectMultichainBalances,
-  MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
   selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectNonEvmTransactions,
@@ -27,6 +25,17 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
+  MULTICHAIN_NETWORK_TICKER,
+} from '@metamask/multichain-network-controller';
+
+const BTC_NATIVE_CURRENCY =
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Mainnet].nativeCurrency;
+const BTC_TESTNET_NATIVE_CURRENCY =
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Testnet].nativeCurrency;
+const SOL_NATIVE_CURRENCY =
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet].nativeCurrency;
 
 function getEvmState(
   chainId?: Hex,
@@ -83,15 +92,15 @@ function getEvmState(
         MultichainBalancesController: {
           balances: {
             [mockBtcAccount.id]: {
-              [MultichainNativeAssets.Bitcoin]: {
+              [MULTICHAIN_NETWORK_TICKER[BtcScope.Mainnet]]: {
                 amount: '1.00000000',
                 unit: 'BTC',
               },
             },
             [mockBtcTestnetAccount.id]: {
-              [MultichainNativeAssets.BitcoinTestnet]: {
+              [MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet]]: {
                 amount: '2.00000000',
-                unit: 'BTC',
+                unit: 'tBTC',
               },
             },
           },
@@ -356,22 +365,16 @@ describe('MultichainNonEvm Selectors', () => {
       {
         network: 'mainnet',
         account: MOCK_ACCOUNT_BIP122_P2WPKH,
-        asset: MultichainNativeAssets.Bitcoin,
+        asset: BTC_NATIVE_CURRENCY,
       },
       {
         network: 'testnet',
         account: MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
-        asset: MultichainNativeAssets.BitcoinTestnet,
+        asset: BTC_TESTNET_NATIVE_CURRENCY,
       },
     ])(
       'returns cached balance if account is non-EVM: $network',
-      ({
-        account,
-        asset,
-      }: {
-        account: InternalAccount;
-        asset: MultichainNativeAssets;
-      }) => {
+      ({ account, asset }: { account: InternalAccount; asset: string }) => {
         const state = getNonEvmState(account);
         const balance =
           state.engine.backgroundState.MultichainBalancesController.balances[
@@ -391,7 +394,8 @@ describe('MultichainNonEvm Selectors', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
       state.engine.backgroundState.MultichainBalancesController.balances = {
         [MOCK_SOLANA_ACCOUNT.id]: {
-          [MultichainNativeAssets.Solana]: {
+          [AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Mainnet]
+            .nativeCurrency]: {
             amount: mockSolBalance,
             unit: 'SOL',
           },
@@ -473,7 +477,7 @@ describe('MultichainNonEvm Selectors', () => {
       const state = getEvmState();
       const mockBalances = {
         'account-1': {
-          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
+          [BTC_NATIVE_CURRENCY]: { amount: '10', unit: 'BTC' },
         },
       };
       state.engine.backgroundState.MultichainBalancesController.balances =
@@ -493,24 +497,6 @@ describe('MultichainNonEvm Selectors', () => {
       state.engine.backgroundState.RatesController.rates = mockRates;
       expect(selectMultichainCoinRates(state)).toEqual(mockRates);
     });
-
-    it('NETWORK_ASSETS_MAP has correct mappings', () => {
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Mainnet]).toEqual([
-        MultichainNativeAssets.Solana,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Testnet]).toEqual([
-        MultichainNativeAssets.SolanaTestnet,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Devnet]).toEqual([
-        MultichainNativeAssets.SolanaDevnet,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Mainnet]).toEqual([
-        MultichainNativeAssets.Bitcoin,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
-        MultichainNativeAssets.BitcoinTestnet,
-      ]);
-    });
   });
 
   describe('selectMultichainTransactions', () => {
@@ -523,7 +509,7 @@ describe('MultichainNonEvm Selectors', () => {
             {
               id: 'some-id',
               timestamp: 1733736433,
-              chain: MultichainNativeAssets.Bitcoin,
+              chain: BtcScope.Mainnet,
               status: 'confirmed' as const,
               type: 'send' as const,
               account: MOCK_ACCOUNT_BIP122_P2WPKH.id,
@@ -561,30 +547,12 @@ describe('MultichainNonEvm Selectors', () => {
       const state = getEvmState();
       const mockBalances = {
         'account-1': {
-          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
+          [BTC_NATIVE_CURRENCY]: { amount: '10', unit: 'BTC' },
         },
       };
       state.engine.backgroundState.MultichainBalancesController.balances =
         mockBalances;
       expect(selectMultichainBalances(state)).toEqual(mockBalances);
-    });
-
-    it('NETWORK_ASSETS_MAP has correct mappings', () => {
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Mainnet]).toEqual([
-        MultichainNativeAssets.Solana,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Testnet]).toEqual([
-        MultichainNativeAssets.SolanaTestnet,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Devnet]).toEqual([
-        MultichainNativeAssets.SolanaDevnet,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Mainnet]).toEqual([
-        MultichainNativeAssets.Bitcoin,
-      ]);
-      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
-        MultichainNativeAssets.BitcoinTestnet,
-      ]);
     });
   });
 
@@ -599,7 +567,7 @@ describe('MultichainNonEvm Selectors', () => {
       const solanaAccountId = MOCK_SOLANA_ACCOUNT.id;
 
       // Use Solana native asset
-      const solNativeAssetId = MultichainNativeAssets.Solana;
+      const solNativeAssetId = SOL_NATIVE_CURRENCY;
       // Use a different SPL token (non-native) with a different unit
       const solTokenAssetId = `${SolScope.Mainnet}/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN`;
 
@@ -652,7 +620,7 @@ describe('MultichainNonEvm Selectors', () => {
       const solanaAccountId = MOCK_SOLANA_ACCOUNT.id;
 
       // Create mock assets for a different chain (not Solana)
-      const btcNativeAssetId = MultichainNativeAssets.Bitcoin;
+      const btcNativeAssetId = BTC_NATIVE_CURRENCY;
       const mockAssets = {
         [solanaAccountId]: [btcNativeAssetId] as CaipAssetType[],
       };
@@ -705,7 +673,7 @@ describe('MultichainNonEvm Selectors', () => {
           {
             id: 'sol-tx-id',
             timestamp: 1733736433,
-            chain: MultichainNativeAssets.Solana,
+            chain: SolScope.Mainnet,
             status: 'confirmed' as const,
             type: 'send' as const,
             account: MOCK_SOLANA_ACCOUNT.id,
@@ -795,7 +763,7 @@ describe('MultichainNonEvm Selectors', () => {
   describe('makeSelectNonEvmAssetById', () => {
     const selectNonEvmAssetById = makeSelectNonEvmAssetById();
     const mockAccountId = MOCK_ACCOUNT_BIP122_P2WPKH.id;
-    const mockAssetId = MultichainNativeAssets.Bitcoin;
+    const mockAssetId = BTC_NATIVE_CURRENCY;
     const mockRate = '25000.00';
 
     const mockState = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH, mockRate);

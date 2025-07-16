@@ -720,16 +720,16 @@ const mapStateToProps = (state, { route }) => {
               return false;
             }
 
-              return participantsWithAssets.every(
-              (participant) => {
-                const assetType = participant.asset.type || '';
-                const assetUnit = participant.asset.unit || '';
+            return participantsWithAssets.every((participant) => {
+              const assetType = participant.asset.type || '';
+              const assetUnit = participant.asset.unit || '';
 
-                return assetUnit.toLowerCase() === 'sol' &&
-                  assetType.includes('slip44:501') &&
-                  !assetType.includes('/token:');
-              },
-            );
+              return (
+                assetUnit.toLowerCase() === 'sol' &&
+                assetType.includes('slip44:501') &&
+                !assetType.includes('/token:')
+              );
+            });
           });
         }
 
@@ -760,7 +760,7 @@ const mapStateToProps = (state, { route }) => {
           return involvesToken;
         });
       }
-      
+
       // Cache the result
       cachedFilteredTransactions = filteredTransactions;
       cacheKey = newCacheKey;

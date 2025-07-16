@@ -239,12 +239,6 @@ describe('AddAccountActions', () => {
         clientType: WalletClientType.Bitcoin,
       },
       {
-        button:
-          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON,
-        scope: MultichainNetwork.BitcoinTestnet,
-        clientType: WalletClientType.Bitcoin,
-      },
-      {
         button: AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,

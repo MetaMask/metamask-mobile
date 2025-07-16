@@ -36,7 +36,6 @@ import {
 } from '@metamask/assets-controllers';
 import {
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  MULTICHAIN_NETWORK_TICKER,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';

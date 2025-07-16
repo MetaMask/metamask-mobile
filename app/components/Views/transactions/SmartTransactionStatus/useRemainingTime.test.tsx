@@ -38,11 +38,15 @@ describe('useRemainingTime', () => {
           creationTime: Date.now(),
           isStxPending: false,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
-    expect(result.current.timeLeftForPendingStxInSec).toBe(FALLBACK_STX_ESTIMATED_DEADLINE_SEC);
-    expect(result.current.stxDeadlineSec).toBe(FALLBACK_STX_ESTIMATED_DEADLINE_SEC);
+    expect(result.current.timeLeftForPendingStxInSec).toBe(
+      FALLBACK_STX_ESTIMATED_DEADLINE_SEC,
+    );
+    expect(result.current.stxDeadlineSec).toBe(
+      FALLBACK_STX_ESTIMATED_DEADLINE_SEC,
+    );
     expect(result.current.isStxPastEstimatedDeadline).toBe(false);
   });
 
@@ -56,7 +60,7 @@ describe('useRemainingTime', () => {
           creationTime,
           isStxPending: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     // Should show 35 seconds remaining (45 - 10)
@@ -75,8 +79,8 @@ describe('useRemainingTime', () => {
       {
         // @ts-expect-error - TypeScript limitation with renderHook wrapper types
         wrapper: createWrapper(),
-        initialProps: { isStxPending: true }
-      }
+        initialProps: { isStxPending: true },
+      },
     );
 
     // Initial render should create one interval
@@ -84,7 +88,7 @@ describe('useRemainingTime', () => {
 
     // Force a re-render - this should NOT create a new interval
     rerender({ isStxPending: true });
-    
+
     // Still should only be one interval
     expect(setIntervalSpy).toHaveBeenCalledTimes(1);
   });
@@ -92,29 +96,30 @@ describe('useRemainingTime', () => {
   it('counts down over time when pending', () => {
     const now = Date.now();
     const creationTime = now - 5000; // 5 seconds ago
-  
+
     const { result } = renderHook(
       () =>
         useRemainingTime({
           creationTime,
           isStxPending: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
-  
+
     // Should start at 40 seconds (45 - 5)
     expect(result.current.timeLeftForPendingStxInSec).toBe(40);
-  
+
     // Advance timer by 3 seconds
     jest.advanceTimersByTime(3000);
-  
+
     // Should now be 37 seconds (40 - 3)
     expect(result.current.timeLeftForPendingStxInSec).toBe(37);
   });
 
   it('switches to max deadline when past estimated deadline', () => {
     const now = Date.now();
-    const creationTime = now - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC * 1000 + 5000); // 50 seconds ago (past 45s estimated)
+    const creationTime =
+      now - (FALLBACK_STX_ESTIMATED_DEADLINE_SEC * 1000 + 5000); // 50 seconds ago (past 45s estimated)
 
     const { result } = renderHook(
       () =>
@@ -122,13 +127,13 @@ describe('useRemainingTime', () => {
           creationTime,
           isStxPending: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     // Should be past estimated deadline
     expect(result.current.isStxPastEstimatedDeadline).toBe(true);
     expect(result.current.stxDeadlineSec).toBe(FALLBACK_STX_MAX_DEADLINE_SEC);
-    
+
     // Should show remaining time based on max deadline (150 - 50 = 100 seconds)
     // Note: The hook calculates this as currentDeadline - secondsAfterStxSubmission
     // When past estimated deadline, currentDeadline = 150, secondsAfterStxSubmission = 50
@@ -145,12 +150,14 @@ describe('useRemainingTime', () => {
           creationTime,
           isStxPending: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     // Should start with estimated deadline
     expect(result.current.isStxPastEstimatedDeadline).toBe(false);
-    expect(result.current.stxDeadlineSec).toBe(FALLBACK_STX_ESTIMATED_DEADLINE_SEC);
+    expect(result.current.stxDeadlineSec).toBe(
+      FALLBACK_STX_ESTIMATED_DEADLINE_SEC,
+    );
     expect(result.current.timeLeftForPendingStxInSec).toBe(5); // 45 - 40
 
     // Advance past the estimated deadline (45 seconds)
@@ -164,17 +171,17 @@ describe('useRemainingTime', () => {
 
   it('stops countdown when past max deadline', () => {
     const now = Date.now();
-    const creationTime = now - (FALLBACK_STX_MAX_DEADLINE_SEC * 1000); // Exactly 150 seconds ago
-  
+    const creationTime = now - FALLBACK_STX_MAX_DEADLINE_SEC * 1000; // Exactly 150 seconds ago
+
     const { result } = renderHook(
       () =>
         useRemainingTime({
           creationTime,
           isStxPending: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
-  
+
     // Should show 0 remaining time at the boundary
     expect(result.current.timeLeftForPendingStxInSec).toBe(0);
     expect(result.current.isStxPastEstimatedDeadline).toBe(true);

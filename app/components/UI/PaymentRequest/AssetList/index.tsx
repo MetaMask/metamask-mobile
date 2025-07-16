@@ -124,25 +124,32 @@ const AssetList = ({
       style={styles.listContainer}
     >
       {/* Use simple rendering like token import for better performance */}
-      {searchResults.slice(0, 6).map((item: { symbol?: string; name?: string; address?: string }, index: number) => {
-        const { symbol, name } = item || {};
-        return (
-          <StyledButton
-            key={index}
-            type={'normal'}
-            containerStyle={styles.item}
-            onPress={() => handleSelectAsset(item)}
-          >
-            <View style={styles.assetListElement}>
-              <View style={styles.assetIcon}>{renderLogo(item)}</View>
-              <View style={styles.assetInfo}>
-                <Text style={styles.textSymbol}>{symbol}</Text>
-                {!!name && <Text style={styles.text}>{name}</Text>}
-              </View>
-            </View>
-          </StyledButton>
-        );
-      })}
+      {searchResults
+        .slice(0, 6)
+        .map(
+          (
+            item: { symbol?: string; name?: string; address?: string },
+            index: number,
+          ) => {
+            const { symbol, name } = item || {};
+            return (
+              <StyledButton
+                key={index}
+                type={'normal'}
+                containerStyle={styles.item}
+                onPress={() => handleSelectAsset(item)}
+              >
+                <View style={styles.assetListElement}>
+                  <View style={styles.assetIcon}>{renderLogo(item)}</View>
+                  <View style={styles.assetInfo}>
+                    <Text style={styles.textSymbol}>{symbol}</Text>
+                    {!!name && <Text style={styles.text}>{name}</Text>}
+                  </View>
+                </View>
+              </StyledButton>
+            );
+          },
+        )}
     </View>
   );
 };

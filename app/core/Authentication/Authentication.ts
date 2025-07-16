@@ -46,6 +46,7 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -131,7 +132,7 @@ class AuthenticationService {
           setSelectedAccount: false,
         },
       );
-      await client.addDiscoveredAccounts(primaryHdKeyringId);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
 
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
