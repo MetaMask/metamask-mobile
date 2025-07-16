@@ -28,7 +28,7 @@ import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 
 const PerpsPositionsView: React.FC = () => {
-  const { styles } = useStyles(createStyles, {});
+  const { styles, theme } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const { getPositions } = usePerpsTrading();
@@ -176,6 +176,7 @@ const PerpsPositionsView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
           onPress={handleBackPress}
+          testID="back-button"
         />
         <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
           {strings('perps.position.title')}
@@ -189,7 +190,7 @@ const PerpsPositionsView: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={colors.primary.default}
+            tintColor={theme.colors.primary.default}
           />
         }
       >

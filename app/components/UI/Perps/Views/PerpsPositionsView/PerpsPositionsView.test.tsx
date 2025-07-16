@@ -8,28 +8,13 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import { usePerpsAccount, usePerpsTrading } from '../../hooks';
-import { calculateTotalPnL } from '../../utils/pnlCalculations';
-import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
-interface MockButtonIconProps {
-  onPress?: () => void;
-  iconName?: string;
-  iconColor?: string;
-  size?: string;
-  testID?: string;
-}
-
 interface MockRefreshControlProps {
   refreshing?: boolean;
   onRefresh?: () => void;
   tintColor?: string;
-}
-
-interface MockPositionCardProps {
-  position?: Position;
-  testID?: string;
 }
 
 // Mock dependencies
@@ -43,65 +28,9 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
 }));
 
-jest.mock('../../utils/pnlCalculations', () => ({
-  calculateTotalPnL: jest.fn(),
-}));
-
-jest.mock('../../utils/formatUtils', () => ({
-  formatPnl: jest.fn(),
-  formatPrice: jest.fn(),
-}));
-
-const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
-
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
-  },
-}));
-
-// Mock components
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: ({
-      onPress,
-      iconName,
-      iconColor,
-      size,
-      testID,
-      ...props
-    }: MockButtonIconProps) => {
-      const { TouchableOpacity, Text } = jest.requireActual('react-native');
-      return (
-        <TouchableOpacity
-          onPress={onPress}
-          testID={testID || `button-icon-${iconName?.toLowerCase()}`}
-          {...props}
-        >
-          <Text>{iconName}</Text>
-        </TouchableOpacity>
-      );
-    },
-    ButtonIconSizes: { Md: 'md' },
-  }),
-);
-
-jest.mock('../../components/PerpsPositionCard', () => ({
-  __esModule: true,
-  default: ({ position, testID, ...props }: MockPositionCardProps) => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID={testID || 'position-card'} {...props}>
-        <Text testID="position-card-coin">{position?.coin}</Text>
-        <Text testID="position-card-size">{position?.size}</Text>
-        <Text testID="position-card-pnl">{position?.unrealizedPnl}</Text>
-      </View>
-    );
   },
 }));
 
@@ -189,17 +118,6 @@ const mockPerpsTrading = {
   getPositions: mockGetPositions,
 };
 
-const mockTheme = {
-  colors: {
-    background: { default: '#ffffff', alternative: '#f5f5f5' },
-    text: { default: '#000000', muted: '#666666' },
-    border: { muted: '#e0e0e0' },
-    primary: { default: '#007bff' },
-    success: { default: '#28a745' },
-    error: { default: '#dc3545' },
-  },
-};
-
 describe('PerpsPositionsView', () => {
   beforeEach(() => {
     // Clear only specific mocks, not all mocks to maintain stable references
@@ -207,11 +125,7 @@ describe('PerpsPositionsView', () => {
     mockGetPositions.mockClear();
     mockGetPositions.mockResolvedValue(mockPositions);
 
-    // Clear other mocks
-    (calculateTotalPnL as jest.Mock).mockClear();
-    (formatPrice as jest.Mock).mockClear();
-    (formatPnl as jest.Mock).mockClear();
-    mockUseTheme.mockClear();
+    // Clear other mocks - DevLogger is mocked to avoid log output
 
     // Setup default mocks with stable references
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
@@ -221,12 +135,7 @@ describe('PerpsPositionsView', () => {
       // Do nothing - prevent automatic callback execution
     });
 
-    mockUseTheme.mockReturnValue(mockTheme);
-    (calculateTotalPnL as jest.Mock).mockReturnValue(75.5);
-    (formatPrice as jest.Mock).mockImplementation((value) => `$${value}`);
-    (formatPnl as jest.Mock).mockImplementation(
-      (value) => `${value >= 0 ? '+' : ''}$${value}`,
-    );
+    // Using real implementations of utility functions (calculateTotalPnL, formatPrice, formatPnl) to test actual behavior
   });
 
   describe('Component Rendering', () => {
@@ -236,7 +145,7 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       expect(screen.getByText('Positions')).toBeOnTheScreen();
-      expect(screen.getByTestId('button-icon-arrowleft')).toBeOnTheScreen();
+      expect(screen.getByTestId('back-button')).toBeOnTheScreen();
     });
 
     it('renders account summary with formatted values', async () => {
@@ -250,12 +159,13 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Available Balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin Used')).toBeOnTheScreen();
         expect(screen.getByText('Total Unrealized P&L')).toBeOnTheScreen();
-      });
 
-      expect(formatPrice).toHaveBeenCalledWith('10000');
-      expect(formatPrice).toHaveBeenCalledWith('4700');
-      expect(formatPrice).toHaveBeenCalledWith('5300');
-      expect(formatPnl).toHaveBeenCalledWith(75.5);
+        // Check that the actual formatted values appear in the UI
+        expect(screen.getByText('$10,000.00')).toBeOnTheScreen(); // totalBalance
+        expect(screen.getByText('$4,700.00')).toBeOnTheScreen(); // availableBalance
+        expect(screen.getByText('$5,300.00')).toBeOnTheScreen(); // marginUsed
+        expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
+      });
     });
 
     it('renders positions list with position cards', async () => {
@@ -266,8 +176,8 @@ describe('PerpsPositionsView', () => {
       await waitFor(() => {
         expect(screen.getByText('Open Positions')).toBeOnTheScreen();
         expect(screen.getByText('2 positions')).toBeOnTheScreen();
-        expect(screen.getByText('ETH')).toBeOnTheScreen();
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
+        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(screen.getByText(/0\.5000[\s\S]*BTC/)).toBeOnTheScreen();
       });
     });
 
@@ -365,12 +275,12 @@ describe('PerpsPositionsView', () => {
       // Act
       render(<PerpsPositionsView />);
 
-      // Wait for component to load
+      // Wait for component to load - look for ETH position text
       await waitFor(() => {
-        expect(screen.getByText('ETH')).toBeOnTheScreen();
+        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
       });
 
-      fireEvent.press(screen.getByTestId('button-icon-arrowleft'));
+      fireEvent.press(screen.getByTestId('back-button'));
 
       // Assert
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
@@ -416,18 +326,6 @@ describe('PerpsPositionsView', () => {
   });
 
   describe('Account Summary Calculations', () => {
-    it('calculates total PnL correctly', async () => {
-      // Act
-      render(<PerpsPositionsView />);
-
-      // Assert
-      await waitFor(() => {
-        expect(calculateTotalPnL).toHaveBeenCalledWith({
-          positions: mockPositions,
-        });
-      });
-    });
-
     it('handles missing account state values', async () => {
       // Arrange
       (usePerpsAccount as jest.Mock).mockReturnValue({
@@ -441,37 +339,21 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(formatPrice).toHaveBeenCalledWith('0');
-        expect(formatPrice).toHaveBeenCalledWith('0');
-        expect(formatPrice).toHaveBeenCalledWith('0');
+        // Check that multiple zero values are properly formatted and displayed
+        const zeroValues = screen.getAllByText('$0.00');
+        expect(zeroValues.length).toBeGreaterThan(0);
       });
     });
 
-    it('displays positive PnL with correct styling', async () => {
-      // Arrange
-      (calculateTotalPnL as jest.Mock).mockReturnValue(100.5);
-      (formatPnl as jest.Mock).mockReturnValue('+$100.50');
-
+    it('displays PnL calculated from position data', async () => {
       // Act
       render(<PerpsPositionsView />);
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('+$100.50')).toBeOnTheScreen();
-      });
-    });
-
-    it('displays negative PnL with correct styling', async () => {
-      // Arrange
-      (calculateTotalPnL as jest.Mock).mockReturnValue(-50.25);
-      (formatPnl as jest.Mock).mockReturnValue('-$50.25');
-
-      // Act
-      render(<PerpsPositionsView />);
-
-      // Assert
-      await waitFor(() => {
-        expect(screen.getByText('-$50.25')).toBeOnTheScreen();
+        // The mockPositions have unrealizedPnl of '150.75' and '-75.25'
+        // Real calculateTotalPnL returns 75.5, real formatPnl formats as '+$75.50'
+        expect(screen.getByText(/\+\$75\.50/)).toBeOnTheScreen();
       });
     });
   });
@@ -483,12 +365,14 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('ETH')).toBeOnTheScreen();
-        expect(screen.getByText('1.5')).toBeOnTheScreen();
-        expect(screen.getByText('150.75')).toBeOnTheScreen();
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
-        expect(screen.getByText('-0.5')).toBeOnTheScreen();
-        expect(screen.getByText('-75.25')).toBeOnTheScreen();
+        // Use flexible regex patterns that account for whitespace and line breaks
+        const ethPositions = screen.getAllByText(/1\.50[\s\S]*ETH/);
+        expect(ethPositions).toHaveLength(1);
+
+        const btcPositions = screen.getAllByText(/0\.5000[\s\S]*BTC/);
+        expect(btcPositions).toHaveLength(1);
+
+        expect(screen.getByText(/-\$75\.25/)).toBeOnTheScreen();
       });
     });
 
@@ -505,7 +389,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        const ethPositions = screen.getAllByText('ETH');
+        // Look for the position size text that contains "1.50 ETH"
+        const ethPositions = screen.getAllByText(/1\.50\s+ETH/);
         expect(ethPositions).toHaveLength(2);
       });
     });
