@@ -12,13 +12,13 @@ jest.mock('url-parse');
 jest.mock('../../../core/Permissions');
 jest.mock('../../../util/Logger');
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    PermissionController: {
-      state: {
-        subjects: {}
-      }
+    context: {
+        PermissionController: {
+            state: {
+                subjects: {}
+            }
+        }
     }
-  }
 }));
 
 const mockNotifyAllConnections = jest.fn();
@@ -28,439 +28,398 @@ const mockLoggerError = Logger.error as jest.MockedFunction<typeof Logger.error>
 
 // Extract and test the sendActiveAccount logic
 const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef: { current: string }) => async (targetUrl?: string) => {
-  try {
-    // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
-    const urlToCheck = targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
-    
-    if (!urlToCheck) {
-      // If no URL to check, send empty accounts
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-      return;
-    }
-    
-    // Get permitted accounts for the target URL
-    const permissionsControllerState = Engine.context.PermissionController.state;
-    const hostname = new URLParse(urlToCheck).hostname;
-    const permittedAcc = getPermittedEvmAddressesByHostname(
-      permissionsControllerState,
-      hostname,
-    );
+    try {
+        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+        const urlToCheck = targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-    notifyAllConnections({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAcc,
-    });
-  } catch (err) {
-    Logger.error(err as Error, 'Error in sendActiveAccount');
-    return;
-  }
+        if (!urlToCheck) {
+            // If no URL to check, send empty accounts
+            notifyAllConnections({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+            return;
+        }
+
+        // Get permitted accounts for the target URL
+        const permissionsControllerState = Engine.context.PermissionController.state;
+        const hostname = new URLParse(urlToCheck).hostname;
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+            permissionsControllerState,
+            hostname,
+        );
+
+        notifyAllConnections({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: permittedAcc,
+        });
+    } catch (err) {
+        Logger.error(err as Error, 'Error in sendActiveAccount');
+        return;
+    }
 };
 
 describe('sendActiveAccount function', () => {
-  let sendActiveAccount: (targetUrl?: string) => Promise<void>;
-  let resolvedUrlRef: { current: string };
+    let sendActiveAccount: (targetUrl?: string) => Promise<void>;
+    let resolvedUrlRef: { current: string };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resolvedUrlRef = { current: '' };
-    sendActiveAccount = createSendActiveAccount(mockNotifyAllConnections, resolvedUrlRef);
+    beforeEach(() => {
+        jest.clearAllMocks();
+        resolvedUrlRef = { current: '' };
+        sendActiveAccount = createSendActiveAccount(mockNotifyAllConnections, resolvedUrlRef);
 
-    // Setup default URL parsing mock
-    mockURLParse.mockImplementation((url: string) => ({
-      hostname: new URL(url).hostname,
-    }) as URLParse<Record<string, string>>);
-  });
-
-  describe('URL parameter handling', () => {
-    it('uses targetUrl when provided instead of resolvedUrlRef', async () => {
-      // Arrange
-      const targetUrl = 'https://example.com';
-      const resolvedUrl = 'https://different-site.com';
-      resolvedUrlRef.current = resolvedUrl;
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
-
-      // Act
-      await sendActiveAccount(targetUrl);
-
-      // Then
-      expect(mockURLParse).toHaveBeenCalledWith(targetUrl);
-      expect(mockURLParse).not.toHaveBeenCalledWith(resolvedUrl);
+        // Setup default URL parsing mock
+        mockURLParse.mockImplementation((url: string) => ({
+            hostname: new URL(url).hostname,
+        }) as URLParse<Record<string, string>>);
     });
 
-    it('falls back to resolvedUrlRef when no targetUrl provided', async () => {
-      // Arrange
-      const resolvedUrl = 'https://fallback-site.com';
-      resolvedUrlRef.current = resolvedUrl;
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+    describe('URL parameter handling', () => {
+        it('uses targetUrl when provided instead of resolvedUrlRef', async () => {
 
-      // Act
-      await sendActiveAccount();
+            const targetUrl = 'https://example.com';
+            const resolvedUrl = 'https://different-site.com';
+            resolvedUrlRef.current = resolvedUrl;
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+            await sendActiveAccount(targetUrl);
 
-      // Then
-      expect(mockURLParse).toHaveBeenCalledWith(resolvedUrl);
+            expect(mockURLParse).toHaveBeenCalledWith(targetUrl);
+            expect(mockURLParse).not.toHaveBeenCalledWith(resolvedUrl);
+        });
+
+        it('falls back to resolvedUrlRef when no targetUrl provided', async () => {
+
+            const resolvedUrl = 'https://fallback-site.com';
+            resolvedUrlRef.current = resolvedUrl;
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+
+            await sendActiveAccount();
+
+            expect(mockURLParse).toHaveBeenCalledWith(resolvedUrl);
+        });
+
+        it('sends empty accounts when no URL is available', async () => {
+
+            resolvedUrlRef.current = '';
+
+            await sendActiveAccount();
+
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+            expect(mockURLParse).not.toHaveBeenCalled();
+            expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+        });
+
+        it('sends empty accounts when targetUrl is empty string', async () => {
+
+            resolvedUrlRef.current = 'https://some-site.com';
+
+            await sendActiveAccount('');
+
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+            expect(mockURLParse).not.toHaveBeenCalled();
+            expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+        });
     });
 
-    it('sends empty accounts when no URL is available', async () => {
-      // Arrange
-      resolvedUrlRef.current = '';
+    describe('hostname extraction and permission checking', () => {
+        it('extracts hostname correctly from various URL formats', async () => {
 
-      // Act
-      await sendActiveAccount();
+            const testCases = [
+                {
+                    url: 'https://example.com',
+                    expectedHostname: 'example.com'
+                },
+                {
+                    url: 'https://subdomain.example.com:8080/path?query=1',
+                    expectedHostname: 'subdomain.example.com'
+                },
+                {
+                    url: 'http://localhost:3000',
+                    expectedHostname: 'localhost'
+                },
+                {
+                    url: 'https://dapp.uniswap.org/swap',
+                    expectedHostname: 'dapp.uniswap.org'
+                }
+            ];
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-      expect(mockURLParse).not.toHaveBeenCalled();
-      expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+            for (const { url, expectedHostname } of testCases) {
+
+                mockURLParse.mockImplementation(() => ({
+                    hostname: expectedHostname,
+                } as any));
+                mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+
+                await sendActiveAccount(url);
+
+                expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
+                    Engine.context.PermissionController.state,
+                    expectedHostname
+                );
+
+                // Reset for next iteration
+                mockURLParse.mockClear();
+                mockGetPermittedEvmAddressesByHostname.mockClear();
+                mockNotifyAllConnections.mockClear();
+            }
+        });
+
+        it('checks permissions for the correct hostname', async () => {
+
+            const targetUrl = 'https://test-dapp.com';
+            const expectedHostname = 'test-dapp.com';
+            mockURLParse.mockImplementation(() => ({
+                hostname: expectedHostname,
+            }) as MockURLParse);
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+
+            await sendActiveAccount(targetUrl);
+
+            expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
+                Engine.context.PermissionController.state,
+                expectedHostname
+            );
+        });
+
+        it('uses the correct PermissionController state', async () => {
+
+            const targetUrl = 'https://test-dapp.com';
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+
+            await sendActiveAccount(targetUrl);
+
+            expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
+                Engine.context.PermissionController.state,
+                expect.any(String)
+            );
+        });
     });
 
-    it('sends empty accounts when targetUrl is empty string', async () => {
-      // Arrange
-      resolvedUrlRef.current = 'https://some-site.com';
+    describe('notification behavior', () => {
+        it('sends notification with empty array when no accounts are permitted', async () => {
 
-      // Act
-      await sendActiveAccount('');
+            const targetUrl = 'https://unauthorized-dapp.com';
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-      expect(mockURLParse).not.toHaveBeenCalled();
-      expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
-    });
-  });
+            await sendActiveAccount(targetUrl);
 
-  describe('hostname extraction and permission checking', () => {
-    it('extracts hostname correctly from various URL formats', async () => {
-      // Arrange
-      const testCases = [
-        {
-          url: 'https://example.com',
-          expectedHostname: 'example.com'
-        },
-        {
-          url: 'https://subdomain.example.com:8080/path?query=1',
-          expectedHostname: 'subdomain.example.com'
-        },
-        {
-          url: 'http://localhost:3000',
-          expectedHostname: 'localhost'
-        },
-        {
-          url: 'https://dapp.uniswap.org/swap',
-          expectedHostname: 'dapp.uniswap.org'
-        }
-      ];
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+        });
 
-      for (const { url, expectedHostname } of testCases) {
-        // Arrange
-        mockURLParse.mockImplementation(() => ({
-          hostname: expectedHostname,
-        } as any));
-        mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+        it('sends notification with permitted accounts when accounts are available', async () => {
 
-        // Act
-        await sendActiveAccount(url);
+            const targetUrl = 'https://authorized-dapp.com';
+            const permittedAccounts = [
+                '0x1234567890123456789012345678901234567890',
+                '0x0987654321098765432109876543210987654321'
+            ] as EthereumAddress[];
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
-        // Then
-        expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
-          Engine.context.PermissionController.state,
-          expectedHostname
-        );
+            await sendActiveAccount(targetUrl);
 
-        // Reset for next iteration
-        mockURLParse.mockClear();
-        mockGetPermittedEvmAddressesByHostname.mockClear();
-        mockNotifyAllConnections.mockClear();
-      }
-    });
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: permittedAccounts,
+            });
+        });
 
-    it('checks permissions for the correct hostname', async () => {
-      // Arrange
-      const targetUrl = 'https://test-dapp.com';
-      const expectedHostname = 'test-dapp.com';
-      mockURLParse.mockImplementation(() => ({
-        hostname: expectedHostname,
-      }) as MockURLParse);
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+        it('sends notification with correct format for single account', async () => {
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            const targetUrl = 'https://single-account-dapp.com';
+            const permittedAccounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
-      // Then
-      expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
-        Engine.context.PermissionController.state,
-        expectedHostname
-      );
+            await sendActiveAccount(targetUrl);
+
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: permittedAccounts,
+            });
+            expect(mockNotifyAllConnections).toHaveBeenCalledTimes(1);
+        });
+
+        it('sends notification with multiple accounts correctly', async () => {
+
+            const targetUrl = 'https://multi-account-dapp.com';
+            const permittedAccounts = [
+                '0x1111111111111111111111111111111111111111',
+                '0x2222222222222222222222222222222222222222',
+                '0x3333333333333333333333333333333333333333',
+                '0x4444444444444444444444444444444444444444'
+            ] as EthereumAddress[];
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
+
+            await sendActiveAccount(targetUrl);
+
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: permittedAccounts,
+            });
+        });
     });
 
-    it('uses the correct PermissionController state', async () => {
-      // Arrange
-      const targetUrl = 'https://test-dapp.com';
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+    describe('security considerations', () => {
+        it('sends accounts only for the specific hostname requested', async () => {
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            const dapp1Url = 'https://dapp1.com';
+            const dapp2Url = 'https://dapp2.com';
+            const dapp1Accounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
+            const dapp2Accounts = ['0x2222222222222222222222222222222222222222'] as EthereumAddress[];
 
-      // Then
-      expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
-        Engine.context.PermissionController.state,
-        expect.any(String)
-      );
-    });
-  });
+            mockURLParse.mockImplementation((url) => ({
+                hostname: new URL(url).hostname,
+            } as any));
 
-  describe('notification behavior', () => {
-    it('sends notification with empty array when no accounts are permitted', async () => {
-      // Arrange
-      const targetUrl = 'https://unauthorized-dapp.com';
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
+            mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => {
+                if (hostname === 'dapp1.com') return dapp1Accounts;
+                if (hostname === 'dapp2.com') return dapp2Accounts;
+                return [];
+            });
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            await sendActiveAccount(dapp1Url);
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-    });
 
-    it('sends notification with permitted accounts when accounts are available', async () => {
-      // Arrange
-      const targetUrl = 'https://authorized-dapp.com';
-      const permittedAccounts = [
-        '0x1234567890123456789012345678901234567890',
-        '0x0987654321098765432109876543210987654321'
-      ] as EthereumAddress[];
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: dapp1Accounts,
+            });
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            mockNotifyAllConnections.mockClear();
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccounts,
-      });
-    });
+            await sendActiveAccount(dapp2Url);
 
-    it('sends notification with correct format for single account', async () => {
-      // Arrange
-      const targetUrl = 'https://single-account-dapp.com';
-      const permittedAccounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: dapp2Accounts,
+            });
+        });
 
-      // Act
-      await sendActiveAccount(targetUrl);
+        it('prevents cross-origin account leakage during navigation', async () => {
+            const authorizedUrl = 'https://authorized.com';
+            const unauthorizedUrl = 'https://unauthorized.com';
+            const authorizedAccounts = ['0x1234567890123456789012345678901234567890'] as EthereumAddress[];
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccounts,
-      });
-      expect(mockNotifyAllConnections).toHaveBeenCalledTimes(1);
-    });
+            resolvedUrlRef.current = authorizedUrl; // Previous site
 
-    it('sends notification with multiple accounts correctly', async () => {
-      // Arrange
-      const targetUrl = 'https://multi-account-dapp.com';
-      const permittedAccounts = [
-        '0x1111111111111111111111111111111111111111',
-        '0x2222222222222222222222222222222222222222',
-        '0x3333333333333333333333333333333333333333',
-        '0x4444444444444444444444444444444444444444'
-      ] as EthereumAddress[];
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
+            mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
+                hostname === 'authorized.com' ? authorizedAccounts : []
+            );
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            await sendActiveAccount(unauthorizedUrl);
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAccounts,
-      });
-    });
-  });
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [], // Empty array for unauthorized site
+            });
+        });
 
-  describe('security considerations', () => {
-    it('sends accounts only for the specific hostname requested', async () => {
-      // Arrange
-      const dapp1Url = 'https://dapp1.com';
-      const dapp2Url = 'https://dapp2.com';
-      const dapp1Accounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
-      const dapp2Accounts = ['0x2222222222222222222222222222222222222222'] as EthereumAddress[];
+        it('correctly handles targetUrl override during navigation vulnerability scenario', async () => {
+            const previousSiteUrl = 'https://victim-dapp.com';
+            const newSiteUrl = 'https://attacker-site.com';
+            const victimAccounts = [
+                '0x1111111111111111111111111111111111111111',
+                '0x2222222222222222222222222222222222222222'
+            ] as EthereumAddress[];
 
-      mockURLParse.mockImplementation((url) => ({
-        hostname: new URL(url).hostname,
-      } as any));
-      
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => {
-        if (hostname === 'dapp1.com') return dapp1Accounts;
-        if (hostname === 'dapp2.com') return dapp2Accounts;
-        return [];
-      });
+            // resolvedUrlRef still points to previous site (before onLoadEnd updates it)
+            resolvedUrlRef.current = previousSiteUrl;
 
-      // Act - Test dapp1
-      await sendActiveAccount(dapp1Url);
+            mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
+                hostname === 'victim-dapp.com' ? victimAccounts : []
+            );
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: dapp1Accounts,
-      });
-
-      mockNotifyAllConnections.mockClear();
-
-      // Act - Test dapp2
-      await sendActiveAccount(dapp2Url);
-
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: dapp2Accounts,
-      });
-    });
-
-    it('prevents cross-origin account leakage during navigation', async () => {
-      // Arrange - Simulate navigation from authorized site to unauthorized site
-      const authorizedUrl = 'https://authorized.com';
-      const unauthorizedUrl = 'https://unauthorized.com';
-      const authorizedAccounts = ['0x1234567890123456789012345678901234567890'] as EthereumAddress[];
-
-      resolvedUrlRef.current = authorizedUrl; // Previous site
-      
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => 
-        hostname === 'authorized.com' ? authorizedAccounts : []
-      );
-
-      // Act - Send accounts for the new site being navigated to
-      await sendActiveAccount(unauthorizedUrl);
-
-      // Then - Should send empty accounts for unauthorized site, not authorized site's accounts
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [], // Empty array for unauthorized site
-      });
-    });
-
-    it('correctly handles targetUrl override during navigation vulnerability scenario', async () => {
-      // Arrange - Simulate the exact vulnerability scenario
-      const previousSiteUrl = 'https://victim-dapp.com';
-      const newSiteUrl = 'https://attacker-site.com';
-      const victimAccounts = [
-        '0x1111111111111111111111111111111111111111',
-        '0x2222222222222222222222222222222222222222'
-      ] as EthereumAddress[];
-
-      // resolvedUrlRef still points to previous site (before onLoadEnd updates it)
-      resolvedUrlRef.current = previousSiteUrl;
-
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => 
-        hostname === 'victim-dapp.com' ? victimAccounts : []
-      );
-
-      // Act - Call with targetUrl (new implementation)
       await sendActiveAccount(newSiteUrl);
 
-      // Then - Should check permissions for the new site, not the previous one
-      expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
-        Engine.context.PermissionController.state,
-        'attacker-site.com' // Should use new site's hostname
-      );
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [], // Empty because attacker site has no permissions
-      });
-    });
-  });
-
-  describe('edge cases and error handling', () => {
-    it('handles null URL gracefully', async () => {
-      // Act
-      await sendActiveAccount(null as any);
-
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-      expect(mockURLParse).not.toHaveBeenCalled();
-      expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+            expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
+                Engine.context.PermissionController.state,
+                'attacker-site.com' // Should use new site's hostname
+            );
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [], // Empty because attacker site has no permissions
+            });
+        });
     });
 
-    it('handles undefined URL gracefully', async () => {
-      // Arrange
-      resolvedUrlRef.current = '';
+    describe('edge cases and error handling', () => {
+        it('handles null URL gracefully', async () => {
 
-      // Act
-      await sendActiveAccount(undefined);
+            await sendActiveAccount(null as any);
 
-      // Then
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      });
-      expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+            expect(mockURLParse).not.toHaveBeenCalled();
+            expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+        });
+
+        it('handles undefined URL gracefully', async () => {
+
+            resolvedUrlRef.current = '';
+
+            await sendActiveAccount(undefined);
+
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: [],
+            });
+            expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
+        });
+
+        it('handles URL parsing errors gracefully', async () => {
+
+            const targetUrl = 'invalid-url';
+            const error = new Error('Invalid URL');
+            mockURLParse.mockImplementation(() => {
+                throw error;
+            });
+
+            await sendActiveAccount(targetUrl);
+
+            expect(mockLoggerError).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+            expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+        });
+
+        it('handles permission checking errors gracefully', async () => {
+
+            const targetUrl = 'https://test-dapp.com';
+            const error = new Error('Permission check failed');
+            mockGetPermittedEvmAddressesByHostname.mockImplementation(() => {
+                throw error;
+            });
+
+            await sendActiveAccount(targetUrl);
+
+            expect(mockLoggerError).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+            expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+        });
     });
 
-    it('handles URL parsing errors gracefully', async () => {
-      // Arrange
-      const targetUrl = 'invalid-url';
-      const error = new Error('Invalid URL');
-      mockURLParse.mockImplementation(() => {
-        throw error;
-      });
+    describe('backwards compatibility', () => {
+        it('maintains original behavior when called without parameters', async () => {
 
-      // Act
-      await sendActiveAccount(targetUrl);
+            const resolvedUrl = 'https://current-site.com';
+            const expectedAccounts = ['0x1234567890123456789012345678901234567890'] as EthereumAddress[];
+            resolvedUrlRef.current = resolvedUrl;
+            mockGetPermittedEvmAddressesByHostname.mockReturnValue(expectedAccounts);
 
-      // Then
-      expect(mockLoggerError).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
+            await sendActiveAccount(); // Called without parameters like before
+
+            expect(mockURLParse).toHaveBeenCalledWith(resolvedUrl);
+            expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+                method: NOTIFICATION_NAMES.accountsChanged,
+                params: expectedAccounts,
+            });
+        });
     });
-
-    it('handles permission checking errors gracefully', async () => {
-      // Arrange
-      const targetUrl = 'https://test-dapp.com';
-      const error = new Error('Permission check failed');
-      mockGetPermittedEvmAddressesByHostname.mockImplementation(() => {
-        throw error;
-      });
-
-      // Act
-      await sendActiveAccount(targetUrl);
-
-      // Then
-      expect(mockLoggerError).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('backwards compatibility', () => {
-    it('maintains original behavior when called without parameters', async () => {
-      // Arrange
-      const resolvedUrl = 'https://current-site.com';
-      const expectedAccounts = ['0x1234567890123456789012345678901234567890'] as EthereumAddress[];
-      resolvedUrlRef.current = resolvedUrl;
-      mockGetPermittedEvmAddressesByHostname.mockReturnValue(expectedAccounts);
-
-      // Act
-      await sendActiveAccount(); // Called without parameters like before
-
-      // Then
-      expect(mockURLParse).toHaveBeenCalledWith(resolvedUrl);
-      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: expectedAccounts,
-      });
-    });
-  });
 });
