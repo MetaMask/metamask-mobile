@@ -156,21 +156,21 @@ describe(SmokeTrade('Lending'), () => {
         {
           restartDevice: true,
           testSpecificMock: {
-            GET: [
-              type === action.dp || type === action.dpm
-                ? await getMarkets(
-                    chainId,
-                    srcTokenDetails.address,
-                    dstTokenDetails.address,
-                    rate,
-                  )
-                : await getMarkets(
-                    chainId,
-                    dstTokenDetails.address,
-                    srcTokenDetails.address,
-                    rate,
-                  ),
-            ],
+            // GET: [
+            //   type === action.dp || type === action.dpm
+            //     ? await getMarkets(
+            //         chainId,
+            //         srcTokenDetails.address,
+            //         dstTokenDetails.address,
+            //         rate,
+            //       )
+            //     : await getMarkets(
+            //         chainId,
+            //         dstTokenDetails.address,
+            //         srcTokenDetails.address,
+            //         rate,
+            //       ),
+            // ],
             POST: [await proxyInfuraRequests(chainId, rpcUrl)],
           },
           fixture: new FixtureBuilder()

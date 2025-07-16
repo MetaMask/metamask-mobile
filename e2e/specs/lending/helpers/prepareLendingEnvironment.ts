@@ -88,46 +88,46 @@ const CHAIN_ID_TO_INFURA_URL_MAPPING: Record<string, string> = {
   '0xa4b1': `https://arbitrum-mainnet.infura.io/v3/null`,
 };
 
-export async function getMarkets(
-  chainId: string,
-  srcTokenAddr: string,
-  dstTokenAddr: string,
-  rate: number,
-): Promise<MockResponse> {
-  const chainIdDec = parseInt(chainId, 16);
-  const srcTokenAddrLw = srcTokenAddr.toLowerCase();
-  const dstTokenAddrLw = dstTokenAddr.toLowerCase();
-  console.log(
-    `Generated markets for token: ${srcTokenAddrLw} chainId: ${chainId}`,
-  );
-  return {
-    responseCode: 200,
-    urlEndpoint: 'https://staking.api.cx.metamask.io/v1/lending/markets',
-    response: {
-      markets: [
-        {
-          id: dstTokenAddrLw,
-          chainId: chainIdDec,
-          protocol: 'aave',
-          name: dstTokenAddrLw,
-          address: dstTokenAddrLw,
-          netSupplyRate: rate,
-          totalSupplyRate: rate,
-          rewards: [],
-          tvlUnderlying: '179076330981934055169152348',
-          underlying: {
-            address: srcTokenAddrLw,
-            chainId: chainIdDec,
-          },
-          outputToken: {
-            address: dstTokenAddrLw,
-            chainId: chainIdDec,
-          },
-        },
-      ],
-    },
-  };
-}
+// export async function getMarkets(
+//   chainId: string,
+//   srcTokenAddr: string,
+//   dstTokenAddr: string,
+//   rate: number,
+// ): Promise<MockResponse> {
+//   const chainIdDec = parseInt(chainId, 16);
+//   const srcTokenAddrLw = srcTokenAddr.toLowerCase();
+//   const dstTokenAddrLw = dstTokenAddr.toLowerCase();
+//   console.log(
+//     `Generated markets for token: ${srcTokenAddrLw} chainId: ${chainId}`,
+//   );
+//   return {
+//     responseCode: 200,
+//     urlEndpoint: 'https://staking.api.cx.metamask.io/v1/lending/markets',
+//     response: {
+//       markets: [
+//         {
+//           id: dstTokenAddrLw,
+//           chainId: chainIdDec,
+//           protocol: 'aave',
+//           name: dstTokenAddrLw,
+//           address: dstTokenAddrLw,
+//           netSupplyRate: rate,
+//           totalSupplyRate: rate,
+//           rewards: [],
+//           tvlUnderlying: '179076330981934055169152348',
+//           underlying: {
+//             address: srcTokenAddrLw,
+//             chainId: chainIdDec,
+//           },
+//           outputToken: {
+//             address: dstTokenAddrLw,
+//             chainId: chainIdDec,
+//           },
+//         },
+//       ],
+//     },
+//   };
+// }
 
 export async function proxyInfuraRequests(
   chainId: string,
