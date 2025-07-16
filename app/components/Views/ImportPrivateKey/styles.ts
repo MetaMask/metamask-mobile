@@ -49,6 +49,7 @@ const createStyles = (colors: any) =>
     top: {
       paddingTop: 0,
       padding: 24,
+      width: '100%',
     },
     bottom: {
       width: '100%',
@@ -71,10 +72,8 @@ const createStyles = (colors: any) =>
     },
     navbarRightButton: {
       alignSelf: 'flex-end',
-      paddingRight: 32,
-      paddingTop: 20,
-      paddingBottom: 10,
-      marginTop: Device.isIphoneX() ? 40 : 20,
+      marginRight: 16,
+      marginTop: Device.isIphoneX() ? 40 : 24,
     },
     textContainer: {
       width: '90%',

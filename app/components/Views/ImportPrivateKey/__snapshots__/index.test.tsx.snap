@@ -389,11 +389,9 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   "borderRadius": 8,
                                   "height": 32,
                                   "justifyContent": "center",
+                                  "marginRight": 16,
                                   "marginTop": 40,
                                   "opacity": 1,
-                                  "paddingBottom": 10,
-                                  "paddingRight": 32,
-                                  "paddingTop": 20,
                                   "width": 32,
                                 }
                               }
@@ -417,6 +415,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                 {
                                   "padding": 24,
                                   "paddingTop": 0,
+                                  "width": "100%",
                                 }
                               }
                             >
