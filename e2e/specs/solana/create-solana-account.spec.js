@@ -55,10 +55,10 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
 
   it('should create a Solana account from the bottom sheet', async () => {
     await SolanaNewFeatureSheet.tapNotNowButton();
-  
+
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-  
+
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
