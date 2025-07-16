@@ -1,7 +1,7 @@
-import type {
-  PerpsMarketData,
+import {
   HyperLiquidMarketData,
-} from '../components/PerpsMarketListView/PerpsMarketListView.types';
+  PerpsMarketData,
+} from '../Views/PerpsMarketListView/PerpsMarketListView.types';
 
 /**
  * Transform raw HyperLiquid market data to UI-friendly format
@@ -15,7 +15,7 @@ export function transformMarketData(
 
   return universe.map((asset) => {
     const symbol = asset.name;
-    const currentPrice = parseFloat(allMids[symbol] || '0');
+    const currentPrice = parseFloat(allMids[symbol]);
 
     // Find matching asset context for additional data
     // Note: assetCtxs array from metaAndAssetCtxs might have different structure
@@ -23,22 +23,39 @@ export function transformMarketData(
     const assetCtx = assetCtxs[universe.indexOf(asset)];
 
     // Calculate 24h change
-    const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx || '0') : 0;
-    const change24h = currentPrice - prevDayPrice;
-    const change24hPercent =
-      prevDayPrice > 0 ? (change24h / prevDayPrice) * 100 : 0;
+    const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx) : 0;
+
+    // Handle missing current price data
+    const hasCurrentPrice = !isNaN(currentPrice);
+    const effectiveCurrentPrice = hasCurrentPrice ? currentPrice : 0;
+
+    // For dollar change: show $0.00 when current price is missing
+    const change24h = hasCurrentPrice
+      ? effectiveCurrentPrice - prevDayPrice
+      : 0;
+
+    // For percentage: show -100% when current price is missing but previous price exists
+    const change24hPercent = hasCurrentPrice
+      ? prevDayPrice > 0
+        ? ((effectiveCurrentPrice - prevDayPrice) / prevDayPrice) * 100
+        : 0
+      : prevDayPrice > 0
+      ? -100
+      : 0;
 
     // Format volume (dayNtlVlm is daily notional volume)
-    const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm || '0') : 0;
+    const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm) : 0;
 
     return {
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
       maxLeverage: `${asset.maxLeverage}x`,
-      price: formatPrice(currentPrice),
-      change24h: formatChange(change24h),
-      change24hPercent: formatPercentage(change24hPercent),
-      volume: formatVolume(volume),
+      price: isNaN(currentPrice) ? '$0.00' : formatPrice(currentPrice),
+      change24h: isNaN(change24h) ? '$0.00' : formatChange(change24h),
+      change24hPercent: isNaN(change24hPercent)
+        ? '0.00%'
+        : formatPercentage(change24hPercent),
+      volume: isNaN(volume) ? '$0' : formatVolume(volume),
     };
   });
 }
@@ -47,71 +64,93 @@ export function transformMarketData(
  * Format price with appropriate decimal places
  */
 export function formatPrice(price: number): string {
+  if (isNaN(price) || !isFinite(price)) return '$0.00';
   if (price === 0) return '$0.00';
 
-  if (price >= 1000) {
-    return `$${price.toLocaleString('en-US', {
+  const absPrice = Math.abs(price);
+
+  if (absPrice >= 1000) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })}`;
+    }).format(price);
   }
-  if (price >= 1) {
-    return `$${price.toFixed(2)}`;
+  if (absPrice >= 1) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price);
   }
-  if (price >= 0.01) {
-    return `$${price.toFixed(4)}`;
+  if (absPrice >= 0.01) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    }).format(price);
   }
-  return `$${price.toFixed(6)}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 6,
+    maximumFractionDigits: 6,
+  }).format(price);
 }
 
 /**
  * Format 24h change with sign
+ * Uses more decimal places for smaller amounts to show meaningful precision
  */
 export function formatChange(change: number): string {
+  if (isNaN(change) || !isFinite(change)) return '$0.00';
   if (change === 0) return '$0.00';
 
-  const sign = change > 0 ? '+' : '';
+  // Determine decimal places based on magnitude: smaller amounts need more precision
   const absChange = Math.abs(change);
+  const decimalPlaces = absChange >= 1 ? 2 : absChange >= 0.01 ? 4 : 6;
 
-  if (absChange >= 1000) {
-    return `${sign}$${change.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  if (absChange >= 1) {
-    return `${sign}$${change.toFixed(2)}`;
-  }
-  if (absChange >= 0.01) {
-    return `${sign}$${change.toFixed(4)}`;
-  }
-  return `${sign}$${change.toFixed(6)}`;
+  const formatted = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  }).format(change);
+
+  return change > 0 ? `+${formatted}` : formatted;
 }
 
 /**
  * Format percentage change with sign
  */
 export function formatPercentage(percent: number): string {
+  if (isNaN(percent) || !isFinite(percent)) return '0.00%';
   if (percent === 0) return '0.00%';
 
-  const sign = percent > 0 ? '+' : '';
-  return `${sign}${percent.toFixed(2)}%`;
+  const formatted = new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(percent / 100);
+
+  return percent > 0 ? `+${formatted}` : formatted;
 }
 
 /**
  * Format volume with appropriate units
  */
 export function formatVolume(volume: number): string {
+  if (isNaN(volume) || !isFinite(volume)) return '$0';
   if (volume === 0) return '$0';
 
-  if (volume >= 1e9) {
-    return `$${(volume / 1e9).toFixed(2)}B`;
-  }
-  if (volume >= 1e6) {
-    return `$${(volume / 1e6).toFixed(2)}M`;
-  }
-  if (volume >= 1e3) {
-    return `$${(volume / 1e3).toFixed(2)}K`;
-  }
-  return `$${volume.toFixed(2)}`;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(volume);
 }
