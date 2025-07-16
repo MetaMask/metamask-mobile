@@ -194,6 +194,25 @@ describe('BuildQuote Component', () => {
         },
       });
     });
+
+    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+      render(BuildQuote);
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
+          'credit_debit_card',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_PAYMENT_METHOD_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        payment_method_id: 'credit_debit_card',
+        is_authenticated: false,
+      });
+    });
   });
 
   describe('Token Selection', () => {
@@ -208,6 +227,28 @@ describe('BuildQuote Component', () => {
           selectedAssetId:
             'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         },
+      });
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+      render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        chain_id: 'eip155:1',
+        currency_destination:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        currency_source: 'USD',
+        is_authenticated: false,
       });
     });
   });
