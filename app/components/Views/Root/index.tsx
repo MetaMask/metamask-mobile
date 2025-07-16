@@ -24,21 +24,11 @@ import {
   StyleSheet,
   View,
   Platform,
-  NativeEventEmitter,
-  NativeModules,
   DeviceEventEmitter,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-
-const { DeviceEventManagerModule } = NativeModules;
-const nativeEmitter = new NativeEventEmitter(DeviceEventManagerModule);
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-  },
-  androidOverlay: {
+  view: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
     zIndex: 1000,
@@ -90,11 +80,7 @@ export function BackgroundSecurityOverlay() {
 
   if (!visible) return null;
 
-  return Platform.OS === 'ios' ? (
-    <BlurView intensity={50} style={styles.container} />
-  ) : (
-    <View style={styles.androidOverlay} />
-  );
+  return <View style={styles.view} />;
 }
 
 /**
