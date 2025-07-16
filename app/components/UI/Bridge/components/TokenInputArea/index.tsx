@@ -227,6 +227,8 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
+    const isNativeAsset = token?.address === ethers.constants.AddressZero;
+
     return (
       <Box>
         <Box style={styles.content} gap={4}>
@@ -291,7 +293,7 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                 </Box>
                 {subtitle ? (
-                  tokenType === TokenInputAreaType.Source && tokenBalance && onMaxPress ? (
+                  tokenType === TokenInputAreaType.Source && tokenBalance && onMaxPress && !isNativeAsset ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={
