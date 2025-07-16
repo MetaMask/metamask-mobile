@@ -1,4 +1,4 @@
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import AdvancedSettingsView from '../../../pages/Settings/AdvancedView.js';
 import WalletView from '../../../pages/wallet/WalletView';
