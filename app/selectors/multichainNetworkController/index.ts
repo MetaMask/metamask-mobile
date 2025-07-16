@@ -2,20 +2,12 @@ import { ImageSourcePropType } from 'react-native';
 import { createSelector } from 'reselect';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
-  MULTICHAIN_NETWORK_TICKER,
   MultichainNetworkControllerState,
-  NON_EVM_TESTNET_IDS,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { CaipChainId } from '@metamask/utils';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BtcScope,
-  ///: END:ONLY_INCLUDE_IF
-  SolScope,
-  EthScope,
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, EthScope } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
@@ -59,7 +51,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         imageSource: imageIcons.SOLANA,
         isTestnet: false,
       },
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BtcScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Mainnet],
         imageSource: imageIcons.BTC,
@@ -86,7 +77,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         imageSource: imageIcons['BTC-TESTNET'],
         isTestnet: true,
       },
-      ///: END:ONLY_INCLUDE_IF
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -97,9 +87,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
       BtcScope.Testnet,
-      BtcScope.Testnet4,
       BtcScope.Signet,
-      BtcScope.Regtest,
       ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
     ];
