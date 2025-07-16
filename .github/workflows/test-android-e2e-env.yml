@@ -5,14 +5,14 @@ on:
 
 jobs:
   android-e2e:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
 
       - name: Setup E2E Android Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions-keystore
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
           platform: android
           setup-simulator: true
