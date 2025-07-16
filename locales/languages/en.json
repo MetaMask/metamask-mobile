@@ -768,9 +768,6 @@
     },
     "order": {
       "title": "New Order",
-      "success": {
-        "title": "Order Success"
-      },
       "details": {
         "title": "Order Details"
       },
@@ -832,9 +829,6 @@
     },
     "position": {
       "title": "Positions",
-      "details": {
-        "title": "Position Details"
-      },
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
@@ -892,54 +886,12 @@
     "chart": {
       "no_data": "No chart data available"
     },
-    "deposit": {
-      "title": "Deposit",
-      "preview": {
-        "title": "Deposit Preview"
-      },
-      "processing": {
-        "title": "Processing Deposit"
-      },
-      "success": {
-        "title": "Deposit Success"
-      }
-    },
     "perpetual_markets": "Perpetual Markets",
     "search": "Search",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
-    "tap_to_retry": "Tap to retry",
-    "position": {
-      "title": "Positions",
-      "account": {
-        "summary_title": "Account Summary",
-        "total_balance": "Total Balance",
-        "available_balance": "Available Balance",
-        "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized PnL"
-      },
-      "list": {
-        "open_positions": "Open Positions",
-        "position_count": "1 position",
-        "position_count_plural": "{{count}} positions",
-        "loading": "Loading positions...",
-        "error_title": "Error Loading Positions",
-        "empty_title": "No Open Positions",
-        "empty_description": "You don't have any open positions yet. Start trading to see your positions here."
-      },
-      "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
-        "not_set": "Not Set",
-        "margin": "Margin",
-        "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
-      }
-    }
+    "tap_to_retry": "Tap to retry"
   },
   "receive": {
     "title": "Receive"
