@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
+import { encryptVault } from './fixture-helper';
 import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
@@ -67,7 +68,7 @@ class FixtureBuilder {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
     }
-    this.fixture.asyncState['@MetaMask:solanaFeatureModalShown'] = 'true';
+    this.fixture.asyncState['@MetaMask:solanaFeatureModalShownV2'] = 'true';
     return this;
   }
 
@@ -77,10 +78,11 @@ class FixtureBuilder {
     }
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
+      '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false',
+      '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
   }
@@ -650,6 +652,7 @@ class FixtureBuilder {
             },
           ],
           selectedRegionAgg: null,
+          selectedRegionDeposit: null,
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
           getStartedSell: false,
@@ -689,10 +692,11 @@ class FixtureBuilder {
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
+        '@MetaMask:OptinMetaMetricsUISeen': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-        '@MetaMask:solanaFeatureModalShown': 'true',
+        '@MetaMask:solanaFeatureModalShownV2': 'true',
       },
     };
     return this;
@@ -1046,6 +1050,52 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Merges provided data into the KeyringController's state with a random imported account.
+   * and also includes the default HD Key Tree fixture account.
+   *
+   * @param {Object} account - ethers.Wallet object containing address and privateKey.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRandomImportedAccountKeyringController(account) {
+    // mnemonics belonging to the DEFAULT_FIXTURE_ACCOUNT
+    const vault = encryptVault([
+      {
+        type: 'HD Key Tree',
+        data: {
+          mnemonic: [
+            100, 114, 105, 118, 101, 32, 109, 97, 110, 97, 103, 101, 32, 99,
+            108, 111, 115, 101, 32, 114, 97, 118, 101, 110, 32, 116, 97, 112,
+            101, 32, 97, 118, 101, 114, 97, 103, 101, 32, 115, 97, 117, 115, 97,
+            103, 101, 32, 112, 108, 101, 100, 103, 101, 32, 114, 105, 111, 116,
+            32, 102, 117, 114, 110, 97, 99, 101, 32, 97, 117, 103, 117, 115,
+            116, 32, 116, 105, 112,
+          ],
+          numberOfAccounts: 1,
+          hdPath: "m/44'/60'/0'/0",
+        },
+      },
+      {
+        type: 'Simple Key Pair',
+        data: [account.privateKey],
+      },
+    ]);
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: [account.address],
+        },
+      ],
+      vault,
+    });
+    return this;
+  }
+
   withKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1153,10 +1203,11 @@ class FixtureBuilder {
   // Mirrors the vault contents from the extension fixture.
   withMultiSRPKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      vault: '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}'
-    })
+      vault:
+        '{"keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","cipher":"LOubqgWR4O7Hv/RcdHPZ0Xi0GmCPD6whWLbO/jtnv44cAbBDumnAKX1NK1vgDNORSPVlUTkjyZwaHaStzuTIoJDurCBJN4TtsNUe5qIoJgttZ4Yv4hHxlg04V4nq/DXqAQaXedILMXnhbqZ+DP+tMc7JBXcVi12GIOiqV+ycLj8xFcasS/cdxtU6Os3pItdEZS89Rp7U58YOJBRQ2dlhBg0tCo2JnCrRhQmPGcTBuQVpn7SdkDx5PPC2slz3TRCjaHXWGCMPmx6jCDqI2sJL9ljpFB0/Jvlp18/9PE/cZ53GxybdtQiJ9andNHlfPf5WK+qI+QgySR8CMSRDWaP3hfEGHF1H0oqO7y/v6/pkShitdx7i5bC8Wt++heUOT8qpHTo1gDgUmNuZJsF4sG0Y18Hw8vLu+LfkoZgundb+cFjPFD1teTEnl2mmkpBvQCciynsCHPnHgnhKNHj6KMLhlSXWEItuYL/FY7dRpttfXzWfVQt56dQLLEYEYmO/f7C1uzAv6jbHBHqg16QtX3hCEnX0qzi1h3DQ8J5v44ckkQ/UGVvy6bOUC83b8DMLNPiSoMJDSsMaDzMmQ4J4xHzoHdD7/wBcXcbtUwccMGRHXv3jFLtHjuV+HQo0//I9xnjjAxfxX9SgyBQE8WCvUOxgCdwF8W7aBKcFEsoksLAWIQFxerWc3OxdvKSzvinI/j/MvyFMvVP5pm/BLWNj639GpFmIJVMprxkDL4H45CsgUcMe1Kiim/PFvo0D449vO1XL31ZIl9TxRVLaIr2cE3a95MFbzru9stqNkXz0EHrhSltFyoANMCim1HFxK/1yRl5Tt4u9Vjjyvj6a4Wtzy7SyLHhx0PfrlARq2euwGQal46cZYYKuMsnwvQf3ba/uJF3hF3FyAl9fn28HKRurImsiKNDvT+kaoUMFYoX6i+qR0LHoA7OfeqXpsKYyMx8LnUq7zKP4ZVc8sysI95YYYwdzhq2xzHDQfOplYRFkQllxqtkoTxMPHz/J1W1kjBTpCI7M8n8qLv53ryNq4y+hQx0RQNtvGPE9OcQTDUpkCM5dv7p8Ja8uLTDehKeKzs315IRBVJN8mdGy18EK5sjDoileDQ==","iv":"e88d2415e223bb8cc67c74ce47de1a6b","salt":"BX+ED3hq9K3tDBdnobBphA=="}',
+    });
 
-    return this
+    return this;
   }
 
   withTokens(tokens) {
@@ -1244,8 +1295,41 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withETHAsPrimaryCurrency() {
-    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency = 'ETH';
+    this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency =
+      'ETH';
     this.fixture.state.settings.primaryCurrency = 'ETH';
+    return this;
+  }
+
+  withBackupAndSyncSettings(options = {}) {
+    const {
+      isBackupAndSyncEnabled = true,
+      isAccountSyncingEnabled = true,
+      isContactSyncingEnabled = true,
+    } = options;
+
+    // Backup and Sync Settings
+    this.fixture.state.engine.backgroundState.UserStorageController = {
+      isBackupAndSyncEnabled,
+      isAccountSyncingEnabled,
+      isContactSyncingEnabled,
+      isBackupAndSyncUpdateLoading: false,
+      isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+    };
+    return this;
+  }
+
+  /**
+   * Disables the seedphraseBackedUp flag in the user state.
+   * This is useful for testing scenarios where the user hasn't backed up their seedphrase.
+   *
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSeedphraseBackedUpDisabled() {
+    this.fixture.state.user.seedphraseBackedUp = false;
     return this;
   }
 

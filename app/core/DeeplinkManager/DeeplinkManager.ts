@@ -99,7 +99,6 @@ class DeeplinkManager {
   _handleSwap(swapPath: string) {
     handleSwapUrl({
       swapPath,
-      navigation: this.navigation,
     });
   }
   // NOTE: keeping this for backwards compatibility

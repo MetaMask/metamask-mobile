@@ -77,7 +77,7 @@ const useEarnings = ({ asset }: { asset: TokenI }) => {
       2,
     );
     const estimatedEarningsCalc = new BigNumber(
-      outputToken.experience.market?.position?.assets ?? 0,
+      outputToken.balanceMinimalUnit ?? 0,
     )
       .multipliedBy(annualRewardRateDecimal)
       .toFixed(0);

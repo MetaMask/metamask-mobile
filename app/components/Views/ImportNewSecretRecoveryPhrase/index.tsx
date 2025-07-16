@@ -248,7 +248,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
-      
+
       fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(

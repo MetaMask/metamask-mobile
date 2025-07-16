@@ -40,7 +40,7 @@ const InfoRow = ({
   labelChildren = null,
   tooltip,
   testID,
-  variant = TextColor.Default,
+  variant = TextColor.Alternative,
   copyText,
   valueOnNewLine = false,
   withIcon,

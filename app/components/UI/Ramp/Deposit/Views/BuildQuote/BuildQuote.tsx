@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -36,16 +37,11 @@ import AccountSelector from '../../components/AccountSelector';
 import { useDepositSDK } from '../../sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
-import { KycStatus } from '../../hooks/useUserDetailsPolling';
+
 import { useStyles } from '../../../../../hooks/useStyles';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
-import { createBasicInfoNavDetails } from '../BasicInfo/BasicInfo';
-import { createKycWebviewNavDetails } from '../KycWebview/KycWebview';
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
@@ -70,15 +66,10 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEPOSIT_REGIONS,
-  DepositRegion,
-  SEPA_PAYMENT_METHOD,
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
-import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
-import { depositOrderToFiatOrder } from '../../orderProcessor';
-import useHandleNewOrder from '../../hooks/useHandleNewOrder';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import Logger from '../../../../../../util/Logger';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -86,6 +77,8 @@ const BuildQuote = () => {
 
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
@@ -96,51 +89,25 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedWalletAddress } = useDepositSDK();
+  const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null,
-  );
-
-  const handleNewOrder = useHandleNewOrder();
+  const { routeAfterAuthentication, navigateToVerifyIdentity } =
+    useDepositRouting({
+      cryptoCurrencyChainId: cryptoCurrency.chainId,
+      paymentMethodId: paymentMethod.id,
+    });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const [{ error: quoteFetchError }, getQuote] = useDepositSdkMethod(
-    { method: 'getBuyQuote', onMount: false },
+  const [, getQuote] = useDepositSdkMethod(
+    { method: 'getBuyQuote', onMount: false, throws: true },
     fiatCurrency.id,
     cryptoCurrency.assetId,
     cryptoCurrency.chainId,
     paymentMethod.id,
     amount,
   );
-
-  const [{ error: kycFormsFetchError }, fetchKycForms] = useDepositSdkMethod({
-    method: 'getKYCForms',
-    onMount: false,
-  });
-
-  const [{ error: kycFormFetchError }, fetchKycFormData] = useDepositSdkMethod({
-    method: 'getKycForm',
-    onMount: false,
-  });
-
-  const [{ error: userDetailsFetchError }, fetchUserDetails] =
-    useDepositSdkMethod({
-      method: 'getUserDetails',
-      onMount: false,
-    });
-
-  const [{ error: reservationError }, createReservation] = useDepositSdkMethod({
-    method: 'walletReserve',
-    onMount: false,
-  });
-
-  const [{ error: orderError }, createOrder] = useDepositSdkMethod({
-    method: 'createOrder',
-    onMount: false,
-  });
 
   const {
     tokenAmount,
@@ -155,191 +122,101 @@ const BuildQuote = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Build Quote' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.buildQuote.title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 
-  const handleSelectRegion = useCallback(
-    (region: DepositRegion) => {
-      if (!region.supported) {
-        return;
-      }
-
-      setSelectedRegion(region);
-
-      if (region.currency === 'USD') {
+  useEffect(() => {
+    if (selectedRegion?.currency) {
+      if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
-      } else if (region.currency === 'EUR') {
+      } else if (selectedRegion.currency === 'EUR') {
         setFiatCurrency(EUR_CURRENCY);
       }
-    },
-    [setFiatCurrency, setSelectedRegion],
-  );
+    }
+  }, [selectedRegion?.currency]);
+
+  useEffect(() => {
+    if (selectedRegion?.isoCode && paymentMethods.length > 0) {
+      const isPaymentMethodSupported = paymentMethods.some(
+        (method) => method.id === paymentMethod.id,
+      );
+
+      if (!isPaymentMethodSupported) {
+        setPaymentMethod(paymentMethods[0]);
+      }
+    }
+  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
-        selectedRegionCode: selectedRegion?.isoCode,
-        handleSelectRegion,
-      }),
-    );
-  }, [navigation, selectedRegion, handleSelectRegion]);
-
-  const handleExitToWalletHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
-
-  const handleSelectDifferentRegion = useCallback(() => {
-    handleRegionPress();
-  }, [handleRegionPress]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!selectedRegion?.supported) {
+      if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
           navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
-              regionName: selectedRegion?.name || '',
-              onExitToWalletHome: handleExitToWalletHome,
-              onSelectDifferentRegion: handleSelectDifferentRegion,
-            }),
+            ...createUnsupportedRegionModalNavigationDetails(),
           );
         });
       }
-    }, [
-      selectedRegion,
-      navigation,
-      handleExitToWalletHome,
-      handleSelectDifferentRegion,
-    ]),
+    }, [selectedRegion, navigation]),
   );
 
   const handleOnPressContinue = useCallback(async () => {
+    setIsLoading(true);
+    let quote: BuyQuote | undefined;
     try {
-      const quote = await getQuote(
+      quote = await getQuote(
         getTransakFiatCurrencyId(fiatCurrency),
         getTransakCryptoCurrencyId(cryptoCurrency),
         getTransakChainId(cryptoCurrency.chainId),
         getTransakPaymentMethodId(paymentMethod),
         amount,
       );
-      if (quoteFetchError || !quote) {
-        setError(strings('deposit.buildQuote.quoteFetchError'));
-        return;
-      }
 
+      if (!quote) {
+        throw new Error(strings('deposit.buildQuote.quoteFetchError'));
+      }
+    } catch (quoteError) {
+      Logger.error(
+        quoteError as Error,
+        'Deposit::BuildQuote - Error fetching quote',
+      );
+      setError(
+        quoteError instanceof Error && quoteError.message
+          ? quoteError.message
+          : strings('deposit.buildQuote.quoteFetchError'),
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    try {
       if (!isAuthenticated) {
-        navigation.navigate(...createEnterEmailNavDetails({ quote }));
-      }
-
-      const forms = await fetchKycForms(quote);
-
-      if (kycFormsFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
+        navigateToVerifyIdentity({ quote });
         return;
       }
 
-      const { forms: requiredForms } = forms || {};
-
-      if (requiredForms?.length === 0) {
-        const userDetails = await fetchUserDetails();
-
-        if (userDetailsFetchError) {
-          setError(strings('deposit.buildQuote.unexpectedError'));
-          return;
-        }
-
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          if (paymentMethod.id === SEPA_PAYMENT_METHOD.id) {
-            const reservation = await createReservation(
-              quote,
-              selectedWalletAddress,
-            );
-
-            if (reservationError || !reservation) {
-              setError(strings('deposit.buildQuote.unexpectedError'));
-              return;
-            }
-
-            const order = await createOrder(reservation);
-
-            if (orderError || !order) {
-              setError(strings('deposit.buildQuote.unexpectedError'));
-              return;
-            }
-
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrency.chainId,
-            };
-
-            await handleNewOrder(processedOrder);
-
-            navigation.navigate(
-              ...createBankDetailsNavDetails({
-                orderId: order.id,
-                shouldUpdate: false,
-              }),
-            );
-          } else {
-            navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-          }
-          return;
-        }
-
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-        return;
-      }
-
-      const personalDetailsKycForm = requiredForms?.find(
-        (form) => form.id === 'personalDetails',
+      await routeAfterAuthentication(quote);
+    } catch (routeError) {
+      Logger.error(
+        routeError as Error,
+        'Deposit::BuildQuote - Error handling authentication',
       );
-
-      const addressKycForm = requiredForms?.find(
-        (form) => form.id === 'address',
+      setError(
+        routeError instanceof Error && routeError.message
+          ? routeError.message
+          : strings('deposit.buildQuote.unexpectedError'),
       );
-
-      const idProofKycForm = requiredForms?.find(
-        (form) => form.id === 'idProof',
-      );
-
-      const idProofData = idProofKycForm
-        ? await fetchKycFormData(quote, idProofKycForm)
-        : null;
-
-      if (kycFormFetchError) {
-        setError(strings('deposit.buildQuote.unexpectedError'));
-        return;
-      }
-
-      if (personalDetailsKycForm || addressKycForm) {
-        navigation.navigate(
-          ...createBasicInfoNavDetails({
-            quote,
-            kycUrl: idProofData?.data?.kycUrl,
-          }),
-        );
-        return;
-      } else if (idProofData) {
-        navigation.navigate(
-          ...createKycWebviewNavDetails({
-            quote,
-            kycUrl: idProofData.data.kycUrl,
-          }),
-        );
-        return;
-      }
-      setError(strings('deposit.buildQuote.unexpectedError'));
       return;
-    } catch (_) {
-      setError(strings('deposit.buildQuote.unexpectedError'));
-      return;
+    } finally {
+      setIsLoading(false);
     }
   }, [
     getQuote,
@@ -347,21 +224,9 @@ const BuildQuote = () => {
     cryptoCurrency,
     paymentMethod,
     amount,
-    quoteFetchError,
     isAuthenticated,
-    fetchKycForms,
-    kycFormsFetchError,
-    fetchKycFormData,
-    kycFormFetchError,
-    navigation,
-    fetchUserDetails,
-    userDetailsFetchError,
-    createReservation,
-    reservationError,
-    createOrder,
-    orderError,
-    selectedWalletAddress,
-    handleNewOrder,
+    routeAfterAuthentication,
+    navigateToVerifyIdentity,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -373,6 +238,7 @@ const BuildQuote = () => {
       valueAsNumber: number;
       pressedKey: string;
     }) => {
+      setError(null);
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
     },
@@ -387,6 +253,7 @@ const BuildQuote = () => {
       if (selectedToken) {
         setCryptoCurrency(selectedToken);
       }
+      setError(null);
     },
     [supportedTokens],
   );
@@ -410,6 +277,7 @@ const BuildQuote = () => {
       if (selectedPaymentMethod) {
         setPaymentMethod(selectedPaymentMethod);
       }
+      setError(null);
     },
     [paymentMethods],
   );
@@ -440,7 +308,9 @@ const BuildQuote = () => {
             >
               <View style={styles.regionContent}>
                 <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.isoCode}</Text>
+                <Text variant={TextVariant.BodyMD}>
+                  {selectedRegion?.isoCode}
+                </Text>
                 <Icon
                   name={IconName.ArrowDown}
                   size={IconSize.Sm}
@@ -451,31 +321,34 @@ const BuildQuote = () => {
           </View>
 
           <View style={styles.centerGroup}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.mainAmount}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {formatCurrency(amountAsNumber, fiatCurrency.id, {
-                currencyDisplay: 'narrowSymbol',
-              })}
-            </Text>
+            <View>
+              <Text
+                variant={TextVariant.HeadingLG}
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, fiatCurrency.id, {
+                  currencyDisplay: 'narrowSymbol',
+                  maximumFractionDigits: 0,
+                })}
+              </Text>
 
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.convertedAmount}
-            >
-              {isLoadingTokenAmount || errorLoadingTokenAmount ? (
-                ' '
-              ) : (
-                <>
-                  {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                  {cryptoCurrency.symbol}
-                </>
-              )}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.convertedAmount}
+              >
+                {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                  ' '
+                ) : (
+                  <>
+                    {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                    {cryptoCurrency.symbol}
+                  </>
+                )}
+              </Text>
+            </View>
 
             <TouchableOpacity onPress={handleCryptoPress}>
               <View style={styles.cryptoPill}>
@@ -569,7 +442,9 @@ const BuildQuote = () => {
             label={'Continue'}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-          ></Button>
+            isDisabled={amountAsNumber <= 0 || isLoading}
+            loading={isLoading}
+          />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

@@ -40,7 +40,7 @@ export type ConfirmationRedesignRemoteFlags = {
  *   remoteValues?.new_confirmation_type !== false,
  * );
  * ```
- * 
+ *
  * **After Validation In Production For Certain Time(When old code is decided to be removed):**
  * Remove the both local environment variable and remote flag as kill switch is non-functional.
  * ```
@@ -78,7 +78,7 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
 
   const isApproveEnabled = getFeatureFlagValue(
     process.env.FEATURE_FLAG_REDESIGNED_APPROVE,
-    false,
+    remoteValues?.approve !== false,
   );
 
   const isContractDeploymentEnabled = getFeatureFlagValue(

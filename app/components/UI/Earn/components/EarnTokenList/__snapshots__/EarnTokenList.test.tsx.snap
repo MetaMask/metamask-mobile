@@ -34,7 +34,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000066",
+            "backgroundColor": "#3f434a66",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -167,15 +167,14 @@ exports[`EarnTokenList render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
               }
             >
-              Select a token
+              Select a token to deposit
             </Text>
           </View>
           <View
@@ -222,9 +221,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 18,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -237,24 +235,22 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#1c7e33",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 32,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 40,
                   }
                 }
               >
-                4%
+                $100.00
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -266,7 +262,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "padding": 16,
+                  "paddingVertical": 16,
                 }
               }
             >
@@ -323,9 +319,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               },
                               undefined,
                               false,
-                              false,
                               {
-                                "flexShrink": 0,
+                                "borderRadius": 35,
+                                "height": 70,
+                                "width": 70,
+                              },
+                              {
+                                "flexGrow": 1,
                                 "height": 32,
                                 "width": 32,
                               },
@@ -350,8 +350,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderRadius": 12,
-                                  "flexShrink": 0,
+                                  "borderRadius": 35,
+                                  "flexGrow": 1,
                                   "height": 32,
                                   "width": 32,
                                 },
@@ -438,13 +438,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   >
                     <Text
                       accessibilityRole="text"
+                      ellipsizeMode="tail"
                       numberOfLines={1}
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -459,6 +459,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     {
                       "alignItems": "flex-end",
                       "justifyContent": "center",
+                      "paddingLeft": 16,
                     }
                   }
                 >
@@ -467,9 +468,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#1c7e33",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -482,9 +482,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 14,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
@@ -498,7 +497,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "padding": 16,
+                  "paddingVertical": 16,
                 }
               }
             >
@@ -539,7 +538,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "borderRadius": 16,
-                            "flexShrink": 0,
+                            "flexGrow": 1,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -639,13 +638,13 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   >
                     <Text
                       accessibilityRole="text"
+                      ellipsizeMode="tail"
                       numberOfLines={1}
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -660,6 +659,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     {
                       "alignItems": "flex-end",
                       "justifyContent": "center",
+                      "paddingLeft": 16,
                     }
                   }
                 >
@@ -668,9 +668,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#1c7e33",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -683,9 +682,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 14,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }

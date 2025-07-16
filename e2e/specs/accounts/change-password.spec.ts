@@ -19,8 +19,8 @@ import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePa
 import LoginView from '../../pages/wallet/LoginView.js';
 import Matchers from '../../utils/Matchers.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import Gestures from '../../utils/Gestures.js';
 import Assertions from '../../utils/Assertions.js';
+import ToastModal from '../../pages/wallet/ToastModal.js';
 
 const fixtureServer = new FixtureServer();
 describe(Regression('change password'), () => {
@@ -57,7 +57,19 @@ describe(Regression('change password'), () => {
     await ChangePasswordView.typeInConfirmPasswordInputBox(NEWPASSWORD);
     await ChangePasswordView.reEnterPassword(NEWPASSWORD);
     await ChangePasswordView.tapIUnderstandCheckBox();
-    await Gestures.waitAndTap(ChangePasswordView.submitButton);
+    await ChangePasswordView.tapSubmitButton();
+
+    // bug on CI when tap wallet button makes change password continue
+    // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
+    // TODO: remove this once the issue is fixed
+    if (device.getPlatform() === 'ios' && process.env.CI) {
+      await TabBarComponent.tapWallet();
+    }
+
+    //wait for screen transitions after password change
+    await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
+    await Assertions.checkIfVisible(ToastModal.notificationTitle);
+    await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();

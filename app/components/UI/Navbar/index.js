@@ -21,12 +21,8 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  importAccountFromPrivateKey,
-} from '../../../util/importAccountFromPrivateKey';
-import {
-  getLabelTextByAddress,
-} from '../../../util/address';
+import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
+import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -77,6 +73,12 @@ const trackEvent = (event, params = {}) => {
 };
 
 const styles = StyleSheet.create({
+  hitSlop: {
+    top: 15,
+    bottom: 15,
+    left: 15,
+    right: 15,
+  },
   metamaskName: {
     width: 70,
     height: 35,
@@ -1791,7 +1793,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
-export function getBridgeNavbar(navigation, route, themeColors) {
+export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -1806,9 +1808,12 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   });
 
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
-  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
-  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+  } else if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
     title = strings('swaps.title');
   }
 
@@ -1913,11 +1918,10 @@ export function getDepositNavbarOptions(
             <ButtonIcon
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
-              onPress={
-                onClose
-                  ? () => onClose()
-                  : () => navigation.navigate(Routes.WALLET.HOME)
-              }
+              onPress={() => {
+                navigation.dangerouslyGetParent()?.pop();
+                onClose?.();
+              }}
             />
           </TouchableOpacity>
         )
@@ -2081,6 +2085,7 @@ export function getStakingNavbar(
     headerStyle: {
       backgroundColor:
         navBarOptions?.backgroundColor ?? themeColors.background.default,
+      shadowColor: importedColors.transparent,
       shadowOffset: null,
     },
     headerLeft: {
@@ -2164,6 +2169,7 @@ export function getStakingNavbar(
         </TouchableOpacity>
       ) : hasIconButton ? (
         <TouchableOpacity
+          hitSlop={styles.hitSlop}
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >

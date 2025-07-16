@@ -61,7 +61,7 @@ describe('EarnNetworkAvatar', () => {
       chainId: '1',
       ticker: 'ETH',
       big: false,
-      biggest: false,
+      biggest: true,
       testID: 'earn-token-list-item-ETH-1',
       style: {
         height: 32,
@@ -106,7 +106,7 @@ describe('EarnNetworkAvatar', () => {
       chainId: '',
       ticker: '',
       big: false,
-      biggest: false,
+      biggest: true,
       testID: 'earn-token-list-item-ETH-undefined',
       style: {
         height: 32,

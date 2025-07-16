@@ -14,6 +14,9 @@ import {
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
 import { ApproveAndPermit2 } from './approve-and-permit2';
+import { ApproveMethod } from '../../../types/approve';
+// eslint-disable-next-line import/no-namespace
+import * as useApproveTransactionDataModule from '../../../hooks/useApproveTransactionData';
 
 jest.mock('../../../hooks/useGetTokenStandardAndDetails', () => ({
   useGetTokenStandardAndDetails: jest.fn(),
@@ -61,6 +64,13 @@ describe('ApproveAndPermit2', () => {
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
   });
 
+  it('renders edit spending cap button for ERC20', () => {
+    const { getByTestId } = renderWithProvider(<ApproveAndPermit2 />, {
+      state: approveERC20TransactionStateMock,
+    });
+    expect(getByTestId('edit-spending-cap-button')).toBeOnTheScreen();
+  });
+
   it('renders withdraw and spender for ERC721', () => {
     mockUseGetTokenStandardAndDetails.mockReturnValue({
       details: {
@@ -69,13 +79,38 @@ describe('ApproveAndPermit2', () => {
       },
       isPending: false,
     } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
-      state: approveERC721TransactionStateMock,
-    });
+    const { getByText, queryByTestId } = renderWithProvider(
+      <ApproveAndPermit2 />,
+      {
+        state: approveERC721TransactionStateMock,
+      },
+    );
+    expect(queryByTestId('edit-spending-cap-button')).toBeNull();
     expect(getByText('Withdraw')).toBeTruthy();
     expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     expect(getByText('Spender')).toBeTruthy();
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
+  });
+
+  it('renders with default values if transaction data is not present', () => {
+    const mockUseApproveTransactionData = jest.spyOn(
+      useApproveTransactionDataModule,
+      'useApproveTransactionData',
+    );
+    mockUseApproveTransactionData.mockReturnValue({
+      approveMethod: ApproveMethod.APPROVE,
+      amount: undefined,
+      decimals: undefined,
+      tokenBalance: undefined,
+      tokenStandard: TokenStandard.ERC20,
+      rawAmount: undefined,
+      spender: '0x123456789',
+    } as ReturnType<typeof useApproveTransactionDataModule.useApproveTransactionData>);
+    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
+      state: approveERC721TransactionStateMock,
+    });
+    // Just assert that the spender is rendered
+    expect(getByText('0x12345...56789')).toBeTruthy();
   });
 
   describe('revoke', () => {

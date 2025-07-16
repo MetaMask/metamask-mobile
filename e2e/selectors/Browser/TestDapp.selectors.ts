@@ -24,6 +24,8 @@ export const TestDappSelectorsWebIDs = {
   ERC_721_MINT_BUTTON_ID: 'mintButton',
   SEND_EIP_1559_BUTTON_ID: 'sendEIP1559Button',
   DEPLOY_CONTRACT_BUTTON_ID: 'createToken',
+  ERC_721_REVOKE_APPROVAL_BUTTON_ID: 'revokeButton',
+  ERC_1155_REVOKE_APPROVAL_BUTTON_ID: 'revokeERC1155Button',
 } as const;
 
 // Export type for the selector object

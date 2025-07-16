@@ -38,7 +38,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -97,7 +97,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -131,14 +131,15 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -149,8 +150,8 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
-              "fontFamily": "CentraNo1-Medium",
+              "color": "#121314",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -180,6 +181,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
             "height": 48,
             "justifyContent": "center",
             "opacity": 0.5,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -191,7 +193,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -245,9 +247,8 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 18,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -304,9 +305,8 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -338,14 +338,15 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -356,10 +357,9 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
-              "fontFamily": "CentraNo1-Medium",
+              "color": "#121314",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -387,6 +387,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
             "height": 48,
             "justifyContent": "center",
             "opacity": 0.5,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -398,9 +399,8 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

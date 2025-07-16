@@ -7,7 +7,7 @@ import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -39,6 +39,7 @@ import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -191,6 +192,14 @@ const EarnLendingDepositConfirmationView = () => {
       activeStep,
     ],
   );
+
+  useEffect(() => {
+    if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
+      endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
+    } else {
+      endTrace({ name: TraceName.EarnDepositReviewScreen });
+    }
+  }, [action]);
 
   useEffect(() => {
     trackEvent(
@@ -358,6 +367,9 @@ const EarnLendingDepositConfirmationView = () => {
         TransactionType.lendingDeposit,
       )(transactionId);
 
+      // generic confirmation bottom sheet shows after transaction has been added
+      endTrace({ name: TraceName.EarnDepositConfirmationScreen });
+
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
@@ -379,7 +391,18 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionSubmitted',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          // start trace of time between tx submitted and tx confirmed
+          trace({
+            name: TraceName.EarnLendingDepositTxConfirmed,
+            data: {
+              chainId: earnToken?.chainId || '',
+              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            },
+          });
+          // There is variance in when navigation can be called across chains
+          setTimeout(() => {
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -388,6 +411,7 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
+          endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
             const networkClientId =
@@ -420,7 +444,13 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      tokenSnapshot,
+      earnToken?.chainId,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -610,6 +640,15 @@ const EarnLendingDepositConfirmationView = () => {
   const depositTokens = async (networkClientId: string) => {
     if (!earnToken?.experience?.market?.protocol) return;
 
+    // start trace between user intiating deposit and generic confirmation bottom sheet showing
+    trace({
+      name: TraceName.EarnDepositConfirmationScreen,
+      data: {
+        chainId: earnToken?.chainId || '',
+        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      },
+    });
+
     setIsDepositLoading(true);
 
     const depositTransaction =
@@ -719,7 +758,11 @@ const EarnLendingDepositConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <View style={styles.contentContainer}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <Erc20TokenHero
           token={token}
           amountTokenMinimalUnit={amountTokenMinimalUnit}
@@ -755,7 +798,7 @@ const EarnLendingDepositConfirmationView = () => {
             currentCurrency,
           )}
         />
-      </View>
+      </ScrollView>
       <ConfirmationFooter
         onCancel={handleCancel}
         onConfirm={handleConfirm}

@@ -230,9 +230,8 @@ import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
-///: END:ONLY_INCLUDE_IF
+import { perpsControllerInit } from './controllers/perps-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1182,6 +1181,7 @@ export class Engine {
           .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
+      traceFn: trace as TraceCallback,
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1193,6 +1193,7 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
@@ -1215,11 +1216,13 @@ export class Engine {
       estimateGasFeeFn: (
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
+      addTransactionBatchFn: (
+        ...args: Parameters<typeof this.transactionController.addTransactionBatch>
+      ) => this.transactionController.addTransactionBatch(...args),
+      updateTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.updateTransaction>
+      ) => this.transactionController.updateTransaction(...args),
+      traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
@@ -1266,9 +1269,8 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        ///: END:ONLY_INCLUDE_IF
+        PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1282,10 +1284,9 @@ export class Engine {
     const gasFeeController = controllersByName.GasFeeController;
     const signatureController = controllersByName.SignatureController;
     const transactionController = controllersByName.TransactionController;
-    ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
-    ///: END:ONLY_INCLUDE_IF
+    const perpsController = controllersByName.PerpsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1640,9 +1641,8 @@ export class Engine {
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
+      PerpsController: perpsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2363,10 +2363,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2419,10 +2418,9 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
       SeedlessOnboardingController,
-      ///: END:ONLY_INCLUDE_IF
     };
   },
 

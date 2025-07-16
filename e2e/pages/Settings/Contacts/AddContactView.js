@@ -82,6 +82,15 @@ class AddContactView {
   async clearAddressInputBox() {
     await Gestures.clearField(this.addressInput);
   }
+
+  async selectNetwork(networkName) {
+    const networkSelector = Matchers.getElementByID(
+      AddContactViewSelectorsIDs.NETWORK_INPUT,
+    );
+    await Gestures.waitAndTap(networkSelector);
+    const networkOption = Matchers.getElementByText(networkName);
+    await Gestures.waitAndTap(networkOption);
+  }
 }
 
 export default new AddContactView();

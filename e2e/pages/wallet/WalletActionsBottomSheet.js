@@ -38,11 +38,15 @@ class WalletActionsBottomSheet {
   }
 
   async tapSwapButton() {
-    await Gestures.waitAndTap(this.swapButton);
+    await Gestures.waitAndTap(this.swapButton, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapBridgeButton() {
-    await Gestures.waitAndTap(this.bridgeButton);
+    await Gestures.waitAndTap(this.bridgeButton, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapBuyButton() {

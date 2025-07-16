@@ -1,29 +1,30 @@
-import { waitFor } from '@testing-library/react-native';
+import { waitFor, screen } from '@testing-library/react-native';
 import Root from './Root';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
-const mockSetOptions = jest.fn();
-const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
 let mockGetStarted = true;
+const mockSelectedRegion = {
+  isoCode: 'US',
+  flag: '🇺🇸',
+  name: 'United States',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      ...actualReactNavigation.useNavigation(),
       reset: mockReset,
     }),
   };
@@ -36,47 +37,37 @@ jest.mock('../../sdk', () => {
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
       getStarted: mockGetStarted,
+      selectedRegion: mockSelectedRegion,
     }),
   };
 });
 
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../../../reducers/fiatOrders'),
   getOrders: jest.fn(),
   fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
   setFiatOrdersGetStartedDeposit: jest.fn(),
-  getActivationKeys: jest.fn((_state: unknown) => []),
-  fiatOrdersRegionSelectorAgg: jest.fn((_state: unknown) => null),
-  fiatOrdersGetStartedAgg: jest.fn((_state: unknown) => false),
-  fiatOrdersGetStartedSell: jest.fn((_state: unknown) => false),
-  fiatOrdersPaymentMethodSelectorAgg: jest.fn((_state: unknown) => null),
-  networkShortNameSelector: jest.fn((_state: unknown) => 'ethereum'),
-  selectedAddressSelector: jest.fn((_state: unknown) => '0x123'),
-  chainIdSelector: jest.fn((_state: unknown) => '1'),
-  setFiatOrdersGetStartedAGG: jest.fn(),
-  setFiatOrdersRegionAGG: jest.fn(),
-  setFiatOrdersPaymentMethodAGG: jest.fn(),
-  setFiatOrdersGetStartedSell: jest.fn(),
+  fiatOrdersRegionSelectorDeposit: jest.fn(
+    (_state: unknown) => mockSelectedRegion,
+  ),
+  setFiatOrdersRegionDeposit: jest.fn(),
 }));
 
-jest.mock(
-  './GetStarted/GetStarted',
-  () =>
-    function MockGetStarted() {
-      return null;
+function render(Component: React.ComponentType) {
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.ROOT,
     },
-);
-
-jest.mock('../BankDetails/BankDetails', () => ({
-  createBankDetailsNavDetails: jest
-    .fn()
-    .mockReturnValue(['BankDetails', { orderId: 'test-created-order-id' }]),
-}));
-
-jest.mock('../OrderProcessing/OrderProcessing', () => ({
-  createOrderProcessingNavDetails: jest
-    .fn()
-    .mockReturnValue(['OrderProcessing', { orderId: 'test-pending-order-id' }]),
-}));
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+}
 
 describe('Root Component', () => {
   beforeEach(() => {
@@ -86,13 +77,13 @@ describe('Root Component', () => {
   });
 
   it('render matches snapshot', () => {
-    const screen = renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    render(Root);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('calls checkExistingToken on load', async () => {
     mockCheckExistingToken.mockResolvedValue(false);
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    render(Root);
     await waitFor(() => {
       expect(mockCheckExistingToken).toHaveBeenCalled();
     });
@@ -100,7 +91,7 @@ describe('Root Component', () => {
 
   it('redirects to BUILD_QUOTE when getStarted is true', async () => {
     mockCheckExistingToken.mockResolvedValue(false);
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    render(Root);
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -117,7 +108,7 @@ describe('Root Component', () => {
   it('does not redirect when getStarted is false', async () => {
     mockGetStarted = false;
     mockCheckExistingToken.mockResolvedValue(false);
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    render(Root);
     await waitFor(() => {
       expect(mockReset).not.toHaveBeenCalled();
     });
@@ -136,7 +127,7 @@ describe('Root Component', () => {
       mockOrders,
     );
     mockCheckExistingToken.mockResolvedValue(false);
-    renderDepositTestComponent(Root, Routes.DEPOSIT.ROOT);
+    render(Root);
 
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({

@@ -15,6 +15,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
+  await Assertions.checkIfVisible(DeleteAccount.container);
   await DeleteAccount.tapDeleteAccount();
 };
 
@@ -25,7 +26,14 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
 
   it('deletes the account', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
-      await AccountListBottomSheet.scrollToAccount(SIMPLE_KEYPAIR_ACCOUNT.index);
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      if (device.getPlatform() === 'android') {
+        await AccountListBottomSheet.scrollToBottomOfAccountList();
+      } else {
+        await AccountListBottomSheet.scrollToAccount(
+          SIMPLE_KEYPAIR_ACCOUNT.index,
+        );
+      }
       await goToAccountDetails(SIMPLE_KEYPAIR_ACCOUNT);
       await deleteAccount();
       // Go back to account list

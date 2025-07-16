@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
-import EvmAccountSelectorList from '../../../EvmAccountSelectorList';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
@@ -26,6 +25,8 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
+import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -77,7 +78,8 @@ const DestinationAccountSelector = () => {
   }, [accounts, isEvmToSolana, isSolanaToEvm]);
 
   const handleSelectAccount = useCallback(
-    (address: string | undefined) => {
+    (caipAccountId: CaipAccountId | undefined) => {
+      const address = caipAccountId ? parseCaipAccountId(caipAccountId).address : undefined;
       dispatch(setDestAddress(address));
     },
     [dispatch],
@@ -102,7 +104,7 @@ const DestinationAccountSelector = () => {
       (!hasInitialized.current && !destAddress) ||
       !doesDestAddrMatchNetworkType
     ) {
-      handleSelectAccount(filteredAccounts[0].address);
+      handleSelectAccount(filteredAccounts[0].caipAccountId);
       hasInitialized.current = true;
     }
   }, [
@@ -140,7 +142,7 @@ const DestinationAccountSelector = () => {
         </View>
       ) : (
         <Box>
-          <EvmAccountSelectorList
+          <CaipAccountSelectorList
             accounts={filteredAccounts}
             onSelectAccount={handleSelectAccount}
             ensByAccountAddress={ensByAccountAddress}

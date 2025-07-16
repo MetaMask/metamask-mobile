@@ -66,6 +66,26 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
+  SwapViewLoaded = 'Swap View Loaded',
+  BridgeBalancesUpdated = 'Bridge Balances Updated',
+  // Earn
+  EarnDepositScreen = 'Earn Deposit Screen',
+  EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
+  EarnDepositReviewScreen = 'Earn Deposit Review Screen',
+  EarnDepositConfirmationScreen = 'Earn Deposit Confirmation Screen',
+  EarnLendingDepositTxConfirmed = 'Earn Lending Deposit Tx Confirmed',
+  EarnPooledStakingDepositTxConfirmed = 'Earn Pooled Staking Deposit Tx Confirmed',
+  EarnWithdrawScreen = 'Earn Withdraw Screen',
+  EarnWithdrawReviewScreen = 'Earn Withdraw Review Screen',
+  EarnWithdrawConfirmationScreen = 'Earn Withdraw Confirmation Screen',
+  EarnLendingWithdrawTxConfirmed = 'Earn Lending Withdraw Tx Confirmed',
+  EarnPooledStakingWithdrawTxConfirmed = 'Earn Pooled Staking Withdraw Tx Confirmed',
+  EarnEarnings = 'Earn Earnings',
+  EarnFaq = 'Earn FAQ',
+  EarnFaqApys = 'Earn FAQ APYs',
+  EarnTokenList = 'Earn Token List',
+  EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
+  EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
 }
 
 export enum TraceOperation {
