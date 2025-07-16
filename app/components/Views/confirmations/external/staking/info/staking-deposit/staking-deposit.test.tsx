@@ -25,6 +25,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
   },
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../hooks/useConfirmActions', () => ({
