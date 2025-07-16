@@ -1,10 +1,10 @@
 diff --git a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
-index e3d0936..9974653 100644
+index e3d0936..5277051 100644
 --- a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
 +++ b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
 @@ -1,2 +1,2 @@
 -export { base64StringFromByteArray } from './fromByteArray';
-+export { base64StringFromByteArray } from 'react-native-quick-base64';
++export { fromByteArray as base64StringFromByteArray } from 'react-native-quick-base64';
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js b/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js

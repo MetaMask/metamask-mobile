@@ -908,7 +908,9 @@ describe('Authentication', () => {
           security: { allowLoginWithRememberMe: true },
           engine: {
             backgroundState: {
-              SeedlessOnboardingController: { state: { vault: undefined } },
+              SeedlessOnboardingController: {
+                state: { vault: 'exising vault data' },
+              },
             },
           },
         }),
@@ -1335,6 +1337,43 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
       ).toHaveBeenCalledWith({ skipCache: false });
+    });
+  });
+
+  describe('unlock App with seedless onboarding flow', () => {
+    const Engine = jest.requireMock('../Engine');
+    beforeEach(() => {
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: 'existing vault data' },
+        submitPassword: jest.fn(),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+      Engine.context.KeyringController = {
+        submitPassword: jest.fn(),
+      } as unknown as KeyringController;
+    });
+
+    it('should throw an error if not using seedless onboarding flow', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
+      await Authentication.userEntryAuth('1234', {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      expect(
+        Engine.context.SeedlessOnboardingController.submitPassword,
+      ).toHaveBeenCalledWith('1234');
     });
   });
 });

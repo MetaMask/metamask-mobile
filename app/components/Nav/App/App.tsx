@@ -875,11 +875,6 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
-
-  useEffect(() => {
     const checkSeedlessPasswordOutdated = async () => {
       if (isSeedlessOnboardingLoginFlow) {
         // check if the seedless password is outdated at app init
@@ -898,6 +893,11 @@ const App: React.FC = () => {
     };
     checkSeedlessPasswordOutdated();
   }, [isSeedlessOnboardingLoginFlow]);
+
+  useEffect(() => {
+    // End trace when first render is complete
+    endTrace({ name: TraceName.UIStartup });
+  }, []);
 
   // periodically check seedless password outdated when app UI is open
   useInterval(
