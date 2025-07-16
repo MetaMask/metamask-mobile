@@ -9,7 +9,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const defaultProps = {
   label: 'Date of Birth',
-  value: '',
+  value: new Date(2024, 0, 1).getTime().toString(),
   onChangeText: jest.fn(),
 };
 
@@ -24,8 +24,9 @@ describe('DepositDateField', () => {
   });
 
   it('render matches snapshot with a value', () => {
+    const value = new Date(2024, 0, 2).getTime().toString();
     const { toJSON } = render(
-      <DepositDateField {...defaultProps} value="12/25/1990" />,
+      <DepositDateField {...defaultProps} value={value} />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

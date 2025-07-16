@@ -49,4 +49,4 @@ class PortfolioHomePage {
   }
 }
 
-export default new PortfolioHomePage(); 
+export default new PortfolioHomePage();

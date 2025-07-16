@@ -378,7 +378,7 @@ describe('BridgeView', () => {
 
     // Verify balance is displayed
     await waitFor(() => {
-      expect(getByText('2.0 ETH')).toBeTruthy();
+      expect(getByText('2 ETH')).toBeTruthy();
     });
   });
 

@@ -48,7 +48,7 @@ const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
-const FlaskBuildTests = (testName) => 
+const FlaskBuildTests = (testName) =>
   `${tags.FlaskBuildTests} ${testName}`;
 
 export {

@@ -590,7 +590,7 @@ describe('Login', () => {
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{
-          name: Routes.ONBOARDING.ROOT_NAV, 
+          name: Routes.ONBOARDING.ROOT_NAV,
           params: {
             screen: Routes.ONBOARDING.NAV,
             params: {

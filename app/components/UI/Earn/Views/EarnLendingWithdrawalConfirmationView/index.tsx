@@ -302,7 +302,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           );
           // start trace of time between tx submitted and tx confirmed
           trace({
-            name: TraceName.EarnWithdrawTxConfirmed,
+            name: TraceName.EarnLendingWithdrawTxConfirmed,
             data: {
               chainId: outputToken?.chainId || '',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -322,7 +322,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
-          endTrace({ name: TraceName.EarnWithdrawTxConfirmed });
+          endTrace({ name: TraceName.EarnLendingWithdrawTxConfirmed });
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
@@ -351,7 +351,13 @@ const EarnLendingWithdrawalConfirmationView = () => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, navigation, outputToken?.chainId],
+    [
+      emitTxMetaMetric,
+      tokenSnapshot,
+      earnToken,
+      navigation,
+      outputToken?.chainId,
+    ],
   );
 
   // Guards
@@ -400,7 +406,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .addProperties(getTrackEventProperties('withdrawal'))
           .build(),
       );
-      
+
       // start trace between user intiating withdrawal and generic confirmation bottom sheet showing
       trace({
         name: TraceName.EarnWithdrawConfirmationScreen,

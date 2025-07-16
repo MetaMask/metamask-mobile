@@ -11,9 +11,9 @@ class SolanaNewFeatureSheet {
     return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
   }
 
-  // Create Account button
-  get createAccountButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON);
+  // Import Account button
+  get importAccountButton() {
+    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
   }
 
   get learnMoreButton() {
@@ -33,16 +33,12 @@ class SolanaNewFeatureSheet {
   }
 
   // Interaction methods
-  async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton, {
-      elemDescription: 'Solana New Feature Sheet Create Account Button',
-    });
+  async tapImportAccountButton() {
+    await Gestures.waitAndTap(this.importAccountButton);
   }
 
   async tapViewAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton, { //Create account testID is used for both create and view account actions
-      elemDescription: 'Solana New Feature Sheet View Account Button',
-    });
+    await Gestures.waitAndTap(this.importAccountButton);//Create account testID is used for both create and view account actions
   }
 
   async tapAddAccountButton() {

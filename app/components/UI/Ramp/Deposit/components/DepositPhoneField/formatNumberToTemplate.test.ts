@@ -24,4 +24,4 @@ describe('formatNumberToTemplate', () => {
   it('should handle input with non-digit characters', () => {
     expect(formatNumberToTemplate('302-229-7388', 'XXX XXX XXXX')).toBe('302 229 7388');
   });
-}); 
+});
