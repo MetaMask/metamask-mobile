@@ -65,6 +65,7 @@ jobs:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
+          android-abi: arm64-v8a
 
       # test workadound
       - name: Build Detox framework cache (iOS)
