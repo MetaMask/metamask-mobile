@@ -187,7 +187,11 @@ const createStyles = (colors) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    keyboardViewContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.background.default },
+    keyboardViewContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: colors.background.default,
+    },
     modalWrapper: { flex: 1, justifyContent: 'space-between' },
     modalTopContainer: { flex: 1, paddingTop: '20%', paddingHorizontal: 16 },
     closeIconWrapper: {

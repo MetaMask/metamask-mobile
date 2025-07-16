@@ -13,7 +13,10 @@ import {
 import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
@@ -43,9 +46,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .build();
+    const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
@@ -116,4 +117,3 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     },
   );
 });
-

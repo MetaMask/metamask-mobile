@@ -181,7 +181,8 @@ describe('Identity actions', () => {
 
   it('syncs contacts with user storage', async () => {
     (
-      Engine.context.UserStorageController.syncContactsWithUserStorage as jest.Mock
+      Engine.context.UserStorageController
+        .syncContactsWithUserStorage as jest.Mock
     ).mockResolvedValue(undefined);
 
     const result = await syncContactsWithUserStorage();
