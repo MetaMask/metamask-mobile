@@ -26,6 +26,7 @@ import {
   Platform,
   NativeEventEmitter,
   NativeModules,
+  DeviceEventEmitter,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 
@@ -56,11 +57,19 @@ export function BackgroundSecurityOverlay() {
     });
 
     // Android: window focus lost / regained
-    const subNative = nativeEmitter.addListener(
+    // const subNative = nativeEmitter.addListener(
+    //   'windowFocusChanged',
+    //   (hasFocus: boolean) => {
+    //     console.log('XXXXXX - windowFocusChanged', hasFocus);
+    //     // blur when focus lost (Recent‑Apps, lock screen, etc.)
+    //     setVisible(!hasFocus);
+    //   },
+    // );
+
+    const subNative = DeviceEventEmitter.addListener(
       'windowFocusChanged',
-      (hasFocus: boolean) => {
+      (hasFocus) => {
         console.log('XXXXXX - windowFocusChanged', hasFocus);
-        // blur when focus lost (Recent‑Apps, lock screen, etc.)
         setVisible(!hasFocus);
       },
     );
