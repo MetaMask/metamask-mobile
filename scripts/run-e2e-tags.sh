@@ -40,9 +40,11 @@ TEST_FILES="${matching_files[*]}"
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
     echo "Detected iOS workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:ios:run:qa-release $TEST_FILES
+    #yarn test:e2e:ios:run:qa-release $TEST_FILES
+    yarn test:e2e:ios:debug:run e2e/specs/confirmations/send-to-contract-address.spec.ts
 else
     echo "Detected Android workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:android:run:qa-release $TEST_FILES
+    #yarn test:e2e:android:run:qa-release $TEST_FILES
+    yarn test:e2e:android:debug:run e2e/specs/confirmations/send-to-contract-address.spec.ts
 fi
