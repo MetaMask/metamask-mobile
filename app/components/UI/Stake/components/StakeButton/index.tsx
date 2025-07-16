@@ -181,7 +181,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
         {' • '}
       </Text>
-      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+      <Text
+        color={TextColor.Primary}
+        variant={TextVariant.BodySMMedium}
+        testID={`asset-apr-text-${asset.symbol}`}
+      >
         {`${strings('stake.earn')}`}{' '}
         {parseFloat(earnToken?.experience?.apr || '').toFixed(1)}%
       </Text>

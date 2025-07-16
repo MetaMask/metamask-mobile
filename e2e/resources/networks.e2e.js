@@ -107,17 +107,49 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('1'),
-        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
+        rpcUrl:
+          'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
         nickname: 'Tenderly - Mainnet',
         ticker: 'ETH',
-     },
+      },
+    },
+    Base: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('8453'),
+        rpcUrl:
+          'https://virtual.base.rpc.tenderly.co/971a86a8-0a46-4749-a061-7dae5f0cb8eb',
+        nickname: 'Tenderly - Base',
+        ticker: 'ETH',
+      },
+    },
+    BNB: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('56'),
+        rpcUrl:
+          'https://virtual.binance.rpc.tenderly.co/b1e7be59-1814-4b5a-a767-c45d58817c8d',
+        nickname: 'Tenderly - Binance',
+        ticker: 'BNB',
+      },
+    },
+    Arbitrum: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('42161'),
+        rpcUrl:
+          'https://virtual.arbitrum.rpc.tenderly.co/7ce81c25-8fb1-446c-a0bc-c4e76dc4186d',
+        nickname: 'Tenderly - Arbitrum',
+        ticker: 'ETH',
+      },
     },
     Polygon: {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('137'),
-        rpcUrl: 'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
-        nickname: 'Polygon',
+        rpcUrl:
+          'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
+        nickname: 'Tenderly - Polygon',
         ticker: 'POL',
       },
     },
@@ -125,8 +157,9 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('59144'),
-        rpcUrl: 'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
-        nickname: 'Linea',
+        rpcUrl:
+          'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
+        nickname: 'Tenderly - Linea',
         ticker: 'ETH',
       },
     },
@@ -134,11 +167,12 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('10'),
-        rpcUrl: 'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
-        nickname: 'Optimism',
+        rpcUrl:
+          'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
+        nickname: 'Tenderly - Optimism',
         ticker: 'ETH',
       },
-    }
+    },
   },
   Gnosis: {
     providerConfig: {
