@@ -757,13 +757,15 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const transactions = submittedTransactions && submittedTransactions.length
-      ? submittedTransactions
-          .sort((a, b) => b.time - a.time)
-          .concat(confirmedTransactions)
-      : this.props.transactions;
+    const transactions =
+      submittedTransactions && submittedTransactions.length
+        ? submittedTransactions
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
+        : this.props.transactions;
 
-    const filteredTransactions = filterDuplicateOutgoingTransactions(transactions);
+    const filteredTransactions =
+      filterDuplicateOutgoingTransactions(transactions);
 
     const renderRetryGas = (rate) => {
       if (!this.existingGas) return null;
@@ -808,7 +810,9 @@ class Transactions extends PureComponent {
               onEndReachedThreshold={0.5}
               ListHeaderComponent={header}
               ListFooterComponent={
-                filteredTransactions.length > 0 ? this.footer : this.renderEmpty()
+                filteredTransactions.length > 0
+                  ? this.footer
+                  : this.renderEmpty()
               }
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}

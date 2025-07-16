@@ -19,12 +19,13 @@ const createTransaction = (
   type: string,
   hash?: string,
   value?: string,
-): TransactionMeta => ({
-  id,
-  type,
-  hash,
-  txParams: value ? { value } : undefined,
-} as unknown as TransactionMeta);
+): TransactionMeta =>
+  ({
+    id,
+    type,
+    hash,
+    txParams: value ? { value } : undefined,
+  } as unknown as TransactionMeta);
 
 describe('filterDuplicateOutgoingTransactions', () => {
   describe('Edge Cases', () => {
@@ -34,12 +35,16 @@ describe('filterDuplicateOutgoingTransactions', () => {
     });
 
     it('returns null when input is null', () => {
-      const result = filterDuplicateOutgoingTransactions(null as unknown as TransactionMeta[]);
+      const result = filterDuplicateOutgoingTransactions(
+        null as unknown as TransactionMeta[],
+      );
       expect(result).toBeNull();
     });
 
     it('returns undefined when input is undefined', () => {
-      const result = filterDuplicateOutgoingTransactions(undefined as unknown as TransactionMeta[]);
+      const result = filterDuplicateOutgoingTransactions(
+        undefined as unknown as TransactionMeta[],
+      );
       expect(result).toBeUndefined();
     });
 
@@ -77,16 +82,16 @@ describe('filterDuplicateOutgoingTransactions', () => {
     });
 
     it('handles hashes with different casing as duplicates', () => {
-    const transactions = [
-      createTransaction('1', 'incoming', '0xABCDEF1234', '100'),
-      createTransaction('2', 'bridge', '0xabcdef1234', '100'),
-    ];
+      const transactions = [
+        createTransaction('1', 'incoming', '0xABCDEF1234', '100'),
+        createTransaction('2', 'bridge', '0xabcdef1234', '100'),
+      ];
 
-    const result = filterDuplicateOutgoingTransactions(transactions);
+      const result = filterDuplicateOutgoingTransactions(transactions);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('2'); // Keeps the later one
-  });
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('2'); // Keeps the later one
+    });
   });
 
   describe('Multiple Transactions', () => {

@@ -23,7 +23,7 @@ export const filterDuplicateOutgoingTransactions = (
     const laterIndex = transactions.findIndex(
       (tx, index) =>
         tx.hash?.toLowerCase() === currentTx.hash?.toLowerCase() &&
-        index > currentIndex
+        index > currentIndex,
     );
 
     return laterIndex === -1; // Keep the transaction if no later matching transaction exists
