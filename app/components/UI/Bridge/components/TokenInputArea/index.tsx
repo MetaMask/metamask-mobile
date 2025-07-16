@@ -41,7 +41,7 @@ import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 
 const MAX_DECIMALS = 5;
-export const MAX_INPUT_LENGTH = 18;
+export const MAX_INPUT_LENGTH = 36;
 
 /**
  * Calculates font size based on input length
