@@ -447,6 +447,11 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
+            onMaxPress={() => {
+              if (latestSourceBalance?.displayBalance) {
+                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+              }
+            }}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>

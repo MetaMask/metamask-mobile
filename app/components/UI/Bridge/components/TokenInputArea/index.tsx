@@ -38,6 +38,7 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
+import { FlexDirection } from '../../../Box/box.types';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 18;
@@ -122,6 +123,7 @@ interface TokenInputAreaProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onInputPress?: () => void;
+  onMaxPress?: () => void;
 }
 
 export const TokenInputArea = forwardRef<
@@ -142,6 +144,7 @@ export const TokenInputArea = forwardRef<
       onFocus,
       onBlur,
       onInputPress,
+      onMaxPress,
     },
     ref,
   ) => {
@@ -288,16 +291,35 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                 </Box>
                 {subtitle ? (
-                  <Text
-                    color={
-                      tokenType === TokenInputAreaType.Source &&
-                      isInsufficientBalance
-                        ? TextColor.Error
-                        : TextColor.Alternative
-                    }
-                  >
-                    {subtitle}
-                  </Text>
+                  tokenType === TokenInputAreaType.Source && tokenBalance && onMaxPress ? (
+                    <Box flexDirection={FlexDirection.Row} gap={4}>
+                      <Text
+                        color={
+                          isInsufficientBalance
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                      <Button
+                        variant={ButtonVariants.Link}
+                        label={strings('bridge.max')}
+                        onPress={onMaxPress}
+                      />
+                    </Box>
+                  ) : (
+                    <Text
+                      color={
+                        tokenType === TokenInputAreaType.Source &&
+                        isInsufficientBalance
+                          ? TextColor.Error
+                          : TextColor.Alternative
+                      }
+                    >
+                      {subtitle}
+                    </Text>
+                  )
                 ) : null}
               </>
             )}
