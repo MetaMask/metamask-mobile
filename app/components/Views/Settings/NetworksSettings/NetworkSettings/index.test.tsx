@@ -1914,7 +1914,6 @@ describe('NetworkSettings', () => {
       expect(result).toEqual([]);
     });
   });
-
 });
 
 describe('NetworkSettings - showNetworkModal', () => {
@@ -1962,4 +1961,4 @@ describe('NetworkSettings - showNetworkModal', () => {
 
     expect(() => instance.showNetworkModal(networkConfiguration)).not.toThrow();
   });
-})
+});
