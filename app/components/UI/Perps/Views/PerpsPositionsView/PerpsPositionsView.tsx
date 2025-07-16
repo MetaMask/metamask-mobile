@@ -43,10 +43,10 @@ const PerpsPositionsView: React.FC = () => {
   const positionCountText = useMemo(() => {
     const positionCount = positions.length;
     return positionCount > 1
-      ? strings('perps.position.list.positionCount_plural', {
+      ? strings('perps.position.list.position_count_plural', {
           count: positionCount,
         })
-      : strings('perps.position.list.positionCount', {
+      : strings('perps.position.list.position_count', {
           count: positionCount,
         });
   }, [positions]);
@@ -126,7 +126,7 @@ const PerpsPositionsView: React.FC = () => {
       return (
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
-            {strings('perps.position.list.errorTitle')}
+            {strings('perps.position.list.error_title')}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
             {error}
@@ -139,10 +139,10 @@ const PerpsPositionsView: React.FC = () => {
       return (
         <View style={styles.emptyContainer}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.position.list.emptyTitle')}
+            {strings('perps.position.list.empty_title')}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-            {strings('perps.position.list.emptyDescription')}
+            {strings('perps.position.list.empty_description')}
           </Text>
         </View>
       );
@@ -152,7 +152,7 @@ const PerpsPositionsView: React.FC = () => {
       <View style={styles.positionsSection}>
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {strings('perps.position.list.openPositions')}
+            {strings('perps.position.list.open_positions')}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
             {positionCountText}
@@ -197,12 +197,12 @@ const PerpsPositionsView: React.FC = () => {
         {/* Account Summary */}
         <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('perps.position.account.summaryTitle')}
+            {strings('perps.position.account.summary_title')}
           </Text>
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              {strings('perps.position.account.totalBalance')}
+              {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.totalBalance || '0')}
@@ -211,7 +211,7 @@ const PerpsPositionsView: React.FC = () => {
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              {strings('perps.position.account.availableBalance')}
+              {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.availableBalance || '0')}
@@ -220,7 +220,7 @@ const PerpsPositionsView: React.FC = () => {
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              {strings('perps.position.account.marginUsed')}
+              {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(cachedAccountState?.marginUsed || '0')}
@@ -229,7 +229,7 @@ const PerpsPositionsView: React.FC = () => {
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              {strings('perps.position.account.totalUnrealizedPnl')}
+              {strings('perps.position.account.total_unrealized_pnl')}
             </Text>
             <Text
               variant={TextVariant.BodySMMedium}

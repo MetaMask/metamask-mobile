@@ -142,7 +142,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
             <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.entryPrice')}
+              {strings('perps.position.card.entry_price')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(position.entryPrice)}
@@ -150,7 +150,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
           <View style={styles.bodyItem}>
             <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.marketPrice')}
+              {strings('perps.position.card.market_price')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {formatPrice(position.liquidationPrice || position.entryPrice)}
@@ -158,7 +158,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
           <View style={styles.bodyItem}>
             <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.liquidityPrice')}
+              {strings('perps.position.card.liquidity_price')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {position.liquidationPrice
@@ -171,18 +171,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <View style={styles.bodyRow}>
           <View style={styles.bodyItem}>
             <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.takeProfit')}
+              {strings('perps.position.card.take_profit')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.notSet')}
+              {strings('perps.position.card.not_set')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
             <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.stopLoss')}
+              {strings('perps.position.card.stop_loss')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.notSet')}
+              {strings('perps.position.card.not_set')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
@@ -202,7 +202,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
-          label={strings('perps.position.card.editTPSL')}
+          label={strings('perps.position.card.edit_tpsl')}
           onPress={handleEditPress}
           disabled={disabled}
           style={styles.footerButton}
@@ -212,7 +212,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
-          label={strings('perps.position.card.closePosition')}
+          label={strings('perps.position.card.close_position')}
           onPress={handleClosePress}
           disabled={disabled}
           style={styles.footerButton}

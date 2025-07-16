@@ -69,7 +69,7 @@ const PerpsPositionDetailsView: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-            {strings('perps.position.details.errorMessage')}
+            {strings('perps.position.details.error_message')}
           </Text>
         </View>
       </SafeAreaView>
@@ -100,7 +100,7 @@ const PerpsPositionDetailsView: React.FC = () => {
         {/* Positions Section */}
         <View style={styles.section}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('perps.position.details.sectionTitle')}
+            {strings('perps.position.details.section_title')}
           </Text>
           <PerpsPositionCard
             position={position}

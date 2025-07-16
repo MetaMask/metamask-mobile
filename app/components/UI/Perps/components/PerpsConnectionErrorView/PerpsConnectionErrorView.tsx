@@ -44,7 +44,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             color={TextColor.Muted}
             style={styles.errorMessage}
           >
-            {strings('perps.connection.errorMessage')}
+            {strings('perps.connection.error_message')}
           </Text>
 
           <Text
@@ -62,8 +62,8 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
           width={ButtonWidthTypes.Full}
           label={
             isRetrying
-              ? strings('perps.connection.retryingConnection')
-              : strings('perps.connection.retryConnection')
+              ? strings('perps.connection.retrying_connection')
+              : strings('perps.connection.retry_connection')
           }
           onPress={onRetry}
           loading={isRetrying}

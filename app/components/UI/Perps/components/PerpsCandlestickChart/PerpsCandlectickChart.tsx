@@ -12,6 +12,7 @@ import {
   getCandlestickColors,
 } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector';
+import { strings } from '../../../../../../locales/i18n';
 interface CandleData {
   coin: string;
   interval: string;
@@ -171,7 +172,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               color={TextColor.Muted}
               style={styles.noDataText}
             >
-              No chart data available
+              {strings('perps.chart.no_data')}
             </Text>
           </View>
         </View>
