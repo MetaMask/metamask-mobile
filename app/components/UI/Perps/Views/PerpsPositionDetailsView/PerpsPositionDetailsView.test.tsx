@@ -4,41 +4,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import type { Position } from '../../controllers/types';
-interface MockCandlestickChartProps {
-  candleData?: {
-    coin: string;
-    interval: string;
-    candles: {
-      time: number;
-      open: string;
-      high: string;
-      low: string;
-      close: string;
-      volume: string;
-    }[];
-  } | null;
-  isLoading?: boolean;
-  onIntervalChange?: (interval: string) => void;
-  selectedInterval?: string;
-}
-
-interface MockPositionCardProps {
-  position?: Position;
-  onClose?: () => void;
-  onEdit?: () => void;
-  disabled?: boolean;
-}
-
-interface MockPositionHeaderProps {
-  position?: Position;
-  onBackPress?: () => void;
-  priceData?: {
-    coin: string;
-    price: string;
-    change24h: string;
-    volume24h: string;
-  } | null;
-}
+import {
+  PerpsPositionCardSelectorsIDs,
+  PerpsPositionHeaderSelectorsIDs,
+  PerpsPositionDetailsViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -50,109 +20,82 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: jest.fn(),
 }));
 
-const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
-
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
 }));
 
-// Mock components (keep only non-DS components)
+// Mock the wagmi charts library to fix missing getDomain function
+jest.mock('react-native-wagmi-charts', () => {
+  const { View } = jest.requireActual('react-native');
 
-jest.mock(
-  '../../components/PerpsCandlestickChart/PerpsCandlectickChart',
-  () => ({
-    __esModule: true,
-    default: ({
-      candleData,
-      isLoading,
-      onIntervalChange,
-      selectedInterval,
-      ...props
-    }: MockCandlestickChartProps) => {
-      const { View, Text, TouchableOpacity } =
-        jest.requireActual('react-native');
-      return (
-        <View testID="candlestick-chart" {...props}>
-          <Text testID="chart-loading-state">
-            {isLoading ? 'Loading chart...' : 'Chart loaded'}
-          </Text>
-          <Text testID="chart-data-state">
-            {candleData ? 'Has data' : 'No data'}
-          </Text>
-          <Text testID="chart-selected-interval">
-            Selected: {selectedInterval}
-          </Text>
-          <TouchableOpacity
-            testID="chart-interval-change"
-            onPress={() => onIntervalChange?.('4h')}
-          >
-            <Text>Change Interval</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    },
-  }),
-);
+  const MockChart = ({
+    children,
+    height,
+    width,
+  }: {
+    children: React.ReactNode;
+    height: number;
+    width: number;
+  }) => (
+    <View testID="candlestick-chart" data-height={height} data-width={width}>
+      {children}
+    </View>
+  );
 
-jest.mock('../../components/PerpsPositionCard', () => ({
-  __esModule: true,
-  default: ({
-    position,
-    onClose,
-    onEdit,
-    disabled,
-    ...props
-  }: MockPositionCardProps) => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return (
-      <View testID="position-card" {...props}>
-        <Text testID="position-card-coin">{position?.coin}</Text>
-        <Text testID="position-card-size">{position?.size}</Text>
-        <Text testID="position-card-disabled">{String(disabled)}</Text>
-        <TouchableOpacity
-          testID="position-card-close"
-          onPress={onClose}
-          disabled={disabled}
-        >
-          <Text>Close</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID="position-card-edit"
-          onPress={onEdit}
-          disabled={disabled}
-        >
-          <Text>Edit</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
+  MockChart.Provider = ({
+    children,
+    data,
+  }: {
+    children: React.ReactNode;
+    data: unknown[];
+  }) => (
+    <View testID="chart-provider" data-data-points={data?.length || 0}>
+      {children}
+    </View>
+  );
 
-jest.mock('../../components/PerpsPostitionHeader/PerpsPositionHeader', () => ({
-  __esModule: true,
-  default: ({
-    position,
-    onBackPress,
-    priceData,
-    ...props
-  }: MockPositionHeaderProps) => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return (
-      <View testID="position-header" {...props}>
-        <Text testID="position-header-coin">{position?.coin}</Text>
-        <Text testID="position-header-pnl">{position?.unrealizedPnl}</Text>
-        <TouchableOpacity testID="position-header-back" onPress={onBackPress}>
-          <Text>Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
+  MockChart.Candles = ({
+    positiveColor,
+    negativeColor,
+  }: {
+    positiveColor: string;
+    negativeColor: string;
+  }) => (
+    <View
+      testID="chart-candles"
+      data-positive-color={positiveColor}
+      data-negative-color={negativeColor}
+    />
+  );
+
+  MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
+    <View testID="chart-crosshair">{children}</View>
+  );
+
+  MockChart.Tooltip = ({
+    children,
+    style,
+    tooltipTextProps,
+  }: {
+    children?: React.ReactNode;
+    style?: unknown;
+    tooltipTextProps?: unknown;
+  }) => (
+    <View
+      testID="chart-tooltip"
+      data-style={style}
+      data-text-props={tooltipTextProps}
+    >
+      {children}
+    </View>
+  );
+
+  return {
+    CandlestickChart: MockChart,
+  };
+});
 
 // Test data
 const mockPosition: Position = {
@@ -173,18 +116,6 @@ const mockPosition: Position = {
     allTime: '10.00',
     sinceOpen: '5.00',
     sinceChange: '2.00',
-  },
-};
-
-const mockTheme = {
-  colors: {
-    background: { default: '#FFFFFF', alternative: '#F8F9FA' },
-    text: { default: '#24292E', muted: '#6A737D' },
-    border: { muted: '#E1E4E8' },
-    success: { default: '#28A745', muted: '#D4EDDA' },
-    error: { default: '#DC3545', muted: '#F8D7DA' },
-    warning: { default: '#FFC107', muted: '#FFF3CD' },
-    overlay: { default: 'rgba(0, 0, 0, 0.5)' },
   },
 };
 
@@ -233,7 +164,7 @@ describe('PerpsPositionDetailsView', () => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useRoute as jest.Mock).mockReturnValue(mockRoute);
     (usePerpsPositionData as jest.Mock).mockReturnValue(mockPerpsPositionData);
-    mockUseTheme.mockReturnValue(mockTheme);
+    // Using real useStyles hook implementation
   });
 
   describe('Component Rendering', () => {
@@ -242,10 +173,16 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('position-header')).toBeOnTheScreen();
-      expect(screen.getByTestId('candlestick-chart')).toBeOnTheScreen();
+      expect(screen.getByText('ETH-USD')).toBeOnTheScreen(); // Position header
+      expect(
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CANDLESTICK_CHART,
+        ),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Position')).toBeOnTheScreen();
-      expect(screen.getByTestId('position-card')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
     });
 
     it('displays position header with correct data', () => {
@@ -253,12 +190,8 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('position-header-coin')).toHaveTextContent(
-        'ETH',
-      );
-      expect(screen.getByTestId('position-header-pnl')).toHaveTextContent(
-        '250.00',
-      );
+      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getAllByText('$2,000.00')[0]).toBeOnTheScreen(); // First occurrence is in header
     });
 
     it('displays position card with correct data', () => {
@@ -266,11 +199,10 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('position-card-coin')).toHaveTextContent('ETH');
-      expect(screen.getByTestId('position-card-size')).toHaveTextContent('2.5');
-      expect(screen.getByTestId('position-card-disabled')).toHaveTextContent(
-        'true',
-      );
+      expect(screen.getByText(/2\.50[\s\S]*ETH/)).toBeOnTheScreen(); // Position size and coin
+      expect(screen.getByText(/10[\s\S]*x/)).toBeOnTheScreen(); // Leverage (10 and x may be separate text nodes)
+      expect(screen.getByText('long')).toBeOnTheScreen(); // Position direction
+      expect(screen.getByText('$5,000.00')).toBeOnTheScreen(); // Position value
     });
 
     it('displays chart with correct initial state', () => {
@@ -278,15 +210,12 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('chart-loading-state')).toHaveTextContent(
-        'Chart loaded',
-      );
-      expect(screen.getByTestId('chart-data-state')).toHaveTextContent(
-        'Has data',
-      );
-      expect(screen.getByTestId('chart-selected-interval')).toHaveTextContent(
-        'Selected: 1h',
-      );
+      expect(
+        screen.getByTestId('perps-chart-interval-selector'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-chart-interval-selector-1h'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -334,7 +263,9 @@ describe('PerpsPositionDetailsView', () => {
     it('navigates back when back button is pressed via header', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('position-header-back'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionHeaderSelectorsIDs.BACK_BUTTON),
+      );
 
       // Assert
       expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
@@ -353,9 +284,10 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('chart-loading-state')).toHaveTextContent(
-        'Loading chart...',
-      );
+      expect(
+        screen.getByTestId('perps-chart-interval-selector-loading'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
     });
 
     it('displays chart with no data state when candle data is null', () => {
@@ -369,20 +301,23 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('chart-data-state')).toHaveTextContent(
-        'No data',
-      );
+      expect(
+        screen.getByTestId('perps-chart-interval-selector-no-data'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
     it('handles interval change correctly', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('chart-interval-change'));
+      fireEvent.press(screen.getByTestId('perps-chart-interval-selector-5m'));
 
       // Assert
       // The component should re-render with new interval, but we can't easily test state changes
       // This test ensures the interval change handler doesn't crash
-      expect(screen.getByTestId('chart-selected-interval')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-chart-interval-selector'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -390,23 +325,31 @@ describe('PerpsPositionDetailsView', () => {
     it('handles close position action', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('position-card-close'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
 
       // Assert
       // Since handleClosePosition just logs, we can't assert much here
       // But we can ensure the component doesn't crash
-      expect(screen.getByTestId('position-card')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
     });
 
     it('handles edit TP/SL action', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('position-card-edit'));
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
 
       // Assert
       // Since handleEditTPSL just logs, we can't assert much here
       // But we can ensure the component doesn't crash
-      expect(screen.getByTestId('position-card')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -441,9 +384,7 @@ describe('PerpsPositionDetailsView', () => {
         coin: 'BTC',
         selectedInterval: '1h',
       });
-      expect(screen.getByTestId('position-header-coin')).toHaveTextContent(
-        'BTC',
-      );
+      expect(screen.getByText('BTC-USD')).toBeOnTheScreen();
     });
   });
 
@@ -462,7 +403,9 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Assert
-      expect(screen.getByTestId('position-card')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
     });
 
     it('handles missing route params gracefully', () => {
