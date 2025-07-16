@@ -23,11 +23,13 @@ export interface SnapUISelectorProps {
   title: string;
   options: { key?: string; value: State; disabled: boolean }[];
   optionComponents: React.ReactNode[];
+  onSelect?: (value: State) => void;
   form?: string;
   label?: string;
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
+  itemStyle?: ViewStyle;
   compact?: boolean;
 }
 
@@ -37,6 +39,7 @@ interface SelectorItemProps {
   onSelect: (value: State) => void;
   selected?: boolean;
   disabled?: boolean;
+  style?: ViewStyle;
 }
 
 const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
@@ -80,7 +83,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   label,
   error,
   disabled,
+  onSelect,
   style,
+  itemStyle,
   compact = false,
 }) => {
   const { styles } = useStyles(stylesheet, { compact });
@@ -94,8 +99,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   useEffect(() => {
     if (initialValue !== undefined && initialValue !== null) {
       setSelectedOption(initialValue);
+      onSelect?.(initialValue);
     }
-  }, [initialValue]);
+  }, [initialValue, onSelect]);
 
   const handleModalOpen = () => {
     setIsModalOpen(true);
@@ -105,6 +111,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
 
   const handleSelect = (value: State) => {
     setSelectedOption(value);
+    onSelect?.(value);
     handleInputChange(name, value, form);
     handleModalClose();
   };
@@ -171,6 +178,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
                   disabled={options[index]?.disabled}
                   onSelect={handleSelect}
                   selected={selectedOptionIndex === index}
+                  style={itemStyle}
                 >
                   {component}
                 </SelectorItem>
