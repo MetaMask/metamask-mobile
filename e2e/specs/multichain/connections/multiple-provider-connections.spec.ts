@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeMultiChainAPI } from '../../../tags';
+import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../utils/Assertions';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
@@ -56,7 +56,7 @@ async function requestPermissions({
   );
 }
 
-describe(SmokeMultiChainAPI('Multiple Standard Dapp Connections'), () => {
+describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
