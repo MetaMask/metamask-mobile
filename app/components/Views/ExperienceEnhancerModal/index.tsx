@@ -25,9 +25,7 @@ import {
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
-import {
-  UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
