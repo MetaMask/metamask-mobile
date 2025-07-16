@@ -718,13 +718,12 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   touchSoundDisabled={false}
                                 >
                                   <View
+                                    accessibilityRole="button"
                                     accessible={true}
                                     collapsable={false}
                                     style={{}}
                                   >
                                     <View
-                                      accessibilityRole="button"
-                                      accessible={true}
                                       style={
                                         [
                                           {
@@ -826,13 +825,12 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   touchSoundDisabled={false}
                                 >
                                   <View
+                                    accessibilityRole="button"
                                     accessible={true}
                                     collapsable={false}
                                     style={{}}
                                   >
                                     <View
-                                      accessibilityRole="button"
-                                      accessible={true}
                                       style={
                                         [
                                           {
@@ -932,13 +930,12 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   touchSoundDisabled={false}
                                 >
                                   <View
+                                    accessibilityRole="button"
                                     accessible={true}
                                     collapsable={false}
                                     style={{}}
                                   >
                                     <View
-                                      accessibilityRole="button"
-                                      accessible={true}
                                       style={
                                         [
                                           {
@@ -1040,13 +1037,12 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   touchSoundDisabled={false}
                                 >
                                   <View
+                                    accessibilityRole="button"
                                     accessible={true}
                                     collapsable={false}
                                     style={{}}
                                   >
                                     <View
-                                      accessibilityRole="button"
-                                      accessible={true}
                                       style={
                                         [
                                           {
@@ -2578,13 +2574,12 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   touchSoundDisabled={false}
                                 >
                                   <View
+                                    accessibilityRole="button"
                                     accessible={true}
                                     collapsable={false}
                                     style={{}}
                                   >
                                     <View
-                                      accessibilityRole="button"
-                                      accessible={true}
                                       style={
                                         [
                                           {

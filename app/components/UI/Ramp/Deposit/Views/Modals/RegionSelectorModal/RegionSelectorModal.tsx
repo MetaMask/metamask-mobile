@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import {
+  FlatList,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -103,6 +106,8 @@ function RegionSelectorModal() {
             }
           }}
           disabled={!region.supported}
+          accessibilityRole="button"
+          accessible
         >
           <View
             style={[
@@ -110,8 +115,6 @@ function RegionSelectorModal() {
               isSelected && styles.selectedItem,
               !region.supported && styles.disabledItem,
             ]}
-            accessibilityRole="button"
-            accessible
           >
             <ListItemColumn widthType={WidthType.Fill}>
               <View style={styles.region}>
@@ -119,7 +122,9 @@ function RegionSelectorModal() {
                   <Text
                     variant={TextVariant.BodyLGMedium}
                     color={
-                      region.supported ? TextColor.Default : TextColor.Alternative
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
                     }
                   >
                     {region.flag}
@@ -129,7 +134,9 @@ function RegionSelectorModal() {
                   <Text
                     variant={TextVariant.BodyLGMedium}
                     color={
-                      region.supported ? TextColor.Default : TextColor.Alternative
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
                     }
                   >
                     {region.name}
@@ -143,12 +150,12 @@ function RegionSelectorModal() {
     },
     [
       handleOnRegionPressCallback,
-      selectedRegion,
-      styles.region,
+      selectedRegion?.isoCode,
+      styles.disabledItem,
       styles.emoji,
       styles.listItem,
+      styles.region,
       styles.selectedItem,
-      styles.disabledItem,
     ],
   );
 
