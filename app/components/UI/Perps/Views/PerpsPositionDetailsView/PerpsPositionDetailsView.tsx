@@ -11,8 +11,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
@@ -27,8 +27,7 @@ interface PositionDetailsRouteParams {
 }
 
 const PerpsPositionDetailsView: React.FC = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();

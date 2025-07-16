@@ -1,9 +1,16 @@
 import { StyleSheet } from 'react-native';
 
-import type { Colors } from '../../../../../util/theme/models';
+import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+export const createStyles = ({
+  theme,
+}: {
+  theme: Theme;
+  vars: Record<string, never>;
+}) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -208,3 +215,4 @@ export const createStyles = (colors: Colors) =>
       flex: 1,
     },
   });
+};

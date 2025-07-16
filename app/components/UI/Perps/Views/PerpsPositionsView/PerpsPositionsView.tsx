@@ -17,7 +17,7 @@ import Text, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsAccount, usePerpsTrading } from '../../hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
@@ -28,8 +28,7 @@ import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 
 const PerpsPositionsView: React.FC = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const { getPositions } = usePerpsTrading();
