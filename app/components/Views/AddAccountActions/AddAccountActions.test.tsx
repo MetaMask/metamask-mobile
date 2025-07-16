@@ -95,7 +95,7 @@ describe('AddAccountActions', () => {
 
     // Check for standard options
     expect(
-      screen.getByTestId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON),
+      screen.getByTestId(AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON),
     ).toBeDefined();
     expect(
       screen.getByTestId(
@@ -124,7 +124,7 @@ describe('AddAccountActions', () => {
     );
 
     const addButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
     );
     fireEvent.press(addButton);
 
@@ -149,7 +149,7 @@ describe('AddAccountActions', () => {
     );
 
     const addButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
     );
     fireEvent.press(addButton);
 
@@ -326,7 +326,7 @@ describe('AddAccountActions', () => {
       );
 
       const addAccountButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+        AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
       );
       await fireEvent.press(addAccountButton);
 
