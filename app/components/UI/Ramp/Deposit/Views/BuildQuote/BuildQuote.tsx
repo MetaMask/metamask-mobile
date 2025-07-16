@@ -232,7 +232,6 @@ const BuildQuote = () => {
         return;
       }
 
-      await routeAfterAuthentication(quote);
       trackEvent('RAMPS_ORDER_SELECTED', {
         ramp_type: 'DEPOSIT',
         amount_source: quote.fiatAmount,
@@ -253,6 +252,8 @@ const BuildQuote = () => {
         currency_destination: cryptoCurrency.assetId,
         currency_source: quote.fiatCurrency,
       });
+
+      await routeAfterAuthentication(quote);
     } catch (routeError) {
       Logger.error(
         routeError as Error,
