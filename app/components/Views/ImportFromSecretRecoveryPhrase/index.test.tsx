@@ -157,7 +157,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       const getInput = (index: number) =>
         getByTestId(
-          index === 0 
+          index === 0
             ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
             : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
         );
@@ -368,7 +368,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const fields = [];
         for (let i = 0; i < 3; i++) {
           const field = getByTestId(
-            i === 0 
+            i === 0
               ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
@@ -392,7 +392,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const updatedFields = [];
         for (let i = 0; i < 2; i++) {
           const field = getByTestId(
-            i === 0 
+            i === 0
               ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
@@ -472,7 +472,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         const fields = [];
         for (let i = 0; i < 12; i++) {
           const field = getByTestId(
-            i === 0 
+            i === 0
               ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
               : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${i}`,
           );
@@ -520,7 +520,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       const getInput = (index: number) =>
         getByTestId(
-          index === 0 
+          index === 0
             ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
             : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`,
         );
