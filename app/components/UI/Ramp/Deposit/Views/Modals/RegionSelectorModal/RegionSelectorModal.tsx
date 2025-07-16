@@ -24,7 +24,7 @@ import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
-import { trackEvent } from '../../../../hooks/useAnalytics';
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -45,6 +45,7 @@ function RegionSelectorModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
+  const trackEvent = useAnalytics();
 
   const fuseData = useMemo(
     () =>
@@ -97,7 +98,7 @@ function RegionSelectorModal() {
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [setSelectedRegion, isAuthenticated],
+    [setSelectedRegion, isAuthenticated, trackEvent],
   );
 
   const renderRegionItem = useCallback(
