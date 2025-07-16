@@ -52,7 +52,6 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
-  SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 
 /**

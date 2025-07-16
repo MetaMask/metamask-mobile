@@ -31,6 +31,11 @@ import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { logOut } from '../../actions/user';
 
+// mock mnemonicPhraseToBytes
+jest.mock('@metamask/key-tree', () => ({
+  mnemonicPhraseToBytes: jest.fn(),
+}));
+
 // Mock the Vault module
 jest.mock('../Vault', () => ({
   recreateVaultWithNewPassword: jest.fn(),
@@ -778,11 +783,18 @@ describe('Authentication', () => {
         createToprfKeyAndBackupSeedPhrase: jest
           .fn()
           .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       Engine.context.KeyringController.state.keyrings = [
         { metadata: { id: 'test-keyring' } },
       ];
       Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      Engine.context.KeyringController.exportEncryptionKey = jest
         .fn()
         .mockResolvedValue('test seed phrase');
 
@@ -950,8 +962,12 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       Engine.context.SeedlessOnboardingController = {
-        fetchAllSeedPhrases: jest.fn(),
+        fetchAllSecretData: jest.fn(),
         updateBackupMetadataState: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        loadKeyringEncryptionKey: jest.fn(),
+        submitGlobalPassword: jest.fn(),
+        checkIsPasswordOutdated: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         addNewKeyring: jest.fn(),
@@ -961,6 +977,8 @@ describe('Authentication', () => {
             { name: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
           ],
         },
+        exportEncryptionKey: jest.fn(),
+        exportSeedPhrase: jest.fn(),
       } as unknown as KeyringController;
     });
 
@@ -1051,8 +1069,9 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).toHaveBeenCalledWith({
+        data: mockSeedPhrase2,
         keyringId: 'new-keyring-id',
-        seedPhrase: mockSeedPhrase2,
+        type: 'mnemonic',
       });
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
@@ -1198,6 +1217,10 @@ describe('Authentication', () => {
         recoverCurrentDevicePassword: jest.fn(),
         syncLatestGlobalPassword: jest.fn(),
         checkIsPasswordOutdated: jest.fn(),
+        submitPassword: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        loadKeyringEncryptionKey: jest.fn(),
+        submitGlobalPassword: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
@@ -1235,28 +1258,36 @@ describe('Authentication', () => {
           .checkIsPasswordOutdated as jest.Mock
       ).mockResolvedValueOnce(false);
       recreateVaultWithNewPassword.mockResolvedValueOnce(undefined);
+      Engine.context.KeyringController.submitEncryptionKey = jest.fn();
+      Engine.context.KeyringController.isUnlocked = jest.fn();
+      Engine.context.KeyringController.changePassword = jest.fn();
+      Engine.context.KeyringController.exportEncryptionKey = jest.fn();
+
+      // mock redux
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
 
       await Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword);
 
       expect(
         Engine.context.SeedlessOnboardingController.submitGlobalPassword,
       ).toHaveBeenCalledWith({ globalPassword: mockGlobalPassword });
-      expect(Authentication.userEntryAuth).toHaveBeenCalledWith(
-        mockCurrentDevicePassword,
-        mockAuthType,
-      );
       expect(
         Engine.context.SeedlessOnboardingController.syncLatestGlobalPassword,
       ).toHaveBeenCalledWith({
-        oldPassword: mockCurrentDevicePassword,
         globalPassword: mockGlobalPassword,
       });
-      expect(recreateVaultWithNewPassword).toHaveBeenCalledWith(
-        mockCurrentDevicePassword,
-        mockGlobalPassword,
-        mockSelectedAddress,
-        true,
-      );
       expect(Authentication.resetPassword).toHaveBeenCalled();
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
@@ -1272,13 +1303,28 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController
           .syncLatestGlobalPassword as jest.Mock
       ).mockResolvedValueOnce(undefined);
+      Engine.context.KeyringController.changePassword = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('change password failed'));
 
-      const vaultError = new Error('Vault recreation failed');
-      recreateVaultWithNewPassword.mockRejectedValueOnce(vaultError);
+      // mock redux
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
 
       await expect(
         Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
-      ).rejects.toThrow('Vault recreation failed');
+      ).rejects.toThrow('change password failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
     });
