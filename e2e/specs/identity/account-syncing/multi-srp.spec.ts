@@ -68,7 +68,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await waitUntilEventsEmittedNumberEquals(1);
 
         await Assertions.expectElementToBeVisible(
@@ -97,7 +97,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AddNewHdAccountComponent.tapSrpSelector();
         await SRPListItemComponent.tapListItemByIndex(1);
         await AddNewHdAccountComponent.enterName(SRP_2_SECOND_ACCOUNT);

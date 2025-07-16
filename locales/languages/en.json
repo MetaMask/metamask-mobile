@@ -616,7 +616,8 @@
       "state_required": "State/Region is required",
       "state_invalid": "Please enter a valid state",
       "postal_code_required": "Postal/Zip Code is required",
-      "postal_code_invalid": "Please enter a valid postal code"
+      "postal_code_invalid": "Please enter a valid postal code",
+      "unexpected_error": "Unexpected error."
     },
     "privacy_section":{
       "transak": "Transak encrypts and stores this information.",

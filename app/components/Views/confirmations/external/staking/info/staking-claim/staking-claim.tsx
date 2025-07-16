@@ -18,6 +18,7 @@ import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-
 import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
 import { TraceName } from '../../../../../../../util/trace';
+import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
 
 const StakingClaim = ({
   route,
@@ -48,6 +49,7 @@ const StakingClaim = ({
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
   useEndTraceOnMount(TraceName.EarnClaimConfirmationScreen);
+  useStakingTransactionTracing();
 
   return (
     <View testID={ConfirmationInfoComponentIDs.STAKING_CLAIM}>
