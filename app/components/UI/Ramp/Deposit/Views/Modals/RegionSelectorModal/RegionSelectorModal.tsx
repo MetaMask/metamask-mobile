@@ -26,6 +26,7 @@ import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -39,12 +40,14 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const { selectedRegion, setSelectedRegion, isAuthenticated } =
+    useDepositSDK();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
+  const trackEvent = useAnalytics();
 
   const fuseData = useMemo(
     () =>
@@ -87,11 +90,17 @@ function RegionSelectorModal() {
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
       if (region.supported && setSelectedRegion) {
+        trackEvent('RAMPS_REGION_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: region.isoCode,
+          is_authenticated: isAuthenticated,
+        });
+
         setSelectedRegion(region);
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [setSelectedRegion],
+    [setSelectedRegion, isAuthenticated, trackEvent],
   );
 
   const renderRegionItem = useCallback(
