@@ -99,9 +99,10 @@ export const getDisplayAmount = (
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount = tokenType === TokenInputAreaType.Source
-    ? amount
-    : parseAmount(amount, MAX_DECIMALS);
+  const displayAmount =
+    tokenType === TokenInputAreaType.Source
+      ? amount
+      : parseAmount(amount, MAX_DECIMALS);
 
   return displayAmount;
 };
@@ -211,7 +212,9 @@ export const TokenInputArea = forwardRef<
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${parseFloat(tokenBalance).toFixed(3).replace(/\.?0+$/, '')} ${token?.symbol}`
+        ? `${parseFloat(tokenBalance)
+            .toFixed(3)
+            .replace(/\.?0+$/, '')} ${token?.symbol}`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero
@@ -227,7 +230,11 @@ export const TokenInputArea = forwardRef<
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
 
-    const isNativeAsset = token?.address === ethers.constants.AddressZero;
+    // TODO come up with a more robust way to check if the asset is native
+    // Maybe a util in BridgeController
+    const isNativeAsset =
+      token?.address === ethers.constants.AddressZero ||
+      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
     return (
       <Box>
@@ -277,7 +284,9 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to')}
+                label={strings(
+                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
+                )}
                 onPress={navigateToDestNetworkSelector}
               />
             )}
@@ -293,7 +302,10 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                 </Box>
                 {subtitle ? (
-                  tokenType === TokenInputAreaType.Source && tokenBalance && onMaxPress && !isNativeAsset ? (
+                  tokenType === TokenInputAreaType.Source &&
+                  tokenBalance &&
+                  onMaxPress &&
+                  !isNativeAsset ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={
