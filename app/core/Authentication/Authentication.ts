@@ -577,11 +577,6 @@ class AuthenticationService {
         keyringId,
       );
 
-      Logger.log(
-        'SeedlessOnboardingController state',
-        SeedlessOnboardingController.state,
-      );
-
       let createKeyAndBackupSrpSuccess = false;
       try {
         trace({
