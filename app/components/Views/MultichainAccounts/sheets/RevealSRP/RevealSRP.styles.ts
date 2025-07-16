@@ -38,6 +38,7 @@ const styleSheet = (params: { vars: { insets: Insets } }) => {
     },
     buttonContainer: {
       marginTop: 'auto',
+      marginBottom: Platform.OS === 'android' ? 12 : 0,
       paddingLeft: 16,
       paddingRight: 16,
       gap: 16,

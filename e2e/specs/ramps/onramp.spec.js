@@ -387,7 +387,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       ];
     }
 
-    
+
     await Promise.all([
       ...baseAssertions,
       ...iosAssertions,

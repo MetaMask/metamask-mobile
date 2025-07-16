@@ -32,6 +32,7 @@ import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -143,10 +144,11 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { RootState } from '../../../reducers';
+import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -228,12 +230,21 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={{ headerShown: false }}
     />
-    <Stack.Screen name="AccountStatus" component={AccountStatus} />
+    <Stack.Screen
+      name="AccountStatus"
+      component={AccountStatus}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="AccountAlreadyExists"
       component={AccountAlreadyExists}
+      options={{ headerShown: false }}
     />
-    <Stack.Screen name="AccountNotFound" component={AccountNotFound} />
+    <Stack.Screen
+      name="AccountNotFound"
+      component={AccountNotFound}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Rehydrate"
       component={Login}
@@ -607,6 +618,19 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const SolanaNewFeatureContentView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+      component={SolanaNewFeatureContent}
+    />
+  </Stack.Navigator>
+);
+
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -652,6 +676,21 @@ const ModalSwitchAccountType = () => (
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
       component={SwitchAccountTypeModal}
+    />
+  </Stack.Navigator>
+);
+
+const ModalSmartAccountOptIn = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen
+      name={Routes.SMART_ACCOUNT_OPT_IN}
+      component={SmartAccountUpdateModal}
     />
   </Stack.Navigator>
 );
@@ -736,6 +775,11 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+        component={SolanaNewFeatureContentView}
+        options={{ animationEnabled: true }}
+      />
+      <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
         component={MultichainWalletDetails}
       />
@@ -796,6 +840,10 @@ const AppFlow = () => {
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
       />
+      <Stack.Screen
+        name={Routes.SMART_ACCOUNT_OPT_IN}
+        component={ModalSmartAccountOptIn}
+      />
     </Stack.Navigator>
   );
 };
@@ -808,10 +856,6 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
-
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
 
   if (isFirstRender.current) {
     trace({
@@ -845,19 +889,25 @@ const App: React.FC = () => {
             },
           );
 
-          if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-                params: {
-                  onContinue: () =>
-                    navigation.reset({
-                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                    }),
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+
+          if (!isOptinMetaMetricsUISeen) {
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
                 },
-              },
-            });
+              ],
+            };
+            navigation.reset(resetParams);
           } else {
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
@@ -883,7 +933,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, isMetaMetricsUISeen]);
+  }, [navigation]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
@@ -920,18 +970,36 @@ const App: React.FC = () => {
       dispatch,
     });
 
+    const getBranchDeeplink = async (uri?: string) => {
+      if (uri) {
+        handleDeeplink({ uri });
+        return;
+      }
+
+      try {
+        const latestParams = await branch.getLatestReferringParams();
+        const deeplink = latestParams?.['+non_branch_link'] as string;
+        if (deeplink) {
+          handleDeeplink({ uri: deeplink });
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error getting Branch deeplink');
+      }
+    };
+
+    // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
+    // This is a workaround to ensure that the deeplink is processed for iOS cold start.
+    // TODO: Remove this once branch.subscribe is called for iOS cold start.
+    getBranchDeeplink();
+
     branch.subscribe((opts) => {
       const { error } = opts;
 
-      // Log error for analytics and continue handling deeplink
       if (error) {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
+      getBranchDeeplink(opts.uri);
     });
   }, [dispatch, handleDeeplink, navigation]);
 

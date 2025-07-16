@@ -38,7 +38,9 @@ class TabBarComponent {
   }
 
   async tapSettings() {
-    await Gestures.waitAndTap(this.tabBarSettingButton);
+    await Gestures.waitAndTap(this.tabBarSettingButton, {
+      elemDescription: 'Tab Bar - Settings Button',
+    });
   }
 
   async tapActivity() {

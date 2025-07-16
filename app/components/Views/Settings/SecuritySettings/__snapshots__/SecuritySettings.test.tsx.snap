@@ -72,7 +72,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Wallet recovery
+          Wallet Recovery
         </Text>
         <Text
           accessibilityRole="text"
@@ -87,7 +87,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.
+          Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.
         </Text>
         <Text
           accessibilityRole="link"

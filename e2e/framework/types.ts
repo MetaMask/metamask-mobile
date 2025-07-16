@@ -8,7 +8,9 @@ export interface GestureOptions {
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
-export interface TapOptions extends GestureOptions {}
+export interface TapOptions extends GestureOptions {
+  delay?: number; // Delay before the tap action
+}
 
 export interface TypeTextOptions extends GestureOptions {
   clearFirst?: boolean;

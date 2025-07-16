@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -64,57 +65,72 @@ const carouselSize = {
   width: DEVICE_WIDTH - IMG_PADDING,
   height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_RATIO,
 };
-const createStyles = () =>
+
+const ctaIosPaddingBottom = Device.isIphoneX() ? 40 : 20;
+const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
   StyleSheet.create({
     scroll: {
       flexGrow: 1,
+      justifyContent: 'space-between',
     },
     wrapper: {
       flex: 1,
       flexDirection: 'column',
-      justifyContent: 'space-around',
-      paddingVertical: 24,
-      rowGap: 24,
+      justifyContent: 'space-between',
+      paddingBottom: 16,
+      paddingTop:
+        Platform.OS === 'android' ? Math.max(safeAreaInsets.top + 8, 32) : 0,
     },
     title: {
       fontSize: 40,
       lineHeight: 40,
       justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: 40,
-      fontFamily: 'MMSans-Regular',
+      paddingHorizontal: 24,
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
     },
     subtitle: {
       textAlign: 'center',
-      paddingHorizontal: 16,
     },
     ctas: {
       paddingHorizontal: 16,
-      paddingBottom: Device.isIphoneX() ? 40 : 20,
+      paddingTop: 16,
+      paddingBottom:
+        Platform.OS === 'android'
+          ? Math.max(safeAreaInsets.bottom + 16, 24)
+          : ctaIosPaddingBottom,
       flexDirection: 'column',
     },
     carouselImage: {},
     carouselImage1: {
       ...carouselSize,
+      resizeMode: 'contain',
     },
     carouselImage2: {
       ...carouselSize,
+      resizeMode: 'contain',
     },
     carouselImage3: {
       ...carouselSize,
+      resizeMode: 'contain',
     },
     carouselImageWrapper: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      minHeight: 200,
+      paddingHorizontal: 16,
     },
     carouselTextWrapper: {
-      flex: 1,
+      flex: 2,
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      rowGap: 24,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      gap: 16,
     },
     bar: {
       width: 10,
@@ -129,17 +145,16 @@ const createStyles = () =>
     progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
+      paddingTop: 16,
     },
     tab: {
       marginHorizontal: 16,
+      position: 'relative',
+      minHeight: 30,
     },
     metricsData: {
       textAlign: 'center',
-    },
-    gettingStartedButton: {
-      borderRadius: 12,
-      color: constColors.whiteTransparent,
-      backgroundColor: constColors.btnBlack,
+      paddingVertical: 16,
     },
   });
 
@@ -170,8 +185,9 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   );
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
+  const safeAreaInsets = useSafeAreaInsets();
 
-  const styles = createStyles();
+  const styles = createStyles(safeAreaInsets);
 
   const track = useCallback(
     (event: ITrackingEvent) => {
@@ -356,7 +372,6 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             variant={ButtonVariants.Primary}
             label={strings('onboarding_carousel.get_started')}
             onPress={onPressGetStarted}
-            style={styles.gettingStartedButton}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}

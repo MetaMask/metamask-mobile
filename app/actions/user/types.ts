@@ -93,11 +93,6 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
-export type SetMetaMetricsUISeenAction =
-  Action<UserActionType.SET_META_METRICS_UI_SEEN> & {
-    payload: { isMetaMetricsUISeen: boolean };
-  };
-
 /**
  * User actions union type
  */
@@ -123,5 +118,4 @@ export type UserAction =
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
   | CheckedAuthAction
-  | SetAppServicesReadyAction
-  | SetMetaMetricsUISeenAction;
+  | SetAppServicesReadyAction;

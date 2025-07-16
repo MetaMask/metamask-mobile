@@ -176,4 +176,4 @@ class ConnectedAccountsModal {
   }
 }
 
-export default new ConnectedAccountsModal(); 
+export default new ConnectedAccountsModal();
