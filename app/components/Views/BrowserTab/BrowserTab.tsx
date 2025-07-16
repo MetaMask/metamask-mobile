@@ -969,7 +969,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
   const sendActiveAccount = useCallback(async (targetUrl?: string) => {
     // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
     const urlToCheck = targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
-    
+
     if (!urlToCheck) {
       // If no URL to check, send empty accounts
       notifyAllConnections({
@@ -978,7 +978,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       });
       return;
     }
-    
+
     try {
       // Get permitted accounts for the target URL
       const permissionsControllerState = Engine.context.PermissionController.state;
@@ -987,7 +987,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         permissionsControllerState,
         hostname,
       );
-  
+
       notifyAllConnections({
         method: NOTIFICATION_NAMES.accountsChanged,
         params: permittedAcc,
@@ -1016,7 +1016,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
       // Cancel loading the page if we detect its a phishing page
       const isAllowed = await isAllowedOrigin(urlOrigin);
       if (!isAllowed) {
-        handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
+        handleNotAllowedUrl(urlOrigin);
         return false;
       }
 
@@ -1380,7 +1380,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
 
       const newOrigin = new URLParse(url).origin;
       const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
-      
+
       // Reset bridge if origin changed
       if (newOrigin !== currentOrigin) {
         backgroundBridgeRef.current?.onDisconnect();
