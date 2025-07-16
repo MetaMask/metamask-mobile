@@ -15,9 +15,10 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     getStartedImage: {
-      width: screenWidth,
-      height: screenWidth * 0.75,
+      width: screenWidth * 0.65,
+      height: screenWidth * 0.49,
       alignSelf: 'center',
+      marginVertical: 16,
     },
     bulletPointContainer: {
       marginVertical: 8,
