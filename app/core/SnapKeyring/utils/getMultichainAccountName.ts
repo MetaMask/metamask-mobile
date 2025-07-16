@@ -29,23 +29,22 @@ export function getMultichainAccountName(
           accountNameToUse = `${strings(
             'accounts.labels.bitcoin_testnet_account_name',
           )} ${accountNumber}`;
+          break;
         case BtcScope.Signet:
           accountNameToUse = `${strings(
             'accounts.labels.bitcoin_signet_account_name',
           )} ${accountNumber}`;
+          break;
         case BtcScope.Regtest:
           accountNameToUse = `${strings(
             'accounts.labels.bitcoin_regtest_account_name',
           )} ${accountNumber}`;
+          break;
         default:
           accountNameToUse = `${strings(
             'accounts.labels.bitcoin_account_name',
           )} ${accountNumber}`;
           break;
-      }
-
-      if (scope === BtcScope.Testnet) {
-        break;
       }
       break;
     }
