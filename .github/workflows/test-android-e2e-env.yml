@@ -15,7 +15,7 @@ jobs:
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
           platform: android
-          setup-simulator: true
+          setup-simulator: false
 
         
       - name: Print Android Environment Info
