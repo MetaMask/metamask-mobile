@@ -8,6 +8,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
