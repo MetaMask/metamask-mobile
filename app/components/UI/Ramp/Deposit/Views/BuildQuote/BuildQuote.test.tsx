@@ -206,12 +206,15 @@ describe('BuildQuote Component', () => {
         ),
       );
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_PAYMENT_METHOD_SELECTED', {
-        ramp_type: 'DEPOSIT',
-        region: 'US',
-        payment_method_id: 'credit_debit_card',
-        is_authenticated: false,
-      });
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: 'US',
+          payment_method_id: 'credit_debit_card',
+          is_authenticated: false,
+        },
+      );
     });
   });
 
