@@ -728,20 +728,22 @@
       "viewBalance": "View Balance",
       "selectToken": "Select token to pay with",
       "steps": {
+        "preparing": "Preparing deposit...",
         "swapping": "Swapping {{token}} to USDC",
         "bridging": "Bridging to Hyperliquid",
         "depositing": "Depositing into perps account",
         "depositingDirect": "Transferring USDC directly to your HyperLiquid account..."
       },
       "stepDescriptions": {
+        "preparing": "Preparing your deposit transaction...",
         "swapping": "Converting your tokens to USDC for deposit...",
         "bridging": "Moving USDC to Arbitrum network...",
         "depositing": "Transferring USDC to your HyperLiquid account...",
-        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account"
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
       },
       "processing": "Processing...",
       "completed": "Transaction completed",
-      "confirming": "Confirming on blockchain",
       "transactionHash": "Transaction Hash",
       "viewTransaction": "View Transaction",
       "success": {
@@ -757,7 +759,7 @@
     },
     "order": {
       "title": "New Order",
-      "success": {
+      "orderSuccess": {
         "title": "Order Success"
       },
       "details": {
@@ -801,7 +803,7 @@
         "invalidStopLoss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidationWarning": "Position is close to liquidation price"
       },
-      "success": {
+      "orderPlaced": {
         "title": "Order Placed Successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
         "orderPlaced": "Order placed successfully",
@@ -823,18 +825,6 @@
       "title": "Positions",
       "details": {
         "title": "Position Details"
-      }
-    },
-    "deposit": {
-      "title": "Deposit",
-      "preview": {
-        "title": "Deposit Preview"
-      },
-      "processing": {
-        "title": "Processing Deposit"
-      },
-      "success": {
-        "title": "Deposit Success"
       }
     }
   },

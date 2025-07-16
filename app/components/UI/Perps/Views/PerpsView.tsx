@@ -28,8 +28,11 @@ import {
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
+import Routes from '../../../../constants/navigation/Routes';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { PerpsNavigationParamList } from '../types/navigation';
 
-interface PerpsViewProps {}
+interface PerpsViewProps { }
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -70,6 +73,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
@@ -153,9 +157,8 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     try {
       DevLogger.log('Perps: Toggling testnet...', {
         currentNetworkBefore: currentNetwork,
-        buttonLabel: `Switch to ${
-          currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
-        }`,
+        buttonLabel: `Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
+          }`,
       });
 
       const toggleResult = await toggleTestnet();
@@ -261,13 +264,22 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             style={styles.button}
           />
 
+
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={`Switch to ${
-              currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
-            }`}
+            label="Deposit Funds"
+            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT)}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={`Switch to ${currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
+              }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
             style={styles.button}

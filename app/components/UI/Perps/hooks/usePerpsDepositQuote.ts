@@ -1,0 +1,330 @@
+import { parseCaipAssetId, parseCaipChainId } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../../reducers';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { selectGasFeeEstimatesByChainId } from '../../../../selectors/gasFeeController';
+import { selectProviderConfig, selectTicker } from '../../../../selectors/networkController';
+import { selectPrimaryCurrency } from '../../../../selectors/settings';
+import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { formatAmount } from '../../SimulationDetails/formatAmount';
+import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
+// TODO: Import Engine when implementing real quote API calls
+// import Engine from '../../../../core/Engine';
+import I18n from '../../../../../locales/i18n';
+import type { PerpsToken } from '../components/PerpsTokenSelector';
+import { getBridgeInfo } from '../constants/hyperLiquidConfig';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type { AssetRoute } from '../controllers/types';
+
+interface PerpsDepositQuoteParams {
+  amount: string;
+  selectedToken: PerpsToken;
+  getDepositRoutes?: () => AssetRoute[];
+}
+
+interface FormattedQuoteData {
+  networkFee: string;
+  estimatedTime: string;
+  receivingAmount: string;
+  exchangeRate?: string;
+}
+
+/**
+ * Hook for getting Perps deposit quote data following Bridge patterns
+ *
+ * IMPORTANT: This follows Bridge's approach of getting quote data from backend APIs
+ * - Gas fees come from quote.totalNetworkFee (NOT hardcoded gas limits)
+ * - Processing time comes from quote.estimatedProcessingTimeInSeconds
+ * - All data should be fetched from HyperLiquid quote API, not calculated locally
+ *
+ * Current implementation uses mock data with TODOs for real API integration
+ */
+export const usePerpsDepositQuote = ({ amount, selectedToken, getDepositRoutes }: PerpsDepositQuoteParams) => {
+  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
+  const ticker = useSelector(selectTicker);
+  const fiatFormatter = useFiatFormatter();
+  const locale = I18n.locale;
+
+  // Quote refresh state following Bridge pattern
+  const [isLoading, setIsLoading] = useState(false);
+  const [quoteFetchError, setQuoteFetchError] = useState<string | null>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
+
+  const REFRESH_RATE = 30 * 1000; // 30 seconds like Bridge
+
+  // Get selectors for gas estimation and pricing data
+  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  const providerConfig = useSelector(selectProviderConfig);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const chainId = providerConfig.chainId;
+  const gasFeeEstimates = useSelector((state: RootState) =>
+    selectGasFeeEstimatesByChainId(state, chainId)
+  );
+
+  // Network fee calculation using real gas estimation
+  const getNetworkFee = useCallback(async () => {
+    if (!selectedAccount || !amount || parseFloat(amount) === 0) return '-';
+
+    try {
+      // Path determination logic
+      const isArbitrum = providerConfig.chainId === '0xa4b1';
+      const isUSDC = selectedToken.symbol === 'USDC';
+      const isDirectDeposit = isUSDC && isArbitrum;
+
+      // For direct USDC deposits on Arbitrum, estimate deposit transaction gas
+      if (isDirectDeposit) {
+        // Get bridge contract info from configuration
+        const bridgeInfo = getBridgeInfo(false); // false = mainnet
+
+        // Create transaction parameters for USDC deposit to HyperLiquid bridge
+        const transactionParams = {
+          from: selectedAccount,
+          to: bridgeInfo.contractAddress,
+          value: '0x0',
+          data: '0x', // Would be actual deposit call data
+        };
+
+        const gasEstimates = await getTransaction1559GasFeeEstimates(
+          transactionParams,
+          providerConfig.chainId,
+        );
+
+        if (gasEstimates.maxFeePerGas) {
+          // Estimate gas limit for deposit transaction (typical ERC20 transfer + bridge call)
+          const estimatedGasLimit = new BigNumber('150000'); // Reasonable estimate for bridge deposit
+          const gasFeeWei = new BigNumber(gasEstimates.maxFeePerGas).multipliedBy(estimatedGasLimit);
+          const gasFeeEth = gasFeeWei.dividedBy(new BigNumber(10).pow(18));
+
+          if (primaryCurrency === 'ETH') {
+            const formattedAmount = formatAmount(locale, gasFeeEth);
+            return `${formattedAmount} ${ticker}`;
+          }
+          // Use actual currency rates for fiat conversion
+          const ethPrice = currencyRates?.ETH?.usdConversionRate || 2500;
+          const fiatValue = gasFeeEth.multipliedBy(ethPrice);
+
+          // For very small amounts, show more precision
+          if (fiatValue.isLessThan(0.01)) {
+            return `$${fiatValue.toFixed(4)}`;
+          }
+
+          return fiatFormatter(fiatValue);
+        }
+      }
+
+      // TODO: For bridging scenarios, integrate with Bridge controller
+      // Should call Engine.context.BridgeController for cross-chain quotes
+      return 'Calculating...';
+    } catch (error) {
+      console.warn('Failed to estimate gas fee:', error);
+      return '-';
+    }
+  }, [selectedAccount, amount, selectedToken, providerConfig, primaryCurrency, ticker, locale, fiatFormatter, currencyRates]);
+
+  // Dynamic estimated time calculation using real gas fee estimates and path analysis
+  const getEstimatedTime = useCallback((): string => {
+    DevLogger.log('PerpsDepositQuote: getEstimatedTime called', {
+      hasGasFeeEstimates: !!gasFeeEstimates,
+      hasGetDepositRoutes: !!getDepositRoutes,
+      selectedToken,
+    });
+
+    // Use gas fee estimates to get real network-based time estimates
+    if (!gasFeeEstimates) {
+      DevLogger.log('PerpsDepositQuote: No gas fee estimates available');
+      return '';
+    }
+
+    try {
+      // For direct deposits on Arbitrum (no bridging needed)
+      // Get deposit routes from PerpsController if available
+      if (getDepositRoutes) {
+        const depositRoutes = getDepositRoutes();
+        DevLogger.log('PerpsDepositQuote: Got deposit routes', { depositRoutes });
+        const matchingRoute = depositRoutes.find((route: AssetRoute) => {
+          // Parse token asset ID using MetaMask CAIP utilities
+          const parsedAsset = parseCaipAssetId(route.assetId);
+          const chainHex = `0x${parseInt(parsedAsset.chainId.split(':')[1], 10).toString(16)}`;
+
+          return chainHex === selectedToken.chainId && parsedAsset.assetReference.toLowerCase() === selectedToken.address.toLowerCase();
+        });
+
+        DevLogger.log('PerpsDepositQuote: Route matching', {
+          matchingRoute,
+          selectedTokenChainId: selectedToken.chainId,
+          selectedTokenSymbol: selectedToken.symbol,
+        });
+
+        if (matchingRoute && selectedToken.chainId && selectedToken.symbol === 'USDC') {
+          // Use MetaMask's CAIP utilities to parse chain ID
+          const parsedChain = parseCaipChainId(matchingRoute.chainId);
+          const targetChainHex = `0x${parseInt(parsedChain.reference, 10).toString(16)}`;
+
+          DevLogger.log('PerpsDepositQuote: Chain comparison', {
+            selectedTokenChainId: selectedToken.chainId,
+            targetChainHex,
+            matches: selectedToken.chainId === targetChainHex,
+          });
+
+          if (selectedToken.chainId === targetChainHex) {
+            // Use medium gas level time estimates
+            if (gasFeeEstimates && typeof gasFeeEstimates === 'object' && 'medium' in gasFeeEstimates) {
+              const medium = gasFeeEstimates.medium;
+              if (medium && typeof medium === 'object' &&
+                'minWaitTimeEstimate' in medium && 'maxWaitTimeEstimate' in medium) {
+                const minWait = Math.ceil((medium.minWaitTimeEstimate as number) / 1000); // Convert ms to seconds
+                const maxWait = Math.ceil((medium.maxWaitTimeEstimate as number) / 1000);
+
+                DevLogger.log('PerpsDepositQuote: Gas estimates timing', {
+                  minWaitTimeEstimate: medium.minWaitTimeEstimate,
+                  maxWaitTimeEstimate: medium.maxWaitTimeEstimate,
+                  minWait,
+                  maxWait,
+                });
+
+                // For Arbitrum, gas estimates are often very low (1-2 seconds)
+                // Use more realistic time estimates for transaction confirmation
+                const realisticMinWait = Math.max(minWait, 15); // At least 15 seconds
+                const realisticMaxWait = Math.max(maxWait, 30); // At least 30 seconds
+
+                DevLogger.log('PerpsDepositQuote: Realistic timing', {
+                  realisticMinWait,
+                  realisticMaxWait,
+                });
+
+                if (realisticMinWait < 60 && realisticMaxWait < 60) {
+                  const result = `${realisticMinWait}-${realisticMaxWait} seconds`;
+                  DevLogger.log('PerpsDepositQuote: Final time result', { result });
+                  return result;
+                }
+                const minMin = Math.ceil(realisticMinWait / 60);
+                const maxMin = Math.ceil(realisticMaxWait / 60);
+                const result = `${minMin}-${maxMin} minutes`;
+                DevLogger.log('PerpsDepositQuote: Final time result (minutes)', { result });
+                return result;
+              }
+            }
+            // Fallback for direct deposits if no gas estimates
+            DevLogger.log('PerpsDepositQuote: No gas estimates structure found');
+            return '';
+          }
+        }
+      } else {
+        DevLogger.log('PerpsDepositQuote: No getDepositRoutes function available');
+      }
+
+      // For cross-chain deposits that require bridging
+      // TODO: Integrate with Bridge API for real bridge time estimates
+      DevLogger.log('PerpsDepositQuote: No matching route found, returning empty');
+      return ''; // Don't show estimate until we have real data
+    } catch (error) {
+      DevLogger.log('PerpsDepositQuote: Error in getEstimatedTime', { error });
+      return '';
+    }
+  }, [gasFeeEstimates, getDepositRoutes, selectedToken]);
+
+  // Calculate receiving amount (1:1 for USDC, estimated for other tokens)
+  const getReceivingAmount = useCallback(() => {
+    const depositAmount = parseFloat(amount || '0');
+    if (depositAmount === 0) return '0.00';
+
+    // For USDC deposits, it's 1:1
+    if (selectedToken.symbol === 'USDC') {
+      return `${depositAmount.toFixed(2)} USDC`;
+    }
+
+    // For other tokens, we'd typically show estimated USDC amount
+    // This would come from real quote data in production
+    return `~${depositAmount.toFixed(2)} USDC`;
+  }, [amount, selectedToken]);
+
+  // Exchange rate display (if not direct USDC) using real price data
+  const getExchangeRate = useCallback(() => {
+    if (selectedToken.symbol === 'USDC') return undefined;
+
+    try {
+      // For ETH, use currency rates
+      if (selectedToken.symbol === 'ETH' && currencyRates?.ETH?.usdConversionRate) {
+        const ethPriceUsd = new BigNumber(currencyRates.ETH.usdConversionRate).toFixed(2);
+        return `1 ETH ≈ ${ethPriceUsd} USDC`;
+      }
+
+      // For other tokens, use a simple placeholder until real price API integration
+      // TODO: Integrate with proper token price APIs for other tokens
+      return `1 ${selectedToken.symbol} ≈ ? USDC`;
+    } catch (error) {
+      console.warn('Failed to get exchange rate:', error);
+      return `1 ${selectedToken.symbol} ≈ ? USDC`;
+    }
+  }, [selectedToken, currencyRates]);
+
+  // Refresh quotes automatically (calling real gas estimation)
+  useEffect(() => {
+    const refreshQuotes = async () => {
+      if (!amount || parseFloat(amount) === 0) return;
+
+      setIsLoading(true);
+      setQuoteFetchError(null);
+
+      try {
+        // TODO: Call PerpsController.getDepositQuote() for real quote data
+        // const quote = await Engine.context.PerpsController.getDepositQuote({
+        //   amount,
+        //   token: selectedToken,
+        //   fromChain: providerConfig.chainId
+        // });
+
+        setLastRefreshTime(Date.now());
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to refresh quote:', error);
+        setQuoteFetchError('Failed to refresh quote data');
+        setIsLoading(false);
+      }
+    };
+
+    // Initial refresh
+    refreshQuotes();
+
+    // Set up interval for automatic refresh
+    const interval = setInterval(refreshQuotes, REFRESH_RATE);
+
+    return () => clearInterval(interval);
+  }, [amount, selectedToken, REFRESH_RATE, getDepositRoutes]);
+
+  // State for async network fee calculation
+  const [networkFee, setNetworkFee] = useState<string>('-');
+
+  // Calculate network fee when dependencies change
+  useEffect(() => {
+    const calculateNetworkFee = async () => {
+      const fee = await getNetworkFee();
+      setNetworkFee(fee);
+    };
+
+    calculateNetworkFee();
+  }, [getNetworkFee]);
+
+  const formattedQuoteData: FormattedQuoteData = useMemo(() => {
+    const estimatedTime = getEstimatedTime();
+    const result = {
+      networkFee,
+      estimatedTime,
+      receivingAmount: getReceivingAmount(),
+      exchangeRate: getExchangeRate(),
+    };
+
+    DevLogger.log('PerpsDepositQuote: formattedQuoteData created', { result });
+    return result;
+  }, [networkFee, getEstimatedTime, getReceivingAmount, getExchangeRate]);
+
+  return {
+    formattedQuoteData,
+    isLoading,
+    quoteFetchError,
+    lastRefreshTime,
+  };
+};
