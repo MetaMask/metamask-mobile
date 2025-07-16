@@ -15,7 +15,7 @@ export const useIsNft = (): { isNft?: boolean; isPending: boolean } => {
   );
 
   const isNft =
-    !isPending && details.standard
+    !isPending && details.standard !== undefined
       ? details.standard !== TokenStandard.ERC20
       : undefined;
   return { isNft, isPending };
