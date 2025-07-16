@@ -54,7 +54,7 @@ const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef
             params: permittedAcc,
         });
     } catch (err) {
-        Logger.error(err as Error, 'Error in sendActiveAccount');
+        Logger.log(err);
         return;
     }
 };

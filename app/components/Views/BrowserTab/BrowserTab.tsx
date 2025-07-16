@@ -993,7 +993,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
         params: permittedAcc,
       });
     } catch (err) {
-      console.warn(err);
+      Logger.log(err);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifyAllConnections]);
