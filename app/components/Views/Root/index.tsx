@@ -24,61 +24,81 @@ import {
   StyleSheet,
   View,
   Platform,
-  DeviceEventEmitter,
 } from 'react-native';
-
-const styles = StyleSheet.create({
-  view: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-    zIndex: 1000,
-  },
-});
+import { useStyles } from '../../../component-library/hooks/useStyles';
+import { Theme } from '../../../util/theme/models';
 
 export function BackgroundSecurityOverlay() {
-  const [visible, setVisible] = useState(false);
+  const [blurScreen, setBlurScreen] = useState(false);
+  const { styles } = useStyles(
+    ({ theme }: { theme: Theme }) => ({
+      view: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: theme.colors.background.default,
+        zIndex: 1000,
+      },
+    }),
+    {},
+  );
 
   useEffect(() => {
-    // iOS / general background
-    const subAppState = AppState.addEventListener('change', (state) => {
-      if (Platform.OS === 'ios') {
-        setVisible(state !== 'active');
-      }
-    });
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      setBlurScreen((isShowingBlurScreen) => {
+        // FRANK: clean this up and explain, because it's using stale async data intentionally cuz android 🤖
+        switch (nextAppState) {
+          case 'active':
+            return Platform.OS === 'android'
+              ? !blurScreen
+              : !isShowingBlurScreen;
+          case 'background':
+            return true;
+          default:
+            return !blurScreen;
+        }
+      });
+    };
 
-    // Android: window focus lost / regained
-    // const subNative = nativeEmitter.addListener(
-    //   'windowFocusChanged',
-    //   (hasFocus: boolean) => {
-    //     console.log('XXXXXX - windowFocusChanged', hasFocus);
-    //     // blur when focus lost (Recent‑Apps, lock screen, etc.)
-    //     setVisible(!hasFocus);
-    //   },
-    // );
+    const handleAndroidAppStateChange = (nextAppState: AppStateStatus) => {
+      setBlurScreen((isShowingBlurScreen) => {
+        switch (nextAppState) {
+          case undefined:
+            return !isShowingBlurScreen;
+          default:
+            return false;
+        }
+      });
+    };
 
-    const subNative = DeviceEventEmitter.addListener(
-      'windowFocusChanged',
-      (hasFocus) => {
-        console.log('XXXXXX - windowFocusChanged', hasFocus);
-        setVisible(!hasFocus);
-      },
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
     );
 
-    // initialize on mount
-    if (Platform.OS === 'ios') {
-      setVisible(AppState.currentState !== 'active');
-    } else {
-      // assume we start focused
-      setVisible(false);
+    let androidBlurListener: any;
+    let androidFocusListener: any;
+
+    if (Platform.OS === 'android') {
+      androidBlurListener = AppState.addEventListener(
+        'blur',
+        handleAndroidAppStateChange,
+      );
+
+      androidFocusListener = AppState.addEventListener(
+        'focus',
+        handleAndroidAppStateChange,
+      );
     }
 
     return () => {
-      subAppState.remove();
-      subNative.remove();
+      subscription.remove();
+      if (Platform.OS === 'android') {
+        androidBlurListener?.remove();
+        androidFocusListener?.remove();
+      }
     };
   }, []);
 
-  if (!visible) return null;
+  if (!blurScreen) return null;
 
   return <View style={styles.view} />;
 }
@@ -125,7 +145,6 @@ const Root = ({ foxCode }: RootProps) => {
 
   return (
     <SafeAreaProvider>
-      <BackgroundSecurityOverlay />
       <Provider store={store}>
         <PersistGate persistor={persistor}>
           {
@@ -135,6 +154,7 @@ const Root = ({ foxCode }: RootProps) => {
             ///: END:ONLY_INCLUDE_IF
           }
           <ThemeProvider>
+            <BackgroundSecurityOverlay />
             <NavigationProvider>
               <ControllersGate>
                 <ToastContextWrapper>
