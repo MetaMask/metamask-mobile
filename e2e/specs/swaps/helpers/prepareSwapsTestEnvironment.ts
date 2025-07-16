@@ -12,19 +12,21 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
  * @throws {Error} If disabling stx fails
  */
 export async function prepareSwapsTestEnvironment(): Promise<void> {
-    try {
-        // Add a new account
-        await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateEthereumAccount();
-         await AccountListBottomSheet.swipeToDismissAccountsModal();
+  try {
+    // Add a new account
+    await WalletView.tapIdenticon();
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapCreateEthereumAccount();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
 
-        // Disable Smart Transactions (stx)
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapAdvancedTitle();
-        await AdvancedSettingsView.tapSmartTransactionSwitch();
-        await TabBarComponent.tapWallet();
-    } catch (e) {
-        throw new Error('Failed swap tests preparation: ' + (e instanceof Error ? e.message : e));
-    }
+    // Disable Smart Transactions (stx)
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
+  } catch (e) {
+    throw new Error(
+      'Failed swap tests preparation: ' + (e instanceof Error ? e.message : e),
+    );
+  }
 }

@@ -95,7 +95,9 @@ describe('AddAccountActions', () => {
 
     // Check for standard options
     expect(
-      screen.getByTestId(AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON),
+      screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+      ),
     ).toBeDefined();
     expect(
       screen.getByTestId(
