@@ -164,6 +164,7 @@
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
     "@ethereumjs/tx": "^5.4.0",
+    "@open-rpc/mock-server/**/jsonpath-plus": "^10.3.0",
     "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0"
   },
   "dependencies": {
