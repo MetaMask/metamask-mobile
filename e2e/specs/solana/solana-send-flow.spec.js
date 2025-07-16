@@ -7,7 +7,6 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SnapSendActionSheet from '../../pages/wallet/SendActionBottomSheet';
-import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -46,6 +45,9 @@ describe(
 
       await Assertions.checkIfVisible(NetworkEducationModal.container);
       await NetworkEducationModal.tapGotItButton();
+
+      await WalletView.tapCurrentMainWalletAccountActions();
+      await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
     });
 
     it('should validate recipient address format correctly', async () => {
