@@ -14,12 +14,20 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
+  ONBOARDING_WIZARD,
 } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  NavigationState,
+  PartialState,
+} from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
@@ -123,6 +131,48 @@ jest.mock('react-native-branch', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
+jest.mock('../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../selectors/accountsController'),
+  getMemoizedInternalAccountByAddress: jest.fn(() => mockAccount),
+}));
+
+jest.mock('../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../selectors/networkController'),
+  selectChainId: jest.fn().mockReturnValue('1'),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getInternalAccountByAddress: () => mockAccount,
+}));
+
+jest.mock('../../../components/hooks/useAsyncResult', () => ({
+  useAsyncResultOrThrow: jest.fn().mockResolvedValue({
+    pending: false,
+    value: {},
+  }),
+}));
+
+// Mock 7702 networks
+jest.mock(
+  '../../../components/Views/confirmations/hooks/7702/useEIP7702Networks',
+  () => ({
+    useEIP7702Networks: jest.fn().mockReturnValue({
+      network7702List: [],
+      networkSupporting7702Present: false,
+      pending: false,
+    }),
+  }),
+);
+
+jest.mock('../../../core/Multichain/networks', () => ({
+  getMultichainBlockExplorer: jest.fn().mockReturnValue({
+    url: 'https://etherscan.io/address/0x1232323',
+    title: 'Etherscan (Multichain)',
+    blockExplorerName: 'Etherscan (Multichain)',
+  }),
 }));
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
@@ -273,6 +323,166 @@ describe('App', () => {
       expect(
         getByText(strings('onboarding_carousel.get_started')),
       ).toBeTruthy();
+    });
+  });
+
+  describe('Renders multichain account details', () => {
+    const mockLoggedInState = {
+      ...initialState,
+      user: {
+        userLoggedIn: true,
+      },
+      settings: {
+        useBlockieIcon: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [
+              {
+                type: KeyringTypes.hd,
+                metadata: {
+                  name: 'Test Keyring',
+                  id: 'test-hd',
+                },
+                accounts: [mockAccount.address],
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    beforeAll(() => {
+      jest.mock('react-native-safe-area-context', () => {
+        const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+        const frame = { width: 0, height: 0, x: 0, y: 0 };
+        return {
+          SafeAreaProvider: jest
+            .fn()
+            .mockImplementation(({ children }) => children),
+          SafeAreaConsumer: jest
+            .fn()
+            .mockImplementation(({ children }) => children(inset)),
+          useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+          useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+        };
+      });
+
+      // Mock the storage item to simulate existing user and bypass onboarding
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === EXISTING_USER) {
+          return true; // User exists
+        }
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true; // OptinMetrics UI has been seen
+        }
+        if (key === ONBOARDING_WIZARD) {
+          return true;
+        }
+        return null; // Default for other keys
+      });
+
+      // Mock Authentication to avoid auth flow
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+
+      jest.mock('../../../core/Engine', () => ({
+        context: {
+          TransactionController: {
+            isAtomicBatchSupported: () => true,
+          },
+        },
+      }));
+    });
+
+    const renderAppWithRouteState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(mockLoggedInState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders the multichain account details screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+            params: {
+              account: mockAccount,
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
+        ).toBeTruthy();
+      });
+    });
+
+    it('renders the multichain account edit name screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            params: {
+              screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+              params: {
+                account: mockAccount,
+              },
+            },
+          },
+        ],
+      };
+
+      const { getByText } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByText('Edit Account Name')).toBeTruthy();
+      });
+    });
+
+    it('renders the multichain account share address screen when navigated to', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+            params: {
+              screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+              params: {
+                account: mockAccount,
+              },
+            },
+          },
+        ],
+      };
+
+      const { getByText } = renderAppWithRouteState(routeState);
+
+      await waitFor(() => {
+        expect(getByText('Share Address')).toBeTruthy();
+      });
     });
   });
 
