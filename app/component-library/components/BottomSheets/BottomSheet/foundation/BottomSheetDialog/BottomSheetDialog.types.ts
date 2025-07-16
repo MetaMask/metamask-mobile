@@ -20,6 +20,11 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   isInteractable?: boolean;
   /**
+   * Optional boolean that indicates if the KeyboardAvoidingView is enabled.
+   * @default true
+   */
+  keyboardAvoidingViewEnabled?: boolean;
+  /**
    * Optional callback that gets triggered when sheet is closed.
    */
   onClose?: (hasPendingAction?: boolean) => void;
