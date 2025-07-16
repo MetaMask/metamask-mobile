@@ -800,7 +800,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                   }
                                 >
-                                  Failed to fetch quote.
+                                  Failed to fetch quote
                                 </Text>
                               </View>
                             </View>
@@ -4428,7 +4428,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                   }
                                 >
-                                  An unexpected error occurred.
+                                  Routing failed
                                 </Text>
                               </View>
                             </View>
