@@ -31,6 +31,16 @@ jest.mock('../../hooks/useDepositRouting', () => ({
   }),
 }));
 
+jest.mock('../../../../../../util/navigation/navUtils.ts', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils.ts'),
+  useParams: () => ({
+    quote: { id: 'test-quote' },
+    kycUrl: 'https://test-kyc-url.com',
+    cryptoCurrencyChainId: '1',
+    paymentMethodId: 'pm_123',
+  }),
+}));
+
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.VERIFY_IDENTITY);
 }
@@ -61,8 +71,8 @@ describe('AdditionalVerification Component', () => {
     fireEvent.press(continueButton);
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
-      quote: expect.any(Object),
-      kycUrl: expect.any(String),
+      quote: { id: 'test-quote' },
+      kycUrl: 'https://test-kyc-url.com',
     });
   });
 });
