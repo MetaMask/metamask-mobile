@@ -450,11 +450,8 @@ export const useDepositRouting = ({
       clearAuthToken,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
-<<<<<<< HEAD
       trackEvent,
-=======
       navigateToAdditionalVerificationCallback,
->>>>>>> 67e871cc994621f15dac7a662275ae3cc5af594e
     ],
   );
 
