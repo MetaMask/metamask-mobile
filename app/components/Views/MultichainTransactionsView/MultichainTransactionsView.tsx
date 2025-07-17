@@ -15,6 +15,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
@@ -24,7 +25,6 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
-import { selectSelectedInternalAccountFormattedAddress } from 'app/selectors/accountsController';
 
 interface MultichainTransactionsViewProps {
   /**

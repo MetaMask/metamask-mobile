@@ -414,7 +414,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -548,7 +547,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -2412,7 +2410,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -2546,7 +2543,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -4410,7 +4406,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -4544,7 +4539,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -6447,7 +6441,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -6581,7 +6574,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -8445,7 +8437,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -8579,7 +8570,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -10443,7 +10433,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -10577,7 +10566,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -12913,7 +12901,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -13047,7 +13034,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -14911,7 +14897,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -15045,7 +15030,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
