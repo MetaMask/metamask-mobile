@@ -323,7 +323,7 @@
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
-    "other_methods": "Use another method",
+    "other_methods": "Use a different login method",
 
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
