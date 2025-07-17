@@ -211,7 +211,13 @@ export default {
     }
   },
 
-  async setEncryptedValue(key, value, authenticationType = this.TYPES.REMEMBER_ME) {
+  async setEncryptedValue(key, value, authenticationType = this.TYPES.REMEMBER_ME, options = {}) {
+    const {
+      username = `metamask-${key}`,
+      service = `com.metamask.${key}`,
+      ...additionalOptions
+    } = options;
+
     const authOptions = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     };
@@ -223,20 +229,25 @@ export default {
     }
 
     const encryptedValue = await instance.encryptData(value);
-    const serviceName = `com.metamask.${key}`;
 
-    await Keychain.setGenericPassword(`metamask-${key}`, encryptedValue, {
-      service: serviceName,
+    await Keychain.setGenericPassword(username, encryptedValue, {
+      service,
       ...authOptions,
+      ...additionalOptions,
     });
   },
 
-  async getEncryptedValue(key) {
+  async getEncryptedValue(key, options = {}) {
     if (instance) {
       try {
-        const serviceName = `com.metamask.${key}`;
+        const {
+          service = `com.metamask.${key}`,
+          ...additionalOptions
+        } = options;
+
         const keychainObject = await Keychain.getGenericPassword({
-          service: serviceName,
+          service,
+          ...additionalOptions,
         });
         
         if (keychainObject && keychainObject.password) {
@@ -250,10 +261,102 @@ export default {
     return null;
   },
 
-  async resetEncryptedValue(key) {
-    const serviceName = `com.metamask.${key}`;
-    const options = { service: serviceName };
-    return Keychain.resetGenericPassword(options);
+  async resetEncryptedValue(key, options = {}) {
+    const {
+      service = `com.metamask.${key}`,
+      ...additionalOptions
+    } = options;
+
+    const keychainOptions = { service, ...additionalOptions };
+    return Keychain.resetGenericPassword(keychainOptions);
+  },
+
+  /**
+   * Register a custom service with full configuration
+   * @param {string} serviceId - Unique identifier for the service
+   * @param {Object} config - Service configuration
+   * @param {string} config.username - Custom username for the keychain entry
+   * @param {string} config.service - Custom service name for the keychain entry
+   * @param {string} config.key - The key used for encryption/decryption
+   * @param {string} [config.authenticationType] - Authentication type (BIOMETRICS, PASSCODE, REMEMBER_ME)
+   * @param {Object} [config.additionalOptions] - Additional keychain options
+   */
+  registerService(serviceId, config) {
+    if (!this.registeredServices) {
+      this.registeredServices = new Map();
+    }
+    this.registeredServices.set(serviceId, config);
+  },
+
+  /**
+   * Set encrypted value using a registered service
+   * @param {string} serviceId - The registered service ID
+   * @param {*} value - Value to encrypt and store
+   */
+  async setEncryptedValueWithService(serviceId, value) {
+    const service = this.registeredServices?.get(serviceId);
+    if (!service) {
+      throw new Error(`Service '${serviceId}' is not registered`);
+    }
+
+    const {
+      username,
+      service: serviceName,
+      key,
+      authenticationType = this.TYPES.REMEMBER_ME,
+      additionalOptions = {}
+    } = service;
+
+    return this.setEncryptedValue(key, value, authenticationType, {
+      username,
+      service: serviceName,
+      ...additionalOptions,
+    });
+  },
+
+  /**
+   * Get encrypted value using a registered service
+   * @param {string} serviceId - The registered service ID
+   * @returns {*} The decrypted value
+   */
+  async getEncryptedValueWithService(serviceId) {
+    const service = this.registeredServices?.get(serviceId);
+    if (!service) {
+      throw new Error(`Service '${serviceId}' is not registered`);
+    }
+
+    const {
+      service: serviceName,
+      key,
+      additionalOptions = {}
+    } = service;
+
+    return this.getEncryptedValue(key, {
+      service: serviceName,
+      ...additionalOptions,
+    });
+  },
+
+  /**
+   * Reset encrypted value using a registered service
+   * @param {string} serviceId - The registered service ID
+   */
+  async resetEncryptedValueWithService(serviceId) {
+    const service = this.registeredServices?.get(serviceId);
+    if (!service) {
+      throw new Error(`Service '${serviceId}' is not registered`);
+    }
+
+    const {
+      service: serviceName,
+      key,
+      additionalOptions = {}
+    } = service;
+
+    return this.resetEncryptedValue(key, {
+      service: serviceName,
+      ...additionalOptions,
+    });
   },
 
   ACCESS_CONTROL: Keychain.ACCESS_CONTROL,
