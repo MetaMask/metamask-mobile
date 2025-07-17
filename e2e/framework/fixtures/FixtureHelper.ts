@@ -201,9 +201,9 @@ async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
 }
 
 /**
- *
- * @param dapps
- * @param dappServer
+ * Handles the dapps by stopping the servers and closing the ports.
+ * @param dapps - The dapps to stop.
+ * @param dappServer - The dapp server to stop.
  */
 async function handleDappCleanup(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
   for (let i = 0; i < dapps.length; i++) {
