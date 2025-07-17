@@ -51,7 +51,7 @@ const AdditionalVerification = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: 'Verify your identity' },
+        { title: strings('deposit.additional_verification.title') },
         theme,
       ),
     );
