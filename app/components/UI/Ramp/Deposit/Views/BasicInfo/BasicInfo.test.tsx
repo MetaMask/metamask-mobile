@@ -27,6 +27,10 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockUseDepositSDK = jest.fn();
 
+let mockRouteParams: { quote: BuyQuote; kycUrl?: string } = {
+  quote: mockQuote as unknown as BuyQuote,
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -39,7 +43,7 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: { quote: mockQuote as unknown as BuyQuote },
+      params: mockRouteParams,
     }),
   };
 });
@@ -75,6 +79,8 @@ describe('BasicInfo Component', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
     });
+
+    mockRouteParams = { quote: mockQuote as unknown as BuyQuote };
   });
 
   afterEach(() => {
@@ -156,6 +162,31 @@ describe('BasicInfo Component', () => {
       region: 'US',
       ramp_type: 'DEPOSIT',
       kyc_type: 'SIMPLE',
+    });
+  });
+
+  it('tracks analytics event with STANDARD kyc_type when kycUrl is provided', () => {
+    const dob = new Date('1990-01-01').getTime().toString();
+    const kycUrl = 'https://example.com/kyc';
+
+    mockRouteParams = { quote: mockQuote as unknown as BuyQuote, kycUrl };
+
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BASIC_INFO_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'STANDARD',
     });
   });
 });

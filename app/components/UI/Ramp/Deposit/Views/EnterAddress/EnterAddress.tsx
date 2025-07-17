@@ -208,7 +208,7 @@ const EnterAddress = (): JSX.Element => {
     trackEvent('RAMPS_ADDRESS_ENTERED', {
       region: selectedRegion?.isoCode || '',
       ramp_type: 'DEPOSIT',
-      kyc_type: 'SIMPLE',
+      kyc_type: kycUrl ? 'STANDARD' : 'SIMPLE',
     });
 
     try {

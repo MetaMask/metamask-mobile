@@ -440,4 +440,30 @@ describe('EnterAddress Component', () => {
       });
     });
   });
+
+  it('tracks analytics event with STANDARD kyc_type when kycUrl is provided', async () => {
+    const kycUrl = 'https://example.com/kyc';
+    mockUseParamsReturnValue = {
+      formData: mockFormData,
+      quote: mockQuote,
+      kycUrl,
+    };
+
+    render(EnterAddress);
+
+    fillFormAndSubmit();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ADDRESS_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'STANDARD',
+    });
+
+    await waitFor(() => {
+      expect(mockNavigateToAdditionalVerification).toHaveBeenCalledWith({
+        quote: mockQuote,
+        kycUrl,
+      });
+    });
+  });
 });

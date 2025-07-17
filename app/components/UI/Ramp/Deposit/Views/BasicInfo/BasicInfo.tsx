@@ -140,7 +140,7 @@ const BasicInfo = (): JSX.Element => {
       trackEvent('RAMPS_BASIC_INFO_ENTERED', {
         region: selectedRegion?.isoCode || '',
         ramp_type: 'DEPOSIT',
-        kyc_type: 'SIMPLE',
+        kyc_type: kycUrl ? 'STANDARD' : 'SIMPLE',
       });
 
       navigation.navigate(
