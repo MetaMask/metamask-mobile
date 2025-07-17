@@ -550,46 +550,82 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                         }
                                       }
                                     >
-                                      <TextInput
-                                        autoCapitalize="none"
-                                        autoComplete="off"
-                                        autoCorrect={false}
-                                        autoFocus={true}
-                                        editable={true}
-                                        keyboardType="default"
-                                        multiline={true}
-                                        onChangeText={[Function]}
-                                        onKeyPress={[Function]}
-                                        placeholder="Add a space between each word and make sure no one is watching."
-                                        placeholderStyle={
-                                          {
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                          }
-                                        }
-                                        placeholderTextColor="#686e7d"
-                                        spellCheck={false}
+                                      <View
                                         style={
                                           {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                            "color": "#686e7d",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "height": 66,
-                                            "marginTop": -8,
-                                            "paddingHorizontal": 0,
+                                            "flexDirection": "row",
+                                            "flexWrap": "wrap",
                                             "width": "100%",
                                           }
                                         }
-                                        submitBehavior="submit"
-                                        testID="import-from-seed-screen-seed-phrase-input-id"
-                                        textAlignVertical="top"
-                                        textContentType="none"
-                                        value=""
-                                      />
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "transparent",
+                                              "borderColor": "#4459ff",
+                                              "borderRadius": 8,
+                                              "borderWidth": 0,
+                                              "flexDirection": "row",
+                                              "height": 66,
+                                              "opacity": 1,
+                                              "paddingHorizontal": 0,
+                                              "width": "100%",
+                                            }
+                                          }
+                                          testID="textfield"
+                                        >
+                                          <View
+                                            style={
+                                              {
+                                                "flex": 1,
+                                              }
+                                            }
+                                          >
+                                            <TextInput
+                                              autoCapitalize="none"
+                                              autoComplete="off"
+                                              autoCorrect={false}
+                                              autoFocus={true}
+                                              editable={true}
+                                              keyboardType="default"
+                                              multiline={true}
+                                              numberOfLines={1}
+                                              onBlur={[Function]}
+                                              onChangeText={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyPress={[Function]}
+                                              placeholder=" Add a space between each word and make sure no one is watching."
+                                              placeholderTextColor="#686e7d"
+                                              secureTextEntry={true}
+                                              showSoftInputOnFocus={true}
+                                              spellCheck={false}
+                                              style={
+                                                {
+                                                  "backgroundColor": "transparent",
+                                                  "borderColor": "transparent",
+                                                  "borderWidth": 1,
+                                                  "color": "#686e7d",
+                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "400",
+                                                  "height": 66,
+                                                  "letterSpacing": 0,
+                                                  "opacity": 1,
+                                                  "paddingVertical": 0,
+                                                  "width": "100%",
+                                                }
+                                              }
+                                              submitBehavior="submit"
+                                              testID="import-from-seed-screen-seed-phrase-input-id_0"
+                                              textAlignVertical="top"
+                                              textContentType="oneTimeCode"
+                                              value=""
+                                            />
+                                          </View>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={

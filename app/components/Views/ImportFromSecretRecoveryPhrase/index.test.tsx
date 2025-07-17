@@ -780,13 +780,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         strings('import_from_seed.srp_placeholder'),
       );
 
+      expect(textArea).toBeOnTheScreen();
+
       await act(async () => {
         fireEvent.changeText(textArea, 'test');
       });
 
       // Verify individual inputs are shown
       const firstInput = getByTestId(
-        ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
       );
       expect(firstInput).toBeOnTheScreen();
 
