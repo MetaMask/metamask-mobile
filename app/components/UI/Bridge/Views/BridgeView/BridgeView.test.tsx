@@ -390,6 +390,62 @@ describe('BridgeView', () => {
     });
   });
 
+  it('should not display max button when source token is native token', () => {
+    const stateWithNativeToken = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000', // Native ETH address
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          image: '',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+      },
+    };
+
+    const { queryByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: stateWithNativeToken },
+    );
+
+    // Verify max button is not present for native token
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('should display max button when source token is not native token', () => {
+    const stateWithERC20Token = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceToken: {
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC token address
+          chainId: '0x1' as Hex,
+          decimals: 6,
+          image: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { queryByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: stateWithERC20Token },
+    );
+
+    // Verify max button is present for ERC-20 token
+    expect(queryByText('Max')).toBeTruthy();
+  });
+
   it('should switch tokens when clicking arrow button', () => {
     const mockStateWithTokens = {
       ...mockState,
