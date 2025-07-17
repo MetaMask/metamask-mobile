@@ -53,17 +53,18 @@ export const BaseAccountDetails = ({
   const wallet = selectWallet?.(account.id);
 
   const handleEditAccountName = useCallback(() => {
-    navigation.navigate(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      {
-        account,
-      },
-    );
+    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      params: { account },
+    });
   }, [navigation, account]);
 
   const handleShareAddress = useCallback(() => {
-    navigation.navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS, {
-      account,
+    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+      params: {
+        account,
+      },
     });
   }, [navigation, account]);
 

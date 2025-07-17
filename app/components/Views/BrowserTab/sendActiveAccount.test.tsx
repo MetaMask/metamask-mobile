@@ -15,26 +15,32 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     PermissionController: {
       state: {
-        subjects: {}
-      }
-    }
-  }
+        subjects: {},
+      },
+    },
+  },
 }));
 
 const mockNotifyAllConnections = jest.fn();
-const mockGetPermittedEvmAddressesByHostname = getPermittedEvmAddressesByHostname as jest.MockedFunction<typeof getPermittedEvmAddressesByHostname>;
+const mockGetPermittedEvmAddressesByHostname =
+  getPermittedEvmAddressesByHostname as jest.MockedFunction<
+    typeof getPermittedEvmAddressesByHostname
+  >;
 const mockURLParse = URLParse as jest.MockedFunction<typeof URLParse>;
 const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
 // Extract and test the sendActiveAccount logic
-const createSendActiveAccount = (notifyAllConnections: jest.Mock, resolvedUrlRef: { current: string }) => async (targetUrl?: string) => {
+const createSendActiveAccount =
+  (notifyAllConnections: jest.Mock, resolvedUrlRef: { current: string }) =>
+  async (targetUrl?: string) => {
     try {
       // Use the target URL if provided, otherwise use current resolved URL
       const urlToCheck = targetUrl || resolvedUrlRef.current;
       if (!urlToCheck) return;
 
       const hostname = new URLParse(urlToCheck).hostname;
-      const permissionsControllerState = Engine.context.PermissionController.state;
+      const permissionsControllerState =
+        Engine.context.PermissionController.state;
 
       // Get permitted accounts specifically for the target hostname
       const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
@@ -62,12 +68,18 @@ describe('sendActiveAccount function', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resolvedUrlRef = { current: '' };
-    sendActiveAccount = createSendActiveAccount(mockNotifyAllConnections, resolvedUrlRef);
+    sendActiveAccount = createSendActiveAccount(
+      mockNotifyAllConnections,
+      resolvedUrlRef,
+    );
 
     // Setup default URL parsing mock
-    mockURLParse.mockImplementation((url: string) => ({
-      hostname: new URL(url).hostname,
-    }) as URLParse<Record<string, string>>);
+    mockURLParse.mockImplementation(
+      (url: string) =>
+        ({
+          hostname: new URL(url).hostname,
+        } as URLParse<Record<string, string>>),
+    );
   });
 
   describe('URL validation', () => {
@@ -117,34 +129,37 @@ describe('sendActiveAccount function', () => {
       const testCases = [
         {
           url: 'https://example.com',
-          expectedHostname: 'example.com'
+          expectedHostname: 'example.com',
         },
         {
           url: 'https://subdomain.example.com:8080/path?query=1',
-          expectedHostname: 'subdomain.example.com'
+          expectedHostname: 'subdomain.example.com',
         },
         {
           url: 'http://localhost:3000',
-          expectedHostname: 'localhost'
+          expectedHostname: 'localhost',
         },
         {
           url: 'https://dapp.uniswap.org/swap',
-          expectedHostname: 'dapp.uniswap.org'
-        }
+          expectedHostname: 'dapp.uniswap.org',
+        },
       ];
 
       for (const { url, expectedHostname } of testCases) {
-        mockURLParse.mockImplementation(() => ({
-          hostname: expectedHostname,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any));
+        mockURLParse.mockImplementation(
+          () =>
+            ({
+              hostname: expectedHostname,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any),
+        );
         mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
         await sendActiveAccount(url);
 
         expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
           Engine.context.PermissionController.state,
-          expectedHostname
+          expectedHostname,
         );
 
         mockURLParse.mockClear();
@@ -157,16 +172,19 @@ describe('sendActiveAccount function', () => {
     it('check permissions for the correct hostname', async () => {
       const targetUrl = 'https://test-dapp.com';
       const expectedHostname = 'test-dapp.com';
-      mockURLParse.mockImplementation(() => ({
-        hostname: expectedHostname,
-      }) as MockURLParse);
+      mockURLParse.mockImplementation(
+        () =>
+          ({
+            hostname: expectedHostname,
+          } as MockURLParse),
+      );
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
       await sendActiveAccount(targetUrl);
 
       expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
         Engine.context.PermissionController.state,
-        expectedHostname
+        expectedHostname,
       );
     });
 
@@ -178,7 +196,7 @@ describe('sendActiveAccount function', () => {
 
       expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
         Engine.context.PermissionController.state,
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -195,7 +213,10 @@ describe('sendActiveAccount function', () => {
 
     it('send notification when accounts are permitted', async () => {
       const targetUrl = 'https://authorized-dapp.com';
-      const permittedAccounts = ['0x1234567890123456789012345678901234567890', '0x0987654321098765432109876543210987654321'] as `0x${string}`[];
+      const permittedAccounts = [
+        '0x1234567890123456789012345678901234567890',
+        '0x0987654321098765432109876543210987654321',
+      ] as `0x${string}`[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
       await sendActiveAccount(targetUrl);
@@ -208,7 +229,11 @@ describe('sendActiveAccount function', () => {
 
     it('send notification with correct format', async () => {
       const targetUrl = 'https://dapp.com';
-      const permittedAccounts = ['0xabc1234567890123456789012345678901234567', '0xdef4567890123456789012345678901234567890', '0x7890123456789012345678901234567890123456'] as EthereumAddress[];
+      const permittedAccounts = [
+        '0xabc1234567890123456789012345678901234567',
+        '0xdef4567890123456789012345678901234567890',
+        '0x7890123456789012345678901234567890123456',
+      ] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
       await sendActiveAccount(targetUrl);
@@ -222,7 +247,9 @@ describe('sendActiveAccount function', () => {
 
     it('send notification with single account', async () => {
       const targetUrl = 'https://single-account-dapp.com';
-      const permittedAccounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
+      const permittedAccounts = [
+        '0x1111111111111111111111111111111111111111',
+      ] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
       await sendActiveAccount(targetUrl);
@@ -235,7 +262,12 @@ describe('sendActiveAccount function', () => {
 
     it('send notification with multiple accounts', async () => {
       const targetUrl = 'https://multi-account-dapp.com';
-      const permittedAccounts = ['0x1111111111111111111111111111111111111111', '0x2222222222222222222222222222222222222222', '0x3333333333333333333333333333333333333333', '0x4444444444444444444444444444444444444444'] as EthereumAddress[];
+      const permittedAccounts = [
+        '0x1111111111111111111111111111111111111111',
+        '0x2222222222222222222222222222222222222222',
+        '0x3333333333333333333333333333333333333333',
+        '0x4444444444444444444444444444444444444444',
+      ] as EthereumAddress[];
       mockGetPermittedEvmAddressesByHostname.mockReturnValue(permittedAccounts);
 
       await sendActiveAccount(targetUrl);
@@ -284,7 +316,10 @@ describe('sendActiveAccount function', () => {
       await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
 
       // Should log the error
-      expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        error,
+        'Error in sendActiveAccount',
+      );
 
       // Should not proceed to call other functions
       expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
@@ -302,7 +337,10 @@ describe('sendActiveAccount function', () => {
       await expect(sendActiveAccount(targetUrl)).resolves.toBeUndefined();
 
       // Should log the error
-      expect(mockLoggerLog).toHaveBeenCalledWith(error, 'Error in sendActiveAccount');
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        error,
+        'Error in sendActiveAccount',
+      );
 
       // Should not proceed to notify connections
       expect(mockNotifyAllConnections).not.toHaveBeenCalled();
@@ -314,19 +352,28 @@ describe('sendActiveAccount function', () => {
       const dapp1Url = 'https://dapp1.com';
       const dapp2Url = 'https://dapp2.com';
 
-      const dapp1Accounts = ['0x1111111111111111111111111111111111111111'] as EthereumAddress[];
-      const dapp2Accounts = ['0x2222222222222222222222222222222222222222'] as EthereumAddress[];
+      const dapp1Accounts = [
+        '0x1111111111111111111111111111111111111111',
+      ] as EthereumAddress[];
+      const dapp2Accounts = [
+        '0x2222222222222222222222222222222222222222',
+      ] as EthereumAddress[];
 
       // Test dapp1
-      mockURLParse.mockImplementation((url) => ({
-        hostname: new URL(url).hostname,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any));
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => {
-        if (hostname === 'dapp1.com') return dapp1Accounts;
-        if (hostname === 'dapp2.com') return dapp2Accounts;
-        return [];
-      });
+      mockURLParse.mockImplementation(
+        (url) =>
+          ({
+            hostname: new URL(url).hostname,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any),
+      );
+      mockGetPermittedEvmAddressesByHostname.mockImplementation(
+        (_, hostname) => {
+          if (hostname === 'dapp1.com') return dapp1Accounts;
+          if (hostname === 'dapp2.com') return dapp2Accounts;
+          return [];
+        },
+      );
 
       await sendActiveAccount(dapp1Url);
 
@@ -350,7 +397,13 @@ describe('sendActiveAccount function', () => {
       const authorizedUrl = 'https://authorized.com';
       const unauthorizedUrl = 'https://unauthorized.com';
 
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => hostname === 'authorized.com' ? ['0x1234567890123456789012345678901234567890'] as EthereumAddress[] : []);
+      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
+        hostname === 'authorized.com'
+          ? ([
+              '0x1234567890123456789012345678901234567890',
+            ] as EthereumAddress[])
+          : [],
+      );
 
       // Authorized domain should receive accounts
       await sendActiveAccount(authorizedUrl);
@@ -368,9 +421,14 @@ describe('sendActiveAccount function', () => {
       const victimUrl = 'https://victim-dapp.com';
       const attackerUrl = 'https://attacker-site.com';
 
-      const victimAccounts = ['0x1111111111111111111111111111111111111111', '0x2222222222222222222222222222222222222222'] as EthereumAddress[];
+      const victimAccounts = [
+        '0x1111111111111111111111111111111111111111',
+        '0x2222222222222222222222222222222222222222',
+      ] as EthereumAddress[];
 
-      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) => hostname === 'victim-dapp.com' ? victimAccounts : []);
+      mockGetPermittedEvmAddressesByHostname.mockImplementation((_, hostname) =>
+        hostname === 'victim-dapp.com' ? victimAccounts : [],
+      );
 
       // Attacker site should not receive victim's accounts
       await sendActiveAccount(attackerUrl);
