@@ -9,8 +9,15 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import {
   endPerformanceTrace,
   startPerformanceTrace,
