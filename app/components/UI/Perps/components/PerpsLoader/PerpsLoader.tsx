@@ -20,16 +20,21 @@ const PerpsLoader: React.FC<PerpsLoaderProps> = ({
   const { styles, theme } = useStyles(createStyles, {});
 
   const loaderContent = (
-    <View style={fullScreen ? styles.container : styles.inlineContainer}>
+    <View
+      style={fullScreen ? styles.container : styles.inlineContainer}
+      testID={fullScreen ? 'perps-loader-fullscreen' : 'perps-loader-inline'}
+    >
       <ActivityIndicator
         size="large"
         color={theme.colors.primary.default}
         style={styles.spinner}
+        testID="perps-loader-spinner"
       />
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Muted}
         style={styles.loadingText}
+        testID="perps-loader-text"
       >
         {message}
       </Text>
