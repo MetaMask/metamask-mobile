@@ -789,4 +789,154 @@ describe('App', () => {
       });
     });
   });
+
+  describe('Navigation hooks usage', () => {
+    it('should use useNavigationState to check previous route and skip auth when coming from Settings', async () => {
+      // Arrange: mock routes so previous route is SettingsView
+      const mockRoutesWithSettings = [
+        { name: 'SomeOtherRoute' },
+        { name: Routes.SETTINGS_VIEW },
+        { name: 'CurrentRoute' },
+      ];
+      jest
+        .spyOn(NavigationNative, 'useNavigationState')
+        .mockImplementation((selector: unknown) =>
+          (selector as (state: { routes: { name: string }[] }) => unknown)({
+            routes: mockRoutesWithSettings,
+          }),
+        );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true); // existingUser = true
+
+      renderScreen(App, { name: 'App' }, { state: initialState });
+
+      await waitFor(() => {
+        expect(Authentication.appTriggeredAuth).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should use useNavigationState to check previous route and run auth when not coming from Settings', async () => {
+      // Arrange: mock routes so previous route is not SettingsView
+      const mockRoutesWithoutSettings = [
+        { name: 'SomeOtherRoute' },
+        { name: 'AnotherRoute' },
+        { name: 'CurrentRoute' },
+      ];
+      jest
+        .spyOn(NavigationNative, 'useNavigationState')
+        .mockImplementation((selector: unknown) =>
+          (selector as (state: { routes: { name: string }[] }) => unknown)({
+            routes: mockRoutesWithoutSettings,
+          }),
+        );
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true); // existingUser = true
+
+      // Mock the user to be logged in so the component reaches the authentication flow
+      const loggedInState = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser: true,
+          userLoggedIn: true,
+        },
+      };
+
+      renderScreen(App, { name: 'App' }, { state: loggedInState });
+
+      await waitFor(() => {
+        expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
+      });
+    });
+
+    it('should use useNavigation.reset with correct parameters for onboarding navigation', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(false); // existingUser = false
+
+      renderScreen(App, { name: 'App' }, { state: initialState });
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+        });
+      });
+    });
+
+    it('should use useNavigation.reset with correct parameters for home navigation when user exists', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return true; // OptinMetrics UI has been seen
+        }
+        return null; // Default for other keys
+      });
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
+      });
+    });
+
+    it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) {
+          return false; // OptinMetrics UI has not been seen
+        }
+        return null; // Default for other keys
+      });
+
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
+              params: {
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.OPTIN_METRICS,
+                },
+              },
+            },
+          ],
+        });
+      });
+    });
+
+    it('should pass navigation object to SharedDeeplinkManager.init', async () => {
+      renderScreen(App, { name: 'App' }, { state: initialState });
+
+      await waitFor(() => {
+        expect(SharedDeeplinkManager.init).toHaveBeenCalledWith({
+          navigation: expect.any(Object),
+          dispatch: expect.any(Function),
+        });
+      });
+    });
+  });
 });
