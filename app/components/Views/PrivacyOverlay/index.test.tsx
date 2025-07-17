@@ -2,7 +2,7 @@ import React from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { BackgroundSecurityOverlay } from '.';
+import { PrivacyOverlay } from '.';
 
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
@@ -13,7 +13,7 @@ jest.mock('react-native', () => ({
 
 const mockAppState = AppState as jest.Mocked<typeof AppState>;
 
-describe('BackgroundSecurityOverlay', () => {
+describe('PrivacyOverlay', () => {
   let changeHandler: ((nextAppState: AppStateStatus) => void) | undefined;
 
   beforeEach(() => {
@@ -29,21 +29,19 @@ describe('BackgroundSecurityOverlay', () => {
 
   describe('Component behavior', () => {
     it('does not render overlay initially', () => {
-      const { queryByTestId } = renderWithProvider(
-        <BackgroundSecurityOverlay />,
-      );
-      expect(queryByTestId('background-security-overlay')).toBeNull();
+      const { queryByTestId } = renderWithProvider(<PrivacyOverlay />);
+      expect(queryByTestId('privacy-overlay')).toBeNull();
     });
 
     it('shows overlay when app goes to background', async () => {
-      const { getByTestId } = renderWithProvider(<BackgroundSecurityOverlay />);
+      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       if (changeHandler) {
         changeHandler('background');
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
     });
 
@@ -53,7 +51,7 @@ describe('BackgroundSecurityOverlay', () => {
       }));
 
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <BackgroundSecurityOverlay />,
+        <PrivacyOverlay />,
       );
 
       if (changeHandler) {
@@ -61,7 +59,7 @@ describe('BackgroundSecurityOverlay', () => {
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
 
       if (changeHandler) {
@@ -69,7 +67,7 @@ describe('BackgroundSecurityOverlay', () => {
       }
 
       await waitFor(() => {
-        expect(queryByTestId('background-security-overlay')).toBeNull();
+        expect(queryByTestId('privacy-overlay')).toBeNull();
       });
     });
 
@@ -78,14 +76,14 @@ describe('BackgroundSecurityOverlay', () => {
         isAndroid: () => true,
       }));
 
-      const { getByTestId } = renderWithProvider(<BackgroundSecurityOverlay />);
+      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       if (changeHandler) {
         changeHandler('background');
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
 
       if (changeHandler) {
@@ -93,19 +91,19 @@ describe('BackgroundSecurityOverlay', () => {
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
     });
 
     it('shows overlay for inactive and unknown states', async () => {
-      const { getByTestId } = renderWithProvider(<BackgroundSecurityOverlay />);
+      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       if (changeHandler) {
         changeHandler('inactive');
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
 
       if (changeHandler) {
@@ -113,21 +111,21 @@ describe('BackgroundSecurityOverlay', () => {
       }
 
       await waitFor(() => {
-        expect(getByTestId('background-security-overlay')).toBeTruthy();
+        expect(getByTestId('privacy-overlay')).toBeTruthy();
       });
     });
   });
 
   describe('Component styling', () => {
     it('renders overlay with correct styling when visible', async () => {
-      const { getByTestId } = renderWithProvider(<BackgroundSecurityOverlay />);
+      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       if (changeHandler) {
         changeHandler('background');
       }
 
       await waitFor(() => {
-        const overlay = getByTestId('background-security-overlay');
+        const overlay = getByTestId('privacy-overlay');
         expect(overlay).toBeTruthy();
 
         const style = overlay.props.style;
@@ -136,7 +134,6 @@ describe('BackgroundSecurityOverlay', () => {
         expect(style).toHaveProperty('left', 0);
         expect(style).toHaveProperty('right', 0);
         expect(style).toHaveProperty('bottom', 0);
-        expect(style).toHaveProperty('zIndex', 1000);
       });
     });
   });

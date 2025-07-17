@@ -18,7 +18,6 @@ import { isTest } from '../../../util/test/utils';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
-import { BackgroundSecurityOverlay } from '../BackgroundSecurityOverlay';
 
 /**
  * Top level of the component hierarchy
@@ -71,7 +70,6 @@ const Root = ({ foxCode }: RootProps) => {
             ///: END:ONLY_INCLUDE_IF
           }
           <ThemeProvider>
-            <BackgroundSecurityOverlay />
             <NavigationProvider>
               <ControllersGate>
                 <ToastContextWrapper>

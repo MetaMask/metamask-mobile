@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { AppState, AppStateStatus, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+  View,
+} from 'react-native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
-import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
+import styleSheet from './PrivacyOverlay.styles';
 
-export function BackgroundSecurityOverlay() {
+export function PrivacyOverlay() {
   const [showOverlay, setShowOverlay] = useState(false);
-  const { styles } = useStyles(
-    ({ theme }: { theme: Theme }) => ({
-      view: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: theme.colors.background.default,
-        zIndex: 1000,
-      },
-    }),
-    {},
-  );
+  const { styles } = useStyles(styleSheet, {});
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      setShowOverlay((isShowingOverlay) => {
+      setShowOverlay((prevOverlayState: boolean) => {
         switch (nextAppState) {
           case 'active':
-            return isShowingOverlay === Device.isAndroid();
+            return prevOverlayState === Device.isAndroid();
           case 'background':
             return true;
           default:
-            return !isShowingOverlay;
+            return !prevOverlayState;
         }
       });
     };
@@ -36,8 +32,8 @@ export function BackgroundSecurityOverlay() {
       handleAppStateChange,
     );
 
-    let androidBlurListener: { remove: () => void } | undefined;
-    let androidFocusListener: { remove: () => void } | undefined;
+    let androidBlurListener: NativeEventSubscription;
+    let androidFocusListener: NativeEventSubscription;
 
     if (Device.isAndroid()) {
       androidBlurListener = AppState.addEventListener(
@@ -58,9 +54,9 @@ export function BackgroundSecurityOverlay() {
         androidFocusListener?.remove();
       }
     };
-  }, []);
+  }, [showOverlay]);
 
   if (!showOverlay) return null;
 
-  return <View style={styles.view} testID="background-security-overlay" />;
+  return <View style={styles.view} testID="privacy-overlay" />;
 }
