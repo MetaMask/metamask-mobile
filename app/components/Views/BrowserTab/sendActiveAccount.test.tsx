@@ -369,7 +369,7 @@ describe('sendActiveAccount function', () => {
 
   describe('edge cases and error handling', () => {
     it('handles null URL gracefully', async () => {
-      await sendActiveAccount(null as any);
+      await sendActiveAccount(null as unknown as string);
 
       expect(mockNotifyAllConnections).toHaveBeenCalledWith({
         method: NOTIFICATION_NAMES.accountsChanged,
