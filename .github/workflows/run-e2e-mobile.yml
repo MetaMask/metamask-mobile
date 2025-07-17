@@ -43,15 +43,12 @@ on:
 
 jobs:
   test-e2e-mobile:
-    name: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
+    name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
     env:
       METAMASK_ENVIRONMENT: 'local'
       METAMASK_BUILD_TYPE: 'main'
-      MATRIX_INDEX: ${{ inputs.matrix-index }}
-      MATRIX_TOTAL: ${{ inputs.matrix-total }}
       SMOKE_CATEGORY: ${{ inputs.smoke-category }}
-      JOB_NAME: ${{ inputs.test-suite-name }}${{ inputs.matrix-total > 1 && format(' ({0})', inputs.matrix-index) || '' }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
 
     steps:
@@ -212,130 +209,54 @@ jobs:
           is_api_specs="${{ inputs.is_api_specs }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
 
-          echo "Running ${{ inputs.smoke-category }} tests on $platform (shard ${{ inputs.matrix-index }}/${{ inputs.matrix-total }})"
+          echo "🚀 Running ${{ inputs.smoke-category }} tests on $platform"
 
-          # Rebuild Detox framework cache for iOS to ensure it's ready
-          if [[ "$platform" == "ios" ]]; then
-            echo "🔧 Rebuilding Detox framework cache for iOS..."
-            yarn detox build-framework-cache
-            echo "✅ Detox framework cache rebuilt"
-          fi
-
+          # Handle API specs special case (iOS-only)
           if [[ "$is_api_specs" == "true" ]]; then
             if [[ "$platform" != "ios" ]]; then
-              echo "API specs are iOS-only, skipping $platform"
+              echo "ℹ️  API specs are iOS-only, skipping $platform"
               exit 0
             fi
+            echo "🧪 Running API specs tests..."
             yarn test:api-specs --retries 1
             exit 0
           fi
 
+          # Validate required test suite tag
           if [[ -z "$test_suite_tag" ]]; then
-            echo "Error: test_suite_tag is required for non-api-specs tests"
+            echo "❌ Error: test_suite_tag is required for non-api-specs tests"
             exit 1
           fi
 
           export TEST_SUITE_TAG="$test_suite_tag"
           echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
 
-          # Set environment variables needed for the script
-          export METAMASK_ENVIRONMENT='local'
-          export METAMASK_BUILD_TYPE='main'
-          export IGNORE_BOXLOGS_DEVELOPMENT="true"
-
-          # Use the same approach as Bitrise: run the tag script which calls the appropriate yarn command
+          # Platform-specific preparation
           if [[ "$platform" == "ios" ]]; then
-            # iOS: Add retry logic for lock file issues
-            echo "🍎 Running iOS tests with retry logic for lock file issues..."
-            max_retries=3
-            retry_count=0
-
-            while [ $retry_count -lt $max_retries ]; do
-              echo "🚀 iOS Attempt $((retry_count + 1))/$max_retries"
-
-              # Clean lock files before each attempt (iOS-specific issue)
-              find . -name "*.lock" -type f -delete 2>/dev/null || true
-
-              export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
-              if ./scripts/run-e2e-tags.sh; then
-                echo "✅ iOS tests completed successfully"
-                break
-              fi
-
-              retry_count=$((retry_count + 1))
-              if [ $retry_count -lt $max_retries ]; then
-                echo "⚠️ iOS attempt failed, retrying in 30 seconds..."
-                sleep 30
-
-                # Clean environment between retries
-                find . -name "*.lock" -type f -delete 2>/dev/null || true
-                pkill -f "Metro\|node\|npm" 2>/dev/null || true
-                xcrun simctl shutdown all 2>/dev/null || true
-              else
-                echo "❌ All iOS retry attempts failed"
-                exit 1
-              fi
-            done
+            echo "🔧 Preparing iOS environment..."
+            yarn detox build-framework-cache
+            find . -name "*.lock" -type f -delete 2>/dev/null || true
           else
-            # Android: Add emulator cleanup and retry logic
-            echo "🤖 Running Android tests with emulator cleanup..."
-
-            # Kill any running emulator instances before starting
-            echo "🧹 Cleaning up any existing Android emulators..."
+            echo "🔧 Preparing Android environment..."
+            # Clean up existing emulators
             adb devices | grep emulator | cut -f1 | while read line; do
-              echo "Killing emulator: $line"
               adb -s "$line" emu kill 2>/dev/null || true
             done
-
-            # Kill emulator processes directly
             pkill -f "emulator.*avd" 2>/dev/null || true
             pkill -f "qemu-system" 2>/dev/null || true
             pkill -f "Metro\|node\|npm" 2>/dev/null || true
-
-            # Wait for cleanup
-            sleep 5
-            echo "✅ Android emulator environment cleaned"
-
-            # Run tests with retry logic for emulator issues
-            max_retries=3
-            retry_count=0
-
-            while [ $retry_count -lt $max_retries ]; do
-              echo "🚀 Android Attempt $((retry_count + 1))/$max_retries"
-
-              export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-              if ./scripts/run-e2e-tags.sh; then
-                echo "✅ Android tests completed successfully"
-                break
-              fi
-
-              retry_count=$((retry_count + 1))
-              if [ $retry_count -lt $max_retries ]; then
-                echo "⚠️ Android attempt failed, retrying in 30 seconds..."
-                sleep 30
-
-                # Clean Android environment between retries
-                echo "🧹 Cleaning Android emulator environment..."
-
-                # Kill any running emulator instances
-                adb devices | grep emulator | cut -f1 | while read line; do
-                  echo "Killing emulator: $line"
-                  adb -s "$line" emu kill 2>/dev/null || true
-                done
-
-                # Kill emulator processes directly
-                pkill -f "emulator.*avd" 2>/dev/null || true
-                pkill -f "qemu-system" 2>/dev/null || true
-                pkill -f "Metro\|node\|npm" 2>/dev/null || true
-
-                sleep 5
-                echo "✅ Android environment cleaned"
-              else
-                echo "❌ All Android retry attempts failed"
-                exit 1
-              fi
-            done
+            sleep 3
           fi
+
+          # Run tests (Detox/Jest handle retries internally)
+          echo "🚀 Starting E2E tests..."
+          if [[ "$platform" == "ios" ]]; then
+            export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
+          else
+            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
+          fi
+          
+          ./scripts/run-e2e-tags.sh
 
       - name: Upload test results
         if: always()
