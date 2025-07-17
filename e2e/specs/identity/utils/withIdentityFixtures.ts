@@ -1,6 +1,10 @@
 import { withFixtures } from '../../../fixtures/fixture-helper';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { mockAuthServices, createUserStorageController, setupAccountMockedBalances } from './mocks';
+import {
+  mockAuthServices,
+  createUserStorageController,
+  setupAccountMockedBalances,
+} from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import {
   pathRegexps,
@@ -9,7 +13,6 @@ import {
 } from './user-storage/userStorageMockttpController';
 import { MockttpServer } from 'mockttp';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-
 
 export interface IdentityFixtureOptions {
   fixture?: object;
@@ -36,7 +39,7 @@ export async function withIdentityFixtures(
     fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
     restartDevice = true,
     testSpecificMock = {
-          POST: [mockEvents.POST.segmentTrack],
+      POST: [mockEvents.POST.segmentTrack],
     },
     mockBalancesAccounts = [],
     userStorageFeatures = [

@@ -81,7 +81,9 @@ const TestForm = ({
       ))}
       {result && (
         <>
-          <Text variant={TextVariant.BodyMDBold} testID={responseTextTestId}>Response</Text>
+          <Text variant={TextVariant.BodyMDBold} testID={responseTextTestId}>
+            Response
+          </Text>
           <ClipboardText
             text={result}
             styles={styles}

@@ -19,7 +19,11 @@ import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscovery
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { selectIsBridgeEnabledSource, selectIsUnifiedSwapsEnabled, setBridgeViewMode } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSource,
+  selectIsUnifiedSwapsEnabled,
+  setBridgeViewMode,
+} from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
 
@@ -95,7 +99,6 @@ export const useSwapBridgeNavigation = ({
           sourcePage,
         } as BridgeRouteParams,
       });
-
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)

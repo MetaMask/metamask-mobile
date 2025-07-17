@@ -64,7 +64,7 @@ export const RevealSRP = () => {
   }, [goBack]);
 
   const handleGetStartedClick = useCallback(() => {
-    navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
+    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ, {
       keyringId,
     });
   }, [keyringId, navigate]);
