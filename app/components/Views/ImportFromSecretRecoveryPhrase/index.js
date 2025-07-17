@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   View,
-  TextInput,
+  Keyboard,
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
@@ -97,6 +97,7 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import { v4 as uuidv4 } from 'uuid';
+import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -138,7 +139,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
-  const [seedPhrase, setSeedPhrase] = useState([]);
+  const [seedPhrase, setSeedPhrase] = useState(['']);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
     useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
@@ -169,7 +170,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [errorWordIndexes, setErrorWordIndexes] = useState({});
 
   const handleClear = useCallback(() => {
-    setSeedPhrase([]);
+    setSeedPhrase(['']);
     setErrorWordIndexes({});
     setShowAllSeedPhrase(false);
     setError('');
@@ -181,19 +182,6 @@ const ImportFromSecretRecoveryPhrase = ({
     (seedPhraseText, index) => {
       try {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
-        Logger.log('handleSeedPhraseChangeAtIndex', text, index);
-
-        if (text === '') {
-          const newData = seedPhrase.filter((_, idx) => idx !== index);
-          if (index > 0) {
-            setNextSeedPhraseInputFocusedIndex(index - 1);
-          }
-          setTimeout(() => {
-            setSeedPhrase([...newData]);
-          }, 0);
-
-          return;
-        }
 
         if (text.includes(SPACE_CHAR)) {
           const isEndWithSpace = text.at(-1) === SPACE_CHAR;
@@ -264,9 +252,8 @@ const ImportFromSecretRecoveryPhrase = ({
         // no focus on any input
         setSeedPhraseInputFocusedIndex(null);
         setNextSeedPhraseInputFocusedIndex(null);
-        // blur of last ref
-        const lastRef = seedPhraseInputRefs.current.length - 1;
-        seedPhraseInputRefs.current.get(lastRef)?.blur();
+
+        Keyboard.dismiss();
       }
     },
     [handleSeedPhraseChangeAtIndex, setSeedPhrase],
@@ -685,17 +672,17 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
+    if (!nextSeedPhraseInputFocusedIndex) return;
+
     const refElement = seedPhraseInputRefs.current.get(
       nextSeedPhraseInputFocusedIndex,
     );
-    Logger.log('useEffect', 'focusing on', nextSeedPhraseInputFocusedIndex);
 
     refElement?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
     (index) => {
-      Logger.log('handleOnFocus', index);
       const currentWord = seedPhrase[seedPhraseInputFocusedIndex];
       const trimmedWord = currentWord ? currentWord.trim() : '';
 
@@ -721,6 +708,22 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const uniqueId = useMemo(() => uuidv4(), []);
+
+  const isFirstInput = useMemo(() => seedPhrase.length <= 1, [seedPhrase]);
+
+  const handleKeyPress = (e, index) => {
+    if (e.nativeEvent.key === 'Backspace') {
+      if (seedPhrase[index] === '') {
+        const newData = seedPhrase.filter((_, idx) => idx !== index);
+        if (index > 0) {
+          setNextSeedPhraseInputFocusedIndex(index - 1);
+        }
+        setTimeout(() => {
+          setSeedPhrase(index === 0 ? [''] : [...newData]);
+        }, 0);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root}>
@@ -778,55 +781,20 @@ const ImportFromSecretRecoveryPhrase = ({
                 <View style={styles.seedPhraseRoot}>
                   <View style={styles.seedPhraseContainer}>
                     <View style={styles.seedPhraseInnerContainer}>
-                      {seedPhrase.length <= 1 ? (
-                        <TextInput
-                          ref={(ref) => {
-                            const inputRefs = getSeedPhraseInputRef();
-                            inputRefs.set(0, ref);
+                      <View style={styles.seedPhraseInputContainer}>
+                        {seedPhrase.map((item, index) => (
+                          <SrpInput
+                            key={`seed-phrase-item-${uniqueId}-${index}`}
+                            ref={(ref) => {
+                              const inputRefs = getSeedPhraseInputRef();
+                              inputRefs.set(index, ref);
 
-                            return () => {
-                              inputRefs.delete(0);
-                            };
-                          }}
-                          textAlignVertical="top"
-                          placeholder={strings(
-                            'import_from_seed.srp_placeholder',
-                          )}
-                          value={seedPhrase?.[0] || ''}
-                          onChangeText={(text) => handleSeedPhraseChange(text)}
-                          style={styles.seedPhraseDefaultInput}
-                          placeholderTextColor={colors.text.alternative}
-                          placeholderStyle={
-                            styles.seedPhraseDefaultInputPlaceholder
-                          }
-                          multiline
-                          autoComplete="off"
-                          submitBehavior={'submit'}
-                          autoCapitalize="none"
-                          testID={
-                            ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
-                          }
-                          editable
-                          keyboardType="default"
-                          autoCorrect={false}
-                          textContentType="none"
-                          spellCheck={false}
-                          autoFocus
-                        />
-                      ) : (
-                        <View style={styles.seedPhraseInputContainer}>
-                          {seedPhrase.map((item, index) => (
-                            <TextField
-                              key={`seed-phrase-item-${uniqueId}-${index}`}
-                              ref={(ref) => {
-                                const inputRefs = getSeedPhraseInputRef();
-                                inputRefs.set(index, ref);
-
-                                return () => {
-                                  inputRefs.delete(index);
-                                };
-                              }}
-                              startAccessory={
+                              return () => {
+                                inputRefs.delete(index);
+                              };
+                            }}
+                            startAccessory={
+                              !isFirstInput && (
                                 <Text
                                   variant={TextVariant.BodyMD}
                                   color={TextColor.Alternative}
@@ -834,42 +802,64 @@ const ImportFromSecretRecoveryPhrase = ({
                                 >
                                   {index + 1}.
                                 </Text>
-                              }
-                              value={item}
-                              secureTextEntry={!canShowSeedPhraseWord(index)}
-                              onFocus={(e) => {
-                                handleOnFocus(index);
-                              }}
-                              onChangeText={(text) =>
-                                handleSeedPhraseChangeAtIndex(text, index)
-                              }
-                              placeholderTextColor={colors.text.muted}
-                              size={TextFieldSize.Md}
-                              style={[
-                                styles.input,
-                                styles.seedPhraseInputItem,
-                                (index + 1) % 3 === 0 &&
-                                  styles.seedPhraseInputItemLast,
-                              ]}
-                              submitBehavior="submit"
-                              autoComplete="off"
-                              textAlignVertical="center"
-                              showSoftInputOnFocus
-                              isError={errorWordIndexes[index]}
-                              autoCapitalize="none"
-                              numberOfLines={1}
-                              testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
-                              keyboardType="default"
-                              autoCorrect={false}
-                              textContentType="oneTimeCode"
-                              spellCheck={false}
-                              autoFocus={
-                                index === nextSeedPhraseInputFocusedIndex
-                              }
-                            />
-                          ))}
-                        </View>
-                      )}
+                              )
+                            }
+                            value={isFirstInput ? seedPhrase?.[0] || '' : item}
+                            secureTextEntry={!canShowSeedPhraseWord(index)}
+                            onFocus={(e) => {
+                              handleOnFocus(index);
+                            }}
+                            onChangeText={(text) =>
+                              isFirstInput
+                                ? handleSeedPhraseChange(text)
+                                : handleSeedPhraseChangeAtIndex(text, index)
+                            }
+                            placeholder={
+                              isFirstInput
+                                ? strings('import_from_seed.srp_placeholder')
+                                : ''
+                            }
+                            placeholderTextColor={
+                              isFirstInput
+                                ? colors.text.alternative
+                                : colors.text.muted
+                            }
+                            size={TextFieldSize.Md}
+                            style={
+                              isFirstInput
+                                ? styles.seedPhraseDefaultInput
+                                : [
+                                    styles.input,
+                                    styles.seedPhraseInputItem,
+                                    (index + 1) % 3 === 0 &&
+                                      styles.seedPhraseInputItemLast,
+                                  ]
+                            }
+                            inputStyle={
+                              isFirstInput ? styles.textAreaInput : ''
+                            }
+                            submitBehavior="submit"
+                            autoComplete="off"
+                            textAlignVertical={isFirstInput ? 'top' : 'center'}
+                            showSoftInputOnFocus
+                            isError={errorWordIndexes[index]}
+                            autoCapitalize="none"
+                            numberOfLines={1}
+                            testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                            keyboardType="default"
+                            autoCorrect={false}
+                            textContentType="oneTimeCode"
+                            spellCheck={false}
+                            autoFocus={
+                              isFirstInput
+                                ? true
+                                : index === nextSeedPhraseInputFocusedIndex
+                            }
+                            multiline={isFirstInput}
+                            onKeyPress={(e) => handleKeyPress(e, index)}
+                          />
+                        ))}
+                      </View>
                     </View>
                     <View style={styles.seedPhraseContainerCta}>
                       <Button

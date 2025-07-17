@@ -58,15 +58,19 @@ const createStyles = (colors: any) =>
       borderTopColor: colors.background.default,
     },
     seedPhraseDefaultInput: {
-      fontSize: 14,
-      color: colors.text.alternative,
       borderWidth: 0,
-      ...fontStyles.normal,
       paddingHorizontal: 0,
       width: '100%',
       backgroundColor: importedColors.transparent,
       height: 66,
-      marginTop: -8,
+    },
+    textAreaInput: {
+      width: '100%',
+      backgroundColor: importedColors.transparent,
+      fontSize: 16,
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      height: 66,
     },
     seedPhraseInputContainer: {
       flexDirection: 'row',
