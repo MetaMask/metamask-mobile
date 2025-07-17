@@ -106,7 +106,11 @@ const SolanaNewFeatureContent = () => {
             </Text>
 
             <View style={styles.largeFoxWrapper}>
-              <Image source={FoxVipers} style={styles.foxImage} resizeMode="contain" />
+              <Image
+                source={FoxVipers}
+                style={styles.foxImage}
+                resizeMode="contain"
+              />
             </View>
 
             <View style={styles.createWrapper}>

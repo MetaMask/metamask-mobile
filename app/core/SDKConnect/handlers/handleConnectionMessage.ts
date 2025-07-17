@@ -53,7 +53,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 
@@ -81,7 +83,9 @@ export const handleConnectionMessage = async ({
   const anonId = connection.originatorInfo?.anonId;
 
   if (anonId && isAnalyticsTrackedRpcMethod(message.method)) {
-    DevLogger.log(`[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`);
+    DevLogger.log(
+      `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
+    );
     analytics.track('wallet_action_received', { anon_id: anonId });
   }
 

@@ -14,24 +14,31 @@ export default function useValidateBridgeTx() {
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
   }) => {
-    const response = await fetch(`${AppConstants.SECURITY_ALERTS_API.URL}/solana/message/scan`, {
-      headers: {
-        'Content-Type': 'application/json',
-        accept: 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        method: SolMethod.SignAndSendTransaction,
-        encoding: 'base64',
-        account_address: selectedAccount?.address ? Buffer.from(base58.decode(selectedAccount.address)).toString('base64') : undefined,
-        chain: 'mainnet',
-        transactions: [quoteResponse.trade],
-        options: ['simulation', 'validation'],
-        metadata: {
-          url: null,
+    const response = await fetch(
+      `${AppConstants.SECURITY_ALERTS_API.URL}/solana/message/scan`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          accept: 'application/json',
         },
-      }),
-    });
+        method: 'POST',
+        body: JSON.stringify({
+          method: SolMethod.SignAndSendTransaction,
+          encoding: 'base64',
+          account_address: selectedAccount?.address
+            ? Buffer.from(base58.decode(selectedAccount.address)).toString(
+                'base64',
+              )
+            : undefined,
+          chain: 'mainnet',
+          transactions: [quoteResponse.trade],
+          options: ['simulation', 'validation'],
+          metadata: {
+            url: null,
+          },
+        }),
+      },
+    );
     return response.json();
   };
 
