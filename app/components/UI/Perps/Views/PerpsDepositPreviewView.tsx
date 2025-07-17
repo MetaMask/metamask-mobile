@@ -30,7 +30,6 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { useTheme } from '../../../../util/theme';
@@ -183,7 +182,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const multichainAssetRates = useSelector(selectMultichainAssetsRates);
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
@@ -298,7 +296,7 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         networkConfigurationsByChainId: networkConfigurations,
         evmMultiChainCurrencyRates: currencyRates,
         currentCurrency,
-        nonEvmMultichainAssetRates: multichainAssetRates,
+        nonEvmMultichainAssetRates: {},
       });
 
       const tokenPriceInUsd =
@@ -321,7 +319,6 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     currencyRates,
     currentCurrency,
     networkConfigurations,
-    multichainAssetRates,
   ]);
 
   return (

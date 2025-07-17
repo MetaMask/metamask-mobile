@@ -454,7 +454,7 @@ describe('PerpsController', () => {
         // This simulates the case where initializeProviders() hasn't been called yet
         (controller as any).isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
-          'PerpsController not initialized. Call initialize() first.',
+          'HyperLiquid SDK clients not properly initialized',
         );
       });
     });
