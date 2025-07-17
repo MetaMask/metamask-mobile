@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Modal from 'react-native-modal';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import NetworkInfo from '../../UI/NetworkInfo';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
@@ -17,7 +17,7 @@ import { InteractionManager } from 'react-native';
 const InfoNetworkModal = () => {
   const prevNetwork = useRef<string>();
 
-  const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const theme = useTheme();
   const dispatch = useDispatch();
   const infoNetworkModalVisible = useSelector(
@@ -55,12 +55,17 @@ const InfoNetworkModal = () => {
     }
   }, [chainId, dispatch, networkOnboardingState]);
 
+  // If the Main screen is not focused, don't render it
+  if (!isFocused) {
+    return null;
+  }
+
   return (
     <Modal
       isVisible={infoNetworkModalVisible}
-      onBackdropPress={navigation.goBack}
-      onBackButtonPress={navigation.goBack}
-      onSwipeComplete={navigation.goBack}
+      onBackdropPress={onClose}
+      onBackButtonPress={onClose}
+      onSwipeComplete={onClose}
       swipeDirection={'down'}
       propagateSwipe
       backdropColor={theme.colors.overlay.default}
