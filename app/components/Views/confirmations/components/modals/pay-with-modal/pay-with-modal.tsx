@@ -19,32 +19,35 @@ import { BridgeToken } from '../../../../../UI/Bridge/types';
 import { useTokens } from '../../../../../UI/Bridge/hooks/useTokens';
 import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { usePayAsset } from '../../../hooks/transactions/usePayAsset';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
-  const transactionMeta = useTransactionMetadataRequest();
   const navigation = useNavigation();
   const { payAsset, setPayAsset } = usePayAsset();
-
-  const { chainId: transactionChainId } = transactionMeta || {};
+  const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
 
   const { tokens: tokensList, pending } = useTokens({
-    topTokensChainId: transactionChainId,
     balanceChainIds: selectedSourceChainIds,
     tokensToExclude: [],
   });
 
+  const filteredTokensList = useMemo(
+    () =>
+      tokensList.filter(
+        (token) => (token.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0),
+      ),
+    [tokensList, minimumFiatBalance],
+  );
+
   const handleTokenSelect = useCallback(
     (token: BridgeToken) => {
-      console.log('#MATT SELECTED TOKEN', token);
-
       setPayAsset({
         address: token.address as Hex,
         chainId: token.chainId as Hex,
@@ -109,7 +112,7 @@ export function PayWithModal() {
         />
       }
       renderTokenItem={renderItem}
-      tokensList={tokensList}
+      tokensList={filteredTokensList}
       pending={pending}
     />
   );
