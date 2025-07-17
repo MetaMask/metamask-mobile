@@ -541,11 +541,9 @@ const PermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <View style={styles.base}>
-        <TabBar backgroundColor={colors.background.alternative} {...props} />
-      </View>
+      <TabBar backgroundColor={colors.background.alternative} {...props} />
     ),
-    [styles, colors],
+    [colors],
   );
 
   const filteredAccountAddresses = useMemo(
