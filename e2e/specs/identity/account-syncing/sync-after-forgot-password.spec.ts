@@ -15,7 +15,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.j
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import LoginView from '../../../pages/wallet/LoginView.js';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
@@ -49,7 +49,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
           },
         );
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
         await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
         await WalletView.tapIdenticon();

@@ -10,14 +10,15 @@ jest.mock('../core/Engine', () => ({
     KeyringController: {
       importAccountWithStrategy: (
         strategy: AccountImportStrategy,
-        private_key: string
+        private_key: string,
       ) => mockImportAccountWithStrategy(strategy, private_key),
     },
   },
 }));
 
 describe('importAccountFromPrivateKey', () => {
-  const mockPrivateKey = '0000111122223333444455556666777788889999000011112222333344445555';
+  const mockPrivateKey =
+    '0000111122223333444455556666777788889999000011112222333344445555';
   const mockPublicKey = '0x1122334455667788990011223344556677889900';
 
   beforeEach(() => {
@@ -31,7 +32,7 @@ describe('importAccountFromPrivateKey', () => {
 
     expect(mockImportAccountWithStrategy).toHaveBeenCalledWith(
       AccountImportStrategy.privateKey,
-      [mockPrivateKey]
+      [mockPrivateKey],
     );
     expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockPublicKey);
   });
@@ -41,7 +42,7 @@ describe('importAccountFromPrivateKey', () => {
 
     expect(mockImportAccountWithStrategy).toHaveBeenCalledWith(
       AccountImportStrategy.privateKey,
-      [mockPrivateKey]
+      [mockPrivateKey],
     );
   });
 });
