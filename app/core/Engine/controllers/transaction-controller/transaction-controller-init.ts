@@ -88,7 +88,10 @@ export const TransactionControllerInit: ControllerInitFunction<
         getNetworkState: () => networkController.state,
         hooks: {
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
-          publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
+          publish: (
+            transactionMeta: TransactionMeta,
+            signedTransactionInHex: Hex,
+          ) =>
             publishHook({
               transactionMeta,
               getState,
@@ -150,7 +153,7 @@ function publishHook({
   smartTransactionsController,
   approvalController,
   initMessenger,
-  signedTransactionInHex
+  signedTransactionInHex,
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
@@ -179,7 +182,10 @@ function publishHook({
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, chainId);
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    state,
+    chainId,
+  );
   const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
 
   return {
@@ -235,7 +241,7 @@ function publishBatchSmartTransactionHook({
     shouldUseSmartTransaction,
     approvalController,
     featureFlags,
-    transactionMeta
+    transactionMeta,
   });
 }
 

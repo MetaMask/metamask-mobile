@@ -6,7 +6,10 @@ import { BridgeViewMode, BridgeToken } from '../../types';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { SolScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectBridgeViewMode, setDestToken } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBridgeViewMode,
+  setDestToken,
+} from '../../../../../core/redux/slices/bridge';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -25,7 +28,9 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 });
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -56,7 +61,9 @@ describe('useInitialDestToken', () => {
   });
 
   it('should not set dest token when not in swap mode', () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Bridge);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Bridge,
+    );
 
     renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
@@ -66,7 +73,9 @@ describe('useInitialDestToken', () => {
   });
 
   it('should set default dest token when in swap mode and default token exists', async () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
     (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
 
     renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
@@ -74,12 +83,16 @@ describe('useInitialDestToken', () => {
     });
 
     await waitFor(() => {
-      expect(setDestToken).toHaveBeenCalledWith(DefaultSwapDestTokens[SolScope.Mainnet]);
+      expect(setDestToken).toHaveBeenCalledWith(
+        DefaultSwapDestTokens[SolScope.Mainnet],
+      );
     });
   });
 
   it('should not set dest token when in swap mode but no default token exists', () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1234567890');
 
     renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
@@ -95,7 +108,9 @@ describe('useInitialDestToken', () => {
       address: DefaultSwapDestTokens[SolScope.Mainnet].address,
     };
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
     (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
 
     renderHookWithProvider(() => useInitialDestToken(matchingSourceToken), {
