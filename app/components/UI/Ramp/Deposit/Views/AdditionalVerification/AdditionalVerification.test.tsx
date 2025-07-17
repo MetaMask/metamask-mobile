@@ -46,4 +46,4 @@ describe('AdditionalVerification Component', () => {
       }),
     );
   });
-}); 
+});

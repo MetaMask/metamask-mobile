@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Image } from 'react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -7,12 +7,45 @@ import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../components/PoweredByTransak';
-import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import additionalVerificationImage from '../../assets/additional-verification.png';
+import { strings } from '../../../../../../../locales/i18n';
+import { TextVariant } from '../../../../../../component-library/components/Texts/Text/Text.types';
+import { useDepositRouting } from '../../hooks/useDepositRouting.ts';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
+import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils.ts';
+
+interface AdditionalVerificationParams {
+  quote: BuyQuote;
+  kycUrl: string;
+  cryptoCurrencyChainId: string;
+  paymentMethodId: string;
+}
+
+export const createAdditionalVerificationNavDetails =
+  createNavigationDetails<AdditionalVerificationParams>(
+    Routes.DEPOSIT.ADDITIONAL_VERIFICATION,
+  );
 
 const AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { styles, theme }: any = useStyles(styleSheet, {});
+  const { quote, kycUrl, cryptoCurrencyChainId, paymentMethodId } =
+    useParams<AdditionalVerificationParams>();
+
+  const { styles, theme } = useStyles(styleSheet, {});
+
+  const { navigateToKycWebview } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
 
   React.useEffect(() => {
     navigation.setOptions(
@@ -24,6 +57,10 @@ const AdditionalVerification = () => {
     );
   }, [navigation, theme]);
 
+  const handleContinuePress = useCallback(() => {
+    navigateToKycWebview({ quote, kycUrl });
+  }, [navigateToKycWebview, quote, kycUrl]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -33,12 +70,15 @@ const AdditionalVerification = () => {
             resizeMode={'contain'}
             style={styles.image}
           />
-          <Text style={styles.title}>Additional Verification</Text>
+          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            {strings('deposit.additional_verification.title')}
+          </Text>
+
           <Text style={styles.paragraph}>
-            For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.
+            {strings('deposit.additional_verification.paragraph_1')}
           </Text>
           <Text style={styles.paragraph}>
-            In order to complete your verification, you’ll need to enable access to your camera.
+            {strings('deposit.additional_verification.paragraph_2')}
           </Text>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -46,8 +86,8 @@ const AdditionalVerification = () => {
         <ScreenLayout.Content style={styles.footerContent}>
           <Button
             size={ButtonSize.Lg}
-            onPress={() => {/* TODO: handle continue */}}
-            label={'Continue'}
+            onPress={handleContinuePress}
+            label={strings('deposit.additional_verification.button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
           />
@@ -58,4 +98,4 @@ const AdditionalVerification = () => {
   );
 };
 
-export default AdditionalVerification; 
+export default AdditionalVerification;
