@@ -822,7 +822,6 @@ class FixtureBuilder {
    * @param {Object[]} additionalPermissions - Additional permissions to merge for each test dapp instance. They should be passed in the correct order
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  // TODO: refactor this to open a dapp of n instead of always second
   withPermissionControllerConnectedToMultipleTestDapps(
     additionalPermissions: Record<string, unknown>[] = [{}],
   ) {
@@ -1247,7 +1246,6 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    * @param {number} amountOfDapps - The number of test dapps to open.
    */
-  // TODO: refactor this to open a dapp of n instead of always second
   withMultipleDappTabs(amountOfDapps = 2) {
     if (!this.fixture.state.browser.tabs) {
       this.fixture.state.browser.tabs = [];
