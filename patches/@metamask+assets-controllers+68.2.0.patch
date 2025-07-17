@@ -51,8 +51,8 @@ index 3e7b205..00ad856 100644
      }
  }
  exports.NftController = NftController;
--_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_openSeaEnabled = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onPreferencesControllerStateChange = 
-+_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onPreferencesControllerStateChange = 
+-_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_openSeaEnabled = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onPreferencesControllerStateChange =
++_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onPreferencesControllerStateChange =
  /**
   * Handles the state change of the preference controller.
   *
@@ -137,7 +137,7 @@ index 3e7b205..00ad856 100644
 +            error: 'Both import failed',
 +        };
 +    }
-+        
++
      const metadata = {
          ...nftApiMetadata,
          name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
@@ -220,16 +220,23 @@ index fb22e3f..3c14e2b 100644
  export type TokenDetectionControllerEvents = TokenDetectionControllerStateChangeEvent;
  export type AllowedEvents = AccountsControllerSelectedEvmAccountChangeEvent | NetworkControllerNetworkDidChangeEvent | TokenListStateChange | KeyringControllerLockEvent | KeyringControllerUnlockEvent | PreferencesControllerStateChangeEvent | TransactionControllerTransactionConfirmedEvent;
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-index 4acb8f6..bf4da2a 100644
+index 4acb8f6..5a2d43c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-@@ -39,6 +39,10 @@ export type TokensControllerAddDetectedTokensAction = {
+@@ -33,12 +33,16 @@ export type TokensControllerState = {
+     };
+ };
+ declare const controllerName = "TokensController";
+-export type TokensControllerActions = TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction;
++export type TokensControllerActions = TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction | TokensControllerAddTokenAction;
+ export type TokensControllerGetStateAction = ControllerGetStateAction<typeof controllerName, TokensControllerState>;
+ export type TokensControllerAddDetectedTokensAction = {
      type: `${typeof controllerName}:addDetectedTokens`;
      handler: TokensController['addDetectedTokens'];
  };
-+export type TokensControllerAddTokensAction = {
-+    type: `${typeof controllerName}:addTokens`;
-+    handler: TokensController['addTokens'];
++export type TokensControllerAddTokenAction = {
++    type: `${typeof controllerName}:addToken`;
++    handler: TokensController['addToken'];
 +};
  /**
   * The external actions available to the {@link TokensController}.
