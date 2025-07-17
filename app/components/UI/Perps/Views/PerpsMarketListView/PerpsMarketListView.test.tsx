@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -15,7 +16,7 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 }));
 
 jest.mock('../../components/PerpsMarketRowItem', () => {
-  const { TouchableOpacity, View, Text } = jest.requireActual('react-native');
+  const { View, Text } = jest.requireActual('react-native');
   return function MockPerpsMarketRowItem({
     market,
     onPress,
@@ -70,8 +71,7 @@ jest.mock('@shopify/flash-list', () => ({
     refreshing,
     onRefresh,
   }: FlashListProps) => {
-    const { View, ScrollView, TouchableOpacity, Text } =
-      jest.requireActual('react-native');
+    const { View, ScrollView, Text } = jest.requireActual('react-native');
     return (
       <ScrollView
         testID="flash-list"
@@ -129,7 +129,18 @@ describe('PerpsMarketListView', () => {
   const mockNavigation = {
     canGoBack: jest.fn(),
     goBack: jest.fn(),
-  };
+    dispatch: jest.fn(),
+    navigate: jest.fn(),
+    reset: jest.fn(),
+    isFocused: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    getState: jest.fn(),
+    getId: jest.fn(),
+    getParent: jest.fn(),
+    setOptions: jest.fn(),
+    setParams: jest.fn(),
+  } as any;
 
   const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
     typeof usePerpsMarkets
@@ -204,7 +215,7 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Find close button by looking for TouchableOpacity elements
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       expect(touchableElements.length).toBeGreaterThan(0);
     });
   });
@@ -241,7 +252,7 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
 
       // After typing, should have close button + clear button + 1 filtered market row = 3 TouchableOpacity elements
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       expect(touchableElements.length).toBe(3); // Close button + clear button + filtered market row
     });
 
@@ -258,7 +269,7 @@ describe('PerpsMarketListView', () => {
       expect(searchInput.props.value).toBe('BTC');
 
       // Find and press clear button (second TouchableOpacity - after close button)
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       const clearButton = touchableElements[1]; // Clear button is second in the list
       fireEvent.press(clearButton);
 
@@ -427,7 +438,7 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Find close button (first TouchableOpacity after the market rows)
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       const closeButton = touchableElements[0]; // Close button is the first one
       fireEvent.press(closeButton);
 
@@ -439,7 +450,7 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Find close button (first TouchableOpacity after the market rows)
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       const closeButton = touchableElements[0]; // Close button is the first one
       fireEvent.press(closeButton);
 
@@ -520,7 +531,7 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Check that there are TouchableOpacity elements (interactive elements)
-      const touchableElements = screen.root.findAllByType('TouchableOpacity');
+      const touchableElements = screen.root.findAllByType(TouchableOpacity);
       expect(touchableElements.length).toBeGreaterThan(0);
     });
 
