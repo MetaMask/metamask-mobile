@@ -355,13 +355,17 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         assetId,
       };
 
-      await deposit(depositParams);
+      const depositResult = await deposit(depositParams);
 
-      navigation.navigate('PerpsDepositProcessing', {
-        amount: sourceAmount,
-        fromToken: sourceToken.symbol,
-        transactionHash: '',
-      });
+      if (depositResult.success && depositResult.txHash) {
+        navigation.navigate('PerpsDepositProcessing', {
+          amount: sourceAmount,
+          fromToken: sourceToken.symbol,
+          transactionHash: depositResult.txHash,
+        });
+      } else {
+        setError(depositResult.error || strings('perps.errors.depositFailed'));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : strings('perps.errors.unknownError'));
     } finally {

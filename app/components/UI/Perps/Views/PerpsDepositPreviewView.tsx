@@ -41,6 +41,7 @@ import type { PerpsToken } from '../components/PerpsTokenSelector';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_ASSET_CONFIGS,
+  USDC_SYMBOL,
 } from '../constants/hyperLiquidConfig';
 import { usePerpsDepositQuote, usePerpsTrading } from '../hooks';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -56,6 +57,8 @@ import {
   getNetworkImageSource,
   BLOCKAID_SUPPORTED_NETWORK_NAMES,
 } from '../../../../util/networks';
+import BigNumber from 'bignumber.js';
+import { toHex } from '@metamask/controller-utils';
 
 interface DepositPreviewParams {
   amount: string;
@@ -79,7 +82,7 @@ type DepositPreviewScreenRouteProp = RouteProp<
   'PerpsDepositPreview'
 >;
 
-interface DepositPreviewViewProps {}
+interface DepositPreviewViewProps { }
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -211,9 +214,9 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         balance: selectedTokenData.balance,
         balanceFiat: selectedTokenData.balanceFiat
           ? addCurrencySymbol(
-              parseFloat(selectedTokenData.balanceFiat.toString()),
-              currentCurrency,
-            )
+            parseFloat(selectedTokenData.balanceFiat.toString()),
+            currentCurrency,
+          )
           : undefined,
       };
 
@@ -256,9 +259,9 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
   const handleConfirm = useCallback(async () => {
     try {
       const isDirectDeposit =
-        selectedToken === 'USDC' &&
+        selectedToken === USDC_SYMBOL &&
         selectedTokenObject.chainId ===
-          `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`;
+        toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
 
       navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
         amount,
@@ -299,12 +302,23 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         nonEvmMultichainAssetRates: {},
       });
 
-      const tokenPriceInUsd =
-        parseFloat(displayValue.replace(/[^0-9.-]+/g, '')) || 0;
+      // Use a more robust parsing approach that handles locale-specific formats
+      // First, normalize the display value by removing currency symbols and spaces
+      const normalizedValue = displayValue
+        .replace(/[^\d.,-]/g, '') // Keep digits, dots, commas, and minus
+        .replace(/,/g, ''); // Remove thousand separators (commas)
 
-      if (tokenPriceInUsd > 0) {
-        const tokenAmount = usdcAmount / tokenPriceInUsd;
-        return tokenAmount.toFixed(4);
+      // Parse the normalized value
+      const tokenPriceInUsd = parseFloat(normalizedValue);
+
+      if (!isNaN(tokenPriceInUsd) && tokenPriceInUsd > 0) {
+        // Use BigNumber for precise division to avoid floating-point errors
+        const usdcAmountBN = new BigNumber(usdcAmount);
+        const tokenPriceBN = new BigNumber(tokenPriceInUsd);
+        const tokenAmountBN = usdcAmountBN.dividedBy(tokenPriceBN);
+
+        // Return with appropriate decimal places
+        return tokenAmountBN.toFixed(4, BigNumber.ROUND_DOWN);
       }
     } catch (error) {
       // Silent failure - return 0 if pricing data unavailable
@@ -374,8 +388,8 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
                       chainId: selectedTokenObject.chainId || '',
                     })
                       ? BLOCKAID_SUPPORTED_NETWORK_NAMES[
-                          selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
-                        ] || selectedTokenObject.chainId
+                      selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
+                      ] || selectedTokenObject.chainId
                       : selectedTokenObject.chainId
                   }
                   imageSource={getNetworkImageSource({
