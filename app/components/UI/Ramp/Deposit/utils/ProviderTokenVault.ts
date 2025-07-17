@@ -1,7 +1,5 @@
 import SecureKeychain from '../../../../../core/SecureKeychain';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
-import { Authentication } from '../../../../../core/Authentication/Authentication';
-import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 
 interface ProviderTokenResponse {
   success: boolean;
@@ -26,32 +24,7 @@ export async function storeProviderToken(
 
     const stringifiedToken = JSON.stringify(storedToken);
 
-    // Get the user's current authentication type to match their security preference
-    const authData = await Authentication.getType();
-
-    // Map the authentication type to SecureKeychain types
-    let secureKeychainType;
-    switch (authData.currentAuthType) {
-      case AUTHENTICATION_TYPE.BIOMETRIC:
-        secureKeychainType = SecureKeychain.TYPES.BIOMETRICS;
-        break;
-      case AUTHENTICATION_TYPE.PASSCODE:
-        secureKeychainType = SecureKeychain.TYPES.PASSCODE;
-        break;
-      case AUTHENTICATION_TYPE.REMEMBER_ME:
-        secureKeychainType = SecureKeychain.TYPES.REMEMBER_ME;
-        break;
-      default:
-        // Default to password (no additional authentication)
-        secureKeychainType = SecureKeychain.TYPES.REMEMBER_ME;
-    }
-
-    // Use SecureKeychain to store the token with the same authentication type as the main password
-    // This ensures consistent security behavior across the app
-    await SecureKeychain.setDepositProviderKey(
-      stringifiedToken,
-      secureKeychainType,
-    );
+    await SecureKeychain.setDepositProviderKey(stringifiedToken);
 
     return {
       success: true,

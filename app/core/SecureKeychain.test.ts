@@ -200,3 +200,167 @@ describe('SecureKeychain - setGenericPassword', () => {
     });
   });
 });
+
+describe('SecureKeychain - Deposit Provider Key', () => {
+  const mockProviderKey = 'test-provider-token';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    SecureKeychain.init('test_salt');
+  });
+
+  describe('setDepositProviderKey', () => {
+    it('should store provider key with basic device security', async () => {
+      await SecureKeychain.setDepositProviderKey(mockProviderKey);
+
+      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+        'metamask-deposit-provider',
+        mockProviderKey,
+        expect.objectContaining({
+          service: 'com.metamask.deposit-provider',
+          accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        }),
+      );
+    });
+
+    it('should not add any access control for re-authentication', async () => {
+      await SecureKeychain.setDepositProviderKey(mockProviderKey);
+
+      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+        'metamask-deposit-provider',
+        mockProviderKey,
+        expect.not.objectContaining({
+          accessControl: expect.anything(),
+        }),
+      );
+    });
+
+    it('should handle storage errors', async () => {
+      const errorMessage = 'Storage failed';
+      (Keychain.setGenericPassword as jest.Mock).mockRejectedValueOnce(
+        new Error(errorMessage),
+      );
+
+      await expect(
+        SecureKeychain.setDepositProviderKey(mockProviderKey),
+      ).rejects.toThrow(errorMessage);
+    });
+  });
+
+  describe('getDepositProviderKey', () => {
+    it('should retrieve provider key successfully', async () => {
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce({
+        password: mockProviderKey,
+      });
+
+      const result = await SecureKeychain.getDepositProviderKey();
+
+      expect(Keychain.getGenericPassword).toHaveBeenCalledWith({
+        service: 'com.metamask.deposit-provider',
+      });
+      expect(result).toBe(mockProviderKey);
+    });
+
+    it('should return null when no provider key is found', async () => {
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce(null);
+
+      const result = await SecureKeychain.getDepositProviderKey();
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when keychain object has no password', async () => {
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce({
+        username: 'metamask-deposit-provider',
+        // password is undefined
+      });
+
+      const result = await SecureKeychain.getDepositProviderKey();
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle retrieval errors', async () => {
+      const errorMessage = 'Retrieval failed';
+      (Keychain.getGenericPassword as jest.Mock).mockRejectedValueOnce(
+        new Error(errorMessage),
+      );
+
+      await expect(SecureKeychain.getDepositProviderKey()).rejects.toThrow(
+        errorMessage,
+      );
+    });
+
+    it('should return null when instance is not initialized', async () => {
+      // Reset the instance
+      (SecureKeychain as any).instance = null;
+
+      const result = await SecureKeychain.getDepositProviderKey();
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('resetDepositProviderKey', () => {
+    it('should reset provider key successfully', async () => {
+      (Keychain.resetGenericPassword as jest.Mock).mockResolvedValueOnce(
+        undefined,
+      );
+
+      await SecureKeychain.resetDepositProviderKey();
+
+      expect(Keychain.resetGenericPassword).toHaveBeenCalledWith({
+        service: 'com.metamask.deposit-provider',
+      });
+    });
+
+    it('should handle reset errors', async () => {
+      const errorMessage = 'Reset failed';
+      (Keychain.resetGenericPassword as jest.Mock).mockRejectedValueOnce(
+        new Error(errorMessage),
+      );
+
+      await expect(SecureKeychain.resetDepositProviderKey()).rejects.toThrow(
+        errorMessage,
+      );
+    });
+  });
+
+  describe('Service Configuration', () => {
+    it('should use correct service identifier for deposit provider', async () => {
+      await SecureKeychain.setDepositProviderKey(mockProviderKey);
+
+      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+        'metamask-deposit-provider',
+        mockProviderKey,
+        expect.objectContaining({
+          service: 'com.metamask.deposit-provider',
+        }),
+      );
+    });
+
+    it('should be separate from main wallet password service', async () => {
+      await SecureKeychain.setDepositProviderKey(mockProviderKey);
+      await SecureKeychain.setGenericPassword(
+        'wallet-password',
+        SecureKeychain.TYPES.BIOMETRICS,
+      );
+
+      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+        'metamask-deposit-provider',
+        mockProviderKey,
+        expect.objectContaining({
+          service: 'com.metamask.deposit-provider',
+        }),
+      );
+
+      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
+        'metamask-user',
+        expect.any(String),
+        expect.objectContaining({
+          service: 'com.metamask',
+        }),
+      );
+    });
+  });
+});

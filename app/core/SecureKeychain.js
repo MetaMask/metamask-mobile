@@ -27,7 +27,6 @@ const defaultOptions = {
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 
-// Service options for deposit provider key
 const depositProviderKeyOptions = {
   service: 'com.metamask.deposit-provider',
 };
@@ -59,14 +58,6 @@ class SecureKeychain {
   }
 
   decryptPassword(str) {
-    return encryptor.decrypt(privates.get(this).code, str);
-  }
-
-  encryptData(data) {
-    return encryptor.encrypt(privates.get(this).code, { data });
-  }
-
-  decryptData(str) {
     return encryptor.decrypt(privates.get(this).code, str);
   }
 }
@@ -216,28 +207,13 @@ export default {
     }
   },
 
-  // Deposit Provider Key methods
-  async setDepositProviderKey(key, type) {
-    const authOptions = {
-      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-    };
-
-    const metrics = MetaMetrics.getInstance();
-    if (type === this.TYPES.BIOMETRICS) {
-      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
-    } else if (type === this.TYPES.PASSCODE) {
-      authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
-    } else if (type === this.TYPES.REMEMBER_ME) {
-      // No additional access control for remember me
-    } else {
-      // Setting a key without a type does not save it
-      return await this.resetDepositProviderKey();
-    }
-
-    // Store the key in plain text (no encryption needed)
+  // This is used to store the token for the deposit provider
+  async setDepositProviderKey(key) {
+    // Store the key with no additional access control (REMEMBER_ME equivalent)
+    // User is already authenticated when app is open, no need for re-authentication
     await Keychain.setGenericPassword('metamask-deposit-provider', key, {
       ...depositProviderKeyOptions,
-      ...authOptions,
+      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     });
   },
 
@@ -247,8 +223,7 @@ export default {
         const keychainObject = await Keychain.getGenericPassword(
           depositProviderKeyOptions,
         );
-        if (keychainObject.password) {
-          // Return the key directly (no decryption needed)
+        if (keychainObject && keychainObject.password) {
           return keychainObject.password;
         }
       } catch (error) {
