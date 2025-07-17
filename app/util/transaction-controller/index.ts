@@ -31,7 +31,7 @@ export async function updateAtomicBatchData(batchData: {
 }
 
 export async function addTransactionBatch(
-...args: Parameters<BaseTransactionController['addTransactionBatch']>
+  ...args: Parameters<BaseTransactionController['addTransactionBatch']>
 ) {
   const { TransactionController } = Engine.context;
 
