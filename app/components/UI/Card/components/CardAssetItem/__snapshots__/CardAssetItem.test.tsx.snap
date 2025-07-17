@@ -322,7 +322,6 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -856,7 +855,6 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-USDC"
@@ -1393,7 +1391,6 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -1929,7 +1926,6 @@ exports[`CardAssetItem Component renders with different allowanceState and match
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -2465,7 +2461,6 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -3001,7 +2996,6 @@ exports[`CardAssetItem Component renders with enabled allowanceState and matches
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -3537,7 +3531,6 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
@@ -4073,7 +4066,6 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           "flex": 1,
                           "flexDirection": "row",
                           "height": 64,
-                          "paddingHorizontal": 16,
                         }
                       }
                       testID="asset-ETH"
