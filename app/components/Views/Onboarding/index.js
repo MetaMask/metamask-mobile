@@ -63,7 +63,15 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       alignItems: 'center',
+      justifyContent: 'center',
       paddingVertical: 30,
+    },
+    loaderWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      rowGap: 32,
+      marginBottom: 160,
     },
     image: {
       alignSelf: 'center',
@@ -105,6 +113,14 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
       rowGap: 24,
     },
+    titleWrapper: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      flex: 1,
+      rowGap: 32,
+    },
     footer: {
       marginBottom: 40,
       marginTop: -40,
@@ -139,7 +155,6 @@ const createStyles = (colors) =>
       columnGap: 8,
     },
     loader: {
-      marginTop: 180,
       justifyContent: 'center',
       textAlign: 'center',
     },
@@ -519,7 +534,16 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.loaderWrapper}>
+        <View style={styles.largeFoxWrapper}>
+          <LottieView
+            style={styles.image}
+            autoPlay
+            loop
+            source={fox}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
@@ -534,23 +558,25 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.titleWrapper}>
+          <View style={styles.largeFoxWrapper}>
+            <LottieView
+              style={styles.image}
+              autoPlay
+              loop
+              source={fox}
+              resizeMode="contain"
+            />
+          </View>
 
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.title}
-          testID={OnboardingSelectorIDs.SCREEN_TITLE}
-        >
-          {strings('onboarding.title')}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.title}
+            testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          >
+            {strings('onboarding.title')}
+          </Text>
+        </View>
 
         <View style={styles.createWrapper}>
           <Button
@@ -628,17 +654,6 @@ class Onboarding extends PureComponent {
           contentContainerStyle={styles.scroll}
         >
           <View style={styles.wrapper}>
-            {loading && (
-              <View style={styles.largeFoxWrapper}>
-                <LottieView
-                  style={styles.image}
-                  autoPlay
-                  loop
-                  source={fox}
-                  resizeMode="contain"
-                />
-              </View>
-            )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
 
