@@ -14,14 +14,6 @@ on:
         description: 'Smoke test category (confirmations, trade, wallet-platform, etc.)'
         required: true
         type: string
-      matrix-index:
-        description: 'Matrix index for this test run'
-        required: true
-        type: number
-      matrix-total:
-        description: 'Total number of matrix entries'
-        required: true
-        type: number
       platform:
         description: 'Platform to test (ios or android)'
         required: true
