@@ -1,4 +1,4 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
+/* eslint-disable import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
