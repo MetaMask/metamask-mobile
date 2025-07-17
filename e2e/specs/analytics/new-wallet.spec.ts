@@ -142,7 +142,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         );
 
         const checkWalletCreated = softAssert.checkAndCollect(async () => {
-
           Assertions.checkIfValueIsDefined(walletCreatedEvent);
           Assertions.checkIfObjectsMatch(walletCreatedEvent!.properties, {
             biometrics_enabled: false,
