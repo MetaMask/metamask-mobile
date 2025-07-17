@@ -4,6 +4,8 @@ import PerpsView from '../Views/PerpsView';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
+import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
+import PerpsPositionsView from '../Views/PerpsPositionsView';
 
 const Stack = createStackNavigator();
 
@@ -20,7 +22,25 @@ const PerpsScreenStack = () => (
         }}
       />
 
-      {/*
+      <Stack.Screen
+        name={Routes.PERPS.POSITIONS}
+        component={PerpsPositionsView}
+        options={{
+          title: strings('perps.position.title'),
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PERPS.POSITION_DETAILS}
+        component={PerpsPositionDetailsView}
+        options={{
+          title: strings('perps.position.details.title'),
+          headerShown: false,
+        }}
+      />
+
+      {/* 
         Removed for minimal PR (can be added back in future PRs):
         - PerpsMarketListView (Market list)
         - PerpsPositionsView (Positions list)

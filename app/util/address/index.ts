@@ -361,7 +361,7 @@ export function getLabelTextByInternalAccount(
     return null;
   };
 
-  switch (internalAccount.metadata.keyring.type) {
+  switch (internalAccount?.metadata?.keyring?.type) {
     case ExtendedKeyringTypes.hd: {
       // Since @metamask/accounts-controller@28.0.0, HD accounts also have their entropy source
       // within the options bag, so re-use this:

@@ -6,6 +6,7 @@ import {
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
+  generateThemeParameters,
   timestampToTransakFormat,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
@@ -17,6 +18,8 @@ import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { DepositPaymentMethod } from '../constants';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
@@ -346,6 +349,64 @@ describe('hasDepositOrderField', () => {
     expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
+  });
+});
+
+describe('generateThemeParameters', () => {
+  it('should generate correct theme parameters for light mode', () => {
+    const themeAppearance = AppThemeKey.light;
+    const colors = lightTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'LIGHT',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
+  });
+
+  it('should generate correct theme parameters for dark mode', () => {
+    const themeAppearance = AppThemeKey.dark;
+    const colors = darkTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'DARK',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
   });
 });
 

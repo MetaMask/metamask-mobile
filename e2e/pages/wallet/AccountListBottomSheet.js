@@ -11,7 +11,9 @@ import TestHelpers from '../../helpers';
 
 class AccountListBottomSheet {
   get accountList() {
-    return Matchers.getElementByID(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
   }
 
   get accountTypeLabel() {
@@ -66,7 +68,10 @@ class AccountListBottomSheet {
   }
 
   getMultiselectElement(index) {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
+    return Matchers.getElementByID(
+      CellComponentSelectorsIDs.MULTISELECT,
+      index,
+    );
   }
 
   /**
@@ -78,14 +83,14 @@ class AccountListBottomSheet {
    * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
    */
   getSelectWithMenuElementName(index) {
-    return Matchers.getElementByID(
-      CellComponentSelectorsIDs.BASE_TITLE,
-      index,
-    );
+    return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
+    await Gestures.tapAtIndex(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
+      index,
+    );
   }
 
   async accountNameInList(accountName) {
@@ -96,9 +101,7 @@ class AccountListBottomSheet {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectWithMenuElementName(index), {
-      checkEnabled: false
-    });
+    await Gestures.tap(this.getSelectWithMenuElementName(index));
   }
 
   async longPressAccountAtIndex(index) {
@@ -106,7 +109,9 @@ class AccountListBottomSheet {
   }
 
   async tapAddAccountButton() {
-    await Gestures.waitAndTap(this.addAccountButton);
+    await Gestures.waitAndTap(this.addAccountButton, {
+      elemDescription: 'Add Account button',
+    });
   }
 
   async tapAddEthereumAccountButton() {
