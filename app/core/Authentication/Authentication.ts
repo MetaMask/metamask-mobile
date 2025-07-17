@@ -474,7 +474,21 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+
+      if (authData.oauth2Login) {
+        // if seedless flow - rehydrate
+        await this.rehydrateSeedPhrase(password, authData);
+      } else if (
+        selectSeedlessOnboardingLoginFlow(ReduxService.store.getState()) &&
+        (await this.checkIsSeedlessPasswordOutdated())
+      ) {
+        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+        await this.syncPasswordAndUnlockWallet(password);
+      } else {
+        // else srp flow
+        await this.loginVaultCreation(password);
+      }
+
       endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
@@ -529,7 +543,18 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+      // check for seedless password outdated
+      const isSeedlessPasswordOutdated =
+        await this.checkIsSeedlessPasswordOutdated();
+      if (isSeedlessPasswordOutdated) {
+        throw new AuthenticationError(
+          'Seedless password is outdated',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+          this.authData,
+        );
+      } else {
+        await this.loginVaultCreation(password);
+      }
       endTrace({ name: TraceName.VaultCreation });
 
       this.dispatchLogin();
@@ -666,12 +691,7 @@ class AuthenticationService {
 
         await this.syncKeyringEncryptionKey();
 
-        this.dispatchLogin();
-        this.dispatchPasswordSet();
         this.dispatchOauthReset();
-        ///: BEGIN:ONLY_INCLUDE_IF(solana)
-        this.retrySolanaDiscoveryIfPending();
-        ///: END:ONLY_INCLUDE_IF
       } else {
         throw new Error('No account data found');
       }

@@ -367,21 +367,19 @@ const Login: React.FC = () => {
         rememberMe,
       );
 
-      if (isSeedlessPasswordOutdated) {
-        await Authentication.syncPasswordAndUnlockWallet(password);
-      } else if (oauthLoginSuccess) {
-        await Authentication.rehydrateSeedPhrase(password, authType);
-      } else {
-        await trace(
-          {
-            name: TraceName.AuthenticateUser,
-            op: TraceOperation.Login,
-          },
-          async () => {
-            await Authentication.userEntryAuth(password, authType);
-          },
-        );
+      if (oauthLoginSuccess) {
+        authType.oauth2Login = true;
       }
+
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       Keyboard.dismiss();
 
