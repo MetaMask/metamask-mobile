@@ -20,7 +20,11 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 }));
 
 jest.mock('../../components/PerpsMarketRowItem', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const {
+    TouchableOpacity: MockTouchableOpacity,
+    View,
+    Text,
+  } = jest.requireActual('react-native');
   return function MockPerpsMarketRowItem({
     market,
     onPress,
@@ -29,7 +33,7 @@ jest.mock('../../components/PerpsMarketRowItem', () => {
     onPress?: (market: PerpsMarketData) => void;
   }) {
     return (
-      <TouchableOpacity
+      <MockTouchableOpacity
         testID={`market-row-${market.symbol}`}
         onPress={() => onPress?.(market)}
       >
@@ -41,7 +45,7 @@ jest.mock('../../components/PerpsMarketRowItem', () => {
             {market.change24h}
           </Text>
         </View>
-      </TouchableOpacity>
+      </MockTouchableOpacity>
     );
   };
 });
@@ -75,7 +79,12 @@ jest.mock('@shopify/flash-list', () => ({
     refreshing,
     onRefresh,
   }: FlashListProps) => {
-    const { View, ScrollView, Text } = jest.requireActual('react-native');
+    const {
+      TouchableOpacity: MockTouchableOpacity,
+      View,
+      ScrollView,
+      Text,
+    } = jest.requireActual('react-native');
     return (
       <ScrollView
         testID="flash-list"
@@ -90,9 +99,9 @@ jest.mock('@shopify/flash-list', () => ({
           ))}
         </View>
         {refreshing && (
-          <TouchableOpacity testID="refresh-control" onPress={onRefresh}>
+          <MockTouchableOpacity testID="refresh-control" onPress={onRefresh}>
             <Text>Refreshing</Text>
-          </TouchableOpacity>
+          </MockTouchableOpacity>
         )}
       </ScrollView>
     );
