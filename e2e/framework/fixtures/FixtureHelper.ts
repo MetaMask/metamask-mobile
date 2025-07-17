@@ -1,0 +1,391 @@
+/* eslint-disable no-console, import/no-nodejs-modules */
+import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  AnvilManager,
+  Hardfork,
+} from '../../seeder/anvil-manager';
+import Ganache from '../../../app/util/test/ganache';
+
+import GanacheSeeder from '../../../app/util/test/ganache-seeder';
+import axios from 'axios';
+import createStaticServer from '../../create-static-server';
+import {
+  DEFAULT_MOCKSERVER_PORT,
+  getFixturesServerPort,
+  getLocalTestDappPort,
+  getMockServerPort,
+} from './FixtureUtils';
+import Utilities from '../../utils/Utilities';
+import TestHelpers from '../../helpers';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { AnvilSeeder } from '../../seeder/anvil-seeder';
+import http from 'http';
+
+import {
+  LocalNodeConfig,
+  LocalNodeOptionsInput,
+  LocalNodeType,
+  WithFixturesOptions,
+  TestSuiteFunction,
+  LocalNode,
+  DappOptions,
+} from '../types';
+import {
+  TestDapps,
+  DappVariants,
+} from '../Constants';
+import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
+
+export const DEFAULT_DAPP_SERVER_PORT = 8085;
+
+// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
+const getFixturesPort =
+  typeof getFixturesServerPort === 'function'
+    ? getFixturesServerPort
+    : () => DEFAULT_FIXTURE_SERVER_PORT;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+
+// checks if server has already been started
+const isFixtureServerStarted = async () => {
+  try {
+    const response = await axios.get(FIXTURE_SERVER_URL);
+    return response.status === 200;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Handles the dapps by starting the servers and listening to the ports.
+ * @param dapps - The dapps to start.
+ * @param dappServer - The dapp server to start.
+ */
+async function handleDapps(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
+  const dappBasePort = getLocalTestDappPort();
+  for (let i = 0; i < dapps.length; i++) {
+    const dapp = dapps[i];
+    switch (dapp.dappVariant) {
+      case DappVariants.TEST_DAPP:
+        dappServer.push(
+          createStaticServer(
+            dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
+          ),
+        );
+        break;
+      case DappVariants.MULTICHAIN_TEST_DAPP:
+        dappServer.push(
+          createStaticServer(
+            dapp.dappPath ||
+              TestDapps[DappVariants.MULTICHAIN_TEST_DAPP].dappPath,
+          ),
+        );
+        break;
+      case DappVariants.SOLANA_TEST_DAPP:
+        dappServer.push(
+          createStaticServer(
+            dapp.dappPath ||
+              TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
+          ),
+        );
+        break;
+      default:
+        throw new Error(
+          `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
+        );
+    }
+    dappServer[i].listen(`${dappBasePort + i}`);
+    await new Promise((resolve, reject) => {
+      dappServer[i].on('listening', resolve);
+      dappServer[i].on('error', reject);
+    });
+  }
+}
+
+/**
+ * Handles the smart contracts by deploying them to the local node.
+ * @param smartContracts - The smart contracts to deploy.
+ * @param localNodeConfig - The local node configuration.
+ * @param localNode - The local node to deploy the smart contracts to.
+ * @returns The contract registry.
+ */
+async function handleSmartContracts(
+  smartContracts: string[],
+  localNodeConfig: LocalNodeConfig,
+  localNode: LocalNode,
+): Promise<ContractAddressRegistry | undefined> {
+  let seeder;
+  let contractRegistry;
+  if (smartContracts && smartContracts.length > 0) {
+    switch (localNodeConfig.type) {
+      case LocalNodeType.anvil:
+        seeder = new AnvilSeeder(localNode.getProvider());
+        break;
+
+      case LocalNodeType.ganache:
+        seeder = new GanacheSeeder(localNode.getProvider());
+        break;
+
+      default:
+        throw new Error(
+          `Unsupported localNode: '${localNode}'. Cannot deploy smart contracts.`,
+        );
+    }
+
+    for (const contract of smartContracts) {
+      await seeder.deploySmartContract(
+        contract,
+        localNodeConfig.options.hardfork as string,
+      );
+    }
+
+    contractRegistry = seeder.getContractRegistry();
+  }
+  return contractRegistry;
+}
+
+/**
+ * Handles the local nodes by starting the servers and listening to the ports.
+ * @param localNodeOptions - The local node options to use for the test.
+ * @returns The local nodes.
+ */
+async function handleLocalNodes(
+  localNodeOptions: LocalNodeOptionsInput,
+): Promise<LocalNode[]> {
+  try {
+    let localNode;
+    const localNodes = [];
+    for (const node of localNodeOptions) {
+      const nodeType = node.type;
+      const nodeOptions = node.options || {};
+
+      switch (nodeType) {
+        case LocalNodeType.anvil:
+          localNode = new AnvilManager();
+          await localNode.start(nodeOptions);
+          localNodes.push(localNode);
+          break;
+
+        case LocalNodeType.ganache:
+          localNode = new Ganache();
+          await localNode.start(nodeOptions);
+          localNodes.push(localNode);
+          break;
+
+        case LocalNodeType.bitcoin:
+          break;
+
+        default:
+          throw new Error(
+            `Unsupported localNode: '${nodeType}'. Cannot start the server.`,
+          );
+      }
+    }
+    return localNodes;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+/**
+ * Handles the local nodes by stopping the servers and closing the ports.
+ * @param localNodes - The local nodes to stop.
+ */
+async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
+  for (const node of localNodes) {
+    if (node) {
+      await node.quit();
+    }
+  }
+}
+
+/**
+ *
+ * @param dapps
+ * @param dappServer
+ */
+async function handleDappCleanup(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
+  for (let i = 0; i < dapps.length; i++) {
+    if (dappServer[i]?.listening) {
+      await new Promise<void>((resolve, reject) => {
+        dappServer[i].close((error) => {
+          if (error) {
+            return reject(error);
+          }
+          return resolve();
+        });
+      });
+    }
+  }
+}
+
+/**
+ * Loads a fixture into the fixture server.
+ *
+ * @param {FixtureServer} fixtureServer - An instance of the FixtureServer class responsible for loading fixtures.
+ * @param {Object} options - An object containing the fixture to load.
+ * @param {Object} [options.fixture] - The fixture data to load. If not provided, a default fixture is created.
+ * @returns {Promise<void>} - A promise that resolves once the fixture is successfully loaded.
+ * @throws {Error} - Throws an error if the fixture fails to load or if the fixture server is not properly set up.
+ */
+export const loadFixture = async (
+  fixtureServer: FixtureServer,
+  { fixture }: { fixture: FixtureBuilder },
+) => {
+  // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
+  // the app will be loaded without any fixtures and will start and go through the onboarding process.
+  const state = fixture || new FixtureBuilder({ onboarding: true }).build();
+  await fixtureServer.loadJsonState(state, null);
+  // Checks if state is loaded
+  const response = await axios.get(FIXTURE_SERVER_URL);
+
+  // Throws if state is not properly loaded
+  if (response.status !== 200) {
+    throw new Error('Not able to load fixtures');
+  }
+};
+
+// Start the fixture server
+export const startFixtureServer = async (fixtureServer: FixtureServer) => {
+  if (await isFixtureServerStarted()) {
+    console.log('The fixture server has already been started');
+    return;
+  }
+
+  try {
+    await fixtureServer.start();
+    console.log('The fixture server is started');
+  } catch (err) {
+    console.log('Fixture server error:', err);
+  }
+};
+
+// Stop the fixture server
+export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
+  if (!(await isFixtureServerStarted())) {
+    console.log('The fixture server has already been stopped');
+    return;
+  }
+  await fixtureServer.stop();
+  console.log('The fixture server is stopped');
+};
+
+/**
+ * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
+ * and running the test suite. After the test suite execution, it stops the fixture server.
+ *
+ * @param {WithFixturesOptions} options - The specific options for the test suite to run with.
+ * @param {TestSuiteFunction} testSuite - The test suite function to execute after setting up the fixture.
+ * @returns {Promise<void>} - A promise that resolves once the test suite completes.
+ * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
+ */
+export async function withFixtures(
+  options: WithFixturesOptions,
+  testSuite: TestSuiteFunction,
+) {
+  const {
+    fixture,
+    restartDevice = false,
+    smartContracts,
+    disableLocalNodes = false,
+    dapps,
+    localNodeOptions = [
+      {
+        type: LocalNodeType.anvil,
+        options: {
+          hardfork: 'prague' as Hardfork,
+        },
+      },
+    ],
+    testSpecificMock,
+    launchArgs,
+    languageAndLocale,
+    permissions = {},
+  } = options;
+
+  // Handle mock server
+  let mockServer;
+  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
+  if (testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+  }
+
+  // Handle local nodes
+  let localNodes;
+  // Start servers based on the localNodes array
+  if (!disableLocalNodes) {
+    localNodes = await handleLocalNodes(localNodeOptions);
+  }
+
+  const dappServer: http.Server[] = [];
+  const fixtureServer = new FixtureServer();
+
+  try {
+    // Handle smart contracts
+    let contractRegistry;
+    if (
+      smartContracts &&
+      smartContracts.length > 0 &&
+      localNodes &&
+      localNodes.length > 0
+    ) {
+      // We default the smart contract seeder to the first node client
+      // If there's a future need to deploy multiple smart contracts in multiple clients
+      // this assumption is no longer correct and the below code needs to be modified accordingly
+      contractRegistry = await handleSmartContracts(
+        smartContracts,
+        localNodeOptions[0],
+        localNodes[0],
+      );
+    }
+
+    // Handle dapps
+    if (dapps && dapps.length > 0) {
+      await handleDapps(dapps, dappServer);
+    }
+
+    // Start fixture server
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    console.log(
+      'The fixture server is started, and the initial state is successfully loaded.',
+    );
+    // Due to the fact that the app was already launched on `init.js`, it is necessary to
+    // launch into a fresh installation of the app to apply the new fixture loaded perviously.
+    if (restartDevice) {
+      await TestHelpers.launchApp({
+        delete: true,
+        launchArgs: {
+          fixtureServerPort: `${getFixturesServerPort()}`,
+          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+          mockServerPort: `${mockServerPort}`,
+          ...(launchArgs || {}),
+        },
+        languageAndLocale,
+        permissions,
+      });
+    }
+
+    await testSuite({ contractRegistry, mockServer, localNodes });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  } finally {
+    // Clean up all local nodes
+    if (localNodes && localNodes.length > 0) {
+      await handleLocalNodeCleanup(localNodes);
+    }
+
+    if (dapps && dapps.length > 0) {
+      await handleDappCleanup(dapps, dappServer);
+    }
+
+    if (testSpecificMock) {
+      await stopMockServer(mockServer);
+    }
+
+    await stopFixtureServer(fixtureServer);
+  }
+}

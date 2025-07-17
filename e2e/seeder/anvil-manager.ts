@@ -1,6 +1,7 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../fixtures/utils';
+import { AnvilNodeOptions } from '../framework/types';
 
 export const DEFAULT_ANVIL_PORT = 8545;
 
@@ -8,7 +9,7 @@ export const DEFAULT_ANVIL_PORT = 8545;
  * Represents the available Ethereum hardforks for the Anvil server
  * @typedef {('Frontier'|'Homestead'|'Dao'|'Tangerine'|'SpuriousDragon'|'Byzantium'|'Constantinople'|'Petersburg'|'Istanbul'|'Muirglacier'|'Berlin'|'London'|'ArrowGlacier'|'GrayGlacier'|'Paris'|'Shanghai'|'Latest')} Hardfork
  */
-type Hardfork =
+export type Hardfork =
   | 'Frontier'
   | 'Homestead'
   | 'Dao'
@@ -90,21 +91,8 @@ class AnvilManager {
    * @throws {Error} If mnemonic is not provided
    * @throws {Error} If server fails to start
    */
-  async start(
-    opts: {
-      balance?: number;
-      blockTime?: number;
-      chainId?: number;
-      gasLimit?: number;
-      gasPrice?: number;
-      hardfork?: Hardfork;
-      host?: string;
-      mnemonic?: string;
-      port?: number;
-      noMining?: boolean;
-    } = {},
-  ): Promise<void> {
-    const options = { ...defaultOptions, ...opts,port: AnvilPort() };
+  async start(opts: AnvilNodeOptions = {}): Promise<void> {
+    const options = { ...defaultOptions, ...opts, port: AnvilPort() };
     const { port } = options;
 
     try {
