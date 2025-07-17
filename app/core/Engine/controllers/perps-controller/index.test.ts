@@ -93,6 +93,7 @@ describe('perps controller init', () => {
         stepNames: [],
         stepTxHashes: [],
       },
+      activeDepositTransactions: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
     };

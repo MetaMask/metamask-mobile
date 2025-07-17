@@ -4,23 +4,29 @@ import {
   type RestrictedMessenger,
 } from '@metamask/base-controller';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
-import type { TransactionParams } from '@metamask/transaction-controller';
+import type {
+  TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
+  TransactionControllerTransactionSubmittedEvent,
+  TransactionParams
+} from '@metamask/transaction-controller';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
+import type { CandleData } from '../types';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { strings } from '../../../../../locales/i18n';
 import type {
   AccountState,
   AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
+  DepositFlowType,
   DepositParams,
   DepositResult,
   DepositStatus,
-  DepositFlowType,
   DepositStepInfo,
   EditOrderParams,
   GetAccountStateParams,
@@ -39,7 +45,6 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from './types';
-import type { CandleData } from '../types';
 
 /**
  * State shape for PerpsController
@@ -65,6 +70,7 @@ export type PerpsControllerState = {
   depositError: string | null;
   requiresModalDismissal: boolean;
   depositSteps: DepositStepInfo;
+  activeDepositTransactions: Record<string, { amount: string; token: string }>; // Track active deposits by tx id
 
   // Error handling
   lastError: string | null;
@@ -93,6 +99,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     stepNames: [],
     stepTxHashes: [],
   },
+  activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
 });
@@ -114,6 +121,7 @@ const metadata = {
   depositError: { persist: false, anonymous: false },
   requiresModalDismissal: { persist: false, anonymous: false },
   depositSteps: { persist: false, anonymous: false },
+  activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
 };
@@ -131,57 +139,57 @@ export interface PerpsControllerEvents {
  */
 export type PerpsControllerActions =
   | {
-      type: 'PerpsController:getState';
-      handler: () => PerpsControllerState;
-    }
+    type: 'PerpsController:getState';
+    handler: () => PerpsControllerState;
+  }
   | {
-      type: 'PerpsController:placeOrder';
-      handler: PerpsController['placeOrder'];
-    }
+    type: 'PerpsController:placeOrder';
+    handler: PerpsController['placeOrder'];
+  }
   | {
-      type: 'PerpsController:editOrder';
-      handler: PerpsController['editOrder'];
-    }
+    type: 'PerpsController:editOrder';
+    handler: PerpsController['editOrder'];
+  }
   | {
-      type: 'PerpsController:cancelOrder';
-      handler: PerpsController['cancelOrder'];
-    }
+    type: 'PerpsController:cancelOrder';
+    handler: PerpsController['cancelOrder'];
+  }
   | {
-      type: 'PerpsController:closePosition';
-      handler: PerpsController['closePosition'];
-    }
+    type: 'PerpsController:closePosition';
+    handler: PerpsController['closePosition'];
+  }
   | {
-      type: 'PerpsController:deposit';
-      handler: PerpsController['deposit'];
-    }
+    type: 'PerpsController:deposit';
+    handler: PerpsController['deposit'];
+  }
   | {
-      type: 'PerpsController:submitDirectDepositTransaction';
-      handler: PerpsController['submitDirectDepositTransaction'];
-    }
+    type: 'PerpsController:submitDirectDepositTransaction';
+    handler: PerpsController['submitDirectDepositTransaction'];
+  }
   | {
-      type: 'PerpsController:withdraw';
-      handler: PerpsController['withdraw'];
-    }
+    type: 'PerpsController:withdraw';
+    handler: PerpsController['withdraw'];
+  }
   | {
-      type: 'PerpsController:getPositions';
-      handler: PerpsController['getPositions'];
-    }
+    type: 'PerpsController:getPositions';
+    handler: PerpsController['getPositions'];
+  }
   | {
-      type: 'PerpsController:getAccountState';
-      handler: PerpsController['getAccountState'];
-    }
+    type: 'PerpsController:getAccountState';
+    handler: PerpsController['getAccountState'];
+  }
   | {
-      type: 'PerpsController:getMarkets';
-      handler: PerpsController['getMarkets'];
-    }
+    type: 'PerpsController:getMarkets';
+    handler: PerpsController['getMarkets'];
+  }
   | {
-      type: 'PerpsController:toggleTestnet';
-      handler: PerpsController['toggleTestnet'];
-    }
+    type: 'PerpsController:toggleTestnet';
+    handler: PerpsController['toggleTestnet'];
+  }
   | {
-      type: 'PerpsController:disconnect';
-      handler: PerpsController['disconnect'];
-    };
+    type: 'PerpsController:disconnect';
+    handler: PerpsController['disconnect'];
+  };
 
 /**
  * External actions the PerpsController can call
@@ -194,8 +202,9 @@ export type AllowedActions =
  * External events the PerpsController can subscribe to
  */
 export type AllowedEvents =
-  | 'AccountsController:selectedAccountChange'
-  | 'NetworkController:stateChange';
+  | TransactionControllerTransactionSubmittedEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent;
 
 /**
  * PerpsController messenger constraints
@@ -203,9 +212,9 @@ export type AllowedEvents =
 export type PerpsControllerMessenger = RestrictedMessenger<
   'PerpsController',
   PerpsControllerActions,
-  PerpsControllerEvents,
+  PerpsControllerEvents | AllowedEvents,
   AllowedActions,
-  AllowedEvents
+  AllowedEvents['type']
 >;
 
 /**
@@ -242,12 +251,100 @@ export class PerpsController extends BaseController<
     });
 
     this.providers = new Map();
+
+    // Subscribe to TransactionController events for deposit tracking
+    this.messagingSystem.subscribe(
+      'TransactionController:transactionSubmitted',
+      this.handleTransactionSubmitted.bind(this),
+    );
+
+    this.messagingSystem.subscribe(
+      'TransactionController:transactionConfirmed',
+      this.handleTransactionConfirmed.bind(this),
+    );
+
+    this.messagingSystem.subscribe(
+      'TransactionController:transactionFailed',
+      this.handleTransactionFailed.bind(this),
+    );
+
     this.initializeProviders().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
         error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     });
+  }
+
+  /**
+   * Handle transaction submitted event
+   */
+  private handleTransactionSubmitted(event: TransactionControllerTransactionSubmittedEvent['payload'][0]): void {
+    const txMeta = event.transactionMeta;
+    // Check if this is a deposit transaction we're tracking
+    const depositInfo = this.state.activeDepositTransactions[txMeta.id];
+    if (depositInfo) {
+      DevLogger.log('PerpsController: Deposit transaction submitted', {
+        txId: txMeta.id,
+        txHash: txMeta.hash,
+        amount: depositInfo.amount,
+        token: depositInfo.token,
+      });
+
+      this.update((state) => {
+        state.depositStatus = 'depositing';
+        state.currentDepositTxHash = txMeta.hash || null;
+      });
+    }
+  }
+
+  /**
+   * Handle transaction confirmed event
+   */
+  private handleTransactionConfirmed(txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0]): void {
+    // Check if this is a deposit transaction we're tracking
+    const depositInfo = this.state.activeDepositTransactions[txMeta.id];
+    if (depositInfo) {
+      DevLogger.log('PerpsController: Deposit transaction confirmed', {
+        txId: txMeta.id,
+        txHash: txMeta.hash,
+        amount: depositInfo.amount,
+        token: depositInfo.token,
+      });
+
+      this.update((state) => {
+        state.depositStatus = 'success';
+        state.currentDepositTxHash = txMeta.hash || null;
+        // Remove from active tracking
+        delete state.activeDepositTransactions[txMeta.id];
+      });
+    }
+  }
+
+  /**
+   * Handle transaction failed event
+   */
+  private handleTransactionFailed(event: TransactionControllerTransactionFailedEvent['payload'][0]): void {
+    const txMeta = event.transactionMeta;
+    // Check if this is a deposit transaction we're tracking
+    const depositInfo = this.state.activeDepositTransactions[txMeta.id];
+    if (depositInfo) {
+      DevLogger.log('PerpsController: Deposit transaction failed', {
+        txId: txMeta.id,
+        txHash: txMeta.hash,
+        amount: depositInfo.amount,
+        token: depositInfo.token,
+        error: txMeta.error,
+      });
+
+      this.update((state) => {
+        state.depositStatus = 'error';
+        state.depositError = txMeta.error?.message || 'Transaction failed';
+        state.currentDepositTxHash = txMeta.hash || null;
+        // Remove from active tracking
+        delete state.activeDepositTransactions[txMeta.id];
+      });
+    }
   }
 
   /**
@@ -1020,6 +1117,7 @@ export class PerpsController extends BaseController<
       const result = await this.submitTransactionDirectly(
         transaction,
         selectedNetworkClientId,
+        params.amount,
       );
       const txHash = result.txHash;
 
@@ -1188,6 +1286,7 @@ export class PerpsController extends BaseController<
   private async submitTransactionDirectly(
     transaction: TransactionParams,
     networkClientId: string,
+    depositAmount?: string,
   ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
       const { TransactionController } = Engine.context;
@@ -1197,6 +1296,17 @@ export class PerpsController extends BaseController<
         requireApproval: false,
         networkClientId,
       });
+
+      // Track this deposit transaction
+      const txMeta = result.transactionMeta;
+      if (txMeta && this.state.depositFlowType === 'direct' && depositAmount) {
+        this.update((state) => {
+          state.activeDepositTransactions[txMeta.id] = {
+            amount: depositAmount,
+            token: 'USDC', // For now, we only support USDC
+          };
+        });
+      }
 
       const txHash = await result.result;
 
@@ -1214,4 +1324,7 @@ export class PerpsController extends BaseController<
       };
     }
   }
+
+
+
 }

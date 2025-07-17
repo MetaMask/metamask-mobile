@@ -107,6 +107,14 @@ export const RISK_MANAGEMENT: RiskManagementConfig = {
   fallbackBalancePercent: 0.1, // Default balance percentage if no balance
 };
 
+// Deposit constants
+export const DEPOSIT_CONFIG = {
+  estimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
+  defaultSlippage: 1, // 1% default slippage for bridge quotes
+  bridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
+  refreshRate: 30000, // 30 seconds quote refresh rate
+};
+
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
 

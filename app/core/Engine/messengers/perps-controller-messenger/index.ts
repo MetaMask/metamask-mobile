@@ -13,8 +13,9 @@ export function getPerpsControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'PerpsController',
     allowedEvents: [
-      'AccountsController:selectedAccountChange',
-      'NetworkController:stateChange',
+      'TransactionController:transactionSubmitted',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',

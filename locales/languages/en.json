@@ -755,6 +755,8 @@
       "retry_deposit": "Retry Deposit",
       "go_back": "Go Back",
       "view_balance": "View Balance",
+      "calculating_fee": "Calculating...",
+      "switch_network": "Switch network required",
       "steps": {
         "preparing": "Preparing deposit...",
         "swapping": "Swapping {{token}} to USDC",
