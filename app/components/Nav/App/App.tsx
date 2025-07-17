@@ -924,23 +924,9 @@ const App: React.FC = () => {
   // periodically check seedless password outdated when app UI is open
   useInterval(
     async () => {
-      const checkSeedlessPasswordOutdated = async () => {
-        if (isSeedlessOnboardingLoginFlow) {
-          // check if the seedless password is outdated at app init
-          // if app is locked, check skip cache to ensure user need to input latest global password
-          try {
-            const isOutdated =
-              await Authentication.checkIsSeedlessPasswordOutdated(true);
-            Logger.log(`App: Seedless password is outdated: ${isOutdated}`);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'App: Error in checkIsSeedlessPasswordOutdated',
-            );
-          }
-        }
-      };
-      checkSeedlessPasswordOutdated();
+      if (isSeedlessOnboardingLoginFlow) {
+        await Authentication.checkIsSeedlessPasswordOutdated();
+      }
     },
     {
       delay: Duration.Minute * 5,

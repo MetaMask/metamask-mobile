@@ -590,7 +590,12 @@ describe('Vault', () => {
       );
 
       // Verify that Logger.error was called with the error
-      expect(Logger.error).toHaveBeenNthCalledWith(1, error);
+      //Array includes error message and error object
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        1,
+        error,
+        expect.any(String),
+      );
 
       // Verify that createNewVaultAndRestore was called again to restore the original state
       expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith('password', [
