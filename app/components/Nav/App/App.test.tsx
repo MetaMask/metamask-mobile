@@ -23,6 +23,7 @@ import {
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { Linking } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -109,7 +110,26 @@ jest.mock('../../../core', () => ({
   Authentication: {
     appTriggeredAuth: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn(),
+    checkIsSeedlessPasswordOutdated: jest.fn(),
   },
+}));
+
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
+
+// Mock AppStateEventProcessor
+jest.mock('../../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    setCurrentDeeplink: jest.fn(),
+  },
+}));
+
+// Mock checkForDeeplink action
+jest.mock('../../../actions/user', () => ({
+  checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
 }));
 
 // Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
@@ -292,6 +312,139 @@ describe('App', () => {
         },
         { timeout: 5000 },
       );
+    });
+
+    describe('Seedless onboarding password outdated check', () => {
+      const Logger = jest.requireMock('../../../util/Logger');
+
+      const seedlessOnboardingState = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine?.backgroundState,
+            SeedlessOnboardingController: {
+              vault: 'encrypted-vault-data', // This makes selectSeedlessOnboardingLoginFlow return true
+            },
+          },
+        },
+      };
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === EXISTING_USER) {
+              return true; // User exists
+            }
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return true; // OptinMetrics UI has been seen
+            }
+            return null; // Default for other keys
+          });
+        jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      });
+
+      it('checks password outdated status and logs result when in seedless onboarding flow', async () => {
+        // Arrange
+        const mockCheckIsSeedlessPasswordOutdated = jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockResolvedValue(true);
+
+        jest.useFakeTimers();
+        // Act
+        renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
+        // Assert
+        await waitFor(() => {
+          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalled();
+        });
+      });
+
+      it('handles errors when checking seedless password outdated status', async () => {
+        // Arrange
+        const testError = new Error('Authentication service error');
+        const mockCheckIsSeedlessPasswordOutdated = jest
+          .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+          .mockRejectedValue(testError);
+
+        jest.useFakeTimers();
+        // Act
+        renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
+        // Assert
+        await waitFor(() => {
+          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalled();
+          expect(Logger.error).toHaveBeenCalledWith(
+            testError,
+            'App: Error in checkIsSeedlessPasswordOutdated',
+          );
+        });
+      });
+    });
+
+    describe('Deeplink handling useEffect', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === EXISTING_USER) {
+              return true;
+            }
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return true;
+            }
+            return null;
+          });
+        jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      });
+
+      it('sets up URL event listener when component mounts', async () => {
+        const mockLinking = jest.mocked(Linking);
+        mockLinking.addEventListener = jest.fn();
+
+        renderScreen(App, { name: 'App' }, { state: initialState });
+
+        await waitFor(() => {
+          expect(mockLinking.addEventListener).toHaveBeenCalledWith(
+            'url',
+            expect.any(Function),
+          );
+        });
+      });
+
+      it('processes deeplinks when URL events are received', async () => {
+        const mockLinking = jest.mocked(Linking);
+        let capturedCallback: ((params: { url: string }) => void) | undefined;
+        let callbackCalled = false;
+
+        mockLinking.addEventListener = jest
+          .fn()
+          .mockImplementation(
+            (event: string, callback: (params: { url: string }) => void) => {
+              if (event === 'url') {
+                capturedCallback = (params) => {
+                  callbackCalled = true;
+                  callback(params);
+                };
+              }
+            },
+          );
+
+        renderScreen(App, { name: 'App' }, { state: initialState });
+
+        await waitFor(() => {
+          expect(mockLinking.addEventListener).toHaveBeenCalled();
+        });
+
+        // Simulate URL event
+        if (capturedCallback) {
+          capturedCallback({ url: 'test://url' });
+        }
+
+        // Verify the callback was triggered
+        expect(callbackCalled).toBe(true);
+      });
     });
   });
   describe('OnboardingRootNav', () => {
