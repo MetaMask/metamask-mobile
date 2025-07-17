@@ -244,12 +244,11 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
     });
   }, [selectedToken, tokens, tokenList, isIpfsGatewayEnabled, currentCurrency]);
 
-  const { deposit, getDepositRoutes } = usePerpsTrading();
+  const { deposit } = usePerpsTrading();
   const { formattedQuoteData, isLoading: isQuoteLoading } =
     usePerpsDepositQuote({
       amount,
       selectedToken: selectedTokenObject,
-      getDepositRoutes,
     });
 
   const handleBack = useCallback(() => {
