@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
@@ -16,9 +15,12 @@ const mockSetPayAsset = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useTokens');
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('1.0.0'),
-}));
+jest.mock(
+  '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
