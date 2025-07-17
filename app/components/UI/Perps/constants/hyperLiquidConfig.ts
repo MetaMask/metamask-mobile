@@ -113,6 +113,10 @@ export const DEPOSIT_CONFIG = {
   defaultSlippage: 1, // 1% default slippage for bridge quotes
   bridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
   refreshRate: 30000, // 30 seconds quote refresh rate
+  estimatedTime: {
+    directDeposit: '3-5 seconds', // Direct USDC deposit on Arbitrum
+    sameChainSwap: '30-60 seconds', // Swap on same chain before deposit
+  },
 };
 
 // Type helpers

@@ -163,7 +163,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
 
   const {
     status: depositStatus,
-    steps: depositSteps,
     error: depositError,
     currentTxHash,
   } = usePerpsDeposit();
@@ -227,9 +226,6 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [navigation]);
 
   const getStatusContent = () => {
-    const currentStep = depositSteps.currentStep;
-    const stepName = depositSteps.stepNames[currentStep - 1];
-
     switch (depositStatus) {
       case 'preparing':
         return {
@@ -278,7 +274,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               testID="processing-animation"
             />
           ),
-          title: stepName || strings('perps.deposit.steps.depositing'),
+          title: strings('perps.deposit.steps.depositing'),
           description: isDirectDeposit
             ? strings('perps.deposit.steps.depositingDirect')
             : strings('perps.deposit.stepDescriptions.depositing'),

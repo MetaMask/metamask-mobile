@@ -1,37 +1,74 @@
-import { parseCaipAssetId, parseCaipChainId } from '@metamask/utils';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { type GenericQuoteRequest } from '@metamask/bridge-controller';
+import { toHex } from '@metamask/controller-utils';
 import { BigNumber } from 'bignumber.js';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { debounce } from 'lodash';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../reducers';
+import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+import { selectBridgeControllerState } from '../../../../core/redux/slices/bridge';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectGasFeeEstimatesByChainId } from '../../../../selectors/gasFeeController';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
-import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { formatAmount } from '../../SimulationDetails/formatAmount';
-import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
-import Engine from '../../../../core/Engine';
-import I18n, { strings } from '../../../../../locales/i18n';
-import type { PerpsToken } from '../components/PerpsTokenSelector';
-import {
-  getBridgeInfo,
-  DEPOSIT_CONFIG,
-  USDC_SYMBOL,
-} from '../constants/hyperLiquidConfig';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { AssetRoute } from '../controllers/types';
 import { getDecimalChainId } from '../../../../util/networks';
 import { calcTokenValue } from '../../../../util/transactions';
+import { isQuoteExpired, shouldRefreshQuote } from '../../Bridge/utils/quoteUtils';
+import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
+import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
+import type { PerpsToken } from '../components/PerpsTokenSelector';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID,
+  DEPOSIT_CONFIG,
+  getBridgeInfo,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
+
+interface BridgeQuoteWithMetadata {
+  totalNetworkFee?: {
+    amount?: string | null;
+    valueInCurrency?: string | null;
+    usd?: string | null;
+  };
+  quote?: {
+    destTokenAmount?: string;
+    totalNetworkFee?: {
+      amount?: string | null;
+      valueInCurrency?: string | null;
+    };
+    feeData?: {
+      metabridge?: {
+        amount?: string;
+        asset?: {
+          symbol?: string;
+          decimals?: number;
+        };
+      };
+    };
+  };
+  estimatedProcessingTimeInSeconds?: number;
+  networkFee?: {
+    amount?: string | null;
+    valueInCurrency?: string | null;
+  };
+  trade?: {
+    data?: string;
+    estimatedGas?: string;
+    from?: string;
+    gasLimit?: number;
+    to?: string;
+    value?: string;
+  };
+}
 
 interface PerpsDepositQuoteParams {
   amount: string;
   selectedToken: PerpsToken;
-  getDepositRoutes?: () => AssetRoute[];
 }
 
 interface FormattedQuoteData {
@@ -41,484 +78,844 @@ interface FormattedQuoteData {
   exchangeRate?: string;
 }
 
+const DEBOUNCE_WAIT = 700;
+const DEFAULT_REFRESH_RATE = 30 * 1000;
+const BRIDGE_QUOTE_TIMEOUT = 15 * 1000; // 15 seconds timeout for bridge quotes
+
 /**
- * Hook for getting Perps deposit quote data following Bridge patterns
- *
- * IMPORTANT: This follows Bridge's approach of getting quote data from backend APIs
- * - Gas fees come from quote.totalNetworkFee (NOT hardcoded gas limits)
- * - Processing time comes from quote.estimatedProcessingTimeInSeconds
- * - All data should be fetched from HyperLiquid quote API, not calculated locally
- *
- * Current implementation uses mock data with TODOs for real API integration
+ * Hook for getting Perps deposit quote data with BridgeController integration
+ * Supports both direct deposits and cross-chain bridging
+ * Tracks quote expiration and refresh attempts
  */
 export const usePerpsDepositQuote = ({
   amount,
   selectedToken,
-  getDepositRoutes,
 }: PerpsDepositQuoteParams) => {
-  // Store getDepositRoutes in a ref to prevent it from causing re-renders
-  const getDepositRoutesRef = useRef(getDepositRoutes);
-  useEffect(() => {
-    getDepositRoutesRef.current = getDepositRoutes;
-  }, [getDepositRoutes]);
+  // Log every single render with all inputs
+  DevLogger.log('[usePerpsDepositQuote] ===== HOOK RENDER START =====');
+  DevLogger.log('[usePerpsDepositQuote] Input params:', {
+    amount,
+    amountType: typeof amount,
+    amountLength: amount?.length,
+    selectedToken: selectedToken ? {
+      symbol: selectedToken.symbol,
+      address: selectedToken.address,
+      decimals: selectedToken.decimals,
+      chainId: selectedToken.chainId,
+    } : null,
+  });
+
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
   const ticker = useSelector(selectTicker);
   const fiatFormatter = useFiatFormatter();
-  const locale = I18n.locale;
 
-  // Quote refresh state following Bridge pattern
-  const [isLoading, setIsLoading] = useState(false);
-  const [quoteFetchError, setQuoteFetchError] = useState<string | null>(null);
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
-
-  const REFRESH_RATE = DEPOSIT_CONFIG.refreshRate;
-
-  // Get selectors for gas estimation and pricing data
   const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
   const providerConfig = useSelector(selectProviderConfig);
   const currencyRates = useSelector(selectCurrencyRates);
-  const chainId = providerConfig.chainId;
-  const gasFeeEstimates = useSelector((state: RootState) =>
-    selectGasFeeEstimatesByChainId(state, chainId),
-  );
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
 
-  // Network fee calculation using real gas estimation
-  const getNetworkFee = useCallback(async (sourceAmount?: string) => {
-    const amountToUse = sourceAmount || amount;
-    if (
-      !selectedAccount ||
-      !amountToUse ||
-      parseFloat(amountToUse) === 0 ||
-      !selectedToken
-    )
-      return '-';
+  DevLogger.log('[usePerpsDepositQuote] Bridge controller state:', {
+    hasQuotes: bridgeControllerState?.quotes ? Object.keys(bridgeControllerState.quotes).length : 0,
+    quoteFetchError: bridgeControllerState?.quoteFetchError,
+  });
 
-    try {
-      // Path determination logic
-      const currentNetworkChainId = providerConfig.chainId;
-      const tokenChainId = selectedToken.chainId;
-      const isArbitrumToken = tokenChainId === '0xa4b1';
-      const isUSDC = selectedToken.symbol === USDC_SYMBOL;
-      const isOnCorrectNetwork = currentNetworkChainId === tokenChainId;
-      const isDirectDeposit = isUSDC && isArbitrumToken && isOnCorrectNetwork;
+  const [networkFee, setNetworkFee] = useState<string>('-');
+  const [isLoading, setIsLoading] = useState(false);
+  const [quoteFetchedTime, setQuoteFetchedTime] = useState<number | null>(null);
+  const [quotesRefreshCount, setQuotesRefreshCount] = useState(0);
+  const [bridgeQuote, setBridgeQuote] = useState<BridgeQuoteWithMetadata | null>(null);
+  const [localQuoteFetchError, setLocalQuoteFetchError] = useState<string | null>(null);
+  const bridgeQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasQuoteFailed, setHasQuoteFailed] = useState(false);
 
-      DevLogger.log('PerpsDepositQuote: Network fee calculation', {
-        currentNetworkChainId,
-        tokenChainId,
-        isArbitrumToken,
-        tokenSymbol: selectedToken.symbol,
-        isUSDC,
-        isOnCorrectNetwork,
-        isDirectDeposit,
+  // Use refs to store values that shouldn't trigger recalculation
+  const currentProviderChainId = useRef(providerConfig.chainId);
+  const currentSelectedAccount = useRef(selectedAccount);
+  const currentCurrencyRates = useRef(currencyRates);
+  const currentPrimaryCurrency = useRef(primaryCurrency);
+  const currentTicker = useRef(ticker);
+  const currentFiatFormatter = useRef(fiatFormatter);
+
+  // Update refs when values change
+  useEffect(() => {
+    currentProviderChainId.current = providerConfig.chainId;
+    currentSelectedAccount.current = selectedAccount;
+    currentCurrencyRates.current = currencyRates;
+    currentPrimaryCurrency.current = primaryCurrency;
+    currentTicker.current = ticker;
+    currentFiatFormatter.current = fiatFormatter;
+  }, [providerConfig.chainId, selectedAccount, currencyRates, primaryCurrency, ticker, fiatFormatter]);
+
+  const maxRefreshCount = 5;
+  const refreshRate = DEPOSIT_CONFIG.refreshRate || DEFAULT_REFRESH_RATE;
+
+  const willRefresh = useMemo(() =>
+    shouldRefreshQuote(false, quotesRefreshCount, maxRefreshCount, false),
+    [quotesRefreshCount]);
+
+  const isExpired = useMemo(() =>
+    isQuoteExpired(willRefresh, refreshRate, quoteFetchedTime),
+    [willRefresh, refreshRate, quoteFetchedTime]);
+
+  const arbitrumChainIdHex = toHex(ARBITRUM_MAINNET_CHAIN_ID);
+  const isDirectDeposit = selectedToken?.symbol === USDC_SYMBOL &&
+    selectedToken?.chainId === arbitrumChainIdHex &&
+    providerConfig.chainId === arbitrumChainIdHex;
+
+  // Check if this is a same-chain swap (e.g., ETH -> USDC on Arbitrum)
+  const isSameChainSwap = selectedToken?.symbol !== USDC_SYMBOL &&
+    selectedToken?.chainId === arbitrumChainIdHex &&
+    providerConfig.chainId === arbitrumChainIdHex;
+
+  // Only need bridge for cross-chain transfers
+  const needsBridge = !isDirectDeposit && !isSameChainSwap;
+
+  DevLogger.log('[usePerpsDepositQuote] Deposit type check:', {
+    isDirectDeposit,
+    isSameChainSwap,
+    needsBridge,
+    tokenSymbol: selectedToken?.symbol,
+    tokenChainId: selectedToken?.chainId,
+    providerChainId: providerConfig.chainId,
+    arbitrumChainIdHex,
+    USDC_SYMBOL,
+  });
+
+  // Track previous values to detect changes
+  const prevTokenRef = useRef<PerpsToken | undefined>(undefined);
+  const prevAmountRef = useRef<string>('');
+
+  // Reset state when token changes
+  useEffect(() => {
+    const tokenChanged = prevTokenRef.current?.address !== selectedToken?.address ||
+                       prevTokenRef.current?.chainId !== selectedToken?.chainId;
+
+    if (tokenChanged && selectedToken) {
+      DevLogger.log('[usePerpsDepositQuote] Token changed, resetting state', {
+        prevToken: prevTokenRef.current,
+        newToken: selectedToken,
+        amount,
+        needsBridge,
       });
 
-      // For direct USDC deposits on Arbitrum, estimate deposit transaction gas
-      if (isDirectDeposit) {
-        // Get bridge contract info from configuration
-        const bridgeInfo = getBridgeInfo(false); // false = mainnet
+      // Reset quote state
+      setHasQuoteFailed(false);
+      setLocalQuoteFetchError(null);
+      setQuoteFetchedTime(null);
+      setQuotesRefreshCount(0);
+      setBridgeQuote(null);
 
-        // Create transaction parameters for USDC deposit to HyperLiquid bridge
-        const transactionParams = {
-          from: selectedAccount,
-          to: bridgeInfo.contractAddress,
-          value: '0x0',
-          data: '0x', // Would be actual deposit call data
-        };
+      // Set loading state if we have an amount and need a bridge quote
+      const hasValidAmount = amount && amount !== '' && parseFloat(amount) > 0;
+      if (needsBridge && hasValidAmount) {
+        DevLogger.log('[usePerpsDepositQuote] Setting network fee to calculating for new token');
+        setNetworkFee(strings('perps.deposit.calculating_fee') || 'Calculating...');
+        setIsLoading(true);
 
-        const gasEstimates = await getTransaction1559GasFeeEstimates(
-          transactionParams,
-          providerConfig.chainId,
-        );
-
-        DevLogger.log('PerpsDepositQuote: Gas estimates result', {
-          gasEstimates,
-          hasMaxFeePerGas: !!gasEstimates?.maxFeePerGas,
-        });
-
-        if (gasEstimates?.maxFeePerGas) {
-          // Estimate gas limit for deposit transaction (typical ERC20 transfer + bridge call)
-          const estimatedGasLimit = new BigNumber(DEPOSIT_CONFIG.estimatedGasLimit);
-          const gasFeeWei = new BigNumber(
-            gasEstimates.maxFeePerGas,
-          ).multipliedBy(estimatedGasLimit);
-          const gasFeeEth = gasFeeWei.dividedBy(new BigNumber(10).pow(18));
-
-          if (primaryCurrency === 'ETH') {
-            const formattedAmount = formatAmount(locale, gasFeeEth);
-            return `${formattedAmount} ${ticker}`;
-          }
-          // Use actual currency rates for fiat conversion
-          const ethPrice = currencyRates?.ETH?.usdConversionRate;
-          if (!ethPrice) {
-            // If currency rates unavailable, show dash instead of guessing
-            return '-';
-          }
-          const fiatValue = gasFeeEth.multipliedBy(ethPrice);
-
-          // For very small amounts, show more precision
-          if (fiatValue.isLessThan(0.01)) {
-            return `$${fiatValue.toFixed(4)}`;
-          }
-
-          return fiatFormatter(fiatValue);
-        }
-
-        // If gas estimates are not available yet, show calculating
-        return strings('perps.deposit.calculating_fee');
-      }
-
-      // If user is on wrong network for the selected token
-      if (!isOnCorrectNetwork && isUSDC && isArbitrumToken) {
-        return strings('perps.deposit.switch_network');
-      }
-
-      // For bridging scenarios, get real bridge quotes
-      if (!isDirectDeposit && amountToUse && parseFloat(amountToUse) > 0) {
-        try {
-          DevLogger.log('PerpsDepositQuote: Getting bridge quote for cross-chain deposit');
-
-          // Get bridge quotes from BridgeController
-          const bridgeController = Engine.context.BridgeController;
-          if (bridgeController) {
-            // Calculate source token amount in minimal units
-            const srcTokenAmount = selectedToken.decimals
-              ? calcTokenValue(amountToUse, selectedToken.decimals).toFixed(0)
-              : '0';
-
-            // Update bridge quote parameters
-            await bridgeController.updateBridgeQuoteRequestParams({
-              srcChainId: getDecimalChainId(currentNetworkChainId),
-              destChainId: getDecimalChainId(tokenChainId),
-              srcTokenAddress: selectedToken.address,
-              destTokenAddress: selectedToken.address,
-              srcTokenAmount,
-              slippage: DEPOSIT_CONFIG.defaultSlippage,
-              walletAddress: selectedAccount,
-              gasIncluded: false,
-            }, {
-              stx_enabled: false,
-              token_symbol_source: selectedToken.symbol,
-              token_symbol_destination: selectedToken.symbol,
-              security_warnings: [] as string[], // Proper type for security_warnings
-            });
-
-            // Poll for quotes with proper loading state check
-            let attempts = 0;
-            const maxAttempts = 10;
-            const pollInterval = 200; // 200ms
-
-            while (attempts < maxAttempts) {
-              const bridgeState = bridgeController.state;
-
-              // Check if quotes are loaded
-              if (bridgeState.quotesLoadingStatus !== RequestStatus.LOADING && bridgeState.quotes && bridgeState.quotes.length > 0) {
-                DevLogger.log('PerpsDepositQuote: Bridge quotes received', {
-                  quotesCount: bridgeState.quotes.length,
-                  status: bridgeState.quotesLoadingStatus,
-                });
-
-                // Get the first quote - bridge quotes come with metadata
-                const bestQuote = bridgeState.quotes[0];
-                // Type guard to check if quote has metadata
-                if ('totalNetworkFee' in bestQuote && bestQuote.totalNetworkFee) {
-                  const networkFee = bestQuote.totalNetworkFee as {
-                    amount: string;
-                    valueInCurrency: string;
-                  };
-
-                  if (networkFee.amount && networkFee.valueInCurrency) {
-                    // Format based on primary currency preference
-                    if (primaryCurrency === 'ETH') {
-                      const formattedAmount = formatAmount(locale, new BigNumber(networkFee.amount));
-                      return `${formattedAmount} ${ticker}`;
-                    }
-                    const fiatValue = new BigNumber(networkFee.valueInCurrency);
-                    if (fiatValue.isLessThan(0.01)) {
-                      return `$${fiatValue.toFixed(4)}`;
-                    }
-                    return fiatFormatter(fiatValue);
-                  }
-                }
-                break;
-              }
-
-              // Wait before next attempt
-              await new Promise(resolve => setTimeout(resolve, pollInterval));
-              attempts++;
-            }
-
-            DevLogger.log('PerpsDepositQuote: Bridge quote polling completed', { attempts });
-          }
-        } catch (bridgeError) {
-          DevLogger.log('PerpsDepositQuote: Bridge quote failed', { bridgeError });
-        }
-
-        // If bridge quote fails or no fee data, show dash
-        return '-';
-      }
-
-      // Default fallback
-      return '-';
-    } catch (error) {
-      DevLogger.log('PerpsDepositQuote: Error in getNetworkFee', { error });
-      // Gas fee estimation can fail during initial load or when TransactionController is not ready
-      // This is expected and not an error condition
-      return '-';
-    }
-  }, [
-    selectedAccount,
-    amount,
-    selectedToken,
-    providerConfig,
-    primaryCurrency,
-    ticker,
-    locale,
-    fiatFormatter,
-    currencyRates,
-  ]);
-
-  // Dynamic estimated time calculation using real gas fee estimates and path analysis
-  const getEstimatedTime = useCallback((): string => {
-    // Use gas fee estimates to get real network-based time estimates
-    if (!gasFeeEstimates || !selectedToken) {
-      // Don't log this as it's expected during initial load
-      return '';
-    }
-
-    try {
-      // For direct deposits on Arbitrum (no bridging needed)
-      // Get deposit routes from PerpsController if available
-      if (getDepositRoutesRef.current) {
-        const depositRoutes = getDepositRoutesRef.current();
-        DevLogger.log('PerpsDepositQuote: Got deposit routes', {
-          depositRoutes,
-        });
-        const matchingRoute = depositRoutes.find((route: AssetRoute) => {
-          // Parse token asset ID using MetaMask CAIP utilities
-          const parsedAsset = parseCaipAssetId(route.assetId);
-          const chainHex = `0x${parseInt(
-            parsedAsset.chainId.split(':')[1],
-            10,
-          ).toString(16)}`;
-
-          return (
-            chainHex === selectedToken.chainId &&
-            parsedAsset.assetReference.toLowerCase() ===
-            selectedToken.address.toLowerCase()
-          );
-        });
-
-        DevLogger.log('PerpsDepositQuote: Route matching', {
-          matchingRoute,
-          selectedTokenChainId: selectedToken.chainId,
-          selectedTokenSymbol: selectedToken.symbol,
-        });
-
-        if (
-          matchingRoute &&
-          selectedToken.chainId &&
-          selectedToken.symbol === USDC_SYMBOL
-        ) {
-          // Use MetaMask's CAIP utilities to parse chain ID
-          const parsedChain = parseCaipChainId(matchingRoute.chainId);
-          const targetChainHex = `0x${parseInt(
-            parsedChain.reference,
-            10,
-          ).toString(16)}`;
-
-          DevLogger.log('PerpsDepositQuote: Chain comparison', {
-            selectedTokenChainId: selectedToken.chainId,
-            targetChainHex,
-            matches: selectedToken.chainId === targetChainHex,
-          });
-
-          if (selectedToken.chainId === targetChainHex) {
-            // Use medium gas level time estimates
-            if (
-              gasFeeEstimates &&
-              typeof gasFeeEstimates === 'object' &&
-              'medium' in gasFeeEstimates
-            ) {
-              const medium = gasFeeEstimates.medium;
-              if (
-                medium &&
-                typeof medium === 'object' &&
-                'minWaitTimeEstimate' in medium &&
-                'maxWaitTimeEstimate' in medium
-              ) {
-                const minWait = Math.ceil(
-                  (medium.minWaitTimeEstimate as number) / 1000,
-                ); // Convert ms to seconds
-                const maxWait = Math.ceil(
-                  (medium.maxWaitTimeEstimate as number) / 1000,
-                );
-
-                DevLogger.log('PerpsDepositQuote: Gas estimates timing', {
-                  minWaitTimeEstimate: medium.minWaitTimeEstimate,
-                  maxWaitTimeEstimate: medium.maxWaitTimeEstimate,
-                  minWait,
-                  maxWait,
-                });
-
-                // For Arbitrum, gas estimates are often very low (1-2 seconds)
-                // Use more realistic time estimates for transaction confirmation
-                const realisticMinWait = Math.max(minWait, 15); // At least 15 seconds
-                const realisticMaxWait = Math.max(maxWait, 30); // At least 30 seconds
-
-                DevLogger.log('PerpsDepositQuote: Realistic timing', {
-                  realisticMinWait,
-                  realisticMaxWait,
-                });
-
-                if (realisticMinWait < 60 && realisticMaxWait < 60) {
-                  const result = `${realisticMinWait}-${realisticMaxWait} seconds`;
-                  DevLogger.log('PerpsDepositQuote: Final time result', {
-                    result,
-                  });
-                  return result;
-                }
-                const minMin = Math.ceil(realisticMinWait / 60);
-                const maxMin = Math.ceil(realisticMaxWait / 60);
-                const result = `${minMin}-${maxMin} minutes`;
-                DevLogger.log(
-                  'PerpsDepositQuote: Final time result (minutes)',
-                  { result },
-                );
-                return result;
-              }
-            }
-            // Fallback for direct deposits if no gas estimates
-            DevLogger.log(
-              'PerpsDepositQuote: No gas estimates structure found',
-            );
-            return '';
-          }
+        // Clear any existing timeout
+        if (bridgeQuoteTimeoutRef.current) {
+          clearTimeout(bridgeQuoteTimeoutRef.current);
+          bridgeQuoteTimeoutRef.current = null;
         }
       } else {
-        DevLogger.log(
-          'PerpsDepositQuote: No getDepositRoutes function available',
-        );
+        setNetworkFee('-');
+        setIsLoading(false);
+      }
+    }
+
+    prevTokenRef.current = selectedToken;
+  }, [selectedToken, amount, needsBridge]);
+
+  // Parse amount once and validate
+  const parsedAmount = useMemo(() => {
+    DevLogger.log('[usePerpsDepositQuote] Parsing amount:', { amount, type: typeof amount });
+    // Be extra defensive about empty values
+    if (!amount || amount === '' || amount === '.') {
+      DevLogger.log('[usePerpsDepositQuote] Amount is empty or invalid');
+      return null;
+    }
+    try {
+      // Ensure we have a valid string
+      const amountStr = String(amount).trim();
+      if (!amountStr || amountStr === '' || amountStr === '.') {
+        return null;
       }
 
-      // For cross-chain deposits that require bridging
-      // TODO: Integrate with Bridge API for real bridge time estimates
-      DevLogger.log(
-        'PerpsDepositQuote: No matching route found, returning empty',
-      );
-      return ''; // Don't show estimate until we have real data
+      DevLogger.log('[usePerpsDepositQuote] Creating BigNumber with:', amountStr);
+      const amountBN = new BigNumber(amountStr);
+      DevLogger.log('[usePerpsDepositQuote] BigNumber created:', { isNaN: amountBN.isNaN(), value: amountBN.toString() });
+
+      if (amountBN.isNaN() || amountBN.lte(0)) {
+        DevLogger.log('[usePerpsDepositQuote] Amount is NaN or <= 0');
+        return null;
+      }
+
+      return amountBN;
     } catch (error) {
-      DevLogger.log('PerpsDepositQuote: Error in getEstimatedTime', { error });
-      return '';
+      DevLogger.log('[usePerpsDepositQuote] BigNumber creation failed:', error);
+      return null;
     }
-  }, [gasFeeEstimates, selectedToken]);
+  }, [amount]);
 
-  // Calculate receiving amount (1:1 for USDC, estimated for other tokens)
-  const getReceivingAmount = useCallback(() => {
-    const depositAmount = parseFloat(amount || '0');
-    if (depositAmount === 0) return '0.00';
 
-    // Check if token is selected
-    if (!selectedToken) return '0.00';
+  // Handle same-chain swap case
+  useEffect(() => {
+    if (isSameChainSwap && parsedAmount && selectedToken) {
+      DevLogger.log('[usePerpsDepositQuote] Same-chain swap detected:', {
+        token: selectedToken.symbol,
+        amount: parsedAmount.toString(),
+      });
 
-    // For USDC deposits, it's 1:1
-    if (selectedToken.symbol === USDC_SYMBOL) {
-      return `${depositAmount.toFixed(2)} ${USDC_SYMBOL}`;
+      // For same-chain swaps, estimate network fee
+      // This is a placeholder - in production, you'd fetch actual swap quotes
+      setNetworkFee('$5.00'); // Estimated swap gas fee
+      setQuoteFetchedTime(Date.now());
+      setIsLoading(false);
     }
+  }, [isSameChainSwap, parsedAmount, selectedToken]);
 
-    // For other tokens, we'd typically show estimated USDC amount
-    // This would come from real quote data in production
-    return `~${depositAmount.toFixed(2)} ${USDC_SYMBOL}`;
-  }, [amount, selectedToken]);
+  const calculateDirectFee = useCallback(async () => {
+    const account = currentSelectedAccount.current;
+    const chainId = currentProviderChainId.current;
 
-  // Exchange rate display (if not direct USDC) using real price data
-  const getExchangeRate = useCallback(() => {
-    if (!selectedToken) return undefined;
-    if (selectedToken.symbol === USDC_SYMBOL) return undefined;
+    DevLogger.log('[usePerpsDepositQuote] calculateDirectFee called:', {
+      isDirectDeposit,
+      account,
+      chainId,
+      parsedAmount: parsedAmount?.toString(),
+    });
+
+    if (!isDirectDeposit || !account || !parsedAmount) {
+      DevLogger.log('[usePerpsDepositQuote] Skipping direct fee calculation');
+      // For bridge quotes, the fee will be set by the bridge quote processing
+      // Don't reset it here
+      if (!needsBridge) {
+        setNetworkFee('-');
+      }
+      setQuoteFetchedTime(null);
+      setBridgeQuote(null);
+      setLocalQuoteFetchError(null);
+      return;
+    }
 
     try {
-      // For ETH, use currency rates
-      if (
-        selectedToken.symbol === 'ETH' &&
-        currencyRates?.ETH?.usdConversionRate
-      ) {
-        const ethPriceUsd = new BigNumber(
-          currencyRates.ETH.usdConversionRate,
-        ).toFixed(2);
-        return `1 ETH ≈ ${ethPriceUsd} ${USDC_SYMBOL}`;
-      }
-
-      // For other tokens, use a simple placeholder until real price API integration
-      // TODO: Integrate with proper token price APIs for other tokens
-      return `1 ${selectedToken.symbol} ≈ ? ${USDC_SYMBOL}`;
-    } catch (error) {
-      console.warn(strings('perps.errors.exchangeRateFailed'), error);
-      return `1 ${selectedToken.symbol} ≈ ? ${USDC_SYMBOL}`;
-    }
-  }, [selectedToken, currencyRates]);
-
-  // Refresh quotes automatically (calling real gas estimation)
-  useEffect(() => {
-    const refreshQuotes = async () => {
-      if (!amount || parseFloat(amount) === 0) return;
-
       setIsLoading(true);
-      setQuoteFetchError(null);
+      setLocalQuoteFetchError(null);
 
-      try {
-        // TODO: Call PerpsController.getDepositQuote() for real quote data
-        // const quote = await Engine.context.PerpsController.getDepositQuote({
-        //   amount,
-        //   token: selectedToken,
-        //   fromChain: providerConfig.chainId
-        // });
+      const bridgeInfo = getBridgeInfo(false);
+      const transactionParams = {
+        from: account,
+        to: bridgeInfo.contractAddress,
+        value: '0x0',
+        data: '0x',
+      };
 
-        setLastRefreshTime(Date.now());
+      const gasEstimates = await getTransaction1559GasFeeEstimates(
+        transactionParams,
+        chainId,
+      );
+
+      if (gasEstimates?.maxFeePerGas) {
+        const estimatedGasLimit = new BigNumber(DEPOSIT_CONFIG.estimatedGasLimit);
+        DevLogger.log('[usePerpsDepositQuote] Creating gasFeeWei:', {
+          maxFeePerGas: gasEstimates.maxFeePerGas,
+          estimatedGasLimit: estimatedGasLimit.toString()
+        });
+        const gasFeeWei = new BigNumber(gasEstimates.maxFeePerGas).times(estimatedGasLimit);
+        const gasFeeEth = gasFeeWei.div(1e18);
+
+        // Always show fee in USD for consistency
+        let formattedFee: string;
+        const ethPrice = currentCurrencyRates.current?.ETH?.usdConversionRate;
+        if (!ethPrice) {
+          formattedFee = '-';
+        } else {
+          DevLogger.log('[usePerpsDepositQuote] Calculating fiat value:', {
+            gasFeeEth: gasFeeEth.toString(),
+            ethPrice
+          });
+          const fiatValue = gasFeeEth.times(ethPrice);
+          formattedFee = fiatValue.lt(0.01) ? `$${fiatValue.toFixed(4)}` : currentFiatFormatter.current(fiatValue);
+        }
+        setNetworkFee(formattedFee);
+        setQuoteFetchedTime(Date.now());
+      } else {
+        setNetworkFee('-');
+      }
+    } catch (error) {
+      DevLogger.log('Direct fee calculation error:', error);
+      setNetworkFee('-');
+      setLocalQuoteFetchError(strings('perps.deposit.quote_fetch_error'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isDirectDeposit, parsedAmount, needsBridge]);
+
+  // Only trigger direct fee calculation when necessary
+  useEffect(() => {
+    DevLogger.log('[usePerpsDepositQuote] Direct fee effect:', {
+      isDirectDeposit,
+      hasParsedAmount: !!parsedAmount,
+      parsedAmountValue: parsedAmount?.toString(),
+    });
+    if (isDirectDeposit && parsedAmount) {
+      calculateDirectFee();
+    }
+  }, [isDirectDeposit, parsedAmount, calculateDirectFee]);
+
+  const updateBridgeQuoteParams = useCallback(async () => {
+    const account = currentSelectedAccount.current;
+
+    if (!needsBridge || !selectedToken || !account || !parsedAmount) {
+      DevLogger.log('[usePerpsDepositQuote] Skipping bridge update - missing params:', {
+        needsBridge,
+        hasSelectedToken: !!selectedToken,
+        hasAccount: !!account,
+        hasParsedAmount: !!parsedAmount,
+      });
+      return;
+    }
+
+    DevLogger.log('[usePerpsDepositQuote] Starting bridge quote request:', {
+      parsedAmount: parsedAmount.toString(),
+      decimals: selectedToken.decimals,
+      tokenSymbol: selectedToken.symbol,
+      tokenAddress: selectedToken.address,
+      tokenChainId: selectedToken.chainId,
+      account,
+    });
+
+    // Ensure we never pass empty string to calcTokenValue
+    const amountStr = parsedAmount.toString();
+    if (!amountStr || amountStr === '' || amountStr === '0') {
+      DevLogger.log('[usePerpsDepositQuote] Invalid amount for normalization, skipping bridge update');
+      return;
+    }
+
+    let normalizedAmount: string;
+    try {
+      normalizedAmount = calcTokenValue(amountStr, selectedToken.decimals).toFixed(0);
+      DevLogger.log('[usePerpsDepositQuote] Normalized amount:', normalizedAmount);
+    } catch (error) {
+      DevLogger.log('[usePerpsDepositQuote] calcTokenValue error:', error);
+      setLocalQuoteFetchError(strings('perps.deposit.quote_fetch_error'));
+      setIsLoading(false);
+      return;
+    }
+
+    const srcChainId = getDecimalChainId(selectedToken.chainId);
+    const destChainId = getDecimalChainId(toHex(ARBITRUM_MAINNET_CHAIN_ID));
+
+    const params: GenericQuoteRequest = {
+      srcChainId,
+      srcTokenAddress: selectedToken.address,
+      destChainId,
+      destTokenAddress: USDC_ARBITRUM_MAINNET_ADDRESS,
+      srcTokenAmount: normalizedAmount,
+      walletAddress: account,
+      destWalletAddress: account,
+      slippage: undefined, // Let it use default
+      gasIncluded: false,
+    };
+
+    DevLogger.log('[usePerpsDepositQuote] Bridge quote request params:', {
+      srcChainId,
+      srcTokenAddress: selectedToken.address,
+      destChainId,
+      destTokenAddress: USDC_ARBITRUM_MAINNET_ADDRESS,
+      srcTokenAmount: normalizedAmount,
+      walletAddress: account,
+      slippage: undefined,
+      gasIncluded: false,
+    });
+
+    try {
+      const context = {
+        stx_enabled: false,
+        token_symbol_source: selectedToken.symbol,
+        token_symbol_destination: USDC_SYMBOL,
+        security_warnings: [],
+      };
+
+      DevLogger.log('[usePerpsDepositQuote] Calling updateBridgeQuoteRequestParams...');
+      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(params, context);
+      DevLogger.log('[usePerpsDepositQuote] updateBridgeQuoteRequestParams completed successfully');
+
+      setQuotesRefreshCount((prev) => {
+        const newCount = prev + 1;
+        DevLogger.log('[usePerpsDepositQuote] Quote refresh count updated:', newCount);
+        return newCount;
+      });
+    } catch (error) {
+      DevLogger.log('[usePerpsDepositQuote] Update bridge params error:', error);
+      setLocalQuoteFetchError(strings('perps.deposit.quote_fetch_error'));
+      setIsLoading(false);
+    }
+  }, [needsBridge, selectedToken, parsedAmount]);
+
+  const debouncedUpdateBridgeParams = useMemo(() =>
+    debounce(updateBridgeQuoteParams, DEBOUNCE_WAIT),
+    [updateBridgeQuoteParams]);
+
+  useEffect(() => {
+    DevLogger.log('[usePerpsDepositQuote] Bridge params effect:', {
+      needsBridge,
+      isSameChainSwap,
+      hasParsedAmount: !!parsedAmount,
+      parsedAmountValue: parsedAmount?.toString(),
+      hasQuoteFailed,
+      parsedAmountGt0: parsedAmount?.gt(0),
+    });
+
+    // Check if amount changed
+    const amountChanged = prevAmountRef.current !== amount;
+    if (amountChanged && amount && hasQuoteFailed) {
+      DevLogger.log('[usePerpsDepositQuote] Amount changed, resetting error state');
+      setHasQuoteFailed(false);
+      setLocalQuoteFetchError(null);
+    }
+    prevAmountRef.current = amount;
+
+    if (needsBridge && parsedAmount?.gt(0) && !hasQuoteFailed) {
+      DevLogger.log('[usePerpsDepositQuote] Setting loading state for bridge quote fetch');
+      setIsLoading(true);
+      setNetworkFee(strings('perps.deposit.calculating_fee') || 'Calculating...');
+      debouncedUpdateBridgeParams();
+
+      // Set timeout for bridge quote fetching
+      bridgeQuoteTimeoutRef.current = setTimeout(() => {
+        DevLogger.log('[usePerpsDepositQuote] Bridge quote timeout reached');
+        setLocalQuoteFetchError(strings('perps.deposit.bridge_quote_timeout'));
+        setNetworkFee('-');
         setIsLoading(false);
-      } catch (error) {
-        console.error(strings('perps.errors.refreshQuoteFailed'), error);
-        setQuoteFetchError(strings('perps.errors.refreshQuoteFailed'));
-        setIsLoading(false);
+        setHasQuoteFailed(true);
+      }, BRIDGE_QUOTE_TIMEOUT);
+    } else if (!needsBridge) {
+      // Clear bridge-related state when switching to direct deposit
+      debouncedUpdateBridgeParams.cancel();
+      setBridgeQuote(null);
+      if (bridgeQuoteTimeoutRef.current) {
+        clearTimeout(bridgeQuoteTimeoutRef.current);
+        bridgeQuoteTimeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      debouncedUpdateBridgeParams.cancel();
+      if (bridgeQuoteTimeoutRef.current) {
+        clearTimeout(bridgeQuoteTimeoutRef.current);
+        bridgeQuoteTimeoutRef.current = null;
       }
     };
+  }, [needsBridge, parsedAmount, debouncedUpdateBridgeParams, hasQuoteFailed, isSameChainSwap, amount]);
 
-    // Initial refresh
-    refreshQuotes();
-
-    // Set up interval for automatic refresh
-    const interval = setInterval(refreshQuotes, REFRESH_RATE);
-
-    return () => clearInterval(interval);
-  }, [amount, selectedToken, REFRESH_RATE]);
-
-  // State for async network fee calculation
-  const [networkFee, setNetworkFee] = useState<string>('-');
-
-  // Calculate network fee when dependencies change
+  // Process bridge quotes from controller state
   useEffect(() => {
-    const calculateNetworkFee = async () => {
-      const fee = await getNetworkFee();
-      setNetworkFee(fee);
-    };
+    DevLogger.log('[usePerpsDepositQuote] Bridge quote processing effect:', {
+      needsBridge,
+      hasBridgeControllerState: !!bridgeControllerState,
+      bridgeStateKeys: bridgeControllerState ? Object.keys(bridgeControllerState) : [],
+    });
 
-    calculateNetworkFee();
-  }, [amount, selectedToken, selectedAccount, providerConfig.chainId, getNetworkFee]);
+    if (!needsBridge) {
+      DevLogger.log('[usePerpsDepositQuote] Direct deposit - skipping bridge quote processing');
+      return;
+    }
+
+    const { quotes, quoteFetchError } = bridgeControllerState || {};
+
+    DevLogger.log('[usePerpsDepositQuote] Bridge controller quotes:', {
+      hasQuotes: !!quotes,
+      quotesCount: quotes ? Object.keys(quotes).length : 0,
+      quoteFetchError,
+      quotesRefreshCount,
+      quotesKeys: quotes ? Object.keys(quotes) : [],
+      bridgeControllerState: bridgeControllerState ? Object.keys(bridgeControllerState) : [],
+    });
+
+    if (quotes && Object.keys(quotes).length > 0) {
+      DevLogger.log('[usePerpsDepositQuote] Processing bridge quotes:', quotes);
+      // Find the recommended quote (first one in this simple implementation)
+      const recommendedQuote = Object.values(quotes)[0] as BridgeQuoteWithMetadata;
+
+      if (recommendedQuote) {
+        DevLogger.log('[usePerpsDepositQuote] Using recommended quote:', {
+          quote: recommendedQuote,
+          hasQuote: !!recommendedQuote.quote,
+          destTokenAmount: recommendedQuote.quote?.destTokenAmount,
+          totalNetworkFee: recommendedQuote.totalNetworkFee,
+          estimatedProcessingTime: recommendedQuote.estimatedProcessingTimeInSeconds,
+        });
+
+        setBridgeQuote(recommendedQuote);
+
+        let feeStr = '-';
+
+        // Try different possible fee locations in the quote
+        const totalNetworkFee = recommendedQuote.totalNetworkFee ||
+          recommendedQuote.quote?.totalNetworkFee ||
+          (recommendedQuote as BridgeQuoteWithMetadata).networkFee;
+
+        DevLogger.log('[usePerpsDepositQuote] Network fee extraction:', {
+          totalNetworkFee,
+          hasAmount: totalNetworkFee?.amount,
+          hasValueInCurrency: totalNetworkFee?.valueInCurrency,
+          hasUsd: (totalNetworkFee as { usd?: string | null })?.usd,
+          recommendedQuoteKeys: Object.keys(recommendedQuote || {}),
+        });
+
+        if (totalNetworkFee) {
+          // Handle different fee structures
+          const feeAmount = totalNetworkFee.amount;
+          const feeValueInCurrency = totalNetworkFee.valueInCurrency || (totalNetworkFee as { usd?: string | null })?.usd;
+
+          if (feeAmount && feeValueInCurrency) {
+            try {
+              DevLogger.log('[usePerpsDepositQuote] Processing fee:', {
+                feeAmount,
+                feeValueInCurrency,
+                primaryCurrency: currentPrimaryCurrency.current,
+                ticker: currentTicker.current,
+              });
+
+              // Always use USD value if available
+              if (feeValueInCurrency) {
+                const valueBN = new BigNumber(feeValueInCurrency);
+                feeStr = currentFiatFormatter.current(valueBN);
+                DevLogger.log('[usePerpsDepositQuote] Formatted USD fee:', feeStr);
+              } else if (feeAmount) {
+                // If no USD value, convert ETH to USD
+                const amountBN = new BigNumber(feeAmount);
+                const ethPrice = currentCurrencyRates.current?.ETH?.usdConversionRate;
+                if (ethPrice) {
+                  const fiatValue = amountBN.times(ethPrice);
+                  feeStr = currentFiatFormatter.current(fiatValue);
+                } else {
+                  feeStr = '-';
+                }
+              }
+            } catch (error) {
+              DevLogger.log('[usePerpsDepositQuote] Fee formatting error:', error);
+              feeStr = '-';
+            }
+          } else if (feeAmount === '0' || feeValueInCurrency === '0') {
+            // Fee is explicitly 0
+            feeStr = '$0.00';
+            DevLogger.log('[usePerpsDepositQuote] Zero fee');
+          } else {
+            DevLogger.log('[usePerpsDepositQuote] Incomplete fee data:', { feeAmount, feeValueInCurrency });
+            feeStr = '-';
+          }
+        } else {
+          // If no fee data is available, check if it might be in feeData
+          const feeData = recommendedQuote.quote?.feeData;
+          if (feeData) {
+            DevLogger.log('[usePerpsDepositQuote] Found feeData in quote:', feeData);
+            // Try to extract fee from feeData structure
+            const metabridgeFee = feeData.metabridge;
+            if (metabridgeFee?.amount) {
+              try {
+                const feeSymbol = metabridgeFee.asset?.symbol || currentTicker.current || 'ETH';
+                const feeDecimals = metabridgeFee.asset?.decimals || 18;
+                DevLogger.log('[usePerpsDepositQuote] Using metabridge fee:', metabridgeFee.amount, feeSymbol, 'decimals:', feeDecimals);
+
+                // Convert from smallest unit to human-readable value
+                const feeAmountBN = new BigNumber(metabridgeFee.amount).div(Math.pow(10, feeDecimals));
+
+                // Try to get token price from asset metadata or currency rates
+                let tokenPrice: number | undefined;
+
+                // First check if the asset has price information in metadata
+                const assetWithPrice = metabridgeFee.asset as { price?: string; symbol?: string; decimals?: number };
+                if (assetWithPrice?.price) {
+                  tokenPrice = parseFloat(assetWithPrice.price);
+                  DevLogger.log('[usePerpsDepositQuote] Using price from asset metadata:', tokenPrice);
+                } else {
+                  // Fallback to currency rates
+                  const rateData = currentCurrencyRates.current?.[feeSymbol];
+                  if (rateData?.usdConversionRate) {
+                    tokenPrice = rateData.usdConversionRate;
+                    DevLogger.log('[usePerpsDepositQuote] Using price from currency rates:', tokenPrice);
+                  }
+                }
+
+                if (tokenPrice) {
+                  const fiatValue = feeAmountBN.times(tokenPrice);
+                  DevLogger.log('[usePerpsDepositQuote] Fee calculation:', {
+                    feeAmount: metabridgeFee.amount,
+                    feeDecimals,
+                    feeAmountBN: feeAmountBN.toString(),
+                    tokenPrice,
+                    fiatValue: fiatValue.toString(),
+                  });
+                  // Show more precision for very small fees
+                  if (fiatValue.lt(0.01) && fiatValue.gt(0)) {
+                    feeStr = `$${fiatValue.toFixed(4)}`;
+                  } else {
+                    feeStr = currentFiatFormatter.current(fiatValue);
+                  }
+                } else {
+                  // If no USD price available, show the amount with symbol
+                  DevLogger.log('[usePerpsDepositQuote] No price data available for:', feeSymbol);
+                  feeStr = `${feeAmountBN.toFixed(4)} ${feeSymbol}`;
+                }
+              } catch (error) {
+                DevLogger.log('[usePerpsDepositQuote] Error processing metabridge fee:', error);
+                feeStr = '-';
+              }
+            }
+          } else {
+            DevLogger.log('[usePerpsDepositQuote] No network fee data found in quote');
+            feeStr = '-';
+          }
+        }
+        setNetworkFee(feeStr);
+        setQuoteFetchedTime(Date.now());
+        setIsLoading(false);
+
+        // Clear timeout since we got quotes
+        if (bridgeQuoteTimeoutRef.current) {
+          clearTimeout(bridgeQuoteTimeoutRef.current);
+          bridgeQuoteTimeoutRef.current = null;
+        }
+      }
+    } else if (quoteFetchError) {
+      DevLogger.log('[usePerpsDepositQuote] Bridge quote fetch error:', quoteFetchError);
+      setLocalQuoteFetchError(quoteFetchError);
+      setNetworkFee('-');
+      setIsLoading(false);
+
+      // Clear timeout on error
+      if (bridgeQuoteTimeoutRef.current) {
+        clearTimeout(bridgeQuoteTimeoutRef.current);
+        bridgeQuoteTimeoutRef.current = null;
+      }
+    } else if (quotes && Object.keys(quotes).length === 0) {
+      DevLogger.log('[usePerpsDepositQuote] No bridge quotes available - checking loading status');
+      // Don't immediately set error - quotes might be temporarily cleared during refresh
+      // Only set error if we're not loading and haven't already processed a quote
+      const loadingStatus = bridgeControllerState?.quotesLoadingStatus;
+      DevLogger.log('[usePerpsDepositQuote] Loading status:', {
+        loadingStatus,
+        quotesLastFetched: bridgeControllerState?.quotesLastFetched,
+        quotesInitialLoadTime: bridgeControllerState?.quotesInitialLoadTime,
+      });
+
+      // Check if loading is complete - status 0 or null both indicate not loading
+      // Also check if we've been waiting for quotes for a while
+      const hasBeenWaiting = quotesRefreshCount > 0 && !quoteFetchError;
+
+      // Don't set error if we already have a network fee (meaning we processed a quote before)
+      const hasProcessedQuote = networkFee && networkFee !== '-' && networkFee !== strings('perps.deposit.calculating_fee');
+
+      if ((loadingStatus === 0 || loadingStatus === null || loadingStatus === undefined) &&
+          hasBeenWaiting &&
+          !hasQuoteFailed &&
+          !isLoading &&
+          !hasProcessedQuote) {
+        // Loading is complete but no quotes found - only set failure once
+        DevLogger.log('[usePerpsDepositQuote] Bridge loading complete but no quotes found');
+        setLocalQuoteFetchError(strings('perps.deposit.no_quotes_available'));
+        setNetworkFee('-');
+        setIsLoading(false);
+        setHasQuoteFailed(true);
+
+        // Clear timeout since we got a response (even if empty)
+        if (bridgeQuoteTimeoutRef.current) {
+          clearTimeout(bridgeQuoteTimeoutRef.current);
+          bridgeQuoteTimeoutRef.current = null;
+        }
+      }
+      // Otherwise quotes might still be loading or we already have a quote
+    }
+  }, [needsBridge, bridgeControllerState, quotesRefreshCount, hasQuoteFailed, isLoading, networkFee]);
+
+  const refreshQuote = useCallback(() => {
+    setQuoteFetchedTime(null);
+    setQuotesRefreshCount(0);
+    setBridgeQuote(null);
+    setLocalQuoteFetchError(null);
+    setNetworkFee('-');
+    if (isDirectDeposit) {
+      calculateDirectFee();
+    } else {
+      setIsLoading(true);
+      updateBridgeQuoteParams();
+    }
+  }, [isDirectDeposit, calculateDirectFee, updateBridgeQuoteParams]);
+
+  const hasValidQuote = useMemo(() => {
+    if (!quoteFetchedTime || networkFee === strings('perps.deposit.calculating_fee')) {
+      return false;
+    }
+    // Consider it valid if we have a quote, even if fee is not available
+    return parsedAmount !== null && (bridgeQuote !== null || isDirectDeposit);
+  }, [quoteFetchedTime, networkFee, parsedAmount, bridgeQuote, isDirectDeposit]);
+
+  // Auto-refresh when expired and can refresh
+  useEffect(() => {
+    if (isExpired && willRefresh && hasValidQuote) {
+      const timer = setTimeout(refreshQuote, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpired, willRefresh, hasValidQuote, refreshQuote]);
+
+  // Ensure network fee shows "Calculating..." when loading
+  useEffect(() => {
+    if (isLoading && parsedAmount?.gt(0)) {
+      const calculatingText = strings('perps.deposit.calculating_fee') || 'Calculating...';
+      DevLogger.log('[usePerpsDepositQuote] Ensuring network fee shows calculating state');
+      setNetworkFee(calculatingText);
+    }
+  }, [isLoading, parsedAmount]);
 
   const formattedQuoteData: FormattedQuoteData = useMemo(() => {
-    const estimatedTime = getEstimatedTime();
-    const result = {
-      networkFee,
+    let estimatedTime = '';
+    let receivingAmount = '0.00 USDC';
+    let exchangeRate: string | undefined;
+
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - parsedAmount:', parsedAmount?.toString());
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - networkFee:', networkFee);
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - isDirectDeposit:', isDirectDeposit);
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - isSameChainSwap:', isSameChainSwap);
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - hasQuoteFailed:', hasQuoteFailed);
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - localQuoteFetchError:', localQuoteFetchError);
+
+    const depositAmount = parsedAmount || new BigNumber(0);
+    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - depositAmount:', depositAmount.toString());
+
+    // Use the network fee as-is (it will already be "Calculating..." if needed)
+    // If there's an error, keep showing the fee as unavailable
+    const displayNetworkFee = (hasQuoteFailed || localQuoteFetchError) ? '-' : networkFee;
+
+    if (depositAmount.lte(0)) {
+      return {
+        networkFee: displayNetworkFee,
+        estimatedTime,
+        receivingAmount,
+        exchangeRate,
+      };
+    }
+
+    // Step 1: Calculate the USD value of the source token
+    let usdValue = new BigNumber(0);
+
+    if (selectedToken?.symbol === USDC_SYMBOL) {
+      // Direct USDC - already in USD
+      usdValue = depositAmount;
+    } else if (selectedToken?.symbol) {
+      // Convert any other token to USD using exchange rates
+      const tokenRate = currentCurrencyRates.current?.[selectedToken.symbol]?.usdConversionRate;
+
+      if (tokenRate && !isNaN(Number(tokenRate)) && Number(tokenRate) > 0) {
+        usdValue = depositAmount.times(new BigNumber(String(tokenRate)));
+
+        // Set exchange rate for display
+        try {
+          const rate = new BigNumber(String(tokenRate));
+          exchangeRate = `1 ${selectedToken.symbol} ≈ ${rate.toFixed(2)} USDC`;
+        } catch (error) {
+          DevLogger.log('[usePerpsDepositQuote] Exchange rate formatting error:', error);
+        }
+      } else {
+        DevLogger.log('[usePerpsDepositQuote] No exchange rate found for token:', selectedToken.symbol);
+        return {
+          networkFee,
+          estimatedTime,
+          receivingAmount: '0.00 USDC',
+          exchangeRate: undefined,
+        };
+      }
+    }
+
+    DevLogger.log('[usePerpsDepositQuote] USD value of deposit:', usdValue.toString());
+
+    // Step 2: Deduct fees from USD value
+    let totalFeesUSD = new BigNumber(0);
+
+    // Parse network fee if available
+    if (networkFee && networkFee !== '-' && networkFee !== strings('perps.deposit.calculating_fee')) {
+      const feeMatch = networkFee.match(/\$([\d.]+)/);
+      if (feeMatch?.[1]) {
+        totalFeesUSD = totalFeesUSD.plus(new BigNumber(feeMatch[1]));
+      }
+    }
+
+    // Add MetaMask fee (if applicable)
+    // MetaMask fee is currently $0.00 - will be implemented later
+    // const metamaskFeeMatch = METAMASK_DEPOSIT_FEE.match(/\$([\d.]+)/);
+    // if (metamaskFeeMatch?.[1]) {
+    //   totalFeesUSD = totalFeesUSD.plus(new BigNumber(metamaskFeeMatch[1]));
+    // }
+
+    DevLogger.log('[usePerpsDepositQuote] Total fees in USD:', totalFeesUSD.toString());
+
+    // Step 3: Calculate final receiving amount based on route type
+    if (bridgeQuote?.quote?.destTokenAmount) {
+      // For bridge quotes, use the quote's destination amount (already accounts for conversion and bridge fees)
+      try {
+        const destAmountBN = new BigNumber(bridgeQuote.quote.destTokenAmount);
+        receivingAmount = `${destAmountBN.div(1e6).toFixed(2)} USDC`;
+
+        estimatedTime = bridgeQuote.estimatedProcessingTimeInSeconds
+          ? `${Math.ceil(bridgeQuote.estimatedProcessingTimeInSeconds / 60)} minutes`
+          : '';
+      } catch (error) {
+        DevLogger.log('[usePerpsDepositQuote] Error parsing bridge destination amount:', error);
+        receivingAmount = '0.00 USDC';
+      }
+    } else {
+      // For direct deposits and same-chain swaps, calculate from USD value minus fees
+      const finalAmount = usdValue.minus(totalFeesUSD);
+
+      if (finalAmount.gt(0)) {
+        receivingAmount = `${finalAmount.toFixed(2)} USDC`;
+      } else {
+        receivingAmount = '0.00 USDC';
+      }
+
+      // Set estimated time based on transaction type
+      if (isDirectDeposit) {
+        estimatedTime = DEPOSIT_CONFIG.estimatedTime.directDeposit;
+      } else if (isSameChainSwap) {
+        estimatedTime = DEPOSIT_CONFIG.estimatedTime.sameChainSwap;
+      }
+    }
+
+    DevLogger.log('[usePerpsDepositQuote] Final calculation:', {
+      usdValue: usdValue.toString(),
+      totalFeesUSD: totalFeesUSD.toString(),
+      receivingAmount,
       estimatedTime,
-      receivingAmount: getReceivingAmount(),
-      exchangeRate: getExchangeRate(),
+      exchangeRate,
+    });
+
+    return {
+      networkFee: displayNetworkFee,
+      estimatedTime,
+      receivingAmount,
+      exchangeRate,
     };
+  }, [parsedAmount, isDirectDeposit, isSameChainSwap, bridgeQuote, selectedToken, networkFee, hasQuoteFailed, localQuoteFetchError]);
 
-    return result;
-  }, [networkFee, getEstimatedTime, getReceivingAmount, getExchangeRate]);
-
-  return {
+  const result = {
     formattedQuoteData,
     isLoading,
-    quoteFetchError,
-    lastRefreshTime,
+    quoteFetchError: localQuoteFetchError,
+    quoteFetchedTime,
+    isExpired,
+    willRefresh,
+    refreshQuote,
+    hasValidQuote,
+    bridgeQuote,
   };
+
+  DevLogger.log('[usePerpsDepositQuote] ===== HOOK RENDER END =====', {
+    networkFee: formattedQuoteData.networkFee,
+    isLoading,
+    hasValidQuote,
+    parsedAmount: parsedAmount?.toString(),
+  });
+
+  return result;
 };

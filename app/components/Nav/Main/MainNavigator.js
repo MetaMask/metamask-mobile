@@ -97,7 +97,7 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
-import { PerpsScreenStack, selectPerpsEnabledFlag } from '../../UI/Perps';
+import { PerpsScreenStack, PerpsModalStack, selectPerpsEnabledFlag } from '../../UI/Perps';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
@@ -875,7 +875,14 @@ const MainNavigator = () => {
         options={clearStackNavigatorOptions}
       />
       {isPerpsEnabled && (
-        <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+        <>
+          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.MODALS.ROOT}
+            component={PerpsModalStack}
+            options={clearStackNavigatorOptions}
+          />
+        </>
       )}
       <Stack.Screen
         name="SetPasswordFlow"

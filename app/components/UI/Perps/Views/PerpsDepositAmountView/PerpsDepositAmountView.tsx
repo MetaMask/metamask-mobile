@@ -1,3 +1,9 @@
+import { isCaipChainId, KnownCaipNamespace, parseCaipAssetId, parseCaipChainId, type Hex } from '@metamask/utils';
+import {
+  useFocusEffect,
+  useNavigation,
+  type NavigationProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -7,13 +13,8 @@ import React, {
 } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  useFocusEffect,
-  useNavigation,
-  type NavigationProp,
-} from '@react-navigation/native';
-import { type Hex, parseCaipAssetId, parseCaipChainId, isCaipChainId, KnownCaipNamespace } from '@metamask/utils';
 
+import { toHex } from '@metamask/controller-utils';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -37,11 +38,12 @@ import {
   setBridgeViewMode,
   setSelectedSourceChainIds,
 } from '../../../../../core/redux/slices/bridge';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
   selectNetworkConfigurations,
-  selectSelectedNetworkClientId,
+  selectSelectedNetworkClientId
 } from '../../../../../selectors/networkController';
 import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
 import {
@@ -77,9 +79,9 @@ import {
   HYPERLIQUID_TESTNET_CHAIN_ID,
   METAMASK_DEPOSIT_FEE,
   TRADING_DEFAULTS,
-  USDC_SYMBOL,
-  USDC_NAME,
   USDC_DECIMALS,
+  USDC_NAME,
+  USDC_SYMBOL,
   ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
 import type {
@@ -87,21 +89,21 @@ import type {
   DepositParams,
   PerpsNavigationParamList,
 } from '../../controllers/types';
-import { usePerpsTrading, usePerpsNetwork } from '../../hooks';
+import { usePerpsNetwork, usePerpsTrading } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
-import { toHex } from '@metamask/controller-utils';
 
-interface PerpsDepositAmountViewProps {}
+interface PerpsDepositAmountViewProps { }
 
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
+
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const dispatch = useDispatch();
 
   // State
-  const [sourceAmount, setSourceAmount] = useState<string | undefined>();
+  const [sourceAmount, setSourceAmount] = useState<string | undefined>('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [sourceToken, setSourceToken] = useState<PerpsToken | undefined>();
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
@@ -110,6 +112,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const prevTokenRef = useRef<PerpsToken | undefined>();
 
   // Selectors
   const selectedAddress = useSelector(
@@ -163,6 +166,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   useEffect(() => {
     if (!sourceToken && tokenList) {
       try {
+        // Always default to Arbitrum USDC - this is the only direct deposit route
         const usdcConfig = isTestnet
           ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
           : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
@@ -192,17 +196,22 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         setSourceToken(enhancedToken);
       } catch (err) {
-        // Silent failure - token selector will allow user to pick a token
+        DevLogger.log('PerpsDepositAmountView: Error setting default token', err);
       }
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
 
-  const { formattedQuoteData, isLoading: isQuoteLoading } =
-    usePerpsDepositQuote({
-      amount: sourceToken ? sourceAmount || '0' : '0',
-      selectedToken: sourceToken || destToken,
-      getDepositRoutes,
-    });
+  const {
+    formattedQuoteData,
+    isLoading: isQuoteLoading,
+    isExpired,
+    willRefresh,
+    hasValidQuote,
+    quoteFetchError,
+  } = usePerpsDepositQuote({
+    amount: sourceAmount || '',
+    selectedToken: sourceToken || destToken,
+  });
 
   const sourceBalance = useMemo(() => {
     if (!sourceToken || !selectedAddress) return undefined;
@@ -265,9 +274,52 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       if (bridgeSourceToken && bridgeSourceToken !== sourceToken) {
         setSourceToken(bridgeSourceToken as PerpsToken);
         dispatch(setBridgeSourceToken(undefined));
+        // Reset amount when token changes from bridge
+        setSourceAmount('');
       }
     }, [bridgeSourceToken, sourceToken, dispatch]),
   );
+
+  // Reset amount when source token changes through any means
+  useEffect(() => {
+    // Only reset if we have a previous token and it's different from current
+    if (prevTokenRef.current && sourceToken &&
+        (prevTokenRef.current.address !== sourceToken.address ||
+         prevTokenRef.current.chainId !== sourceToken.chainId)) {
+      DevLogger.log('PerpsDepositAmountView: Source token changed, resetting amount', {
+        from: `${prevTokenRef.current.symbol} on ${prevTokenRef.current.chainId}`,
+        to: `${sourceToken.symbol} on ${sourceToken.chainId}`,
+      });
+      setSourceAmount('');
+    }
+
+    prevTokenRef.current = sourceToken;
+  }, [sourceToken]);
+
+  // Handle quote expiration
+  useEffect(() => {
+    const hasAmount = Boolean(sourceAmount && sourceAmount !== '' && parseFloat(sourceAmount) > 0);
+
+    DevLogger.log('PerpsDepositAmountView: Quote expiration check', {
+      isExpired,
+      willRefresh,
+      hasValidQuote,
+      isInputFocused,
+      sourceAmount,
+      hasAmount,
+    });
+
+    // Only show expiration modal if we have a valid quote that expired and won't refresh
+    // AND we have an amount entered
+    if (isExpired && !willRefresh && hasValidQuote && !isInputFocused && hasAmount) {
+      DevLogger.log('PerpsDepositAmountView: Showing quote expired modal');
+      setIsInputFocused(false);
+      navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL,
+      });
+    }
+  }, [isExpired, willRefresh, hasValidQuote, isInputFocused, navigation, sourceAmount]);
+
 
   const hasInsufficientBalance = useMemo(() => {
     if (!sourceAmount || !sourceBalance) return false;
@@ -292,7 +344,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       if (value.length >= MAX_INPUT_LENGTH) {
         return;
       }
-      setSourceAmount(value || undefined);
+      setSourceAmount(value || '');
     },
     [],
   );
@@ -386,7 +438,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     sourceToken &&
     !hasInsufficientBalance &&
     !isBelowMinimumDeposit;
-  const shouldDisplayQuoteDetails = hasAmount && !isQuoteLoading && sourceToken;
+  const shouldDisplayQuoteDetails = hasAmount && sourceToken && (!isQuoteLoading || quoteFetchError);
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
   const getButtonLabel = () => {
@@ -403,7 +455,33 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return strings('perps.deposit.get_usdc');
   };
 
-  const destAmount = sourceAmount || '';
+  // Use the receiving amount from the quote data if available, otherwise show source amount
+  const destAmount = useMemo(() => {
+    if (formattedQuoteData.receivingAmount && formattedQuoteData.receivingAmount !== '0.00 USDC') {
+      // Extract just the numeric value from "X.XX USDC"
+      const match = formattedQuoteData.receivingAmount.match(/^([\d.]+)/);
+      return match ? match[1] : '0';
+    }
+    return sourceAmount || '0';
+  }, [formattedQuoteData.receivingAmount, sourceAmount]);
+
+  // Debug what's being passed to components
+  useEffect(() => {
+    DevLogger.log('[PerpsDepositAmountView] Component values:', {
+      sourceAmount,
+      destAmount,
+      sourceToken: sourceToken ? {
+        symbol: sourceToken.symbol,
+        address: sourceToken.address,
+        decimals: sourceToken.decimals,
+      } : null,
+      destToken: {
+        symbol: destToken.symbol,
+        address: destToken.address,
+        decimals: destToken.decimals,
+      },
+    });
+  }, [sourceAmount, destAmount, sourceToken, destToken]);
 
   return (
     // @ts-expect-error The type is incorrect, this will work
@@ -434,7 +512,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           <Box style={styles.inputsContainer} gap={8}>
             <TokenInputArea
               ref={inputRef}
-              amount={sourceAmount}
+              amount={sourceAmount || undefined}
               token={sourceToken}
               tokenBalance={sourceBalance}
               networkImageSource={
@@ -480,8 +558,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               <PerpsQuoteDetailsCard
                 networkFee={formattedQuoteData.networkFee}
                 estimatedTime={formattedQuoteData.estimatedTime}
-                rate={`1 ${USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
-                isLoading={isQuoteLoading}
+                rate={formattedQuoteData.exchangeRate || `1 ${sourceToken?.symbol || USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
                 metamaskFee={METAMASK_DEPOSIT_FEE}
               />
             </Box>
@@ -544,9 +621,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         {!isInputFocused && (
           <View style={styles.fixedBottomContainer}>
-            {error && (
+            {(error || quoteFetchError) && (
               <Text style={styles.errorText} color={TextColor.Error}>
-                {error}
+                {error || quoteFetchError}
               </Text>
             )}
             <Button
@@ -559,6 +636,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             />
           </View>
         )}
+
       </View>
     </ScreenView>
   );

@@ -10,8 +10,10 @@ import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
+import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 
 const Stack = createStackNavigator();
+const ModalStack = createStackNavigator();
 
 const PerpsScreenStack = () => (
   <PerpsConnectionProvider>
@@ -89,6 +91,26 @@ const PerpsScreenStack = () => (
       */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
+);
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+  },
+  animationEnabled: false,
+};
+
+export const PerpsModalStack = () => (
+  <ModalStack.Navigator
+    mode={'modal'}
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+      component={PerpsQuoteExpiredModal}
+    />
+  </ModalStack.Navigator>
 );
 
 export default PerpsScreenStack;

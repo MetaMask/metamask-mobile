@@ -413,11 +413,8 @@ describe('PerpsController', () => {
         controller.resetDepositState();
 
         expect(controller.state.depositStatus).toBe('idle');
-        expect(controller.state.depositFlowType).toBeNull();
-        expect(controller.state.depositSteps.totalSteps).toBe(0);
         expect(controller.state.depositError).toBeNull();
         expect(controller.state.currentDepositTxHash).toBeNull();
-        expect(controller.state.requiresModalDismissal).toBe(false);
       });
     });
 

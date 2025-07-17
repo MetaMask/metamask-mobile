@@ -24,7 +24,6 @@ interface PerpsQuoteDetailsCardProps {
   networkFee: string;
   estimatedTime?: string;
   rate: string;
-  isLoading?: boolean;
   metamaskFee?: string;
 }
 
@@ -32,7 +31,6 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   networkFee,
   estimatedTime,
   rate,
-  isLoading = false,
   metamaskFee = '$0.00',
 }) => {
   const { styles } = useStyles(createStyles, {});
@@ -48,9 +46,6 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   const displaySlippage =
     slippage === undefined || slippage === null ? 'Auto' : `${slippage}%`;
 
-  if (isLoading) {
-    return null;
-  }
 
   return (
     <Box style={styles.container}>

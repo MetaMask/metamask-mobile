@@ -750,7 +750,7 @@
       "networkFee": "Network fee",
       "estimatedTime": "Estimated time",
       "metamask_fee": "MetaMask fee",
-      "metamask_fee_tooltip": "A small fee charged by MetaMask to provide this service",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
       "continue": "Continue",
       "confirm_deposit": "Confirm deposit",
@@ -763,6 +763,11 @@
       "view_balance": "View Balance",
       "calculating_fee": "Calculating...",
       "switch_network": "Switch network required",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
+      },
       "steps": {
         "preparing": "Preparing deposit...",
         "swapping": "Swapping {{token}} to USDC",
@@ -778,6 +783,10 @@
         "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
         "error": "Something went wrong during the deposit process. Please try again."
       },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
       "processing": "Processing...",
       "completed": "Transaction completed",
       "transactionHash": "Transaction Hash",
