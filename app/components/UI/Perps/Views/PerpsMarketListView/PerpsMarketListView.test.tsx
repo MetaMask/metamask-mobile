@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { PerpsMarketData } from './PerpsMarketListView.types';
@@ -140,7 +144,7 @@ describe('PerpsMarketListView', () => {
     getParent: jest.fn(),
     setOptions: jest.fn(),
     setParams: jest.fn(),
-  } as any;
+  };
 
   const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
     typeof usePerpsMarkets
@@ -181,7 +185,9 @@ describe('PerpsMarketListView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNavigation.mockReturnValue(mockNavigation);
+    mockUseNavigation.mockReturnValue(
+      mockNavigation as unknown as NavigationProp<ParamListBase>,
+    );
     mockNavigation.canGoBack.mockReturnValue(true);
 
     mockUsePerpsMarkets.mockReturnValue({

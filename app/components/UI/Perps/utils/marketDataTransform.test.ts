@@ -10,6 +10,7 @@ import {
   formatVolume,
 } from './marketDataTransform';
 import type { HyperLiquidMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import { AllMids, PerpsAssetCtx } from '@deeeed/hyperliquid-node20';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -137,7 +138,7 @@ describe('marketDataTransform', () => {
           createMockAssetCtx({
             prevDayPx: null,
             dayNtlVlm: undefined,
-          }) as unknown as any,
+          }) as unknown as PerpsAssetCtx,
         ],
         allMids: mockAllMids,
       };
@@ -676,7 +677,7 @@ describe('marketDataTransform', () => {
         assetCtxs: [
           createMockAssetCtx({ prevDayPx: '50000', dayNtlVlm: '1000000' }),
         ],
-        allMids: { BTC: 'invalid-price' } as unknown as any,
+        allMids: { BTC: 'invalid-price' } as unknown as AllMids,
       };
 
       // Act
