@@ -14,12 +14,8 @@ export function getModuleState() {
   return {
     knownDomainsSet,
     initPromise,
-    setKnownDomainsSet: (value: Set<string> | null) => {
-      knownDomainsSet = value;
-    },
-    setInitPromise: (value: Promise<void> | null) => {
-      initPromise = value;
-    },
+    setKnownDomainsSet: (value: Set<string> | null) => { knownDomainsSet = value; },
+    setInitPromise: (value: Promise<void> | null) => { initPromise = value; }
   };
 }
 
@@ -104,8 +100,7 @@ export const RpcDomainStatus = {
   Unknown: 'unknown',
 } as const;
 
-export type RpcDomainStatus =
-  (typeof RpcDomainStatus)[keyof typeof RpcDomainStatus];
+export type RpcDomainStatus = typeof RpcDomainStatus[keyof typeof RpcDomainStatus];
 
 function parseDomain(url: string): string | undefined {
   try {
@@ -116,27 +111,27 @@ function parseDomain(url: string): string | undefined {
   }
 }
 
+// Allowed provider domains for RPC endpoint validation
+const ALLOWED_PROVIDER_DOMAINS = new Set([
+  'infura.io',
+  'alchemyapi.io',
+]);
+
 /**
- * Checks if a domain is a subdomain of a given base domain.
- * @param domain - The domain to check.
- * @param baseDomain - The base domain to validate against.
- * @returns True if the domain is a subdomain of the base domain, false otherwise.
+ * Check if a hostname is an allowed provider domain or legitimate subdomain
+ * @param hostname - The hostname to check
+ * @returns True if the hostname is allowed, false otherwise
  */
-function isSubdomainOf(domain: string, baseDomain: string): boolean {
-  const domainParts = domain.split('.').reverse();
-  const baseDomainParts = baseDomain.split('.').reverse();
-
-  if (domainParts.length < baseDomainParts.length) {
-    return false;
+function isAllowedProviderDomain(hostname: string): boolean {
+  // Check exact match first
+  if (ALLOWED_PROVIDER_DOMAINS.has(hostname)) {
+    return true;
   }
-
-  for (let i = 0; i < baseDomainParts.length; i++) {
-    if (domainParts[i] !== baseDomainParts[i]) {
-      return false;
-    }
-  }
-
-  return true;
+  
+  // Check if it's a legitimate subdomain of any allowed domain
+  return [...ALLOWED_PROVIDER_DOMAINS].some(allowedDomain =>
+    hostname.endsWith(`.${allowedDomain}`)
+  );
 }
 
 /**
@@ -149,28 +144,22 @@ export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!domain) {
     return RpcDomainStatus.Invalid;
   }
-
+  
   // Check if this is a known domain
   if (isKnownDomain(domain)) {
     return domain;
   }
-
-  // Special case for Infura subdomains - always return the actual domain
-  // even if not in the known domains list
-  if (isSubdomainOf(domain, 'infura.io')) {
+  
+  // Check if it's an allowed provider domain (Infura, Alchemy, etc.)
+  if (isAllowedProviderDomain(domain)) {
     return domain;
   }
-
-  // Special case for Alchemy subdomains
-  if (isSubdomainOf(domain, 'alchemyapi.io')) {
-    return domain;
-  }
-
+  
   // Special case for local/development nodes
   if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
   }
-
+  
   // For all other domains, return "private" for privacy
   return RpcDomainStatus.Private;
 }
@@ -186,27 +175,20 @@ export function getNetworkRpcUrl(chainId: string): string {
     const { NetworkController } = Engine.context;
 
     // Find network clientID for chainID
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      chainId as `0x${string}`,
-    );
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
     if (!networkClientId) {
       return 'unknown';
     }
 
     // Get network config
-    const networkConfig =
-      NetworkController.getNetworkConfigurationByNetworkClientId(
-        networkClientId,
-      );
+    const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
     if (!networkConfig) {
       return 'unknown';
     }
 
     // Check if there is a direct rpcUrl property (legacy format)
     if ('rpcUrl' in networkConfig && networkConfig.rpcUrl) {
-      return typeof networkConfig.rpcUrl === 'string'
-        ? networkConfig.rpcUrl
-        : 'unknown';
+      return typeof networkConfig.rpcUrl === 'string' ? networkConfig.rpcUrl : 'unknown';
     }
 
     // If we use rpcEndpoints array
