@@ -26,6 +26,9 @@ import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModa
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
+import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
+import useAnalytics from '../../hooks/useAnalytics';
+import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -41,6 +44,7 @@ export const useDepositRouting = ({
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
+  const trackEvent = useAnalytics();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -96,116 +100,247 @@ export const useDepositRouting = ({
     throws: true,
   });
 
+  const popToBuildQuote = useCallback(() => {
+    navigation.dispatch((state) => {
+      const buildQuoteIndex = state.routes.findIndex(
+        (route) => route.name === 'BuildQuote',
+      );
+
+      return {
+        payload: {
+          count: state.routes.length - buildQuoteIndex - 1,
+          params: {
+            animationEnabled: false,
+          },
+        },
+        type: 'POP',
+      };
+    });
+  }, [navigation]);
+
+  const navigateToVerifyIdentityCallback = useCallback(
+    ({ quote }: { quote: BuyQuote }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createVerifyIdentityNavDetails({
+          quote,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+  );
+
+  const navigateToEnterEmailCallback = useCallback(
+    ({ quote }: { quote: BuyQuote }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createEnterEmailNavDetails({
+          quote,
+          paymentMethodId,
+          cryptoCurrencyChainId,
+        }),
+      );
+    },
+    [navigation, paymentMethodId, cryptoCurrencyChainId, popToBuildQuote],
+  );
+
+  const navigateToBasicInfoCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+      popToBuildQuote();
+      navigation.navigate(...createBasicInfoNavDetails({ quote, kycUrl }));
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToKycProcessingCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+      popToBuildQuote();
+      navigation.navigate(...createKycProcessingNavDetails({ quote, kycUrl }));
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToBankDetailsCallback = useCallback(
+    ({
+      orderId,
+      shouldUpdate,
+    }: {
+      orderId: string;
+      shouldUpdate?: boolean;
+    }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createBankDetailsNavDetails({ orderId, shouldUpdate }),
+      );
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToOrderProcessingCallback = useCallback(
+    ({ orderId }: { orderId: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createOrderProcessingNavDetails({
+          orderId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote],
+  );
+
+  const navigateToAdditionalVerificationCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createAdditionalVerificationNavDetails({
+          quote,
+          kycUrl,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+  );
+
   const handleNavigationStateChange = useCallback(
-    async (navState: { url: string }) => {
-      if (navState.url.startsWith(REDIRECTION_URL)) {
+    async ({ url }: { url: string }) => {
+      if (url.startsWith(REDIRECTION_URL)) {
         try {
-          const urlObj = new URL(navState.url);
+          const urlObj = new URL(url);
           const orderId = urlObj.searchParams.get('orderId');
 
           if (orderId) {
-            const order = await getOrder(orderId, selectedWalletAddress);
+            try {
+              const order = await getOrder(orderId, selectedWalletAddress);
 
-            if (!order) {
-              throw new Error('Missing order');
-            }
+              if (!order) {
+                throw new Error('Missing order');
+              }
 
-            const cryptoCurrency = getCryptoCurrencyFromTransakId(
-              order.cryptoCurrency,
-            );
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrency?.chainId || order.network,
-            };
+              const cryptoCurrency = getCryptoCurrencyFromTransakId(
+                order.cryptoCurrency,
+              );
+              const processedOrder = {
+                ...depositOrderToFiatOrder(order),
+                account: selectedWalletAddress || order.walletAddress,
+                network: cryptoCurrency?.chainId || order.network,
+              };
 
-            await handleNewOrder(processedOrder);
+              await handleNewOrder(processedOrder);
 
-            navigation.navigate(
-              ...createOrderProcessingNavDetails({
+              navigateToOrderProcessingCallback({
                 orderId: order.id,
-              }),
-            );
+              });
+            } catch (error) {
+              throw new Error(
+                error instanceof Error && error.message
+                  ? error.message
+                  : 'Failed to process order from navigation',
+              );
+            }
           }
         } catch (e) {
           console.error('Error extracting orderId from URL:', e);
         }
       }
     },
-    [getOrder, selectedWalletAddress, handleNewOrder, navigation],
+    [
+      getOrder,
+      selectedWalletAddress,
+      handleNewOrder,
+      navigateToOrderProcessingCallback,
+    ],
+  );
+
+  const navigateToWebviewModalCallback = useCallback(
+    ({ paymentUrl }: { paymentUrl: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createWebviewModalNavigationDetails({
+          sourceUrl: paymentUrl,
+          handleNavigationStateChange,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, handleNavigationStateChange],
   );
 
   const handleApprovedKycFlow = useCallback(
     async (quote: BuyQuote) => {
-      const userDetails = await fetchUserDetails();
-      if (!userDetails) {
-        throw new Error('Missing user details');
-      }
+      try {
+        const userDetails = await fetchUserDetails();
+        if (!userDetails) {
+          throw new Error('Missing user details');
+        }
 
-      if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-        const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-          (method) => method.id === paymentMethodId,
-        );
-        if (isManualBankTransfer) {
-          const reservation = await createReservation(
-            quote,
-            selectedWalletAddress,
-          );
+        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+          const isManualBankTransfer =
+            MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+              (method) => method.id === paymentMethodId,
+            );
+          if (isManualBankTransfer) {
+            const reservation = await createReservation(
+              quote,
+              selectedWalletAddress,
+            );
 
-          if (!reservation) {
-            throw new Error('Missing reservation');
-          }
+            if (!reservation) {
+              throw new Error('Missing reservation');
+            }
 
-          const order = await createOrder(reservation);
+            const order = await createOrder(reservation);
 
-          if (!order) {
-            throw new Error('Missing order');
-          }
+            if (!order) {
+              throw new Error('Missing order');
+            }
 
-          const processedOrder = {
-            ...depositOrderToFiatOrder(order),
-            account: selectedWalletAddress || order.walletAddress,
-            network: cryptoCurrencyChainId,
-          };
+            const processedOrder = {
+              ...depositOrderToFiatOrder(order),
+              account: selectedWalletAddress || order.walletAddress,
+              network: cryptoCurrencyChainId,
+            };
 
-          await handleNewOrder(processedOrder);
+            await handleNewOrder(processedOrder);
 
-          navigation.navigate(
-            ...createBankDetailsNavDetails({
+            navigateToBankDetailsCallback({
               orderId: order.id,
               shouldUpdate: false,
-            }),
-          );
-        } else {
-          const ottResponse = await requestOtt();
+            });
+          } else {
+            const ottResponse = await requestOtt();
 
-          if (!ottResponse) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+            if (!ottResponse) {
+              throw new Error('Failed to get OTT token');
+            }
+
+            const paymentUrl = await generatePaymentUrl(
+              ottResponse.token,
+              quote,
+              selectedWalletAddress,
+              { ...generateThemeParameters(themeAppearance, colors) },
+            );
+
+            if (!paymentUrl) {
+              throw new Error('Failed to generate payment URL');
+            }
+
+            navigateToWebviewModalCallback({ paymentUrl });
           }
-
-          const paymentUrl = await generatePaymentUrl(
-            ottResponse.token,
-            quote,
-            selectedWalletAddress,
-            { ...generateThemeParameters(themeAppearance, colors) },
-          );
-
-          if (!paymentUrl) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-
-          navigation.navigate(
-            ...createWebviewModalNavigationDetails({
-              sourceUrl: paymentUrl,
-              handleNavigationStateChange,
-            }),
-          );
+          return true;
         }
-        return true;
-      }
 
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
-      return false;
+        navigateToKycProcessingCallback({ quote });
+        return false;
+      } catch (error) {
+        throw new Error(
+          error instanceof Error && error.message
+            ? error.message
+            : 'Failed to process KYC flow',
+        );
+      }
     },
     [
       fetchUserDetails,
@@ -214,26 +349,25 @@ export const useDepositRouting = ({
       createOrder,
       selectedWalletAddress,
       handleNewOrder,
-      navigation,
       cryptoCurrencyChainId,
       requestOtt,
       generatePaymentUrl,
-      handleNavigationStateChange,
+      navigateToKycProcessingCallback,
+      navigateToBankDetailsCallback,
+      navigateToWebviewModalCallback,
       themeAppearance,
       colors,
     ],
   );
 
-  const navigateToKycWebview = useCallback(
-    (quote: BuyQuote, kycUrl: string) => {
+  const navigateToKycWebviewCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+      popToBuildQuote();
       navigation.navigate(
-        ...createKycWebviewModalNavigationDetails({
-          quote,
-          sourceUrl: kycUrl,
-        }),
+        ...createKycWebviewModalNavigationDetails({ quote, sourceUrl: kycUrl }),
       );
     },
-    [navigation],
+    [navigation, popToBuildQuote],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -264,10 +398,9 @@ export const useDepositRouting = ({
           (form) => form.id === 'purposeOfUsage',
         );
 
-        // Handle Purpose of Usage form if it's the only remaining form
+        // Auto submit the Purpose of Usage form if it's the only remaining form
         if (purposeOfUsageKycForm && requiredForms?.length === 1) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          // After successful purpose of usage submission, check forms again
           await routeAfterAuthentication(quote);
           return;
         }
@@ -276,32 +409,33 @@ export const useDepositRouting = ({
           ? await fetchKycFormData(quote, idProofKycForm)
           : null;
 
-        // Navigate to BasicInfo if personal details, address, or SSN forms are required
         const shouldShowSsnForm =
           ssnKycForm && selectedRegion?.isoCode === 'US';
+
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
-          navigation.navigate(
-            ...createBasicInfoNavDetails({
-              quote,
-              kycUrl: idProofData?.data?.kycUrl,
-            }),
-          );
+          trackEvent('RAMPS_KYC_STARTED', {
+            ramp_type: 'DEPOSIT',
+            kyc_type: forms?.kycType || '',
+            region: selectedRegion?.isoCode || '',
+          });
+
+          navigateToBasicInfoCallback({
+            quote,
+            kycUrl: idProofData?.data?.kycUrl,
+          });
           return;
         } else if (idProofData?.data?.kycUrl) {
-          navigateToKycWebview(quote, idProofData.data.kycUrl);
+          navigateToAdditionalVerificationCallback({
+            quote,
+            kycUrl: idProofData.data.kycUrl,
+          });
           return;
         }
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           clearAuthToken();
-          navigation.navigate(
-            ...createEnterEmailNavDetails({
-              quote,
-              paymentMethodId,
-              cryptoCurrencyChainId,
-            }),
-          );
+          navigateToEnterEmailCallback({ quote });
           return;
         }
         throw error;
@@ -313,17 +447,22 @@ export const useDepositRouting = ({
       selectedRegion?.isoCode,
       handleApprovedKycFlow,
       submitPurposeOfUsage,
-      navigation,
       clearAuthToken,
-      paymentMethodId,
-      cryptoCurrencyChainId,
-      navigateToKycWebview,
+      navigateToEnterEmailCallback,
+      navigateToBasicInfoCallback,
+      trackEvent,
+      navigateToAdditionalVerificationCallback,
     ],
   );
 
   return {
     routeAfterAuthentication,
-    navigateToKycWebview,
+    navigateToKycWebview: navigateToKycWebviewCallback,
+    navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
+    navigateToBasicInfo: navigateToBasicInfoCallback,
+    navigateToEnterEmail: navigateToEnterEmailCallback,
+    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
+    navigateToKycProcessing: navigateToKycProcessingCallback,
     handleApprovedKycFlow,
   };
 };

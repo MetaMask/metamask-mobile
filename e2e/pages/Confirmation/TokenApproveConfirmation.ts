@@ -29,11 +29,16 @@ class TokenApproveConfirmation {
   }
 
   async tapEditSpendingCapSaveButton() {
-    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async inputSpendingCap(spendingCap: string) {
-    await Gestures.typeTextAndHideKeyboard(this.EditSpendingCapInput, spendingCap);
+    await Gestures.typeTextAndHideKeyboard(
+      this.EditSpendingCapInput,
+      spendingCap,
+    );
   }
 }
 
