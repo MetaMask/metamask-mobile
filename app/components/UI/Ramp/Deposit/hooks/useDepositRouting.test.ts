@@ -403,7 +403,7 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should navigate to KYC webview when only idProof form is required', async () => {
+    it('should navigate to AdditionalVerification when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -426,12 +426,11 @@ describe('useDepositRouting', () => {
       });
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositKycWebviewModal',
-        params: {
-          quote: mockQuote,
-          sourceUrl: 'test-kyc-url',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith('AdditionalVerification', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
       });
     });
 
