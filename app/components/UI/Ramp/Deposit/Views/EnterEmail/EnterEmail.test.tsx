@@ -4,6 +4,7 @@ import EnterEmail from './EnterEmail';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -25,28 +26,13 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-// Mock the quote object
-const mockQuote: MockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-};
+const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
 
-jest.mock('../../../hooks/useAnalytics', () => ({
-  __esModule: true,
-  default: () => (eventType: string, params: Record<string, unknown>) =>
-    mockTrackEvent(eventType, params),
-}));
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
