@@ -59,17 +59,14 @@ describe('Multichain Accounts Feature Flag', () => {
     });
 
     it('returns false when the feature is not enabled', () => {
-      const result = isMultichainAccountsFeatureEnabled(
-        disabledStateMock,
-        '1'
-      );
+      const result = isMultichainAccountsFeatureEnabled(disabledStateMock, '1');
       expect(result).toBe(false);
     });
 
     it('returns false when the feature version does not match', () => {
       const result = isMultichainAccountsFeatureEnabled(
         { enabled: true, featureVersion: '2', minimumVersion: '1.0.0' },
-        '1'
+        '1',
       );
       expect(result).toBe(false);
     });
@@ -77,7 +74,7 @@ describe('Multichain Accounts Feature Flag', () => {
     it('returns false when the minimum version is met', () => {
       const result = isMultichainAccountsFeatureEnabled(
         { enabled: true, featureVersion: '1', minimumVersion: '6.0.0' },
-        '1'
+        '1',
       );
       expect(result).toBe(true);
     });
@@ -85,7 +82,7 @@ describe('Multichain Accounts Feature Flag', () => {
     it('returns false when the minimum version is not met', () => {
       const result = isMultichainAccountsFeatureEnabled(
         { enabled: true, featureVersion: '1', minimumVersion: '16.0.0' },
-        '1'
+        '1',
       );
       expect(result).toBe(false);
     });
