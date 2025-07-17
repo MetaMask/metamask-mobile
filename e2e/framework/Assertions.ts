@@ -525,7 +525,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element has specific label
-   * @deprecated Use expectLabel() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
     detoxElement: DetoxElement,
