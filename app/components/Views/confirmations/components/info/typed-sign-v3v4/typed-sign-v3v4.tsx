@@ -8,12 +8,12 @@ import Message from './message';
 import TypedSignV3V4Simulation from './simulation';
 
 const TypedSignV3V4 = () => (
-    <View testID={ConfirmationInfoComponentIDs.SIGN_TYPED_DATA_V3V4}>
-      <AccountNetworkInfoRow />
-      <TypedSignV3V4Simulation />
-      <InfoSectionOriginAndDetails />
-      <Message />
-    </View>
-  );
+  <View testID={ConfirmationInfoComponentIDs.SIGN_TYPED_DATA_V3V4}>
+    <AccountNetworkInfoRow />
+    <TypedSignV3V4Simulation />
+    <InfoSectionOriginAndDetails />
+    <Message />
+  </View>
+);
 
 export default TypedSignV3V4;

@@ -79,9 +79,11 @@ have to have all these workarounds in the tests
   }
 
   if (!fromResetWallet) {
-     // Handle Solana New feature sheet
-      await Assertions.expectElementToBeVisible(SolanaNewFeatureSheet.notNowButton);
-      await SolanaNewFeatureSheet.tapNotNowButton();
+    // Handle Solana New feature sheet
+    await Assertions.expectElementToBeVisible(
+      SolanaNewFeatureSheet.notNowButton,
+    );
+    await SolanaNewFeatureSheet.tapNotNowButton();
   }
 };
 

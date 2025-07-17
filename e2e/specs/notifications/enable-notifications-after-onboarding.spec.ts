@@ -28,7 +28,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         testSpecificMock: {},
         permissions: {
           notifications: 'YES',
-        }
+        },
       },
       async ({ mockServer }: { mockServer: MockttpServer }) => {
         await mockNotificationServices(mockServer);
