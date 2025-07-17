@@ -46,6 +46,7 @@ import {
   BLOCKAID_SUPPORTED_NETWORK_NAMES,
 } from '../../../../util/networks';
 import { ARBITRUM_MAINNET_CHAIN_ID } from '../constants/hyperLiquidConfig';
+import { PerpsDepositProcessingViewSelectorsIDs } from '../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface DepositProcessingParams {
   amount: string;
@@ -233,7 +234,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             <ActivityIndicator
               size="large"
               color={colors.primary.default}
-              testID="processing-animation"
+              testID={
+                PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION
+              }
             />
           ),
           title: strings('perps.deposit.steps.preparing'),
@@ -245,7 +248,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             <ActivityIndicator
               size="large"
               color={colors.primary.default}
-              testID="processing-animation"
+              testID={
+                PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION
+              }
             />
           ),
           title: strings('perps.deposit.steps.swapping', {
@@ -259,7 +264,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             <ActivityIndicator
               size="large"
               color={colors.primary.default}
-              testID="processing-animation"
+              testID={
+                PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION
+              }
             />
           ),
           title: strings('perps.deposit.steps.bridging'),
@@ -271,7 +278,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             <ActivityIndicator
               size="large"
               color={colors.primary.default}
-              testID="processing-animation"
+              testID={
+                PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION
+              }
             />
           ),
           title: strings('perps.deposit.steps.depositing'),
@@ -286,7 +295,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               <ButtonIcon
                 iconName={IconName.Confirmation}
                 iconColor={IconColor.Inverse}
-                testID="success-checkmark"
+                testID={
+                  PerpsDepositProcessingViewSelectorsIDs.SUCCESS_CHECKMARK
+                }
               />
             </View>
           ),
@@ -302,7 +313,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               <ButtonIcon
                 iconName={IconName.Warning}
                 iconColor={IconColor.Inverse}
-                testID="processing-icon"
+                testID={PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ICON}
               />
             </View>
           ),
@@ -317,7 +328,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             <ActivityIndicator
               size="large"
               color={colors.primary.default}
-              testID="processing-animation"
+              testID={
+                PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION
+              }
             />
           ),
           title: isDirectDeposit
@@ -337,7 +350,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
         <Text
           variant={TextVariant.HeadingMD}
           style={styles.headerTitle}
-          testID="header-title"
+          testID={PerpsDepositProcessingViewSelectorsIDs.HEADER_TITLE}
         >
           {strings('perps.deposit.processing_title')}
         </Text>
@@ -346,7 +359,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           onPress={handleClose}
           iconColor={IconColor.Default}
           style={styles.closeButton}
-          testID="close-button"
+          testID={PerpsDepositProcessingViewSelectorsIDs.CLOSE_BUTTON}
         />
       </View>
 
@@ -357,7 +370,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           <Text
             variant={TextVariant.HeadingMD}
             style={styles.statusText}
-            testID="status-title"
+            testID={PerpsDepositProcessingViewSelectorsIDs.STATUS_TITLE}
           >
             {statusContent?.title}
           </Text>

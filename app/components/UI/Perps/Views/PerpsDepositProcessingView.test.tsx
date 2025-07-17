@@ -6,7 +6,8 @@ import PerpsDepositProcessingView from './PerpsDepositProcessingView';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { ARBITRUM_MAINNET_CHAIN_ID } from '../constants/hyperLiquidConfig';
-import type { DepositStatus, DepositFlowType } from '../controllers/types';
+import type { DepositStatus } from '../controllers/types';
+import { PerpsDepositProcessingViewSelectorsIDs } from '../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
@@ -39,16 +40,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(() => mockRoute),
 }));
 
-// Mock i18n
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (params) {
-      return `${key} ${JSON.stringify(params)}`;
-    }
-    return key;
-  }),
-}));
-
 // Mock hooks
 let mockUsePerpsDeposit = {
   status: 'depositing' as DepositStatus,
@@ -66,151 +57,6 @@ const mockedUsePerpsDeposit = usePerpsDeposit as jest.MockedFunction<
   typeof usePerpsDeposit
 >;
 
-// TypeScript interfaces for mock components
-interface MockButtonProps {
-  onPress?: () => void;
-  label?: string;
-  disabled?: boolean;
-  testID?: string;
-}
-
-interface MockButtonIconProps {
-  onPress?: () => void;
-  testID?: string;
-}
-
-interface MockTextProps {
-  children?: React.ReactNode;
-  testID?: string;
-  [key: string]: unknown;
-}
-
-interface MockAvatarTokenProps {
-  name: string;
-}
-
-interface MockBadgeNetworkProps {
-  name: string;
-}
-
-interface MockBadgeWrapperProps {
-  children?: React.ReactNode;
-  badgeElement?: React.ReactNode;
-}
-
-// Mock components
-jest.mock('../../../../component-library/components/Buttons/Button', () => {
-  const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
-  const Text = jest.requireActual('react-native').Text;
-
-  return {
-    __esModule: true,
-    default: ({ onPress, label, disabled, testID }: MockButtonProps) => (
-      <TouchableOpacity
-        testID={testID || 'button'}
-        onPress={onPress}
-        disabled={disabled}
-      >
-        <Text>{label}</Text>
-      </TouchableOpacity>
-    ),
-    ButtonSize: { Lg: 'lg' },
-    ButtonVariants: { Primary: 'primary', Secondary: 'secondary' },
-    ButtonWidthTypes: { Full: 'full' },
-  };
-});
-
-jest.mock('../../../../component-library/components/Buttons/ButtonIcon', () => {
-  const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
-
-  return {
-    __esModule: true,
-    default: ({ onPress, testID }: MockButtonIconProps) => (
-      <TouchableOpacity testID={testID || 'button-icon'} onPress={onPress} />
-    ),
-  };
-});
-
-jest.mock('../../../../component-library/components/Texts/Text', () => {
-  const Text = jest.requireActual('react-native').Text;
-
-  return {
-    __esModule: true,
-    default: ({ children, testID, ...props }: MockTextProps) => (
-      <Text testID={testID} {...props}>
-        {children}
-      </Text>
-    ),
-    TextVariant: {
-      HeadingMD: 'heading-md',
-      BodyMD: 'body-md',
-    },
-    TextColor: { Default: 'default', Muted: 'muted' },
-  };
-});
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
-  IconName: {
-    Close: 'close',
-    Confirmation: 'confirmation',
-    Warning: 'warning',
-  },
-  IconColor: {
-    Default: 'default',
-    Inverse: 'inverse',
-  },
-}));
-
-jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Md: 'md' },
-}));
-
-jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => {
-    const View = jest.requireActual('react-native').View;
-
-    return {
-      __esModule: true,
-      default: ({ name }: MockAvatarTokenProps) => (
-        <View testID={`avatar-token-${name}`} />
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
-  () => {
-    const View = jest.requireActual('react-native').View;
-
-    return {
-      __esModule: true,
-      default: ({ name }: MockBadgeNetworkProps) => (
-        <View testID={`badge-network-${name}`} />
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../component-library/components/Badges/BadgeWrapper',
-  () => {
-    const View = jest.requireActual('react-native').View;
-
-    return {
-      __esModule: true,
-      default: ({ children, badgeElement }: MockBadgeWrapperProps) => (
-        <View>
-          {children}
-          {badgeElement}
-        </View>
-      ),
-      BadgePosition: { BottomRight: 'bottom-right' },
-    };
-  },
-);
-
 const mockStore = configureMockStore();
 
 describe('PerpsDepositProcessingView', () => {
@@ -218,16 +64,8 @@ describe('PerpsDepositProcessingView', () => {
     // Reset mocks before each test
     mockUsePerpsDeposit = {
       status: 'depositing' as DepositStatus,
-      flowType: 'direct' as DepositFlowType,
-      steps: {
-        currentStep: 1,
-        totalSteps: 1,
-        stepNames: ['Depositing USDC to HyperLiquid'],
-        stepTxHashes: [],
-      },
       error: null as string | null,
       currentTxHash: null as string | null,
-      requiresModalDismissal: false,
     };
     mockRoute.params = {
       amount: '100',
@@ -286,10 +124,18 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('header-title')).toBeTruthy();
-      expect(getByTestId('close-button')).toBeTruthy();
-      expect(getByTestId('status-title')).toBeTruthy();
-      expect(getByTestId('status-description')).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.HEADER_TITLE),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.STATUS_TITLE),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.STATUS_DESCRIPTION),
+      ).toBeTruthy();
     });
   });
 
@@ -307,8 +153,12 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('processing-animation')).toBeTruthy();
-      expect(getByText('perps.deposit.steps.preparing')).toBeTruthy();
+      expect(
+        getByTestId(
+          PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION,
+        ),
+      ).toBeTruthy();
+      expect(getByText('Preparing deposit...')).toBeTruthy();
     });
 
     it('should show swapping status', () => {
@@ -324,10 +174,12 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('processing-animation')).toBeTruthy();
       expect(
-        getByText('perps.deposit.steps.swapping {"token":"USDC"}'),
+        getByTestId(
+          PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION,
+        ),
       ).toBeTruthy();
+      expect(getByText('Swapping USDC to USDC')).toBeTruthy();
     });
 
     it('should show bridging status', () => {
@@ -343,8 +195,12 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('processing-animation')).toBeTruthy();
-      expect(getByText('perps.deposit.steps.bridging')).toBeTruthy();
+      expect(
+        getByTestId(
+          PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION,
+        ),
+      ).toBeTruthy();
+      expect(getByText('Bridging to Hyperliquid')).toBeTruthy();
     });
 
     it('should show depositing status', () => {
@@ -360,8 +216,12 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('processing-animation')).toBeTruthy();
-      expect(getByText('perps.deposit.steps.depositing')).toBeTruthy();
+      expect(
+        getByTestId(
+          PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ANIMATION,
+        ),
+      ).toBeTruthy();
+      expect(getByText('Depositing into perps account')).toBeTruthy();
     });
 
     it('should show success status', () => {
@@ -377,9 +237,13 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('success-checkmark')).toBeTruthy();
-      expect(getByText('perps.deposit.depositCompleted')).toBeTruthy();
-      expect(getByTestId('view-balance-button')).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.SUCCESS_CHECKMARK),
+      ).toBeTruthy();
+      expect(getByText('Deposit completed successfully!')).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.VIEW_BALANCE_BUTTON),
+      ).toBeTruthy();
     });
 
     it('should show error status', () => {
@@ -396,11 +260,17 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('processing-icon')).toBeTruthy();
-      expect(getByText('perps.deposit.depositFailed')).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.PROCESSING_ICON),
+      ).toBeTruthy();
+      expect(getByText('Deposit Failed')).toBeTruthy();
       expect(getByText('Network error occurred')).toBeTruthy();
-      expect(getByTestId('retry-button')).toBeTruthy();
-      expect(getByTestId('go-back-button')).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.RETRY_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsDepositProcessingViewSelectorsIDs.GO_BACK_BUTTON),
+      ).toBeTruthy();
     });
   });
 
@@ -442,7 +312,9 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      const closeButton = getByTestId('close-button');
+      const closeButton = getByTestId(
+        PerpsDepositProcessingViewSelectorsIDs.CLOSE_BUTTON,
+      );
       closeButton.props.onPress();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TRADING_VIEW);
@@ -461,7 +333,9 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      const retryButton = getByTestId('retry-button');
+      const retryButton = getByTestId(
+        PerpsDepositProcessingViewSelectorsIDs.RETRY_BUTTON,
+      );
       retryButton.props.onPress();
 
       expect(mockGoBack).toHaveBeenCalled();
@@ -480,7 +354,9 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      const viewBalanceButton = getByTestId('view-balance-button');
+      const viewBalanceButton = getByTestId(
+        PerpsDepositProcessingViewSelectorsIDs.VIEW_BALANCE_BUTTON,
+      );
       viewBalanceButton.props.onPress();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TRADING_VIEW);
@@ -496,8 +372,11 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByTestId('avatar-token-USD Coin')).toBeTruthy();
-      expect(getByText('100 USDC')).toBeTruthy();
+      // Check that the token display wrapper is present
+      expect(getByTestId('badge-wrapper-badge')).toBeTruthy();
+
+      // Check that the amount and token symbol are displayed (with potential whitespace)
+      expect(getByText(/100\s+USDC/)).toBeTruthy();
     });
 
     it('should handle missing route params', () => {
@@ -512,7 +391,9 @@ describe('PerpsDepositProcessingView', () => {
       );
 
       // Should still render without crashing
-      expect(queryByTestId('header-title')).toBeTruthy();
+      expect(
+        queryByTestId(PerpsDepositProcessingViewSelectorsIDs.HEADER_TITLE),
+      ).toBeTruthy();
     });
   });
 
@@ -525,7 +406,9 @@ describe('PerpsDepositProcessingView', () => {
         </Provider>,
       );
 
-      expect(getByText('perps.deposit.steps.depositingDirect')).toBeTruthy();
+      expect(
+        getByText('Transferring USDC directly to your HyperLiquid account...'),
+      ).toBeTruthy();
     });
 
     it('should show complex route message when isDirectDeposit is false', () => {
@@ -544,7 +427,7 @@ describe('PerpsDepositProcessingView', () => {
       );
 
       expect(
-        getByText('perps.deposit.stepDescriptions.depositing'),
+        getByText('Transferring USDC to your HyperLiquid account...'),
       ).toBeTruthy();
     });
   });
