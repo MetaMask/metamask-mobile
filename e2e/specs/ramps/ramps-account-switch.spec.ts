@@ -38,7 +38,9 @@ const rampsApiMocks = getRampsApiMocks();
 let mockServer: any;
 let mockServerPort: number;
 
-const setupRampsAccountSwitchTest = async (testFunction: () => Promise<void>) => {
+const setupRampsAccountSwitchTest = async (
+  testFunction: () => Promise<void>,
+) => {
   await withFixtures(
     {
       fixture: new FixtureBuilder()
@@ -98,7 +100,9 @@ describe(Regression('Ramps with Account Switching'), () => {
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3');
-      await Assertions.expectElementToBeVisible(BuildQuoteView.amountToBuyLabel);
+      await Assertions.expectElementToBeVisible(
+        BuildQuoteView.amountToBuyLabel,
+      );
     });
   });
 
@@ -110,7 +114,9 @@ describe(Regression('Ramps with Account Switching'), () => {
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3');
-      await Assertions.expectElementToBeVisible(BuildQuoteView.amountToSellLabel);
+      await Assertions.expectElementToBeVisible(
+        BuildQuoteView.amountToSellLabel,
+      );
     });
   });
 

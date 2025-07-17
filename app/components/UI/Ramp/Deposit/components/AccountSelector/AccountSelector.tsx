@@ -71,8 +71,8 @@ const AccountSelector = () => {
   );
 
   return (
-    <TouchableOpacity 
-      onPress={openAccountSelector} 
+    <TouchableOpacity
+      onPress={openAccountSelector}
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >

@@ -22,7 +22,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
   GET: [
     // Mock getQuotes for buy - more flexible URL matching
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/quotes',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/quotes',
       response: {
         quotes: [
           {
@@ -30,7 +31,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
               id: '/providers/moonpay-staging',
               name: 'MoonPay (Staging)',
               logos: {
-                light: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png',
+                light:
+                  'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png',
                 dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_dark.png',
                 height: 24,
                 width: 88,
@@ -76,7 +78,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
               id: '/providers/banxa-staging',
               name: 'Banxa (Staging)',
               logos: {
-                light: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png',
+                light:
+                  'https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png',
                 dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_dark.png',
                 height: 24,
                 width: 65,
@@ -125,7 +128,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getSellQuotes for sell - more flexible URL matching
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/sell-quotes',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/sell-quotes',
       response: {
         quotes: [
           {
@@ -133,7 +137,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
               id: '/providers/moonpay-staging',
               name: 'MoonPay (Staging)',
               logos: {
-                light: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png',
+                light:
+                  'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png',
                 dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_dark.png',
                 height: 24,
                 width: 88,
@@ -178,7 +183,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getLimits for buy
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/limits',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/limits',
       response: {
         minAmount: 20,
         maxAmount: 10000,
@@ -187,7 +193,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getSellLimits for sell
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/sell-limits',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/crypto-currencies/1/eth/fiat-currencies/eur/sell-limits',
       response: {
         minAmount: 0.01,
         maxAmount: 10,
@@ -196,7 +203,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getPaymentMethods for buy
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/crypto-currencies/1/eth/fiat-currencies/eur/payment-methods',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/crypto-currencies/1/eth/fiat-currencies/eur/payment-methods',
       response: [
         {
           id: '/payments/credit-debit-card',
@@ -213,7 +221,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getSellPaymentMethods for sell
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/crypto-currencies/1/eth/fiat-currencies/eur/sell-payment-methods',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/crypto-currencies/1/eth/fiat-currencies/eur/sell-payment-methods',
       response: [
         {
           id: '/payments/bank-transfer',
@@ -225,7 +234,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getFiatCurrencies for buy
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/fiat-currencies',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/fiat-currencies',
       response: [
         {
           id: '/currencies/fiat/eur',
@@ -244,7 +254,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getSellFiatCurrencies for sell
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/bank-transfer/fiat-currencies',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/bank-transfer/fiat-currencies',
       response: [
         {
           id: '/currencies/fiat/eur',
@@ -263,7 +274,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getDefaultFiatCurrency for buy
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/default-fiat-currency',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/default-fiat-currency',
       response: {
         id: '/currencies/fiat/eur',
         symbol: 'EUR',
@@ -274,7 +286,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getDefaultSellFiatCurrency for sell
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/default-sell-fiat-currency',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/default-sell-fiat-currency',
       response: {
         id: '/currencies/fiat/eur',
         symbol: 'EUR',
@@ -285,7 +298,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getCryptoCurrencies for buy
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/fiat-currencies/eur/crypto-currencies',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/credit-debit-card/fiat-currencies/eur/crypto-currencies',
       response: [
         {
           id: '/currencies/crypto/1/eth',
@@ -302,7 +316,8 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
     },
     // Mock getSellCryptoCurrencies for sell
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/bank-transfer/fiat-currencies/eur/crypto-currencies',
+      urlEndpoint:
+        'https://on-ramp.dev-api.cx.metamask.io/regions/fr/payment-methods/bank-transfer/fiat-currencies/eur/crypto-currencies',
       response: [
         {
           id: '/currencies/crypto/1/eth',
@@ -353,4 +368,4 @@ export const getRampsApiMocks = (): RampsApiMocks => ({
       responseCode: 200,
     },
   ],
-}); 
+});

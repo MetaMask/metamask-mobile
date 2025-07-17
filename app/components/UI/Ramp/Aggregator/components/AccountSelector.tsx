@@ -68,8 +68,8 @@ const AccountSelector = () => {
     : shortenedAddress;
 
   return (
-    <SelectorButton 
-      onPress={openAccountSelector} 
+    <SelectorButton
+      onPress={openAccountSelector}
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
