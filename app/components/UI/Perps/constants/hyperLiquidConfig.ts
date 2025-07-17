@@ -23,6 +23,10 @@ export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
   testnet: 'wss://api.hyperliquid-testnet.xyz/ws',
 };
 
+// Asset icons base URL
+export const HYPERLIQUID_ASSET_ICONS_BASE_URL =
+  'https://app.hyperliquid.xyz/coins/';
+
 // Asset configurations for multichain abstraction
 export const HYPERLIQUID_ASSET_CONFIGS: HyperLiquidAssetConfigs = {
   USDC: {
