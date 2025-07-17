@@ -139,6 +139,18 @@ export interface TestSuiteParams {
   localNodes?: LocalNode[];
 }
 
+export interface TestSpecificMock {
+  GET?: MockApiEndpoint[];
+  POST?: MockApiEndpoint[];
+  [key: string]: MockApiEndpoint[] | undefined;
+}
+
+export interface MockApiEndpoint {
+  urlEndpoint: string;
+  response: unknown;
+  responseCode: number;
+}
+
 /**
  * The options for the withFixtures function.
  * @param {FixtureBuilder} fixture - The state of the fixture to load.
@@ -159,7 +171,7 @@ export interface WithFixturesOptions {
   disableLocalNodes?: boolean;
   dapps?: DappOptions[];
   localNodeOptions?: LocalNodeOptionsInput;
-  testSpecificMock?: Record<string, unknown>;
+  testSpecificMock?: TestSpecificMock;
   launchArgs?: Partial<LunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
