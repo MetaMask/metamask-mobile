@@ -33,7 +33,7 @@ const getSlippageOptions = (slippage: string | undefined): SlippageOption[] => {
   ];
 
   return slippage === undefined
-    ? [{ label: strings('perps.deposit.slippage_auto'), value: 'auto' }, ...baseOptions]
+    ? [{ label: 'Auto', value: 'auto' }, ...baseOptions]
     : [{ label: '0.5%', value: '0.5' }, ...baseOptions];
 };
 
