@@ -21,11 +21,20 @@ jest.mock('../../../../../component-library/hooks', () => ({
   })),
 }));
 
+// Mock react-native at the top
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Platform: {
+    OS: 'ios',
+  },
+}));
+
 // Mock Button component to avoid theme issues
 jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = require('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: ({ label, onPress, loading, ...props }: any) => (
       <TouchableOpacity
         onPress={onPress}

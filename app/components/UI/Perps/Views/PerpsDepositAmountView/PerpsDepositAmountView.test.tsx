@@ -9,6 +9,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ARBITRUM_MAINNET_CHAIN_ID } from '../../constants/hyperLiquidConfig';
 import type { AssetRoute } from '../../controllers/types';
 
+// Mock react-native at the top
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Platform: {
+    OS: 'ios',
+  },
+}));
+
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
