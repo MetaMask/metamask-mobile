@@ -722,6 +722,7 @@
   },
   "perps": {
     "title": "Perps Trading",
+    "unknown_network": "Unknown Network",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
@@ -754,7 +755,6 @@
       "retry_deposit": "Retry Deposit",
       "go_back": "Go Back",
       "view_balance": "View Balance",
-      "select_token": "Select token to pay with",
       "steps": {
         "preparing": "Preparing deposit...",
         "swapping": "Swapping {{token}} to USDC",
@@ -772,7 +772,6 @@
       },
       "processing": "Processing...",
       "completed": "Transaction completed",
-      "confirming": "Confirming on blockchain",
       "transactionHash": "Transaction Hash",
       "transaction_hash": "Transaction Hash",
       "viewTransaction": "View Transaction",
@@ -905,15 +904,8 @@
       "invalidOrder": "Invalid order parameters",
       "invalidWithdrawal": "Invalid withdrawal parameters"
     },
-    "connection": {
-      "initializing": "Initializing Perps controller...",
-      "connecting": "Connecting to Perps trading..."
-    },
     "position": {
       "title": "Positions",
-      "details": {
-        "title": "Position Details"
-      },
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
@@ -935,6 +927,7 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
+        "title": "Position Details",
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
       },
@@ -971,9 +964,6 @@
     "chart": {
       "no_data": "No chart data available"
     }
-  },
-  "receive": {
-    "title": "Receive"
   },
   "receive": {
     "title": "Receive"

@@ -77,7 +77,7 @@ const PerpsScreenStack = () => (
         }}
       />
 
-      {/* 
+      {/*
         Removed for minimal PR (can be added back in future PRs):
         - PerpsMarketListView (Market list)
         - PerpsPositionsView (Positions list)

@@ -25,6 +25,7 @@ export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
 export const USDC_SYMBOL = 'USDC';
 export const USDC_NAME = 'USD Coin';
 export const USDC_DECIMALS = 6;
+export const TOKEN_DECIMALS = 18;
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 // Network constants
@@ -136,3 +137,8 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
     (config) => config[network],
   );
 }
+
+// CAIP asset namespace constants
+export const CAIP_ASSET_NAMESPACES = {
+  ERC20: 'erc20',
+} as const;

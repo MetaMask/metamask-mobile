@@ -12,7 +12,7 @@ import {
   useNavigation,
   type NavigationProp,
 } from '@react-navigation/native';
-import { type Hex, parseCaipAssetId } from '@metamask/utils';
+import { type Hex, parseCaipAssetId, parseCaipChainId, isCaipChainId, KnownCaipNamespace } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -71,6 +71,7 @@ import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
+  CAIP_ASSET_NAMESPACES,
   HYPERLIQUID_ASSET_CONFIGS,
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
@@ -90,6 +91,7 @@ import { usePerpsTrading, usePerpsNetwork } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
+import { toHex } from '@metamask/controller-utils';
 
 interface PerpsDepositAmountViewProps {}
 
@@ -168,7 +170,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         if (
           !parsedAsset.assetNamespace ||
-          parsedAsset.assetNamespace !== 'erc20' ||
+          parsedAsset.assetNamespace !== CAIP_ASSET_NAMESPACES.ERC20 ||
           !parsedAsset.assetReference
         ) {
           return;
@@ -179,7 +181,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           address: parsedAsset.assetReference,
           decimals: USDC_DECIMALS,
           name: USDC_NAME,
-          chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`,
+          chainId: toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex,
         };
 
         const enhancedToken = enhanceTokenWithIcon({
@@ -224,7 +226,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       }
     }
 
-    return '0';
+    return '-';
   }, [
     sourceToken,
     selectedAddress,
@@ -237,8 +239,17 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     if (!networkConfigurations) return [];
 
     return Object.keys(networkConfigurations).filter((id) => {
-      const networkChainId = id as Hex;
-      return !networkChainId.startsWith('solana:');
+      // For CAIP format chain IDs, parse and check namespace
+      if (isCaipChainId(id)) {
+        try {
+          const { namespace } = parseCaipChainId(id);
+          return namespace !== KnownCaipNamespace.Solana;
+        } catch {
+          return false;
+        }
+      }
+      // For non-CAIP format (hex), assume it's EVM and include it
+      return true;
     }) as Hex[];
   }, [networkConfigurations]);
 

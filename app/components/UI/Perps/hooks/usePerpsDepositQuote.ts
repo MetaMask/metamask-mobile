@@ -16,8 +16,7 @@ import { formatAmount } from '../../SimulationDetails/formatAmount';
 import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
 // TODO: Import Engine when implementing real quote API calls
 // import Engine from '../../../../core/Engine';
-import I18n from '../../../../../locales/i18n';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import { getBridgeInfo } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -140,7 +139,8 @@ export const usePerpsDepositQuote = ({
       // Should call Engine.context.BridgeController for cross-chain quotes
       return 'Calculating...';
     } catch (error) {
-      console.warn(strings('perps.errors.gasFeeEstimateFailed'), error);
+      // Gas fee estimation can fail during initial load or when TransactionController is not ready
+      // This is expected and not an error condition
       return '-';
     }
   }, [
@@ -157,18 +157,9 @@ export const usePerpsDepositQuote = ({
 
   // Dynamic estimated time calculation using real gas fee estimates and path analysis
   const getEstimatedTime = useCallback((): string => {
-    DevLogger.log('PerpsDepositQuote: getEstimatedTime called', {
-      hasGasFeeEstimates: !!gasFeeEstimates,
-      hasGetDepositRoutes: !!getDepositRoutes,
-      selectedToken,
-    });
-
     // Use gas fee estimates to get real network-based time estimates
     if (!gasFeeEstimates || !selectedToken) {
-      DevLogger.log('PerpsDepositQuote: Missing requirements', {
-        hasGasFeeEstimates: !!gasFeeEstimates,
-        hasSelectedToken: !!selectedToken,
-      });
+      // Don't log this as it's expected during initial load
       return '';
     }
 
@@ -388,7 +379,7 @@ export const usePerpsDepositQuote = ({
     };
 
     calculateNetworkFee();
-  }, [amount, selectedToken, selectedAccount, providerConfig.chainId]); // Use stable dependencies instead of getNetworkFee
+  }, [amount, selectedToken, selectedAccount, providerConfig.chainId, getNetworkFee]);
 
   const formattedQuoteData: FormattedQuoteData = useMemo(() => {
     const estimatedTime = getEstimatedTime();
@@ -399,7 +390,6 @@ export const usePerpsDepositQuote = ({
       exchangeRate: getExchangeRate(),
     };
 
-    DevLogger.log('PerpsDepositQuote: formattedQuoteData created', { result });
     return result;
   }, [networkFee, getEstimatedTime, getReceivingAmount, getExchangeRate]);
 

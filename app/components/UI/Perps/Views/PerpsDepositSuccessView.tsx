@@ -39,7 +39,8 @@ import {
   getNetworkImageSource,
   BLOCKAID_SUPPORTED_NETWORK_NAMES,
 } from '../../../../util/networks';
-import { ARBITRUM_MAINNET_CHAIN_ID } from '../constants/hyperLiquidConfig';
+import { ARBITRUM_MAINNET_CHAIN_ID, TOKEN_DECIMALS, USDC_DECIMALS, USDC_NAME, USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import { toHex } from '@metamask/controller-utils';
 
 interface DepositSuccessParams {
   amount: string;
@@ -149,11 +150,9 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
     const baseToken = {
       symbol: selectedToken,
       address: '', // Let the icon enhancement find the address from token list
-      decimals: selectedToken === 'USDC' ? 6 : 18,
-      name: selectedToken === 'USDC' ? 'USD Coin' : selectedToken,
-      chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(
-        16,
-      )}` as Hex,
+      decimals: selectedToken === USDC_SYMBOL ? USDC_DECIMALS : TOKEN_DECIMALS,
+      name: selectedToken === USDC_SYMBOL ? USDC_NAME : selectedToken,
+      chainId: toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex,
     };
 
     return enhanceTokenWithIcon({

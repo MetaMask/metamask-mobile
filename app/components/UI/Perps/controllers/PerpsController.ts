@@ -566,11 +566,8 @@ export class PerpsController extends BaseController<
       );
 
       if (!isAssetSupported) {
-        const supportedAssets = supportedRoutes.map(
-          (supportedRoute) => supportedRoute.assetId,
-        );
-        const error = strings('perps.errors.tokenNotSupported', { 
-          token: params.assetId 
+        const error = strings('perps.errors.tokenNotSupported', {
+          token: params.assetId
         });
         this.updateDepositProgress('error', 0, undefined, error);
         return { success: false, error };
