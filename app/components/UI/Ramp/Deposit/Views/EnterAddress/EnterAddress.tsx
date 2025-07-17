@@ -32,6 +32,7 @@ import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { VALIDATION_REGEX } from '../../constants/constants';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
 
 export interface EnterAddressParams {
@@ -70,9 +71,11 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+
   const { navigateToAdditionalVerification, navigateToKycProcessing } =
     useDepositRouting({
-      cryptoCurrencyChainId: quote.cryptoCurrency,
+      cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
       paymentMethodId: quote.paymentMethod,
     });
 
