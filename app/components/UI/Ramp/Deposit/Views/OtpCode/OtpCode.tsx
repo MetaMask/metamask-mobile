@@ -173,12 +173,12 @@ const OtpCode = () => {
         if (!response) {
           throw new Error('No response from submitCode');
         }
+        await setAuthToken(response);
+        await routeAfterAuthentication(quote);
         trackEvent('RAMPS_OTP_CONFIRMED', {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
-        await setAuthToken(response);
-        await routeAfterAuthentication(quote);
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
