@@ -420,7 +420,7 @@ describe('App', () => {
     });
 
     describe('Seedless onboarding password outdated check', () => {
-      const Logger = jest.requireMock('../../../util/Logger');
+      const LoggerMock = jest.requireMock('../../../util/Logger');
 
       const seedlessOnboardingState = {
         ...initialState,
@@ -479,7 +479,7 @@ describe('App', () => {
         // Assert
         await waitFor(() => {
           expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalled();
-          expect(Logger.error).toHaveBeenCalledWith(
+          expect(LoggerMock.error).toHaveBeenCalledWith(
             testError,
             'App: Error in checkIsSeedlessPasswordOutdated',
           );
