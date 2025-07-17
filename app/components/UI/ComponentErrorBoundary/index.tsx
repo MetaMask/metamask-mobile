@@ -25,7 +25,10 @@ interface ComponentErrorBoundaryState {
   error: Error | null;
 }
 
-class ComponentErrorBoundary extends React.Component<ComponentErrorBoundaryProps, ComponentErrorBoundaryState> {
+class ComponentErrorBoundary extends React.Component<
+  ComponentErrorBoundaryProps,
+  ComponentErrorBoundaryState
+> {
   state: ComponentErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error): ComponentErrorBoundaryState {

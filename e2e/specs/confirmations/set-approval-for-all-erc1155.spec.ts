@@ -27,7 +27,7 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
   });
 
   it('approve all ERC1155 tokens', async () => {
-    const testSpecificMock  = {
+    const testSpecificMock = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations,
@@ -39,7 +39,9 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

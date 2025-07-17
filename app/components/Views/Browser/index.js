@@ -408,12 +408,11 @@ export const Browser = (props) => {
       tabs
         .filter((tab) => !tab.isArchived)
         .map((tab) => {
-
           // If the tab is not the active tab, don't render it
           if (activeTabId !== tab.id) return null;
 
           // If the tab is the active tab, render it
-          return (tab.url || !isTokenDiscoveryBrowserEnabled()) ? (
+          return tab.url || !isTokenDiscoveryBrowserEnabled() ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
