@@ -24,6 +24,7 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import { selectSelectedInternalAccountFormattedAddress } from 'app/selectors/accountsController';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -41,7 +42,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override selected address
    */
-  selectedAddress: string;
+  selectedAddress?: string;
   /**
    * Chain ID for block explorer links
    */
@@ -82,11 +83,16 @@ const MultichainTransactionsView = ({
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
-  const solanaAccountTransactions = useSelector(selectNonEvmTransactions);
+  const defaultSelectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const address = selectedAddress ?? defaultSelectedAddress;
+
+  const nonEvmTransactions = useSelector(selectNonEvmTransactions);
 
   const txList = useMemo(
-    () => transactions ?? solanaAccountTransactions?.transactions,
-    [transactions, solanaAccountTransactions],
+    () => transactions ?? nonEvmTransactions?.transactions,
+    [transactions, nonEvmTransactions],
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -114,7 +120,7 @@ const MultichainTransactionsView = ({
     </View>
   );
 
-  const url = getAddressUrl(selectedAddress, chainId as CaipChainId);
+  const url = getAddressUrl(address ?? '', chainId as CaipChainId);
 
   const footer = (
     <MultichainTransactionsFooter
@@ -145,7 +151,7 @@ const MultichainTransactionsView = ({
       <MultichainTransactionListItem
         transaction={item}
         bridgeHistoryItem={bridgeHistoryItem}
-        selectedAddress={selectedAddress}
+        selectedAddress={address ?? ''}
         navigation={nav}
         index={index}
       />

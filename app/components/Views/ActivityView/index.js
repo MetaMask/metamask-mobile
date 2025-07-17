@@ -214,7 +214,6 @@ const ActivityView = () => {
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
-              selectedAddress={selectedAddress}
               chainId={currentChainId}
             />
           ) : (
