@@ -475,7 +475,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (loading || locked) return;
 
       setLoading(true);
-      setError(null);
 
       await performAuthentication();
       Keyboard.dismiss();
@@ -494,6 +493,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setPassword('');
       setLoading(false);
       setHasBiometricCredentials(false);
+      setError(null);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
@@ -670,18 +670,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 onPress={onLogin}
-                label={
-                  loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('login.unlock_button')
-                  )
-                }
-                isDisabled={password.length === 0 || disabledInput}
+                label={strings('login.unlock_button')}
+                isDisabled={password.length === 0 || disabledInput || loading}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                loading={loading}
               />
 
               {!oauthLoginSuccess && (
