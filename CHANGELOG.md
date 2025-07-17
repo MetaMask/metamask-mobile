@@ -8,10 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [7.50.2]
+
+### Fixed
+- fix: undefined formatNetworkRpcUrl ([#17308](https://github.com/MetaMask/metamask-mobile/pull/17308)) 
+- fix: ensure info network modal is focused to render content ([#17279](https://github.com/MetaMask/metamask-mobile/pull/17279))
+- fix: Remove hardware wallets ([#17264](https://github.com/MetaMask/metamask-mobile/pull/17264)) 
+- fix: cp-7.50.2 retrieving configured chains from NetworkController ([#17241](https://github.com/MetaMask/metamask-mobile/pull/17241)) 
+- fix: Patch `CronjobController` ([#17266](https://github.com/MetaMask/metamask-mobile/pull/17266)) 
+
 ## [7.50.1]
 
 ### Fixed
 
+- fix: default to main code fence and opt-in for beta ([#16599](https://github.com/MetaMask/metamask-mobile/pull/16599))/
 
 ## [7.50.0]
 
@@ -6183,7 +6193,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...HEAD
+[7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2  
+[7.50.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1
 [7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.3...v7.50.0
 [7.47.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.2...v7.47.3
 [7.47.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.1...v7.47.2
