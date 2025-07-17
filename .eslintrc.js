@@ -42,8 +42,6 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
-        // Disable deprecated rule that was removed in @typescript-eslint v5.0.0
-        '@typescript-eslint/no-parameter-properties': 'off',
       },
     },
     {
