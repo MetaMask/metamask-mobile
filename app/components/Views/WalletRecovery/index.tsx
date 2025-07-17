@@ -20,8 +20,10 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import GoogleIcon from '../../../images/google.svg';
-import AppleIcon from '../../../images/apple.svg';
+import GoogleIcon from 'images/google.svg';
+import AppleIcon from 'images/apple.svg';
+import AppleWhiteIcon from 'images/apple-white.svg';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -67,7 +69,7 @@ const SocialLinked = ({
   email: string;
   authConnection: string;
 }) => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = StyleSheet.create({
     socialDetailsBoxRoot: {
       width: '100%',
@@ -98,6 +100,8 @@ const SocialLinked = ({
     },
   });
 
+  const isDark = themeAppearance === AppThemeKey.dark;
+
   const maskedEmail = useMemo(() => {
     if (!email.includes('@')) {
       return email;
@@ -118,13 +122,19 @@ const SocialLinked = ({
               fill="currentColor"
               color={colors.icon.default}
             />
-          ) : (
-            <AppleIcon
-              name="apple"
+          ) : isDark ? (
+            <AppleWhiteIcon
+              fill="currentColor"
               width={24}
               height={24}
+              name={'apple-white'}
+            />
+          ) : (
+            <AppleIcon
               fill="currentColor"
-              color={colors.icon.default}
+              width={24}
+              height={24}
+              name={'apple'}
             />
           )}
         </View>
