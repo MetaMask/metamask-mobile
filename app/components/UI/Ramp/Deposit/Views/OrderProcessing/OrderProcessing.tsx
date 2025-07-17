@@ -113,7 +113,7 @@ const OrderProcessing = () => {
     } else if (order.state === FIAT_ORDER_STATES.FAILED) {
       if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
         const cryptoCurrency = getCryptoCurrencyFromTransakId(
-          (order.data as DepositOrder).cryptoCurrency,
+          order.data.cryptoCurrency,
         );
 
         trackEvent('RAMPS_TRANSACTION_FAILED', {
@@ -121,15 +121,15 @@ const OrderProcessing = () => {
           amount_source: Number(order.data.fiatAmount),
           amount_destination: Number(order.cryptoAmount),
           exchange_rate: Number(order.data.exchangeRate),
-          gas_fee: 0, // Number(order.data.gasFee),
-          processing_fee: 0, // Number(order.data.processingFee),
+          gas_fee: 0, // Number(order.data.networkFees),
+          processing_fee: 0, // Number(order.data.partnerFees),
           total_fee: Number(order.data.totalFeesFiat),
-          payment_method_id: (order.data as DepositOrder).paymentMethod,
+          payment_method_id: order.data.paymentMethod,
           country: selectedRegion?.isoCode || '',
           chain_id: cryptoCurrency?.chainId || '',
           currency_destination:
-            selectedWalletAddress || (order.data as DepositOrder).walletAddress,
-          currency_source: (order.data as DepositOrder).fiatCurrency,
+            selectedWalletAddress || order.data.walletAddress,
+          currency_source: order.data.fiatCurrency,
           error_message: 'transaction_failed', // TODO: Get error message from order
         });
       }
