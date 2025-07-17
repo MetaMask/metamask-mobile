@@ -42,7 +42,9 @@ class TestSnaps {
   }
 
   get confirmSignatureButton() {
-    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
   }
 
   async checkResultSpan(
