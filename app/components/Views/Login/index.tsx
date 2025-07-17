@@ -570,7 +570,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
-    hasBiometricCredentials
+    hasBiometricCredentials &&
+    !route?.params?.locked
   );
 
   const lottieSrc = useMemo(

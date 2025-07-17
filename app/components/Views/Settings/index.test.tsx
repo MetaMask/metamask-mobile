@@ -171,9 +171,9 @@ describe('Settings', () => {
     await Authentication.lockApp({ reset: false, locked: true });
 
     // Verify that Authentication.lockApp was called with the correct parameters
-    expect(Authentication.lockApp).toHaveBeenCalledWith({ 
-      reset: false, 
-      locked: true 
+    expect(Authentication.lockApp).toHaveBeenCalledWith({
+      reset: false,
+      locked: true,
     });
     expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
