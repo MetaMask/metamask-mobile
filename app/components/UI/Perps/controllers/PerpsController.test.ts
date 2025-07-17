@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
 
@@ -8,6 +9,7 @@ import {
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId } from '@metamask/utils';
+import { DepositStatus } from './types';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -1001,7 +1003,7 @@ describe('PerpsController', () => {
           activeDepositTransactions: {
             [txId]: depositInfo,
           },
-          depositStatus: 'idle' as const,
+          depositStatus: 'idle' as DepositStatus,
           currentDepositTxHash: null,
         };
 
@@ -1024,6 +1026,7 @@ describe('PerpsController', () => {
             // Act - Publish transaction submitted event
             messenger.publish(
               'TransactionController:transactionSubmitted',
+              // @ts-ignore
               txEvent,
             );
 
@@ -1042,7 +1045,7 @@ describe('PerpsController', () => {
         // Arrange - Set up initial state without tracked transaction
         const txId = 'untracked-tx-id';
         const initialState = {
-          depositStatus: 'idle' as const,
+          depositStatus: 'idle' as DepositStatus,
           currentDepositTxHash: null,
           activeDepositTransactions: {},
         };
@@ -1066,6 +1069,7 @@ describe('PerpsController', () => {
             // Act - Publish transaction submitted event
             messenger.publish(
               'TransactionController:transactionSubmitted',
+              // @ts-ignore
               txEvent,
             );
 
@@ -1091,7 +1095,7 @@ describe('PerpsController', () => {
           activeDepositTransactions: {
             [txId]: depositInfo,
           },
-          depositStatus: 'idle' as const,
+          depositStatus: 'idle' as DepositStatus,
           currentDepositTxHash: null,
         };
 
@@ -1114,6 +1118,7 @@ describe('PerpsController', () => {
             // Act - Publish transaction submitted event
             messenger.publish(
               'TransactionController:transactionSubmitted',
+              // @ts-ignore
               txEvent,
             );
 
@@ -1138,6 +1143,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'depositing';
@@ -1159,6 +1165,7 @@ describe('PerpsController', () => {
           // Act - Publish transaction confirmed event
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             txMeta,
           );
 
@@ -1176,11 +1183,12 @@ describe('PerpsController', () => {
           // Arrange - Set up initial state without tracked transaction
           const txId = 'untracked-tx-id';
           const initialState = {
-            depositStatus: 'idle',
+            depositStatus: 'idle' as DepositStatus,
             currentDepositTxHash: null,
             activeDepositTransactions: {},
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.depositStatus = initialState.depositStatus;
             state.currentDepositTxHash = initialState.currentDepositTxHash;
@@ -1203,6 +1211,7 @@ describe('PerpsController', () => {
           // Act - Publish transaction confirmed event
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             txMeta,
           );
 
@@ -1222,7 +1231,7 @@ describe('PerpsController', () => {
             token: 'USDC',
             timestamp: Date.now(),
           };
-
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'depositing';
@@ -1244,6 +1253,7 @@ describe('PerpsController', () => {
           // Act - Publish transaction confirmed event
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             txMeta,
           );
 
@@ -1273,6 +1283,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId1] = depositInfo1;
             state.activeDepositTransactions[txId2] = depositInfo2;
@@ -1295,6 +1306,7 @@ describe('PerpsController', () => {
           // Act - Publish transaction confirmed event for first transaction
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             txMeta,
           );
 
@@ -1324,6 +1336,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'depositing';
@@ -1350,6 +1363,7 @@ describe('PerpsController', () => {
           };
 
           // Act - Publish transaction failed event
+          // @ts-ignore
           messenger.publish('TransactionController:transactionFailed', txEvent);
 
           // Assert - Verify state updated correctly
@@ -1367,12 +1381,13 @@ describe('PerpsController', () => {
           // Arrange - Set up initial state without tracked transaction
           const txId = 'untracked-tx-id';
           const initialState = {
-            depositStatus: 'idle',
+            depositStatus: 'idle' as DepositStatus,
             currentDepositTxHash: null,
             depositError: null,
             activeDepositTransactions: {},
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.depositStatus = initialState.depositStatus;
             state.currentDepositTxHash = initialState.currentDepositTxHash;
@@ -1400,6 +1415,7 @@ describe('PerpsController', () => {
           };
 
           // Act - Publish transaction failed event
+          // @ts-ignore
           messenger.publish('TransactionController:transactionFailed', txEvent);
 
           // Assert - Verify state unchanged
@@ -1420,7 +1436,7 @@ describe('PerpsController', () => {
             token: 'USDC',
             timestamp: Date.now(),
           };
-
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'depositing';
@@ -1444,6 +1460,7 @@ describe('PerpsController', () => {
           };
 
           // Act - Publish transaction failed event
+          // @ts-ignore
           messenger.publish('TransactionController:transactionFailed', txEvent);
 
           // Assert - Verify state updated with default error message
@@ -1467,6 +1484,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'depositing';
@@ -1493,6 +1511,7 @@ describe('PerpsController', () => {
           };
 
           // Act - Publish transaction failed event
+          // @ts-ignore
           messenger.publish('TransactionController:transactionFailed', txEvent);
 
           // Assert - Verify state updated correctly with null hash
@@ -1523,6 +1542,7 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions[txId1] = depositInfo1;
             state.activeDepositTransactions[txId2] = depositInfo2;
@@ -1550,6 +1570,7 @@ describe('PerpsController', () => {
           };
 
           // Act - Publish transaction failed event for first transaction
+          // @ts-ignore
           messenger.publish('TransactionController:transactionFailed', txEvent);
 
           // Assert - Verify only first transaction removed, second still tracked
@@ -1578,7 +1599,8 @@ describe('PerpsController', () => {
             timestamp: Date.now(),
           };
 
-          controller.update((state) => {
+          // @ts-ignore
+          (controller as any).update((state) => {
             state.activeDepositTransactions[txId] = depositInfo;
             state.depositStatus = 'idle';
             state.currentDepositTxHash = null;
@@ -1603,10 +1625,12 @@ describe('PerpsController', () => {
 
           messenger.publish(
             'TransactionController:transactionSubmitted',
+            // @ts-ignore
             submittedEvent,
           );
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             confirmedEvent,
           );
 
@@ -1622,6 +1646,7 @@ describe('PerpsController', () => {
       it('should handle empty activeDepositTransactions', () => {
         withController(({ controller, messenger }) => {
           // Arrange - Set up initial state with empty activeDepositTransactions
+          // @ts-ignore
           controller.update((state) => {
             state.activeDepositTransactions = {};
             state.depositStatus = 'idle';
@@ -1657,14 +1682,17 @@ describe('PerpsController', () => {
 
           messenger.publish(
             'TransactionController:transactionSubmitted',
+            // @ts-ignore
             submittedEvent,
           );
           messenger.publish(
             'TransactionController:transactionConfirmed',
+            // @ts-ignore
             confirmedEvent,
           );
           messenger.publish(
             'TransactionController:transactionFailed',
+            // @ts-ignore
             failedEvent,
           );
 
