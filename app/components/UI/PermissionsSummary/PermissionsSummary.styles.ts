@@ -1,8 +1,4 @@
-import { StyleSheet, TextStyle, Platform } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { StyleSheet, Platform } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: {
@@ -14,7 +10,7 @@ const createStyles = (params: {
   };
 }) => {
   const { theme, vars } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   const { isRenderedAsBottomSheet, nonTabView, fullNonTabView } = vars;
 
   const tabHeight = fullNonTabView ? 400 : 325;
