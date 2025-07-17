@@ -61,7 +61,10 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   );
 
   const onDisplayAnnualRateTooltip = () => {
-    trace({ name: TraceName.EarnFaq, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+    trace({
+      name: TraceName.EarnFaq,
+      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+    });
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: { chainId: asset.chainId },

@@ -1,5 +1,9 @@
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { GasFeeEstimateLevel, GasFeeEstimateType, type TransactionBatchMeta } from '@metamask/transaction-controller';
+import {
+  GasFeeEstimateLevel,
+  GasFeeEstimateType,
+  type TransactionBatchMeta,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -16,7 +20,9 @@ import { useGasFeeEstimates } from './useGasFeeEstimates';
 
 const HEX_ZERO = '0x0';
 
-export const useFeeCalculationsTransactionBatch = (transactionBatchesMeta: TransactionBatchMeta) => {
+export const useFeeCalculationsTransactionBatch = (
+  transactionBatchesMeta: TransactionBatchMeta,
+) => {
   const chainId = transactionBatchesMeta.chainId;
   const gasLimit = transactionBatchesMeta.gas;
   const networkClientId = transactionBatchesMeta.networkClientId;
@@ -27,14 +33,29 @@ export const useFeeCalculationsTransactionBatch = (transactionBatchesMeta: Trans
     selectConversionRateByChainId(state, chainId as Hex, true),
   );
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-  const { supportsEIP1559 } = useTransactionBatchSupportsEIP1559(transactionBatchesMeta);
+  const { supportsEIP1559 } = useTransactionBatchSupportsEIP1559(
+    transactionBatchesMeta,
+  );
   const fiatFormatter = useFiatFormatter();
 
   let maxFeePerGas = '0';
   let maxPriorityFeePerGas = '0';
-  if (transactionBatchesMeta?.gasFeeEstimates?.type === GasFeeEstimateType.FeeMarket) {
-    maxFeePerGas = String(hexToDecimal(transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]?.maxFeePerGas ?? HEX_ZERO));
-    maxPriorityFeePerGas = String(hexToDecimal(transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]?.maxPriorityFeePerGas ?? HEX_ZERO));
+  if (
+    transactionBatchesMeta?.gasFeeEstimates?.type ===
+    GasFeeEstimateType.FeeMarket
+  ) {
+    maxFeePerGas = String(
+      hexToDecimal(
+        transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]
+          ?.maxFeePerGas ?? HEX_ZERO,
+      ),
+    );
+    maxPriorityFeePerGas = String(
+      hexToDecimal(
+        transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]
+          ?.maxPriorityFeePerGas ?? HEX_ZERO,
+      ),
+    );
   }
 
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
@@ -44,12 +65,25 @@ export const useFeeCalculationsTransactionBatch = (transactionBatchesMeta: Trans
     ?.estimatedBaseFee;
 
   let txParamsGasPrice = HEX_ZERO;
-  if (transactionBatchesMeta?.gasFeeEstimates?.type === GasFeeEstimateType.GasPrice) {
-    txParamsGasPrice = transactionBatchesMeta?.gasFeeEstimates?.gasPrice ?? HEX_ZERO;
-  } else if (transactionBatchesMeta?.gasFeeEstimates?.type === GasFeeEstimateType.Legacy) {
-    txParamsGasPrice = transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium] ?? HEX_ZERO;
-  } else if (transactionBatchesMeta?.gasFeeEstimates?.type === GasFeeEstimateType.FeeMarket) {
-    txParamsGasPrice = transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]?.maxFeePerGas ?? HEX_ZERO;
+  if (
+    transactionBatchesMeta?.gasFeeEstimates?.type ===
+    GasFeeEstimateType.GasPrice
+  ) {
+    txParamsGasPrice =
+      transactionBatchesMeta?.gasFeeEstimates?.gasPrice ?? HEX_ZERO;
+  } else if (
+    transactionBatchesMeta?.gasFeeEstimates?.type === GasFeeEstimateType.Legacy
+  ) {
+    txParamsGasPrice =
+      transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium] ??
+      HEX_ZERO;
+  } else if (
+    transactionBatchesMeta?.gasFeeEstimates?.type ===
+    GasFeeEstimateType.FeeMarket
+  ) {
+    txParamsGasPrice =
+      transactionBatchesMeta?.gasFeeEstimates?.[GasFeeEstimateLevel.Medium]
+        ?.maxFeePerGas ?? HEX_ZERO;
   }
 
   const getFeesFromHexCallback = useCallback(

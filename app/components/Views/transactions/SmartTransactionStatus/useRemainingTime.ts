@@ -39,9 +39,10 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
         const secondsAfterStxSubmission = Math.round(
           (Date.now() - creationTime) / 1000,
         );
-        
+
         // Calculate current deadline fresh based on elapsed time
-        const isPastEstimated = secondsAfterStxSubmission > stxEstimatedDeadlineSec;
+        const isPastEstimated =
+          secondsAfterStxSubmission > stxEstimatedDeadlineSec;
         const currentDeadline = isPastEstimated
           ? stxMaxDeadlineSec
           : stxEstimatedDeadlineSec;
@@ -65,7 +66,7 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
       intervalId = setInterval(calculateRemainingTime, 1000);
       calculateRemainingTime();
     }
-  
+
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStxPending, creationTime]);
