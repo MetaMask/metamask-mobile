@@ -243,7 +243,7 @@ function publishBatchSmartTransactionHook({
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
 ): boolean {
-  return preferencesController.state?.privacyMode;
+  return preferencesController.state?.privacyMode === false;
 }
 
 function getControllers(

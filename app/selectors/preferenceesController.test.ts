@@ -30,7 +30,6 @@ describe('Preferences Selectors', () => {
     tokenNetworkFilter: { '0x1': true },
     isMultiAccountBalancesEnabled: true,
     showTestNetworks: true,
-    showIncomingTransactions: { '1': true },
     isIpfsGatewayEnabled: false,
     securityAlertsEnabled: true,
     smartTransactionsOptInStatus: 'enabled',

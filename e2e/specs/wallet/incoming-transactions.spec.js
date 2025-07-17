@@ -152,14 +152,10 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it('displays nothing if incoming transactions disabled', async () => {
+  it('displays nothing if privacyMode is enabled', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withIncomingTransactionPreferences({
-            '0x1': false,
-          })
-          .build(),
+        fixture: new FixtureBuilder().withPrivacyModePreferences(true).build(),
         restartDevice: true,
         testSpecificMock: { GET: [mockAccountsApi()] },
       },
