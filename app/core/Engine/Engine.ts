@@ -1217,7 +1217,9 @@ export class Engine {
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
       addTransactionBatchFn: (
-        ...args: Parameters<typeof this.transactionController.addTransactionBatch>
+        ...args: Parameters<
+          typeof this.transactionController.addTransactionBatch
+        >
       ) => this.transactionController.addTransactionBatch(...args),
       updateTransactionFn: (
         ...args: Parameters<typeof this.transactionController.updateTransaction>

@@ -8,7 +8,10 @@ import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIsBridgeEnabledSource, selectIsUnifiedSwapsEnabled } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSource,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 
 // Mock dependencies
@@ -31,7 +34,9 @@ jest.mock('../useGoToPortfolioBridge', () => ({
 }));
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -260,7 +265,9 @@ describe('useSwapBridgeNavigation', () => {
 
   describe('Unified', () => {
     it('navigates to Bridge when goToSwaps is called and unified swaps is enabled', () => {
-      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(true);
+      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(
+        true,
+      );
 
       const { result } = renderHookWithProvider(
         () =>

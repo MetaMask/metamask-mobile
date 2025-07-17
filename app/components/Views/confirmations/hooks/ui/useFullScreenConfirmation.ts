@@ -1,9 +1,10 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionMeta, TransactionType } from '@metamask/transaction-controller';
 import {
-  FULL_SCREEN_CONFIRMATIONS
-} from '../../constants/confirmations';
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { FULL_SCREEN_CONFIRMATIONS } from '../../constants/confirmations';
 import { useIsInternalConfirmation } from '../transactions/useIsInternalConfirmation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../useApprovalRequest';
@@ -11,7 +12,7 @@ import useApprovalRequest from '../useApprovalRequest';
 const getIsFullScreenConfirmation = (
   approvalRequest: ApprovalRequest<TransactionMeta> | undefined,
   transactionMetadata: TransactionMeta | undefined,
-  isWalletInitiated: boolean
+  isWalletInitiated: boolean,
 ): boolean => {
   if (!isWalletInitiated) {
     return false;
@@ -19,7 +20,7 @@ const getIsFullScreenConfirmation = (
 
   if (approvalRequest?.type === ApprovalType.Transaction) {
     return FULL_SCREEN_CONFIRMATIONS.includes(
-      transactionMetadata?.type as TransactionType
+      transactionMetadata?.type as TransactionType,
     );
   }
 
@@ -38,7 +39,7 @@ export const useFullScreenConfirmation = () => {
   const isFullScreenConfirmation = getIsFullScreenConfirmation(
     approvalRequest,
     transactionMetadata,
-    isInternalConfirmation
+    isInternalConfirmation,
   );
 
   return { isFullScreenConfirmation };

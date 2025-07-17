@@ -1,4 +1,7 @@
-import { AccountId, AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountId,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -40,7 +43,8 @@ const selectAccountsControllerState = (state: RootState) =>
  */
 export const selectInternalAccountsById = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountControllerState): Record<AccountId, InternalAccount> => accountControllerState.internalAccounts.accounts,
+  (accountControllerState): Record<AccountId, InternalAccount> =>
+    accountControllerState.internalAccounts.accounts,
 );
 
 /**
