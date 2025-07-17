@@ -237,7 +237,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             />
           ),
           title: strings('perps.deposit.steps.preparing'),
-          description: strings('perps.deposit.stepDescriptions.preparing'),
+          description: strings('perps.deposit.step_descriptions.preparing'),
         };
       case 'swapping':
         return {
@@ -251,7 +251,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           title: strings('perps.deposit.steps.swapping', {
             token: selectedToken || 'token',
           }),
-          description: strings('perps.deposit.stepDescriptions.swapping'),
+          description: strings('perps.deposit.step_descriptions.swapping'),
         };
       case 'bridging':
         return {
@@ -263,7 +263,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
             />
           ),
           title: strings('perps.deposit.steps.bridging'),
-          description: strings('perps.deposit.stepDescriptions.bridging'),
+          description: strings('perps.deposit.step_descriptions.bridging'),
         };
       case 'depositing':
         return {
@@ -276,8 +276,8 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           ),
           title: strings('perps.deposit.steps.depositing'),
           description: isDirectDeposit
-            ? strings('perps.deposit.steps.depositingDirect')
-            : strings('perps.deposit.stepDescriptions.depositing'),
+            ? strings('perps.deposit.steps.depositing_direct')
+            : strings('perps.deposit.step_descriptions.depositing'),
         };
       case 'success':
         return {
@@ -290,8 +290,8 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               />
             </View>
           ),
-          title: strings('perps.deposit.depositCompleted'),
-          description: strings('perps.deposit.stepDescriptions.success', {
+          title: strings('perps.deposit.deposit_completed'),
+          description: strings('perps.deposit.step_descriptions.success', {
             amount,
           }),
         };
@@ -306,9 +306,9 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               />
             </View>
           ),
-          title: strings('perps.deposit.depositFailed'),
+          title: strings('perps.deposit.deposit_failed'),
           description:
-            depositError || strings('perps.deposit.stepDescriptions.error'),
+            depositError || strings('perps.deposit.step_descriptions.error'),
         };
       case 'idle':
       default:
@@ -323,7 +323,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           title: isDirectDeposit
             ? strings('perps.deposit.steps.depositing')
             : strings('perps.deposit.steps.preparing'),
-          description: strings('perps.deposit.stepDescriptions.preparing'),
+          description: strings('perps.deposit.step_descriptions.preparing'),
         };
     }
   };
@@ -339,7 +339,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
           style={styles.headerTitle}
           testID="header-title"
         >
-          {strings('perps.deposit.processingTitle')}
+          {strings('perps.deposit.processing_title')}
         </Text>
         <ButtonIcon
           iconName={IconName.Close}
@@ -413,8 +413,8 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
-              label={strings('perps.deposit.viewBalance')}
-              onPress={handleViewBalance}
+                          label={strings('perps.deposit.view_balance')}
+            onPress={handleViewBalance}
               testID="view-balance-button"
             />
           )}
@@ -425,7 +425,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.deposit.retryDeposit')}
+                label={strings('perps.deposit.retry_deposit')}
                 onPress={handleRetry}
                 style={styles.retryButton}
                 testID="retry-button"
@@ -434,7 +434,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 width={ButtonWidthTypes.Full}
-                label={strings('perps.deposit.goBack')}
+                label={strings('perps.deposit.go_back')}
                 onPress={handleClose}
                 testID="go-back-button"
               />

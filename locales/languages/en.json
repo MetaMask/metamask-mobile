@@ -919,7 +919,8 @@
       "refreshQuoteFailed": "Failed to refresh quote data",
       "assetMappingFailed": "Failed to build asset mapping",
       "invalidOrder": "Invalid order parameters",
-      "invalidWithdrawal": "Invalid withdrawal parameters"
+      "invalidWithdrawal": "Invalid withdrawal parameters",
+      "depositFailed": "Deposit failed"
     },
     "position": {
       "title": "Positions",

@@ -266,7 +266,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
               color={TextColor.Muted}
               style={styles.infoLabel}
             >
-              {strings('perps.deposit.success.processingTime')}
+              {strings('perps.deposit.success.processing_time')}
             </Text>
             <Text variant={TextVariant.BodyMD} style={styles.infoValue}>
               {formatProcessingTime(processingTime)}
@@ -297,7 +297,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={strings('perps.deposit.success.viewBalance')}
+            label={strings('perps.deposit.success.view_balance')}
             onPress={handleViewBalance}
             style={styles.primaryButton}
             testID="view-balance-button"
@@ -308,7 +308,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
-              label={strings('perps.deposit.success.viewTransaction')}
+              label={strings('perps.deposit.success.view_transaction')}
               onPress={handleViewTransaction}
               testID="view-transaction-button"
             />
