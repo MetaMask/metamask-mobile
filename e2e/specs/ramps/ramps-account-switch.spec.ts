@@ -12,8 +12,41 @@ import { SmokeTrade } from '../../tags';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
+import { Mockttp } from 'mockttp';
 
-const franceRegion = {
+// Define the region interface based on the fixture builder's expected type
+interface RampsRegion {
+  currencies: string[];
+  emoji: string;
+  id: string;
+  name: string;
+  support: {
+    buy: boolean;
+    sell: boolean;
+    recurringBuy: boolean;
+  };
+  unsupported: boolean;
+  recommended: boolean;
+  detected: boolean;
+}
+
+// Define proper types for withFixtures options
+interface WithFixturesOptions {
+  fixture: object;
+  dapp?: boolean;
+  multichainDapp?: boolean;
+  dappPath?: string;
+  ganacheOptions?: object;
+  languageAndLocale?: object;
+  launchArgs?: object;
+  restartDevice?: boolean;
+  smartContract?: object;
+  testSpecificMock?: object;
+  disableGanache?: boolean;
+  localNodeOptions?: object;
+}
+
+const franceRegion: RampsRegion = {
   currencies: ['/currencies/fiat/eur'],
   emoji: '🇫🇷',
   id: '/regions/fr',
@@ -35,7 +68,7 @@ const localNodeOptions = {
 // Get ramps API mocks from the dedicated mock file
 const rampsApiMocks = getRampsApiMocks();
 
-let mockServer: any;
+let mockServer: Mockttp | null = null;
 let mockServerPort: number;
 
 const setupRampsAccountSwitchTest = async (
@@ -45,16 +78,16 @@ const setupRampsAccountSwitchTest = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        .withRampsSelectedRegion(franceRegion as any)
+        // @ts-expect-error - FixtureBuilder method accepts region objects despite TypeScript signature
+        .withRampsSelectedRegion(franceRegion)
         .build(),
       restartDevice: true,
-      // @ts-expect-error - localNodeOptions is not typed
       localNodeOptions,
       testSpecificMock: rampsApiMocks,
       launchArgs: {
         mockServerPort,
       },
-    },
+    } as WithFixturesOptions,
     async () => {
       await loginToApp();
       await testFunction();
@@ -68,8 +101,10 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
       // Use a high port number to avoid conflicts
       const testPort = 9000 + Math.floor(Math.random() * 1000);
       mockServer = await startMockServer(rampsApiMocks, testPort);
-      mockServerPort = mockServer.port;
-      console.log(`Mock server started on port ${mockServerPort}`);
+      if (mockServer !== null) {
+        mockServerPort = mockServer.port;
+        console.log(`Mock server started on port ${mockServerPort}`);
+      }
       await TestHelpers.reverseServerPort();
     } catch (error) {
       console.error('Failed to start mock server:', error);
@@ -83,7 +118,7 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   afterAll(async () => {
     try {
-      if (mockServer) {
+      if (mockServer !== null) {
         await stopMockServer(mockServer);
         console.log('Mock server stopped successfully');
       }
