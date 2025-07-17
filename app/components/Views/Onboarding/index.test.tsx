@@ -18,7 +18,6 @@ import {
   Platform,
 } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -34,13 +33,23 @@ const mockInitialState = {
     passwordSet: false,
     loadingSet: false,
     loadingMsg: '',
+    existingUser: false,
   },
 };
 
-const mockInitialStateWithPassword = {
+const mockInitialStateWithExistingUser = {
   ...mockInitialState,
   user: {
     ...mockInitialState.user,
+    existingUser: true,
+  },
+};
+
+const mockInitialStateWithExistingUserAndPassword = {
+  ...mockInitialState,
+  user: {
+    ...mockInitialState.user,
+    existingUser: true,
     passwordSet: true,
   },
 };
@@ -399,13 +408,11 @@ describe('Onboarding', () => {
 
   describe('Navigation behavior', () => {
     it('should navigate to HOME_NAV when unlock is pressed and password is not set', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialState,
+          state: mockInitialStateWithExistingUser,
         },
       );
 
@@ -426,13 +433,11 @@ describe('Onboarding', () => {
     });
 
     it('should navigate to LOGIN when unlock is pressed and password is set', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialStateWithPassword,
+          state: mockInitialStateWithExistingUserAndPassword,
         },
       );
 
@@ -455,18 +460,18 @@ describe('Onboarding', () => {
 
   describe('componentDidMount behavior', () => {
     it('should check for existing user on mount', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialState,
+          state: mockInitialStateWithExistingUser,
         },
       );
 
       await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+        // The component now reads from Redux state, not MMKV storage
+        // So we don't expect StorageWrapper.getItem to be called
+        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
       });
     });
 
@@ -500,7 +505,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
+        // The component now reads from Redux state, not MMKV storage
+        // So we don't expect StorageWrapper.getItem to be called
+        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
       });
 
       await act(async () => {

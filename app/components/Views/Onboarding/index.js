@@ -32,13 +32,13 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
 import {
@@ -218,6 +218,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * redux flag that indicates if the user is existing
+     */
+    existingUser: PropTypes.bool,
+    /**
      * Action to save onboarding event
      */
     saveOnboardingEvent: PropTypes.func,
@@ -330,8 +334,9 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-    if (existingUser !== null) {
+    // Read from Redux state instead of MMKV storage
+    const { existingUser } = this.props;
+    if (existingUser) {
       this.setState({ existingUser: true });
     }
   }
@@ -735,6 +740,7 @@ Onboarding.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
+  existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
 });

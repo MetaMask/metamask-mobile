@@ -87,11 +87,7 @@ describe('SnapUIAddressInput', () => {
 
   it('supports the disabled prop', () => {
     const { getByTestId } = renderWithProvider(
-      <SnapUIAddressInput
-        name="testAddress"
-        chainId={testChainId}
-        disabled
-      />,
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
       { state: mockInitialState },
     );
 
@@ -141,7 +137,6 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-
     const tree = JSON.stringify(toJSON());
     expect(tree.includes('RNSVGSvgView')).toBe(true);
   });
@@ -167,7 +162,13 @@ describe('SnapUIAddressInput', () => {
   it('renders with an invalid CAIP Account ID', () => {
     mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar');
 
-    const { toJSON } = renderWithProvider(<SnapUIAddressInput name="input" chainId="eip155:0" displayAvatar={false} />);
+    const { toJSON } = renderWithProvider(
+      <SnapUIAddressInput
+        name="input"
+        chainId="eip155:0"
+        displayAvatar={false}
+      />,
+    );
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -200,7 +201,11 @@ describe('SnapUIAddressInput', () => {
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
     const { queryByText, getByText, toJSON } = renderWithProvider(
-      <SnapUIAddressInput name="testAddress" chainId={testChainId} error="Error" />,
+      <SnapUIAddressInput
+        name="testAddress"
+        chainId={testChainId}
+        error="Error"
+      />,
       { state: mockInitialState },
     );
 
