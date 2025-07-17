@@ -4,11 +4,11 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import { SmokeTrade } from '../../tags';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
@@ -62,7 +62,7 @@ const setupRampsAccountSwitchTest = async (
   );
 };
 
-describe(Regression('Ramps with Account Switching'), () => {
+describe(SmokeTrade('Ramps with Account Switching'), () => {
   beforeAll(async () => {
     try {
       // Use a high port number to avoid conflicts
