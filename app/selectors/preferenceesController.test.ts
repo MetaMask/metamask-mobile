@@ -10,7 +10,6 @@ import {
   selectTokenNetworkFilter,
   selectIsMultiAccountBalancesEnabled,
   selectShowTestNetworks,
-  selectShowIncomingTransactionNetworks,
   selectIsIpfsGatewayEnabled,
   selectIsSecurityAlertsEnabled,
   selectSmartTransactionsOptInStatus,
@@ -108,16 +107,6 @@ describe('Preferences Selectors', () => {
   describe('selectShowTestNetworks', () => {
     it('returns the show test networks flag', () => {
       expect(selectShowTestNetworks(mockRootState)).toBe(true);
-    });
-  });
-
-  describe('selectShowIncomingTransactionNetworks', () => {
-    it('returns the incoming transaction networks', () => {
-      expect(
-        selectShowIncomingTransactionNetworks(mockRootState),
-      ).toStrictEqual({
-        '1': true,
-      });
     });
   });
 

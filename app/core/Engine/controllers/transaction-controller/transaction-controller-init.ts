@@ -113,12 +113,7 @@ export const TransactionControllerInit: ControllerInitFunction<
             }),
         },
         incomingTransactions: {
-          isEnabled: () =>
-            isIncomingTransactionsEnabled(
-              preferencesController,
-              networkController,
-              getGlobalChainId,
-            ),
+          isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
         isSimulationEnabled: () =>
@@ -247,19 +242,8 @@ function publishBatchSmartTransactionHook({
 
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
-  networkController: NetworkController,
-  getGlobalChainId: () => string,
 ): boolean {
-  const currentHexChainId = getGlobalChainIdSelector(networkController);
-  const showIncomingTransactions =
-    preferencesController.state?.showIncomingTransactions;
-  const currentChainId = getGlobalChainId();
-  return Boolean(
-    hasProperty(showIncomingTransactions, currentChainId) &&
-      showIncomingTransactions?.[
-        currentHexChainId as unknown as keyof typeof showIncomingTransactions
-      ],
-  );
+  return preferencesController.state?.privacyMode;
 }
 
 function getControllers(

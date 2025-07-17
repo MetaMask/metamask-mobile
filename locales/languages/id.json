@@ -1302,8 +1302,6 @@
     "display_nft_media": "Tampilkan Media NFT",
     "display_nft_media_desc": "Menampilkan media dan data NFT mengekspos alamat IP ke OpenSea atau pihak ketiga lainnya. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia jika fitur ini dinonaktifkan.",
     "autodetect_nft_desc": "Izinkan MetaMask menambahkan NFT yang Anda miliki menggunakan layanan pihak ketiga (seperti OpenSea). Autodeteksi NFT mengekspos alamat IP dan akun Anda ke layanan ini. Mengaktifkan fitur ini dapat mengaitkan alamat IP dengan alamat Ethereum Anda dan menampilkan NFT palsu yang di-airdrop oleh penipu. Anda dapat menambahkan token secara manual untuk menghindari risiko ini.",
-    "incoming_transactions_title": "Tampilkan transaksi masuk",
-    "incoming_transactions_content": "Ini bergantung pada jaringan yang Anda pilih yang akan mengekspos alamat Ethereum dan alamat IP Anda.",
     "display_nft_media_desc_new": "Alamat IP dapat diketahui oleh OpenSea atau pihak ketiga lainnya saat Anda menampilkan media dan data NFT. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia saat dinonaktifkan. Jika media NFT sepenuhnya disimpan di IPFS, maka masih dapat ditampilkan bahkan pada saat fitur ini dinonaktifkan.",
     "use_safe_chains_list_validation_desc_1": "MetaMask menggunakan layanan pihak ketiga yang disebut ",
     "use_safe_chains_list_validation_desc_2": "untuk menampilkan detail jaringan yang akurat dan terstandardisasi. Hal ini dapat mengurangi kemungkinan Anda untuk terhubung ke jaringan berbahaya atau salah. Saat menggunakan fitur ini, alamat IP akan diketahui oleh  ",
