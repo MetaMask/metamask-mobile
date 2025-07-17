@@ -101,8 +101,8 @@ jest.mock('../../../../UI/Bridge/components/TokenInputArea', () => {
           error?: string;
           onTokenPress?: () => void;
           testID?: string;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ref: React.Ref<any>,
       ) => (
         <View ref={ref} testID={props.testID || 'token-input-area'}>
