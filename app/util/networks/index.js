@@ -22,7 +22,6 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
-import imageIcons from '../../images/image-icons';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -76,7 +75,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
-    imageSource: imageIcons.ETHEREUM,
+    imageSource: networksWithImages.ETHEREUM,
     blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
   },
   [LINEA_MAINNET]: {
@@ -89,7 +88,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
-    imageSource: imageIcons['LINEA-MAINNET'],
+    imageSource: networksWithImages['LINEA-MAINNET'],
     blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
   },
   [SEPOLIA]: {
@@ -102,7 +101,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
-    imageSource: imageIcons.SEPOLIA,
+    imageSource: networksWithImages.SEPOLIA,
     blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
   },
   [LINEA_SEPOLIA]: {
@@ -115,7 +114,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
-    imageSource: imageIcons['LINEA-SEPOLIA'],
+    imageSource: networksWithImages['LINEA-SEPOLIA'],
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
   },
   [MEGAETH_TESTNET]: {
@@ -128,7 +127,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'megaeth-testnet',
-    imageSource: imageIcons['MEGAETH-TESTNET'],
+    imageSource: networksWithImages['MEGAETH-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
   },
   [MONAD_TESTNET]: {
@@ -141,7 +140,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'monad-testnet',
-    imageSource: imageIcons['MONAD-TESTNET'],
+    imageSource: networksWithImages['MONAD-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['monad-testnet'],
   },
   [RPC]: {

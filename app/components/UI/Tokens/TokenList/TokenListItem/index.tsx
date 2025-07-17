@@ -208,6 +208,7 @@ export const TokenListItem = React.memo(
         tokenBalances,
         conversionRate,
         currentCurrency,
+        chainId,
       ],
     );
 

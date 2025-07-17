@@ -98,9 +98,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';

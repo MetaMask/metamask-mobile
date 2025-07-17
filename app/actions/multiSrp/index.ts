@@ -9,11 +9,8 @@ import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(solana)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
-
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -25,9 +22,6 @@ import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-import { BtcScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -99,7 +93,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const bitcoinMultichainClient = MultichainWalletSnapFactory.createClient(
-    WalletClientType.Solana,
+    WalletClientType.Bitcoin,
   );
   discoveredAccountsCount +=
     await bitcoinMultichainClient.addDiscoveredAccounts(

@@ -11,10 +11,7 @@ import {
   formatBlockExplorerAddressUrl,
   formatBlockExplorerTransactionUrl,
 } from './networks';
-import {
-  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 /**
  * Returns whether an account is an EVM account.
