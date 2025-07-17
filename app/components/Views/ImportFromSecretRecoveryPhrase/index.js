@@ -181,6 +181,19 @@ const ImportFromSecretRecoveryPhrase = ({
     (seedPhraseText, index) => {
       try {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
+        Logger.log('handleSeedPhraseChangeAtIndex', text, index);
+
+        if (text === '') {
+          const newData = seedPhrase.filter((_, idx) => idx !== index);
+          if (index > 0) {
+            setNextSeedPhraseInputFocusedIndex(index - 1);
+          }
+          setTimeout(() => {
+            setSeedPhrase([...newData]);
+          }, 0);
+
+          return;
+        }
 
         if (text.includes(SPACE_CHAR)) {
           const isEndWithSpace = text.at(-1) === SPACE_CHAR;
@@ -466,19 +479,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const handleKeyPress = (e, index) => {
-    const { key } = e.nativeEvent;
-    if (key === 'Backspace') {
-      if (seedPhrase[index] === '') {
-        if (index > 0) {
-          setNextSeedPhraseInputFocusedIndex(index - 1);
-        }
-        const newData = seedPhrase.filter((_, idx) => idx !== index);
-        setSeedPhrase([...newData]);
-      }
-    }
-  };
-
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
@@ -688,12 +688,14 @@ const ImportFromSecretRecoveryPhrase = ({
     const refElement = seedPhraseInputRefs.current.get(
       nextSeedPhraseInputFocusedIndex,
     );
+    Logger.log('useEffect', 'focusing on', nextSeedPhraseInputFocusedIndex);
 
     refElement?.focus();
   }, [nextSeedPhraseInputFocusedIndex]);
 
   const handleOnFocus = useCallback(
     (index) => {
+      Logger.log('handleOnFocus', index);
       const currentWord = seedPhrase[seedPhraseInputFocusedIndex];
       const trimmedWord = currentWord ? currentWord.trim() : '';
 
@@ -710,7 +712,7 @@ const ImportFromSecretRecoveryPhrase = ({
       }
       setSeedPhraseInputFocusedIndex(index);
     },
-    [setSeedPhraseInputFocusedIndex, seedPhrase, seedPhraseInputFocusedIndex],
+    [seedPhrase, seedPhraseInputFocusedIndex],
   );
 
   const trimmedSeedPhraseLength = useMemo(
@@ -798,7 +800,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             styles.seedPhraseDefaultInputPlaceholder
                           }
                           multiline
-                          onKeyPress={(e) => handleKeyPress(e, 0)}
                           autoComplete="off"
                           submitBehavior={'submit'}
                           autoCapitalize="none"
@@ -843,10 +844,6 @@ const ImportFromSecretRecoveryPhrase = ({
                                 handleSeedPhraseChangeAtIndex(text, index)
                               }
                               placeholderTextColor={colors.text.muted}
-                              onSubmitEditing={(e) => {
-                                handleKeyPress(e, index);
-                              }}
-                              onKeyPress={(e) => handleKeyPress(e, index)}
                               size={TextFieldSize.Md}
                               style={[
                                 styles.input,
@@ -854,6 +851,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                 (index + 1) % 3 === 0 &&
                                   styles.seedPhraseInputItemLast,
                               ]}
+                              submitBehavior="submit"
                               autoComplete="off"
                               textAlignVertical="center"
                               showSoftInputOnFocus
