@@ -2,7 +2,7 @@ import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../fixtures/utils';
 import { AnvilNodeOptions } from '../framework/types';
-  import { logger } from '@sentry/core';
+import { logger } from '../framework/logger';
 
 export const DEFAULT_ANVIL_PORT = 8545;
 
