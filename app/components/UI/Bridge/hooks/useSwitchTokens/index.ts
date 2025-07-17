@@ -4,7 +4,7 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
-  setSelectedDestChainId
+  setSelectedDestChainId,
 } from '../../../../../core/redux/slices/bridge';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';

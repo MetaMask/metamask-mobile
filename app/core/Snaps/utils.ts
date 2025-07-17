@@ -15,8 +15,5 @@ export async function handleSnapRequest(
   controllerMessenger: BaseControllerMessenger,
   args: HandleSnapRequestArgs,
 ) {
-  return await controllerMessenger.call(
-    'SnapController:handleRequest',
-    args,
-  );
+  return await controllerMessenger.call('SnapController:handleRequest', args);
 }
