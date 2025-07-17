@@ -2,6 +2,7 @@ import { getFixturesServerPort } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder';
+import { logger } from '../logger';
 
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
@@ -113,7 +114,7 @@ class FixtureServer {
     };
 
     return new Promise((resolve, reject) => {
-      console.log('Starting fixture server...');
+      logger.debug('Starting fixture server...');
       this._server = this._app.listen(options);
       if (!this._server) {
         throw new Error('Failed to start fixture server');
@@ -129,7 +130,7 @@ class FixtureServer {
     }
 
     await new Promise((resolve, reject) => {
-      console.log('Stopping fixture server...');
+      logger.debug('Stopping fixture server...');
       if (!this._server) {
         throw new Error('Failed to stop fixture server');
       }
@@ -144,10 +145,10 @@ class FixtureServer {
     rawState: FixtureBuilder,
     contractRegistry: ContractRegistry | null,
   ) {
-    console.log('Loading JSON state...');
+    logger.debug('Loading JSON state...');
     const state = performStateSubstitutions(rawState, contractRegistry || {});
     this._stateMap.set(CURRENT_STATE_KEY, state);
-    console.log('JSON state loaded');
+    logger.debug('JSON state loaded');
   }
   // Check if the request is for the current state
   private _isStateRequest(ctx: Context) {
