@@ -97,7 +97,16 @@ EmptyIcon.propTypes = {
   testID: PropTypes.string,
 };
 
-function TokenIcon({ symbol, icon, small, medium, big, biggest, style, testID }) {
+function TokenIcon({
+  symbol,
+  icon,
+  small,
+  medium,
+  big,
+  biggest,
+  style,
+  testID,
+}) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
