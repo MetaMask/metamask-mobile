@@ -62,5 +62,5 @@ export function BackgroundSecurityOverlay() {
 
   if (!showOverlay) return null;
 
-  return <View style={styles.view} />;
+  return <View style={styles.view} testID="background-security-overlay" />;
 }
