@@ -155,6 +155,35 @@ jest.mock('../../../../../core/Engine', () => {
   };
 });
 
+jest.mock('../../../../hooks/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../../../hooks/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../hooks/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworks: { '0x1': true },
+    setEnabledNetwork: jest.fn(),
+    setDisabledNetwork: jest.fn(),
+  }),
+}));
+
 // Mock useAccounts hook
 jest.mock('../../../../hooks/useAccounts', () => ({
   useAccounts: () => ({

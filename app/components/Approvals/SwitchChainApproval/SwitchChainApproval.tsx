@@ -8,7 +8,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { selectIsAllNetworks } from '../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 const SwitchChainApproval = () => {
   const {
@@ -21,6 +29,12 @@ const SwitchChainApproval = () => {
   const dispatch = useDispatch();
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
@@ -32,6 +46,10 @@ const SwitchChainApproval = () => {
         ...(isAllNetworks ? tokenNetworkFilter : {}),
         [approvalRequest?.requestData?.chainId]: true,
       });
+
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        selectNetwork(approvalRequest?.requestData?.chainId);
+      }
     }
 
     dispatch(
@@ -46,6 +64,7 @@ const SwitchChainApproval = () => {
     dispatch,
     isAllNetworks,
     tokenNetworkFilter,
+    selectNetwork,
   ]);
 
   if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)

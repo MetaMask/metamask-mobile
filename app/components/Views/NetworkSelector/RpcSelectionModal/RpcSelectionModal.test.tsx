@@ -147,6 +147,26 @@ jest.mock('../../../../core/Engine/Engine', () => ({
   },
 }));
 
+jest.mock('../../../hooks/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../../hooks/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
+
 const mockNetworks: Record<Hex, NetworkConfiguration> = {
   [NETWORK_CHAIN_ID.MAINNET]: {
     blockExplorerUrls: ['https://etherscan.io'],

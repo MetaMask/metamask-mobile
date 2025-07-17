@@ -103,6 +103,11 @@ import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
+
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
@@ -988,6 +993,11 @@ export class NetworkSettings extends PureComponent {
           [chainId]: true,
         });
       }
+    }
+
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      const { NetworkEnablementController } = Engine.context;
+      NetworkEnablementController.setEnabledNetwork(chainId);
     }
 
     await this.handleNetworkUpdate({

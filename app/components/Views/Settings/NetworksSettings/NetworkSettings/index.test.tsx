@@ -99,6 +99,11 @@ jest.mock('../../../../../core/Engine', () => ({
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
     },
+    NetworkEnablementController: {
+      setEnabledNetwork: jest.fn(),
+      setDisabledNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+    },
   },
 }));
 
