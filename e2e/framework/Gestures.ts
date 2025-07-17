@@ -122,7 +122,7 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
-        delay
+        delay,
       });
 
     return Utilities.executeWithRetry(fn, {

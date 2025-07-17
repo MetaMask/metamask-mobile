@@ -22,6 +22,7 @@ import {
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
+  type SetExistingUserAction,
   UserActionType,
 } from './types';
 
@@ -174,5 +175,15 @@ export function onPersistedDataLoaded(): PersistedDataLoadedAction {
 export function setAppServicesReady(): SetAppServicesReadyAction {
   return {
     type: UserActionType.SET_APP_SERVICES_READY,
+  };
+}
+
+/**
+ * Action to set existing user flag
+ */
+export function setExistingUser(existingUser: boolean): SetExistingUserAction {
+  return {
+    type: UserActionType.SET_EXISTING_USER,
+    payload: { existingUser },
   };
 }

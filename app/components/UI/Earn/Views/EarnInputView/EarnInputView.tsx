@@ -475,7 +475,10 @@ const EarnInputView = () => {
 
     if (isStakingDepositRedesignedEnabled) {
       // start trace between user initiating deposit and the redesigned confirmation screen loading
-      trace({ name: TraceName.EarnDepositConfirmationScreen, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+      trace({
+        name: TraceName.EarnDepositConfirmationScreen,
+        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      });
 
       // this prevents the user from adding the transaction deposit into the
       // controller state multiple times
