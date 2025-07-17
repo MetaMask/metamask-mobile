@@ -28,9 +28,10 @@ class AesCryptoTestForm {
   get generateSaltBytesCountInput(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
   }
-  get generateSaltResponse(): DetoxElement {
+  get generateSaltResponse(): Promise<IndexableNativeElement> {
     return Matchers.getElementByID(aesCryptoFormResponses.saltResponse);
   }
+
   get generateSaltButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.generateSaltButton);
   }
@@ -44,7 +45,7 @@ class AesCryptoTestForm {
       aesCryptoFormInputs.saltInputForEncryptionKey,
     );
   }
-  get generateEncryptionKeyResponse(): DetoxElement {
+  get generateEncryptionKeyResponse(): Promise<IndexableNativeElement> {
     return Matchers.getElementByID(
       aesCryptoFormResponses.generateEncryptionKeyResponse,
     );
@@ -178,11 +179,10 @@ class AesCryptoTestForm {
     });
 
     const responseFieldAtts = await (
-      (await this.generateSaltResponse) as IndexableNativeElement
+      await this.generateSaltResponse
     ).getAttributes();
 
-    // @ts-expect-error - the label property does exist in this object.
-    return responseFieldAtts.label;
+    return (responseFieldAtts as { label: string }).label;
   }
 
   async generateEncryptionKey(password: string, salt: string): Promise<string> {
@@ -199,17 +199,15 @@ class AesCryptoTestForm {
     await Gestures.waitAndTap(this.generateEncryptionKeyButton, {
       elemDescription: 'Generate Encryption Key Button',
     });
-    // todo: can remove?
     await Gestures.waitAndTap(this.generateEncryptionKeyResponse, {
       elemDescription: 'Generate Encryption Key Response',
     });
 
     const responseFieldAtts = await (
-      (await this.generateEncryptionKeyResponse) as IndexableNativeElement
+      await this.generateEncryptionKeyResponse
     ).getAttributes();
 
-    // @ts-expect-error - the label property does exist in this object.
-    return responseFieldAtts.label;
+    return (responseFieldAtts as { label: string }).label;
   }
 
   async encrypt(data: string, encryptionKey: string): Promise<void> {
