@@ -12,7 +12,7 @@ jobs:
 
 
       - name: Setup E2E Android Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@build-testing
         with:
           platform: android
           setup-simulator: false
