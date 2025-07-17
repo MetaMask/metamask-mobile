@@ -71,7 +71,7 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
           );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await waitUntilEventsEmittedNumberEquals(1);
 
         await Assertions.expectElementToBeVisible(

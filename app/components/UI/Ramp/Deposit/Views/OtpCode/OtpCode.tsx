@@ -32,6 +32,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
@@ -70,6 +71,8 @@ const OtpCode = () => {
   const { setAuthToken } = useDepositSDK();
   const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
     useParams<OtpCodeParams>();
+  const trackEvent = useAnalytics();
+  const { selectedRegion } = useDepositSDK();
 
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -143,11 +146,15 @@ const OtpCode = () => {
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
       await resendOtp();
+      trackEvent('RAMPS_OTP_RESENT', {
+        ramp_type: 'DEPOSIT',
+        region: selectedRegion?.isoCode || '',
+      });
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [resendOtp, resetAttemptCount]);
+  }, [resendOtp, resetAttemptCount, selectedRegion?.isoCode, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
@@ -164,7 +171,15 @@ const OtpCode = () => {
         }
         await setAuthToken(response);
         await routeAfterAuthentication(quote);
+        trackEvent('RAMPS_OTP_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
       } catch (e) {
+        trackEvent('RAMPS_OTP_FAILED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
         setError(
           e instanceof Error && e.message
             ? e.message
@@ -185,6 +200,8 @@ const OtpCode = () => {
     setAuthToken,
     submitCode,
     value.length,
+    selectedRegion?.isoCode,
+    trackEvent,
   ]);
 
   const handleValueChange = useCallback((text: string) => {

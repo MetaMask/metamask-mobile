@@ -61,7 +61,7 @@ describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
 
         // Add another second EVM account
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
 
         await waitUntilEventsEmittedNumberEquals(1);
       },

@@ -143,7 +143,7 @@ export const useTokenAmount = ({
   return {
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amount: formatAmount(I18n.locale, amount),
-    fiat: fiat ? fiatFormatter(fiat) : undefined,
+    fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
     isNative,
     usdValue,
   };

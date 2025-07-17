@@ -12,7 +12,7 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
 import CommonView from '../../../pages/CommonView.js';
@@ -78,7 +78,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
 
         // Create second account with sync enabled - this should sync to user storage
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
 
         // Wait for sync operation to complete
         await waitUntilEventsEmittedNumberEquals(1);
@@ -123,7 +123,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         // Create third account with sync disabled - this should NOT sync to user storage
         await WalletView.tapIdenticon();
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
 
         // Verify third account was created locally
         await Assertions.expectElementToBeVisible(
