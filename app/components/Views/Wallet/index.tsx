@@ -125,7 +125,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     walletAccount: { marginTop: 28 },
     tabBar: {
-      borderColor: colors.background.default,
       marginBottom: 8,
     },
     tabContainer: {
