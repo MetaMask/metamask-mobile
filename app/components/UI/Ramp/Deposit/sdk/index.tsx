@@ -30,7 +30,6 @@ import {
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
-import { getGeolocation } from '../utils/geolocation';
 import Logger from '../../../../../util/Logger';
 
 export interface DepositSDK {
@@ -61,7 +60,7 @@ if (isDevelopmentOrInternalBuild) {
   environment = TransakEnvironment.Staging;
 }
 
-export const DepositSDKOrders = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -115,9 +114,9 @@ export const DepositSDKProvider = ({
     async function setRegionByGeolocation() {
       if (INITIAL_SELECTED_REGION === null) {
         try {
-          const geo = await getGeolocation();
+          const geo = await DepositSDKNoAuth.getGeolocation();
           const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo.ipCountryCode && r.supported,
+            (r) => r.isoCode === geo?.ipCountryCode && r.supported,
           );
           if (region) {
             setSelectedRegionCallback(region);
