@@ -1,10 +1,11 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import AdditionalVerification from './AdditionalVerification';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 
 const mockSetNavigationOptions = jest.fn();
+const mockNavigateToKycWebview = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -21,6 +22,12 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'Verify your identity',
+  }),
+}));
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: () => ({
+    navigateToKycWebview: mockNavigateToKycWebview,
   }),
 }));
 
@@ -45,5 +52,17 @@ describe('AdditionalVerification Component', () => {
         title: 'Verify your identity',
       }),
     );
+  });
+
+  it('calls navigateToKycWebview when continue button is pressed', () => {
+    render(AdditionalVerification);
+
+    const continueButton = screen.getByText('Continue');
+    fireEvent.press(continueButton);
+
+    expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
+      quote: expect.any(Object),
+      kycUrl: expect.any(String),
+    });
   });
 });
