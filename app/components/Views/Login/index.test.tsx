@@ -224,7 +224,7 @@ describe('Login', () => {
         });
       });
 
-      it('should navigate to opt-in metrics when UI not seen and metrics disabled', async () => {
+      it('navigate to opt-in metrics when UI not seen and metrics disabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
@@ -279,7 +279,7 @@ describe('Login', () => {
         });
       });
 
-      it('should navigate to home when UI not seen but metrics enabled', async () => {
+      it('navigate to home when UI not seen but metrics enabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
@@ -322,7 +322,7 @@ describe('Login', () => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
 
-      it('should navigate to home when UI seen and metrics disabled', async () => {
+      it('navigate to home when UI seen and metrics disabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
@@ -366,7 +366,7 @@ describe('Login', () => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
 
-      it('should navigate to home when UI seen and metrics enabled', async () => {
+      it('navigate to home when UI seen and metrics enabled', async () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
@@ -441,7 +441,7 @@ describe('Login', () => {
   });
 
   describe('Remember Me Authentication', () => {
-    it('should set up remember me authentication when auth type is REMEMBER_ME', async () => {
+    it('set up remember me authentication when auth type is REMEMBER_ME', async () => {
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
         availableBiometryType: null,
@@ -463,7 +463,7 @@ describe('Login', () => {
       (StorageWrapper.getItem as jest.Mock).mockReset();
     });
 
-    it('should set up passcode authentication when auth type is PASSCODE', async () => {
+    it('set up passcode authentication when auth type is PASSCODE', async () => {
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: 'TouchID',
@@ -572,7 +572,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('should handle vault corruption successfully with valid password', async () => {
+    it('handle vault corruption successfully with valid password', async () => {
       (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
         vault: 'mock-vault',
       });
@@ -607,7 +607,7 @@ describe('Login', () => {
       );
     });
 
-    it('should show error for invalid password during vault corruption', async () => {
+    it('show error for invalid password during vault corruption', async () => {
       (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
         vault: 'mock-vault',
       });
@@ -626,7 +626,7 @@ describe('Login', () => {
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
     });
 
-    it('should handle vault corruption when password requirements are not met', async () => {
+    it('handle vault corruption when password requirements are not met', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -640,7 +640,7 @@ describe('Login', () => {
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
     });
 
-    it('should handle vault corruption when backup has error', async () => {
+    it('handle vault corruption when backup has error', async () => {
       (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
         error: 'Backup error',
       });
@@ -658,7 +658,7 @@ describe('Login', () => {
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
     });
 
-    it('should handle vault corruption when storePassword fails', async () => {
+    it('handle vault corruption when storePassword fails', async () => {
       (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
         vault: 'mock-vault',
       });
@@ -685,7 +685,7 @@ describe('Login', () => {
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
     });
 
-    it('should handle vault corruption when vault seed cannot be parsed', async () => {
+    it('handle vault corruption when vault seed cannot be parsed', async () => {
       (getVaultFromBackup as jest.Mock).mockResolvedValueOnce({
         vault: 'mock-vault',
       });
@@ -706,7 +706,7 @@ describe('Login', () => {
   });
 
   describe('updateBiometryChoice', () => {
-    it('should update biometry choice to disabled', async () => {
+    it('update biometry choice to disabled', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -747,7 +747,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('should navigate back and reset OAuth state', async () => {
+    it('navigate back and reset OAuth state', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
 
       const otherMethodsButton = getByTestId(
@@ -779,7 +779,7 @@ describe('Login', () => {
       mockRoute.mockClear();
     });
 
-    it('should handle seedless onboarding controller error with remaining time of > 0', async () => {
+    it('handle seedless onboarding controller error with remaining time of > 0', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
         { remainingTime: 1, numberOfAttempts: 1 },
@@ -810,7 +810,7 @@ describe('Login', () => {
       );
     });
 
-    it('should handle seedless onboarding controller error without remaining time', async () => {
+    it('handle seedless onboarding controller error without remaining time', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         'SeedlessOnboardingController - Too many attempts',
         { remainingTime: 0, numberOfAttempts: 1 },
@@ -855,7 +855,7 @@ describe('Login', () => {
       jest.clearAllMocks();
     });
 
-    it('should successfully authenticate with biometrics and navigate to home', async () => {
+    it('successfully authenticate with biometrics and navigate to home', async () => {
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
@@ -893,7 +893,7 @@ describe('Login', () => {
       });
     });
 
-    it('should handle biometric authentication failure', async () => {
+    it('handle biometric authentication failure', async () => {
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
         currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
