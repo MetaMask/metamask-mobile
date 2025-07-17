@@ -140,10 +140,6 @@ const OtpCode = () => {
   const handleResend = useCallback(async () => {
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
-        trackEvent('RAMPS_OTP_FAILED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-        });
         setResendButtonState('contactSupport');
         return;
       }
