@@ -572,7 +572,9 @@ class Onboarding extends PureComponent {
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.import_using_srp')}
+                {SEEDLESS_ONBOARDING_ENABLED
+                  ? strings('onboarding.import_using_srp_social_login')
+                  : strings('onboarding.import_using_srp')}
               </Text>
             }
           />
