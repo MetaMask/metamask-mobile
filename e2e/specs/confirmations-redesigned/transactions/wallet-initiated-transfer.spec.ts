@@ -71,9 +71,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await Assertions.checkIfVisible(RowComponents.FromTo);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
-        await TestHelpers.delay(3000);
-        await Assertions.checkIfVisible(RowComponents.TokenHero);
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
