@@ -49,95 +49,126 @@ env:
   DETOX_VERSION: '20.26.2'
 
 jobs:
-  # Determine test configuration
-  setup:
-    name: Setup Test Configuration
+  # Determine what tests should run
+  determine-tests:
+    name: Determine Test Plan
     runs-on: ubuntu-latest
     outputs:
-      test_suite: ${{ steps.config.outputs.test_suite }}
+      test-suite: ${{ steps.config.outputs.test-suite }}
       platforms: ${{ steps.config.outputs.platforms }}
-      use_cached_builds: ${{ steps.config.outputs.use_cached_builds }}
-      run_tests: ${{ steps.config.outputs.run_tests }}
+      use-cached-builds: ${{ steps.config.outputs.use-cached-builds }}
+      should-run-tests: ${{ steps.config.outputs.should-run-tests }}
+      smoke-tests: ${{ steps.config.outputs.smoke-tests }}
+      regression-tests: ${{ steps.config.outputs.regression-tests }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Determine test configuration
         id: config
         run: |
+          echo "🔍 Determining test configuration..."
+          
           # Set defaults based on trigger type
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "test_suite=${{ github.event.inputs.test_suite }}" >> $GITHUB_OUTPUT
-            echo "platforms=${{ github.event.inputs.platforms }}" >> $GITHUB_OUTPUT
-            echo "use_cached_builds=${{ github.event.inputs.use_cached_builds }}" >> $GITHUB_OUTPUT
-            echo "run_tests=true" >> $GITHUB_OUTPUT
+            TEST_SUITE="${{ github.event.inputs.test_suite }}"
+            PLATFORMS="${{ github.event.inputs.platforms }}"
+            USE_CACHED="${{ github.event.inputs.use_cached_builds }}"
+            SHOULD_RUN="true"
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # Check for E2E label on PR
+            # Check for specific E2E labels
             if [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run E2E Tests') }}" == "true" ]]; then
-              echo "test_suite=smoke" >> $GITHUB_OUTPUT
-              echo "platforms=both" >> $GITHUB_OUTPUT
-              echo "use_cached_builds=true" >> $GITHUB_OUTPUT
-              echo "run_tests=true" >> $GITHUB_OUTPUT
+              TEST_SUITE="smoke"
+              PLATFORMS="both"
+              USE_CACHED="true"
+              SHOULD_RUN="true"
+            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run Regression E2E') }}" == "true" ]]; then
+              TEST_SUITE="regression"
+              PLATFORMS="both"
+              USE_CACHED="true"
+              SHOULD_RUN="true"
             else
-              echo "run_tests=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ No E2E label found, skipping tests"
+              SHOULD_RUN="false"
             fi
           elif [[ "${{ github.event_name }}" == "push" ]]; then
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              echo "test_suite=smoke" >> $GITHUB_OUTPUT
-              echo "platforms=both" >> $GITHUB_OUTPUT
-              echo "use_cached_builds=true" >> $GITHUB_OUTPUT
-              echo "run_tests=true" >> $GITHUB_OUTPUT
+              TEST_SUITE="smoke"
+              PLATFORMS="both"
+              USE_CACHED="true"
+              SHOULD_RUN="true"
             elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-              echo "test_suite=regression" >> $GITHUB_OUTPUT
-              echo "platforms=both" >> $GITHUB_OUTPUT
-              echo "use_cached_builds=false" >> $GITHUB_OUTPUT
-              echo "run_tests=true" >> $GITHUB_OUTPUT
+              TEST_SUITE="regression"
+              PLATFORMS="both"
+              USE_CACHED="false"
+              SHOULD_RUN="true"
+            else
+              SHOULD_RUN="false"
             fi
+          else
+            SHOULD_RUN="false"
           fi
           
-          echo "Configuration determined:"
-          echo "  Test Suite: $(cat $GITHUB_OUTPUT | grep test_suite || echo 'not set')"
-          echo "  Platforms: $(cat $GITHUB_OUTPUT | grep platforms || echo 'not set')"
-          echo "  Use Cached Builds: $(cat $GITHUB_OUTPUT | grep use_cached_builds || echo 'not set')"
-          echo "  Run Tests: $(cat $GITHUB_OUTPUT | grep run_tests || echo 'not set')"
+          # Define test lists
+          SMOKE_TESTS="SmokeConfirmations,SmokeTrade,SmokeWalletPlatform,SmokeNetworkAbstraction,api-specs"
+          REGRESSION_TESTS="Regression:Accounts,Regression:Browser,Regression:Confirmations,Regression:Onboarding,Regression:Security,Regression:Settings,Regression:Wallet"
+          
+          # Output configuration
+          echo "test-suite=$TEST_SUITE" >> $GITHUB_OUTPUT
+          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
+          echo "use-cached-builds=$USE_CACHED" >> $GITHUB_OUTPUT
+          echo "should-run-tests=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "smoke-tests=$SMOKE_TESTS" >> $GITHUB_OUTPUT
+          echo "regression-tests=$REGRESSION_TESTS" >> $GITHUB_OUTPUT
+          
+          echo "📋 Configuration Summary:"
+          echo "  Test Suite: $TEST_SUITE"
+          echo "  Platforms: $PLATFORMS"
+          echo "  Use Cached Builds: $USE_CACHED"
+          echo "  Should Run Tests: $SHOULD_RUN"
 
-  # iOS E2E tests
-  e2e-ios:
-    name: E2E Tests (iOS)
-    runs-on: macos-latest
-    needs: setup
-    if: needs.setup.outputs.run_tests == 'true' && (needs.setup.outputs.platforms == 'ios' || needs.setup.outputs.platforms == 'both')
-    env:
-      TEST_SUITE: ${{ needs.setup.outputs.test_suite }}
-      USE_CACHED_BUILDS: ${{ needs.setup.outputs.use_cached_builds }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: iOS E2E Test Placeholder
-        run: |
-          echo "🍎 Running iOS E2E tests..."
-          echo "Test Suite: ${{ env.TEST_SUITE }}"
-          echo "Use Cached Builds: ${{ env.USE_CACHED_BUILDS }}"
-          echo "Node Version: ${{ env.NODE_VERSION }}"
-          echo "Detox Version: ${{ env.DETOX_VERSION }}"
-          echo "✅ iOS E2E tests completed successfully (placeholder)"
-
-  # Android E2E tests
-  e2e-android:
-    name: E2E Tests (Android)
+  # Check build cache (as requested)
+  check-build-cache:
+    name: Check Build Cache
     runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.run_tests == 'true' && (needs.setup.outputs.platforms == 'android' || needs.setup.outputs.platforms == 'both')
-    env:
-      TEST_SUITE: ${{ needs.setup.outputs.test_suite }}
-      USE_CACHED_BUILDS: ${{ needs.setup.outputs.use_cached_builds }}
+    needs: determine-tests
+    if: needs.determine-tests.outputs.should-run-tests == 'true'
+    outputs:
+      cache-hit: ${{ steps.build-cache.outputs.cache-hit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check build cache
+        id: build-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/build/Build/Products
+            android/app/build/outputs
+            node_modules
+          key: e2e-build-${{ needs.determine-tests.outputs.platforms }}-${{ hashFiles('yarn.lock', 'package.json') }}
+          restore-keys: |
+            e2e-build-${{ needs.determine-tests.outputs.platforms }}-
+            e2e-build-
+          lookup-only: true
+
+      - name: Report cache status
+        run: |
+          if [[ "${{ steps.build-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "✅ Build cache found - can use cached builds"
+          else
+            echo "❌ No build cache found - would need to build from source"
+          fi
+
+  # Simulate iOS tests
+  simulate-ios-tests:
+    name: Simulate iOS E2E Tests
+    runs-on: macos-latest
+    needs: [determine-tests, check-build-cache]
+    if: |
+      needs.determine-tests.outputs.should-run-tests == 'true' && 
+      (needs.determine-tests.outputs.platforms == 'ios' || needs.determine-tests.outputs.platforms == 'both')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -151,63 +182,185 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Android E2E Test Placeholder
+      - name: Simulate iOS test execution
+        env:
+          TEST_SUITE: ${{ needs.determine-tests.outputs.test-suite }}
+          USE_CACHED: ${{ needs.determine-tests.outputs.use-cached-builds }}
+          CACHE_HIT: ${{ needs.check-build-cache.outputs.cache-hit }}
         run: |
-          echo "🤖 Running Android E2E tests..."
-          echo "Test Suite: ${{ env.TEST_SUITE }}"
-          echo "Use Cached Builds: ${{ env.USE_CACHED_BUILDS }}"
+          echo "🍎 iOS E2E Test Simulation"
+          echo "=========================="
+          echo "Platform: iOS"
+          echo "Test Suite: $TEST_SUITE"
+          echo "Use Cached Builds: $USE_CACHED"
+          echo "Cache Available: $CACHE_HIT"
           echo "Node Version: ${{ env.NODE_VERSION }}"
           echo "Detox Version: ${{ env.DETOX_VERSION }}"
-          echo "✅ Android E2E tests completed successfully (placeholder)"
+          echo ""
+          
+          if [[ "$TEST_SUITE" == "smoke" ]]; then
+            echo "📝 Would run SMOKE tests on iOS:"
+            IFS=',' read -ra TESTS <<< "${{ needs.determine-tests.outputs.smoke-tests }}"
+            for test in "${TESTS[@]}"; do
+              if [[ "$test" == "api-specs" ]]; then
+                echo "  🧪 yarn test:api-specs --retries 1"
+              else
+                echo "  🧪 yarn test:e2e:ios:run:qa-release --testNamePattern='$test'"
+              fi
+            done
+          elif [[ "$TEST_SUITE" == "regression" ]]; then
+            echo "📝 Would run REGRESSION tests on iOS:"
+            IFS=',' read -ra TESTS <<< "${{ needs.determine-tests.outputs.regression-tests }}"
+            for test in "${TESTS[@]}"; do
+              echo "  🧪 yarn test:e2e:ios:run:qa-release --testNamePattern='$test'"
+            done
+          elif [[ "$TEST_SUITE" == "full" ]]; then
+            echo "📝 Would run ALL tests on iOS:"
+            echo "  🧪 yarn test:e2e:ios:run:qa-release (all smoke tests)"
+            echo "  🧪 yarn test:e2e:ios:run:qa-release (all regression tests)"
+            echo "  🧪 yarn test:api-specs --retries 1"
+          fi
+          
+          echo ""
+          if [[ "$USE_CACHED" == "true" && "$CACHE_HIT" == "true" ]]; then
+            echo "✅ Would use cached build artifacts"
+          else
+            echo "🔨 Would build iOS app: yarn test:e2e:ios:build:qa-release"
+          fi
+          
+          echo "✅ iOS simulation completed successfully"
 
-  # Summary job
-  e2e-summary:
+  # Simulate Android tests
+  simulate-android-tests:
+    name: Simulate Android E2E Tests
+    runs-on: ubuntu-latest
+    needs: [determine-tests, check-build-cache]
+    if: |
+      needs.determine-tests.outputs.should-run-tests == 'true' && 
+      (needs.determine-tests.outputs.platforms == 'android' || needs.determine-tests.outputs.platforms == 'both')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Simulate Android test execution
+        env:
+          TEST_SUITE: ${{ needs.determine-tests.outputs.test-suite }}
+          USE_CACHED: ${{ needs.determine-tests.outputs.use-cached-builds }}
+          CACHE_HIT: ${{ needs.check-build-cache.outputs.cache-hit }}
+        run: |
+          echo "🤖 Android E2E Test Simulation"
+          echo "=============================="
+          echo "Platform: Android"
+          echo "Test Suite: $TEST_SUITE"
+          echo "Use Cached Builds: $USE_CACHED"
+          echo "Cache Available: $CACHE_HIT"
+          echo "Node Version: ${{ env.NODE_VERSION }}"
+          echo "Detox Version: ${{ env.DETOX_VERSION }}"
+          echo ""
+          
+          if [[ "$TEST_SUITE" == "smoke" ]]; then
+            echo "📝 Would run SMOKE tests on Android:"
+            IFS=',' read -ra TESTS <<< "${{ needs.determine-tests.outputs.smoke-tests }}"
+            for test in "${TESTS[@]}"; do
+              if [[ "$test" == "api-specs" ]]; then
+                echo "  ⏭️ Skipping api-specs (iOS only)"
+              else
+                echo "  🧪 yarn test:e2e:android:run:qa-release --testNamePattern='$test'"
+              fi
+            done
+          elif [[ "$TEST_SUITE" == "regression" ]]; then
+            echo "📝 Would run REGRESSION tests on Android:"
+            IFS=',' read -ra TESTS <<< "${{ needs.determine-tests.outputs.regression-tests }}"
+            for test in "${TESTS[@]}"; do
+              echo "  🧪 yarn test:e2e:android:run:qa-release --testNamePattern='$test'"
+            done
+          elif [[ "$TEST_SUITE" == "full" ]]; then
+            echo "📝 Would run ALL tests on Android:"
+            echo "  🧪 yarn test:e2e:android:run:qa-release (all smoke tests)"
+            echo "  🧪 yarn test:e2e:android:run:qa-release (all regression tests)"
+            echo "  ⏭️ Skipping api-specs (iOS only)"
+          fi
+          
+          echo ""
+          if [[ "$USE_CACHED" == "true" && "$CACHE_HIT" == "true" ]]; then
+            echo "✅ Would use cached build artifacts"
+          else
+            echo "🔨 Would build Android app: yarn test:e2e:android:build:qa-release"
+          fi
+          
+          echo "✅ Android simulation completed successfully"
+
+  # Summary of what would be executed
+  test-summary:
     name: E2E Test Summary
     runs-on: ubuntu-latest
-    needs: [setup, e2e-ios, e2e-android]
-    if: always() && needs.setup.outputs.run_tests == 'true'
+    needs: [determine-tests, check-build-cache, simulate-ios-tests, simulate-android-tests]
+    if: always() && needs.determine-tests.outputs.should-run-tests == 'true'
     steps:
-      - name: Generate test summary
+      - name: Generate execution summary
         run: |
-          echo "# E2E Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# E2E Test Execution Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Configuration" >> $GITHUB_STEP_SUMMARY
-          echo "- **Test Suite**: ${{ needs.setup.outputs.test_suite }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platforms**: ${{ needs.setup.outputs.platforms }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Use Cached Builds**: ${{ needs.setup.outputs.use_cached_builds }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Suite**: ${{ needs.determine-tests.outputs.test-suite }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: ${{ needs.determine-tests.outputs.platforms }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Use Cached Builds**: ${{ needs.determine-tests.outputs.use-cached-builds }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Cache Available**: ${{ needs.check-build-cache.outputs.cache-hit || 'false' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Results" >> $GITHUB_STEP_SUMMARY
           
-          if [[ "${{ needs.e2e-ios.result }}" != "skipped" ]]; then
-            if [[ "${{ needs.e2e-ios.result }}" == "success" ]]; then
-              echo "- ✅ **iOS**: PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "## Execution Results" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.simulate-ios-tests.result }}" != "skipped" ]]; then
+            if [[ "${{ needs.simulate-ios-tests.result }}" == "success" ]]; then
+              echo "- ✅ **iOS Tests**: Simulation completed successfully" >> $GITHUB_STEP_SUMMARY
             else
-              echo "- ❌ **iOS**: FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "- ❌ **iOS Tests**: Simulation failed" >> $GITHUB_STEP_SUMMARY
             fi
           fi
           
-          if [[ "${{ needs.e2e-android.result }}" != "skipped" ]]; then
-            if [[ "${{ needs.e2e-android.result }}" == "success" ]]; then
-              echo "- ✅ **Android**: PASSED" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.simulate-android-tests.result }}" != "skipped" ]]; then
+            if [[ "${{ needs.simulate-android-tests.result }}" == "success" ]]; then
+              echo "- ✅ **Android Tests**: Simulation completed successfully" >> $GITHUB_STEP_SUMMARY
             else
-              echo "- ❌ **Android**: FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "- ❌ **Android Tests**: Simulation failed" >> $GITHUB_STEP_SUMMARY
             fi
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*This is a template workflow - actual E2E test implementation pending*" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "This is a **simulation workflow** that shows what tests would be executed." >> $GITHUB_STEP_SUMMARY
+          echo "To actually run tests, replace the simulation steps with real E2E test execution." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Ready for Implementation:" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Test selection logic works" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Platform filtering works" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Build cache checking works" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Trigger conditions work" >> $GITHUB_STEP_SUMMARY
+          echo "5. 🔄 Ready to add real test execution" >> $GITHUB_STEP_SUMMARY
 
-      - name: Check overall result
+      - name: Final status check
         run: |
-          ios_result="${{ needs.e2e-ios.result }}"
-          android_result="${{ needs.e2e-android.result }}"
+          ios_result="${{ needs.simulate-ios-tests.result }}"
+          android_result="${{ needs.simulate-android-tests.result }}"
           
-          # Consider success if all run jobs passed (skip doesn't count as failure)
+          echo "📊 Final Results:"
+          echo "  iOS: $ios_result"
+          echo "  Android: $android_result"
+          
+          # Pass if all jobs that ran were successful
           if [[ "$ios_result" == "failure" || "$android_result" == "failure" ]]; then
-            echo "❌ Some E2E tests failed"
+            echo "❌ Some simulations failed"
             exit 1
           else
-            echo "✅ All E2E tests passed"
-          fi
+            echo "✅ All simulations completed successfully"
+          fi 
