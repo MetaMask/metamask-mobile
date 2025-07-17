@@ -131,7 +131,6 @@ class AuthenticationService {
       const primaryHdKeyringId =
         Engine.context.KeyringController.state.keyrings[0].metadata.id;
 
-      // Get all available non-EVM client types
       const nonEvmClientTypes = Object.values(WalletClientType);
 
       const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
@@ -142,7 +141,7 @@ class AuthenticationService {
           return await client.addDiscoveredAccounts(primaryHdKeyringId);
         } catch (error) {
           console.warn(`${clientType} account discovery failed:`, error);
-          return null; // Return null for failed discoveries
+          return null;
         }
       });
 

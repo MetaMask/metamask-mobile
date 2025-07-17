@@ -90,24 +90,41 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   let discoveredAccountsCount = 0;
 
-  // non-EVM discovery
   try {
     const nonEvmClientTypes = Object.values(WalletClientType);
-    for (const clientType of nonEvmClientTypes) {
+
+    const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
       try {
         const client = MultichainWalletSnapFactory.createClient(clientType);
-        discoveredAccountsCount += await client.addDiscoveredAccounts(
-          newKeyring.id,
-        );
+        return await client.addDiscoveredAccounts(newKeyring.id);
       } catch (error) {
         console.warn(
           `${clientType} account discovery failed during SRP import:`,
           error,
         );
-        await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+        return 0;
       }
+    });
+
+    const results = await Promise.allSettled(discoveryPromises);
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        discoveredAccountsCount += result.value;
+      } else {
+        console.warn(
+          `${nonEvmClientTypes[index]} discovery failed during SRP import:`,
+          result.reason,
+        );
+      }
+    });
+
+    const hasFailures = results.some((result) => result.status === 'rejected');
+    if (hasFailures) {
+      await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+    } else {
+      await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
     }
-    await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
   } catch (error) {
     console.error('Non-EVM account discovery failed after all retries:', error);
     await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
