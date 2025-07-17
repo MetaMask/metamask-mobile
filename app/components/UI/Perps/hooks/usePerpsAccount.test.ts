@@ -11,9 +11,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-// Mock DevLogger
-jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-
 describe('usePerpsAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
