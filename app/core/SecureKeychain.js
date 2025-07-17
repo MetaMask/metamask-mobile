@@ -27,10 +27,6 @@ const defaultOptions = {
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 
-const depositProviderKeyOptions = {
-  service: 'com.metamask.deposit-provider',
-};
-
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
@@ -58,6 +54,14 @@ class SecureKeychain {
   }
 
   decryptPassword(str) {
+    return encryptor.decrypt(privates.get(this).code, str);
+  }
+
+  encryptData(data) {
+    return encryptor.encrypt(privates.get(this).code, { data });
+  }
+
+  decryptData(str) {
     return encryptor.decrypt(privates.get(this).code, str);
   }
 }
@@ -207,24 +211,37 @@ export default {
     }
   },
 
-  // This is used to store the token for the deposit provider
-  async setDepositProviderKey(key) {
-    // Store the key with no additional access control (REMEMBER_ME equivalent)
-    // User is already authenticated when app is open, no need for re-authentication
-    await Keychain.setGenericPassword('metamask-deposit-provider', key, {
-      ...depositProviderKeyOptions,
+  async setEncryptedValue(key, value, authenticationType = this.TYPES.REMEMBER_ME) {
+    const authOptions = {
       accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    };
+
+    if (authenticationType === this.TYPES.BIOMETRICS) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+    } else if (authenticationType === this.TYPES.PASSCODE) {
+      authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
+    }
+
+    const encryptedValue = await instance.encryptData(value);
+    const serviceName = `com.metamask.${key}`;
+
+    await Keychain.setGenericPassword(`metamask-${key}`, encryptedValue, {
+      service: serviceName,
+      ...authOptions,
     });
   },
 
-  async getDepositProviderKey() {
+  async getEncryptedValue(key) {
     if (instance) {
       try {
-        const keychainObject = await Keychain.getGenericPassword(
-          depositProviderKeyOptions,
-        );
+        const serviceName = `com.metamask.${key}`;
+        const keychainObject = await Keychain.getGenericPassword({
+          service: serviceName,
+        });
+        
         if (keychainObject && keychainObject.password) {
-          return keychainObject.password;
+          const decrypted = await instance.decryptData(keychainObject.password);
+          return decrypted.data;
         }
       } catch (error) {
         throw new Error(error.message);
@@ -233,8 +250,9 @@ export default {
     return null;
   },
 
-  async resetDepositProviderKey() {
-    const options = { service: depositProviderKeyOptions.service };
+  async resetEncryptedValue(key) {
+    const serviceName = `com.metamask.${key}`;
+    const options = { service: serviceName };
     return Keychain.resetGenericPassword(options);
   },
 

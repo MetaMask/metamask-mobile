@@ -24,7 +24,12 @@ export async function storeProviderToken(
 
     const stringifiedToken = JSON.stringify(storedToken);
 
-    await SecureKeychain.setDepositProviderKey(stringifiedToken);
+    // Always use REMEMBER_ME for provider tokens (no re-authentication needed)
+    await SecureKeychain.setProviderKey(
+      'deposit',
+      stringifiedToken,
+      SecureKeychain.TYPES.REMEMBER_ME,
+    );
 
     return {
       success: true,
@@ -39,7 +44,7 @@ export async function storeProviderToken(
 
 export async function getProviderToken(): Promise<ProviderTokenResponse> {
   try {
-    const storedTokenString = await SecureKeychain.getDepositProviderKey();
+    const storedTokenString = await SecureKeychain.getProviderKey('deposit');
 
     if (storedTokenString) {
       const storedToken: ProviderToken = JSON.parse(storedTokenString);
@@ -70,5 +75,5 @@ export async function getProviderToken(): Promise<ProviderTokenResponse> {
 }
 
 export async function resetProviderToken(): Promise<void> {
-  await SecureKeychain.resetDepositProviderKey();
+  await SecureKeychain.resetProviderKey('deposit');
 }
