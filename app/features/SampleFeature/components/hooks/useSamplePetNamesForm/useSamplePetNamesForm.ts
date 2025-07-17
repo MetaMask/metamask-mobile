@@ -50,7 +50,7 @@ function useSamplePetNamesForm(
           toChecksumAddress(address) as Hex,
           name,
         );
-      }
+      },
     );
   }, [address, name, chainId, isValid]);
 

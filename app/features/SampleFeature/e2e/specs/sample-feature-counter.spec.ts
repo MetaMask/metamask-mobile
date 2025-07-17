@@ -43,9 +43,15 @@ describe(Regression('Sample Feature'), () => {
     await Assertions.checkIfVisible(SampleFeatureView.incrementButton);
 
     await SampleFeatureView.tapIncrementButton();
-    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 1');
+    await Assertions.checkIfElementToHaveText(
+      SampleFeatureView.counterValue,
+      'Value: 1',
+    );
 
     await SampleFeatureView.tapIncrementButton();
-    await Assertions.checkIfElementToHaveText(SampleFeatureView.counterValue, 'Value: 2');
+    await Assertions.checkIfElementToHaveText(
+      SampleFeatureView.counterValue,
+      'Value: 2',
+    );
   });
 });

@@ -9,7 +9,9 @@ import { Hex } from '@metamask/utils';
  * @param state - The root state object
  * @returns The sample petnames controller state
  */
-export const selectSamplePetnamesControllerState = (state: RootState): SamplePetnamesControllerState | undefined =>
+export const selectSamplePetnamesControllerState = (
+  state: RootState,
+): SamplePetnamesControllerState | undefined =>
   state.engine.backgroundState?.SamplePetnamesController;
 
 /**
@@ -21,7 +23,7 @@ export const selectSamplePetnamesControllerState = (state: RootState): SamplePet
 export const selectSamplePetnamesByChainIdAndAddress = createSelector(
   selectSamplePetnamesControllerState,
   (samplePetnamesControllerState: SamplePetnamesControllerState | undefined) =>
-    samplePetnamesControllerState?.namesByChainIdAndAddress ?? {}
+    samplePetnamesControllerState?.namesByChainIdAndAddress ?? {},
 );
 
 /**
@@ -37,7 +39,7 @@ export const selectSamplePetnamesByChainId = createSelector(
     (_state: RootState, chainId: Hex) => chainId,
   ],
   (petnamesByChainIdAndAddress, chainId): Record<Hex, string> =>
-    petnamesByChainIdAndAddress[chainId] ?? {}
+    petnamesByChainIdAndAddress[chainId] ?? {},
 );
 
 /**
@@ -55,5 +57,5 @@ export const selectSamplePetnameByChainIdAndAddress = createSelector(
     (_state: RootState, _chainId: Hex, address: Hex) => address,
   ],
   (petnamesByChainIdAndAddress, chainId, address) =>
-    petnamesByChainIdAndAddress[chainId]?.[address]
+    petnamesByChainIdAndAddress[chainId]?.[address],
 );

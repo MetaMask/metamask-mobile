@@ -56,7 +56,9 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns undefined when controller is not initialized', () => {
       // Given a state without sample petnames controller
       // When selecting the controller state
-      const result = selectSamplePetnamesControllerState(mockStateWithoutController);
+      const result = selectSamplePetnamesControllerState(
+        mockStateWithoutController,
+      );
 
       // Then it should return undefined
       expect(result).toBeUndefined();
@@ -67,7 +69,9 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns all petnames organized by chain and address', () => {
       // Given a state with petnames across multiple chains
       // When selecting all petnames by chain ID and address
-      const result = selectSamplePetnamesByChainIdAndAddress(mockStateWithPetnames);
+      const result = selectSamplePetnamesByChainIdAndAddress(
+        mockStateWithPetnames,
+      );
 
       // Then it should return the complete mapping
       expect(result).toEqual({
@@ -84,7 +88,9 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns empty object when controller has no data', () => {
       // Given a state without controller initialization
       // When selecting all petnames
-      const result = selectSamplePetnamesByChainIdAndAddress(mockStateWithoutController);
+      const result = selectSamplePetnamesByChainIdAndAddress(
+        mockStateWithoutController,
+      );
 
       // Then it should return an empty object as fallback
       expect(result).toEqual({});
@@ -95,7 +101,10 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns petnames for Ethereum mainnet chain', () => {
       // Given a state with petnames on multiple chains
       // When selecting petnames for Ethereum mainnet (0x1)
-      const result = selectSamplePetnamesByChainId(mockStateWithPetnames, '0x1' as Hex);
+      const result = selectSamplePetnamesByChainId(
+        mockStateWithPetnames,
+        '0x1' as Hex,
+      );
 
       // Then it should return only petnames for that chain
       expect(result).toEqual({
@@ -107,7 +116,10 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns petnames for Polygon chain', () => {
       // Given a state with petnames on multiple chains
       // When selecting petnames for Polygon (0x89)
-      const result = selectSamplePetnamesByChainId(mockStateWithPetnames, '0x89' as Hex);
+      const result = selectSamplePetnamesByChainId(
+        mockStateWithPetnames,
+        '0x89' as Hex,
+      );
 
       // Then it should return only petnames for that chain
       expect(result).toEqual({
@@ -118,7 +130,10 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns empty object for chain without petnames', () => {
       // Given a state with petnames on some chains
       // When selecting petnames for a chain without any entries
-      const result = selectSamplePetnamesByChainId(mockStateWithPetnames, '0x999' as Hex);
+      const result = selectSamplePetnamesByChainId(
+        mockStateWithPetnames,
+        '0x999' as Hex,
+      );
 
       // Then it should return an empty object
       expect(result).toEqual({});
@@ -127,7 +142,10 @@ describe('SamplePetnamesController Selectors', () => {
     it('returns empty object when controller is not initialized', () => {
       // Given a state without controller
       // When selecting petnames for any chain
-      const result = selectSamplePetnamesByChainId(mockStateWithoutController, '0x1' as Hex);
+      const result = selectSamplePetnamesByChainId(
+        mockStateWithoutController,
+        '0x1' as Hex,
+      );
 
       // Then it should return an empty object
       expect(result).toEqual({});
@@ -141,7 +159,7 @@ describe('SamplePetnamesController Selectors', () => {
       const result = selectSamplePetnameByChainIdAndAddress(
         mockStateWithPetnames,
         '0x1' as Hex,
-        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex
+        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex,
       );
 
       // Then it should return 'Alice'
@@ -154,7 +172,7 @@ describe('SamplePetnamesController Selectors', () => {
       const result = selectSamplePetnameByChainIdAndAddress(
         mockStateWithPetnames,
         '0x1' as Hex,
-        '0xA12702acfB0402c7dE24AD1B99eD8FaC7E71Ff9C' as Hex
+        '0xA12702acfB0402c7dE24AD1B99eD8FaC7E71Ff9C' as Hex,
       );
 
       // Then it should return undefined
@@ -167,7 +185,7 @@ describe('SamplePetnamesController Selectors', () => {
       const result = selectSamplePetnameByChainIdAndAddress(
         mockStateWithPetnames,
         '0x999' as Hex,
-        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex
+        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex,
       );
 
       // Then it should return undefined (petname is chain-specific)
@@ -180,7 +198,7 @@ describe('SamplePetnamesController Selectors', () => {
       const result = selectSamplePetnameByChainIdAndAddress(
         mockStateWithoutController,
         '0x1' as Hex,
-        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex
+        '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05' as Hex,
       );
 
       // Then it should return undefined

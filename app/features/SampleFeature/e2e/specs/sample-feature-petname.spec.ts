@@ -13,8 +13,6 @@ import FixtureServer from '../../../../../e2e/fixtures/fixture-server';
 import { navigateToSampleFeature } from '../utils';
 import Assertions from '../../../../../e2e/utils/Assertions';
 
-
-
 const fixtureServer = new FixtureServer();
 
 interface TestAddress {
@@ -27,16 +25,16 @@ interface TestAddress {
 const TEST_ADDRESSES: Record<string, TestAddress> = {
   Alice: {
     address: '0x086473d15475Cf20722F5cA7D8d4adfa39Dc6E05',
-    shortAddress: '0x08647...c6E05'
+    shortAddress: '0x08647...c6E05',
   },
   Bob: {
     address: '0x4AE1Ed9eaf935B0043536e83cB833e90e98A0E44',
-    shortAddress: '0x4AE1E...A0E44'
+    shortAddress: '0x4AE1E...A0E44',
   },
   Charlie: {
     address: '0xA8c23800fe9942e9aBd6F3669018934598777eC1',
-    shortAddress: '0xA8c23...77eC1'
-  }
+    shortAddress: '0xA8c23...77eC1',
+  },
 };
 
 describe(Regression('Sample Feature - Pet Names'), () => {
@@ -96,7 +94,9 @@ describe(Regression('Sample Feature - Pet Names'), () => {
 
     // Verify Charlie appears with correct short address
     await Assertions.checkIfTextIsDisplayed('Charlie');
-    await Assertions.checkIfTextIsDisplayed(TEST_ADDRESSES.Charlie.shortAddress);
+    await Assertions.checkIfTextIsDisplayed(
+      TEST_ADDRESSES.Charlie.shortAddress,
+    );
 
     // Verify all pet names are visible
     await Assertions.checkIfTextIsDisplayed('Alice');

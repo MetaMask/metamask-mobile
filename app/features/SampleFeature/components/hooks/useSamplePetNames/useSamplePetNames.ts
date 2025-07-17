@@ -16,30 +16,34 @@ import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
  */
 export function useSamplePetNames(chainId: SupportedCaipChainId | Hex) {
   const petNamesByAddress = useSelector((state: RootState) =>
-    selectSamplePetnamesByChainId(state, chainId as Hex)
+    selectSamplePetnamesByChainId(state, chainId as Hex),
   );
 
-  const petNames = useMemo(() => trace(
-      {
-        name: TraceName.SampleFeatureListPetNames,
-        op: TraceOperation.SampleFeatureListPetNames,
-        data: {
-          feature: 'sample-pet-names',
-          operation: 'list-pet-names',
-          chainId: chainId as string,
-          petNamesCount: Object.keys(petNamesByAddress).length,
+  const petNames = useMemo(
+    () =>
+      trace(
+        {
+          name: TraceName.SampleFeatureListPetNames,
+          op: TraceOperation.SampleFeatureListPetNames,
+          data: {
+            feature: 'sample-pet-names',
+            operation: 'list-pet-names',
+            chainId: chainId as string,
+            petNamesCount: Object.keys(petNamesByAddress).length,
+          },
+          tags: {
+            environment: 'development',
+            component: 'useSamplePetNames',
+          },
         },
-        tags: {
-          environment: 'development',
-          component: 'useSamplePetNames',
-        },
-      },
-      () => Object.entries(petNamesByAddress).map(([address, name]) => ({
-          address,
-          name,
-        }))
-    ), [petNamesByAddress, chainId]);
+        () =>
+          Object.entries(petNamesByAddress).map(([address, name]) => ({
+            address,
+            name,
+          })),
+      ),
+    [petNamesByAddress, chainId],
+  );
 
   return { petNames };
 }
-

@@ -15,13 +15,19 @@ jest.mock('../../../../../core/redux/slices/performance', () => ({
   endPerformanceTrace: jest.fn(),
 }));
 
-import { startPerformanceTrace, endPerformanceTrace } from '../../../../../core/redux/slices/performance';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../../../../core/redux/slices/performance';
 
 describe('useSampleCounter', () => {
   const mockDispatch = jest.fn();
   const mockCount = 42;
-  const mockStartPerformanceTrace = startPerformanceTrace as jest.MockedFunction<typeof startPerformanceTrace>;
-  const mockEndPerformanceTrace = endPerformanceTrace as jest.MockedFunction<typeof endPerformanceTrace>;
+  const mockStartPerformanceTrace =
+    startPerformanceTrace as jest.MockedFunction<typeof startPerformanceTrace>;
+  const mockEndPerformanceTrace = endPerformanceTrace as jest.MockedFunction<
+    typeof endPerformanceTrace
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -70,7 +76,7 @@ describe('useSampleCounter', () => {
           currentCount: mockCount,
           timestamp: expect.any(Number),
         },
-      })
+      }),
     );
   });
 
@@ -88,7 +94,7 @@ describe('useSampleCounter', () => {
           success: true,
           newCount: mockCount + 1,
         },
-      })
+      }),
     );
   });
 
@@ -121,7 +127,7 @@ describe('useSampleCounter', () => {
           success: false,
           error: 'Increment failed',
         },
-      })
+      }),
     );
   });
 

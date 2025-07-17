@@ -51,7 +51,10 @@ jest.mock('./SamplePetNames/SamplePetNames', () => ({
  * @group SampleFeature
  */
 describe('SampleFeature', () => {
-  const mockSelectSampleFeatureCounterEnabled = selectSampleFeatureCounterEnabled as jest.MockedFunction<typeof selectSampleFeatureCounterEnabled>;
+  const mockSelectSampleFeatureCounterEnabled =
+    selectSampleFeatureCounterEnabled as jest.MockedFunction<
+      typeof selectSampleFeatureCounterEnabled
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();

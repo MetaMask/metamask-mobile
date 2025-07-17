@@ -42,12 +42,14 @@ describe('useSamplePetNamesForm', () => {
     mockAssignPetname.mockClear();
     jest.clearAllMocks();
     // Mock trace to execute the callback
-    mockTrace.mockImplementation((_request: unknown, callback?: () => unknown) => {
-      if (callback) {
-        return callback();
-      }
-      return undefined;
-    });
+    mockTrace.mockImplementation(
+      (_request: unknown, callback?: () => unknown) => {
+        if (callback) {
+          return callback();
+        }
+        return undefined;
+      },
+    );
   });
 
   it('initializes with provided address and name', () => {
@@ -145,7 +147,7 @@ describe('useSamplePetNamesForm', () => {
           component: 'useSamplePetNamesForm',
         },
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -180,7 +182,11 @@ describe('useSamplePetNamesForm', () => {
 
   it('updates form when initial values change', () => {
     const { result, rerender } = renderHook(
-      ({ chainId: testChainId, initialAddress: testInitialAddress, initialName: testInitialName }) =>
+      ({
+        chainId: testChainId,
+        initialAddress: testInitialAddress,
+        initialName: testInitialName,
+      }) =>
         useSamplePetNamesForm(testChainId, testInitialAddress, testInitialName),
       {
         initialProps: { chainId, initialAddress, initialName },

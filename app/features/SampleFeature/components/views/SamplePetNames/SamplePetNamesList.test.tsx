@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor , fireEvent } from '@testing-library/react-native';
+import { waitFor, fireEvent } from '@testing-library/react-native';
 import { SamplePetNamesList } from './SamplePetNamesList';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';

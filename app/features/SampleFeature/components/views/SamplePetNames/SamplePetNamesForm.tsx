@@ -55,14 +55,8 @@ export function SamplePetNamesForm({
 }: Readonly<SamplePetNamesFormContentProps>) {
   const { styles } = useStyles(styleSheet, {});
 
-  const {
-    onSubmit,
-    isValid,
-    name,
-    setName,
-    setAddress,
-    address,
-  } = useSamplePetNamesForm(chainId, initialAddress, initialName);
+  const { onSubmit, isValid, name, setName, setAddress, address } =
+    useSamplePetNamesForm(chainId, initialAddress, initialName);
   const { trackEvent } = useMetrics();
   const { petNames } = useSamplePetNames(chainId);
 

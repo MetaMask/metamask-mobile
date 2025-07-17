@@ -68,12 +68,14 @@ describe('useSamplePetNames', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Mock trace to return the result of the callback
-    mockTrace.mockImplementation((_request: unknown, callback?: () => unknown) => {
-      if (callback) {
-        return callback();
-      }
-      return undefined;
-    });
+    mockTrace.mockImplementation(
+      (_request: unknown, callback?: () => unknown) => {
+        if (callback) {
+          return callback();
+        }
+        return undefined;
+      },
+    );
   });
 
   it('returns pet names for the specified chain', () => {
@@ -103,7 +105,7 @@ describe('useSamplePetNames', () => {
           component: 'useSamplePetNames',
         },
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -131,7 +133,7 @@ describe('useSamplePetNames', () => {
           component: 'useSamplePetNames',
         },
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -142,7 +144,10 @@ describe('useSamplePetNames', () => {
 
     // Then it should return the pet names for Polygon
     expect(result.current.petNames).toEqual([
-      { address: '0xA8c23800fe9942e9aBd6F3669018934598777eC1', name: 'Charlie' },
+      {
+        address: '0xA8c23800fe9942e9aBd6F3669018934598777eC1',
+        name: 'Charlie',
+      },
     ]);
 
     // And trace should be called with correct parameters
@@ -161,7 +166,7 @@ describe('useSamplePetNames', () => {
           component: 'useSamplePetNames',
         },
       },
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -182,7 +187,7 @@ describe('useSamplePetNames', () => {
         name: 'Sample Feature List Pet Names',
         op: 'sample.feature.list.pet.names',
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 });

@@ -9,7 +9,8 @@ import { StyleSheet } from 'react-native';
  *
  * @sampleFeature do not use in production code
  */
-const styleSheet = () => StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     /**
      * Individual pet name list item container
      */
