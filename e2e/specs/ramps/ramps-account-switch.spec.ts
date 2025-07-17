@@ -135,7 +135,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
-        description: 'Account 3 should be displayed after switching accounts in the ramps flow'
+        description:
+          'Account 3 should be displayed after switching accounts in the ramps flow',
       });
       await Assertions.expectElementToBeVisible(
         BuildQuoteView.amountToBuyLabel,
@@ -151,7 +152,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
-        description: 'Account 3 should be displayed after switching accounts in the sell flow'
+        description:
+          'Account 3 should be displayed after switching accounts in the sell flow',
       });
       await Assertions.expectElementToBeVisible(
         BuildQuoteView.amountToSellLabel,
@@ -173,7 +175,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
       await WalletActionsBottomSheet.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {
-        description: 'Account 3 should be maintained across different ramp flows'
+        description:
+          'Account 3 should be maintained across different ramp flows',
       });
     });
   });
