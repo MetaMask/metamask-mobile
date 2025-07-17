@@ -136,6 +136,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
   const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
@@ -223,11 +224,18 @@ export const recreateVaultWithNewPassword = async (
 
   const { SeedlessOnboardingController } = Engine.context;
   let seedlessChangePasswordError = null;
-  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+  if (
+    !skipSeedlessOnboardingPWChange &&
+    selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+  ) {
     try {
       await SeedlessOnboardingController.changePassword(newPassword, password);
     } catch (error) {
-      Logger.error(error);
+      Logger.error(
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
+      // restore keyring with old password if seedless onboarding pw change fails
       await KeyringController.createNewVaultAndRestore(
         password,
         primaryKeyringSeedPhrase,

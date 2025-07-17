@@ -39,6 +39,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
+import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -62,6 +63,8 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
+  useCurrencyRatePolling();
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
