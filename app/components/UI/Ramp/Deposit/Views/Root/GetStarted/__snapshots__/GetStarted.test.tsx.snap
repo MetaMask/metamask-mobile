@@ -50,12 +50,14 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <Image
+                resizeMode="contain"
                 source={1}
                 style={
                   {
                     "alignSelf": "center",
-                    "height": 562.5,
-                    "width": 750,
+                    "height": 367.5,
+                    "marginVertical": 16,
+                    "width": 487.5,
                   }
                 }
               />
@@ -79,13 +81,14 @@ exports[`GetStarted render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
+                  "fontWeight": "bold",
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 16,
                 }
               }
             >
-              Top up your wallet with USDC
+              Starting is easy with USDC
             </Text>
             <View
               style={
@@ -142,7 +145,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  1:1 ratio backing with US dollars.
+                  USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.
                 </Text>
               </View>
             </View>
@@ -201,7 +204,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Maintains stable value for reliable transactions.
+                  USDC is designed to stay stable, making it easier to plan, save, and spend.
                 </Text>
               </View>
             </View>
@@ -260,7 +263,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Quick blockchain transfers beat traditional banking.
+                  Send and receive in minutes, no waiting for bank hours or international delays.
                 </Text>
               </View>
             </View>

@@ -49,7 +49,12 @@ function WebviewModal() {
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack style={styles.bottomSheet}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
       <BottomSheetHeader
         endAccessory={
           <TouchableOpacity>
