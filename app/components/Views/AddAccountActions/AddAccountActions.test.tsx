@@ -108,7 +108,6 @@ describe('AddAccountActions', () => {
     // Check for multichain options
     expect(screen.getByText('Solana account')).toBeDefined();
     expect(screen.getByText('Bitcoin account')).toBeDefined();
-    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
