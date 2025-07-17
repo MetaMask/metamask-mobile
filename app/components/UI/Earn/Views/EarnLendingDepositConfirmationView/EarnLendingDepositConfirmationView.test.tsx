@@ -1422,11 +1422,11 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnDepositConfirmationScreen
+        name: TraceName.EarnDepositConfirmationScreen,
       });
     });
 
-    it('should call trace with EarnDepositTxConfirmed when transaction is submitted', async () => {
+    it('should call trace with EarnLendingDepositTxConfirmed when transaction is submitted', async () => {
       const transactionId = '123';
 
       mockExecuteLendingDeposit.mockResolvedValue({
@@ -1475,7 +1475,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
 
       expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnDepositTxConfirmed,
+        name: TraceName.EarnLendingDepositTxConfirmed,
         data: {
           chainId: MOCK_USDC_MAINNET_ASSET.chainId,
           experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -1483,7 +1483,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
     });
 
-    it('should call endTrace with EarnDepositTxConfirmed when transaction is confirmed', async () => {
+    it('should call endTrace with EarnLendingDepositTxConfirmed when transaction is confirmed', async () => {
       const transactionId = '123';
 
       mockExecuteLendingDeposit.mockResolvedValue({
@@ -1546,7 +1546,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.EarnDepositTxConfirmed,
+        name: TraceName.EarnLendingDepositTxConfirmed,
       });
     });
   });

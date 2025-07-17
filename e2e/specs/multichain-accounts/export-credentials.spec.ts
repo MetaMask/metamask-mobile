@@ -31,9 +31,6 @@ const exportPrivateKey = async () => {
 
 const exportSrp = async () => {
   await AccountDetails.tapExportSrpButton();
-  await Assertions.checkIfVisible(ExportCredentials.srpInfoContainer);
-  await ExportCredentials.tapNextButton();
-  // this also checks the srp
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 

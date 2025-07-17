@@ -121,16 +121,13 @@ const PermissionsSummary = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
-  const hostname = useMemo(
-    () => {
-      try {
-        return new URL(currentPageInformation.url).hostname;
-      } catch {
-        return currentPageInformation.url;
-      }
-    },
-    [currentPageInformation.url],
-  );
+  const hostname = useMemo(() => {
+    try {
+      return new URL(currentPageInformation.url).hostname;
+    } catch {
+      return currentPageInformation.url;
+    }
+  }, [currentPageInformation.url]);
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
