@@ -6,6 +6,7 @@ import Assertions from '../../framework/Assertions';
 
 describe('GHMigration: Dummy Test', () => {
   it('should migrate the wallet', async () => {
+    await TestHelpers.reverseServerPort();
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
