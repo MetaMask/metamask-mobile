@@ -452,6 +452,8 @@ export const useDepositRouting = ({
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
     navigateToBasicInfo: navigateToBasicInfoCallback,
     navigateToEnterEmail: navigateToEnterEmailCallback,
+    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
+    navigateToKycProcessing: navigateToKycProcessingCallback,
     handleApprovedKycFlow,
   };
 };
