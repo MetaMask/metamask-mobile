@@ -228,8 +228,8 @@ export const recreateVaultWithNewPassword = async (
     try {
       await SeedlessOnboardingController.changePassword(newPassword, password);
     } catch (error) {
-      Logger.error(error);
       Logger.error(
+        error,
         '[recreateVaultWithNewPassword] seedless onboarding pw change error',
       );
       // restore keyring with old password if seedless onboarding pw change fails
