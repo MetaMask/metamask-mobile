@@ -11,6 +11,7 @@ import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import PerpsSlippageModal from '../components/PerpsSlippageModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -109,6 +110,10 @@ export const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.SLIPPAGE_MODAL}
+      component={PerpsSlippageModal}
     />
   </ModalStack.Navigator>
 );

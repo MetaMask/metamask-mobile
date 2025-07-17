@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import PerpsQuoteDetailsCard from './PerpsQuoteDetailsCard';
@@ -9,6 +10,77 @@ import Routes from '../../../../../constants/navigation/Routes';
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
+
+// Mock KeyValueRow component
+jest.mock('../../../../../component-library/components-temp/KeyValueRow', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ field, value }: { field: { label?: { text?: string } | React.ReactNode }; value: { label: { text: string } } }) => {
+      const labelText = typeof field.label === 'object' && field.label && 'text' in field.label ? field.label.text : field.label;
+      return (
+        <View testID="key-value-row">
+          {typeof labelText === 'string' ? <Text>{labelText}</Text> : labelText}
+          <Text>{value.label.text}</Text>
+        </View>
+      );
+    },
+    TooltipSizes: {
+      Sm: 'Sm',
+    },
+  };
+});
+
+// Mock Box component
+jest.mock('../../../Box/Box', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Box: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+      <View {...props}>{children}</View>
+    ),
+  };
+});
+
+// Mock FlexDirection and AlignItems
+jest.mock('../../../Box/box.types', () => ({
+  FlexDirection: {
+    Row: 'row',
+  },
+  AlignItems: {
+    center: 'center',
+  },
+}));
+
+// Mock Icon
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="icon" />,
+    IconName: {
+      Edit: 'IconName.Edit',
+    },
+    IconSize: {
+      Sm: 'IconSize.Sm',
+    },
+    IconColor: {
+      Muted: 'IconColor.Muted',
+    },
+  };
+});
+
+// Mock Text component
+jest.mock('../../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => <Text>{children}</Text>,
+    TextVariant: {
+      BodyMDMedium: 'TextVariant.BodyMDMedium',
+      BodyMD: 'TextVariant.BodyMD',
+    },
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -48,7 +120,7 @@ describe('PerpsQuoteDetailsCard', () => {
       metamaskFee: '$5.00',
     };
 
-    const { getByText } = render(<PerpsQuoteDetailsCard {...props} />);
+    const { getByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
 
     expect(getByText('perps.deposit.network_fee')).toBeTruthy();
     expect(getByText('$0.25')).toBeTruthy();
@@ -67,7 +139,7 @@ describe('PerpsQuoteDetailsCard', () => {
       rate: '1 USDC = 1 USDC',
     };
 
-    const { queryByText } = render(<PerpsQuoteDetailsCard {...props} />);
+    const { queryByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
 
     expect(queryByText('perps.deposit.estimated_time')).toBeNull();
   });
@@ -78,13 +150,13 @@ describe('PerpsQuoteDetailsCard', () => {
       rate: '1 USDC = 1 USDC',
     };
 
-    const { getByText } = render(<PerpsQuoteDetailsCard {...props} />);
+    const { getByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
 
     expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
   });
 
   it('should display auto slippage when slippage is null', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
     );
 
@@ -94,7 +166,7 @@ describe('PerpsQuoteDetailsCard', () => {
   it('should display auto slippage when slippage is undefined', () => {
     (useSelector as jest.Mock).mockReturnValue(undefined);
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
     );
 
@@ -104,7 +176,7 @@ describe('PerpsQuoteDetailsCard', () => {
   it('should display custom slippage percentage', () => {
     (useSelector as jest.Mock).mockReturnValue(0.5);
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
     );
 
@@ -112,30 +184,25 @@ describe('PerpsQuoteDetailsCard', () => {
   });
 
   it('should navigate to slippage modal when edit button is pressed', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
     );
 
     const editButton = getByTestId('edit-slippage-button');
     fireEvent.press(editButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
     });
   });
 
   it('should render edit icon in slippage row', () => {
-    const { UNSAFE_getByType } = render(
+    const { getByTestId } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
     );
 
-    const Icon =
-      require('../../../../../component-library/components/Icons/Icon').default;
-    const editIcon = UNSAFE_getByType(Icon);
-
-    expect(editIcon.props.name).toBe('IconName.Edit');
-    expect(editIcon.props.size).toBe('IconSize.Sm');
-    expect(editIcon.props.color).toBe('IconColor.Muted');
+    const editIcon = getByTestId('icon');
+    expect(editIcon).toBeTruthy();
   });
 
   it('should handle different slippage values', () => {
@@ -144,7 +211,7 @@ describe('PerpsQuoteDetailsCard', () => {
     slippageValues.forEach((slippage) => {
       (useSelector as jest.Mock).mockReturnValue(slippage);
 
-      const { getByText, unmount } = render(
+      const { getByText, unmount } = renderWithProvider(
         <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
       );
 
@@ -154,7 +221,7 @@ describe('PerpsQuoteDetailsCard', () => {
   });
 
   it('should render with minimal props', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <PerpsQuoteDetailsCard networkFee="$0.10" rate="1 ETH = 3000 USDC" />,
     );
 

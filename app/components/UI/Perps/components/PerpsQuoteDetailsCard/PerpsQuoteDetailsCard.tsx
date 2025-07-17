@@ -38,8 +38,8 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   const slippage = useSelector(selectSlippage);
 
   const handleSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
     });
   }, [navigation]);
 

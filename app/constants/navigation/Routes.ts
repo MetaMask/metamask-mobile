@@ -215,6 +215,7 @@ const Routes = {
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+      SLIPPAGE_MODAL: 'PerpsSlippageModal',
     },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
