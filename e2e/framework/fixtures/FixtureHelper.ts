@@ -321,6 +321,9 @@ export async function withFixtures(
     permissions = {},
   } = options;
 
+  // Prepare android devices for testing to avoid having this in all tests
+  await TestHelpers.reverseServerPort();
+
   // Handle mock server
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
