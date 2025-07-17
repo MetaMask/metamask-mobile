@@ -54,11 +54,13 @@ let mockSsnValues = [
   mockSsnFunction,
 ];
 
-const mockNavigateToKycWebview = jest.fn();
+const mockNavigateToKycProcessing = jest.fn();
+const mockNavigateToAdditionalVerification = jest.fn();
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
-    navigateToKycWebview: mockNavigateToKycWebview,
+    navigateToKycProcessing: mockNavigateToKycProcessing,
+    navigateToAdditionalVerification: mockNavigateToAdditionalVerification,
   })),
 }));
 
@@ -158,7 +160,8 @@ describe('EnterAddress Component', () => {
       { ...mockUseDepositSdkMethodInitialState },
       mockSsnFunction,
     ];
-    mockNavigateToKycWebview.mockClear();
+    mockNavigateToKycProcessing.mockClear();
+    mockNavigateToAdditionalVerification.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -170,10 +173,7 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
   });
 
   it('submits form data and navigates to next page when form is valid and continue is pressed', async () => {
@@ -182,13 +182,13 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
+      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
         quote: mockQuote,
       });
     });
   });
 
-  it('navigates to KYC webview when kycUrl is provided', async () => {
+  it('navigates to additional verification when kycUrl is provided', async () => {
     const kycUrl = 'https://example.com/kyc';
 
     mockUseParamsReturnValue = {
@@ -214,7 +214,7 @@ describe('EnterAddress Component', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
+      expect(mockNavigateToAdditionalVerification).toHaveBeenCalledWith({
         quote: mockQuote,
         kycUrl,
       });
@@ -231,10 +231,7 @@ describe('EnterAddress Component', () => {
     expect(mockKycFunction).toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.DEPOSIT.KYC_PROCESSING,
-        expect.any(Object),
-      );
+      expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
     });
   });
 
@@ -242,7 +239,7 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your address',
+        title: 'Verify your identity',
       }),
     );
   });
@@ -252,7 +249,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
+      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
         quote: mockQuote,
       });
     });
@@ -277,7 +274,7 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
+      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
         quote: mockQuote,
       });
     });
@@ -292,10 +289,7 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.DEPOSIT.KYC_PROCESSING,
-        expect.any(Object),
-      );
+      expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
     });
   });
 
@@ -334,10 +328,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('Please enter a valid address')).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
   });
 
   it('accepts valid address line 2', async () => {
@@ -346,7 +337,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit({ addressLine2: 'Apt 4B' });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
+      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
         quote: mockQuote,
       });
     });
@@ -365,10 +356,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
   });
 
   it('displays selected region in disabled country field', () => {

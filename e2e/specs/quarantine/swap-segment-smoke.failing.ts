@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper.js';
 import QuoteView from '../../pages/swaps/QuoteView.ts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
@@ -142,7 +142,8 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
-      async () => Assertions.checkIfObjectContains(
+      async () =>
+        Assertions.checkIfObjectContains(
           allAvailableQuotesOpenedEvent.properties,
           {
             action: 'Quote',
@@ -212,7 +213,8 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
-      async () => Assertions.checkIfObjectContains(
+      async () =>
+        Assertions.checkIfObjectContains(
           quotesRequestCancelledEvent.properties,
           {
             action: 'Quote',
@@ -239,8 +241,6 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     softAssert.throwIfErrors();
   });
 });
-
-
 
 // TODO: move this to a shared file when migrating other tests to TypeScript
 interface SegmentEvent {

@@ -12,11 +12,11 @@ class DeleteContactBottomSheet {
   get deleteButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByText(
-        DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
+          DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
           1,
         )
       : Matchers.getElementByLabel(
-        DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
+          DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
         );
   }
 

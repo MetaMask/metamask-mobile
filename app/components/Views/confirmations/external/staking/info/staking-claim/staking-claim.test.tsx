@@ -13,6 +13,9 @@ jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
   context: {
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
