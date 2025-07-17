@@ -39,6 +39,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_DROPDOWN);
   }
 
+  get accountPicker() {
+    return Matchers.getElementByID(BuildQuoteSelectors.ACCOUNT_PICKER);
+  }
+
   get minLimitErrorMessage() {
     return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
@@ -75,6 +79,10 @@ class BuildQuoteView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapAccountPicker() {
+    await Gestures.waitAndTap(this.accountPicker);
   }
 
   async selectToken(token) {

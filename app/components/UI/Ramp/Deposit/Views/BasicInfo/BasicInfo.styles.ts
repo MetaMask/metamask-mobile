@@ -5,10 +5,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    subtitle: {
-      fontSize: 14,
+    title: {
       marginTop: 24,
-      marginBottom: 20,
+    },
+    subtitle: {
+      marginTop: 8,
+      color: theme.colors.text.muted,
     },
     nameInputRow: {
       flexDirection: 'row',
