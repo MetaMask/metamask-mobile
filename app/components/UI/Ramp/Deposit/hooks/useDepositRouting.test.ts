@@ -51,8 +51,6 @@ const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 
-const mockTrackEvent = jest.fn();
-
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const verifyPopToBuildQuoteCalled = () => {
