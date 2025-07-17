@@ -14,8 +14,12 @@ export function getModuleState() {
   return {
     knownDomainsSet,
     initPromise,
-    setKnownDomainsSet: (value: Set<string> | null) => { knownDomainsSet = value; },
-    setInitPromise: (value: Promise<void> | null) => { initPromise = value; }
+    setKnownDomainsSet: (value: Set<string> | null) => {
+      knownDomainsSet = value;
+    },
+    setInitPromise: (value: Promise<void> | null) => {
+      initPromise = value;
+    },
   };
 }
 
@@ -100,7 +104,8 @@ export const RpcDomainStatus = {
   Unknown: 'unknown',
 } as const;
 
-export type RpcDomainStatus = typeof RpcDomainStatus[keyof typeof RpcDomainStatus];
+export type RpcDomainStatus =
+  (typeof RpcDomainStatus)[keyof typeof RpcDomainStatus];
 
 function parseDomain(url: string): string | undefined {
   try {
@@ -112,10 +117,7 @@ function parseDomain(url: string): string | undefined {
 }
 
 // Allowed provider domains for RPC endpoint validation
-const ALLOWED_PROVIDER_DOMAINS = new Set([
-  'infura.io',
-  'alchemyapi.io',
-]);
+const ALLOWED_PROVIDER_DOMAINS = new Set(['infura.io', 'alchemyapi.io']);
 
 /**
  * Check if a hostname is an allowed provider domain or legitimate subdomain
@@ -127,10 +129,10 @@ function isAllowedProviderDomain(hostname: string): boolean {
   if (ALLOWED_PROVIDER_DOMAINS.has(hostname)) {
     return true;
   }
-  
+
   // Check if it's a legitimate subdomain of any allowed domain
-  return [...ALLOWED_PROVIDER_DOMAINS].some(allowedDomain =>
-    hostname.endsWith(`.${allowedDomain}`)
+  return [...ALLOWED_PROVIDER_DOMAINS].some((allowedDomain) =>
+    hostname.endsWith(`.${allowedDomain}`),
   );
 }
 
@@ -144,22 +146,22 @@ export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!domain) {
     return RpcDomainStatus.Invalid;
   }
-  
+
   // Check if this is a known domain
   if (isKnownDomain(domain)) {
     return domain;
   }
-  
+
   // Check if it's an allowed provider domain (Infura, Alchemy, etc.)
   if (isAllowedProviderDomain(domain)) {
     return domain;
   }
-  
+
   // Special case for local/development nodes
   if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
   }
-  
+
   // For all other domains, return "private" for privacy
   return RpcDomainStatus.Private;
 }
@@ -175,20 +177,27 @@ export function getNetworkRpcUrl(chainId: string): string {
     const { NetworkController } = Engine.context;
 
     // Find network clientID for chainID
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      chainId as `0x${string}`,
+    );
     if (!networkClientId) {
       return 'unknown';
     }
 
     // Get network config
-    const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
+    const networkConfig =
+      NetworkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId,
+      );
     if (!networkConfig) {
       return 'unknown';
     }
 
     // Check if there is a direct rpcUrl property (legacy format)
     if ('rpcUrl' in networkConfig && networkConfig.rpcUrl) {
-      return typeof networkConfig.rpcUrl === 'string' ? networkConfig.rpcUrl : 'unknown';
+      return typeof networkConfig.rpcUrl === 'string'
+        ? networkConfig.rpcUrl
+        : 'unknown';
     }
 
     // If we use rpcEndpoints array
