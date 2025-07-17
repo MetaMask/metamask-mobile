@@ -279,7 +279,7 @@ describe('PerpsDepositSuccessView', () => {
 
       // Check labels
       expect(getByText('perps.deposit.success.amount')).toBeTruthy();
-      expect(getByText('perps.deposit.success.processingTime')).toBeTruthy();
+      expect(getByText('perps.deposit.success.processing_time')).toBeTruthy();
       expect(getByText('perps.deposit.success.status')).toBeTruthy();
       // Check values
       expect(getByText('45s')).toBeTruthy(); // Processing time

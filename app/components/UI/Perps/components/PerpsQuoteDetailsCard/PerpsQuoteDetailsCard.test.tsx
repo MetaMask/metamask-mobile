@@ -7,113 +7,21 @@ import PerpsQuoteDetailsCard from './PerpsQuoteDetailsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
-// Mock KeyValueRow component
-jest.mock(
-  '../../../../../component-library/components-temp/KeyValueRow',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        field,
-        value,
-      }: {
-        field: { label?: { text?: string } | React.ReactNode };
-        value: { label: { text: string } };
-      }) => {
-        const labelText =
-          typeof field.label === 'object' &&
-          field.label &&
-          'text' in field.label
-            ? field.label.text
-            : field.label;
-        return (
-          <View testID="key-value-row">
-            {typeof labelText === 'string' ? (
-              <Text>{labelText}</Text>
-            ) : (
-              labelText
-            )}
-            <Text>{value.label.text}</Text>
-          </View>
-        );
-      },
-      TooltipSizes: {
-        Sm: 'Sm',
-      },
-    };
-  },
-);
-
-// Mock Box component
-jest.mock('../../../Box/Box', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    Box: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode;
-      [key: string]: unknown;
-    }) => <View {...props}>{children}</View>,
-  };
-});
-
-// Mock FlexDirection and AlignItems
-jest.mock('../../../Box/box.types', () => ({
-  FlexDirection: {
-    Row: 'row',
-  },
-  AlignItems: {
-    center: 'center',
-  },
-}));
-
-// Mock Icon
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="icon" />,
-    IconName: {
-      Edit: 'IconName.Edit',
-    },
-    IconSize: {
-      Sm: 'IconSize.Sm',
-    },
-    IconColor: {
-      Muted: 'IconColor.Muted',
-    },
-  };
-});
-
-// Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => (
-      <Text>{children}</Text>
-    ),
-    TextVariant: {
-      BodyMDMedium: 'TextVariant.BodyMDMedium',
-      BodyMD: 'TextVariant.BodyMD',
-    },
-  };
-});
-
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+// Mock useStyles hook
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {
@@ -122,142 +30,334 @@ jest.mock('../../../../../component-library/hooks', () => ({
       quoteRow: {},
       slippageButton: {},
     },
+    theme: {
+      colors: {
+        primary: {
+          default: '#0376C9',
+        },
+      },
+    },
   })),
 }));
 
 describe('PerpsQuoteDetailsCard', () => {
   const mockNavigate = jest.fn();
+  const mockUseNavigation = useNavigation as jest.Mock;
+  const mockUseSelector = useSelector as jest.Mock;
+
+  const defaultProps = {
+    networkFee: '$0.25',
+    rate: '1 USDC = 1 USDC',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useNavigation as jest.Mock).mockReturnValue({
+    mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
     });
-    (useSelector as jest.Mock).mockReturnValue(null); // Default slippage
+    mockUseSelector.mockReturnValue(null); // Default slippage
   });
 
-  it('should render all fields correctly', () => {
-    const props = {
-      networkFee: '$0.25',
-      estimatedTime: '2-3 minutes',
-      rate: '1 USDC = 1 USDC',
-      metamaskFee: '$5.00',
-    };
-
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard {...props} />,
-    );
-
-    expect(getByText('perps.deposit.network_fee')).toBeTruthy();
-    expect(getByText('$0.25')).toBeTruthy();
-    expect(getByText('perps.deposit.metamask_fee')).toBeTruthy();
-    expect(getByText('$5.00')).toBeTruthy();
-    expect(getByText('perps.deposit.estimated_time')).toBeTruthy();
-    expect(getByText('2-3 minutes')).toBeTruthy();
-    expect(getByText('perps.deposit.rate')).toBeTruthy();
-    expect(getByText('1 USDC = 1 USDC')).toBeTruthy();
-    expect(getByText('perps.deposit.slippage')).toBeTruthy();
-  });
-
-  it('should render without estimatedTime', () => {
-    const props = {
-      networkFee: '$0.25',
-      rate: '1 USDC = 1 USDC',
-    };
-
-    const { queryByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard {...props} />,
-    );
-
-    expect(queryByText('perps.deposit.estimated_time')).toBeNull();
-  });
-
-  it('should use default metamask fee when not provided', () => {
-    const props = {
-      networkFee: '$0.25',
-      rate: '1 USDC = 1 USDC',
-    };
-
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard {...props} />,
-    );
-
-    expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
-  });
-
-  it('should display auto slippage when slippage is null', () => {
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
-    );
-
-    expect(getByText('perps.deposit.slippage_auto')).toBeTruthy();
-  });
-
-  it('should display auto slippage when slippage is undefined', () => {
-    (useSelector as jest.Mock).mockReturnValue(undefined);
-
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
-    );
-
-    expect(getByText('perps.deposit.slippage_auto')).toBeTruthy();
-  });
-
-  it('should display custom slippage percentage', () => {
-    (useSelector as jest.Mock).mockReturnValue(0.5);
-
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
-    );
-
-    expect(getByText('0.5%')).toBeTruthy();
-  });
-
-  it('should navigate to slippage modal when edit button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
-    );
-
-    const editButton = getByTestId('edit-slippage-button');
-    fireEvent.press(editButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
-    });
-  });
-
-  it('should render edit icon in slippage row', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
-    );
-
-    const editIcon = getByTestId('icon');
-    expect(editIcon).toBeTruthy();
-  });
-
-  it('should handle different slippage values', () => {
-    const slippageValues = [0, 0.1, 0.5, 1, 2.5, 5];
-
-    slippageValues.forEach((slippage) => {
-      (useSelector as jest.Mock).mockReturnValue(slippage);
-
-      const { getByText, unmount } = renderWithProvider(
-        <PerpsQuoteDetailsCard networkFee="$0.25" rate="1 USDC = 1 USDC" />,
+  describe('Rendering', () => {
+    it('should render all required fields correctly', () => {
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
       );
 
-      expect(getByText(`${slippage}%`)).toBeTruthy();
-      unmount();
+      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
+      expect(getByText('$0.25')).toBeTruthy();
+      expect(getByText('perps.deposit.metamask_fee')).toBeTruthy();
+      expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
+      expect(getByText('perps.deposit.rate')).toBeTruthy();
+      expect(getByText('1 USDC = 1 USDC')).toBeTruthy();
+      expect(getByText('perps.deposit.slippage')).toBeTruthy();
+    });
+
+    it('should render with all props provided', () => {
+      const props = {
+        networkFee: '$0.50',
+        estimatedTime: '2-3 minutes',
+        rate: '1 ETH = 3000 USDC',
+        metamaskFee: '$5.00',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('$0.50')).toBeTruthy();
+      expect(getByText('perps.deposit.estimated_time')).toBeTruthy();
+      expect(getByText('2-3 minutes')).toBeTruthy();
+      expect(getByText('1 ETH = 3000 USDC')).toBeTruthy();
+      expect(getByText('$5.00')).toBeTruthy();
+    });
+
+    it('should not render estimated time when not provided', () => {
+      const { queryByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(queryByText('perps.deposit.estimated_time')).toBeNull();
+    });
+
+    it('should render estimated time when provided', () => {
+      const props = {
+        ...defaultProps,
+        estimatedTime: '1-2 minutes',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('perps.deposit.estimated_time')).toBeTruthy();
+      expect(getByText('1-2 minutes')).toBeTruthy();
+    });
+
+    it('should use default metamask fee when not provided', () => {
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('$0.00')).toBeTruthy();
+    });
+
+    it('should use custom metamask fee when provided', () => {
+      const props = {
+        ...defaultProps,
+        metamaskFee: '$2.50',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('$2.50')).toBeTruthy();
     });
   });
 
-  it('should render with minimal props', () => {
-    const { getByText } = renderWithProvider(
-      <PerpsQuoteDetailsCard networkFee="$0.10" rate="1 ETH = 3000 USDC" />,
-    );
+  describe('Slippage Display', () => {
+    it('should display auto slippage when slippage is null', () => {
+      mockUseSelector.mockReturnValue(null);
 
-    expect(getByText('$0.10')).toBeTruthy();
-    expect(getByText('1 ETH = 3000 USDC')).toBeTruthy();
-    expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
-    expect(getByText('perps.deposit.slippage_auto')).toBeTruthy(); // Default slippage
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('perps.deposit.slippage_auto')).toBeTruthy();
+    });
+
+    it('should display auto slippage when slippage is undefined', () => {
+      mockUseSelector.mockReturnValue(undefined);
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('perps.deposit.slippage_auto')).toBeTruthy();
+    });
+
+    it('should display custom slippage percentage when provided', () => {
+      mockUseSelector.mockReturnValue(0.5);
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('0.5%')).toBeTruthy();
+    });
+
+    it('should handle zero slippage correctly', () => {
+      mockUseSelector.mockReturnValue(0);
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('0%')).toBeTruthy();
+    });
+
+    it('should handle various slippage values correctly', () => {
+      const slippageValues = [0.1, 0.5, 1, 2.5, 5, 10];
+
+      slippageValues.forEach((slippage) => {
+        mockUseSelector.mockReturnValue(slippage);
+
+        const { getByText, unmount } = renderWithProvider(
+          <PerpsQuoteDetailsCard {...defaultProps} />,
+        );
+
+        expect(getByText(`${slippage}%`)).toBeTruthy();
+        unmount();
+      });
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to slippage modal when edit button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const editButton = getByTestId('edit-slippage-button');
+      fireEvent.press(editButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
+      });
+    });
+
+    it('should call navigation only once per button press', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const editButton = getByTestId('edit-slippage-button');
+      fireEvent.press(editButton);
+      fireEvent.press(editButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('Component Structure', () => {
+    it('should render slippage button with correct testID', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const slippageButton = getByTestId('edit-slippage-button');
+      expect(slippageButton).toBeTruthy();
+    });
+
+    it('should render component without crashing', () => {
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
+    });
+  });
+
+  describe('Props Validation', () => {
+    it('should handle empty string values', () => {
+      const props = {
+        networkFee: '',
+        rate: '',
+        metamaskFee: '',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
+      expect(getByText('perps.deposit.rate')).toBeTruthy();
+      expect(getByText('perps.deposit.metamask_fee')).toBeTruthy();
+    });
+
+    it('should handle special characters in values', () => {
+      const props = {
+        networkFee: '$0.25 + fees',
+        rate: '1 USDC ≈ 1 USDC',
+        metamaskFee: '~$0.00',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('$0.25 + fees')).toBeTruthy();
+      expect(getByText('1 USDC ≈ 1 USDC')).toBeTruthy();
+      expect(getByText('~$0.00')).toBeTruthy();
+    });
+
+    it('should handle long text values', () => {
+      const props = {
+        networkFee: 'Very long network fee description that might wrap',
+        rate: 'Long rate description with many details about the conversion',
+        estimatedTime: 'This is a very long estimated time description',
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText(props.networkFee)).toBeTruthy();
+      expect(getByText(props.rate)).toBeTruthy();
+      expect(getByText(props.estimatedTime)).toBeTruthy();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle navigation errors gracefully', () => {
+      mockUseNavigation.mockReturnValue({
+        navigate: jest.fn(() => {
+          throw new Error('Navigation failed');
+        }),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const editButton = getByTestId('edit-slippage-button');
+
+      // Should throw when navigation fails
+      expect(() => fireEvent.press(editButton)).toThrow('Navigation failed');
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper testID for slippage button', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const slippageButton = getByTestId('edit-slippage-button');
+      expect(slippageButton).toBeTruthy();
+    });
+
+    it('should handle button press interactions', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      const editButton = getByTestId('edit-slippage-button');
+      fireEvent.press(editButton);
+
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+  });
+
+  describe('Integration', () => {
+    it('should work with all features together', () => {
+      mockUseSelector.mockReturnValue(2.5);
+
+      const props = {
+        networkFee: '$0.75',
+        estimatedTime: '3-4 minutes',
+        rate: '1 ETH = 2500 USDC',
+        metamaskFee: '$3.50',
+      };
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      // Check all values are displayed
+      expect(getByText('$0.75')).toBeTruthy();
+      expect(getByText('3-4 minutes')).toBeTruthy();
+      expect(getByText('1 ETH = 2500 USDC')).toBeTruthy();
+      expect(getByText('$3.50')).toBeTruthy();
+      expect(getByText('2.5%')).toBeTruthy();
+
+      // Check navigation works
+      const editButton = getByTestId('edit-slippage-button');
+      fireEvent.press(editButton);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
+      });
+    });
   });
 });
