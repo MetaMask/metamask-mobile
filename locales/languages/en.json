@@ -586,6 +586,12 @@
       "agreement_text_part2": ".",
       "button": "Get started"
     },
+    "additional_verification": {
+      "title": "Additional Verification",
+      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
+      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
+      "button": "Continue"
+    },
     "basic_info": {
       "title": "Enter your basic info",
       "continue": "Continue",
