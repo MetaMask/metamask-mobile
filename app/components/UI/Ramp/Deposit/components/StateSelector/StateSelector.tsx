@@ -57,10 +57,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
       </Label>
       <View style={styles.selectorContainer}>
         <TouchableOpacity
-          style={[
-            styles.selectorTouchable,
-            error && { borderColor: theme.colors.error.default },
-          ]}
+          style={styles.selectorTouchable}
           onPress={handlePress}
           activeOpacity={0.7}
           testID={testID}
