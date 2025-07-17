@@ -95,9 +95,7 @@ describe('Utilities.executeWithRetry', () => {
       expect(loggerSpy).toHaveBeenCalledWith(
         '⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
       );
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '🔍 Error: First failure',
-      );
+      expect(loggerSpy).toHaveBeenCalledWith('🔍 Error: First failure');
     });
 
     it('should handle missing elemDescription in retry messages', async () => {
