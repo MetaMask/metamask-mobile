@@ -1,14 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 
 export type NotificationListStyles = ReturnType<typeof createStyles>;
 
-export const createStyles = ({ colors, typography }: Theme) =>
+export const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
