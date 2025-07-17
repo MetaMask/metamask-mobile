@@ -18,35 +18,47 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
   });
 
   it('should toggle balance visibility when balance container is tapped', async (): Promise<void> => {
-
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork()
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
           .withETHAsPrimaryCurrency() // Set primary currency to ETH
           .build(),
         restartDevice: true,
       },
       async (): Promise<void> => {
-
         await loginToApp();
         await Assertions.checkIfVisible(WalletView.container);
         await Assertions.checkIfVisible(WalletView.totalBalance);
         const actualBalance: string = await WalletView.getBalanceText();
         if (!actualBalance.includes('ETH')) {
-          throw new Error(`Expected balance to contain 'ETH', but got: ${actualBalance}`);
+          throw new Error(
+            `Expected balance to contain 'ETH', but got: ${actualBalance}`,
+          );
         }
         if (actualBalance.includes('••••')) {
-          throw new Error(`Expected balance to not be hidden, but got: ${actualBalance}`);
+          throw new Error(
+            `Expected balance to not be hidden, but got: ${actualBalance}`,
+          );
         }
         await WalletView.hideBalance();
-        await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
+        await Assertions.checkIfElementToHaveText(
+          WalletView.totalBalance,
+          EXPECTED_HIDDEN_BALANCE,
+        );
         await TabBarComponent.tapSettings();
         await TabBarComponent.tapWallet();
         await Assertions.checkIfVisible(WalletView.container);
         await Assertions.checkIfVisible(WalletView.totalBalance);
-        await Assertions.checkIfElementToHaveText(WalletView.totalBalance, EXPECTED_HIDDEN_BALANCE);
+        await Assertions.checkIfElementToHaveText(
+          WalletView.totalBalance,
+          EXPECTED_HIDDEN_BALANCE,
+        );
         await WalletView.showBalance();
-        await Assertions.checkIfElementToHaveText(WalletView.totalBalance, actualBalance);
+        await Assertions.checkIfElementToHaveText(
+          WalletView.totalBalance,
+          actualBalance,
+        );
       },
     );
   });

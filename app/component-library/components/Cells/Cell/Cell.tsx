@@ -14,7 +14,9 @@ import { CellProps, CellVariant } from './Cell.types';
 const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {
     case CellVariant.Display:
-      return <CellDisplay testID={CellComponentSelectorsIDs.DISPLAY} {...props} />;
+      return (
+        <CellDisplay testID={CellComponentSelectorsIDs.DISPLAY} {...props} />
+      );
     case CellVariant.MultiSelect:
       return (
         <CellMultiSelect
@@ -23,7 +25,9 @@ const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
         />
       );
     case CellVariant.Select:
-      return <CellSelect testID={CellComponentSelectorsIDs.SELECT} {...props} />;
+      return (
+        <CellSelect testID={CellComponentSelectorsIDs.SELECT} {...props} />
+      );
     case CellVariant.SelectWithMenu:
       return (
         <CellSelectWithMenu
