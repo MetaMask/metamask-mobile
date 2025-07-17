@@ -925,7 +925,7 @@ const App: React.FC = () => {
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated(true);
+        await Authentication.checkIsSeedlessPasswordOutdated();
       }
     },
     {
