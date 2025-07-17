@@ -41,7 +41,7 @@ const WalletHome: React.FC = () => {
   const tw = useTailwind();
 
   return (
-    <ScrollView style={tw`flex-1 bg-default`}>
+    <ScrollView style={tw`flex-1 bg-default bg-primary-default`}>
       {/* Container */}
       <Box twClassName="w-full bg-default py-4">
         {/* Header */}
