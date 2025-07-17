@@ -1,6 +1,5 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
-import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   AnvilManager,
   Hardfork,
@@ -21,7 +20,6 @@ import TestHelpers from '../../helpers';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
-
 import {
   LocalNodeConfig,
   LocalNodeOptionsInput,
@@ -36,6 +34,8 @@ import {
   DappVariants,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
+import FixtureBuilder from './FixtureBuilder';
+import { logger } from '../logger';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -62,6 +62,7 @@ const isFixtureServerStarted = async () => {
  * @param dappServer - The dapp server to start.
  */
 async function handleDapps(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
+  logger.debug(`Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`);
   const dappBasePort = getLocalTestDappPort();
   for (let i = 0; i < dapps.length; i++) {
     const dapp = dapps[i];
@@ -114,6 +115,7 @@ async function handleSmartContracts(
   localNodeConfig: LocalNodeConfig,
   localNode: LocalNode,
 ): Promise<ContractAddressRegistry | undefined> {
+  logger.debug(`Deploying smart contracts: ${smartContracts.join(', ')}`);
   let seeder;
   let contractRegistry;
   if (smartContracts && smartContracts.length > 0) {
@@ -152,6 +154,7 @@ async function handleSmartContracts(
 async function handleLocalNodes(
   localNodeOptions: LocalNodeOptionsInput,
 ): Promise<LocalNode[]> {
+  logger.debug(`Starting local nodes: ${localNodeOptions.map((node) => node.type).join(', ')}`);
   try {
     let localNode;
     const localNodes = [];
@@ -183,7 +186,7 @@ async function handleLocalNodes(
     }
     return localNodes;
   } catch (error) {
-    console.error(error);
+    logger.error('Error in handleLocalNodes:', error);
     throw error;
   }
 }
@@ -193,6 +196,7 @@ async function handleLocalNodes(
  * @param localNodes - The local nodes to stop.
  */
 async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
+  logger.debug(`Stopping local nodes: ${localNodes.map((node) => node.constructor.name).join(', ')}`);
   for (const node of localNodes) {
     if (node) {
       await node.quit();
@@ -206,6 +210,7 @@ async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
  * @param dappServer - The dapp server to stop.
  */
 async function handleDappCleanup(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
+  logger.debug(`Stopping dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`);
   for (let i = 0; i < dapps.length; i++) {
     if (dappServer[i]?.listening) {
       await new Promise<void>((resolve, reject) => {
@@ -242,6 +247,7 @@ export const loadFixture = async (
 
   // Throws if state is not properly loaded
   if (response.status !== 200) {
+    logger.error('Not able to load fixtures');
     throw new Error('Not able to load fixtures');
   }
 };
@@ -249,26 +255,26 @@ export const loadFixture = async (
 // Start the fixture server
 export const startFixtureServer = async (fixtureServer: FixtureServer) => {
   if (await isFixtureServerStarted()) {
-    console.log('The fixture server has already been started');
+    logger.debug('The fixture server has already been started');
     return;
   }
 
   try {
     await fixtureServer.start();
-    console.log('The fixture server is started');
+    logger.debug('The fixture server is started');
   } catch (err) {
-    console.log('Fixture server error:', err);
+    logger.error('Fixture server error:', err);
   }
 };
 
 // Stop the fixture server
 export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   if (!(await isFixtureServerStarted())) {
-    console.log('The fixture server has already been stopped');
+    logger.debug('The fixture server has already been stopped');
     return;
   }
   await fixtureServer.stop();
-  console.log('The fixture server is stopped');
+  logger.debug('The fixture server is stopped');
 };
 
 /**
@@ -349,7 +355,7 @@ export async function withFixtures(
     // Start fixture server
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    console.log(
+    logger.debug(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
@@ -370,7 +376,7 @@ export async function withFixtures(
 
     await testSuite({ contractRegistry, mockServer, localNodes });
   } catch (error) {
-    console.error(error);
+    logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
     // Clean up all local nodes
