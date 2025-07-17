@@ -252,7 +252,6 @@ const ImportFromSecretRecoveryPhrase = ({
         // no focus on any input
         setSeedPhraseInputFocusedIndex(null);
         setNextSeedPhraseInputFocusedIndex(null);
-
         Keyboard.dismiss();
       }
     },
@@ -672,7 +671,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   useEffect(() => {
-    if (!nextSeedPhraseInputFocusedIndex) return;
+    if (nextSeedPhraseInputFocusedIndex === null) return;
 
     const refElement = seedPhraseInputRefs.current.get(
       nextSeedPhraseInputFocusedIndex,
@@ -787,11 +786,11 @@ const ImportFromSecretRecoveryPhrase = ({
                             key={`seed-phrase-item-${uniqueId}-${index}`}
                             ref={(ref) => {
                               const inputRefs = getSeedPhraseInputRef();
-                              inputRefs.set(index, ref);
-
-                              return () => {
+                              if (ref) {
+                                inputRefs.set(index, ref);
+                              } else {
                                 inputRefs.delete(index);
-                              };
+                              }
                             }}
                             startAccessory={
                               !isFirstInput && (
