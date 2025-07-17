@@ -242,7 +242,7 @@
     "@metamask/snaps-sdk": "^8.1.0",
     "@metamask/snaps-utils": "^10.1.0",
     "@metamask/solana-wallet-snap": "^1.34.0",
-    "@metamask/solana-wallet-standard": "^0.5.0",
+    "@metamask/solana-wallet-standard": "^0.5.1",
     "@metamask/stake-sdk": "^3.2.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.2.0",
