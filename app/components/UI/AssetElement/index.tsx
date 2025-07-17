@@ -37,7 +37,6 @@ const createStyles = (colors: Colors) =>
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 16,
       height: 64,
       alignItems: 'center',
     },

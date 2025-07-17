@@ -27,6 +27,7 @@ import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewM
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
+import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import useAnalytics from '../../hooks/useAnalytics';
 
@@ -431,6 +432,12 @@ export const useDepositRouting = ({
           ssnKycForm && selectedRegion?.isoCode === 'US';
 
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+          trackEvent('RAMPS_KYC_STARTED', {
+            ramp_type: 'DEPOSIT',
+            kyc_type: forms?.kycType || '',
+            region: selectedRegion?.isoCode || '',
+          });
+
           navigateToBasicInfoCallback({
             quote,
             kycUrl: idProofData?.data?.kycUrl,
@@ -462,6 +469,7 @@ export const useDepositRouting = ({
       clearAuthToken,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
+      trackEvent,
       navigateToAdditionalVerificationCallback,
     ],
   );
