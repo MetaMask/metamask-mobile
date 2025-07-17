@@ -1400,17 +1400,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           )}`,
         );
 
-        const newOrigin = new URLParse(url).origin;
-        const currentOrigin = new URLParse(resolvedUrlRef.current).origin;
-
-        // Reset bridge if origin changed
-        if (newOrigin !== currentOrigin) {
-          backgroundBridgeRef.current?.onDisconnect();
-          backgroundBridgeRef.current = undefined;
-          // Re-initialize for new origin
-          initializeBackgroundBridge(newOrigin, true);
-        }
-
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
           const payload = {
@@ -1427,7 +1416,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           });
         }
       },
-      [onLoadEnd, initializeBackgroundBridge],
+      [onLoadEnd],
     );
 
     // Don't render webview unless ready to load. This should save on performance for initial app start.
