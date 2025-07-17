@@ -28,6 +28,7 @@ import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderP
 import { useDepositSDK } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
+import useAnalytics from '../../hooks/useAnalytics';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -43,6 +44,7 @@ export const useDepositRouting = ({
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
+  const trackEvent = useAnalytics();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -229,6 +231,22 @@ export const useDepositRouting = ({
 
               await handleNewOrder(processedOrder);
 
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: 0, //Number(order.gasFee),
+                processing_fee: 0, //Number(order.processingFee),
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod,
+                country: selectedRegion?.isoCode || '',
+                chain_id: cryptoCurrency?.chainId || '',
+                currency_destination:
+                  selectedWalletAddress || order.walletAddress,
+                currency_source: order.fiatCurrency,
+              });
+
               navigateToOrderProcessingCallback({
                 orderId: order.id,
               });
@@ -250,6 +268,8 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      selectedRegion?.isoCode,
+      trackEvent,
     ],
   );
 

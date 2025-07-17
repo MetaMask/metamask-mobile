@@ -24,6 +24,14 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import useAnalytics from '../../../hooks/useAnalytics';
+import { useDepositSDK } from '../../sdk';
+import {
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
+
 export interface OrderProcessingParams {
   orderId: string;
 }
@@ -38,6 +46,8 @@ const OrderProcessing = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
+  const trackEvent = useAnalytics();
+  const { selectedWalletAddress, selectedRegion } = useDepositSDK();
 
   const handleMainAction = useCallback(() => {
     if (
@@ -74,6 +84,64 @@ const OrderProcessing = () => {
       navigation.navigate(Routes.WALLET.HOME);
     }
   }, [order?.state, navigation, orderId]);
+
+  useEffect(() => {
+    if (!order) return;
+
+    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
+        const cryptoCurrency = getCryptoCurrencyFromTransakId(
+          (order.data as DepositOrder).cryptoCurrency,
+        );
+
+        trackEvent('RAMPS_TRANSACTION_COMPLETED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: Number(order.data.fiatAmount),
+          amount_destination: Number(order.cryptoAmount),
+          exchange_rate: Number(order.data.exchangeRate),
+          gas_fee: 0, // Number(order.data.gasFee),
+          processing_fee: 0, // Number(order.data.processingFee),
+          total_fee: Number(order.data.totalFeesFiat),
+          payment_method_id: order.data.paymentMethod,
+          country: selectedRegion?.isoCode || '',
+          chain_id: cryptoCurrency?.chainId || '',
+          currency_destination:
+            selectedWalletAddress || order.data.walletAddress,
+          currency_source: order.data.fiatCurrency,
+        });
+      }
+    } else if (order.state === FIAT_ORDER_STATES.FAILED) {
+      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
+        const cryptoCurrency = getCryptoCurrencyFromTransakId(
+          (order.data as DepositOrder).cryptoCurrency,
+        );
+
+        trackEvent('RAMPS_TRANSACTION_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: Number(order.data.fiatAmount),
+          amount_destination: Number(order.cryptoAmount),
+          exchange_rate: Number(order.data.exchangeRate),
+          gas_fee: 0, // Number(order.data.gasFee),
+          processing_fee: 0, // Number(order.data.processingFee),
+          total_fee: Number(order.data.totalFeesFiat),
+          payment_method_id: (order.data as DepositOrder).paymentMethod,
+          country: selectedRegion?.isoCode || '',
+          chain_id: cryptoCurrency?.chainId || '',
+          currency_destination:
+            selectedWalletAddress || (order.data as DepositOrder).walletAddress,
+          currency_source: (order.data as DepositOrder).fiatCurrency,
+          error_message: 'transaction_failed', // TODO: Get error message from order
+        });
+      }
+    }
+  }, [
+    order,
+    navigation,
+    orderId,
+    trackEvent,
+    selectedWalletAddress,
+    selectedRegion,
+  ]);
 
   if (!order) {
     return (
