@@ -2,6 +2,7 @@ import { ImageSourcePropType } from 'react-native';
 import { createSelector } from 'reselect';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
+  MULTICHAIN_NETWORK_TICKER,
   MultichainNetworkControllerState,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
@@ -42,39 +43,46 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       {
         decimals: number;
         imageSource: ImageSourcePropType;
-        isTestnet?: boolean;
+        ticker: string;
+        isTestnet: boolean;
         name?: string;
       }
     > = {
       [SolScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[SolScope.Mainnet],
         imageSource: imageIcons.SOLANA,
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: false,
       },
       [BtcScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Mainnet],
         imageSource: imageIcons.BTC,
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: false,
       },
       [BtcScope.Testnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet],
         imageSource: imageIcons['BTC-TESTNET'],
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: true,
       },
       [BtcScope.Testnet4]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet4],
         imageSource: imageIcons['BTC-TESTNET'],
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: true,
       },
       [BtcScope.Signet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Signet],
         imageSource: imageIcons['BTC-MUTINYNET'],
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: true,
         name: 'Bitcoin Mutinynet',
       },
       [BtcScope.Regtest]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Regtest],
         imageSource: imageIcons['BTC-TESTNET'],
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: true,
       },
     };
@@ -152,7 +160,7 @@ export const selectSelectedNonEvmNetworkSymbol = createSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   (selectedMultichainNetworkChainId, nonEvmNetworkConfigurationsByChainId) =>
     nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId]
-      ?.nativeCurrency,
+      ?.ticker,
 );
 
 export const selectNetworksWithActivity = createSelector(
