@@ -156,6 +156,7 @@ const ImportPrivateKey = () => {
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
             style={styles.navbarRightButton}
+            testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
           />
           <View style={styles.top}>
             <Icon

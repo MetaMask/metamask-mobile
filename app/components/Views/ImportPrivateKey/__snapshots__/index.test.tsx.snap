@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImportPrivateKey should render correctly 1`] = `
+exports[`ImportPrivateKey render matches snapshot 1`] = `
 <View
   style={
     {
@@ -395,6 +395,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   "width": 32,
                                 }
                               }
+                              testID="close-button-on-account-screen"
                             >
                               <SvgMock
                                 color="#121314"
@@ -475,7 +476,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.
+                                  Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -490,8 +491,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Learn more about imported accounts
-                                   
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -504,8 +503,10 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    here.
+                                    Learn more
+                                     
                                   </Text>
+                                  about how imported keys work.
                                 </Text>
                               </View>
                             </View>
