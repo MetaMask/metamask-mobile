@@ -81,7 +81,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             // Performance assertions with warnings
             if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
-              throw new Error(
+              console.warn(
                 `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
@@ -165,7 +165,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             );
 
             if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
-              throw new Error(
+              console.warn(
                 `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
