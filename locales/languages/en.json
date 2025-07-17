@@ -449,7 +449,7 @@
     "paste": "Paste",
     "hide_all": "Hide all",
     "srp": "Secret Recovery Phrase",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
     "create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
@@ -542,6 +542,7 @@
       "buy_crypto": "Buy Crypto"
     },
     "get_started": {
+      "navbar_title": "Deposit",
       "title": "Starting is easy with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
       "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
@@ -552,9 +553,9 @@
       "button": "Get started"
     },
     "enter_email": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your email",
-      "description": "We'll send a six-digit code to your email to check it's you.",
-      "input_label": "Email",
+      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
@@ -562,8 +563,9 @@
       "error": "An error occurred while sending the email"
     },
     "otp_code": {
+      "navbar_title": "Verify your identity",
       "title": "Enter six-digit code",
-      "description": "Enter the 6-digit code we sent to {{email}}. If you don't see it in your inbox, check your spam folder.",
+      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
@@ -583,14 +585,14 @@
       "description_2_transak": "Transak",
       "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
       "description_3_part1": "Check out our ",
-      "description_3_privacy_policy": "Privacy Policy",
+      "description_3_privacy_policy": "privacy policy",
       "description_3_part2": " to learn more.",
       "agreement_text_part1": "By clicking the button below, you agree to ",
       "agreement_text_transak_terms": "Transak's Terms of Use",
       "agreement_text_and": " and ",
       "agreement_text_privacy_policy": "Privacy Policy",
       "agreement_text_part2": ".",
-      "button": "Get started"
+      "button": "Agree and continue"
     },
     "additional_verification": {
       "title": "Additional Verification",
@@ -599,13 +601,14 @@
       "button": "Continue"
     },
     "basic_info": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your basic info",
       "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information.",
+      "subtitle": "Next, we need some basic information about you.",
       "first_name": "First Name",
       "last_name": "Last Name",
       "phone_number": "Phone Number",
-      "date_of_birth": "Date of Birth",
+      "date_of_birth": "Date of birth",
       "social_security_number": "Social Security Number",
       "enter_phone_number": "Enter phone number",
       "select_region": "Select region",
@@ -620,8 +623,9 @@
       "ssn_required": "Social security number is required"
     },
     "enter_address": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your address",
-      "subtitle": "Please enter your most recent permanent address.",
+      "subtitle": "Use your most recent permanent address.",
       "continue": "Continue",
       "address_line_1": "Address line 1",
       "address_line_2": "Address line 2 (optional)",
@@ -646,14 +650,14 @@
       "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!",
+      "navbar_title": "Verify your identity",
+      "heading": "Hang tight...",
       "description": "This should only take about 2 minutes.",
       "error_heading": "We were unable to verify your identity.",
       "error_description": "Try uploading your documents again and resubmit for verification.",
       "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_heading": "You're verified",
+      "success_description": "Now you can complete your deposit.",
       "success_button": "Complete your order"
     },
     "provider_webview": {
@@ -691,8 +695,8 @@
       "error_message": "An unexpected error occurred."
     },
     "bank_details": {
-      "title": "{{paymentMethod}} bank transfer",
-      "button": "Transfer sent",
+      "navbar_title": "{{paymentMethod}} bank transfer",
+      "button": "Bank transfer sent",
       "button_cancel": "Cancel order",
       "main_title": "To complete your order",
       "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
