@@ -28,15 +28,15 @@ on:
         type: boolean
         default: true
 
-  # PR triggers
-  pull_request:
-    types: [opened, synchronize, reopened, labeled]
+  # PR triggers. Disabled so we don't run it for now
+#   pull_request:
+#     types: [opened, synchronize, reopened, labeled]
 
-  # Push triggers
-  push:
-    branches:
-      - main
-      - 'release/*'
+#   # Push triggers
+#   push:
+#     branches:
+#       - main
+#       - 'release/*'
 
 # Concurrency group to cancel in-progress runs
 concurrency:
