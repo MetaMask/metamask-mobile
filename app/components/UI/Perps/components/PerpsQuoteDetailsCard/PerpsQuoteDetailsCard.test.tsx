@@ -12,32 +12,54 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock KeyValueRow component
-jest.mock('../../../../../component-library/components-temp/KeyValueRow', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ field, value }: { field: { label?: { text?: string } | React.ReactNode }; value: { label: { text: string } } }) => {
-      const labelText = typeof field.label === 'object' && field.label && 'text' in field.label ? field.label.text : field.label;
-      return (
-        <View testID="key-value-row">
-          {typeof labelText === 'string' ? <Text>{labelText}</Text> : labelText}
-          <Text>{value.label.text}</Text>
-        </View>
-      );
-    },
-    TooltipSizes: {
-      Sm: 'Sm',
-    },
-  };
-});
+jest.mock(
+  '../../../../../component-library/components-temp/KeyValueRow',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        field,
+        value,
+      }: {
+        field: { label?: { text?: string } | React.ReactNode };
+        value: { label: { text: string } };
+      }) => {
+        const labelText =
+          typeof field.label === 'object' &&
+          field.label &&
+          'text' in field.label
+            ? field.label.text
+            : field.label;
+        return (
+          <View testID="key-value-row">
+            {typeof labelText === 'string' ? (
+              <Text>{labelText}</Text>
+            ) : (
+              labelText
+            )}
+            <Text>{value.label.text}</Text>
+          </View>
+        );
+      },
+      TooltipSizes: {
+        Sm: 'Sm',
+      },
+    };
+  },
+);
 
 // Mock Box component
 jest.mock('../../../Box/Box', () => {
   const { View } = jest.requireActual('react-native');
   return {
-    Box: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <View {...props}>{children}</View>
-    ),
+    Box: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => <View {...props}>{children}</View>,
   };
 });
 
@@ -74,7 +96,9 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <Text>{children}</Text>,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <Text>{children}</Text>
+    ),
     TextVariant: {
       BodyMDMedium: 'TextVariant.BodyMDMedium',
       BodyMD: 'TextVariant.BodyMD',
@@ -120,7 +144,9 @@ describe('PerpsQuoteDetailsCard', () => {
       metamaskFee: '$5.00',
     };
 
-    const { getByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+    const { getByText } = renderWithProvider(
+      <PerpsQuoteDetailsCard {...props} />,
+    );
 
     expect(getByText('perps.deposit.network_fee')).toBeTruthy();
     expect(getByText('$0.25')).toBeTruthy();
@@ -139,7 +165,9 @@ describe('PerpsQuoteDetailsCard', () => {
       rate: '1 USDC = 1 USDC',
     };
 
-    const { queryByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+    const { queryByText } = renderWithProvider(
+      <PerpsQuoteDetailsCard {...props} />,
+    );
 
     expect(queryByText('perps.deposit.estimated_time')).toBeNull();
   });
@@ -150,7 +178,9 @@ describe('PerpsQuoteDetailsCard', () => {
       rate: '1 USDC = 1 USDC',
     };
 
-    const { getByText } = renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+    const { getByText } = renderWithProvider(
+      <PerpsQuoteDetailsCard {...props} />,
+    );
 
     expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
   });

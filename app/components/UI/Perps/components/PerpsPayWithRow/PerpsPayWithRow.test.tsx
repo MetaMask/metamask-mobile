@@ -35,47 +35,56 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
   },
 }));
 
-jest.mock('../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken', () => ({
-  __esModule: true,
-  default: ({ name, imageSource, size }: any) => {
-    const { View, Text } = require('react-native');
-    return (
-      <View testID="avatar-token">
-        <Text>{name}</Text>
-      </View>
-    );
-  },
-}));
+jest.mock(
+  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => ({
+    __esModule: true,
+    default: ({ name, imageSource, size }: any) => {
+      const { View, Text } = require('react-native');
+      return (
+        <View testID="avatar-token">
+          <Text>{name}</Text>
+        </View>
+      );
+    },
+  }),
+);
 
 // Mock BadgeNetwork
-jest.mock('../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork', () => ({
-  __esModule: true,
-  default: ({ name, imageSource }: any) => {
-    const { View, Text } = require('react-native');
-    return (
-      <View testID="badge-network">
-        <Text>{name}</Text>
-      </View>
-    );
-  },
-}));
+jest.mock(
+  '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
+  () => ({
+    __esModule: true,
+    default: ({ name, imageSource }: any) => {
+      const { View, Text } = require('react-native');
+      return (
+        <View testID="badge-network">
+          <Text>{name}</Text>
+        </View>
+      );
+    },
+  }),
+);
 
 // Mock BadgeWrapper
-jest.mock('../../../../../component-library/components/Badges/BadgeWrapper', () => ({
-  __esModule: true,
-  default: ({ children, badgeElement }: any) => {
-    const { View } = require('react-native');
-    return (
-      <View testID="badge-wrapper">
-        {children}
-        {badgeElement}
-      </View>
-    );
-  },
-  BadgePosition: {
-    BottomRight: 'BottomRight',
-  },
-}));
+jest.mock(
+  '../../../../../component-library/components/Badges/BadgeWrapper',
+  () => ({
+    __esModule: true,
+    default: ({ children, badgeElement }: any) => {
+      const { View } = require('react-native');
+      return (
+        <View testID="badge-wrapper">
+          {children}
+          {badgeElement}
+        </View>
+      );
+    },
+    BadgePosition: {
+      BottomRight: 'BottomRight',
+    },
+  }),
+);
 
 // Mock Icon
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
@@ -101,16 +110,19 @@ jest.mock('../../../../../component-library/components/List/ListItem', () => ({
   },
 }));
 
-jest.mock('../../../../../component-library/components/List/ListItemColumn', () => ({
-  __esModule: true,
-  default: ({ children, widthType }: any) => {
-    const { View } = require('react-native');
-    return <View testID="list-item-column">{children}</View>;
-  },
-  WidthType: {
-    Fill: 'Fill',
-  },
-}));
+jest.mock(
+  '../../../../../component-library/components/List/ListItemColumn',
+  () => ({
+    __esModule: true,
+    default: ({ children, widthType }: any) => {
+      const { View } = require('react-native');
+      return <View testID="list-item-column">{children}</View>;
+    },
+    WidthType: {
+      Fill: 'Fill',
+    },
+  }),
+);
 
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
