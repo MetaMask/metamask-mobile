@@ -18,6 +18,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(200000);
+    await TestHelpers.reverseServerPort();
     await TestHelpers.launchApp();
   });
 

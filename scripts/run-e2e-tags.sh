@@ -5,7 +5,7 @@ set -euo pipefail
 
 # Constants
 BASE_DIR="./e2e/specs"
-TEST_SUITE_TAG=".*GHMigration.*"
+TEST_SUITE_TAG=".*SmokeAccounts.*"
 
 echo "Searching for tests with pattern: $TEST_SUITE_TAG"
 

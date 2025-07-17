@@ -236,6 +236,9 @@ export async function withFixtures(options, testSuite) {
     permissions = {},
   } = options;
 
+  // GH Actions testing, this needs to be properly implemented
+  await TestHelpers.reverseServerPort();
+
   const fixtureServer = new FixtureServer();
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
