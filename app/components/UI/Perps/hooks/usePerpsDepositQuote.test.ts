@@ -10,6 +10,7 @@ import { usePerpsDepositQuote } from './usePerpsDepositQuote';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import type { AssetRoute } from '../controllers/types';
 import type { RootState } from '../../../../reducers';
+import Engine from '../../../../core/Engine';
 
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -21,6 +22,18 @@ jest.mock('@metamask/utils', () => ({
 jest.mock(
   '../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
 );
+
+// Mock Engine and PerpsController
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getDepositRoutes: jest.fn(),
+    },
+    BridgeController: {
+      updateBridgeQuoteRequestParams: jest.fn(),
+    },
+  },
+}));
 
 // Mock I18n
 jest.mock('../../../../../locales/i18n', () => ({
@@ -40,12 +53,29 @@ jest.mock(
   }),
 );
 
+// Mock getTransaction1559GasFeeEstimates to be synchronous
+jest.mock('../../Swaps/utils/gas', () => ({
+  getTransaction1559GasFeeEstimates: jest.fn(() => Promise.resolve({
+    maxFeePerGas: '50',
+    maxPriorityFeePerGas: '2',
+  })),
+}));
+
+// Mock Bridge utils
+jest.mock('../../Bridge/utils/quoteUtils', () => ({
+  shouldRefreshQuote: jest.fn((_isExpired, refreshCount, maxRefreshCount, _willRefresh) =>
+    refreshCount < maxRefreshCount && !_isExpired
+  ),
+  isQuoteExpired: jest.fn((_willRefresh, refreshRate, quoteFetchedTime) =>
+    quoteFetchedTime && Date.now() - quoteFetchedTime > refreshRate
+  ),
+}));
+
 // Mock Date.now for consistent testing
 const mockNow = 123;
 jest.spyOn(Date, 'now').mockReturnValue(mockNow);
 
 describe('usePerpsDepositQuote', () => {
-  const mockGetDepositRoutes = jest.fn();
   const mockToken: PerpsToken = {
     address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     chainId: '0xa4b1',
@@ -162,11 +192,20 @@ describe('usePerpsDepositQuote', () => {
           },
         },
         MultichainNetworkController: {
-          selectedMultichainNetworkChainId: undefined, // Not applicable for EVM chains
+          selectedMultichainNetworkChainId: undefined,
         },
         TransactionController: {
           transactions: [],
           transactionBatches: [],
+        },
+        BridgeController: {
+          quotes: [],
+          quoteFetchError: null,
+        },
+        PerpsController: {
+          depositStatus: 'idle',
+          currentDepositTxHash: null,
+          depositError: null,
         },
       },
     },
@@ -175,7 +214,10 @@ describe('usePerpsDepositQuote', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetDepositRoutes.mockReturnValue(mockRoutes);
+
+    // Mock Engine methods
+    (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue(mockRoutes);
+
     (parseCaipAssetId as jest.Mock).mockReturnValue({
       chainId: 'eip155:42161',
       assetNamespace: 'erc20',
@@ -192,7 +234,6 @@ describe('usePerpsDepositQuote', () => {
     it('should return initial state when amount is zero', () => {
       const state = createMockState();
 
-      // Need to ensure parseCaipChainId returns the correct format
       (parseCaipChainId as jest.Mock).mockReturnValue({
         reference: '42161',
         namespace: 'eip155',
@@ -203,7 +244,6 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '0',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
@@ -211,16 +251,19 @@ describe('usePerpsDepositQuote', () => {
       expect(result.current).toEqual({
         formattedQuoteData: {
           networkFee: '-',
-          estimatedTime: '15-30 seconds', // Now has proper gas estimates
-          receivingAmount: '0.00',
+          estimatedTime: '',
+          receivingAmount: '0.00 USDC',
           exchangeRate: undefined,
         },
         isLoading: false,
         quoteFetchError: null,
-        lastRefreshTime: mockNow,
+        quoteFetchedTime: null,
+        isExpired: null,
+        willRefresh: true,
+        refreshQuote: expect.any(Function),
+        hasValidQuote: false,
+        bridgeQuote: null,
       });
-      // Note: getDepositRoutes is called by getEstimatedTime even with 0 amount
-      expect(mockGetDepositRoutes).toHaveBeenCalled();
     });
 
     it('should return initial state when no token is selected', () => {
@@ -231,23 +274,24 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: undefined as unknown as PerpsToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current).toEqual({
-        formattedQuoteData: {
-          networkFee: '-',
-          estimatedTime: '',
-          receivingAmount: '0.00',
-          exchangeRate: undefined,
-        },
-        isLoading: false,
-        quoteFetchError: null,
-        lastRefreshTime: mockNow,
+      expect(result.current.formattedQuoteData).toEqual({
+        networkFee: 'perps.deposit.calculating_fee',
+        estimatedTime: '',
+        receivingAmount: '0.00 USDC',
+        exchangeRate: undefined,
       });
-      expect(mockGetDepositRoutes).not.toHaveBeenCalled();
+
+      expect(result.current.quoteFetchError).toBeNull();
+      expect(result.current.quoteFetchedTime).toBeNull();
+      expect(result.current.isExpired).toBe(null);
+      expect(result.current.willRefresh).toBe(true);
+      expect(result.current.refreshQuote).toEqual(expect.any(Function));
+      expect(result.current.hasValidQuote).toBe(false);
+      expect(result.current.bridgeQuote).toBeNull();
     });
 
     it('should calculate quote data for valid inputs', () => {
@@ -258,17 +302,15 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(mockGetDepositRoutes).toHaveBeenCalled();
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         '100.00 USDC',
       );
-      // Since we don't mock getTransaction1559GasFeeEstimates, networkFee will be '-'
-      expect(result.current.formattedQuoteData.networkFee).toBe('-');
+      // Initially shows calculating state for direct deposits
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
   });
 
@@ -281,7 +323,6 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
@@ -289,10 +330,13 @@ describe('usePerpsDepositQuote', () => {
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         '100.00 USDC',
       );
+      // Initially shows calculating state for direct deposits
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
 
     it('should handle no matching route', () => {
-      mockGetDepositRoutes.mockReturnValue([]);
+      (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue([]);
+
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
@@ -300,12 +344,12 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current.formattedQuoteData.networkFee).toBe('-');
+      // Still shows calculating state even without routes for direct deposits
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
 
     it('should handle different chain IDs', () => {
@@ -325,12 +369,11 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: differentChainToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current.formattedQuoteData.networkFee).toBe('-');
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
   });
 
@@ -343,14 +386,13 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBeDefined();
-      // The hook uses async getTransaction1559GasFeeEstimates which isn't mocked, so fee stays '-'
-      expect(result.current.formattedQuoteData.networkFee).toBe('-');
+      // Initially shows calculating state
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
 
     it('should handle missing gas fee estimates', () => {
@@ -365,12 +407,12 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current.formattedQuoteData.networkFee).toBe('-');
+      // Still shows calculating initially even with missing estimates
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
     });
 
     it('should handle legacy gas estimates', () => {
@@ -388,7 +430,6 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
@@ -409,30 +450,26 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current).toEqual({
-        formattedQuoteData: {
-          networkFee: '-',
-          estimatedTime: '',
-          receivingAmount: '100.00 USDC', // Still shows amount as it doesn't depend on parseCaipAssetId
-          exchangeRate: undefined,
-        },
-        isLoading: false,
-        quoteFetchError: null,
-        lastRefreshTime: mockNow,
+      expect(result.current.formattedQuoteData).toEqual({
+        networkFee: 'perps.deposit.calculating_fee', // Shows calculating initially
+        estimatedTime: '3-5 seconds',
+        receivingAmount: '100.00 USDC',
+        exchangeRate: undefined,
       });
-      // The error is caught and logged
+      expect(result.current.isLoading).toBe(true); // Still loading when error occurs
+      expect(result.current.quoteFetchError).toBeNull();
       expect(DevLogger.log).toHaveBeenCalled();
     });
 
     it('should handle getDepositRoutes errors', () => {
-      mockGetDepositRoutes.mockImplementation(() => {
+      (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockImplementation(() => {
         throw new Error('Route fetch failed');
       });
+
       const state = createMockState();
 
       const { result } = renderHookWithProvider(
@@ -440,22 +477,14 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result.current).toEqual({
-        formattedQuoteData: {
-          networkFee: '-',
-          estimatedTime: '',
-          receivingAmount: '100.00 USDC',
-          exchangeRate: undefined,
-        },
-        isLoading: false,
-        quoteFetchError: null,
-        lastRefreshTime: mockNow,
-      });
+      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.estimatedTime).toBe('3-5 seconds');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
     });
   });
 
@@ -468,7 +497,6 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
@@ -478,12 +506,18 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      expect(result1.current).toEqual(result2.current);
+      expect(result1.current.formattedQuoteData).toEqual(result2.current.formattedQuoteData);
+      expect(result1.current.isLoading).toEqual(result2.current.isLoading);
+      expect(result1.current.quoteFetchError).toEqual(result2.current.quoteFetchError);
+      expect(result1.current.quoteFetchedTime).toEqual(result2.current.quoteFetchedTime);
+      expect(result1.current.isExpired).toEqual(result2.current.isExpired);
+      expect(result1.current.willRefresh).toEqual(result2.current.willRefresh);
+      expect(result1.current.hasValidQuote).toEqual(result2.current.hasValidQuote);
+      expect(result1.current.bridgeQuote).toEqual(result2.current.bridgeQuote);
     });
 
     it('should recalculate when amount changes', () => {
@@ -495,19 +529,16 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: currentAmount,
             selectedToken: mockToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      // Check initial amount (100)
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         '100.00 USDC',
       );
 
       const initialResult = { ...result.current };
 
-      // Change amount to 200
       currentAmount = '200';
       rerender({});
 
@@ -521,7 +552,6 @@ describe('usePerpsDepositQuote', () => {
 
     it('should recalculate when token changes', () => {
       const state = createMockState();
-      // Change to ETH which will have a different receivingAmount and exchangeRate
       const differentToken = {
         ...mockToken,
         symbol: 'ETH',
@@ -535,26 +565,22 @@ describe('usePerpsDepositQuote', () => {
           usePerpsDepositQuote({
             amount: '100',
             selectedToken: currentToken as PerpsToken,
-            getDepositRoutes: mockGetDepositRoutes,
           }),
         { state },
       );
 
-      // Initial token is USDC
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         '100.00 USDC',
       );
-      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined(); // USDC has no exchange rate
+      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
 
-      // Change token to ETH
       currentToken = differentToken;
       rerender({});
 
-      // ETH should show estimated USDC amount and have an exchange rate
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '~100.00 USDC',
+        '299995.00 USDC',
       );
-      expect(result.current.formattedQuoteData.exchangeRate).toBeDefined();
+      expect(result.current.formattedQuoteData.exchangeRate).toBe('1 ETH ≈ 3000.00 USDC');
     });
   });
 });

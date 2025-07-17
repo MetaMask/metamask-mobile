@@ -52,16 +52,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 // Mock hooks
 let mockUsePerpsDeposit = {
   status: 'depositing' as DepositStatus,
-  flowType: 'direct' as DepositFlowType,
-  steps: {
-    currentStep: 1,
-    totalSteps: 1,
-    stepNames: ['Depositing USDC to HyperLiquid'],
-    stepTxHashes: [],
-  },
   error: null as string | null,
   currentTxHash: null as string | null,
-  requiresModalDismissal: false,
 };
 
 jest.mock('../hooks', () => ({
@@ -348,7 +340,7 @@ describe('PerpsDepositProcessingView', () => {
       );
 
       expect(getByTestId('processing-animation')).toBeTruthy();
-      expect(getByText('Depositing USDC to HyperLiquid')).toBeTruthy();
+      expect(getByText('perps.deposit.steps.depositing')).toBeTruthy();
     });
 
     it('should show success status', () => {

@@ -32,16 +32,8 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current).toEqual({
         status: 'idle',
-        flowType: null,
         currentTxHash: null,
         error: null,
-        requiresModalDismissal: false,
-        steps: {
-          totalSteps: 0,
-          currentStep: 0,
-          stepNames: [],
-          stepTxHashes: [],
-        },
       });
     });
   });
@@ -77,17 +69,8 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current).toEqual({
         status: 'processing',
-        flowType: 'direct',
         currentTxHash: '0x123',
         error: null,
-        requiresModalDismissal: false,
-        steps: {
-          totalSteps: 1,
-          currentStep: 1,
-          stepNames: ['Depositing to HyperLiquid'],
-          stepTxHashes: ['0x123'],
-          currentStepName: 'Depositing to HyperLiquid',
-        },
       });
     });
 
@@ -121,7 +104,7 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current.status).toBe('error');
       expect(result.current.error).toBe('Transaction failed');
-      expect(result.current.requiresModalDismissal).toBe(true);
+      expect(result.current.currentTxHash).toBe(null);
     });
 
     it('should handle success state', () => {
@@ -179,16 +162,8 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current).toEqual({
         status: 'processing',
-        flowType: null,
         currentTxHash: null,
         error: null,
-        requiresModalDismissal: false,
-        steps: {
-          totalSteps: 0,
-          currentStep: 0,
-          stepNames: [],
-          stepTxHashes: [],
-        },
       });
     });
 
@@ -207,16 +182,8 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current).toEqual({
         status: 'idle',
-        flowType: null,
         currentTxHash: null,
         error: null,
-        requiresModalDismissal: false,
-        steps: {
-          totalSteps: 0,
-          currentStep: 0,
-          stepNames: [],
-          stepTxHashes: [],
-        },
       });
     });
   });
@@ -273,7 +240,6 @@ describe('usePerpsDeposit', () => {
         });
 
         expect(result.current.status).toBe(mockState.depositStatus);
-        expect(result.current.flowType).toBe(mockState.depositFlowType);
         if (mockState.currentDepositTxHash) {
           expect(result.current.currentTxHash).toBe(mockState.currentDepositTxHash);
         }
@@ -307,13 +273,7 @@ describe('usePerpsDeposit', () => {
       });
 
       expect(result.current.status).toBe('processing');
-      expect(result.current.flowType).toBe('swap');
-      expect(result.current.steps.totalSteps).toBe(2);
-      expect(result.current.steps.currentStep).toBe(1);
-      expect(result.current.steps.stepNames).toEqual([
-        'Swapping tokens',
-        'Depositing to HyperLiquid',
-      ]);
+      expect(result.current.currentTxHash).toBe('0x456');
     });
 
     it('should handle bridge flow with multiple steps', () => {
@@ -343,10 +303,7 @@ describe('usePerpsDeposit', () => {
       });
 
       expect(result.current.status).toBe('processing');
-      expect(result.current.flowType).toBe('bridge');
-      expect(result.current.steps.totalSteps).toBe(3);
-      expect(result.current.steps.currentStep).toBe(2);
-      expect(result.current.steps.stepTxHashes).toHaveLength(2);
+      expect(result.current.currentTxHash).toBe('0x789');
     });
   });
 
@@ -379,7 +336,6 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current.status).toBe('error');
       expect(result.current.error).toBe('Insufficient balance');
-      expect(result.current.requiresModalDismissal).toBe(true);
     });
 
     it('should handle network errors', () => {
@@ -410,8 +366,7 @@ describe('usePerpsDeposit', () => {
 
       expect(result.current.status).toBe('error');
       expect(result.current.error).toBe('Network connection failed');
-      expect(result.current.steps.currentStep).toBe(1);
-      expect(result.current.steps.stepTxHashes).toHaveLength(1);
+      expect(result.current.currentTxHash).toBe(null); // Error state should clear txHash
     });
   });
 });

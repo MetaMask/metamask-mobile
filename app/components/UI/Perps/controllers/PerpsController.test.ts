@@ -30,7 +30,11 @@ jest.mock('../constants/hyperLiquidConfig');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {
-      getSelectedAccount: jest.fn(),
+      getSelectedAccount: jest.fn().mockReturnValue({
+        address: '0x1234567890123456789012345678901234567890',
+        id: 'mock-account-id',
+        metadata: { name: 'Test Account' },
+      }),
     },
     NetworkController: {
       state: {
@@ -143,6 +147,9 @@ describe('PerpsController', () => {
       allowedEvents: [
         'AccountsController:selectedAccountChange' as never,
         'NetworkController:stateChange' as never,
+        'TransactionController:transactionSubmitted' as never,
+        'TransactionController:transactionConfirmed' as never,
+        'TransactionController:transactionFailed' as never,
       ],
     });
 
@@ -526,14 +533,15 @@ describe('PerpsController', () => {
           },
         ]);
 
-        // Mock validateDeposit to pass validation
+        // Mock validateDeposit to return error for unsupported route
         mockHyperLiquidProvider.validateDeposit.mockReturnValue({
-          isValid: true,
+          isValid: false,
+          error: 'Only direct deposits are currently supported',
         });
 
         await controller.initializeProviders();
 
-        // Mock the analyzeDepositRoute to throw error for unsupported assets
+        // Try to deposit with unsupported asset on chain ID 1 (mainnet) instead of 42161 (Arbitrum)
         const result = await controller.deposit({
           amount: '100',
           assetId:
