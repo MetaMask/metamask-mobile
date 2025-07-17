@@ -257,6 +257,7 @@ const BridgeView = () => {
     }
   }, [isError]);
 
+  // Keypad already handles max token decimals, so we don't need to check here
   const handleKeypadChange = ({
     value,
   }: {
@@ -445,6 +446,11 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
+            onMaxPress={() => {
+              if (latestSourceBalance?.displayBalance) {
+                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+              }
+            }}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
