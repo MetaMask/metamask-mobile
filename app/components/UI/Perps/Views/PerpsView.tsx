@@ -125,9 +125,9 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   useEffect(() => {
     // Only load account state if we're connected and initialized
     if (isConnected && isInitialized) {
-      getAccountState().catch(() => {
-        // Silent failure - error already handled in getAccountState
-      });
+      // Fire and forget - errors are already handled in getAccountState
+      // and stored in the controller's state
+      getAccountState();
     }
   }, [getAccountState, currentNetwork, isConnected, isInitialized]);
 
