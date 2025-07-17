@@ -487,6 +487,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2305,6 +2306,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -4123,6 +4125,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -5941,6 +5944,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -7736,6 +7740,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -9530,6 +9535,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -11325,6 +11331,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -13120,6 +13127,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"

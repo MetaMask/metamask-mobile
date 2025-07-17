@@ -44,6 +44,10 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 const verifyPopToBuildQuoteCalled = () => {
   expect(mockDispatch).toHaveBeenCalledWith(expect.any(Function));
   const dispatchCall = mockDispatch.mock.calls.find(
@@ -163,6 +167,8 @@ describe('useDepositRouting', () => {
     mockUseHandleNewOrder.mockReturnValue(
       jest.fn().mockResolvedValue(undefined),
     );
+
+    mockTrackEvent.mockClear();
 
     mockDispatch.mockImplementation((actionOrFunction) => {
       if (typeof actionOrFunction === 'function') {
@@ -403,7 +409,7 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should navigate to KYC webview when only idProof form is required', async () => {
+    it('should navigate to AdditionalVerification when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -426,12 +432,11 @@ describe('useDepositRouting', () => {
       });
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositKycWebviewModal',
-        params: {
-          quote: mockQuote,
-          sourceUrl: 'test-kyc-url',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith('AdditionalVerification', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
       });
     });
 
@@ -986,6 +991,54 @@ describe('useDepositRouting', () => {
           sourceUrl: 'test-url',
         },
       });
+    });
+  });
+
+  describe('Analytics tracking', () => {
+    it('tracks RAMPS_KYC_STARTED event when personalDetails form is required', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [{ id: 'personalDetails' }],
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+        region: 'US',
+      });
+    });
+
+    it('does not track analytics event when no KYC forms are required', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [],
+        kycType: 'NONE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 });

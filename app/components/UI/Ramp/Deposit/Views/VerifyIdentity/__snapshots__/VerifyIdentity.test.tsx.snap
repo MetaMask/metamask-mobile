@@ -464,7 +464,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                     }
                                     testID="privacy-policy-link-1"
                                   >
-                                    Privacy Policy
+                                    privacy policy
                                   </Text>
                                    to learn more.
                                 </Text>
@@ -569,7 +569,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                   }
                                 }
                               >
-                                Get started
+                                Agree and continue
                               </Text>
                             </TouchableOpacity>
                             <SvgMock

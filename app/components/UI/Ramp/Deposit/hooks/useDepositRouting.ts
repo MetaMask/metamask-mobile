@@ -27,6 +27,8 @@ import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewM
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
+import useAnalytics from '../../hooks/useAnalytics';
+import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -42,6 +44,7 @@ export const useDepositRouting = ({
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
+  const trackEvent = useAnalytics();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -185,6 +188,21 @@ export const useDepositRouting = ({
       );
     },
     [navigation, popToBuildQuote],
+  );
+
+  const navigateToAdditionalVerificationCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createAdditionalVerificationNavDetails({
+          quote,
+          kycUrl,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -395,16 +413,19 @@ export const useDepositRouting = ({
           ssnKycForm && selectedRegion?.isoCode === 'US';
 
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+          trackEvent('RAMPS_KYC_STARTED', {
+            ramp_type: 'DEPOSIT',
+            kyc_type: forms?.kycType || '',
+            region: selectedRegion?.isoCode || '',
+          });
+
           navigateToBasicInfoCallback({
             quote,
             kycUrl: idProofData?.data?.kycUrl,
           });
           return;
         } else if (idProofData?.data?.kycUrl) {
-          // should we show a welcome screen here?
-          // right now it is possible to go straight from build quote to verify identity
-          // jarring UX - camera access poppup right after build quote
-          navigateToKycWebviewCallback({
+          navigateToAdditionalVerificationCallback({
             quote,
             kycUrl: idProofData.data.kycUrl,
           });
@@ -427,9 +448,10 @@ export const useDepositRouting = ({
       handleApprovedKycFlow,
       submitPurposeOfUsage,
       clearAuthToken,
-      navigateToKycWebviewCallback,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
+      trackEvent,
+      navigateToAdditionalVerificationCallback,
     ],
   );
 
@@ -439,6 +461,8 @@ export const useDepositRouting = ({
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
     navigateToBasicInfo: navigateToBasicInfoCallback,
     navigateToEnterEmail: navigateToEnterEmailCallback,
+    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
+    navigateToKycProcessing: navigateToKycProcessingCallback,
     handleApprovedKycFlow,
   };
 };
