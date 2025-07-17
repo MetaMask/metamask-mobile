@@ -22,7 +22,6 @@ interface TokenPillProps {
 
 export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
   const { styles } = useStyles(styleSheet, {});
-
   const tokens = useTokensWithBalance({ chainIds: [chainId] });
 
   const token = tokens.find(
@@ -30,6 +29,10 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
       t.address.toLowerCase() === address.toLowerCase() &&
       t.chainId === chainId,
   );
+
+  if (!token) {
+    return null;
+  }
 
   const networkImageSource = getNetworkImageSource({
     chainId,
@@ -51,9 +54,14 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
           />
         }
       >
-        <TokenIcon icon={token?.image} symbol={token?.symbol} small />
+        <TokenIcon
+          testID="token-pill-icon"
+          icon={token?.image}
+          symbol={token?.symbol}
+          small
+        />
       </BadgeWrapper>
-      <Text>{token?.symbol}</Text>
+      <Text testID="token-pill-symbol">{token?.symbol}</Text>
     </Box>
   );
 };
