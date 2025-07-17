@@ -76,7 +76,7 @@ jest.mock('../../../util/address', () => ({
 }));
 
 jest.mock('../../../selectors/multichain', () => ({
-  selectSolanaAccountTransactions: jest.fn(() => ({
+  selectNonEvmTransactions: jest.fn(() => ({
     transactions: [],
     next: null,
     lastUpdated: 0,

@@ -246,10 +246,10 @@ const mapStateToProps = (state) => {
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type)
   ) {
-    const solanaTransactionData = selectNonEvmTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+    const nonEVMTransactions = selectNonEvmTransactions(state);
+    const txs = nonEVMTransactions?.transactions || [];
 
-    allTransactions = [...evmTransactions, ...solanaTransactions].sort(
+    allTransactions = [...evmTransactions, ...txs].sort(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     );
   }

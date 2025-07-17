@@ -57,32 +57,32 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       [BtcScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Mainnet],
         imageSource: imageIcons.BTC,
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
+        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Mainnet],
         isTestnet: false,
       },
       [BtcScope.Testnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet],
         imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
+        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet],
         isTestnet: true,
       },
       [BtcScope.Testnet4]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet4],
         imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
+        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet4],
         isTestnet: true,
       },
       [BtcScope.Signet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Signet],
         imageSource: imageIcons['BTC-MUTINYNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
+        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Signet],
         isTestnet: true,
         name: 'Bitcoin Mutinynet',
       },
       [BtcScope.Regtest]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Regtest],
         imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
+        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Regtest],
         isTestnet: true,
       },
     };
