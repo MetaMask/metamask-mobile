@@ -63,7 +63,7 @@ const BasicInfo = (): JSX.Element => {
     firstName: '',
     lastName: '',
     mobileNumber: '',
-    dob: new Date().getTime().toString(),
+    dob: new Date(2000, 0, 1).getTime().toString(),
     ssn: '',
   };
 

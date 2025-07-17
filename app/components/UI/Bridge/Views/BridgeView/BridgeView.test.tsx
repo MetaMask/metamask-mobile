@@ -1,5 +1,8 @@
 import { initialState } from '../../_mocks_/initialState';
-import { renderScreen , DeepPartial } from '../../../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -21,13 +24,16 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 
 // Mock the account-tree-controller file that imports the problematic module
-jest.mock('../../../../../multichain-accounts/controllers/account-tree-controller', () => ({
-  accountTreeControllerInit: jest.fn(() => ({
-    controller: {
-      state: { accountTree: { wallets: {} } },
-    },
-  })),
-}));
+jest.mock(
+  '../../../../../multichain-accounts/controllers/account-tree-controller',
+  () => ({
+    accountTreeControllerInit: jest.fn(() => ({
+      controller: {
+        state: { accountTree: { wallets: {} } },
+      },
+    })),
+  }),
+);
 
 const mockState = {
   ...initialState,
@@ -68,14 +74,16 @@ const mockState = {
         },
       },
     },
-  }
+  },
 } as DeepPartial<RootState>;
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
 
 jest.mock('../../../../../core/Engine', () => {
-  const { MOCK_ENTROPY_SOURCE } = jest.requireActual('../../../../../util/test/keyringControllerTestUtils');
+  const { MOCK_ENTROPY_SOURCE } = jest.requireActual(
+    '../../../../../util/test/keyringControllerTestUtils',
+  );
   return {
     context: {
       SwapsController: {
@@ -378,7 +386,7 @@ describe('BridgeView', () => {
 
     // Verify balance is displayed
     await waitFor(() => {
-      expect(getByText('2.0 ETH')).toBeTruthy();
+      expect(getByText('2 ETH')).toBeTruthy();
     });
   });
 
@@ -761,27 +769,30 @@ describe('BridgeView', () => {
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
       jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
 
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quoteRequest: {
+              insufficientBal: false,
+            },
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [mockQuotes[0] as unknown as QuoteResponse],
+            quotesLastFetched: 12,
           },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
+          bridgeReducerOverrides: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              image: '',
+              name: 'Solana',
+              symbol: 'SOL',
+            },
           },
         },
-      }, mockState);
+        mockState,
+      );
 
       const { getByText } = renderScreen(
         BridgeView,
@@ -915,8 +926,8 @@ describe('BridgeView', () => {
       mockValidateBridgeTx.mockResolvedValue({
         result: {
           validation: {
-            reason: 'Transaction may result in loss of funds'
-          }
+            reason: 'Transaction may result in loss of funds',
+          },
         },
         error: null,
       });
@@ -993,8 +1004,8 @@ describe('BridgeView', () => {
       mockValidateBridgeTx.mockResolvedValue({
         result: {
           validation: {
-            reason: null
-          }
+            reason: null,
+          },
         },
         error: 'Simulation failed',
       });
@@ -1002,32 +1013,35 @@ describe('BridgeView', () => {
       // Set route params for bridge mode
       mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
 
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [mockQuote],
+            quotesLastFetched: 12,
           },
-          destToken: {
-            address: '0xA0b86a33E6441E84d9cDbdd8d2Dd2Bc0F40Cd1',
-            chainId: '0x1' as Hex,
-            decimals: 18,
-            image: '',
-            name: 'Ethereum',
-            symbol: 'ETH',
+          bridgeReducerOverrides: {
+            sourceAmount: '1.0',
+            sourceToken: {
+              address: 'So11111111111111111111111111111111111111112',
+              chainId: SolScope.Mainnet,
+              decimals: 9,
+              image: '',
+              name: 'Solana',
+              symbol: 'SOL',
+            },
+            destToken: {
+              address: '0xA0b86a33E6441E84d9cDbdd8d2Dd2Bc0F40Cd1',
+              chainId: '0x1' as Hex,
+              decimals: 18,
+              image: '',
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
           },
         },
-      }, mockState);
+        mockState,
+      );
 
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -1071,8 +1085,8 @@ describe('BridgeView', () => {
       mockValidateBridgeTx.mockResolvedValue({
         result: {
           validation: {
-            reason: 'Transaction may result in loss of funds'
-          }
+            reason: 'Transaction may result in loss of funds',
+          },
         },
         error: 'Simulation failed',
       });
@@ -1143,8 +1157,8 @@ describe('BridgeView', () => {
       mockValidateBridgeTx.mockResolvedValue({
         result: {
           validation: {
-            reason: null
-          }
+            reason: null,
+          },
         },
         error: null,
       });

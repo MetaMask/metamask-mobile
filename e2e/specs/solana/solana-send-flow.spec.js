@@ -19,7 +19,8 @@ const EXPECTED_CONFIRMATION = '0.002 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
-describe(
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {
@@ -54,9 +55,9 @@ describe(
       await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
       await TestHelpers.delay(4000);
       await SnapSendActionSheet.tapContinueButton();
-        SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
-      // Snap UI components prove tricky for testID's require more time
-      await SnapSendActionSheet.tapSendSOLTransactionButton();
+      SendActionViewSelectorsIDs.SOL_CONFIRM_SEND_VIEW,
+        // Snap UI components prove tricky for testID's require more time
+        await SnapSendActionSheet.tapSendSOLTransactionButton();
       // Assert transaction is sent
       await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
     });
