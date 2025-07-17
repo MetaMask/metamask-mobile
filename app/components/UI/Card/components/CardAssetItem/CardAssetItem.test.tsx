@@ -14,11 +14,9 @@ jest.mock('../../../../../util/networks/customNetworks');
 jest.mock(
   '../../../Tokens/TokenList/TokenListItem/CustomNetworkNativeImgMapping',
 );
-jest.mock('../../util/mapAllowanceStateToLabel');
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
 import { useAssetBalance } from '../../hooks/useAssetBalance';
-import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
 import {
   isTestNet,
   getDefaultNetworkByChainId,
@@ -28,10 +26,6 @@ import {
 const mockUseAssetBalance = useAssetBalance as jest.MockedFunction<
   typeof useAssetBalance
 >;
-const mockMapAllowanceStateToLabel =
-  mapAllowanceStateToLabel as jest.MockedFunction<
-    typeof mapAllowanceStateToLabel
-  >;
 const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
 const mockGetDefaultNetworkByChainId =
   getDefaultNetworkByChainId as jest.MockedFunction<
@@ -98,7 +92,6 @@ describe('CardAssetItem Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAssetBalance.mockReturnValue(mockAssetBalance);
-    mockMapAllowanceStateToLabel.mockReturnValue('Active');
     mockIsTestNet.mockReturnValue(false);
     mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
   });
@@ -167,7 +160,6 @@ describe('CardAssetItem Component', () => {
       ...mockAssetKey,
       allowanceState: AllowanceState.Limited,
     };
-    mockMapAllowanceStateToLabel.mockReturnValue('Expired');
 
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem
@@ -218,6 +210,19 @@ describe('CardAssetItem Component', () => {
 
     const { toJSON } = render(
       <CardAssetItem assetKey={assetKeyWithoutChainId} privacyMode={false} />,
+    );
+
+    expect(toJSON()).toBeNull();
+  });
+
+  it('returns null when asset is undefined', () => {
+    mockUseAssetBalance.mockReturnValue({
+      ...mockAssetBalance,
+      asset: undefined,
+    });
+
+    const { toJSON } = render(
+      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />,
     );
 
     expect(toJSON()).toBeNull();

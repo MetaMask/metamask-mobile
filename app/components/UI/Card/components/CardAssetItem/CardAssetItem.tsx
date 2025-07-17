@@ -31,8 +31,6 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
-import { mapAllowanceStateToLabel } from '../../util/mapAllowanceStateToLabel';
-import { useTheme } from '../../../../../util/theme';
 
 interface CardAssetItemProps {
   assetKey: CardTokenAllowance;
@@ -46,17 +44,12 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   assetKey,
   onPress,
   disabled = false,
-  shouldShowAllowance = true,
   privacyMode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const chainId = assetKey.chainId as Hex;
-  const theme = useTheme();
 
   const { asset, mainBalance, secondaryBalance } = useAssetBalance(assetKey);
-  // const swapTokens = useSelector((state: RootState) =>
-  //   swapsTokensSelector(state),
-  // );
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
@@ -166,17 +159,6 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
           <Text variant={TextVariant.BodyMD} numberOfLines={1}>
             {asset.name || asset.symbol}
           </Text>
-        </View>
-        <View style={styles.allowanceStatusContainer}>
-          {assetKey.allowanceState && shouldShowAllowance && (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={theme.colors.text.alternative}
-              numberOfLines={1}
-            >
-              {mapAllowanceStateToLabel(assetKey.allowanceState)}
-            </Text>
-          )}
         </View>
       </View>
     </AssetElement>

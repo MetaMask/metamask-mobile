@@ -336,7 +336,10 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
                           <View
                             style={
                               {
+                                "alignItems": "flex-start",
                                 "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
                               }
                             }
                             testID="listitemcolumn"
@@ -744,7 +747,10 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                           <View
                             style={
                               {
+                                "alignItems": "flex-start",
                                 "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
                               }
                             }
                             testID="listitemcolumn"
@@ -1161,7 +1167,10 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                           <View
                             style={
                               {
+                                "alignItems": "flex-start",
                                 "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
                               }
                             }
                             testID="listitemcolumn"
@@ -1578,7 +1587,10 @@ exports[`ManageCardListItem Component renders with default right icon when right
                           <View
                             style={
                               {
+                                "alignItems": "flex-start",
                                 "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
                               }
                             }
                             testID="listitemcolumn"
@@ -1995,7 +2007,10 @@ exports[`ManageCardListItem Component renders with required props and matches sn
                           <View
                             style={
                               {
+                                "alignItems": "flex-start",
                                 "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
                               }
                             }
                             testID="listitemcolumn"

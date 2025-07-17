@@ -917,6 +917,7 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );
 };

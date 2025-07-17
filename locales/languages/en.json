@@ -4870,8 +4870,9 @@
     },
     "card_home": {
       "spending_with": "Spending with",
-      "limit_warning": "You have {{allowance_left}} {{symbol}} left from a {{allowance_total}} {{symbol}} limit.",
+      "limited_spending_warning": "Your token balance might not be your actual balance because of a limit set on your spending asset.",
       "add_funds": "Add funds",
+      "error_message": "There was an error loading your card.",
       "manage_card_options": {
         "manage_card": "Manage card",
         "change_asset": "Change asset",

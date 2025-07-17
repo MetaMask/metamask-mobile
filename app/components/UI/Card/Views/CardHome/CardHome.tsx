@@ -1,13 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   ScrollView,
   TouchableOpacity,
   View,
@@ -44,24 +37,20 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
 import CardImage from '../../assets/card.svg';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import AssetListBottomSheet from '../../components/AssetListBottomSheet/AssetListBottomSheet';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { useGetAllowances } from '../../hooks/useGetAllowances';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { useNavigateToAddFunds } from '../../hooks/useNavigateToAddFunds';
-import { CardTokenAllowance } from '../../types';
+import { AllowanceState, CardTokenAllowance } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../../component-library/base-components/TagBase';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeToken } from '../../../Bridge/types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 /**
  * CardHome Component
@@ -69,8 +58,7 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
  * Main view for the MetaMask Card feature that displays:
  * - User's card balance with privacy controls
  * - Priority token information for spending
- * - Card management options (change asset, spending limits, advanced management)
- * - Asset selection bottom sheet
+ * - Card management options (advanced management)
  *
  * @param props - Component props
  * @returns JSX element representing the card home screen
@@ -80,15 +68,10 @@ const CardHome = () => {
   const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
     null,
   );
-  const [openAssetListBottomSheet, setOpenAssetListBottomSheet] =
-    useState(false);
-  const sheetRef = useRef<BottomSheetRef>(null);
   const theme = useTheme();
 
   const hasNavigation = Boolean(navigation);
-  const itemHeight = 130;
-  const { width: deviceWidth } = Dimensions.get('window');
-  const styles = createStyles(theme, itemHeight, deviceWidth);
+  const styles = createStyles(theme);
 
   const currentAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -96,22 +79,24 @@ const CardHome = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { PreferencesController } = Engine.context;
 
-  const { allowances, isLoading: isLoadingAllowances } = useGetAllowances(
-    currentAddress,
-    true,
-  );
-  const { fetchPriorityToken, isLoading: isLoadingPriorityToken } =
-    useGetPriorityCardToken(currentAddress);
   const {
-    mainBalance,
-    secondaryBalance,
-    asset: priorityTokenAsset,
-  } = useAssetBalance(priorityToken);
+    fetchPriorityToken,
+    isLoading: isLoadingPriorityToken,
+    error: errorPriorityToken,
+  } = useGetPriorityCardToken(currentAddress);
+  const { mainBalance, secondaryBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const { navigateToAddFunds, isSwapEnabled } = useNavigateToAddFunds(
-    navigation,
-    priorityToken?.address || '',
-  );
+  const { goToBridge } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: Routes.CARD.HOME,
+    token: {
+      address: priorityToken?.address,
+      chainId: priorityToken?.chainId,
+      decimals: priorityToken?.decimals,
+      symbol: priorityToken?.symbol,
+      name: priorityToken?.name,
+    } as BridgeToken,
+  });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -120,22 +105,10 @@ const CardHome = () => {
     [PreferencesController],
   );
 
-  const renderAssetListBottomSheet = useCallback(
-    () => (
-      <AssetListBottomSheet
-        sheetRef={sheetRef}
-        balances={allowances || []}
-        privacyMode={privacyMode}
-        setOpenAssetListBottomSheet={setOpenAssetListBottomSheet}
-      />
-    ),
-    [sheetRef, setOpenAssetListBottomSheet, privacyMode, allowances],
-  );
-
   useEffect(() => {
     const getPriorityToken = async () => {
-      if (currentAddress && allowances) {
-        const token = await fetchPriorityToken(allowances);
+      if (currentAddress) {
+        const token = await fetchPriorityToken();
 
         if (token) {
           setPriorityToken(token);
@@ -146,14 +119,22 @@ const CardHome = () => {
     if (!priorityToken) {
       getPriorityToken();
     }
-  }, [allowances, currentAddress, fetchPriorityToken, priorityToken]);
+  }, [currentAddress, fetchPriorityToken, priorityToken]);
 
-  const isLoading = useMemo(
-    () => (isLoadingAllowances && !priorityToken) || isLoadingPriorityToken,
-    [isLoadingAllowances, isLoadingPriorityToken, priorityToken],
-  );
+  if (errorPriorityToken) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={theme.colors.error.default}
+        >
+          {errorPriorityToken}
+        </Text>
+      </View>
+    );
+  }
 
-  if (isLoading) {
+  if (isLoadingPriorityToken || !priorityToken) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator
@@ -221,13 +202,22 @@ const CardHome = () => {
                 shouldShowAllowance={false}
                 disabled
               />
+              {priorityToken.allowanceState === AllowanceState.Limited && (
+                <View style={styles.limitedAllowanceWarningContainer}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={theme.colors.text.alternative}
+                  >
+                    {strings('card.card_home.limited_spending_warning')}
+                  </Text>
+                </View>
+              )}
               <View style={styles.addFundsButtonContainer}>
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('card.card_home.add_funds')}
                   size={ButtonSize.Sm}
-                  onPress={navigateToAddFunds}
-                  disabled={!isSwapEnabled}
+                  onPress={goToBridge}
                   width={ButtonWidthTypes.Full}
                   testID="add-funds-button"
                 />
@@ -245,41 +235,6 @@ const CardHome = () => {
       </View>
 
       <ManageCardListItem
-        title={strings('card.card_home.manage_card_options.change_asset')}
-        description={
-          <TagBase
-            shape={TagShape.Pill}
-            includesBorder
-            severity={TagSeverity.Default}
-          >
-            <AvatarToken
-              name={priorityToken?.symbol || ''}
-              imageSource={
-                priorityTokenAsset?.image || priorityTokenAsset?.logo
-                  ? { uri: priorityTokenAsset.image || priorityTokenAsset.logo }
-                  : undefined
-              }
-              size={AvatarSize.Xs}
-            />
-            <Text variant={TextVariant.BodySM}>{priorityToken?.symbol}</Text>
-          </TagBase>
-        }
-        descriptionOrientation="row"
-        onPress={() => {
-          setOpenAssetListBottomSheet(true);
-        }}
-        testID="change-asset-item"
-      />
-      <ManageCardListItem
-        title={strings(
-          'card.card_home.manage_card_options.manage_spending_limit',
-        )}
-        description={strings(
-          'card.card_home.manage_card_options.manage_spending_limit_description',
-        )}
-        testID="manage-spending-limit-item"
-      />
-      <ManageCardListItem
         title={strings(
           'card.card_home.manage_card_options.advanced_card_management',
         )}
@@ -290,8 +245,6 @@ const CardHome = () => {
         onPress={navigateToCardPage}
         testID="advanced-card-management-item"
       />
-
-      {openAssetListBottomSheet && renderAssetListBottomSheet()}
 
       <ScreenshotDeterrent
         hasNavigation={hasNavigation}

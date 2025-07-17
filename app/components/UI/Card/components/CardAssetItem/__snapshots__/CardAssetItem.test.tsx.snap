@@ -356,11 +356,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -481,31 +477,6 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>
@@ -1045,31 +1016,6 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                             USD Coin
                           </Text>
                         </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
-                          </Text>
-                        </View>
                       </View>
                       <View
                         style={
@@ -1481,11 +1427,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -1608,31 +1550,6 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>
@@ -2046,11 +1963,7 @@ exports[`CardAssetItem Component renders with different allowanceState and match
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -2173,31 +2086,6 @@ exports[`CardAssetItem Component renders with different allowanceState and match
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Expired
                           </Text>
                         </View>
                       </View>
@@ -2611,11 +2499,7 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -2738,31 +2622,6 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>
@@ -3176,11 +3035,7 @@ exports[`CardAssetItem Component renders with enabled allowanceState and matches
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -3303,31 +3158,6 @@ exports[`CardAssetItem Component renders with enabled allowanceState and matches
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>
@@ -3741,11 +3571,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -3868,31 +3694,6 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>
@@ -4306,11 +4107,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                                   "height": 50,
                                   "width": 50,
                                 },
-                                {
-                                  "borderRadius": 35,
-                                  "height": 70,
-                                  "width": 70,
-                                },
+                                false,
                                 {
                                   "borderRadius": 16,
                                   "height": 32,
@@ -4433,31 +4230,6 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                             }
                           >
                             Ethereum
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignContent": "center",
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                            }
-                          }
-                        >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
-                            style={
-                              {
-                                "color": "#686e7d",
-                                "fontFamily": "Geist Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
-                            }
-                          >
-                            Active
                           </Text>
                         </View>
                       </View>

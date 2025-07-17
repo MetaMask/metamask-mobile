@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     loadingContainer: {
       flex: 1,
@@ -39,11 +39,20 @@ const createStyles = (theme: Theme, itemHeight: number, deviceWidth: number) =>
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       paddingBottom: 16,
-      height: itemHeight,
-      width: deviceWidth - 16 * 2, // Subtracting horizontal padding
+      justifyContent: 'center',
+      paddingTop: 8,
+    },
+    limitedAllowanceWarningContainer: {
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderColor: theme.colors.border.muted,
+      marginTop: 12,
+      marginHorizontal: 16,
     },
     addFundsButtonContainer: {
       paddingHorizontal: 16,
+      paddingTop: 18,
+      width: '100%',
     },
     spendingWithContainer: {
       marginTop: 16,

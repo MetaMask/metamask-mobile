@@ -1,11 +1,15 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
-import { CardTokenAllowance } from '../types';
+import { AllowanceState, CardTokenAllowance } from '../types';
 import Engine from '../../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
-import { BigNumber } from 'bignumber.js';
 import Logger from '../../../../util/Logger';
+import { useGetAllowances } from './useGetAllowances';
+import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../../selectors/networkController';
+import BigNumber from 'bignumber.js';
 
 /**
  * React hook to fetch and determine the priority card token for a given user address.
@@ -18,7 +22,7 @@ import Logger from '../../../../util/Logger';
  * @returns {{
  * fetchPriorityToken: (cardTokenAllowances: CardTokenAllowance[]) => Promise<CardTokenAllowance | null>,
  * isLoading: boolean,
- * error: Error | null
+ * error: string | null
  * }}
  * An object containing:
  * - fetchPriorityToken: async function to compute the best token allowance entry
@@ -28,7 +32,9 @@ import Logger from '../../../../util/Logger';
 export const useGetPriorityCardToken = (selectedAddress?: string) => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { fetchAllowances } = useGetAllowances(selectedAddress);
+  const chainId = useSelector(selectChainId);
 
   // Extract controller state
   const {
@@ -42,8 +48,10 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
     allowances.filter(({ allowance }) => allowance.gt(0));
 
   const getBalancesForChain = useCallback(
-    (chainId: Hex): Record<Hex, string> =>
-      allTokenBalances?.[selectedAddress as Hex]?.[chainId] ?? {},
+    (tokenChainId: Hex): Record<Hex, string> =>
+      allTokenBalances?.[selectedAddress?.toLowerCase() as Hex]?.[
+        tokenChainId?.toLowerCase() as Hex
+      ] ?? {},
     [allTokenBalances, selectedAddress],
   );
 
@@ -59,8 +67,8 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
     );
 
   // Fetch priority token function
-  const fetchPriorityToken = useCallback(
-    async (cardTokenAllowances: CardTokenAllowance[]) => {
+  const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
+    useCallback(async () => {
       setIsLoading(true);
       setError(null);
 
@@ -70,6 +78,23 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
       }
 
       try {
+        const cardTokenAllowances = await fetchAllowances();
+
+        if (!cardTokenAllowances || cardTokenAllowances.length === 0) {
+          const supportedTokens = sdk.supportedTokens;
+
+          if (supportedTokens[0]) {
+            return {
+              ...supportedTokens[0],
+              allowanceState: AllowanceState.NotEnabled,
+              isStaked: false,
+              chainId,
+            } as CardTokenAllowance;
+          }
+
+          return null;
+        }
+
         const validAllowances = filterNonZeroAllowances(cardTokenAllowances);
         if (validAllowances.length === 0) {
           return cardTokenAllowances[0] || null;
@@ -118,6 +143,7 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
               validAllowances,
               chainBalances,
             );
+
           return positiveBalanceAllowance || matchingAllowance;
         }
 
@@ -125,15 +151,16 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
       } catch (err) {
         const normalizedError =
           err instanceof Error ? err : new Error(String(err));
-        Logger.error(normalizedError, 'useGetPriorityCardToken error');
-        setError(normalizedError);
+        Logger.error(
+          normalizedError,
+          'useGetPriorityCardToken::error fetching priority token',
+        );
+        setError(strings('card.card_home.error_message'));
         return null;
       } finally {
         setIsLoading(false);
       }
-    },
-    [sdk, selectedAddress, getBalancesForChain],
-  );
+    }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain, chainId]);
 
   return { fetchPriorityToken, isLoading, error };
 };

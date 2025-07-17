@@ -28,8 +28,7 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
-import { swapsTokensSelector } from '../../../../reducers/swaps';
-import { areAddressesEqual } from '../../../../util/address';
+import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -44,7 +43,6 @@ export const useAssetBalance = (
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
-  const swapTokens = useSelector(swapsTokensSelector);
 
   const selectEvmAsset = useMemo(
     () => makeSelectAssetByAddressAndChainId(),
@@ -79,21 +77,18 @@ export const useAssetBalance = (
   let isMappedAsset = false;
 
   if (!asset && token) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const swapToken = swapTokens?.find((st: any) =>
-      areAddressesEqual(st.address, token.address),
-    );
+    const iconUrl = buildTokenIconUrl(token.chainId, token.address);
 
     asset = {
       address: token.address,
       aggregators: [],
       decimals: token.decimals,
-      image: swapToken?.iconUrl,
+      image: iconUrl,
       name: token.name,
       symbol: token.symbol,
       balance: '0',
       balanceFiat: '0',
-      logo: swapToken?.iconUrl,
+      logo: iconUrl,
       isETH: false,
     } as TokenI;
     isMappedAsset = true;
