@@ -10,116 +10,116 @@ import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
 
 class AesCryptoTestForm {
-  get scrollViewIdentifier() {
+  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
     return Matchers.getIdentifier(aesCryptoFormScrollIdentifier);
   }
 
   // Get account address
-  get accountAddress() {
+  get accountAddress(): DetoxElement {
     return Matchers.getElementByID(accountAddress);
   }
 
   // Get response text
-  get responseText() {
+  get responseText(): DetoxElement {
     return Matchers.getElementByID(responseText);
   }
 
   // Generate salt getters
-  get generateSaltBytesCountInput() {
+  get generateSaltBytesCountInput(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
   }
-  get generateSaltResponse() {
+  get generateSaltResponse(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormResponses.saltResponse);
   }
-  get generateSaltButton() {
+  get generateSaltButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.generateSaltButton);
   }
 
   // Generate encryption key from password getters
-  get generateEncryptionKeyPasswordInput() {
+  get generateEncryptionKeyPasswordInput(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormInputs.passwordInput);
   }
-  get generateEncryptionKeySaltInput() {
+  get generateEncryptionKeySaltInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.saltInputForEncryptionKey,
     );
   }
-  get generateEncryptionKeyResponse() {
+  get generateEncryptionKeyResponse(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormResponses.generateEncryptionKeyResponse,
     );
   }
-  get generateEncryptionKeyButton() {
+  get generateEncryptionKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormButtons.generateEncryptionKeyButton,
     );
   }
 
   // Encrypt getters
-  get encryptDataInput() {
+  get encryptDataInput(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormInputs.dataInputForEncryption);
   }
-  get encryptPasswordInput() {
+  get encryptPasswordInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForEncryption,
     );
   }
-  get encryptResponse() {
+  get encryptResponse(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormResponses.encryptionResponse);
   }
-  get encryptButton() {
+  get encryptButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptButton);
   }
 
   // Decrypt getters
-  get decryptPasswordInput() {
+  get decryptPasswordInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForDecryption,
     );
   }
-  get decryptResponse() {
+  get decryptResponse(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormResponses.decryptionResponse);
   }
-  get decryptButton() {
+  get decryptButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptButton);
   }
 
   // Encrypt with key getters
-  get encryptWithKeyEncryptionKeyInput() {
+  get encryptWithKeyEncryptionKeyInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyDataInput() {
+  get encryptWithKeyDataInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.dataInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyResponse() {
+  get encryptWithKeyResponse(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormResponses.encryptionWithKeyResponse,
     );
   }
-  get encryptWithKeyButton() {
+  get encryptWithKeyButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptWithKeyButton);
   }
 
   // Decrypt with key getters
-  get decryptWithKeyEncryptionKeyInput() {
+  get decryptWithKeyEncryptionKeyInput(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
     );
   }
-  get decryptWithKeyResponse() {
+  get decryptWithKeyResponse(): DetoxElement {
     return Matchers.getElementByID(
       aesCryptoFormResponses.decryptionWithKeyResponse,
     );
   }
-  get decryptWithKeyButton() {
+  get decryptWithKeyButton(): DetoxElement {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
-  async scrollUpToGenerateSalt() {
+  async scrollUpToGenerateSalt(): Promise<void> {
     await Gestures.scrollToElement(
       this.generateSaltBytesCountInput,
       this.scrollViewIdentifier,
@@ -129,7 +129,7 @@ class AesCryptoTestForm {
     );
   }
 
-  async scrollUpToGenerateEncryptionKey() {
+  async scrollUpToGenerateEncryptionKey(): Promise<void> {
     await Gestures.scrollToElement(
       this.generateEncryptionKeyPasswordInput,
       this.scrollViewIdentifier,
@@ -139,35 +139,35 @@ class AesCryptoTestForm {
     );
   }
 
-  async scrollToEncrypt() {
+  async scrollToEncrypt(): Promise<void> {
     await Gestures.scrollToElement(
       this.encryptButton,
       this.scrollViewIdentifier,
     );
   }
 
-  async scrollToDecrypt() {
+  async scrollToDecrypt(): Promise<void> {
     await Gestures.scrollToElement(
       this.decryptButton,
       this.scrollViewIdentifier,
     );
   }
 
-  async scrollToEncryptWithKey() {
+  async scrollToEncryptWithKey(): Promise<void> {
     await Gestures.scrollToElement(
       this.encryptWithKeyButton,
       this.scrollViewIdentifier,
     );
   }
 
-  async scrollToDecryptWithKey() {
+  async scrollToDecryptWithKey(): Promise<void> {
     await Gestures.scrollToElement(
       this.decryptWithKeyButton,
       this.scrollViewIdentifier,
     );
   }
 
-  async generateSalt(saltBytesCount: string) {
+  async generateSalt(saltBytesCount: string): Promise<string> {
     await this.scrollUpToGenerateSalt();
     await Gestures.typeText(this.generateSaltBytesCountInput, saltBytesCount, {
       hideKeyboard: true,
@@ -178,14 +178,14 @@ class AesCryptoTestForm {
     });
 
     const responseFieldAtts = await (
-      await this.generateSaltResponse
+      (await this.generateSaltResponse) as IndexableNativeElement
     ).getAttributes();
 
     // @ts-expect-error - the label property does exist in this object.
     return responseFieldAtts.label;
   }
 
-  async generateEncryptionKey(password: string, salt: string) {
+  async generateEncryptionKey(password: string, salt: string): Promise<string> {
     await this.scrollUpToGenerateEncryptionKey();
     await Gestures.typeText(this.generateEncryptionKeyPasswordInput, password, {
       hideKeyboard: true,
@@ -205,14 +205,14 @@ class AesCryptoTestForm {
     });
 
     const responseFieldAtts = await (
-      await this.generateEncryptionKeyResponse
+      (await this.generateEncryptionKeyResponse) as IndexableNativeElement
     ).getAttributes();
 
     // @ts-expect-error - the label property does exist in this object.
     return responseFieldAtts.label;
   }
 
-  async encrypt(data: string, encryptionKey: string) {
+  async encrypt(data: string, encryptionKey: string): Promise<void> {
     await this.scrollToEncrypt();
     await Gestures.typeText(this.encryptDataInput, data, {
       hideKeyboard: true,
@@ -227,7 +227,7 @@ class AesCryptoTestForm {
     });
   }
 
-  async decrypt(encryptionKey: string) {
+  async decrypt(encryptionKey: string): Promise<void> {
     await this.scrollToDecrypt();
     await Gestures.typeText(this.decryptPasswordInput, encryptionKey, {
       hideKeyboard: true,
@@ -239,7 +239,7 @@ class AesCryptoTestForm {
     });
   }
 
-  async encryptWithKey(encryptionKey: string, data: string) {
+  async encryptWithKey(encryptionKey: string, data: string): Promise<void> {
     await this.scrollToEncryptWithKey();
     await Gestures.typeText(
       this.encryptWithKeyEncryptionKeyInput,
@@ -258,7 +258,7 @@ class AesCryptoTestForm {
     });
   }
 
-  async decryptWithKey(encryptionKey: string) {
+  async decryptWithKey(encryptionKey: string): Promise<void> {
     await this.scrollToDecryptWithKey();
     await Gestures.typeText(
       this.decryptWithKeyEncryptionKeyInput,
