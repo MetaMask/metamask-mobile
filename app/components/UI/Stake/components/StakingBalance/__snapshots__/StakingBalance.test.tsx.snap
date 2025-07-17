@@ -14,7 +14,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
@@ -810,7 +809,6 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
