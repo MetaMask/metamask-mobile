@@ -140,6 +140,9 @@ const OtpCode = () => {
   }, [resendButtonState, cooldownSeconds]);
 
   const handleResend = useCallback(async () => {
+    setValue('');
+    setError(null);
+    inputRef.current?.focus();
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
         setResendButtonState('contactSupport');
@@ -156,7 +159,13 @@ const OtpCode = () => {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [resendOtp, resetAttemptCount, selectedRegion?.isoCode, trackEvent]);
+  }, [
+    inputRef,
+    resendOtp,
+    resetAttemptCount,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
