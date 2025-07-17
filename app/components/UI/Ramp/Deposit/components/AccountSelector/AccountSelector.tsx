@@ -20,6 +20,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 const stylesheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -70,7 +71,11 @@ const AccountSelector = () => {
   );
 
   return (
-    <TouchableOpacity onPress={openAccountSelector} style={styles.selector}>
+    <TouchableOpacity 
+      onPress={openAccountSelector} 
+      style={styles.selector}
+      testID={BuildQuoteSelectors.ACCOUNT_PICKER}
+    >
       {selectedAddress && selectedFormattedAddress ? (
         <>
           <Avatar

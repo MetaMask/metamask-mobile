@@ -10,6 +10,7 @@ export const BuildQuoteSelectors = {
   SELECT_PAYMENT_METHOD: enContent.fiat_on_ramp_aggregator.update_payment_method,
   SELECT_CURRENCY: 'select-currency',
   REGION_DROPDOWN: 'region-dropdown',
+  ACCOUNT_PICKER: 'ramps-account-picker',
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
   MIN_LIMIT_ERROR: 'min-limit-error',
   MAX_LIMIT_ERROR: 'max-limit-error',
