@@ -214,6 +214,11 @@ describe('Login', () => {
       availableBiometryType: null,
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerRemoveEventListener.mockClear();
+
+    BackHandler.addEventListener = mockBackHandlerAddEventListener;
+    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
   });
 
   it('renders matching snapshot', () => {
@@ -272,6 +277,9 @@ describe('Login', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
+        params: {
+          oauthLoginSuccess: false,
+        },
       });
     });
   });
@@ -319,6 +327,111 @@ describe('Login', () => {
       });
 
       expect(setAllowLoginWithRememberMe).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('Password Error Handling', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should handle WRONG_PASSWORD_ERROR', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Decrypt failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error(
+          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+        ),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Password requirements not met'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle generic error (else case)', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Some unexpected error'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Error: Some unexpected error',
+      );
     });
   });
 

@@ -410,13 +410,17 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  handlePostSocialLogin = (result, createWallet) => {
+  handlePostSocialLogin = (result, createWallet, provider) => {
     if (this.socialLoginTraceCtx) {
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
       this.socialLoginTraceCtx = null;
     }
 
     if (result.type === 'success') {
+      // Track social login completed
+      this.track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
+        account_type: provider,
+      });
       if (createWallet) {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
@@ -436,7 +440,6 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
           });
-          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
       } else if (!createWallet) {
         if (result.existingUser) {
@@ -451,7 +454,6 @@ class Onboarding extends PureComponent {
             oauthLoginSuccess: true,
             onboardingTraceCtx: this.onboardingTraceCtx,
           });
-          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
@@ -465,47 +467,44 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressContinueWithApple = async (createWallet) => {
+  onPressContinueWithSocialLogin = async (createWallet, provider) => {
     this.props.navigation.navigate('Onboarding');
-    this.socialLoginTraceCtx = trace({
-      name: TraceName.OnboardingSocialLoginAttempt,
-      op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'apple' },
-      parentContext: this.onboardingTraceCtx,
-    });
-    const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'apple');
-      const result = await OAuthLoginService.handleOAuthLogin(
-        loginHandler,
-      ).catch((e) => {
-        this.handleLoginError(e, 'apple');
-        return { type: 'error', error: e, existingUser: false };
-      });
-      this.handlePostSocialLogin(result, createWallet);
-    };
-    this.handleExistingUser(action);
-  };
 
-  onPressContinueWithGoogle = async (createWallet) => {
-    this.props.navigation.navigate('Onboarding');
+    if (createWallet) {
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: `metamask_${provider}`,
+      });
+    } else {
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: `imported_${provider}`,
+      });
+    }
+
     this.socialLoginTraceCtx = trace({
       name: TraceName.OnboardingSocialLoginAttempt,
       op: TraceOperation.OnboardingUserJourney,
-      tags: { ...getTraceTags(store.getState()), provider: 'google' },
+      tags: { ...getTraceTags(store.getState()), provider },
       parentContext: this.onboardingTraceCtx,
     });
+
     const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
         this.handleLoginError(error, 'google');
         return { type: 'error', error, existingUser: false };
       });
-      this.handlePostSocialLogin(result, createWallet);
+      this.handlePostSocialLogin(result, createWallet, provider);
     };
     this.handleExistingUser(action);
   };
+
+  onPressContinueWithApple = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+
+  onPressContinueWithGoogle = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = (error, socialConnectionType) => {
     let errorMessage;
