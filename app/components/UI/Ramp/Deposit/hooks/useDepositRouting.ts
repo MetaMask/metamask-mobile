@@ -29,7 +29,6 @@ import { useDepositSDK } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
-import useAnalytics from '../../hooks/useAnalytics';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;

@@ -130,7 +130,7 @@ const OrderProcessing = () => {
           currency_destination:
             selectedWalletAddress || order.data.walletAddress,
           currency_source: order.data.fiatCurrency,
-          error_message: 'transaction_failed', // TODO: Get error message from order
+          error_message: order.data.statusDescription || 'transaction_failed',
         });
       }
     }
