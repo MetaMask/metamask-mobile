@@ -11,12 +11,9 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     wrapper: {
-      flex: 1,
+      flexGrow: 1,
       paddingHorizontal: 16,
-    },
-    container: {
-      flex: 1,
-      flexDirection: 'column',
+      paddingBottom: 16,
     },
     importSrpContainer: {
       marginTop: 6,
@@ -37,6 +34,7 @@ const createStyles = (colors: any) =>
       borderRadius: 10,
       marginTop: 16,
       minHeight: 264,
+      maxHeight: 'auto',
     },
     seedPhraseInnerContainer: {
       paddingHorizontal: Platform.select({
