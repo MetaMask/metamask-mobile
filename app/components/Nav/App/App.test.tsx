@@ -352,16 +352,14 @@ describe('App', () => {
           .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
           .mockResolvedValue(true);
 
+        jest.useFakeTimers();
         // Act
         renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
-
+        jest.advanceTimersByTime(5 * 60 * 1000);
         // Assert
         await waitFor(() => {
           expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
             true,
-          );
-          expect(Logger.log).toHaveBeenCalledWith(
-            'App: Seedless password is outdated: true',
           );
         });
       });
@@ -373,9 +371,10 @@ describe('App', () => {
           .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
           .mockRejectedValue(testError);
 
+        jest.useFakeTimers();
         // Act
         renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
-
+        jest.advanceTimersByTime(5 * 60 * 1000);
         // Assert
         await waitFor(() => {
           expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(

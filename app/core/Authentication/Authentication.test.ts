@@ -1345,6 +1345,20 @@ describe('Authentication', () => {
           .checkIsPasswordOutdated as jest.Mock
       ).mockResolvedValueOnce(mockIsOutdated);
 
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
+
       const result = await Authentication.checkIsSeedlessPasswordOutdated(true);
 
       expect(result).toBe(mockIsOutdated);
@@ -1359,6 +1373,20 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController
           .checkIsPasswordOutdated as jest.Mock
       ).mockResolvedValueOnce(mockIsOutdated);
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data' as string,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        })),
+      } as unknown as ReduxStore);
 
       const result = await Authentication.checkIsSeedlessPasswordOutdated();
 

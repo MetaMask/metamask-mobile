@@ -720,6 +720,9 @@ class AuthenticationService {
     skipCache: boolean = false,
   ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return false;
+    }
     const isSeedlessPasswordOutdated =
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache,
