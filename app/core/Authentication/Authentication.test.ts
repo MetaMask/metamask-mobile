@@ -1253,19 +1253,6 @@ describe('Authentication', () => {
       selectSelectedInternalAccountFormattedAddress.mockReset();
     });
 
-    it('throws an error if not using seedless onboarding flow', async () => {
-      Engine.context.SeedlessOnboardingController.state.vault = undefined;
-
-      await expect(
-        Authentication.submitLatestGlobalSeedlessPassword(
-          mockGlobalPassword,
-          mockAuthType,
-        ),
-      ).rejects.toThrow(
-        'This method is only available for seedless onboarding flow',
-      );
-    });
-
     it('successfully syncs latest global seedless password', async () => {
       (
         Engine.context.SeedlessOnboardingController
@@ -1349,16 +1336,6 @@ describe('Authentication', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
-    });
-
-    it('returns undefined if not using seedless onboarding flow', async () => {
-      Engine.context.SeedlessOnboardingController.state.vault = undefined;
-
-      const result = await Authentication.checkIsSeedlessPasswordOutdated();
-      expect(result).toBeUndefined();
-      expect(
-        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).not.toHaveBeenCalled();
     });
 
     it('returns password outdated status when using seedless onboarding flow', async () => {

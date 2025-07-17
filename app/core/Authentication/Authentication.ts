@@ -673,14 +673,6 @@ class AuthenticationService {
     authType: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
-    // If vault is not created, user is not using social login, return undefined
-    if (!SeedlessOnboardingController.state.vault) {
-      // this is only available for seedless onboarding flow
-      throw new Error(
-        'This method is only available for seedless onboarding flow',
-      );
-    }
-
     // recover the current device password
     const { password: currentDevicePassword } =
       await SeedlessOnboardingController.recoverCurrentDevicePassword({
@@ -726,18 +718,13 @@ class AuthenticationService {
    */
   checkIsSeedlessPasswordOutdated = async (
     skipCache: boolean = false,
-  ): Promise<boolean | undefined> => {
+  ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
-    // If vault is not created, user is not using social login, return undefined
-    if (!SeedlessOnboardingController.state.vault) {
-      return undefined;
-    }
-
     const isSeedlessPasswordOutdated =
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache,
       });
-    return isSeedlessPasswordOutdated;
+    return isSeedlessPasswordOutdated ?? false;
   };
 }
 
