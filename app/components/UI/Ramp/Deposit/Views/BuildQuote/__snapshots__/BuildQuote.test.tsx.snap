@@ -350,7 +350,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={12}
+              handlerTag={17}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -487,6 +487,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -536,7 +537,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -548,7 +551,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -800,7 +805,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                   }
                                 >
-                                  Failed to fetch quote.
+                                  Failed to fetch quote
                                 </Text>
                               </View>
                             </View>
@@ -2164,7 +2169,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={19}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2301,6 +2306,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2350,7 +2356,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2362,7 +2370,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -3978,7 +3988,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4115,6 +4125,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -4164,7 +4175,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -4176,7 +4189,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -4428,7 +4443,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     }
                                   }
                                 >
-                                  An unexpected error occurred.
+                                  Routing failed
                                 </Text>
                               </View>
                             </View>
@@ -5792,7 +5807,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={8}
+              handlerTag={11}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5929,6 +5944,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -7587,7 +7603,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7724,6 +7740,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -9518,6 +9535,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -11313,6 +11331,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -13108,6 +13127,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"

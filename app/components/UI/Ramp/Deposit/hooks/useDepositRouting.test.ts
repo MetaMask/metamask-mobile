@@ -44,6 +44,10 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 const verifyPopToBuildQuoteCalled = () => {
   expect(mockDispatch).toHaveBeenCalledWith(expect.any(Function));
   const dispatchCall = mockDispatch.mock.calls.find(
@@ -163,6 +167,8 @@ describe('useDepositRouting', () => {
     mockUseHandleNewOrder.mockReturnValue(
       jest.fn().mockResolvedValue(undefined),
     );
+
+    mockTrackEvent.mockClear();
 
     mockDispatch.mockImplementation((actionOrFunction) => {
       if (typeof actionOrFunction === 'function') {
@@ -403,7 +409,7 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should navigate to KYC webview when only idProof form is required', async () => {
+    it('should navigate to AdditionalVerification when only idProof form is required', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -426,12 +432,11 @@ describe('useDepositRouting', () => {
       });
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositKycWebviewModal',
-        params: {
-          quote: mockQuote,
-          sourceUrl: 'test-kyc-url',
-        },
+      expect(mockNavigate).toHaveBeenCalledWith('AdditionalVerification', {
+        quote: mockQuote,
+        kycUrl: 'test-kyc-url',
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
       });
     });
 
@@ -583,7 +588,7 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('An unexpected error occurred.');
+      ).rejects.toThrow('Failed to generate payment URL');
     });
   });
 
@@ -740,6 +745,172 @@ describe('useDepositRouting', () => {
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it('handles error when getOrder fails', async () => {
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockGetOrder = jest.fn().mockRejectedValue(new Error('Get order failed'));
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      jest.clearAllMocks();
+
+      await handler({
+        url: 'https://metamask.io/success?orderId=test-order-id',
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles error when getOrder returns null', async () => {
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockGetOrder = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      jest.clearAllMocks();
+
+      await handler({
+        url: 'https://metamask.io/success?orderId=test-order-id',
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Additional error handling coverage', () => {
+    it('should throw error when OTT token request fails', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockRequestOtt = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('Failed to get OTT token');
+    });
+
+    it('should throw error when createOrder fails for SEPA flow', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+      };
+
+      mockCreateOrder = jest.fn().mockResolvedValue(null);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('Missing order');
+    });
+
+    it('should throw error when createOrder throws for SEPA flow', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: SEPA_PAYMENT_METHOD.id,
+      };
+
+      mockCreateOrder = jest
+        .fn()
+        .mockRejectedValue(new Error('Order creation failed'));
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('Order creation failed');
+    });
+
+    it('should throw error when requestOtt throws for non-SEPA flow', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockRequestOtt = jest
+        .fn()
+        .mockRejectedValue(new Error('OTT request failed'));
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('OTT request failed');
+    });
+
+    it('should throw error when generatePaymentUrl throws for non-SEPA flow', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockGeneratePaymentUrl = jest
+        .fn()
+        .mockRejectedValue(new Error('Payment URL generation failed'));
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('Payment URL generation failed');
+    });
+
+    it('should throw error when fetchUserDetails throws in handleApprovedKycFlow', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchUserDetails = jest
+        .fn()
+        .mockRejectedValue(new Error('User details fetch failed'));
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.handleApprovedKycFlow(mockQuote),
+      ).rejects.toThrow('User details fetch failed');
+    });
   });
 
   describe('Navigation callback methods', () => {
@@ -820,6 +991,54 @@ describe('useDepositRouting', () => {
           sourceUrl: 'test-url',
         },
       });
+    });
+  });
+
+  describe('Analytics tracking', () => {
+    it('tracks RAMPS_KYC_STARTED event when personalDetails form is required', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [{ id: 'personalDetails' }],
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_KYC_STARTED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+        region: 'US',
+      });
+    });
+
+    it('does not track analytics event when no KYC forms are required', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [],
+        kycType: 'NONE',
+      });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 });

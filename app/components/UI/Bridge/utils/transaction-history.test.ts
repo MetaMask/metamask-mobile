@@ -324,7 +324,7 @@ describe('decodeSwapsTx', () => {
                   decimals: 18,
                   name: 'Ethereum',
                   iconUrl:
-                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png'
+                    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
                 },
               },
             },

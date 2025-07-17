@@ -45,7 +45,9 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
     PASSWORD,
   );
   await RevealSecretRecoveryPhrase.tapToReveal();
-  await Assertions.expectElementToBeVisible(RevealSecretRecoveryPhrase.container);
+  await Assertions.expectElementToBeVisible(
+    RevealSecretRecoveryPhrase.container,
+  );
   await Assertions.checkIfTextIsDisplayed(
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );

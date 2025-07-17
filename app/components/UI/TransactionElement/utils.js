@@ -20,7 +20,6 @@ import {
 import {
   decodeTransferData,
   isCollectibleAddress,
-  getTicker,
   getActionKey,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
@@ -43,7 +42,6 @@ function getTokenTransfer(args) {
       txParams: { from, to, data, nonce },
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     tokens,
@@ -52,6 +50,7 @@ function getTokenTransfer(args) {
     actionKey,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
 
   const [, , encodedAmount] = decodeTransferData('transfer', data);
@@ -89,8 +88,6 @@ function getTokenTransfer(args) {
   const totalFiatNumber = renderTokenFiatNumber
     ? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
     : weiToFiatNumber(totalGas, conversionRate);
-
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
 
   let transactionDetails = {
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
@@ -147,17 +144,16 @@ function getCollectibleTransfer(args) {
       txParams: { from, to, data },
     },
     txChainId,
-    networkConfigurationsByChainId,
     collectibleContracts,
     totalGas,
     conversionRate,
     currentCurrency,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
   let actionKey;
   const [, tokenId] = decodeTransferData('transfer', data);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const collectible = collectibleContracts.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
@@ -216,7 +212,7 @@ function getCollectibleTransfer(args) {
   return [transactionElement, transactionDetails];
 }
 
-export function decodeIncomingTransfer(args) {
+function decodeIncomingTransfer(args) {
   const {
     tx: {
       txParams: { to, from, value },
@@ -224,7 +220,6 @@ export function decodeIncomingTransfer(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     contractExchangeRates,
@@ -232,6 +227,7 @@ export function decodeIncomingTransfer(args) {
     actionKey,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
 
   const amount = hexToBN(value);
@@ -267,8 +263,6 @@ export function decodeIncomingTransfer(args) {
   const totalFiatNumber = renderTokenFiatNumber
     ? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
     : weiToFiatNumber(totalGas, conversionRate);
-
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
   const transactionType =
@@ -376,12 +370,12 @@ function decodeTransferFromTx(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     collectibleContracts,
     conversionRate,
     currentCurrency,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
   const [addressFrom, addressTo, tokenId] = decodeTransferData(
     'transferFrom',
@@ -402,7 +396,6 @@ function decodeTransferFromTx(args) {
 
   const renderFrom = renderFullAddress(addressFrom);
   const renderTo = renderFullAddress(addressTo);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency || args.ticker;
 
   const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
   const transactionType =
@@ -467,13 +460,12 @@ function decodeDeploymentTx(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     actionKey,
     primaryCurrency,
+    ticker,
   } = args;
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency || args.ticker;
 
   const totalGas = calculateTotalGas(txParams);
   const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
@@ -645,7 +637,6 @@ function decodeLegacySwapsTx(args) {
     conversionRate,
     currentCurrency,
     primaryCurrency,
-    networkConfigurationsByChainId,
     txChainId,
     tx: {
       id,
@@ -657,6 +648,7 @@ function decodeLegacySwapsTx(args) {
     contractExchangeRates,
     assetSymbol,
     chainId,
+    ticker,
   } = args;
   // If the tx was a swaps smart transaction, the swapsTransactions id is the stx.uuid, rather than tx.id
   // We need use the tx.hash and look up the stx with the same hash
@@ -686,7 +678,6 @@ function decodeLegacySwapsTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const totalEthGas = renderFromWei(totalGas);
   const decimalSourceAmount =
     swapTransaction.sourceAmount &&
