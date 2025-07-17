@@ -33,7 +33,9 @@ class AddNewHdAccountComponent {
   }
 
   async tapConfirm() {
-    await Gestures.waitAndTap(this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm button on Add New HD Account screen',
+    });
   }
 
   async enterName(accountName: string) {

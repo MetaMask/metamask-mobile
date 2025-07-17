@@ -31,7 +31,6 @@ import {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-
   const performanceMetrics = useSelector(selectPerformanceMetrics);
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
