@@ -53,4 +53,3 @@ export async function submitSwapLegacyUI(
   }
   await TestHelpers.delay(10000);
 }
-

@@ -46,20 +46,17 @@ const NetworkConnectMultiSelector = ({
 
   useEffect(() => {
     setSelectedChainIds(defaultSelectedChainIds);
-  }, [
-    setSelectedChainIds,
-    defaultSelectedChainIds
-  ]);
+  }, [setSelectedChainIds, defaultSelectedChainIds]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     onSubmit(selectedChainIds);
-  }, [
-    onSubmit,
-    selectedChainIds,
-  ]);
+  }, [onSubmit, selectedChainIds]);
   // TODO: [SOLANA]  When we support non evm networks, refactor this
   const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [string, EvmAndMultichainNetworkConfigurationsWithCaipChainId]) => ({
+    ([key, network]: [
+      string,
+      EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+    ]) => ({
       id: key,
       name: network.name,
       isSelected: false,
@@ -70,7 +67,8 @@ const NetworkConnectMultiSelector = ({
     }),
   );
 
-  const onSelectNetwork = useCallback((chainId: CaipChainId) => {
+  const onSelectNetwork = useCallback(
+    (chainId: CaipChainId) => {
       if (selectedChainIds.includes(chainId)) {
         setSelectedChainIds(
           selectedChainIds.filter((_chainId) => _chainId !== chainId),
@@ -78,12 +76,15 @@ const NetworkConnectMultiSelector = ({
       } else {
         setSelectedChainIds([...selectedChainIds, chainId]);
       }
-  }, [selectedChainIds, setSelectedChainIds]);
+    },
+    [selectedChainIds, setSelectedChainIds],
+  );
 
-  const areAllNetworksSelected = networks
-    .every(({ caipChainId }) => selectedChainIds.includes(caipChainId));
-const areAnyNetworksSelected = selectedChainIds.length > 0;
-const areNoNetworksSelected = !areAnyNetworksSelected;
+  const areAllNetworksSelected = networks.every(({ caipChainId }) =>
+    selectedChainIds.includes(caipChainId),
+  );
+  const areAnyNetworksSelected = selectedChainIds.length > 0;
+  const areNoNetworksSelected = !areAnyNetworksSelected;
 
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
     const areSomeNetworksSelectedButNotAll =
@@ -91,7 +92,9 @@ const areNoNetworksSelected = !areAnyNetworksSelected;
 
     const selectAll = () => {
       if (isLoading) return;
-      const allSelectedChainIds = networks.map(({ caipChainId }) => caipChainId);
+      const allSelectedChainIds = networks.map(
+        ({ caipChainId }) => caipChainId,
+      );
       setSelectedChainIds(allSelectedChainIds);
     };
 
@@ -127,8 +130,6 @@ const areNoNetworksSelected = !areAnyNetworksSelected;
     setSelectedChainIds,
     styles.selectAllContainer,
   ]);
-
-
 
   const renderCtaButtons = useCallback(
     () => (

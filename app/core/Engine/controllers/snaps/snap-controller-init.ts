@@ -45,7 +45,8 @@ export const snapControllerInit: ControllerInitFunction<
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
   ///: BEGIN:ONLY_INCLUDE_IF(flask)
-  const forcePreinstalledSnaps = process.env.FORCE_PREINSTALLED_SNAPS === 'true';
+  const forcePreinstalledSnaps =
+    process.env.FORCE_PREINSTALLED_SNAPS === 'true';
   ///: END:ONLY_INCLUDE_IF
 
   const encryptor = new Encryptor({
