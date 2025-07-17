@@ -24,7 +24,11 @@ async function updateSDKLoadingState({
   DevLogger.log(
     `updateSDKLoadingState:: currentRouteName=${currentRouteName} loading=${loading}`,
   );
-  const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN, Routes.SHEET.ACCOUNT_CONNECT];
+  const skipRoutes = [
+    Routes.LOCK_SCREEN,
+    Routes.ONBOARDING.LOGIN,
+    Routes.SHEET.ACCOUNT_CONNECT,
+  ];
   if (currentRouteName && skipRoutes.includes(currentRouteName)) {
     // Skip on lock screen
     return;

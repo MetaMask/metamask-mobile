@@ -397,42 +397,45 @@ buildIosRelease(){
 
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask"
 }
 
-buildIosFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
-
+# Builds the Main binary for local development
+buildIosMainLocal() {
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask-Flask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask" "Debug"
+}
+
+# Builds the Flask binary for local development
+buildIosFlaskLocal() {
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-Flask" "Debug"
+}
+
+# Builds the QA binary for local development
+buildIosQaLocal() {
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-QA" "Debug"
+}
+
+# Builds the Flask binary for production
+buildIosFlaskProduction(){
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-Flask"
 }
 
 buildIosReleaseE2E(){
@@ -542,31 +545,21 @@ buildAndroidRelease(){
 	fi
 }
 
-buildAndroidFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.flask || true
-	fi
+# Builds the Flask APK for production
+buildAndroidFlaskProduction(){
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleFlaskRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleFlaskRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:flask
-	fi
+	# Generate checksum
+	yarn build:android:checksum:flask
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
 buildAndroidReleaseE2E(){
@@ -583,9 +576,17 @@ buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildAndroidRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildAndroidFlaskRelease
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidFlaskLocal
+		else
+			buildAndroidFlaskProduction
+		fi
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidQaLocal
+		else
+			buildAndroidQA
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
@@ -618,7 +619,11 @@ buildIos() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "flask" ] ; then
-		buildIosFlaskRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildIosFlaskLocal
+		else
+			buildIosFlaskProduction
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then

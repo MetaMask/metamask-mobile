@@ -1,7 +1,5 @@
 import TestHelpers from '../../helpers';
-import {
-  TEST_DAPP_LOCAL_URL,
-} from '../../fixtures/utils';
+import { TEST_DAPP_LOCAL_URL } from '../../fixtures/utils';
 
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
@@ -312,7 +310,9 @@ class TestDApp {
     await Gestures.tapWebElement(elementId);
   }
 
-  async navigateToTestDappWithContract({ contractAddress }: ContractNavigationParams): Promise<void> {
+  async navigateToTestDappWithContract({
+    contractAddress,
+  }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
