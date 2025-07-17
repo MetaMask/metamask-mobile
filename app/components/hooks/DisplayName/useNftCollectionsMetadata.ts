@@ -97,11 +97,3 @@ async function fetchCollectionsForChain(
 
   return collectionsData;
 }
-
-
-
-
-
-
-
-

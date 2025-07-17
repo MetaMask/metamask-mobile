@@ -36,7 +36,7 @@ class SwapView {
 
   async isPriceWarningDisplayed() {
     try {
-      const label = await this.iUnderstandLabel as Detox.NativeElement;
+      const label = (await this.iUnderstandLabel) as Detox.NativeElement;
       await waitFor(label).toBeVisible().withTimeout(5000);
       return true;
     } catch (e) {
@@ -44,7 +44,10 @@ class SwapView {
     }
   }
 
-  generateSwapCompleteLabel(sourceToken: string, destinationToken: string): string {
+  generateSwapCompleteLabel(
+    sourceToken: string,
+    destinationToken: string,
+  ): string {
     let title = SwapViewSelectorsTexts.SWAP_CONFIRMED;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);

@@ -6,7 +6,10 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBridgeViewMode, setDestToken } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBridgeViewMode,
+  setDestToken,
+} from '../../../../../core/redux/slices/bridge';
 import { cloneDeep } from 'lodash';
 import { BridgeViewMode } from '../../types';
 
@@ -244,7 +247,9 @@ describe('BridgeDestTokenSelector', () => {
   });
 
   it('hides destination network bar when mode is Swap', async () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
     const { queryByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -257,7 +262,9 @@ describe('BridgeDestTokenSelector', () => {
     expect(seeAllButton).toBeNull();
 
     // Restore the original mock
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Bridge);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Bridge,
+    );
   });
 
   it('shows destination network bar when mode is Bridge', async () => {
