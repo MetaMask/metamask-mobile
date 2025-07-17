@@ -70,7 +70,9 @@ export function buildPermissions(chainIds: string[]): Record<string, unknown> {
   const optionalScopes = { 'eip155:1': { accounts: [] } };
 
   for (const chainId of chainIds) {
-    optionalScopes[`eip155:${parseInt(chainId, 10)}` as keyof typeof optionalScopes] = {
+    optionalScopes[
+      `eip155:${parseInt(chainId, 10)}` as keyof typeof optionalScopes
+    ] = {
       accounts: [],
     };
   }

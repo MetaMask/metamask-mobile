@@ -48,7 +48,7 @@ describe('Utilities.executeWithRetry', () => {
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(3);
       expect(consoleSpy).toHaveBeenCalledWith(
-        '✅ test operation succeeded after 2 retries for test element.',
+        '[E2E Framework] [DEBUG] ✅ test operation succeeded after 2 retries for test element.',
       );
     });
 
@@ -70,7 +70,7 @@ describe('Utilities.executeWithRetry', () => {
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenCalledWith(
-        '✅ test operation succeeded after 1 retry for test element.',
+        '[E2E Framework] [DEBUG] ✅ test operation succeeded after 1 retry for test element.',
       );
     });
   });
@@ -92,7 +92,7 @@ describe('Utilities.executeWithRetry', () => {
       await Utilities.executeWithRetry(mockOperation, options);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        '⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
+        '[E2E Framework] [DEBUG] ⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
       );
       expect(consoleSpy).toHaveBeenCalledWith('🔍 Error: First failure');
     });
@@ -112,7 +112,7 @@ describe('Utilities.executeWithRetry', () => {
       await Utilities.executeWithRetry(mockOperation, options);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        '⚠️  test operation failed (attempt 1) on element. Retrying... (timeout: 1000ms)',
+        '[E2E Framework] [DEBUG] ⚠️  test operation failed (attempt 1) on element. Retrying... (timeout: 1000ms)',
       );
     });
   });

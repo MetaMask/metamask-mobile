@@ -140,7 +140,10 @@ class FixtureServer {
     });
   }
   // Load JSON state into the server
-  loadJsonState(rawState: FixtureBuilder, contractRegistry: ContractRegistry | null) {
+  loadJsonState(
+    rawState: FixtureBuilder,
+    contractRegistry: ContractRegistry | null,
+  ) {
     console.log('Loading JSON state...');
     const state = performStateSubstitutions(rawState, contractRegistry || {});
     this._stateMap.set(CURRENT_STATE_KEY, state);

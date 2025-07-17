@@ -11,7 +11,10 @@ import {
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { RampsRegions, RampsRegionsEnum } from '../Constants';
-import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
+import {
+  CustomNetworks,
+  PopularNetworksList,
+} from '../../resources/networks.e2e';
 import { BackupAndSyncSettings } from '../types';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
@@ -728,7 +731,9 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.NetworkController;
 
     // Extract providerConfig data
-    const { providerConfig } = data as { providerConfig: Record<string, unknown> };
+    const { providerConfig } = data as {
+      providerConfig: Record<string, unknown>;
+    };
 
     // Generate a unique key for the new network client ID
     const newNetworkClientId = `networkClientId${
@@ -753,8 +758,9 @@ class FixtureBuilder {
     };
 
     // Add the new network configuration to the object
-    networkController.networkConfigurationsByChainId[providerConfig.chainId as string] =
-      networkConfig;
+    networkController.networkConfigurationsByChainId[
+      providerConfig.chainId as string
+    ] = networkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
@@ -771,17 +777,20 @@ class FixtureBuilder {
     additionalPermissions: Record<string, unknown> = {},
     dappUrl = DAPP_URL,
   ) {
-    const permission = additionalPermissions?.[Caip25EndowmentPermissionName] as { caveats?: { type: string; value: Caip25CaveatValue }[] };
-    const caip25CaveatValue = permission?.caveats?.find(
-      (caveat) => caveat.type === Caip25CaveatType
-    )?.value ?? {
-      optionalScopes: {
-        'eip155:1': { accounts: [] },
-      },
-      requiredScopes: {},
-      sessionProperties: {},
-      isMultichainOrigin: false,
-    } as Caip25CaveatValue;
+    const permission = additionalPermissions?.[
+      Caip25EndowmentPermissionName
+    ] as { caveats?: { type: string; value: Caip25CaveatValue }[] };
+    const caip25CaveatValue =
+      permission?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)
+        ?.value ??
+      ({
+        optionalScopes: {
+          'eip155:1': { accounts: [] },
+        },
+        requiredScopes: {},
+        sessionProperties: {},
+        isMultichainOrigin: false,
+      } as Caip25CaveatValue);
 
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
@@ -815,7 +824,7 @@ class FixtureBuilder {
    */
   // TODO: refactor this to open a dapp of n instead of always second
   withPermissionControllerConnectedToMultipleTestDapps(
-    additionalPermissions: Record<string, unknown>[] = [{}]
+    additionalPermissions: Record<string, unknown>[] = [{}],
   ) {
     let allPermissions = {};
     for (const permission of additionalPermissions) {
@@ -1002,7 +1011,8 @@ class FixtureBuilder {
 
     // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
-      const network = PopularNetworksList[key as keyof typeof PopularNetworksList];
+      const network =
+        PopularNetworksList[key as keyof typeof PopularNetworksList];
       const {
         rpcUrl: rpcTarget,
         chainId,
@@ -1265,11 +1275,13 @@ class FixtureBuilder {
     return this;
   }
 
-  withBackupAndSyncSettings(options: BackupAndSyncSettings = {
-    isBackupAndSyncEnabled: true,
-    isAccountSyncingEnabled: true,
-    isContactSyncingEnabled: true,
-  }) {
+  withBackupAndSyncSettings(
+    options: BackupAndSyncSettings = {
+      isBackupAndSyncEnabled: true,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+    },
+  ) {
     const {
       isBackupAndSyncEnabled = true,
       isAccountSyncingEnabled = true,

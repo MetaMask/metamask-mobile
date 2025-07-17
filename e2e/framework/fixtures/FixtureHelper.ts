@@ -1,9 +1,6 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
-import {
-  AnvilManager,
-  Hardfork,
-} from '../../seeder/anvil-manager';
+import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
@@ -29,10 +26,7 @@ import {
   LocalNode,
   DappOptions,
 } from '../types';
-import {
-  TestDapps,
-  DappVariants,
-} from '../Constants';
+import { TestDapps, DappVariants } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { logger } from '../logger';
@@ -61,8 +55,13 @@ const isFixtureServerStarted = async () => {
  * @param dapps - The dapps to start.
  * @param dappServer - The dapp server to start.
  */
-async function handleDapps(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
-  logger.debug(`Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`);
+async function handleDapps(
+  dapps: DappOptions[],
+  dappServer: http.Server[],
+): Promise<void> {
+  logger.debug(
+    `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
+  );
   const dappBasePort = getLocalTestDappPort();
   for (let i = 0; i < dapps.length; i++) {
     const dapp = dapps[i];
@@ -85,8 +84,7 @@ async function handleDapps(dapps: DappOptions[], dappServer: http.Server[]): Pro
       case DappVariants.SOLANA_TEST_DAPP:
         dappServer.push(
           createStaticServer(
-            dapp.dappPath ||
-              TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
+            dapp.dappPath || TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
           ),
         );
         break;
@@ -154,7 +152,11 @@ async function handleSmartContracts(
 async function handleLocalNodes(
   localNodeOptions: LocalNodeOptionsInput,
 ): Promise<LocalNode[]> {
-  logger.debug(`Starting local nodes: ${localNodeOptions.map((node) => node.type).join(', ')}`);
+  logger.debug(
+    `Starting local nodes: ${localNodeOptions
+      .map((node) => node.type)
+      .join(', ')}`,
+  );
   try {
     let localNode;
     const localNodes = [];
@@ -196,7 +198,11 @@ async function handleLocalNodes(
  * @param localNodes - The local nodes to stop.
  */
 async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
-  logger.debug(`Stopping local nodes: ${localNodes.map((node) => node.constructor.name).join(', ')}`);
+  logger.debug(
+    `Stopping local nodes: ${localNodes
+      .map((node) => node.constructor.name)
+      .join(', ')}`,
+  );
   for (const node of localNodes) {
     if (node) {
       await node.quit();
@@ -209,8 +215,13 @@ async function handleLocalNodeCleanup(localNodes: LocalNode[]): Promise<void> {
  * @param dapps - The dapps to stop.
  * @param dappServer - The dapp server to stop.
  */
-async function handleDappCleanup(dapps: DappOptions[], dappServer: http.Server[]): Promise<void> {
-  logger.debug(`Stopping dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`);
+async function handleDappCleanup(
+  dapps: DappOptions[],
+  dappServer: http.Server[],
+): Promise<void> {
+  logger.debug(
+    `Stopping dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
+  );
   for (let i = 0; i < dapps.length; i++) {
     if (dappServer[i]?.listening) {
       await new Promise<void>((resolve, reject) => {
