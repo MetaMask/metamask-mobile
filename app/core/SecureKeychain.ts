@@ -14,12 +14,6 @@ import {
 import Device from '../util/device';
 import { UserCredentials } from 'react-native-keychain';
 
-interface KeychainObject {
-  password: string;
-  service?: string;
-  username?: string;
-}
-
 interface AuthOptions {
   accessible?: Keychain.ACCESSIBLE;
   accessControl?: Keychain.ACCESS_CONTROL;
@@ -74,12 +68,20 @@ class SecureKeychain {
   }
 
   encryptPassword(password: string): Promise<string> {
-    return encryptor.encrypt(privates.get(this)!.code, { password });
+    const privateData = privates.get(this);
+    if (!privateData) {
+      throw new Error('SecureKeychain not properly initialized');
+    }
+    return encryptor.encrypt(privateData.code, { password });
   }
 
   decryptPassword(str: string): Promise<EncryptedData> {
+    const privateData = privates.get(this);
+    if (!privateData) {
+      throw new Error('SecureKeychain not properly initialized');
+    }
     return encryptor.decrypt(
-      privates.get(this)!.code,
+      privateData.code,
       str,
     ) as Promise<EncryptedData>;
   }
@@ -113,8 +115,7 @@ const SecureKeychainModule: SecureKeychainModule = {
 
     if (
       Device.isAndroid() &&
-      Keychain.SECURITY_LEVEL &&
-      Keychain.SECURITY_LEVEL.SECURE_HARDWARE
+      Keychain.SECURITY_LEVEL?.SECURE_HARDWARE
     ) {
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
@@ -206,7 +207,10 @@ const SecureKeychainModule: SecureKeychainModule = {
       return await this.resetGenericPassword();
     }
 
-    const encryptedPassword = await instance!.encryptPassword(password);
+    if (!instance) {
+      throw new Error('SecureKeychain not initialized');
+    }
+    const encryptedPassword = await instance.encryptPassword(password);
     await Keychain.setGenericPassword('metamask-user', encryptedPassword, {
       ...defaultOptions,
       ...authOptions,
@@ -227,10 +231,10 @@ const SecureKeychainModule: SecureKeychainModule = {
           // Specifically check for user cancellation
           if ((error as Error).message === 'User canceled the operation.') {
             // Store password without biometrics
-            const encryptedPassword = await instance!.encryptPassword(password);
+            const encryptedPasswordWithoutBiometrics = await instance.encryptPassword(password);
             await Keychain.setGenericPassword(
               'metamask-user',
-              encryptedPassword,
+              encryptedPasswordWithoutBiometrics,
               {
                 ...defaultOptions,
               },
