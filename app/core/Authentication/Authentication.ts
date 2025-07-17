@@ -47,6 +47,9 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { recreateVaultWithNewPassword } from '../Vault';
+import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -82,10 +85,11 @@ class AuthenticationService {
    */
   private loginVaultCreation = async (password: string): Promise<void> => {
     // Restore vault with user entered password
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      await SeedlessOnboardingController.submitPassword(password);
+    }
     password = this.wipeSensitiveData();
   };
 
@@ -251,11 +255,12 @@ class AuthenticationService {
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
    */
   resetVault = async (): Promise<void> => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
     // Restore vault with empty password
     await KeyringController.submitPassword('');
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      await SeedlessOnboardingController.clearState();
+    }
     await this.resetPassword();
   };
 
@@ -552,6 +557,14 @@ class AuthenticationService {
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
+    // async check seedless password outdated skip cache when app lock
+    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
+      Logger.error(
+        err,
+        'Error in lockApp: checking seedless password outdated',
+      );
+    });
+
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
     NavigationService.navigation?.reset({
@@ -702,6 +715,74 @@ class AuthenticationService {
       Logger.error(error as Error);
       throw error;
     }
+  };
+
+  /**
+   * Sync latest global seedless password.
+   * Swap current device password with latest global password.
+   *
+   * @param {string} globalPassword - latest global seedless password
+   */
+  submitLatestGlobalSeedlessPassword = async (
+    globalPassword: string,
+    authType: AuthData,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    // recover the current device password
+    const { password: currentDevicePassword } =
+      await SeedlessOnboardingController.recoverCurrentDevicePassword({
+        globalPassword,
+      });
+    // use current device password to unlock the keyringController vault
+    await this.userEntryAuth(currentDevicePassword, authType);
+
+    try {
+      // update seedlessOnboardingController to use latest global password
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
+        oldPassword: currentDevicePassword,
+        globalPassword,
+      });
+
+      // update vault password to global password
+      await recreateVaultWithNewPassword(
+        currentDevicePassword,
+        globalPassword,
+        selectSelectedInternalAccountFormattedAddress(
+          ReduxService.store.getState(),
+        ),
+        true,
+      );
+      await this.resetPassword();
+
+      // check password outdated again skip cache to reset the cache after successful syncing
+      await SeedlessOnboardingController.checkIsPasswordOutdated({
+        skipCache: true,
+      });
+    } catch (err) {
+      // lock app again on error after submitPassword succeeded
+      await this.lockApp({ locked: true });
+      throw err;
+    }
+  };
+
+  /**
+   * Checks if the seedless password is outdated.
+   *
+   * @param {boolean} skipCache - whether to skip the cache
+   * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   */
+  checkIsSeedlessPasswordOutdated = async (
+    skipCache: boolean = false,
+  ): Promise<boolean> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return false;
+    }
+    const isSeedlessPasswordOutdated =
+      await SeedlessOnboardingController.checkIsPasswordOutdated({
+        skipCache,
+      });
+    return isSeedlessPasswordOutdated ?? false;
   };
 }
 

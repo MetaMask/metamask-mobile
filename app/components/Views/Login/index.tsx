@@ -29,7 +29,7 @@ import {
 } from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -106,6 +106,8 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../hooks/useMetrics';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -126,6 +128,7 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [disabledInput, setDisabledInput] = useState(false);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -153,6 +156,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+  useEffect(() => {
+    // first error if seedless password is outdated
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+    }
+  }, [isSeedlessPasswordOutdated]);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -302,7 +315,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       OPTIN_META_METRICS_UI_SEEN,
     );
 
-    if (!isOptinMetaMetricsUISeen) {
+    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
       navigation.reset({
         routes: [
           {
@@ -456,8 +469,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       biometryChoice,
       rememberMe,
     );
-
-    if (oauthLoginSuccess) {
+    if (isSeedlessPasswordOutdated) {
+      await Authentication.submitLatestGlobalSeedlessPassword(
+        password,
+        authType,
+      );
+    } else if (oauthLoginSuccess) {
       await Authentication.rehydrateSeedPhrase(password, authType);
     } else {
       await trace(

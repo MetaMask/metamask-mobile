@@ -150,6 +150,9 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import useInterval from '../../hooks/useInterval';
+import { Duration } from '@metamask/utils';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
@@ -899,6 +902,10 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -914,6 +921,25 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  // periodically check seedless password outdated when app UI is open
+  useInterval(
+    async () => {
+      if (isSeedlessOnboardingLoginFlow) {
+        await Authentication.checkIsSeedlessPasswordOutdated().catch(
+          (error) => {
+            Logger.error(
+              error,
+              'App: Error in checkIsSeedlessPasswordOutdated',
+            );
+          },
+        );
+      }
+    },
+    {
+      delay: Duration.Minute * 5,
+      immediate: true,
+    },
+  );
   const existingUser = useSelector(selectExistingUser);
 
   useEffect(() => {
