@@ -140,7 +140,7 @@ const OtpCode = () => {
   const handleResend = useCallback(async () => {
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
-        trackEvent('RAMPS_OTP_RESENT', {
+        trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
@@ -150,6 +150,10 @@ const OtpCode = () => {
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
       await resendOtp();
+      trackEvent('RAMPS_OTP_RESENT', {
+        ramp_type: 'DEPOSIT',
+        region: selectedRegion?.isoCode || '',
+      });
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
@@ -164,15 +168,15 @@ const OtpCode = () => {
     if (!isLoading && value.length === CELL_COUNT) {
       try {
         setIsLoading(true);
-        trackEvent('RAMPS_OTP_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-        });
         setError(null);
         const response = await submitCode();
         if (!response) {
           throw new Error('No response from submitCode');
         }
+        trackEvent('RAMPS_OTP_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
         await setAuthToken(response);
         await routeAfterAuthentication(quote);
       } catch (e) {

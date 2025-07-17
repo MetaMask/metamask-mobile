@@ -84,13 +84,13 @@ const EnterEmail = () => {
   const handleSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
-      trackEvent('RAMPS_EMAIL_SUBMITTED', {
-        ramp_type: 'DEPOSIT',
-      });
 
       if (validateEmail(email)) {
         setValidationError(false);
         await submitEmail();
+        trackEvent('RAMPS_EMAIL_SUBMITTED', {
+          ramp_type: 'DEPOSIT',
+        });
         navigation.navigate(
           ...createOtpCodeNavDetails({
             quote,
