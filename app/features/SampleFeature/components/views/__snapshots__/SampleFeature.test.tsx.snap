@@ -57,9 +57,8 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
           "marginTop": 16,
@@ -73,9 +72,8 @@ exports[`SampleFeature matches rendered snapshot when feature flag is disabled 1
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
           "marginTop": 8,
@@ -151,9 +149,8 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 24,
-          "fontWeight": "700",
           "letterSpacing": 0,
           "lineHeight": 32,
           "marginTop": 16,
@@ -167,9 +164,8 @@ exports[`SampleFeature matches rendered snapshot when feature flag is enabled 1`
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
           "marginTop": 8,
