@@ -73,7 +73,7 @@ const KycProcessing = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.kyc_processing.title') },
+        { title: strings('deposit.kyc_processing.navbar_title') },
         theme,
       ),
     );

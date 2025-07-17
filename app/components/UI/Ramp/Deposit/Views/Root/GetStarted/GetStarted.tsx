@@ -46,7 +46,11 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Deposit' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.get_started.navbar_title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 
