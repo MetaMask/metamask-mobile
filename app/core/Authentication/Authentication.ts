@@ -645,6 +645,11 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
   ): Promise<void> => {
+    if (!authData.oauth2Login) {
+      throw new Error(
+        'This method is only available for seedless onboarding flow',
+      );
+    }
     try {
       const { SeedlessOnboardingController } = Engine.context;
       const result = await SeedlessOnboardingController.fetchAllSecretData(
@@ -754,8 +759,6 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      await this.resetPassword();
-
       // check password outdated again skip cache to reset the cache after successful syncing
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache: true,
@@ -778,9 +781,8 @@ class AuthenticationService {
     skipCache: boolean = false,
   ): Promise<boolean | undefined> => {
     const { SeedlessOnboardingController } = Engine.context;
-    // If vault is not created, user is not using social login, return undefined
-    if (!SeedlessOnboardingController.state.vault) {
-      return undefined;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return false;
     }
 
     const isSeedlessPasswordOutdated =

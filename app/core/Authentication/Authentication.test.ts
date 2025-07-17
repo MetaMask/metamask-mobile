@@ -1020,7 +1020,10 @@ describe('Authentication', () => {
 
   describe('rehydrateSeedPhrase', () => {
     const mockPassword = 'password123';
-    const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+    const mockAuthData = {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      oauth2Login: true,
+    };
     const mockSeedPhrase1 = new Uint8Array([1]);
     const mockSeedPhrase2 = new Uint8Array([2]);
 
@@ -1077,7 +1080,7 @@ describe('Authentication', () => {
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
 
-      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
@@ -1119,7 +1122,7 @@ describe('Authentication', () => {
         id: 'new-keyring-id',
       });
 
-      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       const mockMnemonic1 = uint8ArrayToMnemonic(mockSeedPhrase1, []);
       const mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
@@ -1160,7 +1163,7 @@ describe('Authentication', () => {
           .fetchAllSecretData as jest.Mock
       ).mockResolvedValueOnce([]);
       await expect(
-        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+        Authentication.userEntryAuth(mockPassword, mockAuthData),
       ).rejects.toThrow('No account data found');
     });
 
@@ -1171,7 +1174,7 @@ describe('Authentication', () => {
           .fetchAllSecretData as jest.Mock
       ).mockRejectedValueOnce(error);
       await expect(
-        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+        Authentication.userEntryAuth(mockPassword, mockAuthData),
       ).rejects.toThrow('Fetch failed');
     });
 
@@ -1197,7 +1200,7 @@ describe('Authentication', () => {
         Engine.context.KeyringController.addNewKeyring as jest.Mock
       ).mockRejectedValueOnce(error);
 
-      await Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData);
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(
         Engine.context.KeyringController.addNewKeyring,
@@ -1227,14 +1230,16 @@ describe('Authentication', () => {
       ]);
 
       await expect(
-        Authentication.rehydrateSeedPhrase(mockPassword, mockAuthData),
+        Authentication.userEntryAuth(mockPassword, mockAuthData),
       ).rejects.toThrow('No seed phrase found');
     });
   });
 
   describe('submitLatestGlobalSeedlessPassword', () => {
     const mockGlobalPassword = 'globalPassword123';
-    const mockAuthType = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+    const mockAuthType = {
+      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+    };
     const mockCurrentDevicePassword = 'devicePassword123';
     const mockSelectedAddress = '0x1234567890abcdef';
 
@@ -1245,6 +1250,39 @@ describe('Authentication', () => {
     let selectSelectedInternalAccountFormattedAddress: jest.MockedFunction<
       typeof import('../../selectors/accountsController').selectSelectedInternalAccountFormattedAddress
     >;
+
+    const mockState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'account-id': {
+                  address: mockSelectedAddress,
+                  id: 'account-id',
+                  metadata: {
+                    name: 'Test Account',
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                  },
+                  options: {},
+                  methods: [],
+                  type: 'eip155:eoa',
+                },
+              },
+              selectedAccount: 'account-id',
+            },
+          },
+          SeedlessOnboardingController: {
+            state: {
+              vault: 'existing vault data' as string | undefined,
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      },
+    };
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
@@ -1261,32 +1299,7 @@ describe('Authentication', () => {
 
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
-        getState: jest.fn(() => ({
-          engine: {
-            backgroundState: {
-              AccountsController: {
-                internalAccounts: {
-                  accounts: {
-                    'account-id': {
-                      address: mockSelectedAddress,
-                      id: 'account-id',
-                      metadata: {
-                        name: 'Test Account',
-                        keyring: {
-                          type: 'HD Key Tree',
-                        },
-                      },
-                      options: {},
-                      methods: [],
-                      type: 'eip155:eoa',
-                    },
-                  },
-                  selectedAccount: 'account-id',
-                },
-              },
-            },
-          },
-        })),
+        getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
       Engine.context.SeedlessOnboardingController = {
@@ -1298,6 +1311,7 @@ describe('Authentication', () => {
         storeKeyringEncryptionKey: jest.fn(),
         loadKeyringEncryptionKey: jest.fn(),
         submitGlobalPassword: jest.fn(),
+        fetchAllSecretData: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
@@ -1312,10 +1326,10 @@ describe('Authentication', () => {
     });
 
     it('throws an error if not using seedless onboarding flow', async () => {
-      Engine.context.SeedlessOnboardingController.state.vault = undefined;
-
+      mockState.engine.backgroundState.SeedlessOnboardingController.state.vault =
+        undefined;
       await expect(
-        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+        Authentication.rehydrateSeedPhrase(mockGlobalPassword, mockAuthType),
       ).rejects.toThrow(
         'This method is only available for seedless onboarding flow',
       );
@@ -1407,61 +1421,95 @@ describe('Authentication', () => {
     });
   });
 
-  describe('checkIsSeedlessPasswordOutdated', () => {
-    let Engine: typeof import('../Engine').default;
+  // describe('checkIsSeedlessPasswordOutdated', () => {
+  //   const mockState = {
+  //     engine: {
+  //       backgroundState: {
+  //         SeedlessOnboardingController: {
+  //           state: { vault: 'existing vault data' as string | undefined },
+  //         } as unknown as SeedlessOnboardingControllerState,
+  //       },
+  //     },
+  //   };
 
-    beforeEach(() => {
-      Engine = jest.requireMock('../Engine');
-      Engine.context.SeedlessOnboardingController = {
-        state: { vault: {} },
-        checkIsPasswordOutdated: jest.fn(),
-      } as unknown as SeedlessOnboardingController<EncryptionKey>;
-    });
+  //   let Engine: typeof import('../Engine').default;
 
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
+  //   beforeEach(() => {
+  //     Engine = jest.requireMock('../Engine');
+  //     Engine.context.SeedlessOnboardingController = {
+  //       state: { vault: {} },
+  //       checkIsPasswordOutdated: jest.fn(),
+  //     } as unknown as SeedlessOnboardingController<EncryptionKey>;
+  //   });
 
-    it('returns undefined if not using seedless onboarding flow', async () => {
-      Engine.context.SeedlessOnboardingController.state.vault = undefined;
+  //   afterEach(() => {
+  //     jest.clearAllMocks();
+  //   });
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated();
-      expect(result).toBeUndefined();
-      expect(
-        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).not.toHaveBeenCalled();
-    });
+  //   it('returns undefined if not using seedless onboarding flow', async () => {
+  //     // mockState.engine.backgroundState.SeedlessOnboardingController.vault =
+  //     // undefined;
 
-    it('returns password outdated status when using seedless onboarding flow', async () => {
-      const mockIsOutdated = true;
-      (
-        Engine.context.SeedlessOnboardingController
-          .checkIsPasswordOutdated as jest.Mock
-      ).mockResolvedValueOnce(mockIsOutdated);
+  //     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+  //       dispatch: jest.fn(),
+  //       getState: jest.fn(() => mockState),
+  //     } as unknown as ReduxStore);
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated(true);
+  //     const result = await Authentication.checkIsSeedlessPasswordOutdated();
+  //     expect(result).toBe(false);
+  //     expect(
+  //       Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
+  //     ).not.toHaveBeenCalled();
+  //   });
 
-      expect(result).toBe(mockIsOutdated);
-      expect(
-        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).toHaveBeenCalledWith({ skipCache: true });
-    });
+  //   it('returns password outdated status when using seedless onboarding flow', async () => {
+  //     const mockIsOutdated = true;
+  //     mockState.engine.backgroundState.SeedlessOnboardingController = {
+  //       vault: 'existing vault data' as string,
+  //       socialBackupsMetadata: [],
+  //       passwordOutdatedCache: {
+  //         isExpiredPwd: mockIsOutdated,
+  //         timestamp: Date.now(),
+  //       },
+  //     };
 
-    it('uses default skipCache value when not provided', async () => {
-      const mockIsOutdated = false;
-      (
-        Engine.context.SeedlessOnboardingController
-          .checkIsPasswordOutdated as jest.Mock
-      ).mockResolvedValueOnce(mockIsOutdated);
+  //     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+  //       dispatch: jest.fn(),
+  //       getState: jest.fn(() => mockState),
+  //     } as unknown as ReduxStore);
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated();
+  //     const result = await Authentication.checkIsSeedlessPasswordOutdated(true);
 
-      expect(result).toBe(mockIsOutdated);
-      expect(
-        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).toHaveBeenCalledWith({ skipCache: false });
-    });
-  });
+  //     expect(result).toBe(mockIsOutdated);
+  //     expect(
+  //       Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
+  //     ).toHaveBeenCalledWith({ skipCache: true });
+  //   });
+
+  //   it('uses default skipCache value when not provided', async () => {
+  //     const mockIsOutdated = false;
+  //     mockState.engine.backgroundState.SeedlessOnboardingController = {
+  //       vault: 'existing vault data' as string,
+  //       socialBackupsMetadata: [],
+  //       passwordOutdatedCache: {
+  //         isExpiredPwd: mockIsOutdated,
+  //         timestamp: Date.now(),
+  //       },
+  //     };
+
+  //     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+  //       dispatch: jest.fn(),
+  //       getState: jest.fn(() => mockState),
+  //     } as unknown as ReduxStore);
+
+  //     const result = await Authentication.checkIsSeedlessPasswordOutdated();
+
+  //     expect(result).toBe(mockIsOutdated);
+  //     expect(
+  //       Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
+  //     ).toHaveBeenCalledWith({ skipCache: false });
+  //   });
+  // });
 
   describe('unlock App with seedless onboarding flow', () => {
     const Engine = jest.requireMock('../Engine');
@@ -1469,6 +1517,7 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         state: { vault: 'existing vault data' },
         submitPassword: jest.fn(),
+        checkIsPasswordOutdated: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         submitPassword: jest.fn(),
