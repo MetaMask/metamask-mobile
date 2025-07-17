@@ -51,7 +51,7 @@ function extractURLParams(url: string) {
     utm_term: '',
     utm_content: '',
   };
-  // FRANK: update test descriptions to use active voice
+
   if (urlObj.query.length) {
     try {
       const parsedParams = qs.parse(

@@ -173,6 +173,7 @@ export function* handleDeeplinkSaga() {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
+      AppStateEventProcessor.clearPendingDeeplink();
     }
   }
 }
