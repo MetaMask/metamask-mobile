@@ -805,6 +805,39 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const pasteButton = getByText(strings('import_from_seed.paste'));
       expect(pasteButton).toBeOnTheScreen();
     });
+
+    it('should not navigate to next field if only spaces are entered', async () => {
+      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Start with TextArea and type something
+      const textArea = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(textArea, 'test test1 text2   ');
+      });
+
+      const input4 = getByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_3`,
+      );
+
+      expect(input4).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(input4, '   ');
+      });
+
+      const input5 = queryByTestId(
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_4`,
+      );
+
+      expect(input5).not.toBeOnTheScreen();
+    });
   });
 
   describe('Create password UI', () => {

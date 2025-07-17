@@ -12,7 +12,6 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  FlatList,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
@@ -89,7 +88,6 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
-  NUM_COLUMNS,
   SPACE_CHAR,
   PASSCODE_NOT_SET_ERROR,
   IOS_REJECTED_BIOMETRICS_ERROR,
@@ -98,6 +96,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
+import { v4 as uuidv4 } from 'uuid';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
@@ -148,7 +147,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
-  const [containerWidth, setContainerWidth] = useState(0);
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -161,9 +159,6 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
-  const handleLayout = (event) => {
-    setContainerWidth(event.nativeEvent.layout.width);
-  };
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -723,6 +718,8 @@ const ImportFromSecretRecoveryPhrase = ({
     [seedPhrase],
   );
 
+  const uniqueId = useMemo(() => uuidv4(), []);
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -819,7 +816,7 @@ const ImportFromSecretRecoveryPhrase = ({
                         <View style={styles.seedPhraseInputContainer}>
                           {seedPhrase.map((item, index) => (
                             <TextField
-                              key={`seed-phrase-item-${index}`}
+                              key={`seed-phrase-item-${uniqueId}-${index}`}
                               ref={(ref) => {
                                 const inputRefs = getSeedPhraseInputRef();
                                 inputRefs.set(index, ref);
