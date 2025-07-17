@@ -4,12 +4,12 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
+import { NON_EVM_DISCOVERY_PENDING } from '../../constants/storage';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -90,15 +90,28 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   let discoveredAccountsCount = 0;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const multichainClient = MultichainWalletSnapFactory.createClient(
-    WalletClientType.Solana,
-  );
-
-  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
-    newKeyring.id,
-  );
-  ///: END:ONLY_INCLUDE_IF
+  // non-EVM discovery
+  try {
+    const nonEvmClientTypes = Object.values(WalletClientType);
+    for (const clientType of nonEvmClientTypes) {
+      try {
+        const client = MultichainWalletSnapFactory.createClient(clientType);
+        discoveredAccountsCount += await client.addDiscoveredAccounts(
+          newKeyring.id,
+        );
+      } catch (error) {
+        console.warn(
+          `${clientType} account discovery failed during SRP import:`,
+          error,
+        );
+        await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+      }
+    }
+    await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
+  } catch (error) {
+    console.error('Non-EVM account discovery failed after all retries:', error);
+    await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+  }
 
   Engine.setSelectedAddress(newAccountAddress);
 

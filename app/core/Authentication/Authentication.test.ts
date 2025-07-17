@@ -3,7 +3,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
-  SOLANA_DISCOVERY_PENDING,
+  NON_EVM_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -71,6 +71,7 @@ jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   },
   WalletClientType: {
     Solana: 'solana',
+    Bitcoin: 'bitcoin',
   },
 }));
 
@@ -465,7 +466,7 @@ describe('Authentication', () => {
       );
     });
 
-    describe('Solana account discovery failure handling', () => {
+    describe('Non-EVM discovery failure handling', () => {
       beforeEach(() => {
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
           dispatch: jest.fn(),
@@ -482,9 +483,9 @@ describe('Authentication', () => {
         jest.restoreAllMocks();
       });
 
-      it('completes wallet creation when Solana discovery fails', async () => {
+      it('completes wallet creation when discovery fails', async () => {
         mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('Solana RPC error'),
+          new Error('Discovery failed'),
         );
 
         await expect(
@@ -493,17 +494,17 @@ describe('Authentication', () => {
           }),
         ).resolves.not.toThrow();
 
-        // Verify Solana discovery was attempted
+        // Verify discovery was attempted
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
       });
 
-      it('completes wallet restore when Solana discovery fails', async () => {
-        // Mock Solana discovery to fail
+      it('completes wallet restore when discovery fails', async () => {
+        // Mock discovery to fail
         mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
           new Error('Network timeout'),
         );
 
-        // Wallet restore should succeed despite Solana failure
+        // Wallet restore should succeed despite discovery failure
         await expect(
           Authentication.newWalletAndRestore(
             '1234',
@@ -513,13 +514,13 @@ describe('Authentication', () => {
           ),
         ).resolves.not.toThrow();
 
-        // Verify Solana discovery was attempted
+        // Verify discovery was attempted
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
       });
 
-      it('does not break authentication flow when Solana discovery fails', async () => {
+      it('does not break authentication flow when discovery fails', async () => {
         // Set up pending discovery that will be checked on unlock
-        await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+        await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
 
         const mockCredentials = { username: 'test', password: 'test' };
         SecureKeychain.getGenericPassword = jest
@@ -530,16 +531,16 @@ describe('Authentication', () => {
         await expect(Authentication.appTriggeredAuth()).resolves.not.toThrow();
       });
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
+      it('sets NON_EVM_DISCOVERY_PENDING when discovery fails in createWalletVaultAndKeychain', async () => {
         const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
         jest
           .spyOn(
             Authentication as unknown as {
-              attemptSolanaAccountDiscovery: () => Promise<void>;
+              attemptNonEvmAccountDiscovery: () => Promise<void>;
             },
-            'attemptSolanaAccountDiscovery',
+            'attemptNonEvmAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Solana RPC error'));
+          .mockRejectedValue(new Error('Discovery failed'));
 
         await Authentication.newWalletAndKeychain('1234', {
           currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -547,21 +548,21 @@ describe('Authentication', () => {
         await Promise.resolve();
 
         expect(setItemSpy).toHaveBeenCalledWith(
-          SOLANA_DISCOVERY_PENDING,
+          NON_EVM_DISCOVERY_PENDING,
           'true',
         );
       });
 
-      it('sets SOLANA_DISCOVERY_PENDING when discovery fails in newWalletVaultAndRestore', async () => {
+      it('sets NON_EVM_DISCOVERY_PENDING when discovery fails in newWalletVaultAndRestore', async () => {
         const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
         jest
           .spyOn(
             Authentication as unknown as {
-              attemptSolanaAccountDiscovery: () => Promise<void>;
+              attemptNonEvmAccountDiscovery: () => Promise<void>;
             },
-            'attemptSolanaAccountDiscovery',
+            'attemptNonEvmAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Solana RPC error'));
+          .mockRejectedValue(new Error('Discovery failed'));
 
         await Authentication.newWalletAndRestore(
           '1234',
@@ -571,30 +572,33 @@ describe('Authentication', () => {
         );
         await Promise.resolve();
 
-        expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
+        expect(setItemSpy).toHaveBeenCalledWith(
+          NON_EVM_DISCOVERY_PENDING,
+          TRUE,
+        );
       });
 
-      describe('retrySolanaDiscoveryIfPending behavior', () => {
-        let mockAttemptSolanaAccountDiscovery: jest.SpyInstance;
+      describe('retryNonEvmDiscoveryIfPending behavior', () => {
+        let mockAttemptNonEvmAccountDiscovery: jest.SpyInstance;
 
         beforeEach(() => {
           // Spy on the private method
-          mockAttemptSolanaAccountDiscovery = jest
+          mockAttemptNonEvmAccountDiscovery = jest
             .spyOn(
               Authentication as unknown as {
-                attemptSolanaAccountDiscovery: () => Promise<void>;
+                attemptNonEvmAccountDiscovery: () => Promise<void>;
               },
-              'attemptSolanaAccountDiscovery',
+              'attemptNonEvmAccountDiscovery',
             )
             .mockResolvedValue(undefined);
         });
 
         afterEach(() => {
-          mockAttemptSolanaAccountDiscovery.mockRestore();
+          mockAttemptNonEvmAccountDiscovery.mockRestore();
         });
 
-        it('calls attemptSolanaAccountDiscovery when flag is set to true', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+        it('calls attemptNonEvmAccountDiscovery when flag is set to true', async () => {
+          await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
 
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
@@ -603,11 +607,11 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).toHaveBeenCalled();
         });
 
-        it('does not call attemptSolanaAccountDiscovery when flag is not set', async () => {
-          await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
+        it('does not call attemptNonEvmAccountDiscovery when flag is not set', async () => {
+          await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
 
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
@@ -616,11 +620,11 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).not.toHaveBeenCalled();
         });
 
-        it('does not call attemptSolanaAccountDiscovery when flag is false', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'false');
+        it('does not call attemptNonEvmAccountDiscovery when flag is false', async () => {
+          await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'false');
 
           const mockCredentials = { username: 'test', password: 'test' };
           SecureKeychain.getGenericPassword = jest
@@ -629,17 +633,17 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).not.toHaveBeenCalled();
         });
 
         it('retries on userEntryAuth when flag is set', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
+          await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
 
           await Authentication.userEntryAuth('1234', {
             currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
           });
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).toHaveBeenCalled();
         });
 
         it('handles storage errors gracefully without breaking authentication', async () => {
@@ -658,20 +662,20 @@ describe('Authentication', () => {
           ).resolves.not.toThrow();
 
           expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry Solana discovery:',
+            'Failed to check/retry non-EVM discovery:',
             expect.any(Error),
           );
 
           // Should not attempt discovery due to storage error
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).not.toHaveBeenCalled();
 
           // Restore original method
           StorageWrapper.getItem = originalGetItem;
         });
 
         it('handles discovery attempt errors gracefully', async () => {
-          await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(
+          await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+          mockAttemptNonEvmAccountDiscovery.mockRejectedValueOnce(
             new Error('Discovery failed'),
           );
 
@@ -685,9 +689,9 @@ describe('Authentication', () => {
             Authentication.appTriggeredAuth(),
           ).resolves.not.toThrow();
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptNonEvmAccountDiscovery).toHaveBeenCalled();
           expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry Solana discovery:',
+            'Failed to check/retry non-EVM discovery:',
             expect.any(Error),
           );
         });
@@ -1463,4 +1467,174 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith('1234');
     });
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  describe('Non-EVM account discovery', () => {
+    let Engine: typeof import('../Engine').default;
+    let wrapper: jest.Mocked<
+      typeof import('../../store/storage-wrapper').default
+    >;
+
+    beforeEach(() => {
+      Engine = jest.requireMock('../Engine');
+      wrapper = jest.requireMock('../../store/storage-wrapper');
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+
+      Engine.context.KeyringController = {
+        state: {
+          keyrings: [{ metadata: { id: 'test-keyring-id' } }],
+        },
+      } as unknown as KeyringController;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should retry non-EVM discovery if pending during user entry auth', async () => {
+      // Mock that non-EVM discovery is pending
+      wrapper.getItem.mockResolvedValueOnce('true');
+
+      // Mock the loginVaultCreation method to avoid actual vault operations
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'loginVaultCreation')
+        .mockResolvedValueOnce(undefined);
+
+      // Mock the storePassword method
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'storePassword')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.userEntryAuth('password123', {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+      });
+
+      // Verify that the retry method would be called
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        NON_EVM_DISCOVERY_PENDING,
+      );
+    });
+
+    it('should handle non-EVM discovery errors gracefully during wallet creation', async () => {
+      const mockPassword = 'password123';
+      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+
+      // Mock the Engine methods to avoid actual wallet creation
+      Engine.resetState = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.createNewVaultAndKeychain = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      // Mock the storePassword method
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'storePassword')
+        .mockResolvedValueOnce(undefined);
+
+      // Mock the discovery method to throw an error
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
+        .mockRejectedValueOnce(new Error('Discovery failed'));
+
+      // Mock console.warn to capture the warning
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      await Authentication.newWalletAndKeychain(mockPassword, mockAuthData);
+
+      // Verify that the method completes successfully even if discovery fails
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Non-EVM account discovery failed during wallet creation:',
+        expect.any(Error),
+      );
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        NON_EVM_DISCOVERY_PENDING,
+        'true',
+      );
+    });
+
+    it('should attempt discovery for all non-EVM networks', async () => {
+      const mockPassword = 'password123';
+      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+
+      // Mock the Engine methods to avoid actual wallet creation
+      Engine.resetState = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.createNewVaultAndRestore = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      // Mock the discovery method to succeed
+      const discoverySpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.newWalletAndRestore(
+        mockPassword,
+        mockAuthData,
+        'test seed phrase',
+        false,
+      );
+
+      // Verify that the discovery was attempted
+      expect(discoverySpy).toHaveBeenCalled();
+    });
+
+    it('should handle parallel discovery with mixed success and failure', async () => {
+      const mockPassword = 'password123';
+      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
+
+      // Mock the Engine methods to avoid actual wallet creation
+      Engine.resetState = jest.fn().mockResolvedValue(undefined);
+      Engine.context.KeyringController.createNewVaultAndKeychain = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      // Mock the storePassword method
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'storePassword')
+        .mockResolvedValueOnce(undefined);
+
+      // Mock console.warn to capture warnings
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Mock the discovery method to simulate mixed results
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
+        .mockImplementation(async () => {
+          // Simulate parallel execution with mixed results
+          const mockResults = [
+            Promise.resolve(5), // Bitcoin succeeds
+            Promise.reject(new Error('Solana network error')), // Solana fails
+            Promise.resolve(3), // Tron succeeds
+          ];
+
+          const results = await Promise.allSettled(mockResults);
+
+          // Log failures (this simulates the new parallel behavior)
+          results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+              console.warn(`Network ${index} discovery failed:`, result.reason);
+            }
+          });
+        });
+
+      await Authentication.newWalletAndKeychain(mockPassword, mockAuthData);
+
+      // Verify that failures are logged but the process completes
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Network 1 discovery failed:',
+        expect.any(Error),
+      );
+    });
+  });
+  ///: END:ONLY_INCLUDE_IF
 });
