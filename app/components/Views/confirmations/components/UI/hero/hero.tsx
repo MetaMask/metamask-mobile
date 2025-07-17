@@ -9,7 +9,7 @@ import styleSheet from './hero.styles';
 
 interface TitleProps {
   title: React.ReactNode | string;
-  setIsModalVisible?: ((isModalVisible: boolean) => void);
+  setIsModalVisible?: (isModalVisible: boolean) => void;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }
 
@@ -89,11 +89,7 @@ export const Hero = ({
         }
         styles={styles}
       />
-      {subtitle && (
-        <Text style={styles.subtitle}>
-          {subtitle}
-        </Text>
-      )}
+      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       {tooltipModalProps.isEnabled && (
         <TooltipModal
           open={isModalVisible}

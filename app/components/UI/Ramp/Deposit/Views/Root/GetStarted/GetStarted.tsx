@@ -65,7 +65,11 @@ const GetStarted: React.FC = () => {
         <ScrollView>
           <ScreenLayout.Content>
             <View style={styles.getStartedImageWrapper}>
-              <Image source={getStartedIcon} style={styles.getStartedImage} />
+              <Image
+                source={getStartedIcon}
+                style={styles.getStartedImage}
+                resizeMode="contain"
+              />
             </View>
           </ScreenLayout.Content>
 
