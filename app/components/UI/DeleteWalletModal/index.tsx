@@ -54,6 +54,9 @@ const DeleteWalletModal: React.FC = () => {
 
   const isResetWalletFromParams =
     (route.params as { isResetWallet?: boolean })?.isResetWallet || false;
+  const isOauthLoginSuccess =
+    (route.params as { oauthLoginSuccess?: boolean })?.oauthLoginSuccess ||
+    false;
 
   const modalRef = useRef<BottomSheetRef>(null);
 
@@ -198,7 +201,9 @@ const DeleteWalletModal: React.FC = () => {
             isDanger
             onPress={() => {
               setIsResetWallet(true);
-              track(MetaMetricsEvents.RESET_WALLET, {});
+              track(MetaMetricsEvents.RESET_WALLET, {
+                account_type: isOauthLoginSuccess ? 'social' : 'metamask',
+              });
             }}
             testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
           />
