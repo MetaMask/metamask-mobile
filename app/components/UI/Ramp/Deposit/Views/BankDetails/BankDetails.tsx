@@ -193,7 +193,7 @@ const BankDetails = () => {
       getDepositNavbarOptions(
         navigation,
         {
-          title: strings('deposit.bank_details.title', {
+          title: strings('deposit.bank_details.navbar_title', {
             paymentMethod: paymentMethodName,
           }),
         },
