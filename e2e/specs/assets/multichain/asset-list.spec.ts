@@ -100,7 +100,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await QuoteView.tapOnCancelButton();
   });
 
-
   it('should allows clicking into the asset details page of native token on another network', async () => {
     await TokenOverview.tapBackButton();
 

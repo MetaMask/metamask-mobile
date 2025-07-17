@@ -4,7 +4,7 @@ import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useGetTokenStandardAndDetails } from '../useGetTokenStandardAndDetails';
 
-export const useIsNft = (): { isNft: boolean; isPending: boolean } => {
+export const useIsNft = (): { isNft?: boolean; isPending: boolean } => {
   const transactionMetadata = useTransactionMetadataRequest();
   const tokenAddress = transactionMetadata?.txParams?.to as string;
   const networkClientId =
@@ -15,6 +15,8 @@ export const useIsNft = (): { isNft: boolean; isPending: boolean } => {
   );
 
   const isNft =
-    'standard' in details ? details.standard !== TokenStandard.ERC20 : false;
+    !isPending && details.standard !== undefined
+      ? details.standard !== TokenStandard.ERC20
+      : undefined;
   return { isNft, isPending };
 };

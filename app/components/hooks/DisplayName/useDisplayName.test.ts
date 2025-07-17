@@ -158,11 +158,12 @@ describe('useDisplayName', () => {
         variation: CHAIN_IDS.MAINNET,
       });
 
-      expect(displayName).toEqual(expect.objectContaining({
-        variant: DisplayNameVariant.Saved,
-        name: KNOWN_ACCOUNT_NAME,
-      }));
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          variant: DisplayNameVariant.Saved,
+          name: KNOWN_ACCOUNT_NAME,
+        }),
+      );
     });
-
   });
 });
