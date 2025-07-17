@@ -1,0 +1,213 @@
+name: E2E Tests
+
+on:
+  # Manual dispatch with inputs
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run (smoke, regression, full)'
+        required: true
+        type: choice
+        options:
+          - smoke
+          - regression
+          - full
+        default: smoke
+      platforms:
+        description: 'Platforms to test'
+        required: true
+        type: choice
+        options:
+          - ios
+          - android
+          - both
+        default: both
+      use_cached_builds:
+        description: 'Use cached builds instead of building from source'
+        required: false
+        type: boolean
+        default: true
+
+  # PR triggers
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+  # Push triggers
+  push:
+    branches:
+      - main
+      - 'release/*'
+
+# Concurrency group to cancel in-progress runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Environment variables
+env:
+  NODE_VERSION: '18.19.0'
+  DETOX_VERSION: '20.26.2'
+
+jobs:
+  # Determine test configuration
+  setup:
+    name: Setup Test Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      test_suite: ${{ steps.config.outputs.test_suite }}
+      platforms: ${{ steps.config.outputs.platforms }}
+      use_cached_builds: ${{ steps.config.outputs.use_cached_builds }}
+      run_tests: ${{ steps.config.outputs.run_tests }}
+    steps:
+      - name: Determine test configuration
+        id: config
+        run: |
+          # Set defaults based on trigger type
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "test_suite=${{ github.event.inputs.test_suite }}" >> $GITHUB_OUTPUT
+            echo "platforms=${{ github.event.inputs.platforms }}" >> $GITHUB_OUTPUT
+            echo "use_cached_builds=${{ github.event.inputs.use_cached_builds }}" >> $GITHUB_OUTPUT
+            echo "run_tests=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Check for E2E label on PR
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'Run E2E Tests') }}" == "true" ]]; then
+              echo "test_suite=smoke" >> $GITHUB_OUTPUT
+              echo "platforms=both" >> $GITHUB_OUTPUT
+              echo "use_cached_builds=true" >> $GITHUB_OUTPUT
+              echo "run_tests=true" >> $GITHUB_OUTPUT
+            else
+              echo "run_tests=false" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "test_suite=smoke" >> $GITHUB_OUTPUT
+              echo "platforms=both" >> $GITHUB_OUTPUT
+              echo "use_cached_builds=true" >> $GITHUB_OUTPUT
+              echo "run_tests=true" >> $GITHUB_OUTPUT
+            elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+              echo "test_suite=regression" >> $GITHUB_OUTPUT
+              echo "platforms=both" >> $GITHUB_OUTPUT
+              echo "use_cached_builds=false" >> $GITHUB_OUTPUT
+              echo "run_tests=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          echo "Configuration determined:"
+          echo "  Test Suite: $(cat $GITHUB_OUTPUT | grep test_suite || echo 'not set')"
+          echo "  Platforms: $(cat $GITHUB_OUTPUT | grep platforms || echo 'not set')"
+          echo "  Use Cached Builds: $(cat $GITHUB_OUTPUT | grep use_cached_builds || echo 'not set')"
+          echo "  Run Tests: $(cat $GITHUB_OUTPUT | grep run_tests || echo 'not set')"
+
+  # iOS E2E tests
+  e2e-ios:
+    name: E2E Tests (iOS)
+    runs-on: macos-latest
+    needs: setup
+    if: needs.setup.outputs.run_tests == 'true' && (needs.setup.outputs.platforms == 'ios' || needs.setup.outputs.platforms == 'both')
+    env:
+      TEST_SUITE: ${{ needs.setup.outputs.test_suite }}
+      USE_CACHED_BUILDS: ${{ needs.setup.outputs.use_cached_builds }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: iOS E2E Test Placeholder
+        run: |
+          echo "🍎 Running iOS E2E tests..."
+          echo "Test Suite: ${{ env.TEST_SUITE }}"
+          echo "Use Cached Builds: ${{ env.USE_CACHED_BUILDS }}"
+          echo "Node Version: ${{ env.NODE_VERSION }}"
+          echo "Detox Version: ${{ env.DETOX_VERSION }}"
+          echo "✅ iOS E2E tests completed successfully (placeholder)"
+
+  # Android E2E tests
+  e2e-android:
+    name: E2E Tests (Android)
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.run_tests == 'true' && (needs.setup.outputs.platforms == 'android' || needs.setup.outputs.platforms == 'both')
+    env:
+      TEST_SUITE: ${{ needs.setup.outputs.test_suite }}
+      USE_CACHED_BUILDS: ${{ needs.setup.outputs.use_cached_builds }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Android E2E Test Placeholder
+        run: |
+          echo "🤖 Running Android E2E tests..."
+          echo "Test Suite: ${{ env.TEST_SUITE }}"
+          echo "Use Cached Builds: ${{ env.USE_CACHED_BUILDS }}"
+          echo "Node Version: ${{ env.NODE_VERSION }}"
+          echo "Detox Version: ${{ env.DETOX_VERSION }}"
+          echo "✅ Android E2E tests completed successfully (placeholder)"
+
+  # Summary job
+  e2e-summary:
+    name: E2E Test Summary
+    runs-on: ubuntu-latest
+    needs: [setup, e2e-ios, e2e-android]
+    if: always() && needs.setup.outputs.run_tests == 'true'
+    steps:
+      - name: Generate test summary
+        run: |
+          echo "# E2E Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Suite**: ${{ needs.setup.outputs.test_suite }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: ${{ needs.setup.outputs.platforms }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Use Cached Builds**: ${{ needs.setup.outputs.use_cached_builds }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Results" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.e2e-ios.result }}" != "skipped" ]]; then
+            if [[ "${{ needs.e2e-ios.result }}" == "success" ]]; then
+              echo "- ✅ **iOS**: PASSED" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ❌ **iOS**: FAILED" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [[ "${{ needs.e2e-android.result }}" != "skipped" ]]; then
+            if [[ "${{ needs.e2e-android.result }}" == "success" ]]; then
+              echo "- ✅ **Android**: PASSED" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ❌ **Android**: FAILED" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*This is a template workflow - actual E2E test implementation pending*" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall result
+        run: |
+          ios_result="${{ needs.e2e-ios.result }}"
+          android_result="${{ needs.e2e-android.result }}"
+          
+          # Consider success if all run jobs passed (skip doesn't count as failure)
+          if [[ "$ios_result" == "failure" || "$android_result" == "failure" ]]; then
+            echo "❌ Some E2E tests failed"
+            exit 1
+          else
+            echo "✅ All E2E tests passed"
+          fi
