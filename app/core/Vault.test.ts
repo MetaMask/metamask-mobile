@@ -575,7 +575,11 @@ describe('Vault', () => {
           mockHdAccount1.address,
         ),
       ).rejects.toThrow('Password change failed');
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        1,
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
       expect(mockCreateNewVaultAndRestore).toHaveBeenCalledTimes(2);
       expect(mockCreateNewVaultAndRestore).toHaveBeenNthCalledWith(
         1,

@@ -27,6 +27,7 @@ import {
   trace,
 } from '../../../util/trace';
 import { useMetrics } from '../../hooks/useMetrics';
+import { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   ONBOARDING_WIZARD,
@@ -162,14 +163,15 @@ jest.mock('../../../util/trace', () => {
 const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
 
-const mockUseMetrics = jest
-  .fn()
-  .mockReturnValue({ isEnabled: jest.fn().mockReturnValue(true) });
 jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => mockUseMetrics(),
+  useMetrics: jest.fn(() => ({ 
+    isEnabled: jest.fn(() => true),
+  })),
   withMetricsAwareness: jest.fn().mockImplementation((Component) => Component),
   MetaMetricsEvents: {},
 }));
+
+const mockUseMetrics = jest.mocked(useMetrics);
 
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
@@ -191,8 +193,8 @@ describe('Login', () => {
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
     mockUseMetrics.mockReturnValue({
-      isEnabled: jest.fn().mockReturnValue(true),
-    });
+      isEnabled: jest.fn(() => true),
+    } as unknown as IUseMetricsHook);
     (Authentication.rehydrateSeedPhrase as jest.Mock).mockResolvedValue(true);
     (Authentication.userEntryAuth as jest.Mock).mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
@@ -206,9 +208,9 @@ describe('Login', () => {
       availableBiometryType: null,
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-    (useMetrics as jest.Mock).mockReturnValue({
-      isEnabled: () => false,
-    });
+    mockUseMetrics.mockReturnValue({
+      isEnabled: jest.fn(() => false),
+    } as unknown as IUseMetricsHook);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
 
@@ -297,9 +299,9 @@ describe('Login', () => {
           return Promise.resolve(null);
         });
 
-        (useMetrics as jest.Mock).mockReturnValue({
-          isEnabled: () => false,
-        });
+        mockUseMetrics.mockReturnValue({
+          isEnabled: jest.fn(() => false),
+          } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
           undefined,
@@ -352,9 +354,9 @@ describe('Login', () => {
           return Promise.resolve(null);
         });
 
-        (useMetrics as jest.Mock).mockReturnValue({
-          isEnabled: () => true,
-        });
+        mockUseMetrics.mockReturnValue({
+          isEnabled: jest.fn(() => true),
+        } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
           undefined,
@@ -396,9 +398,9 @@ describe('Login', () => {
           return Promise.resolve(null);
         });
 
-        (useMetrics as jest.Mock).mockReturnValue({
-          isEnabled: () => false,
-        });
+        mockUseMetrics.mockReturnValue({
+          isEnabled: jest.fn(() => false),
+        } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
           undefined,
@@ -440,9 +442,9 @@ describe('Login', () => {
           return Promise.resolve(null);
         });
 
-        (useMetrics as jest.Mock).mockReturnValue({
-          isEnabled: () => true,
-        });
+        mockUseMetrics.mockReturnValue({
+          isEnabled: jest.fn(() => true),
+        } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
           undefined,
