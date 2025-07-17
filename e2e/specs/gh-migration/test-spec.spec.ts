@@ -1,11 +1,10 @@
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import { GHMigration } from '../../tags';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 
-describe(GHMigration('GH Migration'), () => {
+describe('GHMigration: Dummy Test', () => {
   it('should migrate the wallet', async () => {
     await withFixtures(
       {
