@@ -5021,24 +5021,24 @@
     fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
-"@metamask/design-system-react-native@^0.1.0":
+"@metamask/design-system-react-native@0.1.0":
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-system-react-native/-/design-system-react-native-0.1.0.tgz#b563d68aebfdfa524bb15c66b315180bcef494dd"
+  resolved "https://registry.npmjs.org/@metamask/design-system-react-native/-/design-system-react-native-0.1.0.tgz#b563d68aebfdfa524bb15c66b315180bcef494dd"
   integrity sha512-/n2hYXvmZ4yBsi3anMyqGHb67soMaMA53WNKO0yHIIrhPDDMKszxMuWn+naIs5eLyPfcfbmASEU231ONGjE8OA==
   dependencies:
     react-native-jazzicon "^0.1.2"
 
-"@metamask/design-system-twrnc-preset@^0.1.0":
+"@metamask/design-system-twrnc-preset@0.1.0":
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.1.0.tgz#acf3c962815a8298b646a4cf9cf55407883b77f5"
+  resolved "https://registry.npmjs.org/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.1.0.tgz#acf3c962815a8298b646a4cf9cf55407883b77f5"
   integrity sha512-2sTKhyLZoLE0PBurAE75oQb+Hxe8V2qNjLP3SPN01cD5ZDPQzm98BzSGYgY/F7Y6cO9uj8UiIGrFBaFumQlsXw==
   dependencies:
     twrnc "^4.5.1"
 
-"@metamask/design-tokens@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-8.0.0.tgz#eaee5631553a138900c39c842eca8f5e19d59439"
-  integrity sha512-iZPdGG/kzgeUn9SUDI+U86JD6Bu4VxJHoCA3smajzaXzCbFP3dbJPvT36ise+VTP4yGykSIZxZQbnSBIabfcVw==
+"@metamask/design-tokens@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.0.tgz#898fbbf0ade6c28a0506da59f47f40fd24316b8a"
+  integrity sha512-ZWWVfCs0JRL3syGurqS/vN74IATM5eGElzEMsaVbxtV23MdrKsye5PehfnKZvFg87f8iJP3jLv+HPaKWlaG/rQ==
 
 "@metamask/earn-controller@^3.0.0":
   version "3.0.0"
