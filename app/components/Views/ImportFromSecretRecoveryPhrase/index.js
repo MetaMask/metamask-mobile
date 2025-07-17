@@ -266,7 +266,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setNextSeedPhraseInputFocusedIndex(null);
         // blur of last ref
         const lastRef = seedPhraseInputRefs.current.length - 1;
-        seedPhraseInputRefs.current[lastRef]?.blur();
+        seedPhraseInputRefs.current.get(lastRef)?.blur();
       }
     },
     [handleSeedPhraseChangeAtIndex, setSeedPhrase],
@@ -487,7 +487,7 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [handleSeedPhraseChange]);
 
   const toggleShowAllSeedPhrase = () => {
-    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
     setSeedPhraseInputFocusedIndex(null);
     setShowAllSeedPhrase((prev) => !prev);
   };
@@ -547,7 +547,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
-    seedPhraseInputRefs.current[seedPhraseInputFocusedIndex]?.blur();
+    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
 
     // Trim each word before joining for processing
     const trimmedSeedPhrase = seedPhrase.map((item) => item.trim()).join(' ');
