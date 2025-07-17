@@ -788,7 +788,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Verify individual inputs are shown
       const firstInput = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
+        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}`,
       );
       expect(firstInput).toBeOnTheScreen();
 

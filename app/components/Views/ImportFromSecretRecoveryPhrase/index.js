@@ -838,7 +838,11 @@ const ImportFromSecretRecoveryPhrase = ({
                           isError={errorWordIndexes[index]}
                           autoCapitalize="none"
                           numberOfLines={1}
-                          testID={`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`}
+                          testID={
+                            isFirstInput
+                              ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
+                              : `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_${index}`
+                          }
                           keyboardType="default"
                           autoCorrect={false}
                           textContentType="oneTimeCode"
