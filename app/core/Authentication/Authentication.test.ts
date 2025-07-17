@@ -992,7 +992,7 @@ describe('Authentication', () => {
 
       const resetGenericPasswordSpy = jest
         .spyOn(SecureKeychain, 'resetGenericPassword')
-        .mockImplementation(() => Promise.resolve(true));
+        .mockImplementation(() => Promise.resolve());
 
       await Authentication.resetVault();
 

@@ -12,6 +12,7 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
+import { UserCredentials } from 'react-native-keychain';
 
 interface KeychainObject {
   password: string;
@@ -91,7 +92,7 @@ interface SecureKeychainModule {
   getInstance(): SecureKeychain | null;
   getSupportedBiometryType(): Promise<Keychain.BIOMETRY_TYPE | null>;
   resetGenericPassword(): Promise<void>;
-  getGenericPassword(): Promise<KeychainObject | null>;
+  getGenericPassword(): Promise<false | UserCredentials | null>;
   setGenericPassword(
     password: string,
     type?: AuthenticationType,
@@ -145,7 +146,7 @@ const SecureKeychainModule: SecureKeychainModule = {
     await Keychain.resetGenericPassword(options);
   },
 
-  async getGenericPassword(): Promise<KeychainObject | null> {
+  async getGenericPassword(): Promise<false | UserCredentials | null> {
     if (instance) {
       try {
         instance.isAuthenticating = true;
@@ -162,7 +163,7 @@ const SecureKeychainModule: SecureKeychainModule = {
           const decrypted = await instance.decryptPassword(encryptedPassword);
           keychainObject.password = decrypted.password;
           instance.isAuthenticating = false;
-          return keychainObject as KeychainObject;
+          return keychainObject as UserCredentials;
         }
         instance.isAuthenticating = false;
       } catch (error) {
