@@ -55,7 +55,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@emulator-configs
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
