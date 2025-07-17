@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { SolScope, TransactionType } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -156,5 +156,16 @@ describe('MultichainTransactionsView', () => {
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);
+  });
+
+  it('does not render view more link for bitcoin activity', async () => {
+    const { queryByText } = customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={BtcScope.Mainnet}
+      />,
+    );
+
+    expect(queryByText('transactions.view_full_history_on')).toBeNull();
   });
 });
