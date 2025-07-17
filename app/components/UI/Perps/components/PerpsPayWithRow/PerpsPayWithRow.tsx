@@ -27,6 +27,7 @@ import {
 import type { PerpsToken } from '../PerpsTokenSelector';
 import { createStyles } from './PerpsPayWithRow.styles';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PerpsPayWithRowSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsPayWithRowProps {
   selectedToken: PerpsToken;
@@ -41,7 +42,7 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
   selectedToken,
   tokenAmount,
   onPress,
-  testID = 'perps-pay-with-row',
+  testID = PerpsPayWithRowSelectorsIDs.MAIN,
   showUsdEquivalent = false,
   usdEquivalent,
 }) => {

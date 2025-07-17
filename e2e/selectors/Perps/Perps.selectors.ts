@@ -85,6 +85,20 @@ export const PerpsDepositProcessingViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PAY WITH ROW SELECTORS
+// ========================================
+
+export const PerpsPayWithRowSelectorsIDs = {
+  MAIN: 'perps-pay-with-row',
+  USD_EQUIVALENT: 'perps-pay-with-row-usd-equivalent',
+};
+
+// Helper functions for dynamic PerpsPayWithRow selectors
+export const getPerpsPayWithRowSelector = {
+  usdEquivalent: (baseTestID: string) => `${baseTestID}-usd-equivalent`,
+};
+
+// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 
