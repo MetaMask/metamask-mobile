@@ -1,4 +1,10 @@
-import { isCaipChainId, KnownCaipNamespace, parseCaipAssetId, parseCaipChainId, type Hex } from '@metamask/utils';
+import {
+  isCaipChainId,
+  KnownCaipNamespace,
+  parseCaipAssetId,
+  parseCaipChainId,
+  type Hex,
+} from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -43,7 +49,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
   selectNetworkConfigurations,
-  selectSelectedNetworkClientId
+  selectSelectedNetworkClientId,
 } from '../../../../../selectors/networkController';
 import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
 import {
@@ -94,10 +100,9 @@ import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
 
-interface PerpsDepositAmountViewProps { }
+interface PerpsDepositAmountViewProps {}
 
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
-
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const dispatch = useDispatch();
@@ -196,7 +201,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         setSourceToken(enhancedToken);
       } catch (err) {
-        DevLogger.log('PerpsDepositAmountView: Error setting default token', err);
+        DevLogger.log(
+          'PerpsDepositAmountView: Error setting default token',
+          err,
+        );
       }
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
@@ -283,13 +291,19 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   // Reset amount when source token changes through any means
   useEffect(() => {
     // Only reset if we have a previous token and it's different from current
-    if (prevTokenRef.current && sourceToken &&
-        (prevTokenRef.current.address !== sourceToken.address ||
-         prevTokenRef.current.chainId !== sourceToken.chainId)) {
-      DevLogger.log('PerpsDepositAmountView: Source token changed, resetting amount', {
-        from: `${prevTokenRef.current.symbol} on ${prevTokenRef.current.chainId}`,
-        to: `${sourceToken.symbol} on ${sourceToken.chainId}`,
-      });
+    if (
+      prevTokenRef.current &&
+      sourceToken &&
+      (prevTokenRef.current.address !== sourceToken.address ||
+        prevTokenRef.current.chainId !== sourceToken.chainId)
+    ) {
+      DevLogger.log(
+        'PerpsDepositAmountView: Source token changed, resetting amount',
+        {
+          from: `${prevTokenRef.current.symbol} on ${prevTokenRef.current.chainId}`,
+          to: `${sourceToken.symbol} on ${sourceToken.chainId}`,
+        },
+      );
       setSourceAmount('');
     }
 
@@ -298,7 +312,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
   // Handle quote expiration
   useEffect(() => {
-    const hasAmount = Boolean(sourceAmount && sourceAmount !== '' && parseFloat(sourceAmount) > 0);
+    const hasAmount = Boolean(
+      sourceAmount && sourceAmount !== '' && parseFloat(sourceAmount) > 0,
+    );
 
     DevLogger.log('PerpsDepositAmountView: Quote expiration check', {
       isExpired,
@@ -311,15 +327,27 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
     // Only show expiration modal if we have a valid quote that expired and won't refresh
     // AND we have an amount entered
-    if (isExpired && !willRefresh && hasValidQuote && !isInputFocused && hasAmount) {
+    if (
+      isExpired &&
+      !willRefresh &&
+      hasValidQuote &&
+      !isInputFocused &&
+      hasAmount
+    ) {
       DevLogger.log('PerpsDepositAmountView: Showing quote expired modal');
       setIsInputFocused(false);
       navigation.navigate(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL,
       });
     }
-  }, [isExpired, willRefresh, hasValidQuote, isInputFocused, navigation, sourceAmount]);
-
+  }, [
+    isExpired,
+    willRefresh,
+    hasValidQuote,
+    isInputFocused,
+    navigation,
+    sourceAmount,
+  ]);
 
   const hasInsufficientBalance = useMemo(() => {
     if (!sourceAmount || !sourceBalance) return false;
@@ -398,7 +426,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       )?.assetId;
 
       if (!assetId) {
-        setError(strings('perps.errors.tokenNotSupported', { token: sourceToken.symbol }));
+        setError(
+          strings('perps.errors.tokenNotSupported', {
+            token: sourceToken.symbol,
+          }),
+        );
         return;
       }
 
@@ -419,7 +451,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         setError(depositResult.error || strings('perps.errors.depositFailed'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : strings('perps.errors.unknownError'));
+      setError(
+        err instanceof Error
+          ? err.message
+          : strings('perps.errors.unknownError'),
+      );
     } finally {
       setIsSubmittingTx(false);
     }
@@ -438,7 +474,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     sourceToken &&
     !hasInsufficientBalance &&
     !isBelowMinimumDeposit;
-  const shouldDisplayQuoteDetails = hasAmount && sourceToken && (!isQuoteLoading || quoteFetchError);
+  const shouldDisplayQuoteDetails =
+    hasAmount && sourceToken && (!isQuoteLoading || quoteFetchError);
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
   const getButtonLabel = () => {
@@ -457,7 +494,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
   // Use the receiving amount from the quote data if available, otherwise show source amount
   const destAmount = useMemo(() => {
-    if (formattedQuoteData.receivingAmount && formattedQuoteData.receivingAmount !== '0.00 USDC') {
+    if (
+      formattedQuoteData.receivingAmount &&
+      formattedQuoteData.receivingAmount !== '0.00 USDC'
+    ) {
       // Extract just the numeric value from "X.XX USDC"
       const match = formattedQuoteData.receivingAmount.match(/^([\d.]+)/);
       return match ? match[1] : '0';
@@ -470,11 +510,13 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     DevLogger.log('[PerpsDepositAmountView] Component values:', {
       sourceAmount,
       destAmount,
-      sourceToken: sourceToken ? {
-        symbol: sourceToken.symbol,
-        address: sourceToken.address,
-        decimals: sourceToken.decimals,
-      } : null,
+      sourceToken: sourceToken
+        ? {
+            symbol: sourceToken.symbol,
+            address: sourceToken.address,
+            decimals: sourceToken.decimals,
+          }
+        : null,
       destToken: {
         symbol: destToken.symbol,
         address: destToken.address,
@@ -558,7 +600,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               <PerpsQuoteDetailsCard
                 networkFee={formattedQuoteData.networkFee}
                 estimatedTime={formattedQuoteData.estimatedTime}
-                rate={formattedQuoteData.exchangeRate || `1 ${sourceToken?.symbol || USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
+                rate={
+                  formattedQuoteData.exchangeRate ||
+                  `1 ${sourceToken?.symbol || USDC_SYMBOL} = 1 ${USDC_SYMBOL}`
+                }
                 metamaskFee={METAMASK_DEPOSIT_FEE}
               />
             </Box>
@@ -636,7 +681,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             />
           </View>
         )}
-
       </View>
     </ScreenView>
   );

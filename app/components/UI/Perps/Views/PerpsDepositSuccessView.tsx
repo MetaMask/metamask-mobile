@@ -39,7 +39,13 @@ import {
   getNetworkImageSource,
   BLOCKAID_SUPPORTED_NETWORK_NAMES,
 } from '../../../../util/networks';
-import { ARBITRUM_MAINNET_CHAIN_ID, TOKEN_DECIMALS, USDC_DECIMALS, USDC_NAME, USDC_SYMBOL } from '../constants/hyperLiquidConfig';
+import {
+  ARBITRUM_MAINNET_CHAIN_ID,
+  TOKEN_DECIMALS,
+  USDC_DECIMALS,
+  USDC_NAME,
+  USDC_SYMBOL,
+} from '../constants/hyperLiquidConfig';
 import { toHex } from '@metamask/controller-utils';
 
 interface DepositSuccessParams {

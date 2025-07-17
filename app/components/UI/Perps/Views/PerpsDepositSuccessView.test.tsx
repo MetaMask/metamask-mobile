@@ -93,7 +93,11 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => {
   return {
     __esModule: true,
     default: ({ onPress, label, disabled, testID }: ButtonProps) => (
-      <TouchableOpacity testID={testID || 'button'} onPress={onPress} disabled={disabled}>
+      <TouchableOpacity
+        testID={testID || 'button'}
+        onPress={onPress}
+        disabled={disabled}
+      >
         <Text>{label}</Text>
       </TouchableOpacity>
     ),
@@ -141,38 +145,51 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'md' },
 }));
 
-jest.mock('../../../../component-library/components/Avatars/Avatar/variants/AvatarToken', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: AvatarTokenProps) => <View testID={`avatar-token-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: AvatarTokenProps) => (
+        <View testID={`avatar-token-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/Badge/variants/BadgeNetwork', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: BadgeNetworkProps) => <View testID={`badge-network-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: BadgeNetworkProps) => (
+        <View testID={`badge-network-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/BadgeWrapper', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/BadgeWrapper',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ children, badgeElement }: BadgeWrapperProps) => (
-      <View>
-        {children}
-        {badgeElement}
-      </View>
-    ),
-    BadgePosition: { BottomRight: 'bottom-right' },
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ children, badgeElement }: BadgeWrapperProps) => (
+        <View>
+          {children}
+          {badgeElement}
+        </View>
+      ),
+      BadgePosition: { BottomRight: 'bottom-right' },
+    };
+  },
+);
 
 const mockStore = configureMockStore();
 
@@ -219,7 +236,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('perps.deposit.success.title')).toBeTruthy();
@@ -231,7 +248,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getAllByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       // Amount appears multiple times (header and info section)
@@ -244,7 +261,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('icon-check')).toBeTruthy();
@@ -257,7 +274,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       // Check labels
@@ -283,7 +300,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('2m 5s')).toBeTruthy();
@@ -303,7 +320,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('Unknown')).toBeTruthy();
@@ -316,7 +333,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       const viewBalanceButton = getByTestId('view-balance-button');
@@ -328,7 +345,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       const viewBalanceButton = getByTestId('view-balance-button');
@@ -342,7 +359,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('view-transaction-button')).toBeTruthy();
@@ -361,7 +378,7 @@ describe('PerpsDepositSuccessView', () => {
       const { queryByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(queryByTestId('view-transaction-button')).toBeFalsy();
@@ -374,7 +391,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('avatar-token-USD Coin')).toBeTruthy();
@@ -395,7 +412,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getAllByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       // There are multiple instances of "1 ETH" in the component
@@ -419,7 +436,7 @@ describe('PerpsDepositSuccessView', () => {
       const { queryByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       // Should still render without crashing
@@ -443,7 +460,7 @@ describe('PerpsDepositSuccessView', () => {
       const { getAllByText } = render(
         <Provider store={store}>
           <PerpsDepositSuccessView />
-        </Provider>
+        </Provider>,
       );
 
       // Should still display amount without enhanced token

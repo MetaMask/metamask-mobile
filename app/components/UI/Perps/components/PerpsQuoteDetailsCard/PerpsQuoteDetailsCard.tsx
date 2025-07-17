@@ -44,8 +44,9 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   }, [navigation]);
 
   const displaySlippage =
-    slippage === undefined || slippage === null ? strings('perps.deposit.slippage_auto') : `${slippage}%`;
-
+    slippage === undefined || slippage === null
+      ? strings('perps.deposit.slippage_auto')
+      : `${slippage}%`;
 
   return (
     <Box style={styles.container}>

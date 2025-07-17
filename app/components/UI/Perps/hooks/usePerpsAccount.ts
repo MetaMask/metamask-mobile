@@ -8,7 +8,8 @@ import type { AccountState } from '../controllers/types';
  * Uses createSelector for consistency and performance
  */
 const selectPerpsAccountState = createSelector(
-  (state: RootState) => state.engine.backgroundState.PerpsController?.accountState,
+  (state: RootState) =>
+    state.engine.backgroundState.PerpsController?.accountState,
   (accountState): AccountState | null => accountState || null,
 );
 

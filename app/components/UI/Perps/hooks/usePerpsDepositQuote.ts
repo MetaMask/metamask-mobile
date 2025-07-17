@@ -17,7 +17,10 @@ import {
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
 import { getDecimalChainId } from '../../../../util/networks';
 import { calcTokenValue } from '../../../../util/transactions';
-import { isQuoteExpired, shouldRefreshQuote } from '../../Bridge/utils/quoteUtils';
+import {
+  isQuoteExpired,
+  shouldRefreshQuote,
+} from '../../Bridge/utils/quoteUtils';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
@@ -97,12 +100,14 @@ export const usePerpsDepositQuote = ({
     amount,
     amountType: typeof amount,
     amountLength: amount?.length,
-    selectedToken: selectedToken ? {
-      symbol: selectedToken.symbol,
-      address: selectedToken.address,
-      decimals: selectedToken.decimals,
-      chainId: selectedToken.chainId,
-    } : null,
+    selectedToken: selectedToken
+      ? {
+          symbol: selectedToken.symbol,
+          address: selectedToken.address,
+          decimals: selectedToken.decimals,
+          chainId: selectedToken.chainId,
+        }
+      : null,
   });
 
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
@@ -115,7 +120,9 @@ export const usePerpsDepositQuote = ({
   const bridgeControllerState = useSelector(selectBridgeControllerState);
 
   DevLogger.log('[usePerpsDepositQuote] Bridge controller state:', {
-    hasQuotes: bridgeControllerState?.quotes ? Object.keys(bridgeControllerState.quotes).length : 0,
+    hasQuotes: bridgeControllerState?.quotes
+      ? Object.keys(bridgeControllerState.quotes).length
+      : 0,
     quoteFetchError: bridgeControllerState?.quoteFetchError,
   });
 
@@ -123,8 +130,11 @@ export const usePerpsDepositQuote = ({
   const [isLoading, setIsLoading] = useState(false);
   const [quoteFetchedTime, setQuoteFetchedTime] = useState<number | null>(null);
   const [quotesRefreshCount, setQuotesRefreshCount] = useState(0);
-  const [bridgeQuote, setBridgeQuote] = useState<BridgeQuoteWithMetadata | null>(null);
-  const [localQuoteFetchError, setLocalQuoteFetchError] = useState<string | null>(null);
+  const [bridgeQuote, setBridgeQuote] =
+    useState<BridgeQuoteWithMetadata | null>(null);
+  const [localQuoteFetchError, setLocalQuoteFetchError] = useState<
+    string | null
+  >(null);
   const bridgeQuoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [hasQuoteFailed, setHasQuoteFailed] = useState(false);
 
@@ -144,26 +154,37 @@ export const usePerpsDepositQuote = ({
     currentPrimaryCurrency.current = primaryCurrency;
     currentTicker.current = ticker;
     currentFiatFormatter.current = fiatFormatter;
-  }, [providerConfig.chainId, selectedAccount, currencyRates, primaryCurrency, ticker, fiatFormatter]);
+  }, [
+    providerConfig.chainId,
+    selectedAccount,
+    currencyRates,
+    primaryCurrency,
+    ticker,
+    fiatFormatter,
+  ]);
 
   const maxRefreshCount = 5;
   const refreshRate = DEPOSIT_CONFIG.refreshRate || DEFAULT_REFRESH_RATE;
 
-  const willRefresh = useMemo(() =>
-    shouldRefreshQuote(false, quotesRefreshCount, maxRefreshCount, false),
-    [quotesRefreshCount]);
+  const willRefresh = useMemo(
+    () => shouldRefreshQuote(false, quotesRefreshCount, maxRefreshCount, false),
+    [quotesRefreshCount],
+  );
 
-  const isExpired = useMemo(() =>
-    isQuoteExpired(willRefresh, refreshRate, quoteFetchedTime),
-    [willRefresh, refreshRate, quoteFetchedTime]);
+  const isExpired = useMemo(
+    () => isQuoteExpired(willRefresh, refreshRate, quoteFetchedTime),
+    [willRefresh, refreshRate, quoteFetchedTime],
+  );
 
   const arbitrumChainIdHex = toHex(ARBITRUM_MAINNET_CHAIN_ID);
-  const isDirectDeposit = selectedToken?.symbol === USDC_SYMBOL &&
+  const isDirectDeposit =
+    selectedToken?.symbol === USDC_SYMBOL &&
     selectedToken?.chainId === arbitrumChainIdHex &&
     providerConfig.chainId === arbitrumChainIdHex;
 
   // Check if this is a same-chain swap (e.g., ETH -> USDC on Arbitrum)
-  const isSameChainSwap = selectedToken?.symbol !== USDC_SYMBOL &&
+  const isSameChainSwap =
+    selectedToken?.symbol !== USDC_SYMBOL &&
     selectedToken?.chainId === arbitrumChainIdHex &&
     providerConfig.chainId === arbitrumChainIdHex;
 
@@ -187,8 +208,9 @@ export const usePerpsDepositQuote = ({
 
   // Reset state when token changes
   useEffect(() => {
-    const tokenChanged = prevTokenRef.current?.address !== selectedToken?.address ||
-                       prevTokenRef.current?.chainId !== selectedToken?.chainId;
+    const tokenChanged =
+      prevTokenRef.current?.address !== selectedToken?.address ||
+      prevTokenRef.current?.chainId !== selectedToken?.chainId;
 
     if (tokenChanged && selectedToken) {
       DevLogger.log('[usePerpsDepositQuote] Token changed, resetting state', {
@@ -208,8 +230,12 @@ export const usePerpsDepositQuote = ({
       // Set loading state if we have an amount and need a bridge quote
       const hasValidAmount = amount && amount !== '' && parseFloat(amount) > 0;
       if (needsBridge && hasValidAmount) {
-        DevLogger.log('[usePerpsDepositQuote] Setting network fee to calculating for new token');
-        setNetworkFee(strings('perps.deposit.calculating_fee') || 'Calculating...');
+        DevLogger.log(
+          '[usePerpsDepositQuote] Setting network fee to calculating for new token',
+        );
+        setNetworkFee(
+          strings('perps.deposit.calculating_fee') || 'Calculating...',
+        );
         setIsLoading(true);
 
         // Clear any existing timeout
@@ -228,7 +254,10 @@ export const usePerpsDepositQuote = ({
 
   // Parse amount once and validate
   const parsedAmount = useMemo(() => {
-    DevLogger.log('[usePerpsDepositQuote] Parsing amount:', { amount, type: typeof amount });
+    DevLogger.log('[usePerpsDepositQuote] Parsing amount:', {
+      amount,
+      type: typeof amount,
+    });
     // Be extra defensive about empty values
     if (!amount || amount === '' || amount === '.') {
       DevLogger.log('[usePerpsDepositQuote] Amount is empty or invalid');
@@ -241,9 +270,15 @@ export const usePerpsDepositQuote = ({
         return null;
       }
 
-      DevLogger.log('[usePerpsDepositQuote] Creating BigNumber with:', amountStr);
+      DevLogger.log(
+        '[usePerpsDepositQuote] Creating BigNumber with:',
+        amountStr,
+      );
       const amountBN = new BigNumber(amountStr);
-      DevLogger.log('[usePerpsDepositQuote] BigNumber created:', { isNaN: amountBN.isNaN(), value: amountBN.toString() });
+      DevLogger.log('[usePerpsDepositQuote] BigNumber created:', {
+        isNaN: amountBN.isNaN(),
+        value: amountBN.toString(),
+      });
 
       if (amountBN.isNaN() || amountBN.lte(0)) {
         DevLogger.log('[usePerpsDepositQuote] Amount is NaN or <= 0');
@@ -256,7 +291,6 @@ export const usePerpsDepositQuote = ({
       return null;
     }
   }, [amount]);
-
 
   // Handle same-chain swap case
   useEffect(() => {
@@ -316,12 +350,16 @@ export const usePerpsDepositQuote = ({
       );
 
       if (gasEstimates?.maxFeePerGas) {
-        const estimatedGasLimit = new BigNumber(DEPOSIT_CONFIG.estimatedGasLimit);
+        const estimatedGasLimit = new BigNumber(
+          DEPOSIT_CONFIG.estimatedGasLimit,
+        );
         DevLogger.log('[usePerpsDepositQuote] Creating gasFeeWei:', {
           maxFeePerGas: gasEstimates.maxFeePerGas,
-          estimatedGasLimit: estimatedGasLimit.toString()
+          estimatedGasLimit: estimatedGasLimit.toString(),
         });
-        const gasFeeWei = new BigNumber(gasEstimates.maxFeePerGas).times(estimatedGasLimit);
+        const gasFeeWei = new BigNumber(gasEstimates.maxFeePerGas).times(
+          estimatedGasLimit,
+        );
         const gasFeeEth = gasFeeWei.div(1e18);
 
         // Always show fee in USD for consistency
@@ -332,10 +370,12 @@ export const usePerpsDepositQuote = ({
         } else {
           DevLogger.log('[usePerpsDepositQuote] Calculating fiat value:', {
             gasFeeEth: gasFeeEth.toString(),
-            ethPrice
+            ethPrice,
           });
           const fiatValue = gasFeeEth.times(ethPrice);
-          formattedFee = fiatValue.lt(0.01) ? `$${fiatValue.toFixed(4)}` : currentFiatFormatter.current(fiatValue);
+          formattedFee = fiatValue.lt(0.01)
+            ? `$${fiatValue.toFixed(4)}`
+            : currentFiatFormatter.current(fiatValue);
         }
         setNetworkFee(formattedFee);
         setQuoteFetchedTime(Date.now());
@@ -367,12 +407,15 @@ export const usePerpsDepositQuote = ({
     const account = currentSelectedAccount.current;
 
     if (!needsBridge || !selectedToken || !account || !parsedAmount) {
-      DevLogger.log('[usePerpsDepositQuote] Skipping bridge update - missing params:', {
-        needsBridge,
-        hasSelectedToken: !!selectedToken,
-        hasAccount: !!account,
-        hasParsedAmount: !!parsedAmount,
-      });
+      DevLogger.log(
+        '[usePerpsDepositQuote] Skipping bridge update - missing params:',
+        {
+          needsBridge,
+          hasSelectedToken: !!selectedToken,
+          hasAccount: !!account,
+          hasParsedAmount: !!parsedAmount,
+        },
+      );
       return;
     }
 
@@ -388,14 +431,22 @@ export const usePerpsDepositQuote = ({
     // Ensure we never pass empty string to calcTokenValue
     const amountStr = parsedAmount.toString();
     if (!amountStr || amountStr === '' || amountStr === '0') {
-      DevLogger.log('[usePerpsDepositQuote] Invalid amount for normalization, skipping bridge update');
+      DevLogger.log(
+        '[usePerpsDepositQuote] Invalid amount for normalization, skipping bridge update',
+      );
       return;
     }
 
     let normalizedAmount: string;
     try {
-      normalizedAmount = calcTokenValue(amountStr, selectedToken.decimals).toFixed(0);
-      DevLogger.log('[usePerpsDepositQuote] Normalized amount:', normalizedAmount);
+      normalizedAmount = calcTokenValue(
+        amountStr,
+        selectedToken.decimals,
+      ).toFixed(0);
+      DevLogger.log(
+        '[usePerpsDepositQuote] Normalized amount:',
+        normalizedAmount,
+      );
     } catch (error) {
       DevLogger.log('[usePerpsDepositQuote] calcTokenValue error:', error);
       setLocalQuoteFetchError(strings('perps.deposit.quote_fetch_error'));
@@ -437,25 +488,39 @@ export const usePerpsDepositQuote = ({
         security_warnings: [],
       };
 
-      DevLogger.log('[usePerpsDepositQuote] Calling updateBridgeQuoteRequestParams...');
-      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(params, context);
-      DevLogger.log('[usePerpsDepositQuote] updateBridgeQuoteRequestParams completed successfully');
+      DevLogger.log(
+        '[usePerpsDepositQuote] Calling updateBridgeQuoteRequestParams...',
+      );
+      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+        params,
+        context,
+      );
+      DevLogger.log(
+        '[usePerpsDepositQuote] updateBridgeQuoteRequestParams completed successfully',
+      );
 
       setQuotesRefreshCount((prev) => {
         const newCount = prev + 1;
-        DevLogger.log('[usePerpsDepositQuote] Quote refresh count updated:', newCount);
+        DevLogger.log(
+          '[usePerpsDepositQuote] Quote refresh count updated:',
+          newCount,
+        );
         return newCount;
       });
     } catch (error) {
-      DevLogger.log('[usePerpsDepositQuote] Update bridge params error:', error);
+      DevLogger.log(
+        '[usePerpsDepositQuote] Update bridge params error:',
+        error,
+      );
       setLocalQuoteFetchError(strings('perps.deposit.quote_fetch_error'));
       setIsLoading(false);
     }
   }, [needsBridge, selectedToken, parsedAmount]);
 
-  const debouncedUpdateBridgeParams = useMemo(() =>
-    debounce(updateBridgeQuoteParams, DEBOUNCE_WAIT),
-    [updateBridgeQuoteParams]);
+  const debouncedUpdateBridgeParams = useMemo(
+    () => debounce(updateBridgeQuoteParams, DEBOUNCE_WAIT),
+    [updateBridgeQuoteParams],
+  );
 
   useEffect(() => {
     DevLogger.log('[usePerpsDepositQuote] Bridge params effect:', {
@@ -470,16 +535,22 @@ export const usePerpsDepositQuote = ({
     // Check if amount changed
     const amountChanged = prevAmountRef.current !== amount;
     if (amountChanged && amount && hasQuoteFailed) {
-      DevLogger.log('[usePerpsDepositQuote] Amount changed, resetting error state');
+      DevLogger.log(
+        '[usePerpsDepositQuote] Amount changed, resetting error state',
+      );
       setHasQuoteFailed(false);
       setLocalQuoteFetchError(null);
     }
     prevAmountRef.current = amount;
 
     if (needsBridge && parsedAmount?.gt(0) && !hasQuoteFailed) {
-      DevLogger.log('[usePerpsDepositQuote] Setting loading state for bridge quote fetch');
+      DevLogger.log(
+        '[usePerpsDepositQuote] Setting loading state for bridge quote fetch',
+      );
       setIsLoading(true);
-      setNetworkFee(strings('perps.deposit.calculating_fee') || 'Calculating...');
+      setNetworkFee(
+        strings('perps.deposit.calculating_fee') || 'Calculating...',
+      );
       debouncedUpdateBridgeParams();
 
       // Set timeout for bridge quote fetching
@@ -507,18 +578,29 @@ export const usePerpsDepositQuote = ({
         bridgeQuoteTimeoutRef.current = null;
       }
     };
-  }, [needsBridge, parsedAmount, debouncedUpdateBridgeParams, hasQuoteFailed, isSameChainSwap, amount]);
+  }, [
+    needsBridge,
+    parsedAmount,
+    debouncedUpdateBridgeParams,
+    hasQuoteFailed,
+    isSameChainSwap,
+    amount,
+  ]);
 
   // Process bridge quotes from controller state
   useEffect(() => {
     DevLogger.log('[usePerpsDepositQuote] Bridge quote processing effect:', {
       needsBridge,
       hasBridgeControllerState: !!bridgeControllerState,
-      bridgeStateKeys: bridgeControllerState ? Object.keys(bridgeControllerState) : [],
+      bridgeStateKeys: bridgeControllerState
+        ? Object.keys(bridgeControllerState)
+        : [],
     });
 
     if (!needsBridge) {
-      DevLogger.log('[usePerpsDepositQuote] Direct deposit - skipping bridge quote processing');
+      DevLogger.log(
+        '[usePerpsDepositQuote] Direct deposit - skipping bridge quote processing',
+      );
       return;
     }
 
@@ -530,13 +612,17 @@ export const usePerpsDepositQuote = ({
       quoteFetchError,
       quotesRefreshCount,
       quotesKeys: quotes ? Object.keys(quotes) : [],
-      bridgeControllerState: bridgeControllerState ? Object.keys(bridgeControllerState) : [],
+      bridgeControllerState: bridgeControllerState
+        ? Object.keys(bridgeControllerState)
+        : [],
     });
 
     if (quotes && Object.keys(quotes).length > 0) {
       DevLogger.log('[usePerpsDepositQuote] Processing bridge quotes:', quotes);
       // Find the recommended quote (first one in this simple implementation)
-      const recommendedQuote = Object.values(quotes)[0] as BridgeQuoteWithMetadata;
+      const recommendedQuote = Object.values(
+        quotes,
+      )[0] as BridgeQuoteWithMetadata;
 
       if (recommendedQuote) {
         DevLogger.log('[usePerpsDepositQuote] Using recommended quote:', {
@@ -544,7 +630,8 @@ export const usePerpsDepositQuote = ({
           hasQuote: !!recommendedQuote.quote,
           destTokenAmount: recommendedQuote.quote?.destTokenAmount,
           totalNetworkFee: recommendedQuote.totalNetworkFee,
-          estimatedProcessingTime: recommendedQuote.estimatedProcessingTimeInSeconds,
+          estimatedProcessingTime:
+            recommendedQuote.estimatedProcessingTimeInSeconds,
         });
 
         setBridgeQuote(recommendedQuote);
@@ -552,7 +639,8 @@ export const usePerpsDepositQuote = ({
         let feeStr = '-';
 
         // Try different possible fee locations in the quote
-        const totalNetworkFee = recommendedQuote.totalNetworkFee ||
+        const totalNetworkFee =
+          recommendedQuote.totalNetworkFee ||
           recommendedQuote.quote?.totalNetworkFee ||
           (recommendedQuote as BridgeQuoteWithMetadata).networkFee;
 
@@ -567,7 +655,9 @@ export const usePerpsDepositQuote = ({
         if (totalNetworkFee) {
           // Handle different fee structures
           const feeAmount = totalNetworkFee.amount;
-          const feeValueInCurrency = totalNetworkFee.valueInCurrency || (totalNetworkFee as { usd?: string | null })?.usd;
+          const feeValueInCurrency =
+            totalNetworkFee.valueInCurrency ||
+            (totalNetworkFee as { usd?: string | null })?.usd;
 
           if (feeAmount && feeValueInCurrency) {
             try {
@@ -582,11 +672,15 @@ export const usePerpsDepositQuote = ({
               if (feeValueInCurrency) {
                 const valueBN = new BigNumber(feeValueInCurrency);
                 feeStr = currentFiatFormatter.current(valueBN);
-                DevLogger.log('[usePerpsDepositQuote] Formatted USD fee:', feeStr);
+                DevLogger.log(
+                  '[usePerpsDepositQuote] Formatted USD fee:',
+                  feeStr,
+                );
               } else if (feeAmount) {
                 // If no USD value, convert ETH to USD
                 const amountBN = new BigNumber(feeAmount);
-                const ethPrice = currentCurrencyRates.current?.ETH?.usdConversionRate;
+                const ethPrice =
+                  currentCurrencyRates.current?.ETH?.usdConversionRate;
                 if (ethPrice) {
                   const fiatValue = amountBN.times(ethPrice);
                   feeStr = currentFiatFormatter.current(fiatValue);
@@ -595,7 +689,10 @@ export const usePerpsDepositQuote = ({
                 }
               }
             } catch (error) {
-              DevLogger.log('[usePerpsDepositQuote] Fee formatting error:', error);
+              DevLogger.log(
+                '[usePerpsDepositQuote] Fee formatting error:',
+                error,
+              );
               feeStr = '-';
             }
           } else if (feeAmount === '0' || feeValueInCurrency === '0') {
@@ -603,39 +700,64 @@ export const usePerpsDepositQuote = ({
             feeStr = '$0.00';
             DevLogger.log('[usePerpsDepositQuote] Zero fee');
           } else {
-            DevLogger.log('[usePerpsDepositQuote] Incomplete fee data:', { feeAmount, feeValueInCurrency });
+            DevLogger.log('[usePerpsDepositQuote] Incomplete fee data:', {
+              feeAmount,
+              feeValueInCurrency,
+            });
             feeStr = '-';
           }
         } else {
           // If no fee data is available, check if it might be in feeData
           const feeData = recommendedQuote.quote?.feeData;
           if (feeData) {
-            DevLogger.log('[usePerpsDepositQuote] Found feeData in quote:', feeData);
+            DevLogger.log(
+              '[usePerpsDepositQuote] Found feeData in quote:',
+              feeData,
+            );
             // Try to extract fee from feeData structure
             const metabridgeFee = feeData.metabridge;
             if (metabridgeFee?.amount) {
               try {
-                const feeSymbol = metabridgeFee.asset?.symbol || currentTicker.current || 'ETH';
+                const feeSymbol =
+                  metabridgeFee.asset?.symbol || currentTicker.current || 'ETH';
                 const feeDecimals = metabridgeFee.asset?.decimals || 18;
-                DevLogger.log('[usePerpsDepositQuote] Using metabridge fee:', metabridgeFee.amount, feeSymbol, 'decimals:', feeDecimals);
+                DevLogger.log(
+                  '[usePerpsDepositQuote] Using metabridge fee:',
+                  metabridgeFee.amount,
+                  feeSymbol,
+                  'decimals:',
+                  feeDecimals,
+                );
 
                 // Convert from smallest unit to human-readable value
-                const feeAmountBN = new BigNumber(metabridgeFee.amount).div(Math.pow(10, feeDecimals));
+                const feeAmountBN = new BigNumber(metabridgeFee.amount).div(
+                  Math.pow(10, feeDecimals),
+                );
 
                 // Try to get token price from asset metadata or currency rates
                 let tokenPrice: number | undefined;
 
                 // First check if the asset has price information in metadata
-                const assetWithPrice = metabridgeFee.asset as { price?: string; symbol?: string; decimals?: number };
+                const assetWithPrice = metabridgeFee.asset as {
+                  price?: string;
+                  symbol?: string;
+                  decimals?: number;
+                };
                 if (assetWithPrice?.price) {
                   tokenPrice = parseFloat(assetWithPrice.price);
-                  DevLogger.log('[usePerpsDepositQuote] Using price from asset metadata:', tokenPrice);
+                  DevLogger.log(
+                    '[usePerpsDepositQuote] Using price from asset metadata:',
+                    tokenPrice,
+                  );
                 } else {
                   // Fallback to currency rates
                   const rateData = currentCurrencyRates.current?.[feeSymbol];
                   if (rateData?.usdConversionRate) {
                     tokenPrice = rateData.usdConversionRate;
-                    DevLogger.log('[usePerpsDepositQuote] Using price from currency rates:', tokenPrice);
+                    DevLogger.log(
+                      '[usePerpsDepositQuote] Using price from currency rates:',
+                      tokenPrice,
+                    );
                   }
                 }
 
@@ -656,16 +778,24 @@ export const usePerpsDepositQuote = ({
                   }
                 } else {
                   // If no USD price available, show the amount with symbol
-                  DevLogger.log('[usePerpsDepositQuote] No price data available for:', feeSymbol);
+                  DevLogger.log(
+                    '[usePerpsDepositQuote] No price data available for:',
+                    feeSymbol,
+                  );
                   feeStr = `${feeAmountBN.toFixed(4)} ${feeSymbol}`;
                 }
               } catch (error) {
-                DevLogger.log('[usePerpsDepositQuote] Error processing metabridge fee:', error);
+                DevLogger.log(
+                  '[usePerpsDepositQuote] Error processing metabridge fee:',
+                  error,
+                );
                 feeStr = '-';
               }
             }
           } else {
-            DevLogger.log('[usePerpsDepositQuote] No network fee data found in quote');
+            DevLogger.log(
+              '[usePerpsDepositQuote] No network fee data found in quote',
+            );
             feeStr = '-';
           }
         }
@@ -680,7 +810,10 @@ export const usePerpsDepositQuote = ({
         }
       }
     } else if (quoteFetchError) {
-      DevLogger.log('[usePerpsDepositQuote] Bridge quote fetch error:', quoteFetchError);
+      DevLogger.log(
+        '[usePerpsDepositQuote] Bridge quote fetch error:',
+        quoteFetchError,
+      );
       setLocalQuoteFetchError(quoteFetchError);
       setNetworkFee('-');
       setIsLoading(false);
@@ -691,7 +824,9 @@ export const usePerpsDepositQuote = ({
         bridgeQuoteTimeoutRef.current = null;
       }
     } else if (quotes && Object.keys(quotes).length === 0) {
-      DevLogger.log('[usePerpsDepositQuote] No bridge quotes available - checking loading status');
+      DevLogger.log(
+        '[usePerpsDepositQuote] No bridge quotes available - checking loading status',
+      );
       // Don't immediately set error - quotes might be temporarily cleared during refresh
       // Only set error if we're not loading and haven't already processed a quote
       const loadingStatus = bridgeControllerState?.quotesLoadingStatus;
@@ -706,15 +841,24 @@ export const usePerpsDepositQuote = ({
       const hasBeenWaiting = quotesRefreshCount > 0 && !quoteFetchError;
 
       // Don't set error if we already have a network fee (meaning we processed a quote before)
-      const hasProcessedQuote = networkFee && networkFee !== '-' && networkFee !== strings('perps.deposit.calculating_fee');
+      const hasProcessedQuote =
+        networkFee &&
+        networkFee !== '-' &&
+        networkFee !== strings('perps.deposit.calculating_fee');
 
-      if ((loadingStatus === 0 || loadingStatus === null || loadingStatus === undefined) &&
-          hasBeenWaiting &&
-          !hasQuoteFailed &&
-          !isLoading &&
-          !hasProcessedQuote) {
+      if (
+        (loadingStatus === 0 ||
+          loadingStatus === null ||
+          loadingStatus === undefined) &&
+        hasBeenWaiting &&
+        !hasQuoteFailed &&
+        !isLoading &&
+        !hasProcessedQuote
+      ) {
         // Loading is complete but no quotes found - only set failure once
-        DevLogger.log('[usePerpsDepositQuote] Bridge loading complete but no quotes found');
+        DevLogger.log(
+          '[usePerpsDepositQuote] Bridge loading complete but no quotes found',
+        );
         setLocalQuoteFetchError(strings('perps.deposit.no_quotes_available'));
         setNetworkFee('-');
         setIsLoading(false);
@@ -728,7 +872,14 @@ export const usePerpsDepositQuote = ({
       }
       // Otherwise quotes might still be loading or we already have a quote
     }
-  }, [needsBridge, bridgeControllerState, quotesRefreshCount, hasQuoteFailed, isLoading, networkFee]);
+  }, [
+    needsBridge,
+    bridgeControllerState,
+    quotesRefreshCount,
+    hasQuoteFailed,
+    isLoading,
+    networkFee,
+  ]);
 
   const refreshQuote = useCallback(() => {
     setQuoteFetchedTime(null);
@@ -745,12 +896,21 @@ export const usePerpsDepositQuote = ({
   }, [isDirectDeposit, calculateDirectFee, updateBridgeQuoteParams]);
 
   const hasValidQuote = useMemo(() => {
-    if (!quoteFetchedTime || networkFee === strings('perps.deposit.calculating_fee')) {
+    if (
+      !quoteFetchedTime ||
+      networkFee === strings('perps.deposit.calculating_fee')
+    ) {
       return false;
     }
     // Consider it valid if we have a quote, even if fee is not available
     return parsedAmount !== null && (bridgeQuote !== null || isDirectDeposit);
-  }, [quoteFetchedTime, networkFee, parsedAmount, bridgeQuote, isDirectDeposit]);
+  }, [
+    quoteFetchedTime,
+    networkFee,
+    parsedAmount,
+    bridgeQuote,
+    isDirectDeposit,
+  ]);
 
   // Auto-refresh when expired and can refresh
   useEffect(() => {
@@ -763,8 +923,11 @@ export const usePerpsDepositQuote = ({
   // Ensure network fee shows "Calculating..." when loading
   useEffect(() => {
     if (isLoading && parsedAmount?.gt(0)) {
-      const calculatingText = strings('perps.deposit.calculating_fee') || 'Calculating...';
-      DevLogger.log('[usePerpsDepositQuote] Ensuring network fee shows calculating state');
+      const calculatingText =
+        strings('perps.deposit.calculating_fee') || 'Calculating...';
+      DevLogger.log(
+        '[usePerpsDepositQuote] Ensuring network fee shows calculating state',
+      );
       setNetworkFee(calculatingText);
     }
   }, [isLoading, parsedAmount]);
@@ -774,19 +937,41 @@ export const usePerpsDepositQuote = ({
     let receivingAmount = '0.00 USDC';
     let exchangeRate: string | undefined;
 
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - parsedAmount:', parsedAmount?.toString());
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - networkFee:', networkFee);
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - isDirectDeposit:', isDirectDeposit);
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - isSameChainSwap:', isSameChainSwap);
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - hasQuoteFailed:', hasQuoteFailed);
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - localQuoteFetchError:', localQuoteFetchError);
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - parsedAmount:',
+      parsedAmount?.toString(),
+    );
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - networkFee:',
+      networkFee,
+    );
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - isDirectDeposit:',
+      isDirectDeposit,
+    );
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - isSameChainSwap:',
+      isSameChainSwap,
+    );
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - hasQuoteFailed:',
+      hasQuoteFailed,
+    );
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - localQuoteFetchError:',
+      localQuoteFetchError,
+    );
 
     const depositAmount = parsedAmount || new BigNumber(0);
-    DevLogger.log('[usePerpsDepositQuote] FormattedQuoteData - depositAmount:', depositAmount.toString());
+    DevLogger.log(
+      '[usePerpsDepositQuote] FormattedQuoteData - depositAmount:',
+      depositAmount.toString(),
+    );
 
     // Use the network fee as-is (it will already be "Calculating..." if needed)
     // If there's an error, keep showing the fee as unavailable
-    const displayNetworkFee = (hasQuoteFailed || localQuoteFetchError) ? '-' : networkFee;
+    const displayNetworkFee =
+      hasQuoteFailed || localQuoteFetchError ? '-' : networkFee;
 
     if (depositAmount.lte(0)) {
       return {
@@ -805,7 +990,8 @@ export const usePerpsDepositQuote = ({
       usdValue = depositAmount;
     } else if (selectedToken?.symbol) {
       // Convert any other token to USD using exchange rates
-      const tokenRate = currentCurrencyRates.current?.[selectedToken.symbol]?.usdConversionRate;
+      const tokenRate =
+        currentCurrencyRates.current?.[selectedToken.symbol]?.usdConversionRate;
 
       if (tokenRate && !isNaN(Number(tokenRate)) && Number(tokenRate) > 0) {
         usdValue = depositAmount.times(new BigNumber(String(tokenRate)));
@@ -815,10 +1001,16 @@ export const usePerpsDepositQuote = ({
           const rate = new BigNumber(String(tokenRate));
           exchangeRate = `1 ${selectedToken.symbol} ≈ ${rate.toFixed(2)} USDC`;
         } catch (error) {
-          DevLogger.log('[usePerpsDepositQuote] Exchange rate formatting error:', error);
+          DevLogger.log(
+            '[usePerpsDepositQuote] Exchange rate formatting error:',
+            error,
+          );
         }
       } else {
-        DevLogger.log('[usePerpsDepositQuote] No exchange rate found for token:', selectedToken.symbol);
+        DevLogger.log(
+          '[usePerpsDepositQuote] No exchange rate found for token:',
+          selectedToken.symbol,
+        );
         return {
           networkFee,
           estimatedTime,
@@ -828,13 +1020,20 @@ export const usePerpsDepositQuote = ({
       }
     }
 
-    DevLogger.log('[usePerpsDepositQuote] USD value of deposit:', usdValue.toString());
+    DevLogger.log(
+      '[usePerpsDepositQuote] USD value of deposit:',
+      usdValue.toString(),
+    );
 
     // Step 2: Deduct fees from USD value
     let totalFeesUSD = new BigNumber(0);
 
     // Parse network fee if available
-    if (networkFee && networkFee !== '-' && networkFee !== strings('perps.deposit.calculating_fee')) {
+    if (
+      networkFee &&
+      networkFee !== '-' &&
+      networkFee !== strings('perps.deposit.calculating_fee')
+    ) {
       const feeMatch = networkFee.match(/\$([\d.]+)/);
       if (feeMatch?.[1]) {
         totalFeesUSD = totalFeesUSD.plus(new BigNumber(feeMatch[1]));
@@ -848,7 +1047,10 @@ export const usePerpsDepositQuote = ({
     //   totalFeesUSD = totalFeesUSD.plus(new BigNumber(metamaskFeeMatch[1]));
     // }
 
-    DevLogger.log('[usePerpsDepositQuote] Total fees in USD:', totalFeesUSD.toString());
+    DevLogger.log(
+      '[usePerpsDepositQuote] Total fees in USD:',
+      totalFeesUSD.toString(),
+    );
 
     // Step 3: Calculate final receiving amount based on route type
     if (bridgeQuote?.quote?.destTokenAmount) {
@@ -858,10 +1060,15 @@ export const usePerpsDepositQuote = ({
         receivingAmount = `${destAmountBN.div(1e6).toFixed(2)} USDC`;
 
         estimatedTime = bridgeQuote.estimatedProcessingTimeInSeconds
-          ? `${Math.ceil(bridgeQuote.estimatedProcessingTimeInSeconds / 60)} minutes`
+          ? `${Math.ceil(
+              bridgeQuote.estimatedProcessingTimeInSeconds / 60,
+            )} minutes`
           : '';
       } catch (error) {
-        DevLogger.log('[usePerpsDepositQuote] Error parsing bridge destination amount:', error);
+        DevLogger.log(
+          '[usePerpsDepositQuote] Error parsing bridge destination amount:',
+          error,
+        );
         receivingAmount = '0.00 USDC';
       }
     } else {
@@ -896,7 +1103,16 @@ export const usePerpsDepositQuote = ({
       receivingAmount,
       exchangeRate,
     };
-  }, [parsedAmount, isDirectDeposit, isSameChainSwap, bridgeQuote, selectedToken, networkFee, hasQuoteFailed, localQuoteFetchError]);
+  }, [
+    parsedAmount,
+    isDirectDeposit,
+    isSameChainSwap,
+    bridgeQuote,
+    selectedToken,
+    networkFee,
+    hasQuoteFailed,
+    localQuoteFetchError,
+  ]);
 
   const result = {
     formattedQuoteData,

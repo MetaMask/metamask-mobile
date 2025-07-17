@@ -62,7 +62,9 @@ jest.mock('../hooks', () => ({
 
 // Import the mocked module to set implementation
 import { usePerpsDeposit } from '../hooks';
-const mockedUsePerpsDeposit = usePerpsDeposit as jest.MockedFunction<typeof usePerpsDeposit>;
+const mockedUsePerpsDeposit = usePerpsDeposit as jest.MockedFunction<
+  typeof usePerpsDeposit
+>;
 
 // TypeScript interfaces for mock components
 interface MockButtonProps {
@@ -104,7 +106,11 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => {
   return {
     __esModule: true,
     default: ({ onPress, label, disabled, testID }: MockButtonProps) => (
-      <TouchableOpacity testID={testID || 'button'} onPress={onPress} disabled={disabled}>
+      <TouchableOpacity
+        testID={testID || 'button'}
+        onPress={onPress}
+        disabled={disabled}
+      >
         <Text>{label}</Text>
       </TouchableOpacity>
     ),
@@ -159,38 +165,51 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'md' },
 }));
 
-jest.mock('../../../../component-library/components/Avatars/Avatar/variants/AvatarToken', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: MockAvatarTokenProps) => <View testID={`avatar-token-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: MockAvatarTokenProps) => (
+        <View testID={`avatar-token-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/Badge/variants/BadgeNetwork', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: MockBadgeNetworkProps) => <View testID={`badge-network-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: MockBadgeNetworkProps) => (
+        <View testID={`badge-network-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/BadgeWrapper', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/BadgeWrapper',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ children, badgeElement }: MockBadgeWrapperProps) => (
-      <View>
-        {children}
-        {badgeElement}
-      </View>
-    ),
-    BadgePosition: { BottomRight: 'bottom-right' },
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ children, badgeElement }: MockBadgeWrapperProps) => (
+        <View>
+          {children}
+          {badgeElement}
+        </View>
+      ),
+      BadgePosition: { BottomRight: 'bottom-right' },
+    };
+  },
+);
 
 const mockStore = configureMockStore();
 
@@ -264,7 +283,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('header-title')).toBeTruthy();
@@ -285,7 +304,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('processing-animation')).toBeTruthy();
@@ -302,11 +321,13 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('processing-animation')).toBeTruthy();
-      expect(getByText('perps.deposit.steps.swapping {"token":"USDC"}')).toBeTruthy();
+      expect(
+        getByText('perps.deposit.steps.swapping {"token":"USDC"}'),
+      ).toBeTruthy();
     });
 
     it('should show bridging status', () => {
@@ -319,7 +340,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('processing-animation')).toBeTruthy();
@@ -336,7 +357,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('processing-animation')).toBeTruthy();
@@ -353,7 +374,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('success-checkmark')).toBeTruthy();
@@ -372,7 +393,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('processing-icon')).toBeTruthy();
@@ -395,7 +416,7 @@ describe('PerpsDepositProcessingView', () => {
       render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       await waitFor(
@@ -406,10 +427,10 @@ describe('PerpsDepositProcessingView', () => {
               amount: '100',
               selectedToken: 'USDC',
               txHash: '0x123456',
-            }
+            },
           );
         },
-        { timeout: 3000 }
+        { timeout: 3000 },
       );
     });
 
@@ -418,7 +439,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       const closeButton = getByTestId('close-button');
@@ -437,7 +458,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       const retryButton = getByTestId('retry-button');
@@ -456,7 +477,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       const viewBalanceButton = getByTestId('view-balance-button');
@@ -472,7 +493,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('avatar-token-USD Coin')).toBeTruthy();
@@ -487,7 +508,7 @@ describe('PerpsDepositProcessingView', () => {
       const { queryByTestId } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       // Should still render without crashing
@@ -501,7 +522,7 @@ describe('PerpsDepositProcessingView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('perps.deposit.steps.depositingDirect')).toBeTruthy();
@@ -519,10 +540,12 @@ describe('PerpsDepositProcessingView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositProcessingView />
-        </Provider>
+        </Provider>,
       );
 
-      expect(getByText('perps.deposit.stepDescriptions.depositing')).toBeTruthy();
+      expect(
+        getByText('perps.deposit.stepDescriptions.depositing'),
+      ).toBeTruthy();
     });
   });
 });

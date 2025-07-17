@@ -113,8 +113,12 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       setResult(resultLines.join('\n'));
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : strings('perps.errors.unknownError');
-      const fullErrorMessage = strings('perps.errors.accountBalanceFailed', { error: errorMessage });
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.unknownError');
+      const fullErrorMessage = strings('perps.errors.accountBalanceFailed', {
+        error: errorMessage,
+      });
       setResult(fullErrorMessage);
     } finally {
       setIsLoading(false);
@@ -144,12 +148,20 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
           `✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`,
         );
       } else {
-        setResult(strings('perps.errors.networkToggleFailed', { error: toggleResult.error }));
+        setResult(
+          strings('perps.errors.networkToggleFailed', {
+            error: toggleResult.error,
+          }),
+        );
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : strings('perps.errors.unknownError');
-      setResult(strings('perps.errors.networkToggleFailed', { error: errorMessage }));
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.unknownError');
+      setResult(
+        strings('perps.errors.networkToggleFailed', { error: errorMessage }),
+      );
     } finally {
       setIsToggling(false);
     }

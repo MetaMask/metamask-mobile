@@ -137,7 +137,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error(strings('perps.errors.subscriptionClientNotInitialized'));
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.webData2(
@@ -158,7 +160,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log(strings('perps.errors.failedToSubscribePosition'), error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribePosition'),
+            error,
+          );
         });
     }
 
@@ -167,7 +172,10 @@ export class HyperLiquidSubscriptionService {
 
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          DevLogger.log(strings('perps.errors.failedToUnsubscribePosition'), error);
+          DevLogger.log(
+            strings('perps.errors.failedToUnsubscribePosition'),
+            error,
+          );
         });
       }
     };
@@ -195,7 +203,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error(strings('perps.errors.subscriptionClientNotInitialized'));
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.userFills(
@@ -219,7 +229,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log(strings('perps.errors.failedToSubscribeOrderFill'), error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribeOrderFill'),
+            error,
+          );
         });
     }
 
@@ -314,10 +327,7 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log('HyperLiquid: Global allMids subscription established');
       })
       .catch((error) => {
-        DevLogger.log(
-          strings('perps.errors.failedToEstablishAllMids'),
-          error,
-        );
+        DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
       });
   }
 

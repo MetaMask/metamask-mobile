@@ -35,9 +35,9 @@ describe('usePerpsNetworkConfig', () => {
         isTestnet: true,
       };
 
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockResolvedValue(
-        mockToggleResult,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue(mockToggleResult);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -49,9 +49,9 @@ describe('usePerpsNetworkConfig', () => {
 
     it('should handle toggleTestnet errors', async () => {
       const mockError = new Error('Network toggle failed');
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockRejectedValue(mockError);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -66,9 +66,9 @@ describe('usePerpsNetworkConfig', () => {
         isTestnet: true,
       };
 
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockResolvedValue(
-        mockToggleResult,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue(mockToggleResult);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -83,9 +83,9 @@ describe('usePerpsNetworkConfig', () => {
         isTestnet: false,
       };
 
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockResolvedValue(
-        mockToggleResult,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue(mockToggleResult);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -97,22 +97,24 @@ describe('usePerpsNetworkConfig', () => {
 
   describe('getCurrentNetwork', () => {
     it('should return mainnet when on mainnet', () => {
-      (Engine.context.PerpsController.getCurrentNetwork as jest.Mock).mockReturnValue(
-        'mainnet',
-      );
+      (
+        Engine.context.PerpsController.getCurrentNetwork as jest.Mock
+      ).mockReturnValue('mainnet');
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
       const network = result.current.getCurrentNetwork();
 
-      expect(Engine.context.PerpsController.getCurrentNetwork).toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.getCurrentNetwork,
+      ).toHaveBeenCalled();
       expect(network).toBe('mainnet');
     });
 
     it('should return testnet when on testnet', () => {
-      (Engine.context.PerpsController.getCurrentNetwork as jest.Mock).mockReturnValue(
-        'testnet',
-      );
+      (
+        Engine.context.PerpsController.getCurrentNetwork as jest.Mock
+      ).mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -123,11 +125,11 @@ describe('usePerpsNetworkConfig', () => {
 
     it('should handle getCurrentNetwork errors', () => {
       const mockError = new Error('Unable to get network');
-      (Engine.context.PerpsController.getCurrentNetwork as jest.Mock).mockImplementation(
-        () => {
-          throw mockError;
-        },
-      );
+      (
+        Engine.context.PerpsController.getCurrentNetwork as jest.Mock
+      ).mockImplementation(() => {
+        throw mockError;
+      });
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -144,25 +146,25 @@ describe('usePerpsNetworkConfig', () => {
         providerId: 'hyperliquid',
       };
 
-      (Engine.context.PerpsController.switchProvider as jest.Mock).mockResolvedValue(
-        mockSwitchResult,
-      );
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockResolvedValue(mockSwitchResult);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
       const response = await result.current.switchProvider('hyperliquid');
 
-      expect(Engine.context.PerpsController.switchProvider).toHaveBeenCalledWith(
-        'hyperliquid',
-      );
+      expect(
+        Engine.context.PerpsController.switchProvider,
+      ).toHaveBeenCalledWith('hyperliquid');
       expect(response).toEqual(mockSwitchResult);
     });
 
     it('should handle switchProvider errors', async () => {
       const mockError = new Error('Provider switch failed');
-      (Engine.context.PerpsController.switchProvider as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockRejectedValue(mockError);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -195,9 +197,9 @@ describe('usePerpsNetworkConfig', () => {
 
   describe('disconnect', () => {
     it('should call PerpsController.disconnect', async () => {
-      (Engine.context.PerpsController.disconnect as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (
+        Engine.context.PerpsController.disconnect as jest.Mock
+      ).mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -208,9 +210,9 @@ describe('usePerpsNetworkConfig', () => {
 
     it('should handle disconnect errors', async () => {
       const mockError = new Error('Disconnect failed');
-      (Engine.context.PerpsController.disconnect as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (
+        Engine.context.PerpsController.disconnect as jest.Mock
+      ).mockRejectedValue(mockError);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -220,9 +222,9 @@ describe('usePerpsNetworkConfig', () => {
     });
 
     it('should handle multiple disconnect calls', async () => {
-      (Engine.context.PerpsController.disconnect as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (
+        Engine.context.PerpsController.disconnect as jest.Mock
+      ).mockResolvedValue(undefined);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -231,7 +233,9 @@ describe('usePerpsNetworkConfig', () => {
       await result.current.disconnect();
       await result.current.disconnect();
 
-      expect(Engine.context.PerpsController.disconnect).toHaveBeenCalledTimes(3);
+      expect(Engine.context.PerpsController.disconnect).toHaveBeenCalledTimes(
+        3,
+      );
     });
   });
 
@@ -246,7 +250,9 @@ describe('usePerpsNetworkConfig', () => {
       const updatedFunctions = { ...result.current };
 
       // All functions should maintain the same reference
-      expect(initialFunctions.toggleTestnet).toBe(updatedFunctions.toggleTestnet);
+      expect(initialFunctions.toggleTestnet).toBe(
+        updatedFunctions.toggleTestnet,
+      );
       expect(initialFunctions.getCurrentNetwork).toBe(
         updatedFunctions.getCurrentNetwork,
       );
@@ -282,12 +288,12 @@ describe('usePerpsNetworkConfig', () => {
         providerId: 'hyperliquid-testnet',
       };
 
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockResolvedValue(
-        mockToggleResult,
-      );
-      (Engine.context.PerpsController.switchProvider as jest.Mock).mockResolvedValue(
-        mockSwitchResult,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue(mockToggleResult);
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockResolvedValue(mockSwitchResult);
 
       const { result } = renderHook(() => usePerpsNetworkConfig());
 
@@ -308,9 +314,9 @@ describe('usePerpsNetworkConfig', () => {
         isTestnet: true,
       };
 
-      (Engine.context.PerpsController.toggleTestnet as jest.Mock).mockResolvedValue(
-        mockToggleResult,
-      );
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue(mockToggleResult);
       (Engine.context.PerpsController.getCurrentNetwork as jest.Mock)
         .mockReturnValueOnce('mainnet')
         .mockReturnValueOnce('testnet');

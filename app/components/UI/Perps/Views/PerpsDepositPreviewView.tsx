@@ -82,7 +82,7 @@ type DepositPreviewScreenRouteProp = RouteProp<
   'PerpsDepositPreview'
 >;
 
-interface DepositPreviewViewProps { }
+interface DepositPreviewViewProps {}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -214,9 +214,9 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
         balance: selectedTokenData.balance,
         balanceFiat: selectedTokenData.balanceFiat
           ? addCurrencySymbol(
-            parseFloat(selectedTokenData.balanceFiat.toString()),
-            currentCurrency,
-          )
+              parseFloat(selectedTokenData.balanceFiat.toString()),
+              currentCurrency,
+            )
           : undefined,
       };
 
@@ -261,7 +261,7 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
       const isDirectDeposit =
         selectedToken === USDC_SYMBOL &&
         selectedTokenObject.chainId ===
-        toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
+          (toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex);
 
       navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
         amount,
@@ -388,8 +388,8 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
                       chainId: selectedTokenObject.chainId || '',
                     })
                       ? BLOCKAID_SUPPORTED_NETWORK_NAMES[
-                      selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
-                      ] || selectedTokenObject.chainId
+                          selectedTokenObject.chainId as keyof typeof BLOCKAID_SUPPORTED_NETWORK_NAMES
+                        ] || selectedTokenObject.chainId
                       : selectedTokenObject.chainId
                   }
                   imageSource={getNetworkImageSource({

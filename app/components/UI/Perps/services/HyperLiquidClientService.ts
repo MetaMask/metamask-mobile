@@ -300,7 +300,10 @@ export class HyperLiquidClientService {
           );
         } catch (error) {
           DevLogger.log('HyperLiquid: Error closing WebSocket connection', {
-            error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+            error:
+              error instanceof Error
+                ? error.message
+                : strings('perps.errors.unknownError'),
             timestamp: new Date().toISOString(),
           });
         }

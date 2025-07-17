@@ -8,7 +8,7 @@ import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
-  TransactionParams
+  TransactionParams,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
@@ -123,57 +123,57 @@ export interface PerpsControllerEvents {
  */
 export type PerpsControllerActions =
   | {
-    type: 'PerpsController:getState';
-    handler: () => PerpsControllerState;
-  }
+      type: 'PerpsController:getState';
+      handler: () => PerpsControllerState;
+    }
   | {
-    type: 'PerpsController:placeOrder';
-    handler: PerpsController['placeOrder'];
-  }
+      type: 'PerpsController:placeOrder';
+      handler: PerpsController['placeOrder'];
+    }
   | {
-    type: 'PerpsController:editOrder';
-    handler: PerpsController['editOrder'];
-  }
+      type: 'PerpsController:editOrder';
+      handler: PerpsController['editOrder'];
+    }
   | {
-    type: 'PerpsController:cancelOrder';
-    handler: PerpsController['cancelOrder'];
-  }
+      type: 'PerpsController:cancelOrder';
+      handler: PerpsController['cancelOrder'];
+    }
   | {
-    type: 'PerpsController:closePosition';
-    handler: PerpsController['closePosition'];
-  }
+      type: 'PerpsController:closePosition';
+      handler: PerpsController['closePosition'];
+    }
   | {
-    type: 'PerpsController:deposit';
-    handler: PerpsController['deposit'];
-  }
+      type: 'PerpsController:deposit';
+      handler: PerpsController['deposit'];
+    }
   | {
-    type: 'PerpsController:submitDirectDepositTransaction';
-    handler: PerpsController['submitDirectDepositTransaction'];
-  }
+      type: 'PerpsController:submitDirectDepositTransaction';
+      handler: PerpsController['submitDirectDepositTransaction'];
+    }
   | {
-    type: 'PerpsController:withdraw';
-    handler: PerpsController['withdraw'];
-  }
+      type: 'PerpsController:withdraw';
+      handler: PerpsController['withdraw'];
+    }
   | {
-    type: 'PerpsController:getPositions';
-    handler: PerpsController['getPositions'];
-  }
+      type: 'PerpsController:getPositions';
+      handler: PerpsController['getPositions'];
+    }
   | {
-    type: 'PerpsController:getAccountState';
-    handler: PerpsController['getAccountState'];
-  }
+      type: 'PerpsController:getAccountState';
+      handler: PerpsController['getAccountState'];
+    }
   | {
-    type: 'PerpsController:getMarkets';
-    handler: PerpsController['getMarkets'];
-  }
+      type: 'PerpsController:getMarkets';
+      handler: PerpsController['getMarkets'];
+    }
   | {
-    type: 'PerpsController:toggleTestnet';
-    handler: PerpsController['toggleTestnet'];
-  }
+      type: 'PerpsController:toggleTestnet';
+      handler: PerpsController['toggleTestnet'];
+    }
   | {
-    type: 'PerpsController:disconnect';
-    handler: PerpsController['disconnect'];
-  };
+      type: 'PerpsController:disconnect';
+      handler: PerpsController['disconnect'];
+    };
 
 /**
  * External actions the PerpsController can call
@@ -254,7 +254,10 @@ export class PerpsController extends BaseController<
 
     this.initializeProviders().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
-        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     });
@@ -263,7 +266,9 @@ export class PerpsController extends BaseController<
   /**
    * Handle transaction submitted event
    */
-  private handleTransactionSubmitted(event: TransactionControllerTransactionSubmittedEvent['payload'][0]): void {
+  private handleTransactionSubmitted(
+    event: TransactionControllerTransactionSubmittedEvent['payload'][0],
+  ): void {
     const txMeta = event.transactionMeta;
     // Check if this is a deposit transaction we're tracking
     const depositInfo = this.state.activeDepositTransactions[txMeta.id];
@@ -285,7 +290,9 @@ export class PerpsController extends BaseController<
   /**
    * Handle transaction confirmed event
    */
-  private handleTransactionConfirmed(txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0]): void {
+  private handleTransactionConfirmed(
+    txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
+  ): void {
     // Check if this is a deposit transaction we're tracking
     const depositInfo = this.state.activeDepositTransactions[txMeta.id];
     if (depositInfo) {
@@ -308,7 +315,9 @@ export class PerpsController extends BaseController<
   /**
    * Handle transaction failed event
    */
-  private handleTransactionFailed(event: TransactionControllerTransactionFailedEvent['payload'][0]): void {
+  private handleTransactionFailed(
+    event: TransactionControllerTransactionFailedEvent['payload'][0],
+  ): void {
     const txMeta = event.transactionMeta;
     // Check if this is a deposit transaction we're tracking
     const depositInfo = this.state.activeDepositTransactions[txMeta.id];
@@ -404,7 +413,9 @@ export class PerpsController extends BaseController<
 
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
-      const error = strings('perps.errors.providerNotAvailable', { providerId: this.state.activeProvider });
+      const error = strings('perps.errors.providerNotAvailable', {
+        providerId: this.state.activeProvider,
+      });
       this.update((state) => {
         state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
@@ -541,7 +552,9 @@ export class PerpsController extends BaseController<
       });
 
       if (depositRoutes.length === 0) {
-        const error = strings('perps.errors.tokenNotSupported', { token: params.assetId });
+        const error = strings('perps.errors.tokenNotSupported', {
+          token: params.assetId,
+        });
         this.update((state) => {
           state.depositStatus = 'error';
           state.depositError = error;
@@ -597,7 +610,8 @@ export class PerpsController extends BaseController<
       });
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown deposit error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown deposit error';
       this.update((state) => {
         state.depositStatus = 'error';
         state.depositError = errorMessage;
@@ -605,7 +619,6 @@ export class PerpsController extends BaseController<
       return { success: false, error: errorMessage };
     }
   }
-
 
   /**
    * Withdraw funds from trading account
@@ -634,7 +647,9 @@ export class PerpsController extends BaseController<
       return positions;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : strings('perps.errors.positionsFailed');
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.positionsFailed');
 
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
@@ -670,7 +685,9 @@ export class PerpsController extends BaseController<
       return accountState;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : strings('perps.errors.accountStateFailed');
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.accountStateFailed');
 
       // Update error state but don't modify accountState (keep existing data)
       this.update((state) => {
@@ -709,7 +726,9 @@ export class PerpsController extends BaseController<
       return allMarkets;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : strings('perps.errors.marketsFailed');
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.marketsFailed');
 
       // Update error state
       this.update((state) => {
@@ -821,7 +840,10 @@ export class PerpsController extends BaseController<
       return {
         success: false,
         isTestnet: this.state.isTestnet,
-        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
       };
     }
   }
@@ -1030,7 +1052,10 @@ export class PerpsController extends BaseController<
       };
     } catch (error) {
       DevLogger.log('❌ PerpsController: DIRECT DEPOSIT TRANSACTION FAILED', {
-        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
         transaction,
         timestamp: new Date().toISOString(),
       });
@@ -1154,7 +1179,4 @@ export class PerpsController extends BaseController<
       };
     }
   }
-
-
-
 }

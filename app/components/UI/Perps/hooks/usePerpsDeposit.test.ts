@@ -188,7 +188,6 @@ describe('usePerpsDeposit', () => {
     });
   });
 
-
   describe('deposit flow states', () => {
     it('should transition through direct deposit flow states', () => {
       const states = [
@@ -241,7 +240,9 @@ describe('usePerpsDeposit', () => {
 
         expect(result.current.status).toBe(mockState.depositStatus);
         if (mockState.currentDepositTxHash) {
-          expect(result.current.currentTxHash).toBe(mockState.currentDepositTxHash);
+          expect(result.current.currentTxHash).toBe(
+            mockState.currentDepositTxHash,
+          );
         }
       });
     });
@@ -284,7 +285,11 @@ describe('usePerpsDeposit', () => {
         depositSteps: {
           totalSteps: 3,
           currentStep: 2,
-          stepNames: ['Bridging to Arbitrum', 'Swapping tokens', 'Depositing to HyperLiquid'],
+          stepNames: [
+            'Bridging to Arbitrum',
+            'Swapping tokens',
+            'Depositing to HyperLiquid',
+          ],
           stepTxHashes: ['0x789', '0xabc'],
           currentStepName: 'Swapping tokens',
         },
@@ -347,7 +352,11 @@ describe('usePerpsDeposit', () => {
         depositSteps: {
           totalSteps: 3,
           currentStep: 1,
-          stepNames: ['Bridging to Arbitrum', 'Swapping tokens', 'Depositing to HyperLiquid'],
+          stepNames: [
+            'Bridging to Arbitrum',
+            'Swapping tokens',
+            'Depositing to HyperLiquid',
+          ],
           stepTxHashes: ['0x123'],
         },
       };

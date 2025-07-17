@@ -103,7 +103,11 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => {
   return {
     __esModule: true,
     default: ({ onPress, label, disabled, testID }: MockButtonProps) => (
-      <TouchableOpacity testID={testID || 'button'} onPress={onPress} disabled={disabled}>
+      <TouchableOpacity
+        testID={testID || 'button'}
+        onPress={onPress}
+        disabled={disabled}
+      >
         <Text>{label}</Text>
       </TouchableOpacity>
     ),
@@ -129,7 +133,9 @@ jest.mock('../../../../component-library/components/Cards/Card', () => {
 
   return {
     __esModule: true,
-    default: ({ children, style }: MockCardProps) => <View style={style}>{children}</View>,
+    default: ({ children, style }: MockCardProps) => (
+      <View style={style}>{children}</View>
+    ),
   };
 });
 
@@ -173,38 +179,51 @@ jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Xs: 'xs' },
 }));
 
-jest.mock('../../../../component-library/components/Avatars/Avatar/variants/AvatarToken', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: MockAvatarTokenProps) => <View testID={`avatar-token-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: MockAvatarTokenProps) => (
+        <View testID={`avatar-token-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/Badge/variants/BadgeNetwork', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ name }: MockBadgeNetworkProps) => <View testID={`badge-network-${name}`} />,
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ name }: MockBadgeNetworkProps) => (
+        <View testID={`badge-network-${name}`} />
+      ),
+    };
+  },
+);
 
-jest.mock('../../../../component-library/components/Badges/BadgeWrapper', () => {
-  const View = jest.requireActual('react-native').View;
+jest.mock(
+  '../../../../component-library/components/Badges/BadgeWrapper',
+  () => {
+    const View = jest.requireActual('react-native').View;
 
-  return {
-    __esModule: true,
-    default: ({ children, badgeElement }: MockBadgeWrapperProps) => (
-      <View>
-        {children}
-        {badgeElement}
-      </View>
-    ),
-    BadgePosition: { BottomRight: 'bottom-right' },
-  };
-});
+    return {
+      __esModule: true,
+      default: ({ children, badgeElement }: MockBadgeWrapperProps) => (
+        <View>
+          {children}
+          {badgeElement}
+        </View>
+      ),
+      BadgePosition: { BottomRight: 'bottom-right' },
+    };
+  },
+);
 
 // Mock hooks
 jest.mock('../hooks', () => ({
@@ -222,7 +241,8 @@ jest.mock('../hooks', () => ({
     deposit: jest.fn().mockResolvedValue({ success: true }),
     getDepositRoutes: jest.fn(() => [
       {
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
         chainId: 'eip155:42161',
         contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
       },
@@ -304,7 +324,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('amount-display')).toBeTruthy();
@@ -317,7 +337,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('100 USDC')).toBeTruthy();
@@ -330,7 +350,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       const backButton = getByTestId('buttonicon-arrowleft');
@@ -346,7 +366,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       const confirmButton = getByTestId('confirm-button');
@@ -359,7 +379,7 @@ describe('PerpsDepositPreviewView', () => {
           amount: '100',
           selectedToken: 'USDC',
           isDirectDeposit: true,
-        })
+        }),
       );
     });
 
@@ -368,7 +388,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getAllByTestId, getByText } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       const keyValueRows = getAllByTestId('key-value-row');
@@ -386,7 +406,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('avatar-token-USD Coin')).toBeTruthy();
@@ -398,7 +418,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByTestId('buttonicon-swaphorizontal')).toBeTruthy();
@@ -412,7 +432,7 @@ describe('PerpsDepositPreviewView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositPreviewView />
-        </Provider>
+        </Provider>,
       );
 
       const confirmButton = getByTestId('confirm-button');

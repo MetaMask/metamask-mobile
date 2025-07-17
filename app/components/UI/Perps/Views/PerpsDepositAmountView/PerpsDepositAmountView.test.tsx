@@ -38,12 +38,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.deposit.get_usdc_hyperliquid': 'Deposit to HyperLiquid',
       'perps.deposit.insufficient_funds': 'Insufficient balance',
-      'perps.deposit.minimum_deposit_error': params?.amount ? `Minimum deposit: ${params.amount} USDC` : 'Minimum deposit required',
+      'perps.deposit.minimum_deposit_error': params?.amount
+        ? `Minimum deposit: ${params.amount} USDC`
+        : 'Minimum deposit required',
       'perps.deposit.enter_amount': 'Enter amount',
       'perps.deposit.fetching_quote': 'Fetching quote...',
       'perps.deposit.submitting': 'Submitting...',
       'perps.deposit.get_usdc': 'Get USDC',
-      'perps.errors.tokenNotSupported': params?.token ? `Token ${params.token} not supported` : 'Token not supported',
+      'perps.errors.tokenNotSupported': params?.token
+        ? `Token ${params.token} not supported`
+        : 'Token not supported',
       'perps.errors.unknownError': 'Unknown error occurred',
     };
     return translations[key] || key;
@@ -55,8 +59,17 @@ jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
   const View = jest.requireActual('react-native').View;
   return {
     __esModule: true,
-    default: ({ onChange, currentValue }: { onChange: (data: { value: string; valueAsNumber: number }) => void; currentValue: string }) => (
-      <View testID="keypad" onTouchEnd={() => onChange({ value: '100', valueAsNumber: 100 })}>
+    default: ({
+      onChange,
+      currentValue,
+    }: {
+      onChange: (data: { value: string; valueAsNumber: number }) => void;
+      currentValue: string;
+    }) => (
+      <View
+        testID="keypad"
+        onTouchEnd={() => onChange({ value: '100', valueAsNumber: 100 })}
+      >
         {currentValue}
       </View>
     ),
@@ -79,23 +92,33 @@ jest.mock('../../../../UI/Bridge/components/TokenInputArea', () => {
   const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
   const Text = jest.requireActual('react-native').Text;
   return {
-    TokenInputArea: MockReact.forwardRef((props: {
-      onPress?: () => void;
-      token?: { symbol: string };
-      tokenBalance?: string;
-      error?: string;
-      onTokenPress?: () => void;
-      testID?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }, ref: React.Ref<any>) => (
-      <View ref={ref} testID={props.testID || 'token-input-area'}>
-        <TouchableOpacity testID="token-selector-button" onPress={props.onTokenPress || props.onPress}>
-          <Text>{props.token?.symbol || 'Select Token'}</Text>
-        </TouchableOpacity>
-        {props.tokenBalance && <Text testID="balance">{props.tokenBalance}</Text>}
-        {props.error && <Text testID="error">{props.error}</Text>}
-      </View>
-    )),
+    TokenInputArea: MockReact.forwardRef(
+      (
+        props: {
+          onPress?: () => void;
+          token?: { symbol: string };
+          tokenBalance?: string;
+          error?: string;
+          onTokenPress?: () => void;
+          testID?: string;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        },
+        ref: React.Ref<any>,
+      ) => (
+        <View ref={ref} testID={props.testID || 'token-input-area'}>
+          <TouchableOpacity
+            testID="token-selector-button"
+            onPress={props.onTokenPress || props.onPress}
+          >
+            <Text>{props.token?.symbol || 'Select Token'}</Text>
+          </TouchableOpacity>
+          {props.tokenBalance && (
+            <Text testID="balance">{props.tokenBalance}</Text>
+          )}
+          {props.error && <Text testID="error">{props.error}</Text>}
+        </View>
+      ),
+    ),
     TokenInputAreaType: {
       Source: 'SOURCE',
       Destination: 'DESTINATION',
@@ -108,7 +131,9 @@ jest.mock('../../../../Base/ScreenView', () => {
   const View = jest.requireActual('react-native').View;
   return {
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
   };
 });
 
@@ -124,7 +149,11 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
       disabled?: boolean;
       testID?: string;
     }) => (
-      <TouchableOpacity testID={props.testID || 'button'} onPress={props.onPress} disabled={props.disabled}>
+      <TouchableOpacity
+        testID={props.testID || 'button'}
+        onPress={props.onPress}
+        disabled={props.disabled}
+      >
         <Text>{props.label || props.children}</Text>
       </TouchableOpacity>
     ),
@@ -133,18 +162,22 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Buttons/ButtonIcon', () => {
-  const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
-  return {
-    __esModule: true,
-    default: (props: {
-      onPress?: () => void;
-      testID?: string;
-    }) => (
-      <TouchableOpacity testID={props.testID || 'button-icon'} onPress={props.onPress} />
-    ),
-  };
-});
+jest.mock(
+  '../../../../../component-library/components/Buttons/ButtonIcon',
+  () => {
+    const TouchableOpacity =
+      jest.requireActual('react-native').TouchableOpacity;
+    return {
+      __esModule: true,
+      default: (props: { onPress?: () => void; testID?: string }) => (
+        <TouchableOpacity
+          testID={props.testID || 'button-icon'}
+          onPress={props.onPress}
+        />
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const View = jest.requireActual('react-native').View;
@@ -161,23 +194,28 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const Text = jest.requireActual('react-native').Text;
   return {
     __esModule: true,
-    default: (props: { children: React.ReactNode }) => <Text>{props.children}</Text>,
+    default: (props: { children: React.ReactNode }) => (
+      <Text>{props.children}</Text>
+    ),
     TextVariant: { HeadingMD: 'heading-md', BodyMD: 'body-md' },
     TextColor: { Default: 'default', Alternative: 'alternative' },
   };
 });
 
 // Mock hooks
-jest.mock('../../../../Views/confirmations/hooks/gas/useGasFeeEstimates', () => ({
-  useGasFeeEstimates: jest.fn(() => ({
-    gasFeeEstimates: {
-      gasLimit: '100000',
-      maxFeePerGas: '50',
-      maxPriorityFeePerGas: '2',
-    },
-    gasEstimateType: 'fee-market',
-  })),
-}));
+jest.mock(
+  '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates',
+  () => ({
+    useGasFeeEstimates: jest.fn(() => ({
+      gasFeeEstimates: {
+        gasLimit: '100000',
+        maxFeePerGas: '50',
+        maxPriorityFeePerGas: '2',
+      },
+      gasEstimateType: 'fee-market',
+    })),
+  }),
+);
 
 jest.mock('../../hooks/usePerpsDepositQuote', () => ({
   usePerpsDepositQuote: jest.fn(() => ({
@@ -197,7 +235,8 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(() => ({
     getDepositRoutes: jest.fn(() => [
       {
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
         chainId: 'eip155:42161',
         contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
       },
@@ -209,9 +248,14 @@ jest.mock('../../hooks', () => ({
 // Mock redux actions
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   setBridgeViewMode: jest.fn(() => ({ type: 'bridge/setBridgeViewMode' })),
-  setSelectedSourceChainIds: jest.fn(() => ({ type: 'bridge/setSelectedSourceChainIds' })),
-  setBridgeSourceToken: jest.fn(() => ({ type: 'bridge/setBridgeSourceToken' })),
-  selectSourceToken: (state: { bridge?: { sourceToken?: unknown } }) => state?.bridge?.sourceToken,
+  setSelectedSourceChainIds: jest.fn(() => ({
+    type: 'bridge/setSelectedSourceChainIds',
+  })),
+  setBridgeSourceToken: jest.fn(() => ({
+    type: 'bridge/setBridgeSourceToken',
+  })),
+  selectSourceToken: (state: { bridge?: { sourceToken?: unknown } }) =>
+    state?.bridge?.sourceToken,
   setSourceToken: jest.fn(() => ({ type: 'bridge/setSourceToken' })),
 }));
 
@@ -297,14 +341,15 @@ describe('PerpsDepositAmountView', () => {
 
     const mockRoutes: AssetRoute[] = [
       {
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
         chainId: 'eip155:42161',
         contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
       },
     ];
-    (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue(
-      mockRoutes,
-    );
+    (
+      Engine.context.PerpsController.getDepositRoutes as jest.Mock
+    ).mockReturnValue(mockRoutes);
   });
 
   describe('rendering', () => {
@@ -313,7 +358,7 @@ describe('PerpsDepositAmountView', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       expect(getByText('Deposit to HyperLiquid')).toBeTruthy();
@@ -324,7 +369,7 @@ describe('PerpsDepositAmountView', () => {
       const { getAllByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       const continueButtons = getAllByTestId('continue-button');
@@ -350,7 +395,7 @@ describe('PerpsDepositAmountView', () => {
       const { getByTestId, getAllByText } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       const sourceTokenArea = getByTestId('source-token-area');
@@ -367,7 +412,7 @@ describe('PerpsDepositAmountView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       const backButton = getByTestId('buttonicon-arrowleft');
@@ -396,7 +441,7 @@ describe('PerpsDepositAmountView', () => {
       const { getAllByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       const continueButtons = getAllByTestId('continue-button');
@@ -421,7 +466,7 @@ describe('PerpsDepositAmountView', () => {
       const { getAllByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       const continueButtons = getAllByTestId('continue-button');
@@ -440,7 +485,8 @@ describe('PerpsDepositAmountView', () => {
         usePerpsTrading: () => ({
           getDepositRoutes: jest.fn(() => [
             {
-              assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              assetId:
+                'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
               chainId: 'eip155:42161',
               contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
             },
@@ -467,7 +513,7 @@ describe('PerpsDepositAmountView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       // Since we can't directly interact with keypad, we'll just verify the button exists and is clickable
@@ -496,7 +542,7 @@ describe('PerpsDepositAmountView', () => {
       const { getAllByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       // Verify the component renders continue buttons
@@ -511,7 +557,7 @@ describe('PerpsDepositAmountView', () => {
       const { getAllByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       // Get first token selector button (source token)
@@ -520,12 +566,9 @@ describe('PerpsDepositAmountView', () => {
 
       tokenSelectors[0].props.onPress();
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BRIDGE.MODALS.ROOT,
-        {
-          screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-        }
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+      });
     });
   });
 
@@ -548,7 +591,7 @@ describe('PerpsDepositAmountView', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <PerpsDepositAmountView />
-        </Provider>
+        </Provider>,
       );
 
       // Component should render source token area

@@ -413,8 +413,8 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
-                          label={strings('perps.deposit.view_balance')}
-            onPress={handleViewBalance}
+              label={strings('perps.deposit.view_balance')}
+              onPress={handleViewBalance}
               testID="view-balance-button"
             />
           )}

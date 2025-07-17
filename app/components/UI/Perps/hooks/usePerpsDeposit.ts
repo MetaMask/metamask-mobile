@@ -1,10 +1,7 @@
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
-import type {
-  DepositStatus,
-} from '../controllers/types';
-
+import type { DepositStatus } from '../controllers/types';
 
 const selectPerpsDepositState = createSelector(
   (state: RootState) => state.engine.backgroundState.PerpsController,

@@ -620,7 +620,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error(strings('perps.errors.withdrawValidation.assetIdRequired'));
+        throw new Error(
+          strings('perps.errors.withdrawValidation.assetIdRequired'),
+        );
       }
 
       const assetValidation = validateAssetSupport(
@@ -649,7 +651,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error(strings('perps.errors.withdrawValidation.amountRequired'));
+        throw new Error(
+          strings('perps.errors.withdrawValidation.amountRequired'),
+        );
       }
 
       const withdrawAmount = parseFloat(params.amount);
@@ -783,7 +787,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         ready: false,
         walletConnected: false,
         networkSupported: false,
-        error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
       };
     }
   }

@@ -55,9 +55,12 @@ const PerpsPayWithRow: React.FC<PerpsPayWithRowProps> = ({
 
   // Get network name using MetaMask's network utilities
   const getNetworkName = (chainId: string): string =>
-    BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId] || strings('perps.unknown_network');
+    BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId] ||
+    strings('perps.unknown_network');
 
-  const networkName = getNetworkName(selectedToken.chainId || CHAIN_IDS.MAINNET);
+  const networkName = getNetworkName(
+    selectedToken.chainId || CHAIN_IDS.MAINNET,
+  );
 
   return (
     <TouchableOpacity

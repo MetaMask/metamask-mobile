@@ -57,9 +57,9 @@ describe('usePerpsTrading', () => {
         filledSize: '0.5',
         averagePrice: '45000',
       };
-      (Engine.context.PerpsController.placeOrder as jest.Mock).mockResolvedValue(
-        mockOrderResult,
-      );
+      (
+        Engine.context.PerpsController.placeOrder as jest.Mock
+      ).mockResolvedValue(mockOrderResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -83,9 +83,9 @@ describe('usePerpsTrading', () => {
 
     it('should handle placeOrder errors', async () => {
       const mockError = new Error('Order placement failed');
-      (Engine.context.PerpsController.placeOrder as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+      (
+        Engine.context.PerpsController.placeOrder as jest.Mock
+      ).mockRejectedValue(mockError);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -109,9 +109,9 @@ describe('usePerpsTrading', () => {
         orderId: 'order123',
       };
 
-      (Engine.context.PerpsController.cancelOrder as jest.Mock).mockResolvedValue(
-        mockCancelResult,
-      );
+      (
+        Engine.context.PerpsController.cancelOrder as jest.Mock
+      ).mockResolvedValue(mockCancelResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -138,9 +138,9 @@ describe('usePerpsTrading', () => {
         filledSize: '0.5',
       };
 
-      (Engine.context.PerpsController.closePosition as jest.Mock).mockResolvedValue(
-        mockCloseResult,
-      );
+      (
+        Engine.context.PerpsController.closePosition as jest.Mock
+      ).mockResolvedValue(mockCloseResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -175,9 +175,9 @@ describe('usePerpsTrading', () => {
         },
       ];
 
-      (Engine.context.PerpsController.getMarkets as jest.Mock).mockResolvedValue(
-        mockMarkets,
-      );
+      (
+        Engine.context.PerpsController.getMarkets as jest.Mock
+      ).mockResolvedValue(mockMarkets);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -199,9 +199,9 @@ describe('usePerpsTrading', () => {
         },
       ];
 
-      (Engine.context.PerpsController.getMarkets as jest.Mock).mockResolvedValue(
-        mockMarkets,
-      );
+      (
+        Engine.context.PerpsController.getMarkets as jest.Mock
+      ).mockResolvedValue(mockMarkets);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -241,9 +241,9 @@ describe('usePerpsTrading', () => {
         },
       ];
 
-      (Engine.context.PerpsController.getPositions as jest.Mock).mockResolvedValue(
-        mockPositions,
-      );
+      (
+        Engine.context.PerpsController.getPositions as jest.Mock
+      ).mockResolvedValue(mockPositions);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -263,18 +263,18 @@ describe('usePerpsTrading', () => {
         unrealizedPnl: '0',
       };
 
-      (Engine.context.PerpsController.getAccountState as jest.Mock).mockResolvedValue(
-        mockAccountState,
-      );
+      (
+        Engine.context.PerpsController.getAccountState as jest.Mock
+      ).mockResolvedValue(mockAccountState);
 
       const { result } = renderHook(() => usePerpsTrading());
 
       const params: GetAccountStateParams = {};
       const response = await result.current.getAccountState(params);
 
-      expect(Engine.context.PerpsController.getAccountState).toHaveBeenCalledWith(
-        params,
-      );
+      expect(
+        Engine.context.PerpsController.getAccountState,
+      ).toHaveBeenCalledWith(params);
       expect(response).toEqual(mockAccountState);
     });
 
@@ -286,17 +286,17 @@ describe('usePerpsTrading', () => {
         unrealizedPnl: '0',
       };
 
-      (Engine.context.PerpsController.getAccountState as jest.Mock).mockResolvedValue(
-        mockAccountState,
-      );
+      (
+        Engine.context.PerpsController.getAccountState as jest.Mock
+      ).mockResolvedValue(mockAccountState);
 
       const { result } = renderHook(() => usePerpsTrading());
 
       const response = await result.current.getAccountState();
 
-      expect(Engine.context.PerpsController.getAccountState).toHaveBeenCalledWith(
-        undefined,
-      );
+      expect(
+        Engine.context.PerpsController.getAccountState,
+      ).toHaveBeenCalledWith(undefined);
       expect(response).toEqual(mockAccountState);
     });
   });
@@ -304,9 +304,9 @@ describe('usePerpsTrading', () => {
   describe('subscription methods', () => {
     it('should subscribe to prices and return unsubscribe function', () => {
       const mockUnsubscribe = jest.fn();
-      (Engine.context.PerpsController.subscribeToPrices as jest.Mock).mockReturnValue(
-        mockUnsubscribe,
-      );
+      (
+        Engine.context.PerpsController.subscribeToPrices as jest.Mock
+      ).mockReturnValue(mockUnsubscribe);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -317,9 +317,9 @@ describe('usePerpsTrading', () => {
 
       const unsubscribe = result.current.subscribeToPrices(subscription);
 
-      expect(Engine.context.PerpsController.subscribeToPrices).toHaveBeenCalledWith(
-        subscription,
-      );
+      expect(
+        Engine.context.PerpsController.subscribeToPrices,
+      ).toHaveBeenCalledWith(subscription);
       expect(typeof unsubscribe).toBe('function');
 
       // Test unsubscribe
@@ -329,9 +329,9 @@ describe('usePerpsTrading', () => {
 
     it('should subscribe to positions and return unsubscribe function', () => {
       const mockUnsubscribe = jest.fn();
-      (Engine.context.PerpsController.subscribeToPositions as jest.Mock).mockReturnValue(
-        mockUnsubscribe,
-      );
+      (
+        Engine.context.PerpsController.subscribeToPositions as jest.Mock
+      ).mockReturnValue(mockUnsubscribe);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -353,9 +353,9 @@ describe('usePerpsTrading', () => {
 
     it('should subscribe to order fills and return unsubscribe function', () => {
       const mockUnsubscribe = jest.fn();
-      (Engine.context.PerpsController.subscribeToOrderFills as jest.Mock).mockReturnValue(
-        mockUnsubscribe,
-      );
+      (
+        Engine.context.PerpsController.subscribeToOrderFills as jest.Mock
+      ).mockReturnValue(mockUnsubscribe);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -391,7 +391,8 @@ describe('usePerpsTrading', () => {
 
       const depositParams: DepositParams = {
         amount: '1000',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       const response = await result.current.deposit(depositParams);
@@ -412,7 +413,8 @@ describe('usePerpsTrading', () => {
 
       const depositParams: DepositParams = {
         amount: '1000',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
       await expect(result.current.deposit(depositParams)).rejects.toThrow(
@@ -423,21 +425,24 @@ describe('usePerpsTrading', () => {
     it('should call getDepositRoutes and return routes', () => {
       const mockRoutes: AssetRoute[] = [
         {
-          assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
           chainId: 'eip155:42161',
           contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
         },
       ];
 
-      (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue(
-        mockRoutes,
-      );
+      (
+        Engine.context.PerpsController.getDepositRoutes as jest.Mock
+      ).mockReturnValue(mockRoutes);
 
       const { result } = renderHook(() => usePerpsTrading());
 
       const routes = result.current.getDepositRoutes();
 
-      expect(Engine.context.PerpsController.getDepositRoutes).toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.getDepositRoutes,
+      ).toHaveBeenCalled();
       expect(routes).toEqual(mockRoutes);
     });
 
@@ -446,7 +451,9 @@ describe('usePerpsTrading', () => {
 
       result.current.resetDepositState();
 
-      expect(Engine.context.PerpsController.resetDepositState).toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.resetDepositState,
+      ).toHaveBeenCalled();
     });
   });
 
@@ -463,7 +470,9 @@ describe('usePerpsTrading', () => {
       // All functions should maintain the same reference
       expect(initialFunctions.placeOrder).toBe(updatedFunctions.placeOrder);
       expect(initialFunctions.cancelOrder).toBe(updatedFunctions.cancelOrder);
-      expect(initialFunctions.closePosition).toBe(updatedFunctions.closePosition);
+      expect(initialFunctions.closePosition).toBe(
+        updatedFunctions.closePosition,
+      );
       expect(initialFunctions.getMarkets).toBe(updatedFunctions.getMarkets);
       expect(initialFunctions.getPositions).toBe(updatedFunctions.getPositions);
       expect(initialFunctions.getAccountState).toBe(

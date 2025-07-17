@@ -252,7 +252,9 @@ describe('usePerpsAccount', () => {
       });
 
       expect(result.current?.marginUsed).toBe('0');
-      expect(result.current?.availableBalance).toBe(result.current?.totalBalance);
+      expect(result.current?.availableBalance).toBe(
+        result.current?.totalBalance,
+      );
     });
   });
 

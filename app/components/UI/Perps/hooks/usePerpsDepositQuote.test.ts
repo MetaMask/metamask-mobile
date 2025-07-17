@@ -55,19 +55,23 @@ jest.mock(
 
 // Mock getTransaction1559GasFeeEstimates to be synchronous
 jest.mock('../../Swaps/utils/gas', () => ({
-  getTransaction1559GasFeeEstimates: jest.fn(() => Promise.resolve({
-    maxFeePerGas: '50',
-    maxPriorityFeePerGas: '2',
-  })),
+  getTransaction1559GasFeeEstimates: jest.fn(() =>
+    Promise.resolve({
+      maxFeePerGas: '50',
+      maxPriorityFeePerGas: '2',
+    }),
+  ),
 }));
 
 // Mock Bridge utils
 jest.mock('../../Bridge/utils/quoteUtils', () => ({
-  shouldRefreshQuote: jest.fn((_isExpired, refreshCount, maxRefreshCount, _willRefresh) =>
-    refreshCount < maxRefreshCount && !_isExpired
+  shouldRefreshQuote: jest.fn(
+    (_isExpired, refreshCount, maxRefreshCount, _willRefresh) =>
+      refreshCount < maxRefreshCount && !_isExpired,
   ),
-  isQuoteExpired: jest.fn((_willRefresh, refreshRate, quoteFetchedTime) =>
-    quoteFetchedTime && Date.now() - quoteFetchedTime > refreshRate
+  isQuoteExpired: jest.fn(
+    (_willRefresh, refreshRate, quoteFetchedTime) =>
+      quoteFetchedTime && Date.now() - quoteFetchedTime > refreshRate,
   ),
 }));
 
@@ -216,7 +220,9 @@ describe('usePerpsDepositQuote', () => {
     jest.clearAllMocks();
 
     // Mock Engine methods
-    (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue(mockRoutes);
+    (
+      Engine.context.PerpsController.getDepositRoutes as jest.Mock
+    ).mockReturnValue(mockRoutes);
 
     (parseCaipAssetId as jest.Mock).mockReturnValue({
       chainId: 'eip155:42161',
@@ -310,7 +316,9 @@ describe('usePerpsDepositQuote', () => {
         '100.00 USDC',
       );
       // Initially shows calculating state for direct deposits
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
   });
 
@@ -331,11 +339,15 @@ describe('usePerpsDepositQuote', () => {
         '100.00 USDC',
       );
       // Initially shows calculating state for direct deposits
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
 
     it('should handle no matching route', () => {
-      (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockReturnValue([]);
+      (
+        Engine.context.PerpsController.getDepositRoutes as jest.Mock
+      ).mockReturnValue([]);
 
       const state = createMockState();
 
@@ -349,7 +361,9 @@ describe('usePerpsDepositQuote', () => {
       );
 
       // Still shows calculating state even without routes for direct deposits
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
 
     it('should handle different chain IDs', () => {
@@ -373,7 +387,9 @@ describe('usePerpsDepositQuote', () => {
         { state },
       );
 
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
   });
 
@@ -392,7 +408,9 @@ describe('usePerpsDepositQuote', () => {
 
       expect(result.current.formattedQuoteData.networkFee).toBeDefined();
       // Initially shows calculating state
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
 
     it('should handle missing gas fee estimates', () => {
@@ -412,7 +430,9 @@ describe('usePerpsDepositQuote', () => {
       );
 
       // Still shows calculating initially even with missing estimates
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
     });
 
     it('should handle legacy gas estimates', () => {
@@ -466,7 +486,9 @@ describe('usePerpsDepositQuote', () => {
     });
 
     it('should handle getDepositRoutes errors', () => {
-      (Engine.context.PerpsController.getDepositRoutes as jest.Mock).mockImplementation(() => {
+      (
+        Engine.context.PerpsController.getDepositRoutes as jest.Mock
+      ).mockImplementation(() => {
         throw new Error('Route fetch failed');
       });
 
@@ -481,9 +503,15 @@ describe('usePerpsDepositQuote', () => {
         { state },
       );
 
-      expect(result.current.formattedQuoteData.networkFee).toBe('perps.deposit.calculating_fee');
-      expect(result.current.formattedQuoteData.estimatedTime).toBe('3-5 seconds');
-      expect(result.current.formattedQuoteData.receivingAmount).toBe('100.00 USDC');
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
+      expect(result.current.formattedQuoteData.estimatedTime).toBe(
+        '3-5 seconds',
+      );
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '100.00 USDC',
+      );
       expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
     });
   });
@@ -510,13 +538,21 @@ describe('usePerpsDepositQuote', () => {
         { state },
       );
 
-      expect(result1.current.formattedQuoteData).toEqual(result2.current.formattedQuoteData);
+      expect(result1.current.formattedQuoteData).toEqual(
+        result2.current.formattedQuoteData,
+      );
       expect(result1.current.isLoading).toEqual(result2.current.isLoading);
-      expect(result1.current.quoteFetchError).toEqual(result2.current.quoteFetchError);
-      expect(result1.current.quoteFetchedTime).toEqual(result2.current.quoteFetchedTime);
+      expect(result1.current.quoteFetchError).toEqual(
+        result2.current.quoteFetchError,
+      );
+      expect(result1.current.quoteFetchedTime).toEqual(
+        result2.current.quoteFetchedTime,
+      );
       expect(result1.current.isExpired).toEqual(result2.current.isExpired);
       expect(result1.current.willRefresh).toEqual(result2.current.willRefresh);
-      expect(result1.current.hasValidQuote).toEqual(result2.current.hasValidQuote);
+      expect(result1.current.hasValidQuote).toEqual(
+        result2.current.hasValidQuote,
+      );
       expect(result1.current.bridgeQuote).toEqual(result2.current.bridgeQuote);
     });
 
@@ -580,7 +616,9 @@ describe('usePerpsDepositQuote', () => {
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
         '299995.00 USDC',
       );
-      expect(result.current.formattedQuoteData.exchangeRate).toBe('1 ETH ≈ 3000.00 USDC');
+      expect(result.current.formattedQuoteData.exchangeRate).toBe(
+        '1 ETH ≈ 3000.00 USDC',
+      );
     });
   });
 });

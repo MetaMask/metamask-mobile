@@ -21,7 +21,10 @@ export function createErrorResult<
   return {
     ...defaultResponse,
     success: false,
-    error: error instanceof Error ? error.message : strings('perps.errors.unknownError'),
+    error:
+      error instanceof Error
+        ? error.message
+        : strings('perps.errors.unknownError'),
   };
 }
 
@@ -35,19 +38,27 @@ export function validateWithdrawalParams(params: {
 }): { isValid: boolean; error?: string } {
   // Validate required parameters
   if (!params.assetId) {
-    return { isValid: false, error: strings('perps.errors.withdrawValidation.assetIdRequired') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.withdrawValidation.assetIdRequired'),
+    };
   }
 
   // Validate amount
   if (!params.amount || parseFloat(params.amount) <= 0) {
-    return { isValid: false, error: strings('perps.errors.withdrawValidation.amountPositive') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.withdrawValidation.amountPositive'),
+    };
   }
 
   // Validate destination address if provided
   if (params.destination && !isValidHexAddress(params.destination)) {
     return {
       isValid: false,
-      error: strings('perps.errors.withdrawValidation.invalidDestination', { address: params.destination }),
+      error: strings('perps.errors.withdrawValidation.invalidDestination', {
+        address: params.destination,
+      }),
     };
   }
 
@@ -64,12 +75,18 @@ export function validateDepositParams(params: {
 }): { isValid: boolean; error?: string } {
   // Validate required parameters
   if (!params.assetId) {
-    return { isValid: false, error: strings('perps.errors.depositValidation.assetIdRequired') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.depositValidation.assetIdRequired'),
+    };
   }
 
   // Validate amount
   if (!params.amount || parseFloat(params.amount) <= 0) {
-    return { isValid: false, error: strings('perps.errors.depositValidation.amountPositive') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.depositValidation.amountPositive'),
+    };
   }
 
   // Check minimum deposit amount
@@ -108,7 +125,10 @@ export function validateAssetSupport(
 
     return {
       isValid: false,
-      error: strings('perps.errors.withdrawValidation.assetNotSupported', { assetId, supportedAssets }),
+      error: strings('perps.errors.withdrawValidation.assetNotSupported', {
+        assetId,
+        supportedAssets,
+      }),
     };
   }
 
@@ -125,7 +145,10 @@ export function validateBalance(
   if (withdrawAmount > availableBalance) {
     return {
       isValid: false,
-      error: strings('perps.errors.withdrawValidation.insufficientBalance', { available: availableBalance, requested: withdrawAmount }),
+      error: strings('perps.errors.withdrawValidation.insufficientBalance', {
+        available: availableBalance,
+        requested: withdrawAmount,
+      }),
     };
   }
 
@@ -242,11 +265,17 @@ export function validateOrderParams(params: {
   price?: string;
 }): { isValid: boolean; error?: string } {
   if (!params.coin) {
-    return { isValid: false, error: strings('perps.errors.orderValidation.coinRequired') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.coinRequired'),
+    };
   }
 
   if (!params.size || parseFloat(params.size) <= 0) {
-    return { isValid: false, error: strings('perps.errors.orderValidation.sizePositive') };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.sizePositive'),
+    };
   }
 
   if (params.price && parseFloat(params.price) <= 0) {
@@ -267,7 +296,10 @@ export function validateCoinExists(
   coinToAssetId: Map<string, number>,
 ): { isValid: boolean; error?: string } {
   if (!coinToAssetId.has(coin)) {
-    return { isValid: false, error: strings('perps.errors.orderValidation.unknownCoin', { coin }) };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.unknownCoin', { coin }),
+    };
   }
 
   return { isValid: true };

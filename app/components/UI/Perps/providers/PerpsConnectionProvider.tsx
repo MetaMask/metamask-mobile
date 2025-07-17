@@ -212,9 +212,7 @@ export const PerpsConnectionProvider: React.FC<
 export const usePerpsConnection = (): PerpsConnectionContextValue => {
   const context = useContext(PerpsConnectionContext);
   if (!context) {
-    throw new Error(
-      strings('perps.errors.connectionRequired'),
-    );
+    throw new Error(strings('perps.errors.connectionRequired'));
   }
   return context;
 };

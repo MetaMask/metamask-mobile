@@ -945,9 +945,7 @@ describe('PerpsController', () => {
         // Act & Assert
         await expect(
           controller.fetchHistoricalCandles('BTC', '1h', 100),
-        ).rejects.toThrow(
-          'HyperLiquid SDK clients not properly initialized',
-        );
+        ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
       });
     });
 
