@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsLoader from './PerpsLoader';
+import { PerpsLoaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock useStyles
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -41,7 +42,7 @@ describe('PerpsLoader', () => {
     const { getByTestId } = renderWithProvider(<PerpsLoader />);
 
     // When fullScreen, it wraps content in ScreenView
-    expect(getByTestId('perps-loader-fullscreen')).toBeTruthy();
+    expect(getByTestId(PerpsLoaderSelectorsIDs.FULLSCREEN)).toBeTruthy();
   });
 
   it('should render inline when fullScreen is false', () => {
@@ -50,14 +51,14 @@ describe('PerpsLoader', () => {
     );
 
     // When not fullScreen, it doesn't wrap in ScreenView
-    expect(queryByTestId('perps-loader-fullscreen')).toBeNull();
-    expect(getByTestId('perps-loader-inline')).toBeTruthy();
+    expect(queryByTestId(PerpsLoaderSelectorsIDs.FULLSCREEN)).toBeNull();
+    expect(getByTestId(PerpsLoaderSelectorsIDs.INLINE)).toBeTruthy();
   });
 
   it('should render ActivityIndicator', () => {
     const { getByTestId } = renderWithProvider(<PerpsLoader />);
 
-    const spinner = getByTestId('perps-loader-spinner');
+    const spinner = getByTestId(PerpsLoaderSelectorsIDs.SPINNER);
     expect(spinner).toBeTruthy();
     expect(spinner.props.size).toBe('large');
     expect(spinner.props.color).toBe('#0376C9');
@@ -68,14 +69,14 @@ describe('PerpsLoader', () => {
       <PerpsLoader fullScreen={false} />,
     );
 
-    const container = getByTestId('perps-loader-inline');
+    const container = getByTestId(PerpsLoaderSelectorsIDs.INLINE);
     expect(container.props.style).toEqual({}); // matches styles.inlineContainer
   });
 
   it('should handle empty message', () => {
     const { getByTestId } = renderWithProvider(<PerpsLoader message="" />);
 
-    const text = getByTestId('perps-loader-text');
+    const text = getByTestId(PerpsLoaderSelectorsIDs.TEXT);
     expect(text.props.children).toBe('');
   });
 

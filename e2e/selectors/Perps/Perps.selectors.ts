@@ -57,6 +57,17 @@ export const PerpsPositionHeaderSelectorsIDs = {
 };
 
 // ========================================
+// PERPS LOADER SELECTORS
+// ========================================
+
+export const PerpsLoaderSelectorsIDs = {
+  FULLSCREEN: 'perps-loader-fullscreen',
+  INLINE: 'perps-loader-inline',
+  SPINNER: 'perps-loader-spinner',
+  TEXT: 'perps-loader-text',
+};
+
+// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 
