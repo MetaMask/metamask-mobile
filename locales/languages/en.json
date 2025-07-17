@@ -753,6 +753,7 @@
       "rate": "Rate",
       "slippage": "Slippage",
       "slippage_tooltip": "Maximum price difference allowed for this transaction",
+      "slippage_auto": "Auto",
       "select_token": "Select token",
       "fund_hyperliquid": "Fund Hyperliquid Wallet",
       "networkFee": "Network fee",
