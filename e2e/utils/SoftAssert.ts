@@ -20,10 +20,10 @@
  * @method throwIfErrors - Throws a single error summarizing all collected assertion failures, if any exist.
  */
 class SoftAssert {
-    private assertionErrors: {
-        description: string;
-        error: string;
-    }[];
+  private assertionErrors: {
+    description: string;
+    error: string;
+  }[];
 
   constructor() {
     this.assertionErrors = [];
@@ -35,7 +35,7 @@ class SoftAssert {
     } catch (error: unknown) {
       this.assertionErrors.push({
         description,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -47,7 +47,7 @@ class SoftAssert {
   throwIfErrors() {
     if (this.hasErrors()) {
       const errorSummary = this.assertionErrors
-        .map(err => `${err.description}: ${err.error}`)
+        .map((err) => `${err.description}: ${err.error}`)
         .join('\n');
       throw new Error(`Assertion failures:\n${errorSummary}`);
     } else {

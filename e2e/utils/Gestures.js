@@ -135,12 +135,17 @@ class Gestures {
    */
   static async typeInWebElement(element, text) {
     try {
-      await (await element).runScript((el, value) => {
-        el.focus();
-        el.value = value;
-        el._valueTracker && el._valueTracker.setValue('');
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }, [text]);
+      await (
+        await element
+      ).runScript(
+        (el, value) => {
+          el.focus();
+          el.value = value;
+          el._valueTracker && el._valueTracker.setValue('');
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+        [text],
+      );
     } catch {
       await (await element).typeText(text);
     }

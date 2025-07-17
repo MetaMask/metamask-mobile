@@ -8,8 +8,6 @@ import App from '.';
 import { MetaMetrics } from '../../../core/Analytics';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
@@ -26,6 +24,8 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { Linking } from 'react-native';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
@@ -223,13 +223,19 @@ describe('App', () => {
 
   describe('Authentication flow logic', () => {
     it('navigates to onboarding when user does not exist', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === EXISTING_USER) {
-          return null; // User does not exist
-        }
-        return null; // Default for other keys
-      });
-      renderScreen(App, { name: 'App' }, { state: initialState });
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: false,
+            },
+          },
+        },
+      );
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
@@ -238,16 +244,25 @@ describe('App', () => {
     });
     it('navigates to login when user exists and logs in', async () => {
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === EXISTING_USER) {
-          return true; // User exists
-        }
         if (key === OPTIN_META_METRICS_UI_SEEN) {
           return true; // OptinMetrics UI has been seen
         }
         return null; // Default for other keys
       });
       jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-      renderScreen(App, { name: 'App' }, { state: initialState });
+      renderScreen(
+        App,
+        { name: 'App' },
+        {
+          state: {
+            ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
+          },
+        },
+      );
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
@@ -258,9 +273,6 @@ describe('App', () => {
     it('navigates to OptinMetrics when user exists and OptinMetaMetricsUISeen is false', async () => {
       // Mock StorageWrapper.getItem to return different values based on the key
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === EXISTING_USER) {
-          return true; // User exists
-        }
         if (key === OPTIN_META_METRICS_UI_SEEN) {
           return false; // OptinMetrics UI has not been seen
         }
@@ -273,6 +285,10 @@ describe('App', () => {
         {
           state: {
             ...initialState,
+            user: {
+              ...initialState.user,
+              existingUser: true,
+            },
           },
         },
       );
@@ -283,11 +299,11 @@ describe('App', () => {
           expect(mockReset).toHaveBeenCalledWith({
             routes: [
               {
-                name: 'OnboardingRootNav',
+                name: Routes.ONBOARDING.ROOT_NAV,
                 params: {
-                  screen: 'OnboardingNav',
+                  screen: Routes.ONBOARDING.NAV,
                   params: {
-                    screen: 'OptinMetrics',
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
                   },
                 },
               },
@@ -438,7 +454,6 @@ describe('App', () => {
       });
     });
   });
-
   describe('OnboardingRootNav', () => {
     it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
       const routeState = {
