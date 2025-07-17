@@ -2876,13 +2876,13 @@ app:
       VERSION_NAME: 7.52.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2132
+      VERSION_NUMBER: 2134
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.52.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2132
+      FLASK_VERSION_NUMBER: 2134
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
