@@ -45,7 +45,7 @@ concurrency:
 
 # Environment variables
 env:
-  NODE_VERSION: '18.19.0'
+  NODE_VERSION: '20.18.0'
   DETOX_VERSION: '20.26.2'
 
 jobs:
