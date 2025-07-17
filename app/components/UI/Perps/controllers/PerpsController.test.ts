@@ -815,4 +815,152 @@ describe('PerpsController', () => {
       });
     });
   });
+
+  describe('fetchHistoricalCandles', () => {
+    it('should fetch historical candles successfully', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockCandleData = {
+          coin: 'BTC',
+          interval: '1h',
+          candles: [
+            {
+              time: 1700000000000,
+              open: '50000',
+              high: '51000',
+              low: '49000',
+              close: '50500',
+              volume: '100',
+            },
+            {
+              time: 1700003600000,
+              open: '50500',
+              high: '51500',
+              low: '50000',
+              close: '51000',
+              volume: '150',
+            },
+          ],
+        };
+
+        // Mock provider to have a clientService with fetchHistoricalCandles method
+        const mockClientService = {
+          fetchHistoricalCandles: jest.fn().mockResolvedValue(mockCandleData),
+        };
+
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        (mockHyperLiquidProvider as any).clientService = mockClientService;
+
+        await controller.initializeProviders();
+
+        // Act
+        const result = await controller.fetchHistoricalCandles(
+          'BTC',
+          '1h',
+          100,
+        );
+
+        // Assert
+        expect(result).toEqual(mockCandleData);
+        expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+          'BTC',
+          '1h',
+          100,
+        );
+      });
+    });
+
+    it('should handle errors when fetching historical candles', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const errorMessage = 'Failed to fetch historical candles';
+        const mockClientService = {
+          fetchHistoricalCandles: jest
+            .fn()
+            .mockRejectedValue(new Error(errorMessage)),
+        };
+
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        (mockHyperLiquidProvider as any).clientService = mockClientService;
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        await expect(
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
+        ).rejects.toThrow(errorMessage);
+        expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+          'BTC',
+          '1h',
+          100,
+        );
+      });
+    });
+
+    it('should throw error when provider does not support historical candles', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        // Don't add clientService to simulate unsupported provider
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        await expect(
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
+        ).rejects.toThrow(
+          'Historical candles not supported by current provider',
+        );
+      });
+    });
+
+    it('should throw error when controller not initialized', async () => {
+      withController(async ({ controller }) => {
+        // Arrange - don't initialize the controller
+        (controller as any).isInitialized = false;
+
+        // Act & Assert
+        await expect(
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
+        ).rejects.toThrow(
+          'PerpsController not initialized. Call initialize() first.',
+        );
+      });
+    });
+
+    it('should handle different intervals and limits', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockCandleData = {
+          coin: 'ETH',
+          interval: '15m',
+          candles: [],
+        };
+
+        const mockClientService = {
+          fetchHistoricalCandles: jest.fn().mockResolvedValue(mockCandleData),
+        };
+
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        (mockHyperLiquidProvider as any).clientService = mockClientService;
+
+        await controller.initializeProviders();
+
+        // Act
+        const result = await controller.fetchHistoricalCandles(
+          'ETH',
+          '15m',
+          50,
+        );
+
+        // Assert
+        expect(result).toEqual(mockCandleData);
+        expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+          'ETH',
+          '15m',
+          50,
+        );
+      });
+    });
+  });
 });

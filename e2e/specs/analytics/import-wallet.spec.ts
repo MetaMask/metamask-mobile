@@ -163,6 +163,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           () =>
             Assertions.checkIfObjectsMatch(walletImportedEvent.properties, {
               biometrics_enabled: false,
+              password_strength: 'good',
             }),
           'Wallet Imported event properties do not match expected values',
         );

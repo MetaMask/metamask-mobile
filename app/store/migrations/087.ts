@@ -19,7 +19,9 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    if ( !hasProperty(state.engine.backgroundState, 'SeedlessOnboardingController')) {
+    if (
+      !hasProperty(state.engine.backgroundState, 'SeedlessOnboardingController')
+    ) {
       // migrate seedless onboarding state with default values
       state.engine.backgroundState.SeedlessOnboardingController = {
         socialBackupsMetadata: [],
