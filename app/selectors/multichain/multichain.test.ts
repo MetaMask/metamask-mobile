@@ -25,10 +25,7 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
-import {
-  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  MULTICHAIN_NETWORK_TICKER,
-} from '@metamask/multichain-network-controller';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const BTC_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Mainnet].nativeCurrency;
@@ -92,13 +89,13 @@ function getEvmState(
         MultichainBalancesController: {
           balances: {
             [mockBtcAccount.id]: {
-              [MULTICHAIN_NETWORK_TICKER[BtcScope.Mainnet]]: {
+              [BTC_NATIVE_CURRENCY]: {
                 amount: '1.00000000',
                 unit: 'BTC',
               },
             },
             [mockBtcTestnetAccount.id]: {
-              [MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet]]: {
+              [BTC_TESTNET_NATIVE_CURRENCY]: {
                 amount: '2.00000000',
                 unit: 'tBTC',
               },
@@ -363,12 +360,12 @@ describe('MultichainNonEvm Selectors', () => {
 
     it.each([
       {
-        network: 'mainnet',
+        network: 'Bitcoin',
         account: MOCK_ACCOUNT_BIP122_P2WPKH,
         asset: BTC_NATIVE_CURRENCY,
       },
       {
-        network: 'testnet',
+        network: 'Bitcoin Testnet',
         account: MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
         asset: BTC_TESTNET_NATIVE_CURRENCY,
       },
@@ -394,8 +391,7 @@ describe('MultichainNonEvm Selectors', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
       state.engine.backgroundState.MultichainBalancesController.balances = {
         [MOCK_SOLANA_ACCOUNT.id]: {
-          [AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Mainnet]
-            .nativeCurrency]: {
+          [SOL_NATIVE_CURRENCY]: {
             amount: mockSolBalance,
             unit: 'SOL',
           },
