@@ -38,7 +38,7 @@ import {
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
@@ -553,7 +553,10 @@ const mapStateToProps = (state, ownProps) => ({
     : selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRate(state),
+  conversionRate: selectConversionRateByChainId(
+    state,
+    ownProps.transactionObject.chainId,
+  ),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),

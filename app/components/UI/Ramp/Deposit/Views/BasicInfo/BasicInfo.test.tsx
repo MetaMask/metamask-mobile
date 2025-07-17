@@ -128,7 +128,7 @@ describe('BasicInfo Component', () => {
     render(BasicInfo);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your basic info',
+        title: 'Verify your identity',
       }),
     );
   });

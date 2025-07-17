@@ -17,7 +17,7 @@ export default function useSubmitBridgeTx() {
         ...quoteResponse,
         approval: quoteResponse.approval ?? undefined,
       },
-      stxEnabled
+      stxEnabled,
     );
 
     return txResult;

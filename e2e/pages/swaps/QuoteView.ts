@@ -27,21 +27,23 @@ class QuoteView {
   }
 
   get searchToken(): TypableElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN) as TypableElement;
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.SEARCH_TOKEN,
+    ) as TypableElement;
   }
 
   get maxSlippage(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
   }
 
- async enterSwapAmount(amount: string) {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button, {
-      delayBeforeTap: 500,
-    });
+  async enterSwapAmount(amount: string) {
+    for (const digit of amount) {
+      const button = Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button, {
+        delayBeforeTap: 500,
+      });
+    }
   }
-}
 
   async tapOnSelectSourceToken() {
     await Gestures.waitAndTap(this.sourceToken, {

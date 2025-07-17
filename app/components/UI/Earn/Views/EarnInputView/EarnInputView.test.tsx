@@ -1504,9 +1504,9 @@ describe('EarnInputView', () => {
       });
 
       it('calls trace with EarnDepositSpendingCapScreen when allowance increase is needed', async () => {
-        const mockGetLendingTokenAllowance = jest.fn().mockResolvedValue(
-          new BigNumber('0'),
-        );
+        const mockGetLendingTokenAllowance = jest
+          .fn()
+          .mockResolvedValue(new BigNumber('0'));
         (
           Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
         ).mockImplementation(mockGetLendingTokenAllowance);
@@ -1532,9 +1532,9 @@ describe('EarnInputView', () => {
       });
 
       it('calls trace with EarnDepositReviewScreen when no allowance increase is needed', async () => {
-        const mockGetLendingTokenAllowance = jest.fn().mockResolvedValue(
-          new BigNumber('1000000000000000000'),
-        );
+        const mockGetLendingTokenAllowance = jest
+          .fn()
+          .mockResolvedValue(new BigNumber('1000000000000000000'));
         (
           Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
         ).mockImplementation(mockGetLendingTokenAllowance);

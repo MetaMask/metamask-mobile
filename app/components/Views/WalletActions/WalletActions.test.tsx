@@ -169,14 +169,14 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../selectors/featureFlagController/deposit', () => ({
-  selectDepositEntrypointWalletActions: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
+
+jest.mock('../../UI/Ramp/Deposit/hooks/useDepositEnabled', () =>
+  jest.fn().mockReturnValue({ isDepositEnabled: true }),
+);
 
 jest.mock('../../../core/AppConstants', () => {
   const actual = jest.requireActual('../../../core/AppConstants');
