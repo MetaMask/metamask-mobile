@@ -2,7 +2,14 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { StyleProp, TextInput, View, ViewStyle } from 'react-native';
+import {
+  StyleProp,
+  TextInput,
+  View,
+  ViewStyle,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
+} from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks';
@@ -54,9 +61,7 @@ const TextField = React.forwardRef<
     });
 
     const onBlurHandler = useCallback(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (e: any) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(false);
           onBlur?.(e);
@@ -66,9 +71,7 @@ const TextField = React.forwardRef<
     );
 
     const onFocusHandler = useCallback(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (e: any) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);

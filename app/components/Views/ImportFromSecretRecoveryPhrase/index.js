@@ -13,7 +13,6 @@ import {
   Keyboard,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
