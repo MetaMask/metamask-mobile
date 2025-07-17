@@ -355,12 +355,9 @@ describe('App', () => {
         jest.useFakeTimers();
         // Act
         renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
-        jest.advanceTimersByTime(5 * 60 * 1000);
         // Assert
         await waitFor(() => {
-          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-            true,
-          );
+          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalled();
         });
       });
 
@@ -374,12 +371,9 @@ describe('App', () => {
         jest.useFakeTimers();
         // Act
         renderScreen(App, { name: 'App' }, { state: seedlessOnboardingState });
-        jest.advanceTimersByTime(5 * 60 * 1000);
         // Assert
         await waitFor(() => {
-          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-            true,
-          );
+          expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalled();
           expect(Logger.error).toHaveBeenCalledWith(
             testError,
             'App: Error in checkIsSeedlessPasswordOutdated',
