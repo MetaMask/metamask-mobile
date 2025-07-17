@@ -17,6 +17,7 @@ import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
+import AdditionalVerification from '../Views/AdditionalVerification';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
@@ -106,6 +107,11 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.DEPOSIT.BANK_DETAILS}
       component={BankDetails}
+      options={getAnimationOptions}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ADDITIONAL_VERIFICATION}
+      component={AdditionalVerification}
       options={getAnimationOptions}
     />
   </Stack.Navigator>
