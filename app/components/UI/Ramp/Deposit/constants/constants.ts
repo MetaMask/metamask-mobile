@@ -54,8 +54,4 @@ export const VALIDATION_REGEX = {
   postCode: /^(?!\s*$).+/,
 };
 
-export const TRANSAK_GEOLOCATION_ENDPOINT = 'fiat/public/v1/get/country';
-
-export const TRANSAK_API_URL = 'https://api.transak.com';
-
 export const REDIRECTION_URL = 'https://metamask.io/';

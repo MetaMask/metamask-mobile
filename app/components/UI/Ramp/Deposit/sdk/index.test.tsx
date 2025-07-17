@@ -6,6 +6,7 @@ import {
   DepositSDKContext,
   DepositSDKProvider,
   useDepositSDK,
+  DepositSDKNoAuth,
 } from '.';
 import { DEPOSIT_REGIONS } from '../constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -15,8 +16,6 @@ import {
   NativeRampsSdk,
   TransakEnvironment,
 } from '@consensys/native-ramps-sdk';
-
-import { getGeolocation } from '../utils/geolocation';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -29,10 +28,6 @@ jest.mock('../utils/ProviderTokenVault', () => ({
     .fn()
     .mockResolvedValue({ success: false, token: null }),
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
-}));
-
-jest.mock('../utils/geolocation', () => ({
-  getGeolocation: jest.fn(),
 }));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -87,6 +82,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    getGeolocation: jest.fn(),
   })),
 }));
 
@@ -370,7 +366,7 @@ describe('Deposit SDK Context', () => {
   });
 
   describe('Geolocation Effect', () => {
-    const mockGetGeolocation = jest.mocked(getGeolocation);
+    const mockGetGeolocation = jest.mocked(DepositSDKNoAuth.getGeolocation);
 
     beforeEach(() => {
       jest.clearAllMocks();
