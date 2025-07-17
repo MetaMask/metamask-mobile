@@ -29,6 +29,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController, SeedlessOnboardingController } = Engine.context;
   const { setSelectedAddress } = Engine;
@@ -36,20 +37,23 @@ export const recreateVaultWithNewPassword = async (
   let seedlessChangePasswordError = null;
   await KeyringController.changePassword(newPassword);
 
-  try {
-    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+  if (
+    !skipSeedlessOnboardingPWChange &&
+    selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+  ) {
+    try {
       await SeedlessOnboardingController.changePassword(newPassword, password);
-    }
-  } catch (error) {
-    seedlessChangePasswordError = new SeedlessOnboardingControllerError(
-      error || 'Password change failed',
-      SeedlessOnboardingControllerErrorType.ChangePasswordError,
-    );
+    } catch (error) {
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error || 'Password change failed',
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
 
-    captureException(seedlessChangePasswordError);
-    // restore the vault with the old password
-    await KeyringController.changePassword(password);
-    throw seedlessChangePasswordError;
+      captureException(seedlessChangePasswordError);
+      // restore the vault with the old password
+      await KeyringController.changePassword(password);
+      throw seedlessChangePasswordError;
+    }
   }
 
   setSelectedAddress(selectedAddress);

@@ -49,7 +49,10 @@ export type UrlAutocompleteRef = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FuseSearchResult = {
-  category: UrlAutocompleteCategory.Sites | UrlAutocompleteCategory.Recents | UrlAutocompleteCategory.Favorites;
+  category:
+    | UrlAutocompleteCategory.Sites
+    | UrlAutocompleteCategory.Recents
+    | UrlAutocompleteCategory.Favorites;
   url: string;
   name: string;
 };

@@ -14,6 +14,7 @@ import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
 import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
 import { TraceName } from '../../../../../../../util/trace';
+import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
 
 const StakingDeposit = () => {
   useNavbar(strings('stake.stake'));
@@ -48,6 +49,7 @@ const StakingDeposit = () => {
   }, [trackPageViewedEvent, setConfirmationMetric]);
 
   useEndTraceOnMount(TraceName.EarnDepositConfirmationScreen);
+  useStakingTransactionTracing();
 
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });

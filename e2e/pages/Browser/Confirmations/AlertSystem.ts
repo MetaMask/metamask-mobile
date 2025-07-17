@@ -1,5 +1,12 @@
 import Matchers from '../../../utils/Matchers';
-import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText, AlertTypeIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import {
+  AlertModalSelectorsIDs,
+  AlertModalSelectorsText,
+  ConfirmAlertModalSelectorsIDs,
+  ConfirmationTopSheetSelectorsIDs,
+  ConfirmationTopSheetSelectorsText,
+  AlertTypeIDs,
+} from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Gestures from '../../../utils/Gestures';
 
 class AlertSystem {
@@ -10,11 +17,15 @@ class AlertSystem {
   }
 
   get securityAlertResponseFailedBanner() {
-    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE);
+    return Matchers.getElementByText(
+      ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
+    );
   }
 
   get securityAlertResponseMaliciousBanner() {
-    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE);
+    return Matchers.getElementByText(
+      ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
+    );
   }
 
   get inlineAlert() {
@@ -22,13 +33,13 @@ class AlertSystem {
   }
 
   get alertMismatchTitle() {
-    return Matchers.getElementByText(AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE);
+    return Matchers.getElementByText(
+      AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
+    );
   }
 
   get acknowledgeAlertModal() {
-    return Matchers.getElementByID(
-      AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX,
-    );
+    return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
   get gotItAlertModalButton() {
