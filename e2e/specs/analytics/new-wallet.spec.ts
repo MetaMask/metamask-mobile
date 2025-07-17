@@ -74,12 +74,15 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         const walletCreationAttemptedEvent = events.find(
           (event) => event.event === 'Wallet Creation Attempted',
         );
+        const walletCreatedEvent = events.find(
+          (event) => event.event === 'Wallet Created',
+        );
         const walletSetupCompletedEvent = events.find(
           (event) => event.event === 'Wallet Setup Completed',
         );
 
         const checkEventCount = softAssert.checkAndCollect(
-          () => Assertions.checkIfArrayHasLength(events, 6),
+          () => Assertions.checkIfArrayHasLength(events, 7),
           'Expected 6 events for new wallet onboarding',
         );
 
@@ -138,6 +141,15 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           'Wallet Creation Attempted: Should be present with correct properties',
         );
 
+        const checkWalletCreated = softAssert.checkAndCollect(async () => {
+
+          Assertions.checkIfValueIsDefined(walletCreatedEvent);
+          Assertions.checkIfObjectsMatch(walletCreatedEvent!.properties, {
+            biometrics_enabled: false,
+            password_strength: 'weak',
+          });
+        }, 'Wallet Created: Should be present with correct properties');
+
         const checkWalletSetupCompleted = softAssert.checkAndCollect(
           async () => {
             Assertions.checkIfValueIsDefined(walletSetupCompletedEvent);
@@ -160,6 +172,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           checkOnboardingStarted,
           checkWalletSetupStarted,
           checkWalletCreationAttempted,
+          checkWalletCreated,
           checkWalletSetupCompleted,
         ]);
 
