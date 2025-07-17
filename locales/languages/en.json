@@ -353,6 +353,7 @@
   "choose_password": {
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
+    "description_social_login": "Use this for wallet recovery on all devices.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
     "confirm_password": "Confirm password",
