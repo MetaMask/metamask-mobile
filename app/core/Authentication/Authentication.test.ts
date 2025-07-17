@@ -990,6 +990,10 @@ describe('Authentication', () => {
         }),
       } as unknown as ReduxStore);
 
+      jest.mock('../../selectors/seedlessOnboardingController', () => ({
+        selectSeedlessOnboardingLoginFlow: jest.fn().mockResolvedValue(true),
+      }));
+
       const resetGenericPasswordSpy = jest
         .spyOn(SecureKeychain, 'resetGenericPassword')
         .mockImplementation(() => Promise.resolve(true));
