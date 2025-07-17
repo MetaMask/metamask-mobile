@@ -255,7 +255,8 @@ const SmartTransactionStatus = ({
   onConfirm,
 }: Props) => {
   const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
-  const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
+  const latestSmartTransaction =
+    smartTransactions[smartTransactions.length - 1];
 
   // For swaps, read transaction data directly from SmartTransactionsController
   // since swap flow doesn't use the standard STX approval flow
@@ -268,7 +269,7 @@ const SmartTransactionStatus = ({
   // Stable creationTime fallback for swaps (latestSmartTransaction may lack creationTime)
   const effectiveCreationTime = useMemo(() => {
     if (creationTime) return creationTime;
-    
+
     return isStxPending ? Date.now() : undefined;
   }, [creationTime, isStxPending]);
 

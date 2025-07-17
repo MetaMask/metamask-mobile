@@ -351,7 +351,6 @@ describe(SmokeTrade('Off-Ramp'), () => {
       ];
     }
 
-
     await Promise.all([...baseAssertions, ...conditionalAssertions]);
 
     softAssert.throwIfErrors();

@@ -119,7 +119,9 @@ describe('Utilities.executeWithRetry', () => {
 
   describe('Timeout and maxRetries scenarios', () => {
     it('should fail after timeout is exceeded', async () => {
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValue(new Error('Persistent failure'));
 
       const options: RetryOptions = {
         timeout: 200,
@@ -128,7 +130,9 @@ describe('Utilities.executeWithRetry', () => {
         elemDescription: 'test element',
       };
 
-      await expect(Utilities.executeWithRetry(mockOperation, options)).rejects.toThrow(
+      await expect(
+        Utilities.executeWithRetry(mockOperation, options),
+      ).rejects.toThrow(
         /test operation failed after \d+ attempt\(s\) over \d+ms/,
       );
 
@@ -136,7 +140,9 @@ describe('Utilities.executeWithRetry', () => {
     });
 
     it('should fail after maxRetries is exceeded', async () => {
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValue(new Error('Persistent failure'));
 
       const options: RetryOptions = {
         timeout: 10000,
@@ -146,9 +152,9 @@ describe('Utilities.executeWithRetry', () => {
         elemDescription: 'test element',
       };
 
-      await expect(Utilities.executeWithRetry(mockOperation, options)).rejects.toThrow(
-        /test operation failed after 3 attempt\(s\)/,
-      );
+      await expect(
+        Utilities.executeWithRetry(mockOperation, options),
+      ).rejects.toThrow(/test operation failed after 3 attempt\(s\)/);
 
       expect(mockOperation).toHaveBeenCalledTimes(3);
     });

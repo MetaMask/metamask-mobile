@@ -3,7 +3,10 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useInitialSourceToken } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
-import { selectBridgeViewMode, setSourceToken } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBridgeViewMode,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -28,15 +31,21 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 });
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
-    selectEvmNetworkConfigurationsByChainId: jest.fn(actual.selectEvmNetworkConfigurationsByChainId),
+    selectEvmNetworkConfigurationsByChainId: jest.fn(
+      actual.selectEvmNetworkConfigurationsByChainId,
+    ),
   };
 });
 
 jest.mock('../../../../../selectors/selectedNetworkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/selectedNetworkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/selectedNetworkController',
+  );
   return {
     ...actual,
     useNetworkInfo: jest.fn(actual.useNetworkInfo),
@@ -44,7 +53,9 @@ jest.mock('../../../../../selectors/selectedNetworkController', () => {
 });
 
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => {
-  const actual = jest.requireActual('../../../../Views/NetworkSelector/useSwitchNetworks');
+  const actual = jest.requireActual(
+    '../../../../Views/NetworkSelector/useSwitchNetworks',
+  );
   return {
     ...actual,
     useSwitchNetworks: jest.fn(actual.useSwitchNetworks),
@@ -94,14 +105,18 @@ describe('useInitialSourceToken', () => {
     (useNetworkInfo as unknown as jest.Mock).mockReturnValue(mockNetworkInfo);
 
     // Mock switch networks
-    (useSwitchNetworks as unknown as jest.Mock).mockReturnValue(mockSwitchNetworks);
+    (useSwitchNetworks as unknown as jest.Mock).mockReturnValue(
+      mockSwitchNetworks,
+    );
 
     // Mock native asset
     (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
   });
 
   it('should set native token as source token when no initial token is provided', async () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Bridge);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Bridge,
+    );
 
     renderHookWithProvider(() => useInitialSourceToken(undefined), {
       state: initialState,
@@ -128,7 +143,9 @@ describe('useInitialSourceToken', () => {
       chainId: mockChainId,
     };
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
 
     renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
@@ -148,7 +165,9 @@ describe('useInitialSourceToken', () => {
       chainId: mockChainId,
     };
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
 
     renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
@@ -185,9 +204,13 @@ describe('useInitialSourceToken', () => {
         label: 'Different Network',
       },
     };
-    (selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock).mockReturnValue(updatedNetworkConfigurations);
+    (
+      selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
+    ).mockReturnValue(updatedNetworkConfigurations);
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
 
     renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
@@ -195,7 +218,9 @@ describe('useInitialSourceToken', () => {
 
     await waitFor(() => {
       expect(setSourceToken).toHaveBeenCalledWith(mockToken);
-      expect(mockSwitchNetworks.onSetRpcTarget).toHaveBeenCalledWith(updatedNetworkConfigurations[differentChainId]);
+      expect(mockSwitchNetworks.onSetRpcTarget).toHaveBeenCalledWith(
+        updatedNetworkConfigurations[differentChainId],
+      );
     });
   });
 
@@ -208,7 +233,9 @@ describe('useInitialSourceToken', () => {
       chainId: mockChainId,
     };
 
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(BridgeViewMode.Swap);
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
 
     renderHookWithProvider(() => useInitialSourceToken(mockToken), {
       state: initialState,
