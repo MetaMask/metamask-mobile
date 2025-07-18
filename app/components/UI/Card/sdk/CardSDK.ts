@@ -30,7 +30,9 @@ export class CardSDK {
   }
 
   get isCardEnabled(): boolean {
-    return this.cardFeatureFlag[`eip155:${this.chainId}`]?.enabled || false;
+    return (
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.enabled || false
+    );
   }
 
   get supportedTokens(): SupportedToken[] {
@@ -38,7 +40,8 @@ export class CardSDK {
       return [];
     }
 
-    const tokens = this.cardFeatureFlag[`eip155:${this.chainId}`]?.tokens;
+    const tokens =
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.tokens;
 
     if (!tokens) {
       return [];
@@ -55,7 +58,8 @@ export class CardSDK {
 
   private get foxConnectAddresses() {
     const foxConnect =
-      this.cardFeatureFlag[`eip155:${this.chainId}`]?.foxConnectAddresses;
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
+        ?.foxConnectAddresses;
 
     if (!foxConnect?.global || !foxConnect?.us) {
       throw new Error(
@@ -76,7 +80,8 @@ export class CardSDK {
 
   private get balanceScannerInstance() {
     const balanceScannerAddress =
-      this.cardFeatureFlag[`eip155:${this.chainId}`]?.balanceScannerAddress;
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
+        ?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
@@ -92,7 +97,7 @@ export class CardSDK {
   }
 
   private get rampApiUrl() {
-    const onRampApi = this.cardFeatureFlag[`eip155:${this.chainId}`]?.onRampApi;
+    const onRampApi = this.cardFeatureFlag.constants?.onRampApiUrl;
 
     if (!onRampApi) {
       throw new Error('On Ramp API URL is not defined for the current chain');
@@ -101,36 +106,44 @@ export class CardSDK {
     return onRampApi;
   }
 
-  // NOTE: This is a temporary implementation until we have the Platform API ready.
-  isCardHolder = async (address: string): Promise<boolean> => {
-    if (!this.isCardEnabled) {
+  private get accountsApiUrl() {
+    const accountsApi = this.cardFeatureFlag.constants?.accountsApiUrl;
+
+    if (!accountsApi) {
+      throw new Error('Accounts API URL is not defined for the current chain');
+    }
+
+    return accountsApi;
+  }
+
+  isCardHolder = async (
+    accounts: `eip155:${string}:0x${string}`[],
+  ): Promise<boolean> => {
+    if (!this.isCardEnabled || !accounts || accounts.length === 0) {
+      return false;
+    }
+
+    if (accounts.length > 50) {
+      Logger.log('isCardHolder called with more than 50 accounts');
       return false;
     }
 
     try {
-      const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-        this.foxConnectAddresses;
+      const url = new URL('v1/metadata', this.accountsApiUrl);
+      url.searchParams.set('accountIds', accounts.join(',').toLowerCase());
+      url.searchParams.set('label', 'card_user');
 
-      // 1. Check if the address is a card holder by calling the balance scanner contract and verify if the FoxConnect contracts has allowances on supported tokens.
-      const spenders = this.supportedTokens.map(() => [
-        foxConnectGlobalAddress,
-        foxConnectUsAddress,
-      ]);
+      const response = await fetch(url);
 
-      const spendersAllowancesForTokens: [boolean, string][][] =
-        await this.balanceScannerInstance.spendersAllowancesForTokens(
-          address,
-          this.supportedTokens.map((token) => token.address),
-          spenders,
-        );
+      if (!response.ok) {
+        throw new Error('Failed to check if address is a card holder');
+      }
 
-      // 2. If any of the allowances is greater than 0, then the address is a card holder.
-      return spendersAllowancesForTokens.some(
-        (allowances) =>
-          Array.isArray(allowances) &&
-          allowances.some(
-            ([, allowance]) => !ethers.BigNumber.from(allowance).isZero(),
-          ),
+      const data = await response.json();
+
+      // Check if the response contains the account ID with 'is' label
+      return accounts.some((account) =>
+        data.is?.includes(account.toLowerCase()),
       );
     } catch (error) {
       Logger.error(
