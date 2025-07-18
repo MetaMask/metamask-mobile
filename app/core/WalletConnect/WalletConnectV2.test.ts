@@ -159,10 +159,6 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
   })),
 }));
 
-jest.mock('./WalletConnect', () => ({
-  newSession: jest.fn().mockResolvedValue({}),
-}));
-
 jest.mock('@walletconnect/core', () => ({
   Core: jest.fn().mockImplementation((opts) => ({
     projectId: opts?.projectId,
