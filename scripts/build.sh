@@ -22,6 +22,7 @@ echo "ENVIRONMENT = $ENVIRONMENT"
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+export EXPO_NO_TYPESCRIPT_SETUP=1
 
 envFileMissing() {
 	FILE="$1"
@@ -211,9 +212,6 @@ loadJSEnv(){
 			source $JS_ENV_FILE
 		fi
 	fi
-	# Disable auto Sentry file upload by default
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
@@ -426,8 +424,6 @@ generateIosBinary() {
 
 # Builds the Main binary for production
 buildIosMainProduction(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
