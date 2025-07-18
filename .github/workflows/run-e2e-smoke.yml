@@ -9,19 +9,6 @@ on:
   pull_request:
     types: [labeled]
 
-env:
-  SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-  SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-  SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-  MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-  MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-  MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT}}
-  MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT}}
-  MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT}}
-  SEGMENT_REGULATIONS_ENDPOINT_QA: ${{secrets.SEGMENT_REGULATIONS_ENDPOINT_QA}}
-  MM_SENTRY_DSN_TEST: ${{secrets.MM_SENTRY_DSN_TEST}}
-  MM_TEST_WALLET_SRP: ${{secrets.MM_TEST_WALLET_SRP}}
-
 jobs:
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
@@ -33,6 +20,7 @@ jobs:
       test_suite_tag: "SmokeConfirmations "
       smoke-category: confirmations
       use_prebuilt_apps: true
+    secrets: inherit
 
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
@@ -44,6 +32,7 @@ jobs:
       test_suite_tag: "SmokeConfirmations "
       smoke-category: confirmations
       use_prebuilt_apps: true
+    secrets: inherit
 
   # smoke-confirmations-redesigned-ios:
   #   name: "Confirmations Redesigned Smoke (iOS)"
