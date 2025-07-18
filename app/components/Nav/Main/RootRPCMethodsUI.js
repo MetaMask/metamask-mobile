@@ -14,7 +14,6 @@ import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -502,12 +501,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  useEffect(() => {
-    return function cleanup() {
+  useEffect(() =>
+     function cleanup() {
       Engine.context.TokensController?.hub?.removeAllListeners();
-    };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  , []);
 
   return (
     <React.Fragment>
