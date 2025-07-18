@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -20,7 +26,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsTrading } from '../../hooks';
 import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
@@ -28,6 +36,7 @@ import {
   PerpsMarketData,
   PerpsMarketListViewProps,
 } from './PerpsMarketListView.types';
+import type { Position } from '../../controllers/types';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -85,6 +94,10 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
     enablePolling: false,
   });
+
+  const { getPositions } = usePerpsTrading();
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [positionsLoading, setPositionsLoading] = useState(false);
 
   const {
     isConnected,
@@ -151,6 +164,31 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
     }
   };
 
+  const loadPositions = useCallback(async () => {
+    console.log('loadPositions');
+    setPositionsLoading(true);
+    try {
+      const positionsData = await getPositions();
+      console.log('positionsData: ', positionsData);
+      setPositions(positionsData || []);
+    } catch (positionsError) {
+      DevLogger.log('Failed to load positions:', positionsError);
+      setPositions([]);
+    } finally {
+      setPositionsLoading(false);
+    }
+  }, [getPositions]);
+
+  // Load positions when positions tab is selected
+  useEffect(() => {
+    if (activeTab === 'positions') {
+      loadPositions();
+    }
+    if (activeTab === 'markets') {
+      setPositions([]);
+    }
+  }, [activeTab, loadPositions]);
+
   const renderMarketList = () => {
     // Skeleton List
     if (filteredMarkets.length === 0 && isLoading) {
@@ -208,6 +246,44 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
           />
         </Animated.View>
       </>
+    );
+  };
+
+  const renderPositionsList = () => {
+    // Loading state
+    if (positionsLoading) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            Loading positions...
+          </Text>
+        </View>
+      );
+    }
+
+    // Empty state
+    if (positions.length === 0) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            No positions found
+          </Text>
+        </View>
+      );
+    }
+
+    // Positions list
+    return (
+      <View style={styles.animatedListContainer}>
+        {positions.map((position, index) => (
+          <PerpsPositionCard
+            key={`${position.coin}-${index}`}
+            position={position}
+            expanded={false}
+            showIcon
+          />
+        ))}
+      </View>
     );
   };
 
@@ -305,7 +381,9 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
             </View>
           </View>
         )}
-        <View style={styles.listContainer}>{renderMarketList()}</View>
+        <View style={styles.listContainer}>
+          {activeTab === 'markets' ? renderMarketList() : renderPositionsList()}
+        </View>
       </View>
     </SafeAreaView>
   );
