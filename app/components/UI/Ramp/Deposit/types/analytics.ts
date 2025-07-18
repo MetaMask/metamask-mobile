@@ -121,6 +121,7 @@ interface RampsKycStarted {
   region: string;
   ramp_type: 'DEPOSIT';
   user_id?: string;
+  kyc_type: string;
 }
 
 interface RampsBasicInfoEntered {

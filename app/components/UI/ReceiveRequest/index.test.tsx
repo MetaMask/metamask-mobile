@@ -5,6 +5,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
+import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 
 const initialState = {
   engine: {
@@ -80,5 +81,27 @@ describe('ReceiveRequest', () => {
       { state },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should not render the request button if the evm network is not selected', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            isEvmSelected: false,
+          },
+        },
+      },
+    };
+    const { queryByTestId } = renderScreen(
+      ReceiveRequest,
+      { name: 'ReceiveRequest' },
+      { state },
+    );
+    expect(
+      queryByTestId(RequestPaymentModalSelectorsIDs.REQUEST_BUTTON),
+    ).toBeNull();
   });
 });

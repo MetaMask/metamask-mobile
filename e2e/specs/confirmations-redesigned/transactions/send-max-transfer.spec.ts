@@ -1,23 +1,25 @@
-import { SmokeConfirmationsRedesigned } from '../../../../tags.js';
-import TestHelpers from '../../../../helpers.js';
-import { loginToApp } from '../../../../viewHelper.js';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
+import TestHelpers from '../../../helpers';
+import { loginToApp } from '../../../viewHelper';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../../../fixtures/fixture-helper.js';
-import { buildPermissions } from '../../../../fixtures/utils.js';
+} from '../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../fixtures/utils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../../api-mocking/mock-responses/simulations.js';
-import Assertions from '../../../../utils/Assertions.js';
-import WalletActionsBottomSheet from '../../../../pages/wallet/WalletActionsBottomSheet.js';
-import FixtureBuilder from '../../../../fixtures/fixture-builder.js';
-import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
-import TabBarComponent from '../../../../pages/wallet/TabBarComponent.js';
-import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions.js';
-import SendView from '../../../../pages/Send/SendView.js';
-import AmountView from '../../../../pages/Send/AmountView.js';
+} from '../../../api-mocking/mock-responses/simulations';
+import Assertions from '../../../utils/Assertions';
+import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
+import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
+import SendView from '../../../pages/Send/SendView';
+import AmountView from '../../../pages/Send/AmountView';
+import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -65,8 +67,13 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
         await AmountView.tapNextButton();
 
-        // Check if the amount is displayed
-        await Assertions.checkIfTextIsDisplayed('1,000 ETH');
+        // Check all expected elements are visible
+        await Assertions.checkIfVisible(
+          ConfirmationUITypes.FlatConfirmationContainer,
+        );
+        await Assertions.checkIfVisible(RowComponents.FromTo);
+        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
+        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();

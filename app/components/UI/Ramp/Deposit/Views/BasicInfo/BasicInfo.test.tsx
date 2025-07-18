@@ -9,6 +9,8 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { timestampToTransakFormat } from '../../utils';
 
+const mockTrackEvent = jest.fn();
+
 const FIXED_DATE = new Date(2024, 0, 1);
 const FIXED_TIMESTAMP = FIXED_DATE.getTime();
 
@@ -46,6 +48,8 @@ jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -76,6 +80,7 @@ describe('BasicInfo Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -128,8 +133,29 @@ describe('BasicInfo Component', () => {
     render(BasicInfo);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your basic info',
+        title: 'Verify your identity',
       }),
     );
+  });
+
+  it('tracks analytics event when continue button is pressed with valid form data', () => {
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BASIC_INFO_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
   });
 });

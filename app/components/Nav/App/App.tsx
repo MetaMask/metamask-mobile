@@ -5,7 +5,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useNavigationState,
+} from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -150,6 +154,9 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import useInterval from '../../hooks/useInterval';
+import { Duration } from '@metamask/utils';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 
 const clearStackNavigatorOptions = {
@@ -893,11 +900,16 @@ const AppFlow = () => {
 const App: React.FC = () => {
   const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const routes = useNavigationState((state) => state.routes);
   const [onboarded, setOnboarded] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
+
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   if (isFirstRender.current) {
     trace({
@@ -914,6 +926,25 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  // periodically check seedless password outdated when app UI is open
+  useInterval(
+    async () => {
+      if (isSeedlessOnboardingLoginFlow) {
+        await Authentication.checkIsSeedlessPasswordOutdated().catch(
+          (error) => {
+            Logger.error(
+              error,
+              'App: Error in checkIsSeedlessPasswordOutdated',
+            );
+          },
+        );
+      }
+    },
+    {
+      delay: Duration.Minute * 5,
+      immediate: true,
+    },
+  );
   const existingUser = useSelector(selectExistingUser);
 
   useEffect(() => {
@@ -921,6 +952,13 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          // Check if we came from Settings screen to skip auto-authentication
+          const previousRoute = routes[routes.length - 2]?.name;
+
+          if (previousRoute === Routes.SETTINGS_VIEW) {
+            return;
+          }
+
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -978,8 +1016,7 @@ const App: React.FC = () => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
     // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation]);
+  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
