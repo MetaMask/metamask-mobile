@@ -434,31 +434,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(loginErrorMessage);
   };
 
-  const performAuthentication = async () => {
-    const authType = await Authentication.componentAuthenticationType(
-      biometryChoice,
-      rememberMe,
-    );
-    if (isSeedlessPasswordOutdated) {
-      await Authentication.submitLatestGlobalSeedlessPassword(
-        password,
-        authType,
-      );
-    } else if (oauthLoginSuccess) {
-      await Authentication.rehydrateSeedPhrase(password, authType);
-    } else {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
-    }
-  };
-
   const onLogin = async () => {
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
