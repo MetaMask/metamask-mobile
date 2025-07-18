@@ -958,7 +958,7 @@ describe('Login', () => {
       );
     });
 
-    it('should trigger ErrorBoundary for OAuth rehydration failures when metrics are enabled', async () => {
+    it('should not trigger ErrorBoundary for OAuth rehydration failures when metrics are enabled', async () => {
       (useMetrics as jest.Mock).mockReturnValue({
         isEnabled: () => true,
         trackEvent: mockTrackEvent,
@@ -985,7 +985,11 @@ describe('Login', () => {
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual('Auth server is down');
-      expect(mockMetricsTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
     });
 
     it('should handle seedless onboarding controller error with remaining time of > 0', async () => {

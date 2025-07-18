@@ -931,7 +931,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('should trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
+    it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
       mockMetricsIsEnabled.mockReturnValueOnce(true);
       const mockNewWalletAndKeychain = jest.spyOn(
         Authentication,

@@ -897,8 +897,8 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValueOnce(true);
+    it('should not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
       const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
