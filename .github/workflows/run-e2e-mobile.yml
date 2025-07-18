@@ -193,7 +193,7 @@ jobs:
 
           echo "✅ iOS environment cleaned"
 
-      - name: Run E2E tests with monitoring
+      - name: Run E2E tests
         run: |
           platform="${{ inputs.platform }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
@@ -217,7 +217,6 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          echo "💾 Starting test execution with monitoring..."
           ./scripts/run-e2e-tags.sh
           
           echo "✅ Test execution completed"
@@ -230,13 +229,7 @@ jobs:
           path: e2e/reports/
           retention-days: 7
       
-      - name: Upload resource monitoring data
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.test-suite-name }}-resources
-          path: monitoring/
-          retention-days: 7
+
       
       - name: Upload screenshots
         if: failure() || cancelled()
