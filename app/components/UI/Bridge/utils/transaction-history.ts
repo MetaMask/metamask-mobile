@@ -8,6 +8,7 @@ import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge'
 import { strings } from '../../../../../locales/i18n';
 import {
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
@@ -223,7 +224,7 @@ export const handleUnifiedSwapsTxHistoryItemClick = (
   });
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
-  if (bridgeTxHistoryItem) {
+  if (bridgeTxHistoryItem && tx.type === TransactionType.bridge) {
     const { attempts } = bridgeTxHistoryItem;
     if (attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.resetAttempts({
