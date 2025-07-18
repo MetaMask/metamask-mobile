@@ -22,10 +22,8 @@ import { useNavigation } from '@react-navigation/native';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
-import {
-  PerpsMarketData,
-  PerpsMarketListViewProps,
-} from './PerpsMarketListView.types';
+import type { PerpsMarketData } from '../../controllers/types';
+import type { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});

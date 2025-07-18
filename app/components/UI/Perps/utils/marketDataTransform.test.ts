@@ -8,8 +8,8 @@ import {
   formatChange,
   formatPercentage,
   formatVolume,
+  HyperLiquidMarketData,
 } from './marketDataTransform';
-import type { HyperLiquidMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
 import { AllMids, PerpsAssetCtx } from '@deeeed/hyperliquid-node20';
 
 // Helper function to create mock asset context with all required properties
