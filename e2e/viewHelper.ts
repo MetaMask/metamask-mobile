@@ -1,5 +1,3 @@
-'use strict';
-
 import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -16,14 +14,11 @@ import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
-
-import TestHelpers from './helpers';
-
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
-import Assertions from './framework/Assertions.ts';
+import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
@@ -35,7 +30,13 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-export const acceptTermOfUse = async () => {
+/**
+ * Accepts the terms of use modal.
+ * @async
+ * @function acceptTermOfUse
+ * @returns {Promise<void>} Resolves when the terms of use modal is accepted.
+ */
+export const acceptTermOfUse: () => Promise<void> = async () => {
   // tap on accept term of use screen
   await Assertions.expectElementToBeVisible(TermsOfUseModal.container, {
     description: 'Terms of Use Modal should be visible',
@@ -54,19 +55,14 @@ export const acceptTermOfUse = async () => {
  * Closes various onboarding modals and dialogs.
  * @async
  * @function closeOnboardingModals
- * @param {('dismiss'|'create'|'viewAccount')} [solanaSheetAction='dismiss'] - Action to take for the Solana feature sheet.
- *   - 'dismiss': Taps "Not now" on the Solana sheet.
- *   - 'create': Taps "Create Account" on the Solana sheet.
- *   - 'viewAccount': Intended to navigate to a view/manage existing account flow for Solana.
+ * @param {boolean} [fromResetWallet=false] - Whether the onboarding is from a reset wallet flow.
+ * @returns {Promise<void>} Resolves when the onboarding modals are closed.
  */
-export const closeOnboardingModals = async (
-  solanaSheetAction = 'dismiss',
-  fromResetWallet = false,
-) => {
-  /*
-These onboarding modals are becoming a bit wild. We need less of these so we don't
-have to have all these workarounds in the tests
-  */
+export const closeOnboardingModals = async (fromResetWallet = false) => {
+  /**
+   * These onboarding modals are becoming a bit wild. We need less of these so we don't
+   * have to have all these workarounds in the tests
+   */
 
   try {
     await Assertions.expectElementToBeVisible(ToastModal.container, {
@@ -90,34 +86,49 @@ have to have all these workarounds in the tests
   }
 };
 
+/**
+ * Skips the notifications device settings alert.
+ * @async
+ * @function skipNotificationsDeviceSettings
+ * @returns {Promise<void>} Resolves when the notifications device settings alert is skipped.
+ * // TODO: Can we fix this try catch logic?
+ */
 export const skipNotificationsDeviceSettings = async () => {
-  await TestHelpers.delay(1000);
-
   try {
-    await Assertions.checkIfVisible(
+    await Assertions.expectElementToBeVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
     await EnableDeviceNotificationsAlert.tapOnEnableDeviceNotificationsButton();
-    await Assertions.checkIfNotVisible(
+    await Assertions.expectElementToNotBeVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
+    // TODO: remove once the logger pr is merged
     /* eslint-disable no-console */
 
     console.log('The notification device alert modal is not visible');
   }
 };
 
-export const dismissProtectYourWalletModal = async () => {
+/**
+ * Dismisses the protect your wallet modal.
+ * @async
+ * @function dismissProtectYourWalletModal
+ * @returns {Promise<void>} Resolves when the protect your wallet modal is dismissed.
+ */
+export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
   try {
-    await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+    await Assertions.expectElementToBeVisible(
+      ProtectYourWalletModal.collapseWalletModal,
+    );
     await ProtectYourWalletModal.tapRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
-    await Assertions.checkIfNotVisible(
+    await Assertions.expectElementToNotBeVisible(
       ProtectYourWalletModal.collapseWalletModal,
     );
   } catch {
+    // TODO: remove once the logger pr is merged
     // eslint-disable-next-line no-console
     console.log('The protect your wallet modal is not visible');
   }
@@ -133,7 +144,6 @@ export const dismissProtectYourWalletModal = async () => {
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
  * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
- * @param {('dismiss'|'create'|'viewAccount')} [options.solanaSheetAction='dismiss'] - Action for the Solana feature sheet.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
 export const importWalletWithRecoveryPhrase = async ({
@@ -141,8 +151,12 @@ export const importWalletWithRecoveryPhrase = async ({
   password,
   optInToMetrics = true,
   fromResetWallet = false,
-  solanaSheetAction = 'dismiss',
-} = {}) => {
+}: {
+  seedPhrase?: string;
+  password?: string;
+  optInToMetrics?: boolean;
+  fromResetWallet?: boolean;
+}) => {
   // tap on import seed phrase button
 
   if (!fromResetWallet) {
@@ -205,7 +219,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
-  await closeOnboardingModals(solanaSheetAction, fromResetWallet);
+  await closeOnboardingModals(fromResetWallet);
 };
 
 /**
@@ -255,36 +269,52 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
-  await Assertions.checkIfVisible(ProtectYourWalletView.container);
+  await Assertions.expectElementToBeVisible(ProtectYourWalletView.container, {
+    description: 'Protect Your Wallet View should be visible',
+  });
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+  // This should be removed once we implement mockAll
   await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+  // This should be removed once we implement mockAll
   await device.enableSynchronization();
-  await TestHelpers.delay(3500);
 
-  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
-  optInToMetrics
-    ? await MetaMetricsOptIn.tapAgreeButton()
-    : await MetaMetricsOptIn.tapNoThanksButton();
+  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+    description: 'MetaMetrics Opt-In should be visible',
+  });
+  if (optInToMetrics) {
+    await MetaMetricsOptIn.tapAgreeButton();
+  } else {
+    await MetaMetricsOptIn.tapNoThanksButton();
+  }
 
-  await Assertions.checkIfVisible(OnboardingSuccessView.container);
+  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
+    description: 'Onboarding Success View should be visible',
+  });
   await OnboardingSuccessView.tapDone();
 
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
 
-  // 'should dismiss the onboarding wizard'
-  // dealing with flakiness on bitrise.
-  await closeOnboardingModals('dismiss');
+  await closeOnboardingModals(false);
 };
 
+/**
+ * Adds the Localhost network to the user's network list.
+ *
+ * @async
+ * @function addLocalhostNetwork
+ * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
+ */
 export const addLocalhostNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-  await Assertions.checkIfVisible(NetworkView.networkContainer);
+  await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
+    description: 'Network Container should be visible',
+  });
 
-  await TestHelpers.delay(3000);
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
@@ -297,36 +327,52 @@ export const addLocalhostNetwork = async () => {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
-  await TestHelpers.delay(3000);
 
-  await Assertions.checkIfVisible(NetworkEducationModal.container);
-  await Assertions.checkIfElementToHaveText(
+  await Assertions.expectElementToBeVisible(NetworkEducationModal.container, {
+    description: 'Network Education Modal should be visible',
+  });
+  await Assertions.expectElementToHaveText(
     NetworkEducationModal.networkName,
     'Localhost',
+    {
+      description: 'Network Name should be Localhost',
+    },
   );
   await NetworkEducationModal.tapGotItButton();
-  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  await Assertions.expectElementToNotBeVisible(
+    NetworkEducationModal.container,
+    {
+      description: 'Network Education Modal should not be visible',
+    },
+  );
 };
 
+/**
+ * Switches to the Sepolia network.
+ *
+ * @async
+ * @function switchToSepoliaNetwork
+ * @returns {Promise<void>} Resolves when the Sepolia network is switched to.
+ */
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.scrollToBottomOfNetworkList();
   await NetworkListModal.tapTestNetworkSwitch();
   await NetworkListModal.scrollToBottomOfNetworkList();
-  await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+  await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
-  await Assertions.checkIfVisible(NetworkEducationModal.container);
-  await Assertions.checkIfElementToHaveText(
+  await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
+  await Assertions.expectElementToHaveText(
     NetworkEducationModal.networkName,
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
-  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  await Assertions.expectElementToNotBeVisible(NetworkEducationModal.container);
   try {
-    await Assertions.checkIfVisible(ToastModal.container);
-    await Assertions.checkIfNotVisible(ToastModal.container);
+    await Assertions.expectElementToBeVisible(ToastModal.container);
+    await Assertions.expectElementToNotBeVisible(ToastModal.container);
   } catch {
     // eslint-disable-next-line no-console
     console.log('Toast is not visible');
@@ -342,31 +388,38 @@ export const switchToSepoliaNetwork = async () => {
  * @returns {Promise<void>} A promise that resolves when the login process is complete.
  * @throws {Error} Throws an error if the login view container or password input is not visible.
  */
-export const loginToApp = async (password) => {
+export const loginToApp = async (password?: string) => {
   const PASSWORD = password ?? '123123123';
-  await Assertions.checkIfVisible(LoginView.container);
-  await Assertions.checkIfVisible(LoginView.passwordInput);
+  await Assertions.expectElementToBeVisible(LoginView.container);
+  await Assertions.expectElementToBeVisible(LoginView.passwordInput);
   await LoginView.enterPassword(PASSWORD);
 };
 
+/**
+ * Waits for the test dapp to load.
+ * @async
+ * @function waitForTestDappToLoad
+ * @returns {Promise<void>} A promise that resolves when the test dapp is loaded.
+ * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
+ */
 export const waitForTestDappToLoad = async () => {
   const MAX_RETRIES = 3;
-  const RETRY_DELAY = 5000;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
+      await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo);
+      await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle);
 
-      await Assertions.webViewElementExists(TestDApp.DappConnectButton);
+      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton);
       return; // Success - page is fully loaded and interactive
     } catch (error) {
       if (attempt === MAX_RETRIES) {
         throw new Error(
-          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+          `Test dapp failed to load after ${MAX_RETRIES} attempts: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
         );
       }
-      await TestHelpers.delay(RETRY_DELAY);
     }
   }
 

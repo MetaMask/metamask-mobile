@@ -1,9 +1,9 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class OnboardingView {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
@@ -13,11 +13,11 @@ class OnboardingView {
     );
   }
 
-  get newWalletButton() {
+  get newWalletButton(): DetoxElement {
     return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
-  async tapCreateWallet() {
+  async tapCreateWallet(): Promise<void> {
     await Gestures.waitAndTap(this.newWalletButton);
   }
 
