@@ -17,7 +17,7 @@ export function PrivacyOverlay() {
 
   useEffect(() => {
     const handleAppStateChange = (action: ExtendedAppStateStatus) => {
-      setShowOverlay((prevOverlayState: boolean) => {
+      setShowOverlay(() => {
         switch (action) {
           case 'background':
           case 'inactive':
@@ -27,7 +27,7 @@ export function PrivacyOverlay() {
           case 'focus':
             return false;
           default:
-            return !prevOverlayState;
+            return false;
         }
       });
     };
