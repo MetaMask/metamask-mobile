@@ -92,6 +92,16 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.bold,
     },
+    firstSectionLabel: {
+      fontSize: 14,
+      paddingVertical: 12,
+      paddingTop: 24,
+      color: colors.text.default,
+      ...fontStyles.bold,
+    },
+    networksWrapper: {
+      marginTop: 12,
+    },
     inputWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -586,7 +596,7 @@ class NetworksSettings extends PureComponent {
             this.filteredResult()
           ) : (
             <>
-              <Text style={styles.sectionLabel}>
+              <Text style={styles.firstSectionLabel}>
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
