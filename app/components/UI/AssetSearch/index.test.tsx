@@ -91,4 +91,72 @@ describe('AssetSearch', () => {
 
     expect(onSearch).toHaveBeenCalled();
   });
+
+  it('should filter tokens for popular networks only when allNetworksEnabled is true', () => {
+    const mockStateWithAllNetworks = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenListController: {
+            tokensChainsCache: {
+              '0x1': {
+                data: {
+                  '0x1tokenAddress': {
+                    address: '0x1tokenAddress',
+                    symbol: 'MAINNET_TOKEN',
+                    chainId: '0x1',
+                  },
+                },
+              },
+              '0x89': {
+                data: {
+                  '0x89tokenAddress': {
+                    address: '0x89tokenAddress',
+                    symbol: 'POLYGON_TOKEN',
+                    chainId: '0x89',
+                  },
+                },
+              },
+              '0x999': {
+                data: {
+                  '0x999tokenAddress': {
+                    address: '0x999tokenAddress',
+                    symbol: 'UNSUPPORTED_TOKEN',
+                    chainId: '0x999',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const mockAssetSearchOnSearch = jest.fn();
+
+    const { getByTestId } = renderWithProvider(
+      <AssetSearch
+        onSearch={mockAssetSearchOnSearch}
+        onFocus={jest.fn()}
+        onBlur={jest.fn()}
+        allNetworksEnabled={true}
+      />,
+      { state: mockStateWithAllNetworks },
+    );
+
+    const searchBar = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+    fireEvent.changeText(searchBar, 'TOKEN');
+
+    // Verify that only tokens from popular networks (mainnet and polygon) are included
+    expect(mockAssetSearchOnSearch).toHaveBeenCalled();
+    const lastCall = mockAssetSearchOnSearch.mock.calls[mockAssetSearchOnSearch.mock.calls.length - 1];
+    const results = lastCall[0].results;
+    
+    // Should include mainnet and polygon tokens but not unsupported network tokens
+    const tokenSymbols = results.map((token: any) => token.symbol);
+    expect(tokenSymbols).toContain('MAINNET_TOKEN');
+    expect(tokenSymbols).toContain('POLYGON_TOKEN');
+    expect(tokenSymbols).not.toContain('UNSUPPORTED_TOKEN');
+  });
 });

@@ -24,6 +24,8 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectChainId } from '../../../selectors/networkController';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,12 +128,30 @@ const AssetSearch = ({
 
   const tokenList = useMemo(() => {
     if (allNetworksEnabled) {
+      // Get popular network chain IDs
+      const popularNetworksChainIds = PopularList.map(
+        (popular) => popular.chainId,
+      );
+      
+      // Include mainnet, linea mainnet, and all popular networks
+      const supportedChainIds = [
+        CHAIN_IDS.MAINNET,
+        CHAIN_IDS.LINEA_MAINNET,
+        ...popularNetworksChainIds,
+      ];
+
       return Object.entries(tokenListForAllChains).flatMap(
-        ([networkId, { data }]) =>
-          Object.values(data).map((item) => ({
+        ([networkId, { data }]) => {
+          // Only include tokens from popular networks
+          if (!supportedChainIds.includes(networkId as Hex)) {
+            return [];
+          }
+          
+          return Object.values(data).map((item) => ({
             ...item,
             chainId: networkId,
-          })),
+          }));
+        },
       );
     }
 
