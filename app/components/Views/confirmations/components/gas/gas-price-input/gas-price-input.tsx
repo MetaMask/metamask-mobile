@@ -9,7 +9,7 @@ import Text, {
 import { strings } from '../../../../../../../locales/i18n';
 import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { convertGasInputToHex } from '../../../utils/gas';
+import { convertGasInputToHexWEI } from '../../../utils/gas';
 import { validateGasPrice } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './gas-price-input.styles';
@@ -38,7 +38,7 @@ export const GasPriceInput = ({
     (text: string) => {
       validateGasPriceCallback(text);
       setValue(text);
-      const updatedGasPrice = convertGasInputToHex(text);
+      const updatedGasPrice = convertGasInputToHexWEI(text);
       onChange(updatedGasPrice);
     },
     [onChange, validateGasPriceCallback],

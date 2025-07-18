@@ -12,7 +12,7 @@ import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { convertGasInputToHex } from '../../../utils/gas';
+import { convertGasInputToHexWEI } from '../../../utils/gas';
 import { validatePriorityFee } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './priority-fee-input.styles';
@@ -64,7 +64,7 @@ export const PriorityFeeInput = ({
     (text: string) => {
       validatePriorityFeeCallback(text);
       setValue(text);
-      const updatedPriorityFee = convertGasInputToHex(text);
+      const updatedPriorityFee = convertGasInputToHexWEI(text);
       onChange(updatedPriorityFee);
     },
     [onChange, validatePriorityFeeCallback],

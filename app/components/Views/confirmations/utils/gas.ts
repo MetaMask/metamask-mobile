@@ -170,7 +170,7 @@ export function normalizeGasInput(value: string) {
   return value.replace(',', '.');
 }
 
-export function convertGasInputToHex(value: string) {
+export function convertGasInputToHexWEI(value: string) {
   const normalizedValue = normalizeGasInput(value);
   return add0x(decGWEIToHexWEI(normalizedValue) as Hex);
 }
