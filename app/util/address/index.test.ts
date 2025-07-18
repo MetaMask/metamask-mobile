@@ -22,6 +22,7 @@ import {
   renderAccountName,
   getTokenDetails,
   areAddressesEqual,
+  FORMATTED_EVM_ADDRESSES_CACHE,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -232,9 +233,23 @@ describe('formatAddress', () => {
 describe('toFormattedAddress', () => {
   describe('with EVM addresses', () => {
     it('returns checksummed address for lowercase input', () => {
-      const input = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const address = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
       const expected = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-      expect(toFormattedAddress(input)).toBe(expected);
+
+      expect(toFormattedAddress(address)).toBe(expected);
+    });
+
+    it('caches formatted addresses', () => {
+      const address = '0x8f8d5756179e229Dd344Ef9a83CF413CCD69053B';
+
+      const cacheSize = FORMATTED_EVM_ADDRESSES_CACHE.size;
+      const formattedAddress = toFormattedAddress(address);
+
+      // New formatted address, means new cache entry.
+      const cacheAddressKey = address.toLowerCase();
+      expect(FORMATTED_EVM_ADDRESSES_CACHE.size).toBe(cacheSize + 1);
+      expect(FORMATTED_EVM_ADDRESSES_CACHE.has(cacheAddressKey)).toBe(true);
+      expect(FORMATTED_EVM_ADDRESSES_CACHE.get(cacheAddressKey)).toStrictEqual(formattedAddress);
     });
   });
 
@@ -242,6 +257,16 @@ describe('toFormattedAddress', () => {
     it('returns original address without modification', () => {
       const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       expect(toFormattedAddress(address)).toBe(address);
+    });
+
+    it('does not cache formatted addresses', () => {
+      const address = 'DphAa9aQdzRSacjh5czkapALbVDZS4Q4iMctE3wbr3c4';
+
+      const cacheSize = FORMATTED_EVM_ADDRESSES_CACHE.size;
+      toFormattedAddress(address);
+
+      expect(FORMATTED_EVM_ADDRESSES_CACHE.size).toBe(cacheSize); // No cache size change.
+      expect(FORMATTED_EVM_ADDRESSES_CACHE.has(address)).toBe(false);
     });
   });
 });

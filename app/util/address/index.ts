@@ -50,6 +50,12 @@ import { EntropySourceId } from '@metamask/keyring-api';
 const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
+
+/**
+ * Cache for EVM formatted address which uses lower-cased addresses as keys.
+ */
+export const FORMATTED_EVM_ADDRESSES_CACHE = new Map<string, string>();
+
 /**
  * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  *
@@ -91,7 +97,29 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function toFormattedAddress(address: string) {
-  return isEthAddress(address) ? toChecksumHexAddress(address) : address;
+  if (isEthAddress(address)) {
+    // We only cache formatted address for Ethereum, cause all non-EVM address are left
+    // untouched.
+
+    // We can safely use `.toLowerCase` for EVM addresses.
+    const cacheAddressKey = address.toLowerCase();
+    const cachedFormattedAddress = FORMATTED_EVM_ADDRESSES_CACHE.get(cacheAddressKey);
+    if (cachedFormattedAddress !== undefined) {
+      return cachedFormattedAddress; // No computation needed, just use the cache.
+    }
+
+    // Save it to the cache.
+    // NOTE: For now, we have no limit on the cache size, but using a LRU cache might
+    // make more sense if we have to handle too many addresses. Anyway, this cache will get
+    // reset everytime the app boots, so we that should be ok for now.
+    const formattedAddress = toChecksumHexAddress(address);
+    FORMATTED_EVM_ADDRESSES_CACHE.set(cacheAddressKey, formattedAddress);
+
+    return formattedAddress;
+  }
+
+  // Non-EVM addresses are considered case-sensitives.
+  return address;
 }
 
 /**
