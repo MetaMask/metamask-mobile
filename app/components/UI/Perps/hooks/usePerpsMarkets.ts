@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import Logger from '../../../../util/Logger';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
 
@@ -73,7 +73,7 @@ export const usePerpsMarkets = (
       setError(null);
 
       try {
-        Logger.log('Perps: Fetching market data from active provider...');
+        DevLogger.log('Perps: Fetching market data from active provider...');
 
         // Get the active provider via PerpsController
         const controller = Engine.context.PerpsController;
@@ -84,14 +84,17 @@ export const usePerpsMarkets = (
 
         setMarkets(marketDataWithPrices);
 
-        Logger.log('Perps: Successfully fetched and transformed market data', {
-          marketCount: marketDataWithPrices.length,
-        });
+        DevLogger.log(
+          'Perps: Successfully fetched and transformed market data',
+          {
+            marketCount: marketDataWithPrices.length,
+          },
+        );
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
-        Logger.log('Perps: Failed to fetch market data', err);
+        DevLogger.log('Perps: Failed to fetch market data', err);
 
         // Keep existing data on error to prevent UI flash
         setMarkets((currentMarkets) => {
