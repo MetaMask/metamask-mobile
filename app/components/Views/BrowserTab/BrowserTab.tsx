@@ -997,25 +997,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
 
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        let hostname = '' // notifyAllConnections will return empty array if ''
         try {
-          // Get permitted accounts for the target URL
-          const permissionsControllerState =
-            Engine.context.PermissionController.state;
-          const hostname = new URLParse(urlToCheck).hostname;
-          const permittedAcc = getPermittedEvmAddressesByHostname(
-            permissionsControllerState,
-            hostname,
-          );
-
-          notifyAllConnections({
-            method: NOTIFICATION_NAMES.accountsChanged,
-            params: permittedAcc,
-          });
+          hostname = new URLParse(urlToCheck).hostname;
         } catch (err) {
-          Logger.log(err);
+          Logger.log('Error parsing WebView URL', err);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      },
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          hostname,
+        );
+  
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
+        },
       [notifyAllConnections],
     );
 
