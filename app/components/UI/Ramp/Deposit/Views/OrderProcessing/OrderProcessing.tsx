@@ -113,8 +113,12 @@ const OrderProcessing = () => {
         if (isCompleted) {
           trackEvent('RAMPS_TRANSACTION_COMPLETED', {
             ...baseAnalyticsData,
-            gas_fee: Number(order.data.networkFees),
-            processing_fee: Number(order.data.partnerFees),
+            gas_fee: order.data.networkFees
+              ? Number(order.data.networkFees)
+              : 0,
+            processing_fee: order.data.partnerFees
+              ? Number(order.data.partnerFees)
+              : 0,
             total_fee: Number(order.data.totalFeesFiat),
           });
         } else if (isFailed) {
