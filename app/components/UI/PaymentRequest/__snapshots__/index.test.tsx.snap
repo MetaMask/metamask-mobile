@@ -85,7 +85,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#9ca1af",
+                  "color": "#b7bbc8",
                   "fontSize": 18,
                 },
                 {
@@ -112,7 +112,7 @@ exports[`PaymentRequest renders correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search assets"
-            placeholderTextColor="#9ca1af"
+            placeholderTextColor="#b7bbc8"
             returnKeyType="go"
             style={
               [
@@ -629,7 +629,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             style={
               [
                 {
-                  "color": "#9ca1af",
+                  "color": "#b7bbc8",
                   "fontSize": 18,
                 },
                 {
@@ -656,7 +656,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search assets"
-            placeholderTextColor="#9ca1af"
+            placeholderTextColor="#b7bbc8"
             returnKeyType="go"
             style={
               [
