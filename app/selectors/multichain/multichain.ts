@@ -328,7 +328,12 @@ export const getMultichainNetworkAggregatedBalance = (
         : new BigNumber(0);
     fiatBalances[assetId] = balanceInFiat.toString();
 
-    if (MULTICHAIN_NETWORK_TO_ASSET_TYPES[chainId]?.[0] !== undefined) {
+    if (assetId === MULTICHAIN_NETWORK_TO_ASSET_TYPES[chainId]?.[0]) {
+      console.log(
+        MULTICHAIN_NETWORK_TO_ASSET_TYPES[chainId]?.[0],
+        chainId,
+        balance,
+      );
       totalNativeTokenBalance = balance;
     }
 
