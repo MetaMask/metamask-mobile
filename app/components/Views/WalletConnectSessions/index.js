@@ -14,7 +14,6 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -159,8 +158,6 @@ export default class WalletConnectSessions extends PureComponent {
         await (
           await WC2Manager.getInstance()
         )?.removeSession(this.sessionToRemove);
-      } else {
-        await WalletConnect.killSession(this.sessionToRemove.peerId);
       }
 
       Alert.alert(

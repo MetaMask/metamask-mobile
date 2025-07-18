@@ -14,7 +14,6 @@ import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -138,10 +137,6 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const initializeWalletConnect = () => {
-    WalletConnect.init();
-  };
 
   const trackSwaps = useCallback(
     async (event, transactionMeta, swapsTransactions) => {
@@ -506,15 +501,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  useEffect(() => {
-    initializeWalletConnect();
-
-    return function cleanup() {
+  useEffect(() =>
+     function cleanup() {
       Engine.context.TokensController?.hub?.removeAllListeners();
-      WalletConnect?.hub?.removeAllListeners();
-    };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  , []);
 
   return (
     <React.Fragment>

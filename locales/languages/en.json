@@ -3248,6 +3248,10 @@
     "session_already_exist": "This session is already connected.",
     "close_current_session": "Close the current session before starting a new one."
   },
+  "walletcoonnect_v1_alert": {
+    "title": "WalletConnect v1 is no longer supported",
+    "message": "The dApp you are trying to connect to is using WalletConnect v1, which is no longer supported."
+  },
   "paymentRequest": {
     "title": "PAYMENT REQUEST",
     "title_complete": "PAYMENT COMPLETE",
